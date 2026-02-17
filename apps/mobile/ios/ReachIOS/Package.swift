@@ -1,6 +1,8 @@
 // swift-tools-version: 5.9
 import PackageDescription
 
+let reachVersion = "0.2.0"
+
 let package = Package(
     name: "ReachIOS",
     platforms: [.iOS(.v16)],

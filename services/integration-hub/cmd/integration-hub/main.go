@@ -13,6 +13,8 @@ import (
 	"reach/services/integration-hub/internal/storage"
 )
 
+var version = "dev"
+
 func main() {
 	dbPath := getenv("INTEGRATION_HUB_DB", "integration-hub.db")
 	encKey := os.Getenv("INTEGRATION_HUB_ENCRYPTION_KEY")
@@ -42,7 +44,7 @@ func main() {
 		"jira":   {Provider: "jira", ClientID: getenv("JIRA_CLIENT_ID", ""), Secret: getenv("JIRA_CLIENT_SECRET", ""), RedirectURI: getenv("JIRA_REDIRECT_URI", "http://localhost:8090/v1/integrations/jira/oauth/callback"), Scopes: []string{"read:jira-work", "write:jira-work"}},
 	}
 
-	server := api.NewServer(store, cipher, router.NewTriggerDispatcher(getenv("RUNNER_INTERNAL_URL", "http://localhost:8080")), clients)
+	server := api.NewServer(store, cipher, router.NewTriggerDispatcher(getenv("RUNNER_INTERNAL_URL", "http://localhost:8080")), clients, version)
 	addr := getenv("INTEGRATION_HUB_ADDR", ":8090")
 	log.Printf("integration hub listening on %s", addr)
 	log.Fatal(http.ListenAndServe(addr, server.Routes()))

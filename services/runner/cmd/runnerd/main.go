@@ -9,6 +9,8 @@ import (
 	"reach/services/runner/internal/storage"
 )
 
+var version = "dev"
+
 func main() {
 	addr := os.Getenv("RUNNER_ADDR")
 	if addr == "" {
@@ -23,7 +25,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.Close()
-	server := api.NewServer(db)
+	server := api.NewServer(db, version)
 	log.Printf("runner listening on %s", addr)
 	if err := http.ListenAndServe(addr, server.Handler()); err != nil {
 		log.Fatal(err)

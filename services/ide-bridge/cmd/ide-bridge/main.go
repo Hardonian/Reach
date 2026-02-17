@@ -11,6 +11,8 @@ import (
 	"github.com/reach/ide-bridge/internal/bridge"
 )
 
+var version = "dev"
+
 func main() {
 	var (
 		bindAddr      = flag.String("bind", envOrDefault("IDE_BRIDGE_BIND", "127.0.0.1:7878"), "bind address for IDE bridge")
@@ -25,6 +27,7 @@ func main() {
 		AuthToken:     *authToken,
 		RunnerBaseURL: *runnerBaseURL,
 		Logger:        logger,
+		Version:       version,
 	})
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

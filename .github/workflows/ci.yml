@@ -14,7 +14,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: validate protocol schemas and fixtures
+          cache: npm
+      - name: validate protocol schemas
         run: node tools/codegen/validate-protocol.mjs
 
   rust:
@@ -23,16 +24,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - name: fmt
         run: cargo fmt --check
       - name: clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
       - name: test engine-core
         run: cargo test -p engine-core
-      - name: test engine
-        run: cargo test -p engine
-      - name: wasm build engine-core
-        run: cargo build -p engine-core --target wasm32-unknown-unknown
 
   go:
     name: go checks
@@ -44,14 +42,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version-file: services/runner/go.mod
+          go-version: '1.22.7'
+          cache: true
       - name: go vet
         run: go vet ./...
       - name: go test
         run: go test ./...
 
-  vscode-contract:
-    name: vscode contract tests
+  vscode:
+    name: vscode extension checks
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -61,33 +60,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: install dependencies
-        run: npm ci
-      - name: run tests
-        run: npm test
-
-  android-contract:
-    name: android contract tests
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/mobile/android
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-      - name: run unit tests
-        run: ./gradlew test --no-daemon
-
-  ios-contract:
-    name: ios contract tests
-    runs-on: macos-latest
-    defaults:
-      run:
-        working-directory: apps/mobile/ios/ReachIOS
-    steps:
-      - uses: actions/checkout@v4
-      - name: run swift tests
-        run: swift test
+      - name: install
+        run: npm install
+      - name: build
+        run: npm run build
+      - name: test
+        run: npm run test

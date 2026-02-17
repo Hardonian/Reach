@@ -2,7 +2,7 @@
   "name": "reach-vscode",
   "displayName": "Reach IDE Bridge",
   "description": "VS Code extension for synchronizing context and applying patches from Reach IDE Bridge",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "reach",
   "engines": {
     "vscode": "^1.90.0"

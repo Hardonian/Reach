@@ -16,20 +16,30 @@ import (
 )
 
 type Server struct {
-	store  *store.SyncStore
-	secret []byte
+	store   *store.SyncStore
+	secret  []byte
+	version string
 }
 
-func New(s *store.SyncStore) *Server {
+func New(s *store.SyncStore, version string) *Server {
 	secret := []byte(os.Getenv("DEVICE_SIGNING_SECRET"))
 	if len(secret) == 0 {
 		secret = []byte("dev-device-secret")
 	}
-	return &Server{store: s, secret: secret}
+	if strings.TrimSpace(version) == "" {
+		version = "dev"
+	}
+	return &Server{store: s, secret: secret, version: version}
 }
 
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "version": s.version})
+	})
+	mux.HandleFunc("GET /version", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]any{"version": s.version})
+	})
 	mux.HandleFunc("POST /v1/devices/register", s.handleRegisterDevice)
 	mux.HandleFunc("POST /v1/capsules/sync", s.handleSync)
 	mux.HandleFunc("GET /v1/capsules/{session_id}", s.handleGet)

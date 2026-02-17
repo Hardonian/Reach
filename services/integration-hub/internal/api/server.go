@@ -19,6 +19,7 @@ import (
 )
 
 type Server struct {
+	version    string
 	store      *storage.Store
 	cipher     *security.Cipher
 	dispatcher *router.TriggerDispatcher
@@ -26,12 +27,19 @@ type Server struct {
 	limiter    *security.Limiter
 }
 
-func NewServer(store *storage.Store, cipher *security.Cipher, dispatcher *router.TriggerDispatcher, clients map[string]core.OAuthClient) *Server {
-	return &Server{store: store, cipher: cipher, dispatcher: dispatcher, clients: clients, limiter: security.NewLimiter(120, time.Minute)}
+func NewServer(store *storage.Store, cipher *security.Cipher, dispatcher *router.TriggerDispatcher, clients map[string]core.OAuthClient, version string) *Server {
+	if strings.TrimSpace(version) == "" {
+		version = "dev"
+	}
+	return &Server{version: version, store: store, cipher: cipher, dispatcher: dispatcher, clients: clients, limiter: security.NewLimiter(120, time.Minute)}
 }
 
 func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, map[string]any{"status": "ok", "version": s.version})
+	})
+	mux.HandleFunc("GET /version", func(w http.ResponseWriter, _ *http.Request) { writeJSON(w, map[string]any{"version": s.version}) })
 	mux.HandleFunc("GET /v1/integrations", s.listIntegrations)
 	mux.HandleFunc("GET /v1/events", s.listEvents)
 	mux.HandleFunc("GET /v1/audit", s.listAudit)
