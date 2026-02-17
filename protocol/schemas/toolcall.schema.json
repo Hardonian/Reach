@@ -8,25 +8,41 @@
       "oneOf": [
         {
           "properties": {
-            "capability": { "const": "tool_use" },
+            "capability": {
+              "const": "tool_use"
+            },
             "value": {
               "type": "object",
               "properties": {
-                "name": { "type": "string" }
+                "name": {
+                  "type": "string"
+                }
               },
-              "required": ["name"],
+              "required": [
+                "name"
+              ],
               "additionalProperties": false
             }
           },
-          "required": ["capability", "value"],
+          "required": [
+            "capability",
+            "value"
+          ],
           "additionalProperties": false
         },
         {
           "properties": {
-            "capability": { "const": "emit_artifact" },
-            "value": { "type": "null" }
+            "capability": {
+              "const": "emit_artifact"
+            },
+            "value": {
+              "type": "null"
+            }
           },
-          "required": ["capability", "value"],
+          "required": [
+            "capability",
+            "value"
+          ],
           "additionalProperties": false
         }
       ]
@@ -34,28 +50,65 @@
     "ToolCall": {
       "type": "object",
       "properties": {
-        "step_id": { "type": "string" },
-        "tool_name": { "type": "string" },
+        "step_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
         "required_capabilities": {
           "type": "array",
-          "items": { "$ref": "#/$defs/Capability" }
+          "items": {
+            "$ref": "#/$defs/Capability"
+          }
         },
         "input": {}
       },
-      "required": ["step_id", "tool_name", "required_capabilities", "input"],
+      "required": [
+        "step_id",
+        "tool_name",
+        "required_capabilities",
+        "input"
+      ],
       "additionalProperties": false
     },
     "ToolResult": {
       "type": "object",
       "properties": {
-        "step_id": { "type": "string" },
-        "tool_name": { "type": "string" },
+        "step_id": {
+          "type": "string"
+        },
+        "tool_name": {
+          "type": "string"
+        },
         "output": {},
-        "success": { "type": "boolean" },
-        "error": { "type": ["string", "null"] }
+        "success": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       },
-      "required": ["step_id", "tool_name", "output", "success", "error"],
+      "required": [
+        "step_id",
+        "tool_name",
+        "output",
+        "success",
+        "error"
+      ],
       "additionalProperties": false
     }
-  }
+  },
+  "type": "object",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/ToolCall"
+    },
+    {
+      "$ref": "#/$defs/ToolResult"
+    }
+  ]
 }

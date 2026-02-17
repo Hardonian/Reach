@@ -54,3 +54,13 @@ GitHub Actions runs:
 - Go vet/tests.
 
 See `.github/workflows/ci.yml`.
+
+## Platform hardening additions
+
+- Multi-tenant runner sessions (`/auth/login`, `/auth/callback`, `/auth/dev-login`) with tenant-scoped run storage.
+- SQLite-backed persistence for runs/events/audit/sessions with startup migrations in `services/runner/internal/storage/migrations`.
+- Plugin manifest signing + verification (`tools/sign-plugin/sign-plugin.sh`, `POST /v1/plugins/verify`).
+- Resumable SSE event streaming via `Last-Event-ID`.
+- Privacy-preserving observability (structured request logs, counters, redaction).
+
+See also: `SECURITY_MODEL.md`, `CAPABILITY_SYSTEM.md`, `PLUGIN_SIGNING.md`, `RUN_CAPSULES_REPLAY.md`.

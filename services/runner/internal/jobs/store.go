@@ -1,17 +1,21 @@
 package jobs
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"reach/services/runner/internal/storage"
 )
 
 var ErrRunNotFound = errors.New("run not found")
 var ErrCapabilityDenied = errors.New("capability denied")
 
 type Event struct {
+	ID        int64
 	Type      string
 	Payload   []byte
 	CreatedAt time.Time
@@ -19,147 +23,123 @@ type Event struct {
 
 type Run struct {
 	ID           string
+	TenantID     string
 	Capabilities map[string]struct{}
-	Events       chan Event
-	ID          string
-	Events      chan Event
-	History     []Event
-	EngineState []byte
-	mu          sync.RWMutex
 }
 
 type Store struct {
-	mu      sync.RWMutex
-	runs    map[string]*Run
+	runs    storage.RunsStore
+	events  storage.EventsStore
+	audit   storage.AuditStore
 	counter atomic.Uint64
-	audit   AuditLogger
+	subMu   sync.RWMutex
+	subs    map[string][]chan Event
 }
 
-func NewStore(audit AuditLogger) *Store {
-	return &Store{runs: make(map[string]*Run), audit: audit}
+func NewStore(db *storage.SQLiteStore) *Store {
+	return &Store{runs: db, events: db, audit: db, subs: map[string][]chan Event{}}
 }
 
-func (s *Store) CreateRun(requestID string, capabilities []string) *Run {
+func (s *Store) CreateRun(ctx context.Context, tenantID string, capabilities []string) (*Run, error) {
 	id := fmt.Sprintf("run-%06d", s.counter.Add(1))
-	capSet := make(map[string]struct{}, len(capabilities))
-	for _, capability := range capabilities {
-		capSet[capability] = struct{}{}
+	r := storage.RunRecord{ID: id, TenantID: tenantID, Capabilities: capabilities, CreatedAt: time.Now().UTC(), Status: "created"}
+	if err := s.runs.CreateRun(ctx, r); err != nil {
+		return nil, err
 	}
-	r := &Run{
-		ID:           id,
-		Capabilities: capSet,
-		Events:       make(chan Event, 32),
-		ID:      id,
-		Events:  make(chan Event, 32),
-		History: make([]Event, 0, 32),
-	}
-
-	s.mu.Lock()
-	s.runs[id] = r
-	s.mu.Unlock()
-
-	_ = s.Audit(id, requestID, "run.created", map[string]any{"capabilities": capabilities})
-	_ = s.PublishEvent(id, Event{Type: "run.created", Payload: []byte(`{"status":"created"}`), CreatedAt: time.Now().UTC()}, requestID)
-	return r
+	body := []byte(`{"status":"created"}`)
+	_, _ = s.AppendEvent(ctx, tenantID, id, Event{Type: "run.created", Payload: body, CreatedAt: time.Now().UTC()})
+	return &Run{ID: id, TenantID: tenantID, Capabilities: toCapSet(capabilities)}, nil
 }
 
-func (s *Store) GetRun(id string) (*Run, error) {
-	s.mu.RLock()
-	r, ok := s.runs[id]
-	s.mu.RUnlock()
-	if !ok {
+func toCapSet(c []string) map[string]struct{} {
+	m := map[string]struct{}{}
+	for _, v := range c {
+		m[v] = struct{}{}
+	}
+	return m
+}
+
+func (s *Store) GetRun(ctx context.Context, tenantID, id string) (*Run, error) {
+	r, err := s.runs.GetRun(ctx, tenantID, id)
+	if errors.Is(err, storage.ErrNotFound) {
 		return nil, ErrRunNotFound
 	}
-	return r, nil
+	if err != nil {
+		return nil, err
+	}
+	return &Run{ID: r.ID, TenantID: r.TenantID, Capabilities: toCapSet(r.Capabilities)}, nil
 }
 
-func (s *Store) CheckCapabilities(id string, required []string) error {
-	r, err := s.GetRun(id)
+func (s *Store) CheckCapabilities(ctx context.Context, tenantID, id string, required []string) error {
+	r, err := s.GetRun(ctx, tenantID, id)
 	if err != nil {
 		return err
 	}
-	for _, capability := range required {
-		if _, ok := r.Capabilities[capability]; !ok {
-			return fmt.Errorf("%w: %s", ErrCapabilityDenied, capability)
+	for _, c := range required {
+		if _, ok := r.Capabilities[c]; !ok {
+			return fmt.Errorf("%w: %s", ErrCapabilityDenied, c)
 		}
 	}
 	return nil
 }
 
-func (s *Store) PublishEvent(id string, evt Event, requestID string) error {
-	r, err := s.GetRun(id)
+func (s *Store) AppendEvent(ctx context.Context, tenantID, runID string, evt Event) (int64, error) {
+	id, err := s.events.AppendEvent(ctx, storage.EventRecord{RunID: runID, Type: evt.Type, Payload: evt.Payload, CreatedAt: evt.CreatedAt})
 	if err != nil {
-		return err
+		return 0, err
 	}
-	r.mu.Lock()
-	r.History = append(r.History, evt)
-	r.mu.Unlock()
-
-	select {
-	case r.Events <- evt:
-	default:
-		<-r.Events
-		r.Events <- evt
+	evt.ID = id
+	s.subMu.RLock()
+	subs := append([]chan Event(nil), s.subs[runID]...)
+	s.subMu.RUnlock()
+	for _, ch := range subs {
+		select {
+		case ch <- evt:
+		default:
+		}
 	}
-	_ = s.Audit(id, requestID, "event.emitted", map[string]any{"type": evt.Type, "created_at": evt.CreatedAt})
-	return nil
+	return id, nil
 }
 
-func (s *Store) Audit(runID, requestID, typ string, payload map[string]any) error {
-	if s.audit == nil {
-		return nil
-	}
-	return s.audit.Append(AuditEntry{
-		RunID:     runID,
-		RequestID: requestID,
-		Timestamp: time.Now().UTC(),
-		Type:      typ,
-		Payload:   payload,
-	})
-}
-
-func (s *Store) ListAudit(runID string) ([]AuditEntry, error) {
-	if _, err := s.GetRun(runID); err != nil {
-		return nil, err
-	}
-	if s.audit == nil {
-		return []AuditEntry{}, nil
-	}
-	return s.audit.List(runID)
-func (s *Store) EventHistory(id string) ([]Event, error) {
-	r, err := s.GetRun(id)
+func (s *Store) EventHistory(ctx context.Context, tenantID, runID string, afterID int64) ([]Event, error) {
+	rec, err := s.events.ListEvents(ctx, tenantID, runID, afterID)
 	if err != nil {
 		return nil, err
 	}
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	out := make([]Event, len(r.History))
-	copy(out, r.History)
+	out := make([]Event, len(rec))
+	for i, r := range rec {
+		out[i] = Event{ID: r.ID, Type: r.Type, Payload: r.Payload, CreatedAt: r.CreatedAt}
+	}
 	return out, nil
 }
 
-func (s *Store) SetEngineState(id string, state []byte) error {
-	r, err := s.GetRun(id)
-	if err != nil {
-		return err
+func (s *Store) Subscribe(runID string) (<-chan Event, func()) {
+	ch := make(chan Event, 32)
+	s.subMu.Lock()
+	s.subs[runID] = append(s.subs[runID], ch)
+	s.subMu.Unlock()
+	return ch, func() {
+		s.subMu.Lock()
+		defer s.subMu.Unlock()
+		close(ch)
+		cur := s.subs[runID]
+		out := cur[:0]
+		for _, c := range cur {
+			if c != ch {
+				out = append(out, c)
+			}
+		}
+		if len(out) == 0 {
+			delete(s.subs, runID)
+		} else {
+			s.subs[runID] = out
+		}
 	}
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.EngineState = append([]byte(nil), state...)
-	return nil
 }
 
-func (s *Store) EngineState(id string) ([]byte, error) {
-	r, err := s.GetRun(id)
-	if err != nil {
-		return nil, err
-	}
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	if len(r.EngineState) == 0 {
-		return nil, nil
-	}
-	state := make([]byte, len(r.EngineState))
-	copy(state, r.EngineState)
-	return state, nil
+func (s *Store) Audit(ctx context.Context, tenantID, runID, typ string, payload []byte) error {
+	return s.audit.AppendAudit(ctx, storage.AuditRecord{TenantID: tenantID, RunID: runID, Type: typ, Payload: payload, CreatedAt: time.Now().UTC()})
+}
+func (s *Store) ListAudit(ctx context.Context, tenantID, runID string) ([]storage.AuditRecord, error) {
+	return s.audit.ListAudit(ctx, tenantID, runID)
 }

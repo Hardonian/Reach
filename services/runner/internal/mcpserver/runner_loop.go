@@ -9,8 +9,9 @@ import (
 )
 
 type RunLoop struct {
-	Server *Server
-	Store  *jobs.Store
+	Server   *Server
+	Store    *jobs.Store
+	TenantID string
 }
 
 func (r *RunLoop) InvokeTool(ctx context.Context, runID string, tool string, args map[string]any) error {
@@ -30,9 +31,7 @@ func (r *RunLoop) InvokeTool(ctx context.Context, runID string, tool string, arg
 		evtType = "tool.error"
 	}
 	if r.Store != nil {
-		if publishErr := r.Store.PublishEvent(runID, jobs.Event{Type: evtType, Payload: body, CreatedAt: time.Now().UTC()}); publishErr != nil {
-			return publishErr
-		}
+		_, _ = r.Store.AppendEvent(ctx, r.TenantID, runID, jobs.Event{Type: evtType, Payload: body, CreatedAt: time.Now().UTC()})
 	}
 	return err
 }

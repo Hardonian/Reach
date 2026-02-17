@@ -2,266 +2,242 @@ package api
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
 
-	"reach/services/runner/internal/engineclient"
 	"reach/services/runner/internal/jobs"
+	"reach/services/runner/internal/plugins"
+	"reach/services/runner/internal/storage"
 )
 
+type ctxKey string
+
+const tenantKey ctxKey = "tenant"
+
 type Server struct {
-	store          *jobs.Store
-	requestCounter atomic.Uint64
-	store  *jobs.Store
-	engine *engineclient.Client
+	store                                                                  *jobs.Store
+	sql                                                                    *storage.SQLiteStore
+	requestCounter                                                         atomic.Uint64
+	runsCreated, toolCalls, denials, approvals, failures, exports, imports atomic.Uint64
 }
 
-func NewServer(store *jobs.Store) *Server {
-	return &Server{store: store, engine: engineclient.New("")}
-}
+func NewServer(db *storage.SQLiteStore) *Server { return &Server{store: jobs.NewStore(db), sql: db} }
 
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /v1/runs", s.handleCreateRun)
-	mux.HandleFunc("GET /v1/runs/{id}/events", s.handleStreamEvents)
-	mux.HandleFunc("POST /v1/runs/{id}/tool-result", s.handleToolResult)
-	mux.HandleFunc("GET /v1/runs/{id}/audit", s.handleGetAudit)
-	return mux
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) { writeJSON(w, 200, map[string]string{"status": "ok"}) })
+	mux.HandleFunc("GET /auth/login", s.handleLogin)
+	mux.HandleFunc("GET /auth/callback", s.handleCallback)
+	mux.HandleFunc("POST /auth/dev-login", s.handleDevLogin)
+	mux.HandleFunc("POST /auth/logout", s.handleLogout)
+	mux.Handle("POST /v1/runs", s.requireAuth(http.HandlerFunc(s.handleCreateRun)))
+	mux.Handle("GET /v1/runs/{id}/events", s.requireAuth(http.HandlerFunc(s.handleStreamEvents)))
+	mux.Handle("POST /v1/runs/{id}/tool-result", s.requireAuth(http.HandlerFunc(s.handleToolResult)))
+	mux.Handle("GET /v1/runs/{id}/audit", s.requireAuth(http.HandlerFunc(s.handleGetAudit)))
+	mux.Handle("GET /v1/metrics", s.requireAuth(http.HandlerFunc(s.handleMetrics)))
+	mux.Handle("POST /v1/plugins/verify", s.requireAuth(http.HandlerFunc(s.handleVerifyPlugin)))
+	return s.withRequestLogging(mux)
+}
+
+func (s *Server) requireAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		c, err := r.Cookie("reach_session")
+		if err != nil {
+			writeError(w, 401, "auth required")
+			return
+		}
+		sess, err := s.sql.GetSession(r.Context(), c.Value)
+		if err != nil || sess.ExpiresAt.Before(time.Now()) {
+			writeError(w, 401, "invalid session")
+			return
+		}
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), tenantKey, sess.TenantID)))
+	})
+}
+
+func tenantIDFrom(ctx context.Context) string { v, _ := ctx.Value(tenantKey).(string); return v }
+
+func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
+	clientID := os.Getenv("GITHUB_CLIENT_ID")
+	redirect := os.Getenv("GITHUB_REDIRECT_URL")
+	if clientID == "" || redirect == "" {
+		writeError(w, 503, "github oauth is not configured")
+		return
+	}
+	state := s.randomID("state")
+	http.Redirect(w, r, fmt.Sprintf("https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s&scope=read:user&state=%s", clientID, redirect, state), http.StatusFound)
+}
+func (s *Server) handleCallback(w http.ResponseWriter, r *http.Request) {
+	if strings.TrimSpace(r.URL.Query().Get("code")) == "" {
+		writeError(w, 400, "missing code")
+		return
+	}
+	user := "gh-" + hashID(r.URL.Query().Get("code"))
+	s.setSession(w, r.Context(), user, user)
+	writeJSON(w, 200, map[string]string{"tenant_id": user})
+}
+func (s *Server) handleDevLogin(w http.ResponseWriter, r *http.Request) {
+	if os.Getenv("ENV") == "prod" {
+		writeError(w, 403, "disabled in prod")
+		return
+	}
+	uid := os.Getenv("DEV_USER_ID")
+	if uid == "" {
+		uid = "dev-user"
+	}
+	s.setSession(w, r.Context(), uid, uid)
+	writeJSON(w, 200, map[string]string{"tenant_id": uid})
+}
+func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
+	c, err := r.Cookie("reach_session")
+	if err == nil {
+		_ = s.sql.DeleteSession(r.Context(), c.Value)
+	}
+	http.SetCookie(w, &http.Cookie{Name: "reach_session", Value: "", Path: "/", MaxAge: -1, HttpOnly: true})
+	writeJSON(w, 200, map[string]string{"status": "logged_out"})
+}
+func (s *Server) setSession(w http.ResponseWriter, ctx context.Context, tenantID, userID string) {
+	sid := s.randomID("sess")
+	now := time.Now().UTC()
+	_ = s.sql.PutSession(ctx, storage.SessionRecord{ID: sid, TenantID: tenantID, UserID: userID, CreatedAt: now, ExpiresAt: now.Add(24 * time.Hour)})
+	http.SetCookie(w, &http.Cookie{Name: "reach_session", Value: sid, Path: "/", HttpOnly: true, SameSite: http.SameSiteLaxMode})
 }
 
 func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
-	requestID := s.requestID(r)
+	tenantID := tenantIDFrom(r.Context())
 	var body struct {
 		Capabilities []string `json:"capabilities"`
 	}
 	if r.Body != nil {
 		_ = json.NewDecoder(r.Body).Decode(&body)
 	}
-	run := s.store.CreateRun(requestID, body.Capabilities)
-	writeJSON(w, http.StatusCreated, map[string]string{"run_id": run.ID, "request_id": requestID})
-type createRunRequest struct {
-	Workflow  json.RawMessage `json:"workflow"`
-	Initiator string          `json:"initiator"`
-}
-
-func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
-	var req createRunRequest
-	if r.Body != nil {
-		_ = json.NewDecoder(r.Body).Decode(&req)
-	}
-	if len(req.Workflow) == 0 {
-		req.Workflow = defaultWorkflow()
-	}
-	if req.Initiator == "" {
-		req.Initiator = "runner.api"
-	}
-
-	ctx, cancel := context.WithTimeout(r.Context(), 20*time.Second)
-	defer cancel()
-
-	compiled, err := s.engine.CompileWorkflow(ctx, req.Workflow)
+	run, err := s.store.CreateRun(r.Context(), tenantID, body.Capabilities)
 	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
+		writeError(w, 500, err.Error())
 		return
 	}
-
-	run := s.store.CreateRun()
-	handle, events, err := s.engine.StartRun(ctx, run.ID, compiled, req.Initiator)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	if err := s.store.SetEngineState(run.ID, handle); err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	if err := s.publishEngineEvents(run.ID, events); err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	if err := s.advanceRun(ctx, run.ID); err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	writeJSON(w, http.StatusCreated, map[string]string{"run_id": run.ID})
+	s.runsCreated.Add(1)
+	writeJSON(w, 201, map[string]string{"run_id": run.ID, "tenant_id": tenantID, "request_id": s.requestID(r)})
 }
 
 func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
-	requestID := s.requestID(r)
-	runID := r.PathValue("id")
-	if runID == "" {
-		writeError(w, http.StatusBadRequest, "missing run id")
-		return
-	}
-
-	if _, err := s.store.GetRun(runID); err != nil {
-		status := http.StatusInternalServerError
-		if errors.Is(err, jobs.ErrRunNotFound) {
-			status = http.StatusNotFound
-		}
-		writeError(w, status, err.Error())
-		return
-	}
-
+	tenantID, runID := tenantIDFrom(r.Context()), r.PathValue("id")
 	var body struct {
 		ToolName             string         `json:"tool_name"`
 		RequiredCapabilities []string       `json:"required_capabilities"`
 		Result               map[string]any `json:"result"`
-		StepID   string          `json:"step_id"`
-		ToolName string          `json:"tool_name"`
-		Output   json.RawMessage `json:"output"`
-		Success  bool            `json:"success"`
-		Error    *string         `json:"error"`
+		Sensitive            bool           `json:"sensitive"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid json")
+		writeError(w, 400, "invalid json")
 		return
 	}
-	if body.ToolName == "" {
-		writeError(w, http.StatusBadRequest, "missing tool_name")
+	if err := s.store.CheckCapabilities(r.Context(), tenantID, runID, body.RequiredCapabilities); err != nil {
+		s.denials.Add(1)
+		writeError(w, 403, err.Error())
 		return
 	}
-
-	_ = s.store.Audit(runID, requestID, "engine.action.requested", map[string]any{
-		"tool_name":             body.ToolName,
-		"required_capabilities": body.RequiredCapabilities,
-	})
-
-	if err := s.store.CheckCapabilities(runID, body.RequiredCapabilities); err != nil {
-		_ = s.store.Audit(runID, requestID, "tool.execution.rejected", map[string]any{"reason": err.Error()})
-		writeError(w, http.StatusForbidden, err.Error())
-		return
+	payload, _ := json.Marshal(map[string]any{"tool_name": body.ToolName, "result": body.Result, "sensitive": body.Sensitive})
+	if body.Sensitive {
+		payload = []byte(`{"tool_name":"` + body.ToolName + `","result":"[REDACTED]","sensitive":true}`)
 	}
-
-	_ = s.store.Audit(runID, requestID, "tool.call.executed", map[string]any{"tool_name": body.ToolName})
-	_ = s.store.Audit(runID, requestID, "tool.result.received", map[string]any{"tool_name": body.ToolName, "result": body.Result})
-	if body.StepID == "" || body.ToolName == "" {
-		writeError(w, http.StatusBadRequest, "missing step_id or tool_name")
-		return
-	}
-	if len(body.Output) == 0 {
-		body.Output = []byte(`{}`)
-	}
-
-	state, err := s.store.EngineState(runID)
+	_, err := s.store.AppendEvent(r.Context(), tenantID, runID, jobs.Event{Type: "tool.result", Payload: payload, CreatedAt: time.Now().UTC()})
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
+		writeError(w, 500, err.Error())
 		return
 	}
-	if len(state) == 0 {
-		writeError(w, http.StatusConflict, "run has no engine state")
-		return
-	}
-
-	if err := s.store.PublishEvent(runID, jobs.Event{Type: "tool.result", Payload: payload, CreatedAt: time.Now().UTC()}, requestID); err != nil {
-	ctx, cancel := context.WithTimeout(r.Context(), 20*time.Second)
-	defer cancel()
-
-	nextState, events, err := s.engine.ApplyToolResult(ctx, runID, state, engineclient.ToolResult{
-		StepID:   body.StepID,
-		ToolName: body.ToolName,
-		Output:   body.Output,
-		Success:  body.Success,
-		Error:    body.Error,
-	})
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	if err := s.store.SetEngineState(runID, nextState); err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	if err := s.publishEngineEvents(runID, events); err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	if err := s.advanceRun(ctx, runID); err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "request_id": requestID})
+	s.toolCalls.Add(1)
+	_ = s.store.Audit(r.Context(), tenantID, runID, "tool.result.received", redact(payload))
+	writeJSON(w, 200, map[string]string{"status": "ok"})
 }
 
 func (s *Server) handleGetAudit(w http.ResponseWriter, r *http.Request) {
-	runID := r.PathValue("id")
-	if runID == "" {
-		writeError(w, http.StatusBadRequest, "missing run id")
-		return
-	}
-
-	entries, err := s.store.ListAudit(runID)
+	entries, err := s.store.ListAudit(r.Context(), tenantIDFrom(r.Context()), r.PathValue("id"))
 	if err != nil {
-		status := http.StatusInternalServerError
-		if errors.Is(err, jobs.ErrRunNotFound) {
-			status = http.StatusNotFound
-		}
-		writeError(w, status, err.Error())
+		writeError(w, 500, err.Error())
 		return
 	}
-
-	writeJSON(w, http.StatusOK, map[string]any{"entries": entries})
+	writeJSON(w, 200, map[string]any{"entries": entries})
 }
 
 func (s *Server) handleStreamEvents(w http.ResponseWriter, r *http.Request) {
-	runID := r.PathValue("id")
-	if runID == "" {
-		writeError(w, http.StatusBadRequest, "missing run id")
-		return
-	}
-
-	run, err := s.store.GetRun(runID)
-	if err != nil {
-		status := http.StatusInternalServerError
-		if errors.Is(err, jobs.ErrRunNotFound) {
-			status = http.StatusNotFound
+	tenantID, runID := tenantIDFrom(r.Context()), r.PathValue("id")
+	after := int64(0)
+	if v := r.Header.Get("Last-Event-ID"); v != "" {
+		if p, err := strconv.ParseInt(v, 10, 64); err == nil {
+			after = p
 		}
-		writeError(w, status, err.Error())
+	}
+	history, err := s.store.EventHistory(r.Context(), tenantID, runID, after)
+	if err != nil {
+		writeError(w, 500, err.Error())
 		return
 	}
-
 	flusher, ok := w.(http.Flusher)
 	if !ok {
-		writeError(w, http.StatusInternalServerError, "streaming unsupported")
+		writeError(w, 500, "streaming unsupported")
 		return
 	}
-
 	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Connection", "keep-alive")
-
-	fmt.Fprintf(w, "event: heartbeat\ndata: {\"status\":\"ok\"}\n\n")
-
-	history, err := s.store.EventHistory(runID)
-	if err == nil {
-		for _, evt := range history {
-			fmt.Fprintf(w, "event: %s\ndata: %s\n\n", sanitizeEventName(evt.Type), evt.Payload)
-		}
+	for _, e := range history {
+		fmt.Fprintf(w, "id: %d\nevent: %s\ndata: %s\n\n", e.ID, e.Type, e.Payload)
 	}
 	flusher.Flush()
-
-	heartbeat := time.NewTicker(15 * time.Second)
-	defer heartbeat.Stop()
-
+	ch, unsub := s.store.Subscribe(runID)
+	defer unsub()
 	for {
 		select {
 		case <-r.Context().Done():
 			return
-		case evt := <-run.Events:
-			fmt.Fprintf(w, "event: %s\ndata: %s\n\n", sanitizeEventName(evt.Type), evt.Payload)
+		case evt := <-ch:
+			fmt.Fprintf(w, "id: %d\nevent: %s\ndata: %s\n\n", evt.ID, evt.Type, evt.Payload)
 			flusher.Flush()
-		case <-heartbeat.C:
-			fmt.Fprintf(w, "event: heartbeat\ndata: {\"status\":\"ok\"}\n\n")
+		case <-time.After(15 * time.Second):
+			fmt.Fprint(w, "event: heartbeat\ndata: {\"status\":\"ok\"}\n\n")
 			flusher.Flush()
 		}
 	}
+}
+
+func (s *Server) handleVerifyPlugin(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		ManifestPath  string `json:"manifest_path"`
+		SignaturePath string `json:"signature_path"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, 400, "invalid json")
+		return
+	}
+	keyFile := os.Getenv("PLUGIN_TRUSTED_KEYS")
+	if keyFile == "" {
+		keyFile = "services/runner/config/trusted_plugin_keys.json"
+	}
+	keyID, err := plugins.VerifyManifest(body.ManifestPath, body.SignaturePath, keyFile, os.Getenv("DEV_ALLOW_UNSIGNED") == "1")
+	status := "verified"
+	if err != nil {
+		status = "rejected"
+		s.denials.Add(1)
+	}
+	auditBody, _ := json.Marshal(map[string]any{"plugin_manifest": body.ManifestPath, "key_id": keyID, "result": status, "error": fmt.Sprint(err)})
+	_ = s.store.Audit(r.Context(), tenantIDFrom(r.Context()), "", "plugin.verify", auditBody)
+	if err != nil {
+		writeError(w, 403, err.Error())
+		return
+	}
+	writeJSON(w, 200, map[string]string{"status": status, "key_id": keyID})
+}
+func (s *Server) handleMetrics(w http.ResponseWriter, _ *http.Request) {
+	writeJSON(w, 200, map[string]uint64{"runs_created": s.runsCreated.Load(), "tool_calls": s.toolCalls.Load(), "denials": s.denials.Load(), "approvals": s.approvals.Load(), "failures": s.failures.Load(), "exports": s.exports.Load(), "imports": s.imports.Load()})
 }
 
 func (s *Server) requestID(r *http.Request) string {
@@ -269,66 +245,30 @@ func (s *Server) requestID(r *http.Request) string {
 		return rid
 	}
 	return fmt.Sprintf("req-%09d", s.requestCounter.Add(1))
-func (s *Server) advanceRun(ctx context.Context, runID string) error {
-	for {
-		state, err := s.store.EngineState(runID)
-		if err != nil {
-			return err
-		}
-		nextState, events, action, err := s.engine.NextAction(ctx, runID, state)
-		if err != nil {
-			return err
-		}
-		if err := s.store.SetEngineState(runID, nextState); err != nil {
-			return err
-		}
-		if err := s.publishEngineEvents(runID, events); err != nil {
-			return err
-		}
-
-		var actionType struct {
-			Type string `json:"type"`
-		}
-		if len(action) == 0 {
-			return nil
-		}
-		if err := json.Unmarshal(action, &actionType); err != nil {
-			return err
-		}
-		if actionType.Type == "done" || actionType.Type == "tool_call" {
-			return nil
-		}
+}
+func (s *Server) withRequestLogging(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rid := s.requestID(r)
+		log.Printf("request method=%s path=%s request_id=%s tenant_id=%s", r.Method, r.URL.Path, rid, tenantIDFrom(r.Context()))
+		next.ServeHTTP(w, r)
+	})
+}
+func (s *Server) randomID(prefix string) string {
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	return prefix + "-" + hex.EncodeToString(b)
+}
+func hashID(v string) string { h := sha256.Sum256([]byte(v)); return hex.EncodeToString(h[:8]) }
+func redact(in []byte) []byte {
+	s := string(in)
+	for _, k := range []string{"token", "secret", "password", "authorization"} {
+		s = strings.ReplaceAll(strings.ToLower(s), k, "[redacted]")
 	}
+	return []byte(s)
 }
-
-func (s *Server) publishEngineEvents(runID string, events []engineclient.Event) error {
-	for _, evt := range events {
-		payload, err := json.Marshal(evt)
-		if err != nil {
-			return err
-		}
-		if err := s.store.PublishEvent(runID, jobs.Event{Type: evt.Type, Payload: payload, CreatedAt: time.Now().UTC()}); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func defaultWorkflow() json.RawMessage {
-	return []byte(`{"id":"default","version":"0.1.0","steps":[{"id":"step-1","kind":{"type":"tool_call","tool":{"name":"echo","description":"Echo input","input_schema":{"type":"object"},"output_schema":{"type":"object"}},"input":{"message":"hello"}}}]}`)
-}
-
-func sanitizeEventName(name string) string {
-	if strings.TrimSpace(name) == "" {
-		return "message"
-	}
-	return strings.ReplaceAll(name, "\n", "")
-}
-
 func writeError(w http.ResponseWriter, code int, message string) {
 	writeJSON(w, code, map[string]string{"error": message})
 }
-
 func writeJSON(w http.ResponseWriter, code int, body any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)

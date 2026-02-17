@@ -20,22 +20,17 @@ func (LogAuditLogger) LogToolInvocation(_ context.Context, entry AuditEntry) {
 }
 
 type StoreAuditLogger struct {
-	Store *jobs.Store
+	Store    *jobs.Store
+	TenantID string
 }
 
-func (l StoreAuditLogger) LogToolInvocation(_ context.Context, entry AuditEntry) {
+func (l StoreAuditLogger) LogToolInvocation(ctx context.Context, entry AuditEntry) {
 	if l.Store == nil || entry.RunID == "" {
 		return
 	}
-	body, err := json.Marshal(map[string]any{
-		"tool":         entry.Tool,
-		"success":      entry.Success,
-		"error":        entry.Error,
-		"capabilities": entry.Capabilities,
-		"timestamp":    entry.Timestamp.Format(time.RFC3339Nano),
-	})
+	body, err := json.Marshal(map[string]any{"tool": entry.Tool, "success": entry.Success, "error": entry.Error, "capabilities": entry.Capabilities, "timestamp": entry.Timestamp.Format(time.RFC3339Nano)})
 	if err != nil {
 		return
 	}
-	_ = l.Store.PublishEvent(entry.RunID, jobs.Event{Type: "tool.audit", Payload: body, CreatedAt: time.Now().UTC()})
+	_ = l.Store.Audit(ctx, l.TenantID, entry.RunID, "tool.audit", body)
 }

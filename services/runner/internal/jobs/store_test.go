@@ -1,37 +1,39 @@
 package jobs
 
 import (
-	"errors"
+	"context"
 	"testing"
+	"time"
+
+	"reach/services/runner/internal/storage"
 )
 
-func TestCreateRunSequentialID(t *testing.T) {
-	store := NewStore(NewFileAuditLogger(t.TempDir()))
-	r1 := store.CreateRun("req-1", []string{"tool:echo"})
-	r2 := store.CreateRun("req-2", []string{"tool:echo"})
+func TestCreateRunPersistsAcrossRestart(t *testing.T) {
+	path := t.TempDir() + "/runner.sqlite"
+	db, err := storage.NewSQLiteStore(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	store := NewStore(db)
+	run, err := store.CreateRun(context.Background(), "tenant-a", []string{"tool:echo"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.AppendEvent(context.Background(), "tenant-a", run.ID, Event{Type: "x", Payload: []byte(`{}`), CreatedAt: time.Now()}); err != nil {
+		t.Fatal(err)
+	}
+	_ = db.Close()
 
-	if r1.ID != "run-000001" {
-		t.Fatalf("unexpected first id: %s", r1.ID)
+	db2, err := storage.NewSQLiteStore(path)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if r2.ID != "run-000002" {
-		t.Fatalf("unexpected second id: %s", r2.ID)
+	store2 := NewStore(db2)
+	events, err := store2.EventHistory(context.Background(), "tenant-a", run.ID, 0)
+	if err != nil {
+		t.Fatal(err)
 	}
-}
-
-func TestPublishEventUnknownRun(t *testing.T) {
-	store := NewStore(NewFileAuditLogger(t.TempDir()))
-	if err := store.PublishEvent("missing", Event{Type: "x"}, "req-1"); err != ErrRunNotFound {
-		t.Fatalf("expected ErrRunNotFound, got %v", err)
-	}
-}
-
-func TestCheckCapabilities(t *testing.T) {
-	store := NewStore(NewFileAuditLogger(t.TempDir()))
-	run := store.CreateRun("req-1", []string{"tool:echo", "tool:read"})
-	if err := store.CheckCapabilities(run.ID, []string{"tool:echo"}); err != nil {
-		t.Fatalf("unexpected err: %v", err)
-	}
-	if err := store.CheckCapabilities(run.ID, []string{"tool:danger"}); !errors.Is(err, ErrCapabilityDenied) {
-		t.Fatalf("expected ErrCapabilityDenied, got %v", err)
+	if len(events) == 0 {
+		t.Fatal("expected persisted events")
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"reach/services/runner/internal/api"
-	"reach/services/runner/internal/jobs"
+	"reach/services/runner/internal/storage"
 )
 
 func main() {
@@ -14,13 +14,16 @@ func main() {
 	if addr == "" {
 		addr = ":8080"
 	}
-
-	auditDir := os.Getenv("RUNNER_AUDIT_DIR")
-	if auditDir == "" {
-		auditDir = ".runner-audit"
+	dbPath := os.Getenv("RUNNER_DB_PATH")
+	if dbPath == "" {
+		dbPath = "data/runner.sqlite"
 	}
-
-	server := api.NewServer(jobs.NewStore(jobs.NewFileAuditLogger(auditDir)))
+	db, err := storage.NewSQLiteStore(dbPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	server := api.NewServer(db)
 	log.Printf("runner listening on %s", addr)
 	if err := http.ListenAndServe(addr, server.Handler()); err != nil {
 		log.Fatal(err)
