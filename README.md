@@ -64,3 +64,6 @@ See `.github/workflows/ci.yml`.
 - Privacy-preserving observability (structured request logs, counters, redaction).
 
 See also: `SECURITY_MODEL.md`, `CAPABILITY_SYSTEM.md`, `PLUGIN_SIGNING.md`, `RUN_CAPSULES_REPLAY.md`.
+
+### iOS shell
+A minimal SwiftUI shell lives in `apps/mobile/ios/ReachIOS` and can be compiled in Xcode for SSE terminal streaming.

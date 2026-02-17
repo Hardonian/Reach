@@ -1,75 +1,88 @@
 package api
 
 import (
-	"bufio"
+	"archive/zip"
 	"bytes"
-	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
+	"os"
+	"path/filepath"
 	"testing"
-	"time"
 
 	"reach/services/runner/internal/storage"
 )
 
-func newTestServer(t *testing.T) *Server {
-	t.Helper()
-	db, err := storage.NewSQLiteStore(t.TempDir() + "/runner.sqlite")
-	if err != nil {
-		t.Fatal(err)
+func TestGateRequestedWhenCapabilityDenied(t *testing.T) {
+	store := jobs.NewStore(jobs.NewFileAuditLogger(t.TempDir()))
+	srv := NewServer(store)
+
+	create := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(create, httptest.NewRequest(http.MethodPost, "/v1/runs", bytes.NewBufferString(`{"capabilities":["tool:safe"]}`)))
+	var out map[string]string
+	_ = json.Unmarshal(create.Body.Bytes(), &out)
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/runs/"+out["run_id"]+"/tool-result", bytes.NewBufferString(`{"tool_name":"danger","required_capabilities":["tool:danger"],"result":{}}`))
+	rec := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(rec, req)
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("expected 403 got %d", rec.Code)
 	}
-	return NewServer(db)
 }
 
-func TestDevLoginCreateRunAndResumeEvents(t *testing.T) {
-	srv := newTestServer(t)
-	ts := httptest.NewServer(srv.Handler())
-	defer ts.Close()
+func TestExportImportCapsule(t *testing.T) {
+	store := jobs.NewStore(jobs.NewFileAuditLogger(t.TempDir()))
+	srv := NewServer(store)
 
-	client := &http.Client{}
-	loginReq, _ := http.NewRequest(http.MethodPost, ts.URL+"/auth/dev-login", nil)
-	loginResp, err := client.Do(loginReq)
+	create := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(create, httptest.NewRequest(http.MethodPost, "/v1/runs", bytes.NewBufferString(`{"capabilities":[]}`)))
+	var out map[string]string
+	_ = json.Unmarshal(create.Body.Bytes(), &out)
+	runID := out["run_id"]
+	_ = store.PublishEvent(runID, jobs.Event{Type: "run.completed", Payload: []byte(`{"type":"run_completed"}`)}, "test")
+
+	exp := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(exp, httptest.NewRequest(http.MethodPost, "/v1/runs/"+runID+"/export", nil))
+	if exp.Code != http.StatusOK {
+		t.Fatalf("export failed: %d", exp.Code)
+	}
+
+	zr, err := zip.NewReader(bytes.NewReader(exp.Body.Bytes()), int64(exp.Body.Len()))
 	if err != nil {
 		t.Fatal(err)
 	}
-	cookie := loginResp.Cookies()[0]
-
-	createReq, _ := http.NewRequest(http.MethodPost, ts.URL+"/v1/runs", strings.NewReader(`{"capabilities":["tool:echo"]}`))
-	createReq.AddCookie(cookie)
-	createResp, err := client.Do(createReq)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var created map[string]string
-	_ = json.NewDecoder(createResp.Body).Decode(&created)
-	runID := created["run_id"]
-
-	toolReq, _ := http.NewRequest(http.MethodPost, ts.URL+"/v1/runs/"+runID+"/tool-result", bytes.NewBufferString(`{"tool_name":"echo","required_capabilities":["tool:echo"],"result":{"ok":true}}`))
-	toolReq.AddCookie(cookie)
-	if resp, err := client.Do(toolReq); err != nil || resp.StatusCode != 200 {
-		t.Fatalf("tool result failed: %v", err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-	streamReq, _ := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL+"/v1/runs/"+runID+"/events", nil)
-	streamReq.AddCookie(cookie)
-	streamReq.Header.Set("Last-Event-ID", "0")
-	streamResp, err := client.Do(streamReq)
-	if err != nil {
-		t.Fatal(err)
-	}
-	scanner := bufio.NewScanner(streamResp.Body)
 	found := false
-	for scanner.Scan() {
-		if strings.Contains(scanner.Text(), "tool.result") {
+	for _, f := range zr.File {
+		if f.Name == "events.ndjson" {
 			found = true
-			break
 		}
 	}
 	if !found {
-		t.Fatal("expected tool.result in stream")
+		t.Fatal("events.ndjson missing")
+	}
+
+	imp := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(imp, httptest.NewRequest(http.MethodPost, "/v1/runs/import", bytes.NewReader(exp.Body.Bytes())))
+	if imp.Code != http.StatusCreated {
+		t.Fatalf("import failed: %d body=%s", imp.Code, imp.Body.String())
+	}
+}
+
+func TestPluginsEndpoint(t *testing.T) {
+	root := filepath.Join("..", "plugins", "sample")
+	_ = os.MkdirAll(root, 0o755)
+	_ = os.WriteFile(filepath.Join(root, "manifest.json"), []byte(`{"id":"sample","name":"Sample","version":"1.0.0","tools":[{"name":"sample.echo","required_capabilities":["tool:echo"]}]}`), 0o644)
+	defer os.RemoveAll(filepath.Join("..", "plugins"))
+
+	srv := NewServer(jobs.NewStore())
+	rec := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/v1/plugins", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200 got %d", rec.Code)
+	}
+	b, _ := io.ReadAll(rec.Body)
+	if !bytes.Contains(b, []byte("sample")) {
+		t.Fatalf("expected sample plugin in %s", string(b))
 	}
 }

@@ -1,5 +1,6 @@
 [workspace]
 members = [
+  "crates/engine-core",
   "crates/engine",
   "crates/ffi/uniffi",
   "crates/ffi/c_abi",

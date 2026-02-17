@@ -5,70 +5,198 @@
   "oneOf": [
     {
       "type": "object",
-      "properties": { "type": { "const": "run_created" } },
-      "required": ["type"],
-      "additionalProperties": false
-    },
-    {
-      "type": "object",
-      "properties": { "type": { "const": "run_started" } },
-      "required": ["type"],
+      "properties": {
+        "type": {
+          "const": "run_created"
+        }
+      },
+      "required": [
+        "type"
+      ],
       "additionalProperties": false
     },
     {
       "type": "object",
       "properties": {
-        "type": { "const": "tool_call_requested" },
-        "step_id": { "type": "string" },
-        "call": { "$ref": "toolcall.schema.json#/$defs/ToolCall" }
+        "type": {
+          "const": "run_started"
+        }
       },
-      "required": ["type", "step_id", "call"],
+      "required": [
+        "type"
+      ],
       "additionalProperties": false
     },
     {
       "type": "object",
       "properties": {
-        "type": { "const": "tool_call_completed" },
-        "step_id": { "type": "string" },
-        "result": { "$ref": "toolcall.schema.json#/$defs/ToolResult" }
+        "type": {
+          "const": "tool_call_requested"
+        },
+        "step_id": {
+          "type": "string"
+        },
+        "call": {
+          "$ref": "toolcall.schema.json#/$defs/ToolCall"
+        }
       },
-      "required": ["type", "step_id", "result"],
+      "required": [
+        "type",
+        "step_id",
+        "call"
+      ],
       "additionalProperties": false
     },
     {
       "type": "object",
       "properties": {
-        "type": { "const": "policy_denied" },
-        "step_id": { "type": "string" },
-        "call": { "$ref": "toolcall.schema.json#/$defs/ToolCall" },
-        "reason": { "type": "string" }
+        "type": {
+          "const": "tool_call_completed"
+        },
+        "step_id": {
+          "type": "string"
+        },
+        "result": {
+          "$ref": "toolcall.schema.json#/$defs/ToolResult"
+        }
       },
-      "required": ["type", "step_id", "call", "reason"],
+      "required": [
+        "type",
+        "step_id",
+        "result"
+      ],
       "additionalProperties": false
     },
     {
       "type": "object",
       "properties": {
-        "type": { "const": "artifact_emitted" },
-        "step_id": { "type": "string" },
-        "patch": { "$ref": "artifact.schema.json#/$defs/Patch" }
+        "type": {
+          "const": "policy_denied"
+        },
+        "step_id": {
+          "type": "string"
+        },
+        "call": {
+          "$ref": "toolcall.schema.json#/$defs/ToolCall"
+        },
+        "reason": {
+          "type": "string"
+        }
       },
-      "required": ["type", "step_id", "patch"],
-      "additionalProperties": false
-    },
-    {
-      "type": "object",
-      "properties": { "type": { "const": "run_completed" } },
-      "required": ["type"],
+      "required": [
+        "type",
+        "step_id",
+        "call",
+        "reason"
+      ],
       "additionalProperties": false
     },
     {
       "type": "object",
       "properties": {
-        "type": { "const": "run_failed" },
-        "reason": { "type": "string" }
+        "type": {
+          "const": "artifact_emitted"
+        },
+        "step_id": {
+          "type": "string"
+        },
+        "patch": {
+          "$ref": "artifact.schema.json#/$defs/Patch"
+        }
       },
-      "required": ["type", "reason"],
+      "required": [
+        "type",
+        "step_id",
+        "patch"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "run_completed"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "run_failed"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "policy_gate_requested"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reason": {
+          "type": "string"
+        },
+        "gate_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "run_id",
+        "tool",
+        "capabilities",
+        "reason",
+        "gate_id"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "policy_gate_resolved"
+        },
+        "gate_id": {
+          "type": "string"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "approve_once",
+            "approve_run",
+            "deny"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "gate_id",
+        "decision"
+      ],
       "additionalProperties": false
     }
   ]

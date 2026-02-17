@@ -49,6 +49,8 @@ pub extern "C" fn reach_engine_free(engine_id: u64) {
 }
 
 #[no_mangle]
+/// # Safety
+/// The caller must pass valid NUL-terminated pointers owned according to the C ABI and uphold lifetime guarantees.
 pub unsafe extern "C" fn reach_compile_workflow(
     engine_id: u64,
     workflow_json: *const c_char,
@@ -74,6 +76,8 @@ pub unsafe extern "C" fn reach_compile_workflow(
 }
 
 #[no_mangle]
+/// # Safety
+/// The caller must pass valid NUL-terminated pointers owned according to the C ABI and uphold lifetime guarantees.
 pub unsafe extern "C" fn reach_start_run(
     engine_id: u64,
     workflow_json: *const c_char,
@@ -135,6 +139,8 @@ pub extern "C" fn reach_next_action(run_id: u64) -> *mut c_char {
 }
 
 #[no_mangle]
+/// # Safety
+/// The caller must pass valid NUL-terminated pointers owned according to the C ABI and uphold lifetime guarantees.
 pub unsafe extern "C" fn reach_apply_tool_result(
     run_id: u64,
     tool_result_json: *const c_char,
@@ -164,6 +170,8 @@ pub unsafe extern "C" fn reach_apply_tool_result(
 }
 
 #[no_mangle]
+/// # Safety
+/// The caller must pass valid NUL-terminated pointers owned according to the C ABI and uphold lifetime guarantees.
 pub unsafe extern "C" fn reach_string_free(ptr: *mut c_char) {
     if !ptr.is_null() {
         let _ = CString::from_raw(ptr);
