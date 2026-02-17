@@ -1,0 +1,25 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-runner:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: services/runner/go.mod
+      - run: |
+          cd services/runner
+          CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o runnerd ./cmd/runnerd
+          sha256sum runnerd > runnerd.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: runnerd
+          path: |
+            services/runner/runnerd
+            services/runner/runnerd.sha256

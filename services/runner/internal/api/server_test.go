@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reach/services/runner/internal/jobs"
+	"reach/services/runner/internal/storage"
 )
 
 func TestGateRequestedWhenCapabilityDenied(t *testing.T) {

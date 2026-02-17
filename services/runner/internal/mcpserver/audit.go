@@ -21,7 +21,7 @@ func (LogAuditLogger) LogToolInvocation(_ context.Context, entry AuditEntry) {
 
 type StoreAuditLogger struct{ Store *jobs.Store }
 
-func (l StoreAuditLogger) LogToolInvocation(_ context.Context, entry AuditEntry) {
+func (l StoreAuditLogger) LogToolInvocation(ctx context.Context, entry AuditEntry) {
 	if l.Store == nil || entry.RunID == "" {
 		return
 	}

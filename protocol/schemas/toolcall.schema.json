@@ -102,6 +102,7 @@
       "additionalProperties": false
     }
   },
+  "type": "object",
   "oneOf": [
     {
       "$ref": "#/$defs/ToolCall"
@@ -110,4 +111,5 @@
       "$ref": "#/$defs/ToolResult"
     }
   ]
+}
 }

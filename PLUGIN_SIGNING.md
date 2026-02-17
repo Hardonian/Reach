@@ -1,0 +1,3 @@
+# Plugin Signing
+
+Use `tools/sign-plugin/sign-plugin.sh` to sign `manifest.json` with a local private key. Runner verifies signatures using trusted key registry JSON (`PLUGIN_TRUSTED_KEYS`). Unsigned plugins are rejected unless `DEV_ALLOW_UNSIGNED=1`.

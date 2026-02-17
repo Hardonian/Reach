@@ -133,7 +133,8 @@ function main() {
   const schemaFiles = [
     ['events.schema.json', 'events.schema.json'],
     ['toolcall.schema.json', 'toolcall.schema.json'],
-    ['artifact.schema.json', 'artifact.schema.json']
+    ['artifact.schema.json', 'artifact.schema.json'],
+    ['plugin-manifest.schema.json', 'plugin-manifest.schema.json']
   ];
 
   const allErrors = [];
