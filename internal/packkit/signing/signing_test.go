@@ -16,3 +16,15 @@ func TestVerifyManifestSignature(t *testing.T) {
 		t.Fatalf("unexpected verify result ok=%v key=%s err=%v", ok, keyID, err)
 	}
 }
+
+func TestNormalizePrivateKeyFromSeed(t *testing.T) {
+	_, priv, _ := ed25519.GenerateKey(rand.Reader)
+	seed := priv.Seed()
+	n, err := NormalizeEd25519PrivateKey(seed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(n) != ed25519.PrivateKeySize {
+		t.Fatalf("unexpected key size %d", len(n))
+	}
+}

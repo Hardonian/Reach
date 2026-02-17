@@ -1,0 +1,10 @@
+{
+  "kind": "connector",
+  "id": "connector-slack",
+  "version": "1.2.0",
+  "package_hash": "",
+  "required_capabilities": ["network:outbound"],
+  "side_effect_types": ["network"],
+  "risk_level": "medium",
+  "tier_requirements": ["free"]
+}

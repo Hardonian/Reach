@@ -13,9 +13,23 @@ type Signature struct {
 	Signature string `json:"signature"`
 }
 
+func NormalizeEd25519PrivateKey(raw []byte) (ed25519.PrivateKey, error) {
+	switch len(raw) {
+	case ed25519.PrivateKeySize:
+		return ed25519.PrivateKey(raw), nil
+	case ed25519.SeedSize:
+		return ed25519.NewKeyFromSeed(raw), nil
+	default:
+		return nil, fmt.Errorf("invalid ed25519 private key length: %d", len(raw))
+	}
+}
+
 func VerifyManifestSignature(manifest []byte, sig Signature, trustedKeys map[string]string) (bool, string, error) {
 	if sig.KeyID == "" || sig.Signature == "" {
 		return false, "", fmt.Errorf("signature fields required")
+	}
+	if sig.Algorithm != "" && sig.Algorithm != "ed25519" {
+		return false, sig.KeyID, fmt.Errorf("unsupported algorithm: %s", sig.Algorithm)
 	}
 	key, ok := trustedKeys[sig.KeyID]
 	if !ok {

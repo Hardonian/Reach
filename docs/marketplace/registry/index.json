@@ -1,0 +1,19 @@
+{
+  "packages": [
+    {
+      "id": "connector-slack",
+      "versions": [
+        {
+          "version": "1.2.0",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "manifest_url": "https://example.com/connector-slack/1.2.0/manifest.json",
+          "bundle_url": "https://example.com/connector-slack/1.2.0/bundle.tar.gz",
+          "signature_url": "https://example.com/connector-slack/1.2.0/manifest.sig",
+          "signature_key_id": "marketplace",
+          "risk_level": "medium",
+          "tier_required": "free"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+name: marketplace-publish
+
+on:
+  push:
+    tags:
+      - "pack-*"
+
+jobs:
+  publish-pack:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Parse tag
+        id: meta
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          TYPE="$(echo "$TAG" | cut -d- -f2)"
+          ID="$(echo "$TAG" | cut -d- -f3)"
+          VERSION="$(echo "$TAG" | cut -d- -f4-)"
+          echo "type=$TYPE" >> "$GITHUB_OUTPUT"
+          echo "id=$ID" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Build pack
+        run: |
+          go run ./tools/packkit-build --type "${{ steps.meta.outputs.type }}" --path "./${{ steps.meta.outputs.type }}s/${{ steps.meta.outputs.id }}" --out ./dist
+      - name: Validate version matches tag
+        run: |
+          MANIFEST=$(find dist -name manifest.json | head -n1)
+          MF_VERSION=$(jq -r .version "$MANIFEST")
+          test "$MF_VERSION" = "${{ steps.meta.outputs.version }}"
+      - name: Sign manifest
+        env:
+          PACKKIT_PRIVATE_KEY_B64: ${{ secrets.PACKKIT_PRIVATE_KEY_B64 }}
+        run: |
+          test -n "$PACKKIT_PRIVATE_KEY_B64"
+          echo "$PACKKIT_PRIVATE_KEY_B64" > private.pem
+          MANIFEST=$(find dist -name manifest.json | head -n1)
+          go run ./tools/packkit-sign --manifest "$MANIFEST" --key private.pem --key-id marketplace
+      - name: Update static index
+        run: |
+          mkdir -p docs/marketplace/registry
+          INDEX=docs/marketplace/registry/index.json
+          if [ ! -f "$INDEX" ]; then echo '{"packages":[]}' > "$INDEX"; fi
+          python3 docs/marketplace/scripts/update_index.py "$INDEX" "${{ steps.meta.outputs.id }}" "${{ steps.meta.outputs.version }}" "$(cat dist/*/sha256.txt | tr -d '\n')" "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ steps.meta.outputs.id }}-${{ steps.meta.outputs.version }}-manifest.json" "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ steps.meta.outputs.id }}-${{ steps.meta.outputs.version }}-bundle.tar.gz" "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ steps.meta.outputs.id }}-${{ steps.meta.outputs.version }}-manifest.sig"
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*/manifest.json
+            dist/*/bundle.tar.gz
+            dist/*/manifest.sig
+            dist/*/sha256.txt
+      - name: Commit index update
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add docs/marketplace/registry/index.json
+          git commit -m "chore(marketplace): update registry index for ${{ github.ref_name }}" || exit 0
+          git push
