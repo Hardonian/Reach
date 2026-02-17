@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
 import { BridgeClient } from './bridgeClient';
-import { ContextPayload } from './types';
 import { createContextPayload } from './payload';
 
-export function buildContextPayload(): ContextPayload {
+export function buildContextPayload() {
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   const openFiles = vscode.workspace.textDocuments
     .filter((document) => !document.isUntitled)
@@ -43,7 +42,7 @@ export function buildContextPayload(): ContextPayload {
       mode: repoMode
     },
     tier
-  } as ContextPayload);
+  });
 }
 
 export class ContextSync implements vscode.Disposable {

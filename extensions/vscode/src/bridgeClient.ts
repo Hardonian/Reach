@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import WebSocket from 'ws';
 
+type WebSocketMessageData = string | Buffer | ArrayBuffer | Buffer[];
+
 type MessageHandler = (payload: unknown) => void;
 type StatusHandler = (connected: boolean) => void;
 
@@ -15,7 +17,7 @@ export interface BridgeClientOptions {
 
 export interface WebSocketLike {
   on(event: 'open', listener: () => void): void;
-  on(event: 'message', listener: (data: WebSocket.RawData) => void): void;
+  on(event: 'message', listener: (data: WebSocketMessageData) => void): void;
   on(event: 'close', listener: () => void): void;
   on(event: 'error', listener: (error: Error) => void): void;
   send(data: string): void;

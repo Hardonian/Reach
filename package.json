@@ -4,6 +4,12 @@
   "type": "module",
   "scripts": {
     "protocol:validate": "node tools/codegen/validate-protocol.mjs",
-    "audit:inspect": "cd services/runner && go run ./cmd/runner-audit-inspector"
+    "audit:inspect": "cd services/runner && go run ./cmd/runner-audit-inspector",
+    "lint": "npm run protocol:validate && cargo fmt --check && cargo clippy --workspace --all-targets -- -D warnings && (cd services/runner && go vet ./...) && (cd extensions/vscode && npm run lint)",
+    "typecheck": "cargo check --workspace && (cd extensions/vscode && npm run build)",
+    "test": "cargo test -p engine-core && (cd services/runner && go test ./...) && (cd extensions/vscode && npm run test)",
+    "build": "cargo build --workspace && (cd services/runner && go build ./...) && (cd extensions/vscode && npm run build)",
+    "verify:fast": "npm run lint && npm run typecheck",
+    "verify:full": "npm run verify:fast && npm run test && npm run build"
   }
 }

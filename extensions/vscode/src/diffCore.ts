@@ -54,7 +54,7 @@ export function parseUnifiedDiff(diffText: string): ParsedFilePatch[] {
       continue;
     }
 
-    if (currentHunk && /^[ +\-]/.test(line)) {
+    if (currentHunk && /^[ +-]/.test(line)) {
       currentHunk.lines.push(line);
     }
   }

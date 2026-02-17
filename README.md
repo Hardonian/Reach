@@ -40,6 +40,24 @@ This runs:
 - `go test ./...` in `services/runner`
 - `cargo test -p engine-core`
 
+## Repo-wide verification commands
+
+From repo root:
+
+```bash
+npm install
+(cd extensions/vscode && npm install)
+npm run verify:fast
+npm run verify:full
+```
+
+Script breakdown:
+
+- `npm run lint` → protocol validation, Rust fmt/clippy, Go vet (runner), VS Code extension lint
+- `npm run typecheck` → Rust workspace check, VS Code extension TypeScript compile
+- `npm run test` → Rust engine-core tests, Go runner tests, VS Code extension tests
+- `npm run build` → Rust workspace build, Go runner build, VS Code extension build
+
 ## Build release artifacts
 
 ```bash

@@ -134,3 +134,26 @@ jobs:
         run: npm run build
       - name: test
         run: npm run test
+
+
+  verify-full:
+    name: verify full
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.7'
+          cache: true
+      - uses: dtolnay/rust-toolchain@stable
+      - name: install root deps
+        run: npm install
+      - name: install vscode deps
+        run: cd extensions/vscode && npm install
+      - name: verify full
+        run: npm run verify:full
+
