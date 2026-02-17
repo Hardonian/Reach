@@ -46,6 +46,10 @@ type clientState struct {
 	conn     *websocketConn
 	queue    chan queuedEvent
 	closed   chan struct{}
+type clientState struct {
+	memberID string
+	conn     *websocketConn
+	queue    chan Event
 }
 
 type Manager struct {
@@ -129,14 +133,18 @@ func (m *Manager) HandleWS(w http.ResponseWriter, r *http.Request) {
 	state := &clientState{memberID: memberID, conn: conn, queue: make(chan queuedEvent, 256), closed: make(chan struct{})}
 	go m.writeLoop(state)
 
+	client := &clientState{memberID: memberID, conn: conn, queue: make(chan Event, 64)}
 	m.mu.Lock()
 	s.Members[memberID] = role
 	if m.clients[sessionID] == nil {
 		m.clients[sessionID] = map[*websocketConn]*clientState{}
 	}
 	m.clients[sessionID][conn] = state
+	m.clients[sessionID][conn] = client
 	m.mu.Unlock()
 	_ = conn.WriteJSON(map[string]any{"type": "session.snapshot", "session": s})
+
+	go m.writeLoop(sessionID, client)
 
 	for {
 		var msg Event
@@ -174,6 +182,37 @@ func classifyPriority(event Event) string {
 		return "normal"
 	default:
 		return "passive"
+	close(client.queue)
+	_ = conn.Close()
+}
+
+func (m *Manager) writeLoop(sessionID string, client *clientState) {
+	ticker := time.NewTicker(120 * time.Millisecond)
+	defer ticker.Stop()
+	batch := make([]Event, 0, 16)
+	flush := func() bool {
+		if len(batch) == 0 {
+			return true
+		}
+		ok := client.conn.WriteJSON(map[string]any{"type": "batch", "events": batch}) == nil
+		batch = batch[:0]
+		return ok
+	}
+	for {
+		select {
+		case evt, ok := <-client.queue:
+			if !ok {
+				return
+			}
+			batch = append(batch, evt)
+			if len(batch) >= 12 && !flush() {
+				return
+			}
+		case <-ticker.C:
+			if !flush() {
+				return
+			}
+		}
 	}
 }
 
@@ -230,8 +269,24 @@ func (m *Manager) writeLoop(state *clientState) {
 			}
 		case <-ticker.C:
 			flush()
+	for _, client := range clients {
+		select {
+		case client.queue <- event:
+		default:
+			if isLowPriority(event.Type) {
+				continue
+			}
+			select {
+			case <-client.queue:
+			default:
+			}
+			client.queue <- event
 		}
 	}
+}
+
+func isLowPriority(eventType string) bool {
+	return strings.Contains(eventType, "task") || strings.Contains(eventType, "presence")
 }
 
 func (m *Manager) HandleListSessions(w http.ResponseWriter, _ *http.Request) {

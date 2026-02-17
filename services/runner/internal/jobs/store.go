@@ -198,7 +198,10 @@ func (s *Store) SetGate(_ context.Context, runID string, gate Gate) error {
 	return s.PublishEvent(context.Background(), runID, Event{Type: "policy.gate.stored", Payload: body, CreatedAt: time.Now().UTC()}, "gate")
 }
 
-func (s *Store) ResolveGate(_ context.Context, runID, gateID string, decision GateDecision) error {
+func (s *Store) ResolveGate(ctx context.Context, tenantID, runID, gateID string, decision GateDecision) error {
+	if _, err := s.GetRun(ctx, tenantID, runID); err != nil {
+		return err
+	}
 	body, _ := json.Marshal(map[string]any{"gate_id": gateID, "decision": decision})
 	return s.PublishEvent(context.Background(), runID, Event{Type: "policy.gate.resolved", Payload: body, CreatedAt: time.Now().UTC()}, "gate")
 }

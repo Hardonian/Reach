@@ -171,12 +171,12 @@ func (s *Store) ListAudit(tenantID string) ([]json.RawMessage, error) {
 	}
 	return res, nil
 }
-func (s *Store) CheckAndMarkReplay(tenantID, nonce string, maxAge time.Duration) error {
+func (s *Store) CheckAndMarkReplay(tenantID, provider, nonce string, maxAge time.Duration) error {
 	if nonce == "" {
 		return errors.New("missing nonce")
 	}
 	_, _ = s.exec(context.Background(), fmt.Sprintf(`DELETE FROM replay_guard WHERE tenant_id='%s' AND created_at < '%s';`, esc(tenantID), time.Now().Add(-maxAge).UTC().Format(time.RFC3339Nano)))
-	_, err := s.exec(context.Background(), fmt.Sprintf(`INSERT INTO replay_guard(id,tenant_id,created_at) VALUES('%s','%s','%s');`, esc(tenantID+":"+nonce), esc(tenantID), time.Now().UTC().Format(time.RFC3339Nano)))
+	_, err := s.exec(context.Background(), fmt.Sprintf(`INSERT INTO replay_guard(id,tenant_id,created_at) VALUES('%s','%s','%s');`, esc(tenantID+":"+provider+":"+nonce), esc(tenantID), time.Now().UTC().Format(time.RFC3339Nano)))
 	if err != nil {
 		return errors.New("replay detected")
 	}
