@@ -1,21 +1,13 @@
 [package]
-name = "engine_c_abi"
+name = "reach_c_abi"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-
-[lints.rust]
-unsafe_code = "allow"
-
-[lints.clippy]
-all = { level = "deny", priority = -1 }
-pedantic = { level = "deny", priority = -1 }
-module_name_repetitions = "allow"
-missing_panics_doc = "allow"
-missing_errors_doc = "allow"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 engine = { path = "../../engine" }
+once_cell = "1"
+serde_json.workspace = true
