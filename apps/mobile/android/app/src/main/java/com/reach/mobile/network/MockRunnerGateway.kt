@@ -30,6 +30,8 @@ class MockRunnerGateway(
             val events = listOf(
                 """{"schemaVersion":"0.1.0","eventId":"$runId-1","runId":"$runId","type":"run.started","timestamp":"${Instant.now()}","payload":{"schemaVersion":"0.1.0","initiator":"mock-runner"}}""",
                 """{"schemaVersion":"0.1.0","eventId":"$runId-2","runId":"$runId","type":"tool.call","timestamp":"${Instant.now()}","payload":{"schemaVersion":"0.1.0","tool":"shell","input":"echo hello"}}""",
+                """{"schemaVersion":"0.1.0","eventId":"$runId-2b","runId":"$runId","type":"policy.gate.requested","timestamp":"${Instant.now()}","payload":{"gateId":"gate-1","reason":"File system write access required"}}""",
+                """{"schemaVersion":"0.1.0","eventId":"$runId-2c","runId":"$runId","type":"patch.proposed","timestamp":"${Instant.now()}","payload":{"patchId":"patch-1","title":"Update README","diff":"@@ -1,2 +1,3 @@\n Reach\n+Editor Companion Mode\n"}}""",
                 """{"schemaVersion":"0.1.0","eventId":"$runId-3","runId":"$runId","type":"artifact.created","timestamp":"${Instant.now()}","payload":{"schemaVersion":"0.1.0","artifactId":"artifact-1","path":"/tmp/result.txt","mimeType":"text/plain"}}""",
                 """{"schemaVersion":"0.1.0","eventId":"$runId-4","runId":"$runId","type":"run.completed","timestamp":"${Instant.now()}","payload":{"schemaVersion":"0.1.0","status":"succeeded"}}"""
             )
@@ -57,5 +59,26 @@ class MockRunnerGateway(
             }
         }.onFailure(onError)
         onComplete()
+    }
+
+    override suspend fun submitPolicyDecision(runId: String, gateId: String, decision: String): Result<Unit> {
+        return Result.success(Unit)
+    }
+
+    override suspend fun submitPatchDecision(runId: String, patchId: String, decision: String): Result<Unit> {
+        return Result.success(Unit)
+    }
+
+    override suspend fun fetchWorkspaceFiles(runId: String): Result<List<String>> {
+        return Result.success(listOf("README.md", "apps/mobile/android/app/src/main/AndroidManifest.xml"))
+    }
+
+    override suspend fun fetchWorkspaceFile(runId: String, path: String): Result<String> {
+        return Result.success(
+            when (path) {
+                "README.md" -> "# Reach\n\nMock workspace preview"
+                else -> "<read-only preview unavailable in mock for $path>"
+            }
+        )
     }
 }

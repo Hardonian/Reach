@@ -48,3 +48,24 @@ data class StreamEvent(
     val timestamp: String,
     val raw: String
 )
+
+@Serializable
+data class PolicyDecisionRequest(
+    @SerialName("decision") val decision: String
+)
+
+@Serializable
+data class PatchDecisionRequest(
+    @SerialName("decision") val decision: String
+)
+
+@Serializable
+data class WorkspaceFileListResponse(
+    @SerialName("files") val files: List<String>
+)
+
+@Serializable
+data class WorkspaceFileResponse(
+    @SerialName("path") val path: String,
+    @SerialName("content") val content: String
+)
