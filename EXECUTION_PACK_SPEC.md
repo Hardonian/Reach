@@ -1,52 +1,83 @@
 # Signed Execution Pack Specification
 
-An **Execution Pack** is the immutable unit of deployment for an agentic task. It bundles the declared intent, required capabilities, and cryptographic proof of integrity to ensure safe, reproducible execution.
+## Overview
 
-## Data Structure
+An **Execution Pack** is a portable, verifiable, and immutable container for agentic workflows. It bundles the intent, constraints, and logic required to execute a task, signed to prevent tampering.
 
-```go
-type ExecutionPack struct {
-    Metadata            PackMetadata      `json:"metadata"`
-    DeclaredTools       []string          `json:"declared_tools"`       // Whitelist of tools allowed
-    DeclaredPermissions []string          `json:"declared_permissions"` // Whitelist of permissions
-    ModelRequirements   ModelReqs         `json:"model_requirements"`   // e.g. { "tier": "high" }
-    ExecutionGraph      json.RawMessage   `json:"execution_graph"`      // The blueprint/plan (optional/pre-compiled)
-    DeterministicFlag   bool              `json:"deterministic"`        // Enforce deterministic seed/logic
-    SignatureHash       string            `json:"signature_hash"`       // HMAC/Sig of the above fields
-}
+## File Format (`.reachpack`)
 
-type PackMetadata struct {
-    ID          string `json:"id"`
-    Version     string `json:"version"`
-    Name        string `json:"name"`
-    Description string `json:"description"`
-    Author      string `json:"author"`
-    Created     string `json:"created"` // ISO8601
+The pack is serialized as a JSON object containing the Manifest and the Signature.
+
+```json
+{
+  "metadata": { ... },
+  "declared_tools": [ ... ],
+  "declared_permissions": [ ... ],
+  "model_requirements": { ... },
+  "execution_graph": { ... },
+  "deterministic": true,
+  "signature_hash": "sha256:..."
 }
 ```
 
-## Integrity & Security
+## detailed Structure
 
-### 1. Hash-Based Integrity
-The `SignatureHash` is calculated over the canonical JSON representation of all fields *except* `SignatureHash`. Attempting to load a pack where the computed hash differs from the stored hash results in a `ManifestIntegrityError`.
+### 1. Metadata (`metadata`)
+Identifies the pack.
+```json
+{
+  "id": "com.acme.datapipe",
+  "version": "1.0.2",
+  "name": "Data Pipeline Cleaner",
+  "description": "Cleans CSV files in data dir",
+  "author": "verified_publisher",
+  "created": "2024-01-01T12:00:00Z"
+}
+```
 
-### 2. Versioning
-Packs are strictly versioned. Replay operations MUST reference the exact version used in the original run.
+### 2. Constraints (`declared_tools`, `declared_permissions`)
+Explicit allowlists.
+- `declared_tools`: Array of tool names (e.g. `["read_file", "write_file"]`). Attempting to use a tool not in this list results in a Hard Failure.
+- `declared_permissions`: Array of scopes (e.g. `["fs:read", "fs:write"]`).
 
-### 3. Replayable RunID
-When a session is initialized from a pack, the `RunID` is cryptographically linked to the pack's `SignatureHash` and the `InitialContext`. This ensures that a "replay" is dealing with the exact same definitions.
+### 3. Model Requirements (`model_requirements`)
+Specifies the AI model capabilities needed.
+```json
+{
+  "tier": "high",
+  "context_window": "128k"
+}
+```
 
-### 4. Immutability
-Once loaded, a pack struct is read-only. The execution engine does not modify the pack.
+### 4. Logic (`execution_graph`)
+The serialized orchestration plan. Can be a static graph or a set of prompts for the Planner.
 
-### 5. No Implicit Tool Access
-The Executor is initialized with the `DeclaredTools` and `DeclaredPermissions` from the pack.
-- Calls to tools NOT in `DeclaredTools` fail immediately with `SecurityViolation`.
-- Calls requiring permissions NOT in `DeclaredPermissions` fail immediately.
+### 5. Integrity (`signature_hash`)
+A SHA-256 hash of the canonical JSON representation of the pack *excluding* the `signature_hash` field.
+Marketplace packs may require a digital signature from a trusted key.
 
-## Marketplace Containment
+## Validation Lifecycle
 
-Packs downloaded from the marketplace:
-1.  Must be signed by a trusted key (if applicable) or validated against the Registry.
-2.  Are inspected for "elevated privileges" (e.g. `filesystem:write` outside sandbox).
-3.  Are run in a sandboxed Executor instance that enforces the declared constraints.
+1. **Load**: Parse JSON.
+2. **Verify Hash**: Re-compute SHA-256 of content. Compare with `signature_hash`. Fail if mismatch.
+3. **Verify Capabilities**: Check against the local `CapabilityRegistry`.
+   - Are all `declared_tools` available?
+   - Do we have the `declared_permissions`?
+4. **Execute**:
+   - The `PackExecutor` is initialized with this specific Pack.
+   - Any runtime tool call is checked against `declared_tools`.
+
+## Replayability
+
+To support deterministic replay:
+- The `ExecutionPack` is immutable.
+- A `RunID` is generated for the session.
+- The `ExecutionContext` includes the `PackID` and `PackVersion`.
+- Replaying a run strictly requires the *exact same version* of the Pack.
+
+## Marketplace Rules
+
+Packs distributed via the Marketplace must:
+1. Not request `sys:exec` or `sys:admin` permissions unless verified.
+2. Be fully self-contained (no external logic references).
+3. Have `deterministic` set to `true` if they claim financial or safety-critical outputs.

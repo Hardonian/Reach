@@ -1,42 +1,57 @@
-# Capability Registry
+# Reach Capability Registry
 
-The Capability Registry serves as the central authority for defining, validating, and retrieving available capabilities within the Reach execution environment. A "Capability" is a unit of functionality (e.g., a tool, a semantic skill, or a data access pattern) that can be linked to an execution plan.
+## Overview
+
+The Capability Registry serves as the source of truth for all atomic units of functionality available to the Reach execution environment. It defines what agents can do, what permissions they need, and ensuring that all execution is explicit and validated.
 
 ## Data Structure
 
+### Capability
+
+A `Capability` is a granular, versioned unit of logic.
+
 ```go
 type Capability struct {
-    ID                  string            `json:"id"`                  // Unique identifier (e.g., "std.fs.write")
-    Version             string            `json:"version"`             // Semver (e.g., "1.0.0")
-    Description         string            `json:"description"`         // Human-readable description
-    RequiredTools       []string          `json:"required_tools"`      // List of atomic tools (e.g., "tool.write_file")
-    RequiredPermissions []string          `json:"required_permissions"`// Scopes (e.g., "filesystem:write")
-    RequiredModels      []string          `json:"required_models"`     // Model constraints (e.g., "gemini-pro")
-    Deterministic       bool              `json:"deterministic"`       // If true, same input always = same output
-    Stateful            bool              `json:"stateful"`            // If true, capability affects session state
-    InputSchema         map[string]any    `json:"input_schema"`        // JSON Schema for input
-    OutputSchema        map[string]any    `json:"output_schema"`       // JSON Schema for output
+    ID                  string                 `json:"id"`                   // Unique identifier (e.g., "fs.read", "llm.generate")
+    Version             string                 `json:"version"`              // Semver (e.g., "1.0.0")
+    Description         string                 `json:"description"`          // Human-readable description
+    RequiredTools       []string               `json:"required_tools"`       // List of atomic tool names this capability utilizes
+    RequiredPermissions []string               `json:"required_permissions"` // List of permission scopes needed
+    RequiredModels      []string               `json:"required_models"`      // Specific model identifiers if restricted
+    Deterministic       bool                   `json:"deterministic"`        // True if output depends solely on input
+    Stateful            bool                   `json:"stateful"`             // True if execution alters persistent state
+    InputSchema         map[string]interface{} `json:"input_schema"`         // JSON Schema for input arguments
+    OutputSchema        map[string]interface{} `json:"output_schema"`        // JSON Schema for output data
 }
 ```
 
 ## Validation Rules
 
-1.  **Atomic Integrity**: A capability cannot be registered if its `RequiredTools` are not registered in the underlying tool system.
-2.  **Permission Consistency**: A capability cannot require permissions that valid connectors or policies explicitly deny.
-3.  **Schema Enforcement**: All tool calls mediated by this capability must validate against `InputSchema`.
-4.  **Version Awareness**: Capabilities are immutable by version. A change in behavior requires a new version.
+### 1. Registry Integrity
+- All capabilities must have a unique `ID` + `Version` pair.
+- Circular dependencies are not supported (Capabilities are atomic).
 
-## Registry Interface
+### 2. Pack Compatibility
+- **Tool Existence**: Every tool listed in `RequiredTools` must be available in the underlying runtime environment.
+- **Permission Check**: The runtime must grant the `RequiredPermissions` for the capability to be loadable.
 
-The registry implementation provides:
+### 3. Execution Constraints
+- **Deterministic Flag**: If `Deterministic` is true, the runtime may cache results based on input hash.
+- **Stateful Flag**: If `Stateful` is true, simple retries are unsafe without rollback mechanisms.
 
-- `GetCapability(id, version string) (*Capability, error)`
-- `ValidatePackCompatibility(pack Manifest) error`: Ensures a pack's requested capabilities exist and are compatible.
-- `PreventImplicitAccess(toolName string, declaredCapabilities []string) error`: Verifies that a low-level tool call is authorized by a declared capability.
+## Operating Model
 
-## Integration
+The Registry acts as a gatekeeper.
+1. **Registration**: Services/Plugins register capabilities at startup.
+2. **Resolution**: The Planner requests capabilities by ID.
+3. **Enforcement**: The Executor verifies that the active `ExecutionPack` includes the necessary capabilities before invoking tools.
 
-The Registry is consumed by:
-1.  **Planner**: To know what tools/actions are available.
-2.  **Coordinator**: To validate the `ExecutionPack` before starting a session.
-3.  **Executor (Sandboxed)**: To check runtime permissions on every tool invocation.
+## Standard Capabilities
+
+| ID | Description | Tools | Permissions |
+|----|-------------|-------|-------------|
+| `io.fs.read` | Read access to file system | `read_file`, `list_dir` | `fs:read` |
+| `io.fs.write` | Write access to file system | `write_file`, `delete_file` | `fs:write` |
+| `net.http.get` | Outbound HTTP GET requests | `http_get` | `net:outbound` |
+| `sys.cmd.exec` | Execute shell commands | `run_command` | `sys:exec` |
+

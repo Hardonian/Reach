@@ -63,6 +63,21 @@ func (e *PackExecutor) Execute(ctx context.Context, envelope ExecutionEnvelope) 
 		}
 	}
 
+	// 4. Replay Integrity Check
+	if envelope.Context.IsReplay {
+		if envelope.Context.PackHash != "" && envelope.Context.PackHash != e.Pack.SignatureHash {
+			return &ExecutionResult{
+				EnvelopeID: envelope.ID,
+				Status:     StatusError,
+				Error: &ExecutionError{
+					Code:    "REPLAY_INTEGRITY_VIOLATION",
+					Message: fmt.Sprintf("replay pack hash %s does not match loaded pack %s", envelope.Context.PackHash, e.Pack.SignatureHash),
+				},
+			}, nil
+		}
+		// In replay mode, we might also want to ensure the Pack ID matches exactly (already done in step 1).
+	}
+
 	// 4. Update Context with Pack Info for Downstream Audit
 	envelope.Context.PackID = e.Pack.Metadata.ID
 	envelope.Context.PackVersion = e.Pack.Metadata.Version

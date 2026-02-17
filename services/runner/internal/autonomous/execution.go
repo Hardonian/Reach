@@ -26,6 +26,8 @@ type ExecutionContext struct {
 	PackID      string `json:"pack_id,omitempty"`
 	PackVersion string `json:"pack_version,omitempty"`
 	PackHash    string `json:"pack_hash,omitempty"` // For integrity validation on replay
+	RunID       string `json:"run_id,omitempty"`    // Unique ID for the top-level orchestration run
+	IsReplay    bool   `json:"is_replay,omitempty"` // If true, execution must be deterministic and side-effect free if possible
 }
 
 // ExecutionResult captures the outcome of an execution envelope.

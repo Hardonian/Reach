@@ -82,3 +82,34 @@ func (p *ExecutionPack) VerifyPermissionAllowed(perm string) bool {
 	}
 	return false
 }
+
+// ValidateMarketplaceCompliance ensures that a pack destined for the marketplace meets safety criteria.
+func (p *ExecutionPack) ValidateMarketplaceCompliance() error {
+	// 1. Must declare required tools
+	if len(p.DeclaredTools) == 0 {
+		return errors.New("marketplace pack must declare required tools")
+	}
+
+	// 2. Must declare required permissions
+	// (Empty is allowed if no permissions are needed, but explicit declaration is preferred)
+	if p.DeclaredPermissions == nil {
+		return errors.New("marketplace pack must explicitly declare permissions (even if empty)")
+
+	}
+
+	// 3. Sandboxed automatically - this is a runtime constraint, but we can check for forbidden high-risk permissions here
+	for _, perm := range p.DeclaredPermissions {
+		if perm == "sys:admin" || perm == "sys:exec" {
+			// In a real scenario, this might be allowed only for "verified" authors,
+			// but for generic marketplace compliance, we flag it.
+			return fmt.Errorf("marketplace pack cannot request high-risk permission: %s", perm)
+		}
+	}
+
+	// 4. Integrity check
+	if err := p.ValidateIntegrity(); err != nil {
+		return fmt.Errorf("marketplace pack integrity check failed: %w", err)
+	}
+
+	return nil
+}
