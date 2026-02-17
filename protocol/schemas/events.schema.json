@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.dev/protocol/schemas/events.schema.json",
+  "title": "Reach Run Event Stream v0",
+  "description": "A single event line from the Reach NDJSON event stream.",
+  "type": "object",
+  "discriminator": {
+    "propertyName": "type"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/runStartedEvent"
+    },
+    {
+      "$ref": "#/$defs/toolCallEvent"
+    },
+    {
+      "$ref": "#/$defs/toolResultEvent"
+    },
+    {
+      "$ref": "#/$defs/artifactCreatedEvent"
+    },
+    {
+      "$ref": "#/$defs/runCompletedEvent"
+    }
+  ],
+  "$defs": {
+    "eventBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "eventId",
+        "runId",
+        "type",
+        "timestamp",
+        "payload"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "type": "string",
+          "const": "0.1.0",
+          "description": "Protocol schema version for this record."
+        },
+        "eventId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payload": {
+          "type": "object"
+        }
+      }
+    },
+    "runStartedEvent": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/eventBase"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "run.started"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "schemaVersion",
+                "initiator"
+              ],
+              "properties": {
+                "schemaVersion": {
+                  "type": "string",
+                  "const": "0.1.0"
+                },
+                "initiator": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "metadata": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "toolCallEvent": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/eventBase"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "tool.call"
+            },
+            "payload": {
+              "$ref": "toolcall.schema.json"
+            }
+          }
+        }
+      ]
+    },
+    "toolResultEvent": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/eventBase"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "tool.result"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "schemaVersion",
+                "callId",
+                "status"
+              ],
+              "properties": {
+                "schemaVersion": {
+                  "type": "string",
+                  "const": "0.1.0"
+                },
+                "callId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "ok",
+                    "error"
+                  ]
+                },
+                "output": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "error": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "code": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "payload": {
+                    "properties": {
+                      "status": {
+                        "const": "ok"
+                      }
+                    }
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "payload": {
+                    "required": [
+                      "output"
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "payload": {
+                    "properties": {
+                      "status": {
+                        "const": "error"
+                      }
+                    }
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "payload": {
+                    "required": [
+                      "error"
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "artifactCreatedEvent": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/eventBase"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "artifact.created"
+            },
+            "payload": {
+              "$ref": "artifact.schema.json"
+            }
+          }
+        }
+      ]
+    },
+    "runCompletedEvent": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/eventBase"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "run.completed"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "schemaVersion",
+                "status"
+              ],
+              "properties": {
+                "schemaVersion": {
+                  "type": "string",
+                  "const": "0.1.0"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "succeeded",
+                    "failed",
+                    "cancelled"
+                  ]
+                },
+                "error": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "code": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.dev/protocol/schemas/toolcall.schema.json",
+  "title": "Reach Tool Call v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "callId",
+    "toolName",
+    "input"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "0.1.0",
+      "description": "Protocol schema version for this record."
+    },
+    "callId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable identifier for this tool invocation."
+    },
+    "toolName": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Logical tool name requested by the caller."
+    },
+    "input": {
+      "type": "object",
+      "description": "Tool input payload.",
+      "additionalProperties": true
+    },
+    "timeoutMs": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Optional per-call timeout hint in milliseconds."
+    }
+  }
+}
