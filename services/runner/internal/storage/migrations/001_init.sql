@@ -28,3 +28,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   created_at TIMESTAMP NOT NULL,
   expires_at TIMESTAMP NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_runs_tenant_created ON runs(tenant_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_events_run_created ON events(run_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_tenant_run_created ON audit(tenant_id, run_id, created_at);

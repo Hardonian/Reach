@@ -1,0 +1,60 @@
+name: perf-gate
+
+on:
+  pull_request:
+    paths:
+      - 'services/runner/**'
+      - 'services/session-hub/**'
+      - 'services/integration-hub/**'
+      - 'services/capsule-sync/**'
+      - 'apps/mobile/android/**'
+      - 'apps/mobile/ios/**'
+      - 'tools/perf/**'
+      - 'docs/perf/**'
+      - '.github/workflows/perf-gate.yml'
+
+jobs:
+  perf-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.7'
+
+      - name: Build runner
+        working-directory: services/runner
+        run: go build ./cmd/runnerd
+
+      - name: Start runner with metrics
+        working-directory: services/runner
+        run: |
+          RUNNER_METRICS_ENABLED=1 RUNNER_ADDR=:8080 go run ./cmd/runnerd > /tmp/runner.log 2>&1 &
+          echo $! > /tmp/runner.pid
+          sleep 2
+
+      - name: Seed runner activity
+        run: |
+          curl -sS -X POST http://localhost:8080/auth/dev-login -c /tmp/reach.cookies > /tmp/login.json
+          for i in $(seq 1 20); do
+            curl -sS -X POST http://localhost:8080/v1/runs -b /tmp/reach.cookies -H 'Content-Type: application/json' -d '{"capabilities":["read"],"scope":["workspace"],"plan_tier":"pro"}' > /tmp/run.json
+          done
+          curl -sS -X POST http://localhost:8080/internal/v1/triggers -H 'Content-Type: application/json' -d '{"tenant_id":"ci-tenant","source":"github","type":"webhook","payload":{"event":"push"}}' > /tmp/trigger.json
+
+      - name: Perf gate
+        working-directory: tools/perf
+        run: go run . -metrics-url http://localhost:8080/metrics -max-trigger-p95 1.6 -max-approval-p95 1.3 -max-request-p95 2.2 | tee /tmp/perf.log
+
+      - name: Upload perf artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-gate-logs
+          path: |
+            /tmp/perf.log
+            /tmp/runner.log
+
+      - name: Stop runner
+        if: always()
+        run: |
+          if [ -f /tmp/runner.pid ]; then kill $(cat /tmp/runner.pid) || true; fi

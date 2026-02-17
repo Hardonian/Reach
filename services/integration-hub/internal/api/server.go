@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
@@ -159,7 +160,9 @@ func (s *Server) webhook(provider string) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		_ = s.dispatcher.Dispatch(e)
+		ctx, cancel := context.WithTimeout(r.Context(), 4*time.Second)
+		defer cancel()
+		_ = s.dispatcher.Dispatch(ctx, r.Header.Get("X-Correlation-ID"), e)
 		_ = s.store.WriteAudit(tenantID, "webhook.received", map[string]any{"provider": provider, "eventType": e.EventType, "triggerType": e.TriggerType})
 		writeJSON(w, map[string]any{"status": "accepted", "eventId": e.EventID})
 	}
@@ -239,7 +242,9 @@ func (s *Server) approval(w http.ResponseWriter, r *http.Request) {
 	decision, _ := payload["decision"].(string)
 	e := core.NormalizedEvent{SchemaVersion: core.SchemaVersion, EventID: randToken(), TenantID: tenantID, Provider: provider, EventType: "approval." + decision, TriggerType: "approval", OccurredAt: time.Now().UTC(), Actor: map[string]string{"id": "external-user"}, Raw: payload, Resource: map[string]any{"decision": decision}}
 	_ = s.store.SaveEvent(e)
-	_ = s.dispatcher.Dispatch(e)
+	ctx, cancel := context.WithTimeout(r.Context(), 4*time.Second)
+	defer cancel()
+	_ = s.dispatcher.Dispatch(ctx, r.Header.Get("X-Correlation-ID"), e)
 	_ = s.store.WriteAudit(tenantID, "approval.received", map[string]any{"provider": provider, "decision": decision})
 	writeJSON(w, map[string]any{"status": "processed"})
 }

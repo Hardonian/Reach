@@ -138,12 +138,12 @@ func TestBroadcastToMultipleClients(t *testing.T) {
 		t.Fatal(err)
 	}
 	_ = c2.conn.SetReadDeadline(time.Now().Add(2 * time.Second))
-	var got Event
+	var got map[string]any
 	if err := c2.readJSON(&got); err != nil {
 		t.Fatal(err)
 	}
-	if got.Type != "task.update" || got.Task != "ready" {
-		t.Fatalf("unexpected event: %+v", got)
+	if got["type"] != "batch" {
+		t.Fatalf("unexpected event wrapper: %+v", got)
 	}
 }
 
@@ -185,6 +185,8 @@ func TestFreeTierCannotJoinCollaboration(t *testing.T) {
 	}
 	defer conn.Close()
 	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
+	key := base64.StdEncoding.EncodeToString([]byte("1234567890123456"))
+	_, _ = rw.WriteString(fmt.Sprintf("GET /ws/session/sess-2?tenant_id=t1&member_id=free&role=viewer&plan_tier=free HTTP/1.1\r\nHost: %s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n", u.Host, key))
 	key := base64.StdEncoding.EncodeToString([]byte("0123456789012345"))
 	_, _ = rw.WriteString(fmt.Sprintf("GET /ws/session/sess-2?tenant_id=t1&member_id=free&role=viewer&plan_tier=free&plan=free HTTP/1.1\r\nHost: %s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n", u.Host, key))
 	_ = rw.Flush()

@@ -34,14 +34,20 @@ type Event struct {
 	At        time.Time      `json:"at"`
 }
 
+type clientState struct {
+	memberID string
+	conn     *websocketConn
+	queue    chan Event
+}
+
 type Manager struct {
 	mu       sync.RWMutex
 	sessions map[string]*Session
-	clients  map[string]map[*websocketConn]string
+	clients  map[string]map[*websocketConn]*clientState
 }
 
 func NewManager() *Manager {
-	return &Manager{sessions: map[string]*Session{}, clients: map[string]map[*websocketConn]string{}}
+	return &Manager{sessions: map[string]*Session{}, clients: map[string]map[*websocketConn]*clientState{}}
 }
 
 func (m *Manager) getOrCreate(sessionID, tenant string) *Session {
@@ -108,14 +114,17 @@ func (m *Manager) HandleWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	client := &clientState{memberID: memberID, conn: conn, queue: make(chan Event, 64)}
 	m.mu.Lock()
 	s.Members[memberID] = role
 	if m.clients[sessionID] == nil {
-		m.clients[sessionID] = map[*websocketConn]string{}
+		m.clients[sessionID] = map[*websocketConn]*clientState{}
 	}
-	m.clients[sessionID][conn] = memberID
+	m.clients[sessionID][conn] = client
 	m.mu.Unlock()
 	_ = conn.WriteJSON(map[string]any{"type": "session.snapshot", "session": s})
+
+	go m.writeLoop(sessionID, client)
 
 	for {
 		var msg Event
@@ -141,16 +150,62 @@ func (m *Manager) HandleWS(w http.ResponseWriter, r *http.Request) {
 	delete(m.clients[sessionID], conn)
 	delete(s.Members, memberID)
 	m.mu.Unlock()
+	close(client.queue)
 	_ = conn.Close()
+}
+
+func (m *Manager) writeLoop(sessionID string, client *clientState) {
+	ticker := time.NewTicker(120 * time.Millisecond)
+	defer ticker.Stop()
+	batch := make([]Event, 0, 16)
+	flush := func() bool {
+		if len(batch) == 0 {
+			return true
+		}
+		ok := client.conn.WriteJSON(map[string]any{"type": "batch", "events": batch}) == nil
+		batch = batch[:0]
+		return ok
+	}
+	for {
+		select {
+		case evt, ok := <-client.queue:
+			if !ok {
+				return
+			}
+			batch = append(batch, evt)
+			if len(batch) >= 12 && !flush() {
+				return
+			}
+		case <-ticker.C:
+			if !flush() {
+				return
+			}
+		}
+	}
 }
 
 func (m *Manager) broadcast(sessionID string, event Event) {
 	m.mu.RLock()
 	clients := m.clients[sessionID]
 	m.mu.RUnlock()
-	for conn := range clients {
-		_ = conn.WriteJSON(event)
+	for _, client := range clients {
+		select {
+		case client.queue <- event:
+		default:
+			if isLowPriority(event.Type) {
+				continue
+			}
+			select {
+			case <-client.queue:
+			default:
+			}
+			client.queue <- event
+		}
 	}
+}
+
+func isLowPriority(eventType string) bool {
+	return strings.Contains(eventType, "task") || strings.Contains(eventType, "presence")
 }
 
 func (m *Manager) HandleListSessions(w http.ResponseWriter, _ *http.Request) {

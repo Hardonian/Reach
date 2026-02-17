@@ -26,6 +26,13 @@ func newAuthedServer(t *testing.T) (*Server, *storage.SQLiteStore, *http.Cookie)
 	if login.Code != http.StatusOK {
 		t.Fatalf("dev login failed %d", login.Code)
 	}
+	for _, c := range login.Result().Cookies() {
+		if c.Name == "reach_session" {
+			return srv, c
+		}
+	}
+	t.Fatal("missing reach_session cookie")
+	return nil, nil
 	return srv, db, login.Result().Cookies()[0]
 }
 
@@ -50,6 +57,7 @@ func createRun(t *testing.T, srv *Server, cookie *http.Cookie, payload string) s
 }
 
 func TestAutonomousStatusLifecycle(t *testing.T) {
+	srv, cookie := newAuthedServer(t)
 	srv, _, cookie := newAuthedServer(t)
 	runID := createRun(t, srv, cookie, `{"capabilities":["tool:echo"]}`)
 	start := doReq(t, srv, cookie, http.MethodPost, "/v1/sessions/"+runID+"/autonomous/start", `{"goal":"ship","max_iterations":2,"max_runtime":2,"max_tool_calls":4,"burst_min_seconds":1,"burst_max_seconds":1,"sleep_seconds":1}`)

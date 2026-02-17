@@ -3,6 +3,7 @@ package api
 import (
 	"archive/zip"
 	"bytes"
+	"compress/gzip"
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
@@ -17,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -139,6 +141,7 @@ type Server struct {
 	runMeta    map[string]runMeta
 	autonomMu  sync.RWMutex
 	autonomous map[string]*autoControl
+	metrics    *metrics
 
 	requestCounter atomic.Uint64
 	runsCreated    atomic.Uint64
@@ -147,6 +150,15 @@ type Server struct {
 func NewServer(db *storage.SQLiteStore, version string) *Server {
 	if strings.TrimSpace(version) == "" {
 		version = "dev"
+	}
+	return &Server{
+		version:    version,
+		store:      jobs.NewStore(db),
+		sql:        db,
+		registry:   NewNodeRegistry(),
+		runMeta:    map[string]runMeta{},
+		autonomous: map[string]*autoControl{},
+		metrics:    newMetrics(),
 	}
 	return &Server{version: version, store: jobs.NewStore(db), sql: db, registry: NewNodeRegistry(), runMeta: map[string]runMeta{}, autonomous: map[string]*autoControl{}}
 }
@@ -160,6 +172,7 @@ func (s *Server) Handler() http.Handler {
 		writeJSON(w, 200, map[string]string{"version": s.version})
 	})
 	mux.HandleFunc("POST /auth/dev-login", s.handleDevLogin)
+	mux.HandleFunc("POST /internal/v1/triggers", s.handleInternalTrigger)
 	mux.Handle("POST /v1/runs", s.requireAuth(http.HandlerFunc(s.handleCreateRun)))
 	mux.Handle("POST /v1/runs/{id}/spawn", s.requireAuth(http.HandlerFunc(s.handleSpawnRun)))
 	mux.Handle("GET /v1/runs/{id}/events", s.requireAuth(http.HandlerFunc(s.handleRunEvents)))
@@ -169,13 +182,28 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("GET /v1/runs/{id}/audit", s.requireAuth(http.HandlerFunc(s.handleGetAudit)))
 	mux.Handle("POST /v1/runs/{id}/gates/{gate_id}", s.requireAuth(http.HandlerFunc(s.handleGateDecision)))
 	mux.Handle("GET /v1/plugins", s.requireAuth(http.HandlerFunc(s.handleListPlugins)))
+	mux.HandleFunc("GET /metrics", s.handlePromMetrics)
 	mux.Handle("GET /v1/metrics", s.requireAuth(http.HandlerFunc(s.handleMetrics)))
 	mux.Handle("GET /v1/nodes", s.requireAuth(http.HandlerFunc(s.handleListNodes)))
 	mux.Handle("POST /v1/nodes/register", s.requireAuth(http.HandlerFunc(s.handleRegisterNode)))
 	mux.Handle("POST /v1/sessions/{id}/autonomous/start", s.requireAuth(http.HandlerFunc(s.handleAutonomousStart)))
 	mux.Handle("POST /v1/sessions/{id}/autonomous/stop", s.requireAuth(http.HandlerFunc(s.handleAutonomousStop)))
 	mux.Handle("GET /v1/sessions/{id}/autonomous/status", s.requireAuth(http.HandlerFunc(s.handleAutonomousStatus)))
-	return mux
+	return s.withObservability(mux)
+}
+
+func (s *Server) withObservability(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		started := time.Now()
+		correlationID := strings.TrimSpace(r.Header.Get("X-Correlation-ID"))
+		if correlationID == "" {
+			correlationID = s.requestID(r)
+		}
+		w.Header().Set("X-Correlation-ID", correlationID)
+		ctx := context.WithValue(r.Context(), ctxKey("correlation_id"), correlationID)
+		next.ServeHTTP(w, r.WithContext(ctx))
+		s.metrics.observeRequest(r.Method+" "+r.URL.Path, time.Since(started))
+	})
 }
 
 func (s *Server) requireAuth(next http.Handler) http.Handler {
@@ -394,6 +422,33 @@ func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, 201, map[string]any{"run_id": run.ID, "tenant_id": tenantID, "node_selected": ok, "local_only": meta.LocalOnly})
 }
 
+func (s *Server) handleInternalTrigger(w http.ResponseWriter, r *http.Request) {
+	started := time.Now()
+	var body struct {
+		TenantID string         `json:"tenant_id"`
+		Source   string         `json:"source"`
+		Type     string         `json:"type"`
+		Payload  map[string]any `json:"payload"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid json")
+		return
+	}
+	if strings.TrimSpace(body.TenantID) == "" || strings.TrimSpace(body.Type) == "" {
+		writeError(w, http.StatusBadRequest, "tenant_id and type required")
+		return
+	}
+	run, err := s.store.CreateRun(r.Context(), body.TenantID, nil)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	payload := mustJSON(map[string]any{"source": body.Source, "type": body.Type, "payload": body.Payload})
+	_ = s.store.PublishEvent(r.Context(), run.ID, jobs.Event{Type: "trigger.received", Payload: payload, CreatedAt: time.Now().UTC()}, s.requestID(r))
+	s.metrics.observeTriggerLatency(time.Since(started))
+	writeJSON(w, http.StatusAccepted, map[string]any{"status": "enqueued", "run_id": run.ID})
+}
+
 func (s *Server) handleSpawnRun(w http.ResponseWriter, r *http.Request) {
 	parentID := r.PathValue("id")
 	tenantID := tenantIDFrom(r.Context())
@@ -513,10 +568,13 @@ func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleGateDecision(w http.ResponseWriter, r *http.Request) {
+	started := time.Now()
+	if err := s.store.ResolveGate(r.Context(), r.PathValue("id"), r.PathValue("gate_id"), jobs.GateDecision("approve_once")); err != nil {
 	if err := s.store.ResolveGate(r.Context(), tenantIDFrom(r.Context()), r.PathValue("id"), r.PathValue("gate_id"), jobs.GateDecision("approve_once")); err != nil {
 		writeError(w, 400, err.Error())
 		return
 	}
+	s.metrics.observeApprovalLatency(time.Since(started))
 	writeJSON(w, 200, map[string]string{"status": "ok"})
 }
 
@@ -597,7 +655,26 @@ func (s *Server) handleGetAudit(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleRunEvents(w http.ResponseWriter, r *http.Request) {
-	events, err := s.store.EventHistory(r.Context(), tenantIDFrom(r.Context()), r.PathValue("id"), 0)
+	runID := r.PathValue("id")
+	after := int64(0)
+	if lastID := strings.TrimSpace(r.Header.Get("Last-Event-ID")); lastID != "" {
+		if parsed, err := strconv.ParseInt(lastID, 10, 64); err == nil && parsed > after {
+			after = parsed
+		}
+	}
+	if rawAfter := strings.TrimSpace(r.URL.Query().Get("after")); rawAfter != "" {
+		parsed, err := strconv.ParseInt(rawAfter, 10, 64)
+		if err != nil || parsed < 0 {
+			writeError(w, http.StatusBadRequest, "invalid after")
+			return
+		}
+		after = parsed
+	}
+	if acceptsSSE(r) {
+		s.streamRunEvents(w, r, runID, after)
+		return
+	}
+	events, err := s.store.EventHistory(r.Context(), tenantIDFrom(r.Context()), runID, after)
 	if err != nil {
 		writeError(w, 404, err.Error())
 		return
@@ -625,6 +702,129 @@ func (s *Server) handleRegisterNode(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleMetrics(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, 200, map[string]uint64{"runs_created": s.runsCreated.Load()})
+}
+
+func (s *Server) handlePromMetrics(w http.ResponseWriter, r *http.Request) {
+	if os.Getenv("RUNNER_METRICS_ENABLED") != "1" {
+		writeError(w, http.StatusNotFound, "metrics disabled")
+		return
+	}
+	w.Header().Set("Content-Type", "text/plain; version=0.0.4")
+	_, _ = w.Write([]byte(s.metrics.prometheus()))
+}
+
+func acceptsSSE(r *http.Request) bool {
+	return strings.Contains(strings.ToLower(r.Header.Get("Accept")), "text/event-stream")
+}
+
+func shouldCompressSSE(r *http.Request) bool {
+	return strings.Contains(strings.ToLower(r.Header.Get("Accept-Encoding")), "gzip")
+}
+
+func (s *Server) streamRunEvents(w http.ResponseWriter, r *http.Request, runID string, after int64) {
+	history, err := s.store.EventHistory(r.Context(), tenantIDFrom(r.Context()), runID, after)
+	if err != nil {
+		writeError(w, 404, err.Error())
+		return
+	}
+	queue := make(chan jobs.Event, 128)
+	flushTicker := time.NewTicker(200 * time.Millisecond)
+	defer flushTicker.Stop()
+
+	s.metrics.setSSEQueueDepth(runID, 0)
+	defer s.metrics.setSSEQueueDepth(runID, 0)
+
+	sub, cancel := s.store.Subscribe(runID)
+	defer cancel()
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+	var writer io.Writer = w
+	if shouldCompressSSE(r) {
+		w.Header().Set("Content-Encoding", "gzip")
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+		writer = gz
+	}
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		writeError(w, http.StatusInternalServerError, "streaming unsupported")
+		return
+	}
+
+	for _, evt := range history {
+		queue <- evt
+	}
+
+	go func() {
+		for {
+			select {
+			case <-r.Context().Done():
+				return
+			case evt := <-sub:
+				select {
+				case queue <- evt:
+				default:
+					if isLowPriorityEvent(evt.Type) {
+						s.metrics.incSSEDropped(runID)
+						continue
+					}
+					<-queue
+					queue <- evt
+				}
+				s.metrics.setSSEQueueDepth(runID, len(queue))
+			}
+		}
+	}()
+
+	batch := make([]jobs.Event, 0, 32)
+	for {
+		select {
+		case <-r.Context().Done():
+			return
+		case evt := <-queue:
+			batch = append(batch, evt)
+			if len(batch) >= 24 {
+				if !writeSSEBatch(writer, batch) {
+					return
+				}
+				flusher.Flush()
+				batch = batch[:0]
+			}
+		case <-flushTicker.C:
+			if len(batch) == 0 {
+				continue
+			}
+			if !writeSSEBatch(writer, batch) {
+				return
+			}
+			flusher.Flush()
+			batch = batch[:0]
+		}
+	}
+}
+
+func writeSSEBatch(w io.Writer, batch []jobs.Event) bool {
+	if len(batch) == 1 {
+		payload, _ := json.Marshal(map[string]any{"eventId": batch[0].ID, "type": batch[0].Type, "payload": json.RawMessage(batch[0].Payload), "timestamp": batch[0].CreatedAt.Format(time.RFC3339Nano)})
+		_, err := fmt.Fprintf(w, "id: %d\ndata: %s\n\n", batch[0].ID, payload)
+		return err == nil
+	}
+	items := make([]map[string]any, 0, len(batch))
+	for _, evt := range batch {
+		items = append(items, map[string]any{"eventId": evt.ID, "type": evt.Type, "payload": json.RawMessage(evt.Payload), "timestamp": evt.CreatedAt.Format(time.RFC3339Nano)})
+	}
+	lastID := batch[len(batch)-1].ID
+	payload, _ := json.Marshal(map[string]any{"type": "batch", "items": items})
+	_, err := fmt.Fprintf(w, "id: %d\ndata: %s\n\n", lastID, payload)
+	return err == nil
+}
+
+func isLowPriorityEvent(eventType string) bool {
+	return strings.HasPrefix(eventType, "task.") || strings.HasPrefix(eventType, "telemetry.") || strings.HasPrefix(eventType, "progress")
 }
 
 func supportsAll(have, need []string) bool {
