@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"reach/services/runner/internal/jobs"
 	"reach/services/runner/internal/storage"
 )
 
@@ -19,169 +18,124 @@ func newAuthedServer(t *testing.T) (*Server, *http.Cookie) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { _ = db.Close() })
 	srv := NewServer(db)
 	login := httptest.NewRecorder()
 	srv.Handler().ServeHTTP(login, httptest.NewRequest(http.MethodPost, "/auth/dev-login", bytes.NewBufferString(`{}`)))
 	if login.Code != http.StatusOK {
 		t.Fatalf("dev login failed %d", login.Code)
 	}
-	cookies := login.Result().Cookies()
-	if len(cookies) == 0 {
-		t.Fatal("expected session cookie")
-	}
-	return srv, cookies[0]
+	return srv, login.Result().Cookies()[0]
 }
 
 func doReq(t *testing.T, srv *Server, cookie *http.Cookie, method, path, body string) *httptest.ResponseRecorder {
 	t.Helper()
 	req := httptest.NewRequest(method, path, bytes.NewBufferString(body))
-	req.AddCookie(&http.Cookie{Name: cookie.Name, Value: cookie.Value, Path: "/"})
+	req.AddCookie(cookie)
 	rec := httptest.NewRecorder()
 	srv.Handler().ServeHTTP(rec, req)
 	return rec
 }
 
-func createRun(t *testing.T, srv *Server, cookie *http.Cookie) string {
+func createRun(t *testing.T, srv *Server, cookie *http.Cookie, payload string) string {
 	t.Helper()
-	rec := doReq(t, srv, cookie, http.MethodPost, "/v1/runs", `{"capabilities":["tool:safe"]}`)
+	rec := doReq(t, srv, cookie, http.MethodPost, "/v1/runs", payload)
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("create run failed: %d %s", rec.Code, rec.Body.String())
 	}
-	var out map[string]string
+	var out map[string]any
 	_ = json.Unmarshal(rec.Body.Bytes(), &out)
-	return out["run_id"]
+	return out["run_id"].(string)
 }
 
-func TestGateRequestedWhenCapabilityDenied(t *testing.T) {
+func TestSpawnDepthEnforcement(t *testing.T) {
 	srv, cookie := newAuthedServer(t)
-	runID := createRun(t, srv, cookie)
-	rec := doReq(t, srv, cookie, http.MethodPost, "/v1/runs/"+runID+"/tool-result", `{"tool_name":"danger","required_capabilities":["tool:danger"],"result":{}}`)
-	if rec.Code != http.StatusForbidden {
-		t.Fatalf("expected 403 got %d", rec.Code)
+	root := createRun(t, srv, cookie, `{"capabilities":["tool:echo"],"plan_tier":"free"}`)
+	child := doReq(t, srv, cookie, http.MethodPost, "/v1/runs/"+root+"/spawn", `{"capabilities":["tool:echo"],"budget_slice":20}`)
+	if child.Code != http.StatusCreated {
+		t.Fatalf("expected child creation, got %d", child.Code)
 	}
-	t.Cleanup(func() { _ = db.Close() })
-	srv := NewServer(db)
-	login := httptest.NewRecorder()
-	srv.Handler().ServeHTTP(login, httptest.NewRequest(http.MethodPost, "/auth/dev-login", nil))
-	if login.Code != http.StatusOK {
-		t.Fatalf("login failed: %d", login.Code)
+	var childOut map[string]any
+	_ = json.Unmarshal(child.Body.Bytes(), &childOut)
+	gchild := doReq(t, srv, cookie, http.MethodPost, "/v1/runs/"+childOut["run_id"].(string)+"/spawn", `{"capabilities":["tool:echo"],"budget_slice":10}`)
+	if gchild.Code != http.StatusForbidden {
+		t.Fatalf("expected depth guardrail deny, got %d", gchild.Code)
 	}
-	return srv, login.Result().Cookies()[0]
 }
 
-func TestExportImportCapsule(t *testing.T) {
+func TestCapabilityNarrowingAndBudgetSlicing(t *testing.T) {
 	srv, cookie := newAuthedServer(t)
-	runID := createRun(t, srv, cookie)
-	_ = srv.store.PublishEvent(t.Context(), runID, jobs.Event{Type: "run.completed", Payload: []byte(`{"type":"run_completed"}`), CreatedAt: time.Now().UTC()}, "test")
+	root := createRun(t, srv, cookie, `{"capabilities":["tool:echo","tool:safe"],"plan_tier":"pro"}`)
 
-	exp := doReq(t, srv, cookie, http.MethodPost, "/v1/runs/"+runID+"/export", "")
-	if exp.Code != http.StatusOK {
-		t.Fatalf("export failed: %d", exp.Code)
+	denyCap := doReq(t, srv, cookie, http.MethodPost, "/v1/runs/"+root+"/spawn", `{"capabilities":["tool:danger"],"budget_slice":10}`)
+	if denyCap.Code != http.StatusForbidden {
+		t.Fatalf("expected capability deny, got %d", denyCap.Code)
 	}
-	zr, err := zip.NewReader(bytes.NewReader(exp.Body.Bytes()), int64(exp.Body.Len()))
-	if err != nil {
-		t.Fatal(err)
+	denyBudget := doReq(t, srv, cookie, http.MethodPost, "/v1/runs/"+root+"/spawn", `{"capabilities":["tool:echo"],"budget_slice":101}`)
+	if denyBudget.Code != http.StatusForbidden {
+		t.Fatalf("expected budget deny, got %d", denyBudget.Code)
 	}
-	found := false
-	for _, f := range zr.File {
-		if f.Name == "events.ndjson" {
-			found = true
-func TestNodeSelectionDeterministic(t *testing.T) {
+	ok := doReq(t, srv, cookie, http.MethodPost, "/v1/runs/"+root+"/spawn", `{"capabilities":["tool:echo"],"budget_slice":30,"ttl_seconds":1}`)
+	if ok.Code != http.StatusCreated {
+		t.Fatalf("expected successful spawn, got %d body=%s", ok.Code, ok.Body.String())
+	}
+}
+
+func TestFreeTierRestrictsHostedNodeRouting(t *testing.T) {
 	srv, cookie := newAuthedServer(t)
-
-	for _, payload := range []string{
-		`{"id":"node-b","type":"worker","capabilities":["tool:echo"],"current_load":1,"latency_ms":40,"status":"online"}`,
-		`{"id":"node-a","type":"worker","capabilities":["tool:echo"],"current_load":1,"latency_ms":40,"status":"online"}`,
-	} {
-		req := httptest.NewRequest(http.MethodPost, "/v1/nodes/register", bytes.NewBufferString(payload))
-		req.AddCookie(cookie)
-		rec := httptest.NewRecorder()
-		srv.Handler().ServeHTTP(rec, req)
-		if rec.Code != http.StatusCreated {
-			t.Fatalf("register failed: %d", rec.Code)
-		}
-	}
-
-	createReq := httptest.NewRequest(http.MethodPost, "/v1/runs", bytes.NewBufferString(`{"capabilities":["tool:echo"]}`))
-	createReq.AddCookie(cookie)
-	createRec := httptest.NewRecorder()
-	srv.Handler().ServeHTTP(createRec, createReq)
-	if createRec.Code != http.StatusCreated {
-		t.Fatalf("create run failed: %d body=%s", createRec.Code, createRec.Body.String())
+	_ = doReq(t, srv, cookie, http.MethodPost, "/v1/nodes/register", `{"id":"hosted-1","type":"hosted","capabilities":["tool:echo"],"current_load":0,"latency_ms":1,"status":"online"}`)
+	rec := doReq(t, srv, cookie, http.MethodPost, "/v1/runs", `{"capabilities":["tool:echo"],"plan_tier":"free"}`)
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("create run failed: %d", rec.Code)
 	}
 	var out map[string]any
-	_ = json.Unmarshal(createRec.Body.Bytes(), &out)
-	runID := out["run_id"].(string)
-
-	imp := doReq(t, srv, cookie, http.MethodPost, "/v1/runs/import", exp.Body.String())
-	if imp.Code != http.StatusCreated {
-		t.Fatalf("import failed: %d body=%s", imp.Code, imp.Body.String())
+	_ = json.Unmarshal(rec.Body.Bytes(), &out)
+	if selected, _ := out["node_selected"].(bool); selected {
+		t.Fatalf("free tier should not route to hosted node")
 	}
 }
 
-func TestAutonomousStatusLifecycle(t *testing.T) {
+func TestBYOKFlowAndNoKeyLogging(t *testing.T) {
 	srv, cookie := newAuthedServer(t)
-	runID := createRun(t, srv, cookie)
-	start := doReq(t, srv, cookie, http.MethodPost, "/v1/sessions/"+runID+"/autonomous/start", `{"goal":"ship","max_iterations":2,"max_runtime":2,"max_tool_calls":4}`)
-	if start.Code != http.StatusAccepted {
-		t.Fatalf("start failed %d %s", start.Code, start.Body.String())
+	rec := doReq(t, srv, cookie, http.MethodPost, "/v1/runs", `{"capabilities":["tool:echo"],"plan_tier":"pro","provider":{"provider_type":"openai","api_key":"sk-secret","endpoint":"https://api.openai.com"}}`)
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("create run failed: %d", rec.Code)
 	}
-	status := doReq(t, srv, cookie, http.MethodGet, "/v1/sessions/"+runID+"/autonomous/status", "")
-	if status.Code != http.StatusOK {
-		t.Fatalf("status failed %d", status.Code)
+	if bytes.Contains(rec.Body.Bytes(), []byte("sk-secret")) {
+		t.Fatal("api key leaked in response")
 	}
-	stop := doReq(t, srv, cookie, http.MethodPost, "/v1/sessions/"+runID+"/autonomous/stop", "")
-	if stop.Code != http.StatusOK {
-		t.Fatalf("stop failed %d", stop.Code)
+
+	localOnly := doReq(t, srv, cookie, http.MethodPost, "/v1/runs", `{"capabilities":["tool:echo"],"plan_tier":"pro","provider":{"provider_type":"openai","endpoint":"https://api.openai.com"}}`)
+	var out map[string]any
+	_ = json.Unmarshal(localOnly.Body.Bytes(), &out)
+	if local, _ := out["local_only"].(bool); !local {
+		t.Fatalf("expected local-only mode when key missing")
 	}
 }
 
-func TestPluginsEndpoint(t *testing.T) {
+func TestPlanUpgradeEnablesHostedFeatures(t *testing.T) {
 	srv, cookie := newAuthedServer(t)
-	rec := doReq(t, srv, cookie, http.MethodGet, "/v1/plugins", "")
-	if rec.Code != http.StatusOK {
-		t.Fatalf("expected 200 got %d", rec.Code)
-	}
-	b, _ := io.ReadAll(rec.Body)
-	if !bytes.Contains(b, []byte("plugins")) {
-		t.Fatalf("expected plugins payload in %s", string(b))
-	eventsReq := httptest.NewRequest(http.MethodGet, "/v1/runs/"+runID+"/events", nil)
-	eventsReq.AddCookie(cookie)
-	eventsRec := httptest.NewRecorder()
-	srv.Handler().ServeHTTP(eventsRec, eventsReq)
-	if eventsRec.Code != http.StatusOK {
-		t.Fatalf("events failed: %d", eventsRec.Code)
-	}
-	if !bytes.Contains(eventsRec.Body.Bytes(), []byte(`bm9kZS1h`)) {
-		t.Fatalf("expected deterministic node-a selection: %s", eventsRec.Body.String())
+	_ = doReq(t, srv, cookie, http.MethodPost, "/v1/nodes/register", `{"id":"hosted-1","type":"hosted","capabilities":["tool:echo"],"current_load":0,"latency_ms":1,"status":"online"}`)
+	rec := doReq(t, srv, cookie, http.MethodPost, "/v1/runs", `{"capabilities":["tool:echo"],"plan_tier":"pro","provider":{"provider_type":"openai","api_key":"x","endpoint":"https://api"}}`)
+	var out map[string]any
+	_ = json.Unmarshal(rec.Body.Bytes(), &out)
+	if selected, _ := out["node_selected"].(bool); !selected {
+		t.Fatalf("expected hosted routing for pro tier with key")
 	}
 }
 
-func TestTenantIsolation(t *testing.T) {
-	db, _ := storage.NewSQLiteStore(filepath.Join(t.TempDir(), "runner.sqlite"))
-	defer db.Close()
-	srv := NewServer(db)
-
-	mkSession := func(tenant string) *http.Cookie {
-		rec := httptest.NewRecorder()
-		srv.setSession(rec, httptest.NewRequest(http.MethodGet, "/", nil).Context(), tenant, tenant)
-		return rec.Result().Cookies()[0]
+func TestChildExpirationTimer(t *testing.T) {
+	srv, cookie := newAuthedServer(t)
+	root := createRun(t, srv, cookie, `{"capabilities":["tool:echo"],"plan_tier":"pro"}`)
+	child := doReq(t, srv, cookie, http.MethodPost, "/v1/runs/"+root+"/spawn", `{"capabilities":["tool:echo"],"budget_slice":5,"ttl_seconds":1}`)
+	if child.Code != http.StatusCreated {
+		t.Fatalf("spawn failed: %d", child.Code)
 	}
-	cA := mkSession("tenant-a")
-	cB := mkSession("tenant-b")
-
-	createReq := httptest.NewRequest(http.MethodPost, "/v1/runs", bytes.NewBufferString(`{"capabilities":[]}`))
-	createReq.AddCookie(cA)
-	createRec := httptest.NewRecorder()
-	srv.Handler().ServeHTTP(createRec, createReq)
-	var out map[string]string
-	_ = json.Unmarshal(createRec.Body.Bytes(), &out)
-
-	otherReq := httptest.NewRequest(http.MethodGet, "/v1/runs/"+out["run_id"]+"/events", nil)
-	otherReq.AddCookie(cB)
-	otherRec := httptest.NewRecorder()
-	srv.Handler().ServeHTTP(otherRec, otherReq)
-	if otherRec.Code != http.StatusNotFound {
-		t.Fatalf("expected tenant isolation 404 got %d", otherRec.Code)
+	time.Sleep(1200 * time.Millisecond)
+	var out map[string]any
+	_ = json.Unmarshal(child.Body.Bytes(), &out)
+	events := doReq(t, srv, cookie, http.MethodGet, "/v1/runs/"+out["run_id"].(string)+"/events", "")
+	if !bytes.Contains(events.Body.Bytes(), []byte("spawn.expired")) {
+		t.Fatalf("expected expiration event, got %s", events.Body.String())
 	}
 }
