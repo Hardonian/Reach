@@ -175,6 +175,9 @@ func (s *Server) handleAutonomousStart(w http.ResponseWriter, r *http.Request) {
 		MaxRuntimeSeconds   int      `json:"max_runtime"`
 		MaxToolCalls        int      `json:"max_tool_calls"`
 		AllowedCapabilities []string `json:"allowed_capabilities"`
+		BurstMinSeconds     int      `json:"burst_min_seconds"`
+		BurstMaxSeconds     int      `json:"burst_max_seconds"`
+		SleepSeconds        int      `json:"sleep_seconds"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid json")
@@ -199,7 +202,19 @@ func (s *Server) handleAutonomousStart(w http.ResponseWriter, r *http.Request) {
 	s.autonomous[runID] = control
 	s.mu.Unlock()
 
-	loop := autonomous.Loop{Store: s.store, Engine: autonomous.StaticEngine{}, IterationTimeout: 15 * time.Second}
+	burstMin := time.Duration(body.BurstMinSeconds) * time.Second
+	if burstMin <= 0 {
+		burstMin = 10 * time.Second
+	}
+	burstMax := time.Duration(body.BurstMaxSeconds) * time.Second
+	if burstMax <= 0 {
+		burstMax = 30 * time.Second
+	}
+	sleepInterval := time.Duration(body.SleepSeconds) * time.Second
+	if sleepInterval <= 0 {
+		sleepInterval = 15 * time.Second
+	}
+	loop := autonomous.Loop{Store: s.store, Engine: autonomous.StaticEngine{}, IterationTimeout: 15 * time.Second, Scheduler: autonomous.IdleCycleScheduler{BurstMin: burstMin, BurstMax: burstMax, SleepInterval: sleepInterval}}
 	go func() {
 		reason := loop.Run(ctx, tenantID, runID, &control.session)
 		s.mu.Lock()

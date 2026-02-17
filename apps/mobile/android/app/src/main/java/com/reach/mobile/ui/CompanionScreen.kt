@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -88,9 +89,55 @@ fun CompanionScreen(viewModel: CompanionViewModel) {
         Text("run_id: ${state.runId ?: "-"}", color = Color.White, fontFamily = FontFamily.Monospace)
         Text("status: ${state.status}", color = Color(0xFFFFF59D), fontFamily = FontFamily.Monospace)
         Text("autonomous iterations: ${state.autonomousIterations}", color = Color.White, fontFamily = FontFamily.Monospace)
+        Text("Iteration budget", color = Color(0xFFE1F5FE))
         LinearProgressIndicator(progress = if (state.maxIterations == 0) 0f else state.autonomousIterations.toFloat() / state.maxIterations.toFloat(), modifier = Modifier.fillMaxWidth())
+        Text("Runtime budget", color = Color(0xFFE1F5FE))
+        LinearProgressIndicator(progress = if (state.maxRuntimeSeconds == 0) 0f else state.elapsedRuntimeSeconds.toFloat() / state.maxRuntimeSeconds.toFloat(), modifier = Modifier.fillMaxWidth())
+        Text("Depth budget", color = Color(0xFFE1F5FE))
+        LinearProgressIndicator(progress = if (state.maxSpawnDepth == 0) 0f else state.currentSpawnDepth.toFloat() / state.maxSpawnDepth.toFloat(), modifier = Modifier.fillMaxWidth())
+        Text("Tool-call budget", color = Color(0xFFE1F5FE))
         LinearProgressIndicator(progress = if (state.maxToolCalls == 0) 0f else state.toolCallCount.toFloat() / state.maxToolCalls.toFloat(), modifier = Modifier.fillMaxWidth())
         state.error?.let { Text("error: $it", color = Color(0xFFFF8A80), fontFamily = FontFamily.Monospace) }
+
+
+        Text("Spawn Tree", color = Color.White)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 120.dp)
+                .background(Color(0xFF11181C))
+                .padding(6.dp)
+        ) {
+            items(state.spawnNodes) { node ->
+                val depth = state.spawnNodes.count { it.id == node.parentId }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { viewModel.toggleNode(node.id) }
+                        .padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(" ".repeat(depth * 2) + if (node.expanded) "▾" else "▸", color = Color(0xFF80DEEA), fontFamily = FontFamily.Monospace)
+                    Text(node.id, color = Color.White, fontFamily = FontFamily.Monospace, modifier = Modifier.width(80.dp))
+                    Text("it:${node.iterationCount}", color = Color(0xFFB9F6CA), fontFamily = FontFamily.Monospace)
+                    Text("${(node.budgetUsage * 100).toInt()}%", color = Color(0xFFFFF59D), fontFamily = FontFamily.Monospace)
+                    Text(node.status, color = Color(0xFFE1F5FE), fontFamily = FontFamily.Monospace)
+                }
+            }
+        }
+
+        Text("Notifications", color = Color.White)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 80.dp)
+                .background(Color(0xFF11181C))
+                .padding(6.dp)
+        ) {
+            items(state.notifications) { n ->
+                Text(n, color = Color(0xFFFFF59D), fontFamily = FontFamily.Monospace)
+            }
+        }
 
         Text("Recent Events", color = Color.White)
         LazyColumn(

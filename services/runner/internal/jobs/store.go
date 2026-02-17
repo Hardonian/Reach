@@ -15,12 +15,6 @@ import (
 var ErrRunNotFound = errors.New("run not found")
 var ErrCapabilityDenied = errors.New("capability denied")
 
-// AuditLogger is an optional append-only sink for run level audit trails.
-type AuditLogger interface {
-	Append(AuditEntry) error
-	List(runID string) ([]AuditEntry, error)
-}
-
 type Event struct {
 	ID        int64
 	Type      string
@@ -49,6 +43,7 @@ type AutonomousStatus string
 const (
 	AutonomousIdle      AutonomousStatus = "idle"
 	AutonomousRunning   AutonomousStatus = "running"
+	AutonomousPaused    AutonomousStatus = "paused"
 	AutonomousStopping  AutonomousStatus = "stopping"
 	AutonomousStopped   AutonomousStatus = "stopped"
 	AutonomousCompleted AutonomousStatus = "completed"
@@ -76,7 +71,6 @@ type Run struct {
 	Capabilities map[string]struct{}
 	Gates        map[string]Gate
 	Autonomous   AutonomousSession
-	mu           sync.RWMutex
 }
 
 type Store struct {
@@ -93,33 +87,12 @@ func NewStore(db *storage.SQLiteStore) *Store {
 	return &Store{runs: db, events: db, audit: db, subs: map[string][]chan Event{}}
 }
 
-func toCapSet(c []string) map[string]struct{} {
-	m := make(map[string]struct{}, len(c))
-	for _, v := range c {
-		m[v] = struct{}{}
-}
-
-type Store struct {
-	db         *storage.SQLiteStore
-	counter    atomic.Uint64
-	mu         sync.Mutex
-	runTenants map[string]string
-}
-
-func NewStore(db *storage.SQLiteStore) *Store {
-	return &Store{db: db, runTenants: map[string]string{}}
-}
-
-func (s *Store) CreateRun(ctx context.Context, tenantID string, capabilities []string) (*Run, error) {
-	runID := fmt.Sprintf("run-%06d", s.counter.Add(1))
-	rec := storage.RunRecord{ID: runID, TenantID: tenantID, Capabilities: capabilities, CreatedAt: time.Now().UTC(), Status: "created"}
-	if err := s.db.CreateRun(ctx, rec); err != nil {
-		return nil, err
+func toCapSet(in []string) map[string]struct{} {
+	out := make(map[string]struct{}, len(in))
+	for _, cap := range in {
+		out[cap] = struct{}{}
 	}
-	s.mu.Lock()
-	s.runTenants[runID] = tenantID
-	s.mu.Unlock()
-	return &Run{ID: runID, TenantID: tenantID, Capabilities: toCapSet(capabilities)}, nil
+	return out
 }
 
 func (s *Store) CreateRun(ctx context.Context, tenantID string, capabilities []string) (*Run, error) {
@@ -132,7 +105,7 @@ func (s *Store) CreateRun(ctx context.Context, tenantID string, capabilities []s
 }
 
 func (s *Store) GetRun(ctx context.Context, tenantID, id string) (*Run, error) {
-	rec, err := s.db.GetRun(ctx, tenantID, id)
+	r, err := s.runs.GetRun(ctx, tenantID, id)
 	if errors.Is(err, storage.ErrNotFound) {
 		return nil, ErrRunNotFound
 	}
@@ -140,7 +113,6 @@ func (s *Store) GetRun(ctx context.Context, tenantID, id string) (*Run, error) {
 		return nil, err
 	}
 	return &Run{ID: r.ID, TenantID: r.TenantID, Capabilities: toCapSet(r.Capabilities), Gates: map[string]Gate{}}, nil
-	return &Run{ID: rec.ID, TenantID: rec.TenantID, Capabilities: toCapSet(rec.Capabilities)}, nil
 }
 
 func (s *Store) CheckCapabilities(ctx context.Context, tenantID, id string, required []string) error {
@@ -165,11 +137,6 @@ func (s *Store) AppendEvent(ctx context.Context, runID string, evt Event) (int64
 
 func (s *Store) PublishEvent(ctx context.Context, runID string, evt Event, _ string) error {
 	id, err := s.AppendEvent(ctx, runID, evt)
-func (s *Store) AppendEvent(ctx context.Context, tenantID, runID string, evt Event) (int64, error) {
-	if evt.CreatedAt.IsZero() {
-		evt.CreatedAt = time.Now().UTC()
-	}
-	_, err := s.GetRun(ctx, tenantID, runID)
 	if err != nil {
 		return err
 	}
@@ -237,38 +204,4 @@ func (s *Store) Audit(ctx context.Context, tenantID, runID, typ string, payload 
 
 func (s *Store) ListAudit(ctx context.Context, tenantID, runID string) ([]storage.AuditRecord, error) {
 	return s.audit.ListAudit(ctx, tenantID, runID)
-	return s.db.AppendEvent(ctx, storage.EventRecord{RunID: runID, Type: evt.Type, Payload: evt.Payload, CreatedAt: evt.CreatedAt})
-}
-
-func (s *Store) EventHistory(ctx context.Context, tenantID, runID string, after int64) ([]Event, error) {
-	if _, err := s.GetRun(ctx, tenantID, runID); err != nil {
-		return nil, err
-	}
-	recs, err := s.db.ListEvents(ctx, tenantID, runID, after)
-	if err != nil {
-		return nil, err
-	}
-	out := make([]Event, 0, len(recs))
-	for _, rec := range recs {
-		out = append(out, Event{ID: rec.ID, Type: rec.Type, Payload: rec.Payload, CreatedAt: rec.CreatedAt})
-	}
-	return out, nil
-}
-
-func (s *Store) PublishEvent(runID string, evt Event, _ string) error {
-	s.mu.Lock()
-	tenantID := s.runTenants[runID]
-	s.mu.Unlock()
-	if tenantID == "" {
-		return ErrRunNotFound
-	}
-	_, err := s.AppendEvent(context.Background(), tenantID, runID, evt)
-	return err
-}
-func toCapSet(in []string) map[string]struct{} {
-	out := make(map[string]struct{}, len(in))
-	for _, cap := range in {
-		out[cap] = struct{}{}
-	}
-	return out
 }
