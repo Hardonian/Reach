@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { BridgeClient } from './bridgeClient';
 import { buildContextPayload, ContextSync } from './contextSync';
 import { ReachPanel } from './panel';
+import { runMarketplaceInstalled, runMarketplaceInstall, runMarketplaceSearch, runMarketplaceUpdate } from './marketplace';
+import { MarketplaceClient } from './marketplaceClient';
 
 export function activate(context: vscode.ExtensionContext): void {
   const panelRef: { current?: ReachPanel } = {};
@@ -25,6 +27,10 @@ export function activate(context: vscode.ExtensionContext): void {
   panelRef.current = panel;
 
   const contextSync = new ContextSync(bridgeClient);
+
+  const marketplaceClient = new MarketplaceClient(
+    () => vscode.workspace.getConfiguration('reach').get<string>('connectorRegistryUrl', 'http://localhost:8092')
+  );
 
   context.subscriptions.push(
     bridgeClient,
@@ -66,6 +72,34 @@ export function activate(context: vscode.ExtensionContext): void {
         void vscode.window.showQuickPick(lines, { title: 'Installed Reach Connectors' });
       } catch (error) {
         void vscode.window.showErrorMessage(`Failed to list connectors: ${String(error)}`);
+      }
+    }),
+    vscode.commands.registerCommand('reach.marketplaceSearch', async () => {
+      try {
+        await runMarketplaceSearch(marketplaceClient);
+      } catch (error) {
+        void vscode.window.showErrorMessage(`Marketplace search failed: ${String(error)}`);
+      }
+    }),
+    vscode.commands.registerCommand('reach.marketplaceInstall', async () => {
+      try {
+        await runMarketplaceInstall(marketplaceClient);
+      } catch (error) {
+        void vscode.window.showErrorMessage(`Marketplace install failed: ${String(error)}`);
+      }
+    }),
+    vscode.commands.registerCommand('reach.marketplaceListInstalled', async () => {
+      try {
+        await runMarketplaceInstalled(marketplaceClient);
+      } catch (error) {
+        void vscode.window.showErrorMessage(`Marketplace installed list failed: ${String(error)}`);
+      }
+    }),
+    vscode.commands.registerCommand('reach.marketplaceUpdateInstalled', async () => {
+      try {
+        await runMarketplaceUpdate(marketplaceClient);
+      } catch (error) {
+        void vscode.window.showErrorMessage(`Marketplace update failed: ${String(error)}`);
       }
     }),
 

@@ -29,6 +29,10 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /v1/connectors/install", s.install)
 	mux.HandleFunc("POST /v1/connectors/upgrade", s.upgrade)
 	mux.HandleFunc("DELETE /v1/connectors/", s.uninstall)
+	mux.HandleFunc("GET /v1/marketplace/catalog", s.marketplaceCatalog)
+	mux.HandleFunc("GET /v1/marketplace/items/", s.marketplaceItem)
+	mux.HandleFunc("POST /v1/marketplace/install-intent", s.marketplaceInstallIntent)
+	mux.HandleFunc("POST /v1/marketplace/install", s.marketplaceInstall)
 	return mux
 }
 
@@ -84,6 +88,58 @@ func (s *Server) uninstall(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *Server) marketplaceCatalog(w http.ResponseWriter, r *http.Request) {
+	page, err := s.store.ListMarketplaceCatalog(r.Context(), registry.CatalogFilterFromQuery(r.URL.Query()))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+	writeJSON(w, http.StatusOK, page)
+}
+
+func (s *Server) marketplaceItem(w http.ResponseWriter, r *http.Request) {
+	path := strings.TrimPrefix(r.URL.Path, "/v1/marketplace/items/")
+	parts := strings.SplitN(path, "/", 2)
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		http.Error(w, "kind and id required", http.StatusBadRequest)
+		return
+	}
+	item, err := s.store.GetMarketplaceItem(r.Context(), parts[0], parts[1])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+	writeJSON(w, http.StatusOK, item)
+}
+
+func (s *Server) marketplaceInstallIntent(w http.ResponseWriter, r *http.Request) {
+	var req registry.InstallIntentRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	intent, err := s.store.InstallIntent(r.Context(), req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	writeJSON(w, http.StatusOK, intent)
+}
+
+func (s *Server) marketplaceInstall(w http.ResponseWriter, r *http.Request) {
+	var req registry.InstallRequestV1
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	installed, err := s.store.InstallMarketplace(r.Context(), req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	writeJSON(w, http.StatusCreated, installed)
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

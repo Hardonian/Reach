@@ -63,6 +63,9 @@ type Store struct {
 	httpClient     *http.Client
 	maxRetries     int
 	items          map[string]InstalledConnector
+	currentTier    string
+	catalogCache   catalogCacheEntry
+	catalogTTL     time.Duration
 }
 
 func NewStore(registryRoot, remoteIndexURL, cacheRoot, installedRoot, lockfilePath string, trustedKeys map[string]string) (*Store, error) {
@@ -76,6 +79,8 @@ func NewStore(registryRoot, remoteIndexURL, cacheRoot, installedRoot, lockfilePa
 		httpClient:     &http.Client{Timeout: defaultTimeout},
 		maxRetries:     3,
 		items:          map[string]InstalledConnector{},
+		currentTier:    "free",
+		catalogTTL:     catalogTTL,
 	}
 	if err := os.MkdirAll(installedRoot, 0o755); err != nil {
 		return nil, err

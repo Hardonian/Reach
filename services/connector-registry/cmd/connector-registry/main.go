@@ -26,6 +26,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("init store: %v", err)
 	}
+	store.SetCurrentTier(getenv("REACH_PLAN_TIER", "free"))
 	srv := api.New(store, version)
 	log.Printf("connector-registry listening on %s", addr)
 	if err := http.ListenAndServe(addr, srv.Handler()); err != nil {
