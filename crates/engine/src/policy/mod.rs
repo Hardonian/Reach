@@ -29,10 +29,10 @@ pub enum Decision {
 
 impl Policy {
     #[must_use]
-    pub fn evaluate(&self, requested: Capability) -> Decision {
+    pub fn evaluate(&self, requested: &Capability) -> Decision {
         self.rules
             .iter()
-            .find(|rule| rule.capability == requested)
+            .find(|rule| rule.capability == *requested)
             .map_or(Decision::Allow, |rule| {
                 if rule.allow {
                     Decision::Allow

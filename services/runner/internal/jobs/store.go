@@ -9,6 +9,7 @@ import (
 )
 
 var ErrRunNotFound = errors.New("run not found")
+var ErrCapabilityDenied = errors.New("capability denied")
 
 type Event struct {
 	Type      string
@@ -17,32 +18,40 @@ type Event struct {
 }
 
 type Run struct {
-	ID     string
-	Events chan Event
+	ID           string
+	Capabilities map[string]struct{}
+	Events       chan Event
 }
 
 type Store struct {
 	mu      sync.RWMutex
 	runs    map[string]*Run
 	counter atomic.Uint64
+	audit   AuditLogger
 }
 
-func NewStore() *Store {
-	return &Store{runs: make(map[string]*Run)}
+func NewStore(audit AuditLogger) *Store {
+	return &Store{runs: make(map[string]*Run), audit: audit}
 }
 
-func (s *Store) CreateRun() *Run {
+func (s *Store) CreateRun(requestID string, capabilities []string) *Run {
 	id := fmt.Sprintf("run-%06d", s.counter.Add(1))
+	capSet := make(map[string]struct{}, len(capabilities))
+	for _, capability := range capabilities {
+		capSet[capability] = struct{}{}
+	}
 	r := &Run{
-		ID:     id,
-		Events: make(chan Event, 32),
+		ID:           id,
+		Capabilities: capSet,
+		Events:       make(chan Event, 32),
 	}
 
 	s.mu.Lock()
 	s.runs[id] = r
 	s.mu.Unlock()
 
-	s.PublishEvent(id, Event{Type: "run.created", Payload: []byte(`{"status":"created"}`), CreatedAt: time.Now().UTC()})
+	_ = s.Audit(id, requestID, "run.created", map[string]any{"capabilities": capabilities})
+	_ = s.PublishEvent(id, Event{Type: "run.created", Payload: []byte(`{"status":"created"}`), CreatedAt: time.Now().UTC()}, requestID)
 	return r
 }
 
@@ -56,7 +65,20 @@ func (s *Store) GetRun(id string) (*Run, error) {
 	return r, nil
 }
 
-func (s *Store) PublishEvent(id string, evt Event) error {
+func (s *Store) CheckCapabilities(id string, required []string) error {
+	r, err := s.GetRun(id)
+	if err != nil {
+		return err
+	}
+	for _, capability := range required {
+		if _, ok := r.Capabilities[capability]; !ok {
+			return fmt.Errorf("%w: %s", ErrCapabilityDenied, capability)
+		}
+	}
+	return nil
+}
+
+func (s *Store) PublishEvent(id string, evt Event, requestID string) error {
 	r, err := s.GetRun(id)
 	if err != nil {
 		return err
@@ -67,5 +89,29 @@ func (s *Store) PublishEvent(id string, evt Event) error {
 		<-r.Events
 		r.Events <- evt
 	}
+	_ = s.Audit(id, requestID, "event.emitted", map[string]any{"type": evt.Type, "created_at": evt.CreatedAt})
 	return nil
+}
+
+func (s *Store) Audit(runID, requestID, typ string, payload map[string]any) error {
+	if s.audit == nil {
+		return nil
+	}
+	return s.audit.Append(AuditEntry{
+		RunID:     runID,
+		RequestID: requestID,
+		Timestamp: time.Now().UTC(),
+		Type:      typ,
+		Payload:   payload,
+	})
+}
+
+func (s *Store) ListAudit(runID string) ([]AuditEntry, error) {
+	if _, err := s.GetRun(runID); err != nil {
+		return nil, err
+	}
+	if s.audit == nil {
+		return []AuditEntry{}, nil
+	}
+	return s.audit.List(runID)
 }

@@ -15,9 +15,9 @@ import (
 )
 
 func TestCreateRun(t *testing.T) {
-	srv := NewServer(jobs.NewStore())
+	srv := NewServer(jobs.NewStore(jobs.NewFileAuditLogger(t.TempDir())))
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/v1/runs", nil)
+	req := httptest.NewRequest(http.MethodPost, "/v1/runs", strings.NewReader(`{"capabilities":["tool:echo"]}`))
 
 	srv.Handler().ServeHTTP(rec, req)
 	if rec.Code != http.StatusCreated {
@@ -31,19 +31,22 @@ func TestCreateRun(t *testing.T) {
 	if payload["run_id"] != "run-000001" {
 		t.Fatalf("unexpected run id: %s", payload["run_id"])
 	}
+	if payload["request_id"] == "" {
+		t.Fatal("expected request id")
+	}
 }
 
 func TestToolResultAndSSE(t *testing.T) {
-	store := jobs.NewStore()
+	store := jobs.NewStore(jobs.NewFileAuditLogger(t.TempDir()))
 	srv := NewServer(store)
 
 	createRec := httptest.NewRecorder()
-	srv.Handler().ServeHTTP(createRec, httptest.NewRequest(http.MethodPost, "/v1/runs", nil))
+	srv.Handler().ServeHTTP(createRec, httptest.NewRequest(http.MethodPost, "/v1/runs", strings.NewReader(`{"capabilities":["tool:echo"]}`)))
 	var created map[string]string
 	_ = json.Unmarshal(createRec.Body.Bytes(), &created)
 	runID := created["run_id"]
 
-	body := bytes.NewBufferString(`{"tool":"echo","output":"ok"}`)
+	body := bytes.NewBufferString(`{"tool_name":"echo","required_capabilities":["tool:echo"],"result":{"output":"ok"}}`)
 	toolReq := httptest.NewRequest(http.MethodPost, "/v1/runs/"+runID+"/tool-result", body)
 	toolRec := httptest.NewRecorder()
 	srv.Handler().ServeHTTP(toolRec, toolReq)
@@ -88,5 +91,55 @@ func TestToolResultAndSSE(t *testing.T) {
 	}
 	if !seenToolEvent {
 		t.Fatal("expected tool.result event")
+	}
+}
+
+func TestToolResultForbiddenWhenCapabilityMissing(t *testing.T) {
+	store := jobs.NewStore(jobs.NewFileAuditLogger(t.TempDir()))
+	srv := NewServer(store)
+
+	createRec := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(createRec, httptest.NewRequest(http.MethodPost, "/v1/runs", strings.NewReader(`{"capabilities":["tool:safe"]}`)))
+	var created map[string]string
+	_ = json.Unmarshal(createRec.Body.Bytes(), &created)
+	runID := created["run_id"]
+
+	body := bytes.NewBufferString(`{"tool_name":"danger","required_capabilities":["tool:danger"],"result":{"output":"ok"}}`)
+	toolReq := httptest.NewRequest(http.MethodPost, "/v1/runs/"+runID+"/tool-result", body)
+	toolRec := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(toolRec, toolReq)
+	if toolRec.Code != http.StatusForbidden {
+		t.Fatalf("expected 403 got %d", toolRec.Code)
+	}
+}
+
+func TestGetAudit(t *testing.T) {
+	store := jobs.NewStore(jobs.NewFileAuditLogger(t.TempDir()))
+	srv := NewServer(store)
+
+	createRec := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(createRec, httptest.NewRequest(http.MethodPost, "/v1/runs", strings.NewReader(`{"capabilities":["tool:echo"]}`)))
+	var created map[string]string
+	_ = json.Unmarshal(createRec.Body.Bytes(), &created)
+	runID := created["run_id"]
+
+	toolBody := bytes.NewBufferString(`{"tool_name":"echo","required_capabilities":["tool:echo"],"result":{"output":"ok"}}`)
+	toolRec := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(toolRec, httptest.NewRequest(http.MethodPost, "/v1/runs/"+runID+"/tool-result", toolBody))
+
+	auditRec := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(auditRec, httptest.NewRequest(http.MethodGet, "/v1/runs/"+runID+"/audit", nil))
+	if auditRec.Code != http.StatusOK {
+		t.Fatalf("expected 200 got %d", auditRec.Code)
+	}
+
+	var payload struct {
+		Entries []jobs.AuditEntry `json:"entries"`
+	}
+	if err := json.Unmarshal(auditRec.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("decode audit response: %v", err)
+	}
+	if len(payload.Entries) < 4 {
+		t.Fatalf("expected multiple audit entries, got %d", len(payload.Entries))
 	}
 }
