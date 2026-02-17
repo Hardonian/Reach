@@ -49,6 +49,33 @@ jobs:
       - name: go test
         run: go test ./...
 
+
+  security-gates:
+    name: security gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.7'
+      - uses: dtolnay/rust-toolchain@stable
+      - name: go module updates report (integration-hub)
+        run: cd services/integration-hub && go list -m -u all
+      - name: go module updates report (runner)
+        run: cd services/runner && go list -m -u all
+      - name: cargo audit
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit
+      - name: secret scanning (tracked files)
+        run: |
+          set -euo pipefail
+          ! git grep -nE '(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36,}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN (RSA|EC|OPENSSH|PGP) PRIVATE KEY-----|sk_live_[A-Za-z0-9]{10,}|AIza[0-9A-Za-z\-_]{35})' -- .
+      - name: security-focused go tests
+        run: |
+          cd services/integration-hub && go test ./... -run 'OAuth|Webhook|Isolation|Replay|Timestamp' -count=1
+          cd ../runner && go test ./... -run 'Tenant|Gate|Capability|Traversal|Spawn' -count=1
+
   vscode:
     name: vscode extension checks
     runs-on: ubuntu-latest

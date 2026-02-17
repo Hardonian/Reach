@@ -1,0 +1,31 @@
+{
+  "profile": "storm",
+  "generated_at": "2026-02-17T08:13:58.834251303Z",
+  "metrics": [
+    {
+      "name": "trigger_to_first_event",
+      "p50_ms": 429.6546144170613,
+      "p95_ms": 1066.4798956358645
+    },
+    {
+      "name": "approval_to_resume",
+      "p50_ms": 286.7976823655132,
+      "p95_ms": 696.6172940794754
+    },
+    {
+      "name": "fanout_latency",
+      "p50_ms": 186.91385729371453,
+      "p95_ms": 620.3648675275615
+    },
+    {
+      "name": "spawn_scheduling_overhead",
+      "p50_ms": 214.49522592124904,
+      "p95_ms": 556.7545410003025
+    }
+  ],
+  "choke_points": [
+    "1. trigger_to_first_event p95=1066.5ms",
+    "2. approval_to_resume p95=696.6ms",
+    "3. fanout_latency p95=620.4ms"
+  ]
+}
