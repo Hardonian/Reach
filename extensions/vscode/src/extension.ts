@@ -4,6 +4,7 @@ import { buildContextPayload, ContextSync } from './contextSync';
 import { ReachPanel } from './panel';
 import { runMarketplaceInstalled, runMarketplaceInstall, runMarketplaceSearch, runMarketplaceUpdate } from './marketplace';
 import { MarketplaceClient } from './marketplaceClient';
+import { BridgeEvent } from './types';
 
 export function activate(context: vscode.ExtensionContext): void {
   const panelRef: { current?: ReachPanel } = {};
@@ -18,7 +19,7 @@ export function activate(context: vscode.ExtensionContext): void {
     },
     onMessage: async (event) => {
       if (typeof event === 'object' && event !== null) {
-        await panelRef.current?.handleBridgeEvent(event as Record<string, unknown>);
+        await panelRef.current?.handleBridgeEvent(event as BridgeEvent);
       }
     }
   });

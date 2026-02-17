@@ -1,10 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
 import { BridgeClient, WebSocketLike } from '../bridgeClient';
 
-class FakeSocket implements WebSocketLike {
-  private handlers: Record<string, Function[]> = {};
+type SocketHandler = (() => void) | ((data: string | Buffer | ArrayBuffer | Buffer[]) => void) | ((error: Error) => void);
 
-  on(event: 'open' | 'message' | 'close' | 'error', listener: (...args: unknown[]) => void): void {
+class FakeSocket implements WebSocketLike {
+  private handlers: Record<string, SocketHandler[]> = {};
+
+  on(event: 'open', listener: () => void): void;
+  on(event: 'message', listener: (data: string | Buffer | ArrayBuffer | Buffer[]) => void): void;
+  on(event: 'close', listener: () => void): void;
+  on(event: 'error', listener: (error: Error) => void): void;
+  on(event: 'open' | 'message' | 'close' | 'error', listener: SocketHandler): void {
     this.handlers[event] = this.handlers[event] ?? [];
     this.handlers[event].push(listener);
   }
@@ -19,7 +25,13 @@ class FakeSocket implements WebSocketLike {
 
   emit(event: string, ...args: unknown[]): void {
     for (const listener of this.handlers[event] ?? []) {
-      listener(...args);
+      if (event === 'message') {
+        (listener as (data: string | Buffer | ArrayBuffer | Buffer[]) => void)(args[0] as string | Buffer | ArrayBuffer | Buffer[]);
+      } else if (event === 'error') {
+        (listener as (error: Error) => void)(args[0] as Error);
+      } else {
+        (listener as () => void)();
+      }
     }
   }
 }
