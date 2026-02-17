@@ -30,6 +30,9 @@ func newMetrics() *metrics {
 func (m *metrics) observeRequest(endpoint string, d time.Duration) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if m.requestDurations == nil {
+		m.requestDurations = make(map[string][]float64)
+	}
 	m.requestDurations[endpoint] = appendWindow(m.requestDurations[endpoint], d.Seconds())
 }
 
@@ -48,12 +51,18 @@ func (m *metrics) observeApprovalLatency(d time.Duration) {
 func (m *metrics) setSSEQueueDepth(runID string, depth int) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if m.sseQueueDepth == nil {
+		m.sseQueueDepth = make(map[string]int)
+	}
 	m.sseQueueDepth[runID] = depth
 }
 
 func (m *metrics) incSSEDropped(runID string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if m.sseDropped == nil {
+		m.sseDropped = make(map[string]uint64)
+	}
 	m.sseDropped[runID]++
 }
 
