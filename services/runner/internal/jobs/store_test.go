@@ -28,6 +28,7 @@ func TestCreateRunPersistsAcrossRestart(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer db2.Close()
 	store2 := NewStore(db2)
 	events, err := store2.EventHistory(context.Background(), "tenant-a", run.ID, 0)
 	if err != nil {

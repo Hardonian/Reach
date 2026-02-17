@@ -14,6 +14,7 @@ func TestQueueIdempotencyAndLease(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer db.Close()
 	q := NewDurableQueue(db)
 	job := QueueJob{ID: "job-1", TenantID: "t1", SessionID: "s1", RunID: "r1", Type: JobToolCall, PayloadJSON: `{}`, IdempotencyKey: "k1", Priority: 10}
 	if err := q.Enqueue(context.Background(), job); err != nil {

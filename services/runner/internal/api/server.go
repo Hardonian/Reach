@@ -197,7 +197,7 @@ func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
 	}
 	tier := parseTier(body.PlanTier)
 	s.metaMu.Lock()
-	s.runMeta[run.ID] = runMeta{Tier: tier, Spawn: SpawnContext{Depth: 0, MaxDepth: maxSpawnDepth(tier), MaxChildren: maxConcurrentAgents(tier)}}
+	s.runMeta[run.ID] = runMeta{Tier: tier, Spawn: SpawnContext{Depth: 0, MaxDepth: maxSpawnDepth(tier), MaxChildren: maxConcurrentAgents(tier), CapabilitySubset: body.Capabilities}}
 	s.metaMu.Unlock()
 	s.runsCreated.Add(1)
 	_ = s.queue.Enqueue(r.Context(), jobs.QueueJob{ID: s.randomID("job"), TenantID: tenant, RunID: run.ID, Type: jobs.JobCapsuleCheckpoint, PayloadJSON: string(mustJSON(map[string]any{"run_id": run.ID, "event": "run_created"})), IdempotencyKey: run.ID + ":created", Priority: 50})
