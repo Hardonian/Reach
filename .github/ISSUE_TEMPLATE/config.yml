@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Private security report
+    url: mailto:security@reach.dev
+    about: Please use this address for sensitive vulnerability disclosures.

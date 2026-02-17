@@ -1,7 +1,9 @@
 package com.reach.mobile.ui
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.reach.mobile.data.ArtifactRecord
 import com.reach.mobile.repository.RunRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -14,36 +16,52 @@ data class TerminalUiState(
     val input: String = "",
     val activeRunId: String? = null,
     val history: List<String> = emptyList(),
-    val outputLines: List<String> = emptyList()
+    val outputLines: List<String> = emptyList(),
+    val artifacts: List<ArtifactRecord> = emptyList(),
+    val completionSuggestions: List<String> = emptyList(),
+    val streamInfo: String? = null
 )
 
-class TerminalViewModel(
-    private val runRepository: RunRepository = RunRepository()
-) : ViewModel() {
+class TerminalViewModel(application: Application) : AndroidViewModel(application) {
+    private val runRepository: RunRepository = RunRepository(application.applicationContext)
     private val inputText = MutableStateFlow("")
 
     val uiState: StateFlow<TerminalUiState> = combine(
         inputText,
         runRepository.runs,
         runRepository.activeRunId,
-        runRepository.events
-    ) { input, runs, activeRunId, events ->
+        runRepository.events,
+        runRepository.commandHistory,
+        runRepository.streamInfo
+    ) { input, runs, activeRunId, events, commandHistory, streamInfo ->
         val history = runs.map { run -> "[${run.status}] ${run.command}" }
-        val runOutput = runs.firstOrNull { it.id == activeRunId }?.output.orEmpty()
+        val activeRun = runs.firstOrNull { it.id == activeRunId }
+        val runOutput = activeRun?.output.orEmpty()
         val streamedEventLines = events
             .filter { event -> activeRunId != null && event.runId == activeRunId }
-            .map { event -> "(${event.type}) ${event.payload}" }
+            .map { event -> "(${event.type}) ${event.raw}" }
+
+        val suggestions = commandHistory
+            .filter { it.startsWith(input, ignoreCase = true) && it != input }
+            .take(4)
 
         TerminalUiState(
             input = input,
             activeRunId = activeRunId,
             history = history,
-            outputLines = (runOutput + streamedEventLines).distinct()
+            outputLines = runOutput + streamedEventLines,
+            artifacts = activeRun?.artifacts.orEmpty(),
+            completionSuggestions = suggestions,
+            streamInfo = streamInfo
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TerminalUiState())
 
     fun onInputChanged(value: String) {
         inputText.value = value
+    }
+
+    fun applySuggestion(suggestion: String) {
+        inputText.value = suggestion
     }
 
     fun submit() {

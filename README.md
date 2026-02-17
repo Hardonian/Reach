@@ -1,28 +1,56 @@
 # Reach
 
-Reach provides a deterministic Rust engine for an agentic mobile cockpit + remote runner architecture.
+Reach is an OSS stack for running deterministic agent workflows across a **mobile cockpit**, a **Go runner**, a **Rust engine**, and **MCP-compatible tools**.
+
+## Architecture
+
+### 1) Mobile cockpit (`apps/mobile/android`)
+The Android app is the operator-facing cockpit. It collects user intent, shows run progress, and presents tool outcomes.
+
+### 2) Go runner (`services/runner`)
+The runner hosts execution-facing APIs and orchestration glue:
+- receives run requests from the cockpit,
+- coordinates tool execution,
+- bridges transport boundaries,
+- forwards deterministic decisions to/from the Rust engine.
+
+### 3) Rust engine (`crates/engine`)
+The engine is the deterministic core:
+- workflow compilation,
+- policy-aware run state transitions,
+- next-action selection,
+- tool result application.
+
+The engine performs no direct networking or shell execution.
+
+### 4) MCP tools + protocol (`protocol/*`)
+Schemas in `protocol/schemas` define the event and tool-call contracts used between components. MCP tool integrations are implemented around these contracts so clients and runner can evolve safely.
 
 ## Repository layout
 
-- `crates/engine`: Pure Rust core (workflow, policy, run state, tool calls, artifacts).
-- `crates/ffi/uniffi`: UniFFI wrapper for Kotlin/Swift callers.
-- `crates/ffi/c_abi`: C ABI wrapper for Go or other C-compatible consumers.
-- `protocol/schemas`: JSON Schema definitions for events, toolcalls, and artifacts.
+- `apps/mobile/android` — Android cockpit app.
+- `services/runner` — Go runner service.
+- `crates/engine` — Rust deterministic engine.
+- `crates/ffi/*` — interop layers for non-Rust consumers.
+- `protocol/schemas` — JSON Schemas for protocol events/tool calls/artifacts.
+- `tools/codegen/validate-protocol.mjs` — protocol schema validation entrypoint.
+- `tools/dev.sh` — one-command contributor check script.
 
-## Public engine API (v0)
+## One-command path for new contributors
 
-- `Engine::new(config)`
-- `Engine::compile(workflow_dsl_or_json) -> Workflow`
-- `Engine::start_run(workflow, policy) -> RunHandle`
-- `RunHandle::next_action() -> Action`
-- `RunHandle::apply_tool_result(tool_result)`
-
-The engine is deterministic by default and performs no networking, MCP transport, or shell execution.
-
-## Checks
+From repo root:
 
 ```bash
-cargo fmt --check
-cargo clippy --workspace --all-targets -- -D warnings
-cargo test -p engine
+./tools/dev.sh
 ```
+
+This validates protocol schemas and runs core Rust + Go tests in one pass.
+
+## CI checks (umbrella workflow)
+
+GitHub Actions runs:
+- protocol schema validation,
+- Rust formatting/lint/tests,
+- Go vet/tests.
+
+See `.github/workflows/ci.yml`.

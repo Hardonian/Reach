@@ -2,6 +2,7 @@ package com.reach.mobile.data
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 @Serializable
 data class RunRequest(
@@ -14,21 +15,36 @@ data class RunResponse(
     @SerialName("accepted") val accepted: Boolean
 )
 
+@Serializable
 data class Run(
     val id: String,
     val command: String,
     val status: RunStatus,
-    val output: List<String>
+    val output: List<String>,
+    val artifacts: List<ArtifactRecord> = emptyList()
 )
 
+@Serializable
 enum class RunStatus {
     RUNNING,
     COMPLETED,
-    FAILED
+    FAILED,
+    CANCELLED
 }
 
-data class RunEvent(
+@Serializable
+data class ArtifactRecord(
+    val id: String,
+    val path: String,
+    val mimeType: String? = null
+)
+
+@Serializable
+data class StreamEvent(
     val runId: String,
+    val eventId: String,
     val type: String,
-    val payload: String
+    val payload: JsonElement,
+    val timestamp: String,
+    val raw: String
 )

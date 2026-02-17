@@ -1,0 +1,38 @@
+package mcpserver
+
+import (
+	"context"
+	"encoding/json"
+	"time"
+
+	"reach/services/runner/internal/jobs"
+)
+
+type RunLoop struct {
+	Server *Server
+	Store  *jobs.Store
+}
+
+func (r *RunLoop) InvokeTool(ctx context.Context, runID string, tool string, args map[string]any) error {
+	result, err := r.Server.CallTool(ctx, runID, tool, args)
+	payload := map[string]any{"tool": tool, "arguments": args, "run_id": runID}
+	if err != nil {
+		payload["error"] = err.Error()
+	} else {
+		payload["result"] = result
+	}
+	body, marshalErr := json.Marshal(payload)
+	if marshalErr != nil {
+		return marshalErr
+	}
+	evtType := "tool.result"
+	if err != nil {
+		evtType = "tool.error"
+	}
+	if r.Store != nil {
+		if publishErr := r.Store.PublishEvent(runID, jobs.Event{Type: evtType, Payload: body, CreatedAt: time.Now().UTC()}); publishErr != nil {
+			return publishErr
+		}
+	}
+	return err
+}
