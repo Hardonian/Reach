@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.dev/protocol/ide/notification.schema.json",
+  "title": "IDE Notification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "level",
+    "message"
+  ],
+  "properties": {
+    "level": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warn",
+        "error"
+      ]
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
