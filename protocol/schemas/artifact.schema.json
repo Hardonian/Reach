@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach/protocol/schemas/artifact.schema.json",
+  "$defs": {
+    "Diff": {
+      "type": "object",
+      "properties": {
+        "path": {"type": "string"},
+        "before": {"type": "string"},
+        "after": {"type": "string"}
+      },
+      "required": ["path", "before", "after"],
+      "additionalProperties": false
+    },
+    "Patch": {
+      "type": "object",
+      "properties": {
+        "diffs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Diff"}
+        }
+      },
+      "required": ["diffs"],
+      "additionalProperties": false
+    }
+  },
+  "type": "object"
+}
