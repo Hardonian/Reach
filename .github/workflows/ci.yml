@@ -6,7 +6,19 @@ on:
     branches: [main]
 
 jobs:
+  protocol:
+    name: protocol validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: validate protocol schemas
+        run: node tools/codegen/validate-protocol.mjs
+
   rust:
+    name: rust checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,3 +29,19 @@ jobs:
         run: cargo clippy --workspace --all-targets -- -D warnings
       - name: test engine
         run: cargo test -p engine
+
+  go:
+    name: go checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/runner
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: services/runner/go.mod
+      - name: go vet
+        run: go vet ./...
+      - name: go test
+        run: go test ./...

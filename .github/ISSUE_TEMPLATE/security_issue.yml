@@ -1,0 +1,16 @@
+name: Security issue instructions
+description: Read before reporting a potential security vulnerability
+labels: [security]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ Do **not** disclose vulnerabilities in a public issue.
+
+        Please report security issues privately by emailing **security@reach.dev** with:
+        - affected component(s),
+        - reproduction details,
+        - potential impact,
+        - suggested remediation (if known).
+
+        Public issues will be triaged and may be closed to protect users.
