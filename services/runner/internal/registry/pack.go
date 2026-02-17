@@ -14,7 +14,7 @@ type ExecutionPack struct {
 	DeclaredTools       []string          `json:"declared_tools"`       // Whitelist of tools allowed
 	DeclaredPermissions []string          `json:"declared_permissions"` // Whitelist of permissions
 	ModelRequirements   map[string]string `json:"model_requirements"`   // e.g. { "tier": "high" }
-	ExecutionGraph      json.RawMessage   `json:"execution_graph"`      // The blueprint/plan (optional/pre-compiled)
+	ExecutionGraph      *ExecutionGraph   `json:"execution_graph"`      // The blueprint/plan (refactored structure)
 	DeterministicFlag   bool              `json:"deterministic"`        // Enforce deterministic seed/logic
 	SignatureHash       string            `json:"signature_hash"`       // HMAC/Sig of the above fields
 }
