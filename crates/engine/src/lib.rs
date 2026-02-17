@@ -1,4 +1,5 @@
 pub mod artifacts;
+pub mod capsule;
 pub mod policy;
 pub mod state;
 pub mod tools;

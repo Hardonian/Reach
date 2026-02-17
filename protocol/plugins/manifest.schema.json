@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.dev/protocol/plugins/manifest.schema.json",
+  "type": "object",
+  "properties": {
+    "id": {"type": "string"},
+    "name": {"type": "string"},
+    "version": {"type": "string"},
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "required_capabilities": {"type": "array", "items": {"type": "string"}},
+          "oauth_scopes": {"type": "array", "items": {"type": "string"}}
+        },
+        "required": ["name", "required_capabilities"],
+        "additionalProperties": false
+      }
+    },
+    "oauth_scopes": {"type": "array", "items": {"type": "string"}},
+    "host_permissions": {"type": "array", "items": {"type": "string"}},
+    "signing": {
+      "type": "object",
+      "properties": {
+        "key_id": {"type": "string"},
+        "signature": {"type": "string"},
+        "algorithm": {"type": "string"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": ["id", "name", "version", "tools"],
+  "additionalProperties": false
+}

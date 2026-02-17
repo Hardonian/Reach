@@ -222,6 +222,14 @@ fn wrap_event(
                 payload,
             }
         }
+        RunEvent::PolicyDenied { reason, .. } => EventEnvelope {
+            schema_version: SCHEMA_VERSION,
+            event_id,
+            run_id: run_id.to_owned(),
+            event_type: "policy.denied".to_owned(),
+            timestamp,
+            payload: serde_json::json!({"schemaVersion": SCHEMA_VERSION, "reason": reason}),
+        },
         RunEvent::ArtifactEmitted { patch, .. } => EventEnvelope {
             schema_version: SCHEMA_VERSION,
             event_id,

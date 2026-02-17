@@ -1,5 +1,6 @@
 [workspace]
 members = [
+  "engine-core",
   "engine",
   "ffi/uniffi",
   "ffi/c_abi",

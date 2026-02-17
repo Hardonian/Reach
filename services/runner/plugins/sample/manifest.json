@@ -1,0 +1,17 @@
+{
+  "id": "sample.echo",
+  "name": "Sample Echo",
+  "version": "1.0.0",
+  "tools": [
+    {
+      "name": "sample.echo",
+      "required_capabilities": ["tool:echo"]
+    }
+  ],
+  "host_permissions": ["workspace.read"],
+  "signing": {
+    "key_id": "dev-local",
+    "signature": "",
+    "algorithm": "none"
+  }
+}
