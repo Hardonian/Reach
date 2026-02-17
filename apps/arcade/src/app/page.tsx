@@ -126,13 +126,19 @@ export default function Home() {
           <div 
              className="modal-backdrop"
              onClick={() => !isRunning && setSelectedPack(null)}
+             aria-hidden="true"
           />
           
           {/* Bottom Sheet */}
-          <div className="bottom-sheet">
+          <div 
+             className="bottom-sheet"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="sheet-title"
+          >
             
             {/* Handle bar for visual affordance */}
-            <div className="sheet-handle" onClick={() => !isRunning && setSelectedPack(null)}>
+            <div className="sheet-handle" onClick={() => !isRunning && setSelectedPack(null)} aria-hidden="true">
               <div className="sheet-handle-bar" />
             </div>
 
@@ -140,13 +146,14 @@ export default function Home() {
             <div className="sheet-content">
               <div className="sheet-header">
                 <div>
-                  <h2 className="text-2xl font-bold mb-1 leading-tight">{selectedPack.name}</h2>
+                  <h2 id="sheet-title" className="text-2xl font-bold mb-1 leading-tight">{selectedPack.name}</h2>
                   <p className="text-secondary text-sm">{selectedPack.description}</p>
                 </div>
                 <button
                   onClick={() => setSelectedPack(null)}
                   disabled={isRunning}
                   className="close-btn"
+                  aria-label="Close"
                 >
                   ✕
                 </button>
@@ -158,7 +165,7 @@ export default function Home() {
                     <ExecutionTimeline events={runTimeline} isRunning={isRunning} />
                  ) : (
                     <div className="timeline-placeholder">
-                      <div className="text-3xl mb-3 opacity-50">⚡</div>
+                      <div className="text-3xl mb-3 opacity-50" aria-hidden="true">⚡</div>
                       <p className="text-secondary text-sm mb-1">Ready to Execute</p>
                       <p className="text-tertiary text-2xs font-mono">
                         Est. Duration: {selectedPack.duration}
@@ -189,6 +196,7 @@ export default function Home() {
                        onClick={handleCopyLink}
                        className="btn-icon"
                        aria-label="Share Run"
+                       title="Share Run Results"
                      >
                        🔗
                      </button>
@@ -201,19 +209,21 @@ export default function Home() {
       )}
 
       {/* Bottom Nav */}
-      <nav className="bottom-nav">
+      <nav className="bottom-nav" aria-label="Main Navigation">
         <button
           onClick={() => { setActiveTab('discover'); setSelectedPack(null); }}
           className={`nav-item ${activeTab === 'discover' ? 'active' : ''}`}
+          aria-current={activeTab === 'discover' ? 'page' : undefined}
         >
-          <span className="text-xl mb-1">🎮</span>
+          <span className="text-xl mb-1" aria-hidden="true">🎮</span>
           <span className="text-2xs font-bold tracking-wider">ARCADE</span>
         </button>
         <button
           onClick={() => setActiveTab('runs')}
           className={`nav-item ${activeTab === 'runs' ? 'active' : ''}`}
+          aria-current={activeTab === 'runs' ? 'page' : undefined}
         >
-          <span className="text-xl mb-1">📜</span>
+          <span className="text-xl mb-1" aria-hidden="true">📜</span>
           <span className="text-2xs font-bold tracking-wider">HISTORY</span>
         </button>
       </nav>

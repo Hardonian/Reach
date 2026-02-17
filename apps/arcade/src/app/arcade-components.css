@@ -290,8 +290,13 @@ input:focus-visible {
   gap: var(--space-xs);
   overflow-x: auto;
   padding-bottom: var(--space-2xs);
-  scrollbar-width: none;  /* Firefox */
-  -ms-overflow-style: none;  /* IE 10+ */
+  -ms-overflow-style: none;
+}
+
+@supports (scrollbar-width: none) {
+  .filter-chips {
+    scrollbar-width: none;  /* Firefox */
+  }
 }
 
 .filter-chips::-webkit-scrollbar { 
