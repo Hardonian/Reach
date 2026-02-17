@@ -37,7 +37,7 @@ export function PackDiscovery({ onSelect, selectedId }: PackDiscoveryProps) {
       <button
         onClick={() => setFilter(type)}
         className={`filter-chip ${isChecked ? 'active' : ''}`}
-        aria-pressed={isChecked}
+        aria-pressed={isChecked ? "true" : "false"}
       >
         {label}
       </button>
