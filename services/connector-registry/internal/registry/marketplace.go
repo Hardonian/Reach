@@ -340,6 +340,13 @@ func (s *Store) fetchMarketplaceCatalog(ctx context.Context, etag, modified stri
 		items, err := adaptIndexToMarketplace(idx)
 		return items, etag, modified, err
 	}
+	u, err := url.Parse(s.remoteIndexURL)
+	if err != nil {
+		return nil, etag, modified, err
+	}
+	if err := validateRemoteHost(u.Hostname()); err != nil {
+		return nil, etag, modified, err
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.remoteIndexURL, nil)
 	if err != nil {
 		return nil, etag, modified, err
@@ -350,7 +357,7 @@ func (s *Store) fetchMarketplaceCatalog(ctx context.Context, etag, modified stri
 	if modified != "" {
 		req.Header.Set("If-Modified-Since", modified)
 	}
-	resp, err := s.httpClient.Do(req)
+	resp, err := hardenedHTTPClient(s.httpClient).Do(req)
 	if err != nil {
 		return nil, etag, modified, err
 	}

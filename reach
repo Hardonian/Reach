@@ -7,8 +7,12 @@ case "$cmd" in
     shift
     (cd tools/doctor && go run . "$@")
     ;;
+  release-check)
+    shift
+    ./tools/release-check.sh "$@"
+    ;;
   *)
-    echo "usage: reach doctor" >&2
+    echo "usage: reach doctor|release-check" >&2
     exit 1
     ;;
 esac

@@ -50,16 +50,16 @@ type runMeta struct {
 }
 
 type Server struct {
-	version        string
-	store          *jobs.Store
-	queue          *jobs.DurableQueue
-	sql            *storage.SQLiteStore
-	registry       *NodeRegistry
-	metaMu         sync.RWMutex
-	runMeta        map[string]runMeta
-	autonomMu      sync.RWMutex
-	autonomous     map[string]*autoControl
-	metrics        *metrics
+	version    string
+	store      *jobs.Store
+	queue      *jobs.DurableQueue
+	sql        *storage.SQLiteStore
+	registry   *NodeRegistry
+	metaMu     sync.RWMutex
+	runMeta    map[string]runMeta
+	autonomMu  sync.RWMutex
+	autonomous map[string]*autoControl
+	metrics    *metrics
 
 	requestCounter atomic.Uint64
 	runsCreated    atomic.Uint64
@@ -257,6 +257,8 @@ func (s *Server) handleSpawnRun(w http.ResponseWriter, r *http.Request) {
 	if meta.Spawn.Depth+1 > meta.Spawn.MaxDepth {
 		s.metaMu.Unlock()
 		writeTierError(w, "pro", "spawn depth exceeded for current plan")
+		return
+	}
 	deny := func(reason string) {
 		s.spawnDenied.Add(1)
 		s.metaMu.Unlock()
@@ -329,8 +331,6 @@ func (s *Server) handleGateDecision(w http.ResponseWriter, r *http.Request) {
 	s.metrics.observeApprovalLatency(time.Since(started))
 	writeJSON(w, 200, map[string]string{"status": "ok"})
 }
-
-
 
 func (s *Server) handleRegisterNode(w http.ResponseWriter, r *http.Request) {
 	var body struct {

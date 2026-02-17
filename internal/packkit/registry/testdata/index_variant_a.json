@@ -1,0 +1,19 @@
+{
+  "packages": [
+    {
+      "id": "connector.github",
+      "versions": [
+        {
+          "version": "1.2.0",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "manifest_url": "https://registry-a.example/connector.github/1.2.0/manifest.json",
+          "bundle_url": "https://registry-a.example/connector.github/1.2.0/bundle.tgz",
+          "signature_url": "https://registry-a.example/connector.github/1.2.0/manifest.sig",
+          "signature_key_id": "publisher-a",
+          "risk_level": "medium",
+          "tier_required": "pro"
+        }
+      ]
+    }
+  ]
+}

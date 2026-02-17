@@ -8,7 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"net/netip"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -30,6 +32,7 @@ const (
 	maxBundleSize    = 50 << 20
 	maxManifestSize  = 1 << 20
 	maxSignatureSize = 1 << 20
+	maxRedirectHops  = 3
 )
 
 type ConnectorManifest struct {
@@ -263,6 +266,9 @@ func (s *Store) fetchURLWithRetries(ctx context.Context, rawURL string, maxBytes
 			return nil, fmt.Errorf("only https urls are allowed: %s", rawURL)
 		}
 	}
+	if err := validateRemoteHost(u.Hostname()); err != nil {
+		return nil, err
+	}
 	var lastErr error
 	for attempt := 0; attempt < s.maxRetries; attempt++ {
 		data, err := s.fetchURL(ctx, rawURL, maxBytes)
@@ -276,27 +282,109 @@ func (s *Store) fetchURLWithRetries(ctx context.Context, rawURL string, maxBytes
 }
 
 func (s *Store) fetchURL(ctx context.Context, rawURL string, maxBytes int64) ([]byte, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
+	currentURL := rawURL
+	for redirectCount := 0; redirectCount <= maxRedirectHops; redirectCount++ {
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, currentURL, nil)
+		if err != nil {
+			return nil, err
+		}
+		resp, err := hardenedHTTPClient(s.httpClient).Do(req)
+		if err != nil {
+			return nil, err
+		}
+		if isRedirect(resp.StatusCode) {
+			loc := resp.Header.Get("Location")
+			_ = resp.Body.Close()
+			if loc == "" {
+				return nil, fmt.Errorf("redirect missing location for %s", currentURL)
+			}
+			nextURL, err := req.URL.Parse(loc)
+			if err != nil {
+				return nil, err
+			}
+			if nextURL.Scheme != req.URL.Scheme {
+				return nil, fmt.Errorf("cross-scheme redirect blocked: %s -> %s", currentURL, nextURL.String())
+			}
+			if err := validateRemoteHost(nextURL.Hostname()); err != nil {
+				return nil, err
+			}
+			currentURL = nextURL.String()
+			continue
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("unexpected status %d from %s", resp.StatusCode, currentURL)
+		}
+		lr := io.LimitReader(resp.Body, maxBytes+1)
+		data, err := io.ReadAll(lr)
+		if err != nil {
+			return nil, err
+		}
+		if int64(len(data)) > maxBytes {
+			return nil, fmt.Errorf("remote payload exceeds max size: %s", currentURL)
+		}
+		return data, nil
+	}
+	return nil, fmt.Errorf("too many redirects for %s", rawURL)
+}
+
+func validateRemoteHost(host string) error {
+	if host == "" {
+		return fmt.Errorf("registry host required")
+	}
+	if os.Getenv("DEV_ALLOW_PRIVATE_REGISTRY") == "1" {
+		return nil
+	}
+	if ip, err := netip.ParseAddr(host); err == nil {
+		if isPrivateAddr(ip.Unmap()) {
+			return fmt.Errorf("private registry host blocked: %s", host)
+		}
+		return nil
+	}
+	addrs, err := net.LookupIP(host)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("resolve registry host: %w", err)
 	}
-	resp, err := s.httpClient.Do(req)
-	if err != nil {
-		return nil, err
+	for _, addr := range addrs {
+		ip, ok := netip.AddrFromSlice(addr)
+		if !ok {
+			continue
+		}
+		if isPrivateAddr(ip.Unmap()) {
+			return fmt.Errorf("private registry host blocked: %s", host)
+		}
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status %d from %s", resp.StatusCode, rawURL)
+	return nil
+}
+
+func isPrivateAddr(ip netip.Addr) bool {
+	return ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsMulticast() || ip.IsUnspecified()
+}
+
+func isRedirect(status int) bool {
+	return status == http.StatusMovedPermanently || status == http.StatusFound || status == http.StatusTemporaryRedirect || status == http.StatusPermanentRedirect
+}
+
+func hardenedHTTPClient(base *http.Client) *http.Client {
+	client := &http.Client{Timeout: defaultTimeout, CheckRedirect: func(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse }}
+	if base != nil {
+		client.Timeout = base.Timeout
+		client.Transport = base.Transport
 	}
-	lr := io.LimitReader(resp.Body, maxBytes+1)
-	data, err := io.ReadAll(lr)
-	if err != nil {
-		return nil, err
+	if client.Transport == nil {
+		dialer := &net.Dialer{Timeout: 5 * time.Second}
+		client.Transport = &http.Transport{DialContext: func(ctx context.Context, network, address string) (net.Conn, error) {
+			host, _, err := net.SplitHostPort(address)
+			if err != nil {
+				return nil, err
+			}
+			if err := validateRemoteHost(host); err != nil {
+				return nil, err
+			}
+			return dialer.DialContext(ctx, network, address)
+		}}
 	}
-	if int64(len(data)) > maxBytes {
-		return nil, fmt.Errorf("remote payload exceeds max size: %s", rawURL)
-	}
-	return data, nil
+	return client
 }
 
 func (s *Store) cacheRemote(pkg resolver.ResolvedPackage, manifestBytes, bundleBytes, sigBytes []byte) error {

@@ -1,0 +1,19 @@
+{
+  "packages": [
+    {
+      "id": "policy.strict-default",
+      "versions": [
+        {
+          "version": "2.0.0",
+          "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "manifest_url": "https://registry-c.example/policy.strict-default/2.0.0/manifest.json",
+          "bundle_url": "https://registry-c.example/policy.strict-default/2.0.0/bundle.tgz",
+          "signature_url": "https://registry-c.example/policy.strict-default/2.0.0/manifest.sig",
+          "signature_key_id": "publisher-c",
+          "risk_level": "high",
+          "tier_required": "enterprise"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "packages": [
+    {
+      "id": "template.research-agent",
+      "versions": [
+        {
+          "version": "0.1.0",
+          "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "manifest_url": "https://registry-b.example/template.research-agent/0.1.0/manifest.json",
+          "bundle_url": "https://registry-b.example/template.research-agent/0.1.0/bundle.tgz",
+          "signature_url": "https://registry-b.example/template.research-agent/0.1.0/manifest.sig",
+          "signature_key_id": "publisher-b",
+          "risk_level": "low",
+          "tier_required": "free"
+        }
+      ]
+    }
+  ]
+}
