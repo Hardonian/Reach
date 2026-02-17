@@ -31,11 +31,11 @@ const (
 )
 
 type Gate struct {
-	ID           string
-	Tool         string
-	Capabilities []string
-	Reason       string
-	Decision     GateDecision
+	ID           string       `json:"id"`
+	Tool         string       `json:"tool"`
+	Capabilities []string     `json:"capabilities"`
+	Reason       string       `json:"reason"`
+	Decision     GateDecision `json:"decision,omitempty"`
 }
 
 type AutonomousStatus string
@@ -106,6 +106,7 @@ func (s *Store) CreateRun(ctx context.Context, tenantID string, capabilities []s
 
 func (s *Store) GetRun(ctx context.Context, tenantID, id string) (*Run, error) {
 	r, err := s.runs.GetRun(ctx, tenantID, id)
+	rec, err := s.runs.GetRun(ctx, tenantID, id)
 	if errors.Is(err, storage.ErrNotFound) {
 		return nil, ErrRunNotFound
 	}
@@ -113,6 +114,7 @@ func (s *Store) GetRun(ctx context.Context, tenantID, id string) (*Run, error) {
 		return nil, err
 	}
 	return &Run{ID: r.ID, TenantID: r.TenantID, Capabilities: toCapSet(r.Capabilities), Gates: map[string]Gate{}}, nil
+	return &Run{ID: rec.ID, TenantID: rec.TenantID, Capabilities: toCapSet(rec.Capabilities), Gates: map[string]Gate{}}, nil
 }
 
 func (s *Store) CheckCapabilities(ctx context.Context, tenantID, id string, required []string) error {
@@ -204,4 +206,12 @@ func (s *Store) Audit(ctx context.Context, tenantID, runID, typ string, payload 
 
 func (s *Store) ListAudit(ctx context.Context, tenantID, runID string) ([]storage.AuditRecord, error) {
 	return s.audit.ListAudit(ctx, tenantID, runID)
+}
+
+func toCapSet(in []string) map[string]struct{} {
+	out := make(map[string]struct{}, len(in))
+	for _, cap := range in {
+		out[cap] = struct{}{}
+	}
+	return out
 }

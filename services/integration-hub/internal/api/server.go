@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -38,6 +39,10 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("GET /v1/integrations/{provider}/oauth/callback", s.oauthCallback)
 	mux.HandleFunc("POST /v1/integrations/{provider}/approve", s.approval)
 	mux.HandleFunc("POST /v1/notifications", s.notify)
+	mux.HandleFunc("GET /v1/connectors", s.listConnectors)
+	mux.HandleFunc("POST /v1/connectors", s.upsertConnector)
+	mux.HandleFunc("POST /v1/policy-profile", s.setPolicyProfile)
+	mux.HandleFunc("POST /v1/internal/mcp/execute", s.internalExecute)
 	mux.HandleFunc("POST /webhooks/slack", s.webhook("slack"))
 	mux.HandleFunc("POST /webhooks/github", s.webhook("github"))
 	mux.HandleFunc("POST /webhooks/google", s.webhook("google"))
@@ -241,4 +246,91 @@ func randToken() string {
 	buf := make([]byte, 16)
 	_, _ = rand.Read(buf)
 	return base64.RawURLEncoding.EncodeToString(buf)
+}
+
+func (s *Server) listConnectors(w http.ResponseWriter, r *http.Request) {
+	items, err := s.store.ListConnectors(r.Header.Get("X-Reach-Tenant"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	writeJSON(w, map[string]any{"connectors": items})
+}
+
+func (s *Server) upsertConnector(w http.ResponseWriter, r *http.Request) {
+	tenantID := r.Header.Get("X-Reach-Tenant")
+	var in storage.ConnectorRecord
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	in.TenantID = tenantID
+	if in.Status == "" {
+		in.Status = "enabled"
+	}
+	if err := s.store.UpsertConnector(in); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	writeJSON(w, map[string]any{"status": "ok"})
+}
+
+func (s *Server) setPolicyProfile(w http.ResponseWriter, r *http.Request) {
+	tenantID := r.Header.Get("X-Reach-Tenant")
+	var in struct {
+		Profile string `json:"profile"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	switch in.Profile {
+	case "strict", "moderate", "experimental":
+	default:
+		http.Error(w, "invalid profile", http.StatusBadRequest)
+		return
+	}
+	if err := s.store.SetPolicyProfile(tenantID, in.Profile); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	writeJSON(w, map[string]any{"status": "ok"})
+}
+
+func (s *Server) internalExecute(w http.ResponseWriter, r *http.Request) {
+	if !security.VerifyHMAC(os.Getenv("REACH_INTERNAL_SIGNING_KEY"), r.Header.Get("X-Reach-Internal-Signature"), []byte(r.Header.Get("X-Reach-Execution-Nonce"))) {
+		http.Error(w, "invalid signature", http.StatusUnauthorized)
+		return
+	}
+	var in struct {
+		TenantID string `json:"tenant_id"`
+		Provider string `json:"provider"`
+		Scope    string `json:"scope"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	encTok, scopes, err := s.store.GetToken(in.TenantID, in.Provider)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+	hasScope := in.Scope == ""
+	for _, scope := range scopes {
+		if scope == in.Scope {
+			hasScope = true
+			break
+		}
+	}
+	if !hasScope {
+		http.Error(w, "scope not granted", http.StatusForbidden)
+		return
+	}
+	tok, err := s.cipher.Decrypt(encTok)
+	if err != nil {
+		http.Error(w, "decrypt failed", http.StatusInternalServerError)
+		return
+	}
+	writeJSON(w, map[string]any{"access_token": string(tok), "provider": in.Provider})
 }

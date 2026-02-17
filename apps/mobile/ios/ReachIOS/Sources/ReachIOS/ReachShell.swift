@@ -4,6 +4,23 @@ import SwiftUI
 public struct RunSummary: Identifiable, Codable { public let id: String; public let status: String }
 public struct SessionMember: Identifiable, Codable { public let id: String; public let role: String }
 public struct SpawnNode: Identifiable, Hashable { public let id: String; public let parentId: String?; public var iterations: Int; public var budgetUsage: Double; public var status: String; public var expanded: Bool = true }
+public struct RunSummary: Identifiable, Codable {
+    public let id: String
+    public let status: String
+}
+
+
+
+public struct ConnectorSummary: Identifiable, Codable {
+    public let id: String
+    public let provider: String
+    public let scopes: [String]
+    public let risk: String
+    public var enabled: Bool
+public struct SessionMember: Identifiable, Codable {
+    public let id: String
+    public let role: String
+}
 
 struct SseEnvelope: Decodable {
     let runId: String?
@@ -17,6 +34,11 @@ public final class ReachViewModel: ObservableObject {
     @Published public private(set) var runs: [RunSummary] = []
     @Published public private(set) var terminalLines: [String] = []
     @Published public var command: String = ""
+    @Published public var connectors: [ConnectorSummary] = [
+        .init(id: "github-core", provider: "github", scopes: ["workspace:read", "repo:read"], risk: "moderate", enabled: true),
+        .init(id: "filesystem-admin", provider: "filesystem", scopes: ["workspace:write"], risk: "strict", enabled: false),
+        .init(id: "jira-experimental", provider: "jira", scopes: ["tickets:read", "tickets:write"], risk: "experimental", enabled: false)
+    ]
     @Published public private(set) var autonomousIterations: Int = 0
     @Published public private(set) var autonomousStatus: String = "idle"
     @Published public var sessionID: String = ""
@@ -64,6 +86,13 @@ public final class ReachViewModel: ObservableObject {
             }
         } catch {
             terminalLines = ["SSE error: \(error.localizedDescription)"]
+        }
+    }
+
+    public func setConnectorEnabled(_ id: String, enabled: Bool) {
+        connectors = connectors.map { item in
+            guard item.id == id else { return item }
+            return .init(id: item.id, provider: item.provider, scopes: item.scopes, risk: item.risk, enabled: enabled)
         }
     }
 
@@ -118,6 +147,54 @@ public struct ReachShellView: View {
                         Text("\(Int(node.budgetUsage * 100))%")
                         Text(node.status)
                     }
+                Text("Members: \(model.members.map { $0.id }.joined(separator: ", "))")
+                    .font(.caption)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                Text("Assigned node: \(model.assignedNode)")
+                    .font(.caption)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+
+                List(model.runs) { run in
+                    Text("\(run.id) · \(run.status)")
+                }.frame(maxHeight: 160)
+                List(model.terminalLines, id: \.self) { line in
+                    Text(line).font(.system(.caption, design: .monospaced))
+                }
+                HStack {
+                    TextField("Command", text: $model.command)
+                    Button("Send") { model.command = "" }
+                }.padding(.horizontal)
+        VStack(spacing: 8) {
+            List(model.runs) { run in
+                Text("\(run.id) · \(run.status)")
+                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+            }
+            .frame(maxHeight: 120)
+
+
+
+            List {
+                ForEach(model.connectors) { connector in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Toggle("\(connector.id) (\(connector.provider))", isOn: Binding(
+                            get: { connector.enabled },
+                            set: { model.setConnectorEnabled(connector.id, enabled: $0) }
+                        ))
+                        Text("Scopes: \(connector.scopes.joined(separator: ", "))")
+                            .font(.system(size: 12, design: .monospaced))
+                            .foregroundStyle(.cyan)
+                        Text("Risk: \(connector.risk)")
+                            .font(.system(size: 12, design: .monospaced))
+                            .foregroundStyle(connector.risk == "strict" ? .red : connector.risk == "experimental" ? .yellow : .green)
+                    }
+                }
+            }
+            .frame(maxHeight: 180)
+
+            List(model.terminalLines, id: \.self) { line in
+                Text(line)
                     .font(.system(size: 12, weight: .regular, design: .monospaced))
                 }
                 .frame(maxHeight: 120)

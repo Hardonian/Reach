@@ -48,6 +48,27 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('reach.sendSelection', () => {
       bridgeClient.send({ type: 'selection', payload: buildContextPayload() });
     }),
+    vscode.commands.registerCommand('reach.listConnectors', async () => {
+      const cfg = vscode.workspace.getConfiguration('reach');
+      const url = cfg.get<string>('connectorRegistryUrl', 'http://localhost:8092');
+      try {
+        const response = await fetch(`${url}/v1/connectors`);
+        if (!response.ok) {
+          throw new Error(`connector registry returned ${response.status}`);
+        }
+        const body = (await response.json()) as { connectors?: Array<{ id: string; provider: string; pinned_version: string; verified: boolean }> };
+        const connectors = body.connectors ?? [];
+        if (connectors.length === 0) {
+          void vscode.window.showInformationMessage('No connectors installed.');
+          return;
+        }
+        const lines = connectors.map((c) => `${c.id} (${c.provider}) v${c.pinned_version} verified=${c.verified}`);
+        void vscode.window.showQuickPick(lines, { title: 'Installed Reach Connectors' });
+      } catch (error) {
+        void vscode.window.showErrorMessage(`Failed to list connectors: ${String(error)}`);
+      }
+    }),
+
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration('reach.bridgeUrl')) {
         bridgeClient.forceReconnect();

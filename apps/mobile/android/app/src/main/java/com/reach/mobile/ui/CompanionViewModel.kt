@@ -31,6 +31,16 @@ data class SessionNode(
 data class PolicyGatePrompt(val gateId: String, val reason: String)
 data class PatchPrompt(val patchId: String, val title: String, val unifiedDiff: String)
 
+
+
+data class ConnectorItem(
+    val id: String,
+    val provider: String,
+    val scopes: List<String>,
+    val risk: String,
+    val enabled: Boolean
+)
+
 data class CompanionUiState(
     val runIdInput: String = "",
     val runId: String? = null,
@@ -41,6 +51,11 @@ data class CompanionUiState(
     val workspaceFiles: List<String> = emptyList(),
     val selectedFilePath: String? = null,
     val selectedFilePreview: String = "",
+    val connectors: List<ConnectorItem> = listOf(
+        ConnectorItem("github-core", "github", listOf("workspace:read", "repo:read"), "moderate", true),
+        ConnectorItem("filesystem-admin", "filesystem", listOf("workspace:write"), "strict", false),
+        ConnectorItem("jira-experimental", "jira", listOf("tickets:read", "tickets:write"), "experimental", false)
+    ),
     val autonomousIterations: Int = 0,
     val maxIterations: Int = 0,
     val maxToolCalls: Int = 0,
@@ -188,9 +203,20 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
     fun stopAutonomous() { val runId = _uiState.value.runId ?: return; viewModelScope.launch { gateway.stopAutonomous(runId).onSuccess { _uiState.update { it.copy(status = "Stopping autonomous loop", error = null) } }.onFailure { t -> _uiState.update { it.copy(error = t.message.orEmpty()) } } } }
     fun refreshWorkspaceFiles() { val runId = _uiState.value.runId ?: return; viewModelScope.launch { gateway.fetchWorkspaceFiles(runId).onSuccess { files -> _uiState.update { it.copy(workspaceFiles = files, error = null) } }.onFailure { t -> _uiState.update { it.copy(error = t.message.orEmpty()) } } } }
     fun previewFile(path: String) { val runId = _uiState.value.runId ?: return; viewModelScope.launch { gateway.fetchWorkspaceFile(runId, path).onSuccess { content -> _uiState.update { it.copy(selectedFilePath = path, selectedFilePreview = content, error = null) } }.onFailure { t -> _uiState.update { it.copy(error = t.message.orEmpty()) } } } }
+    fun toggleConnector(id: String, enabled: Boolean) {
+        _uiState.update { state ->
+            state.copy(connectors = state.connectors.map { if (it.id == id) it.copy(enabled = enabled) else it })
+        }
+    }
+
+    override fun onCleared() {
+        streamJob?.cancel()
+        super.onCleared()
+    }
 
     override fun onCleared() { streamJob?.cancel(); super.onCleared() }
     private fun StreamEvent.payloadAsObject(): JsonObject? = payload as? JsonObject
     private fun StreamEvent.toPolicyGatePrompt(): PolicyGatePrompt { val payload = payloadAsObject(); return PolicyGatePrompt(payload?.get("gateId")?.jsonPrimitive?.content ?: eventId, payload?.get("reason")?.jsonPrimitive?.content ?: "Approval required") }
     private fun StreamEvent.toPatchPrompt(): PatchPrompt? { val payload = payloadAsObject() ?: return null; val patchId = payload["patchId"]?.jsonPrimitive?.content ?: return null; val diff = payload["diff"]?.jsonPrimitive?.content ?: return null; val title = payload["title"]?.jsonPrimitive?.content ?: "Patch $patchId"; return PatchPrompt(patchId, title, diff) }
 }
+
