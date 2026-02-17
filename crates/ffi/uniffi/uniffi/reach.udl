@@ -16,10 +16,10 @@ namespace reach {
 
   [Error]
   enum FfiError {
-    "UnknownEngine",
-    "UnknownRun",
-    "Serialization",
-    "Engine",
-    "LockPoisoned"
+    UnknownEngine,
+    UnknownRun,
+    Serialization,
+    Engine,
+    LockPoisoned
   };
 };

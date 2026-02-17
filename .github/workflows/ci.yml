@@ -27,8 +27,12 @@ jobs:
         run: cargo fmt --check
       - name: clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: test engine-core
+        run: cargo test -p engine-core
       - name: test engine
         run: cargo test -p engine
+      - name: wasm build engine-core
+        run: cargo build -p engine-core --target wasm32-unknown-unknown
 
   go:
     name: go checks

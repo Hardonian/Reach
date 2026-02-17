@@ -17,15 +17,30 @@ type Event struct {
 	CreatedAt time.Time
 }
 
+type GateDecision string
+
+const (
+	GateApproveOnce GateDecision = "approve_once"
+	GateApproveRun  GateDecision = "approve_run"
+	GateDeny        GateDecision = "deny"
+)
+
+type Gate struct {
+	ID           string
+	Tool         string
+	Capabilities []string
+	Reason       string
+	Decision     GateDecision
+}
+
 type Run struct {
 	ID           string
 	Capabilities map[string]struct{}
 	Events       chan Event
-	ID          string
-	Events      chan Event
-	History     []Event
-	EngineState []byte
-	mu          sync.RWMutex
+	History      []Event
+	EngineState  []byte
+	Gates        map[string]Gate
+	mu           sync.RWMutex
 }
 
 type Store struct {
@@ -35,8 +50,12 @@ type Store struct {
 	audit   AuditLogger
 }
 
-func NewStore(audit AuditLogger) *Store {
-	return &Store{runs: make(map[string]*Run), audit: audit}
+func NewStore(audit ...AuditLogger) *Store {
+	var logger AuditLogger
+	if len(audit) > 0 {
+		logger = audit[0]
+	}
+	return &Store{runs: make(map[string]*Run), audit: logger}
 }
 
 func (s *Store) CreateRun(requestID string, capabilities []string) *Run {
@@ -45,14 +64,7 @@ func (s *Store) CreateRun(requestID string, capabilities []string) *Run {
 	for _, capability := range capabilities {
 		capSet[capability] = struct{}{}
 	}
-	r := &Run{
-		ID:           id,
-		Capabilities: capSet,
-		Events:       make(chan Event, 32),
-		ID:      id,
-		Events:  make(chan Event, 32),
-		History: make([]Event, 0, 32),
-	}
+	r := &Run{ID: id, Capabilities: capSet, Events: make(chan Event, 32), History: make([]Event, 0, 32), Gates: map[string]Gate{}}
 
 	s.mu.Lock()
 	s.runs[id] = r
@@ -101,31 +113,10 @@ func (s *Store) PublishEvent(id string, evt Event, requestID string) error {
 		<-r.Events
 		r.Events <- evt
 	}
-	_ = s.Audit(id, requestID, "event.emitted", map[string]any{"type": evt.Type, "created_at": evt.CreatedAt})
+	_ = s.Audit(id, requestID, "event.emitted", map[string]any{"type": evt.Type})
 	return nil
 }
 
-func (s *Store) Audit(runID, requestID, typ string, payload map[string]any) error {
-	if s.audit == nil {
-		return nil
-	}
-	return s.audit.Append(AuditEntry{
-		RunID:     runID,
-		RequestID: requestID,
-		Timestamp: time.Now().UTC(),
-		Type:      typ,
-		Payload:   payload,
-	})
-}
-
-func (s *Store) ListAudit(runID string) ([]AuditEntry, error) {
-	if _, err := s.GetRun(runID); err != nil {
-		return nil, err
-	}
-	if s.audit == nil {
-		return []AuditEntry{}, nil
-	}
-	return s.audit.List(runID)
 func (s *Store) EventHistory(id string) ([]Event, error) {
 	r, err := s.GetRun(id)
 	if err != nil {
@@ -156,10 +147,56 @@ func (s *Store) EngineState(id string) ([]byte, error) {
 	}
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	if len(r.EngineState) == 0 {
-		return nil, nil
+	out := make([]byte, len(r.EngineState))
+	copy(out, r.EngineState)
+	return out, nil
+}
+
+func (s *Store) SetGate(runID string, gate Gate) error {
+	r, err := s.GetRun(runID)
+	if err != nil {
+		return err
 	}
-	state := make([]byte, len(r.EngineState))
-	copy(state, r.EngineState)
-	return state, nil
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.Gates[gate.ID] = gate
+	return nil
+}
+
+func (s *Store) ResolveGate(runID, gateID string, decision GateDecision) error {
+	r, err := s.GetRun(runID)
+	if err != nil {
+		return err
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	gate, ok := r.Gates[gateID]
+	if !ok {
+		return errors.New("gate not found")
+	}
+	gate.Decision = decision
+	r.Gates[gateID] = gate
+	if decision == GateApproveRun {
+		for _, cap := range gate.Capabilities {
+			r.Capabilities[cap] = struct{}{}
+		}
+	}
+	return nil
+}
+
+func (s *Store) Audit(runID, requestID, typ string, payload map[string]any) error {
+	if s.audit == nil {
+		return nil
+	}
+	return s.audit.Append(AuditEntry{RunID: runID, RequestID: requestID, Timestamp: time.Now().UTC(), Type: typ, Payload: payload})
+}
+
+func (s *Store) ListAudit(runID string) ([]AuditEntry, error) {
+	if _, err := s.GetRun(runID); err != nil {
+		return nil, err
+	}
+	if s.audit == nil {
+		return []AuditEntry{}, nil
+	}
+	return s.audit.List(runID)
 }

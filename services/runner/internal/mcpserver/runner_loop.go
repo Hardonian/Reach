@@ -30,7 +30,7 @@ func (r *RunLoop) InvokeTool(ctx context.Context, runID string, tool string, arg
 		evtType = "tool.error"
 	}
 	if r.Store != nil {
-		if publishErr := r.Store.PublishEvent(runID, jobs.Event{Type: evtType, Payload: body, CreatedAt: time.Now().UTC()}); publishErr != nil {
+		if publishErr := r.Store.PublishEvent(runID, jobs.Event{Type: evtType, Payload: body, CreatedAt: time.Now().UTC()}, "mcp"); publishErr != nil {
 			return publishErr
 		}
 	}

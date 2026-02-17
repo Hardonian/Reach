@@ -15,6 +15,8 @@ object ProtocolEventParser {
             "tool.result" -> json.decodeFromJsonElement(ToolResultEvent.serializer(), obj)
             "artifact.created" -> json.decodeFromJsonElement(ArtifactCreatedEvent.serializer(), obj)
             "run.completed" -> json.decodeFromJsonElement(RunCompletedEvent.serializer(), obj)
+            "policy.gate.requested" -> json.decodeFromJsonElement(PolicyGateRequestedEvent.serializer(), obj)
+            "policy.gate.resolved" -> json.decodeFromJsonElement(PolicyGateResolvedEvent.serializer(), obj)
             else -> null
         }
     }

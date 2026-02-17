@@ -105,3 +105,25 @@ data class ProtocolError(
     val message: String,
     val code: String? = null
 )
+
+@Serializable
+@SerialName("policy.gate.requested")
+data class PolicyGateRequestedEvent(
+    override val schemaVersion: String,
+    override val eventId: String,
+    override val runId: String,
+    override val type: String,
+    override val timestamp: String,
+    val payload: JsonObject
+) : ProtocolEvent
+
+@Serializable
+@SerialName("policy.gate.resolved")
+data class PolicyGateResolvedEvent(
+    override val schemaVersion: String,
+    override val eventId: String,
+    override val runId: String,
+    override val type: String,
+    override val timestamp: String,
+    val payload: JsonObject
+) : ProtocolEvent

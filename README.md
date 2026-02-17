@@ -54,3 +54,7 @@ GitHub Actions runs:
 - Go vet/tests.
 
 See `.github/workflows/ci.yml`.
+
+
+### iOS shell
+A minimal SwiftUI shell lives in `apps/mobile/ios/ReachIOS` and can be compiled in Xcode for SSE terminal streaming.

@@ -69,3 +69,7 @@ If you have an emulator/device attached, you can start the installed app from An
 - Update protocol schemas when wire contracts change.
 - Prefer small, focused pull requests.
 - Ensure CI passes before requesting review.
+
+
+### iOS shell
+A minimal SwiftUI shell lives in `apps/mobile/ios/ReachIOS` and can be compiled in Xcode for SSE terminal streaming.
