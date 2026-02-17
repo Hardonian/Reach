@@ -1,0 +1,54 @@
+{
+  "items": [
+    {
+      "kind": "connector",
+      "id": "conn.github",
+      "name": "GitHub Connector",
+      "description": "Read and write GitHub issues and pull requests.",
+      "publisher": {"name": "Reach Labs", "key_id": "reach-prod-1", "verified": true},
+      "versions": [
+        {
+          "version": "1.3.2",
+          "published_at": "2026-02-10T12:00:00Z",
+          "sha256": "5f2f94139f4abf40a2b940da29b148a8f9224ed5cb1d0256d9695a6e3cb91ef6",
+          "signed": true,
+          "signature_key_id": "reach-prod-1"
+        }
+      ],
+      "latest_version": "1.3.2",
+      "risk_level": "medium",
+      "tier_required": "pro",
+      "required_capabilities": ["repo:read", "repo:write"],
+      "side_effect_types": ["network", "write"],
+      "tags": ["github"],
+      "categories": ["developer-tools"],
+      "changelog": "Adds issue-assignee sync"
+    },
+    {
+      "kind": "policy",
+      "id": "policy.strict-mode",
+      "name": "Strict Mode",
+      "description": "Blocks external network operations.",
+      "publisher": {"name": "Reach Security", "key_id": "reach-prod-2", "verified": true},
+      "versions": [
+        {
+          "version": "2.0.0",
+          "published_at": "2026-01-31T09:30:00Z",
+          "sha256": "e4a1f9e2b7fd311808ebf9f7303be52158f0ca2e29bc31f250a0ef16f2240f66",
+          "signed": true,
+          "signature_key_id": "reach-prod-2"
+        }
+      ],
+      "latest_version": "2.0.0",
+      "risk_level": "low",
+      "tier_required": "enterprise",
+      "required_capabilities": ["policy:enforce"],
+      "side_effect_types": ["read"],
+      "tags": ["security"],
+      "categories": ["policy"]
+    }
+  ],
+  "total": 2,
+  "page": 1,
+  "page_size": 20
+}

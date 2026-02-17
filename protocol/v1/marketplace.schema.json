@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.dev/protocol/v1/marketplace.schema.json",
+  "title": "MarketplaceItem",
+  "type": "object",
+  "required": [
+    "kind",
+    "id",
+    "name",
+    "description",
+    "publisher",
+    "versions",
+    "latest_version",
+    "risk_level",
+    "tier_required",
+    "required_capabilities",
+    "side_effect_types",
+    "tags",
+    "categories"
+  ],
+  "properties": {
+    "kind": {"type": "string", "enum": ["connector", "template", "policy"]},
+    "id": {"type": "string", "minLength": 1},
+    "name": {"type": "string", "minLength": 1},
+    "description": {"type": "string", "minLength": 1},
+    "publisher": {
+      "type": "object",
+      "required": ["name", "key_id", "verified"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "key_id": {"type": "string"},
+        "verified": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "versions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["version", "published_at", "sha256", "signed", "signature_key_id"],
+        "properties": {
+          "version": {"type": "string", "minLength": 1},
+          "published_at": {"type": "string"},
+          "sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+          "signed": {"type": "boolean"},
+          "signature_key_id": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "latest_version": {"type": "string", "minLength": 1},
+    "risk_level": {"type": "string", "enum": ["low", "medium", "high"]},
+    "tier_required": {"type": "string", "enum": ["free", "pro", "enterprise", "none"]},
+    "required_capabilities": {"type": "array", "items": {"type": "string"}},
+    "side_effect_types": {
+      "type": "array",
+      "items": {"type": "string", "enum": ["read", "write", "network", "external"]}
+    },
+    "tags": {"type": "array", "items": {"type": "string"}},
+    "categories": {"type": "array", "items": {"type": "string"}},
+    "docs_url": {"type": "string"},
+    "repo_url": {"type": "string"},
+    "changelog": {"type": "string"}
+  },
+  "additionalProperties": false
+}

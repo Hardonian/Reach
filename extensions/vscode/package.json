@@ -35,6 +35,22 @@
       {
         "command": "reach.listConnectors",
         "title": "Reach: List Connectors"
+      },
+      {
+        "command": "reach.marketplaceSearch",
+        "title": "Reach: Marketplace Search"
+      },
+      {
+        "command": "reach.marketplaceInstall",
+        "title": "Reach: Install Connector/Template/Policy"
+      },
+      {
+        "command": "reach.marketplaceListInstalled",
+        "title": "Reach: List Installed"
+      },
+      {
+        "command": "reach.marketplaceUpdateInstalled",
+        "title": "Reach: Update Installed"
       }
     ],
     "configuration": {
