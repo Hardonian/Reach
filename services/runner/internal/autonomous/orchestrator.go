@@ -21,6 +21,17 @@ const (
 	ReasonNoProgress       StatusReason = "no_progress"
 	ReasonContextCanceled  StatusReason = "context_canceled"
 	ReasonCheckpointFailed StatusReason = "checkpoint_failed"
+	ReasonPaused           StatusReason = "paused"
+)
+
+type PauseReason string
+
+const (
+	PauseReasonNetwork      PauseReason = "network_lost"
+	PauseReasonLowBattery   PauseReason = "battery_low"
+	PauseReasonUser         PauseReason = "user_paused"
+	PauseReasonGuardrail    PauseReason = "guardrail_near"
+	PauseReasonPolicyWindow PauseReason = "policy_window"
 )
 
 type StepPlan struct {
@@ -41,12 +52,59 @@ type Engine interface {
 	Execute(context.Context, StepPlan) (StepResult, error)
 }
 
+type RuntimeSignals struct {
+	NetworkAvailable bool
+	BatteryLevel     int
+	UserPaused       bool
+	GuardrailNear    bool
+}
+
+type SignalProvider interface {
+	Signals(context.Context, jobs.AutonomousSession) RuntimeSignals
+}
+
+type IdleCycleScheduler struct {
+	BurstMin      time.Duration
+	BurstMax      time.Duration
+	SleepInterval time.Duration
+}
+
+func (s IdleCycleScheduler) normalize() IdleCycleScheduler {
+	if s.BurstMin <= 0 {
+		s.BurstMin = 10 * time.Second
+	}
+	if s.BurstMax <= 0 {
+		s.BurstMax = 30 * time.Second
+	}
+	if s.BurstMax < s.BurstMin {
+		s.BurstMax = s.BurstMin
+	}
+	if s.SleepInterval <= 0 {
+		s.SleepInterval = 15 * time.Second
+	}
+	return s
+}
+
+func (s IdleCycleScheduler) burstForIteration(iteration int) time.Duration {
+	s = s.normalize()
+	if s.BurstMax == s.BurstMin {
+		return s.BurstMin
+	}
+	window := s.BurstMax - s.BurstMin
+	step := time.Second
+	offset := (time.Duration(iteration) * step) % (window + step)
+	return s.BurstMin + offset
+}
+
 type Loop struct {
 	Store                *jobs.Store
 	Engine               Engine
+	Signals              SignalProvider
+	Scheduler            IdleCycleScheduler
 	RepeatedFailureLimit int
 	NoProgressLimit      int
 	IterationTimeout     time.Duration
+	Sleep                func(context.Context, time.Duration) bool
 }
 
 func (l *Loop) Run(ctx context.Context, tenantID, runID string, session *jobs.AutonomousSession) StatusReason {
@@ -56,64 +114,142 @@ func (l *Loop) Run(ctx context.Context, tenantID, runID string, session *jobs.Au
 	if l.NoProgressLimit <= 0 {
 		l.NoProgressLimit = 3
 	}
+	scheduler := l.Scheduler.normalize()
+	sleepFn := l.Sleep
+	if sleepFn == nil {
+		sleepFn = func(ctx context.Context, d time.Duration) bool {
+			t := time.NewTimer(d)
+			defer t.Stop()
+			select {
+			case <-ctx.Done():
+				return false
+			case <-t.C:
+				return true
+			}
+		}
+	}
+
 	for {
-		if err := ctx.Err(); err != nil {
+		if reason, stop := l.preflight(ctx, runID, session); stop {
+			return reason
+		}
+		burstDeadline := time.Now().UTC().Add(scheduler.burstForIteration(session.IterationCount))
+		for time.Now().UTC().Before(burstDeadline) {
+			if reason, stop := l.preflight(ctx, runID, session); stop {
+				return reason
+			}
+			if reason := l.pauseReason(ctx, *session); reason != "" {
+				session.Status = jobs.AutonomousPaused
+				session.StopReason = string(reason)
+				session.UpdatedAt = time.Now().UTC()
+				_ = l.publishStateEvent(ctx, runID, "autonomous.paused", map[string]any{"reason": reason, "iteration_count": session.IterationCount})
+				if !sleepFn(ctx, scheduler.SleepInterval) {
+					return ReasonContextCanceled
+				}
+				session.Status = jobs.AutonomousRunning
+				session.StopReason = ""
+				session.UpdatedAt = time.Now().UTC()
+				_ = l.publishStateEvent(ctx, runID, "autonomous.resumed", map[string]any{"iteration_count": session.IterationCount})
+				continue
+			}
+			if reason := l.tick(ctx, tenantID, runID, session); reason != "" {
+				return reason
+			}
+		}
+		if !sleepFn(ctx, scheduler.SleepInterval) {
 			return ReasonContextCanceled
 		}
-		if session.IterationCount >= session.MaxIterations {
-			return ReasonMaxIterations
-		}
-		if session.MaxToolCalls > 0 && session.ToolCallCount >= session.MaxToolCalls {
-			return ReasonMaxToolCalls
-		}
-		if session.MaxRuntime > 0 && time.Since(session.StartedAt) >= session.MaxRuntime {
-			return ReasonMaxRuntime
-		}
+	}
+}
 
-		stepCtx := ctx
-		if l.IterationTimeout > 0 {
-			var cancel context.CancelFunc
-			stepCtx, cancel = context.WithTimeout(ctx, l.IterationTimeout)
-			defer cancel()
-		}
-		plan, err := l.Engine.Plan(stepCtx, session.Goal, session.IterationCount)
-		if err != nil {
-			session.FailureStreak++
-			if session.FailureStreak >= l.RepeatedFailureLimit {
-				return ReasonRepeatedFailure
-			}
-			continue
-		}
+func (l *Loop) preflight(ctx context.Context, _ string, session *jobs.AutonomousSession) (StatusReason, bool) {
+	if err := ctx.Err(); err != nil {
+		return ReasonContextCanceled, true
+	}
+	if session.IterationCount >= session.MaxIterations {
+		return ReasonMaxIterations, true
+	}
+	if session.MaxToolCalls > 0 && session.ToolCallCount >= session.MaxToolCalls {
+		return ReasonMaxToolCalls, true
+	}
+	if session.MaxRuntime > 0 && time.Since(session.StartedAt) >= session.MaxRuntime {
+		return ReasonMaxRuntime, true
+	}
+	return "", false
+}
 
-		res, err := l.Engine.Execute(stepCtx, plan)
-		session.ToolCallCount++
-		session.IterationCount++
-		session.UpdatedAt = time.Now().UTC()
-		if err != nil || !res.Success {
-			session.FailureStreak++
-		} else {
-			session.FailureStreak = 0
-		}
-		if res.Progressed {
-			session.NoProgressStreak = 0
-		} else {
-			session.NoProgressStreak++
-		}
+func (l *Loop) pauseReason(ctx context.Context, session jobs.AutonomousSession) PauseReason {
+	if l.Signals == nil {
+		return ""
+	}
+	sig := l.Signals.Signals(ctx, session)
+	if sig.UserPaused {
+		return PauseReasonUser
+	}
+	if !sig.NetworkAvailable {
+		return PauseReasonNetwork
+	}
+	if sig.BatteryLevel > 0 && sig.BatteryLevel <= 15 {
+		return PauseReasonLowBattery
+	}
+	if sig.GuardrailNear {
+		return PauseReasonGuardrail
+	}
+	return ""
+}
 
-		if ckErr := l.checkpoint(ctx, tenantID, runID, *session, plan, res); ckErr != nil {
-			return ReasonCheckpointFailed
-		}
-
-		if res.Done {
-			return ReasonDone
-		}
+func (l *Loop) tick(ctx context.Context, tenantID, runID string, session *jobs.AutonomousSession) StatusReason {
+	stepCtx := ctx
+	if l.IterationTimeout > 0 {
+		var cancel context.CancelFunc
+		stepCtx, cancel = context.WithTimeout(ctx, l.IterationTimeout)
+		defer cancel()
+	}
+	plan, err := l.Engine.Plan(stepCtx, session.Goal, session.IterationCount)
+	if err != nil {
+		session.FailureStreak++
 		if session.FailureStreak >= l.RepeatedFailureLimit {
 			return ReasonRepeatedFailure
 		}
-		if session.NoProgressStreak >= l.NoProgressLimit {
-			return ReasonNoProgress
-		}
+		return ""
 	}
+
+	res, err := l.Engine.Execute(stepCtx, plan)
+	session.ToolCallCount++
+	session.IterationCount++
+	session.UpdatedAt = time.Now().UTC()
+	if err != nil || !res.Success {
+		session.FailureStreak++
+	} else {
+		session.FailureStreak = 0
+	}
+	if res.Progressed {
+		session.NoProgressStreak = 0
+	} else {
+		session.NoProgressStreak++
+	}
+
+	if ckErr := l.checkpoint(ctx, tenantID, runID, *session, plan, res); ckErr != nil {
+		return ReasonCheckpointFailed
+	}
+	if res.Done {
+		return ReasonDone
+	}
+	if session.FailureStreak >= l.RepeatedFailureLimit {
+		return ReasonRepeatedFailure
+	}
+	if session.NoProgressStreak >= l.NoProgressLimit {
+		return ReasonNoProgress
+	}
+	return ""
+}
+
+func (l *Loop) publishStateEvent(ctx context.Context, runID, event string, payload map[string]any) error {
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	return l.Store.PublishEvent(ctx, runID, jobs.Event{Type: event, Payload: body, CreatedAt: time.Now().UTC()}, "autonomous")
 }
 
 func (l *Loop) checkpoint(ctx context.Context, tenantID, runID string, session jobs.AutonomousSession, plan StepPlan, res StepResult) error {
