@@ -1,0 +1,20 @@
+=== RUN   TestMarketplaceIdempotencyFlow
+--- PASS: TestMarketplaceIdempotencyFlow (0.02s)
+=== RUN   TestMarketplaceCatalogFilterAndPagination
+--- PASS: TestMarketplaceCatalogFilterAndPagination (0.01s)
+=== RUN   TestInstallIntentAndConsentEnforcement
+--- PASS: TestInstallIntentAndConsentEnforcement (0.01s)
+=== RUN   TestTierAndNoAutoUpgrade
+    marketplace_test.go:94: invalid or expired idempotency_key
+--- FAIL: TestTierAndNoAutoUpgrade (0.00s)
+=== RUN   TestInstallAndUninstall
+--- PASS: TestInstallAndUninstall (0.02s)
+=== RUN   TestUnsignedRejectedInProd
+--- PASS: TestUnsignedRejectedInProd (0.01s)
+=== RUN   TestRemoteInstallAndPin
+--- PASS: TestRemoteInstallAndPin (0.05s)
+=== RUN   TestSHAMismatchRejected
+--- PASS: TestSHAMismatchRejected (0.01s)
+FAIL
+FAIL	reach/services/connector-registry/internal/registry	0.965s
+FAIL

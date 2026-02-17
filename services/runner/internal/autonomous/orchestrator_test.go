@@ -71,7 +71,8 @@ func testSession() *jobs.AutonomousSession {
 }
 
 func TestIterationCapEnforced(t *testing.T) {
-	store := newStore(t)
+	store, db := newStore(t)
+	defer db.Close()
 	runID := seedRun(t, store)
 	loop := Loop{Store: store, Engine: &fakeEngine{}, NoProgressLimit: 10, Scheduler: IdleCycleScheduler{BurstMin: time.Millisecond, BurstMax: time.Millisecond, SleepInterval: time.Millisecond}, Sleep: func(context.Context, time.Duration) bool { return true }}
 	s := testSession()
@@ -83,7 +84,8 @@ func TestIterationCapEnforced(t *testing.T) {
 }
 
 func TestPauseOnNetworkLossAndResume(t *testing.T) {
-	store := newStore(t)
+	store, db := newStore(t)
+	defer db.Close()
 	runID := seedRun(t, store)
 	engine := &fakeEngine{results: []StepResult{{Success: true, Progressed: true}, {Success: true, Progressed: true, Done: true}}}
 	loop := Loop{
@@ -116,7 +118,8 @@ func TestPauseOnNetworkLossAndResume(t *testing.T) {
 }
 
 func TestNoProgressStop(t *testing.T) {
-	store := newStore(t)
+	store, db := newStore(t)
+	defer db.Close()
 	runID := seedRun(t, store)
 	loop := Loop{Store: store, Engine: &fakeEngine{results: []StepResult{{Success: true, Progressed: false}, {Success: true, Progressed: false}}}, NoProgressLimit: 2, Scheduler: IdleCycleScheduler{BurstMin: time.Millisecond, BurstMax: time.Millisecond, SleepInterval: time.Millisecond}, Sleep: func(context.Context, time.Duration) bool { return true }}
 	reason := loop.Run(context.Background(), "tenant-a", runID, testSession())
@@ -126,7 +129,8 @@ func TestNoProgressStop(t *testing.T) {
 }
 
 func TestRuntimeCapEnforced(t *testing.T) {
-	store := newStore(t)
+	store, db := newStore(t)
+	defer db.Close()
 	runID := seedRun(t, store)
 	loop := Loop{Store: store, Engine: &fakeEngine{results: []StepResult{{Success: true, Progressed: true}}}, Scheduler: IdleCycleScheduler{BurstMin: time.Millisecond, BurstMax: time.Millisecond, SleepInterval: time.Millisecond}, Sleep: func(context.Context, time.Duration) bool { return true }}
 	s := testSession()
@@ -139,7 +143,8 @@ func TestRuntimeCapEnforced(t *testing.T) {
 }
 
 func TestCheckpointCreated(t *testing.T) {
-	store := newStore(t)
+	store, db := newStore(t)
+	defer db.Close()
 	runID := seedRun(t, store)
 	loop := Loop{Store: store, Engine: &fakeEngine{results: []StepResult{{Success: true, Progressed: true, Done: true, Summary: "done"}}}, Scheduler: IdleCycleScheduler{BurstMin: time.Millisecond, BurstMax: time.Millisecond, SleepInterval: time.Millisecond}, Sleep: func(context.Context, time.Duration) bool { return true }}
 	reason := loop.Run(context.Background(), "tenant-a", runID, testSession())
@@ -162,7 +167,8 @@ func TestCheckpointCreated(t *testing.T) {
 }
 
 func TestManualStopViaCancel(t *testing.T) {
-	store := newStore(t)
+	store, db := newStore(t)
+	defer db.Close()
 	runID := seedRun(t, store)
 	loop := Loop{Store: store, Engine: &fakeEngine{errs: []error{errors.New("boom"), errors.New("boom")}}, RepeatedFailureLimit: 10, NoProgressLimit: 10, Scheduler: IdleCycleScheduler{BurstMin: time.Millisecond, BurstMax: time.Millisecond, SleepInterval: time.Millisecond}, Sleep: func(context.Context, time.Duration) bool { return true }}
 	ctx, cancel := context.WithCancel(context.Background())

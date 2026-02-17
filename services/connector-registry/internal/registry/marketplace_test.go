@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -89,19 +90,39 @@ func TestTierAndNoAutoUpgrade(t *testing.T) {
 		t.Fatal(err)
 	}
 	store.SetCurrentTier("free")
+<<<<<<< HEAD
 	intent, err := store.InstallIntent(context.Background(), InstallIntentRequest{Kind: "connector", ID: "conn.github"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if _, err := store.InstallMarketplace(context.Background(), InstallRequestV1{Kind: "connector", ID: "conn.github", Version: "1.0.0", IdempotencyKey: intent.IdempotencyKey, AcceptedRisk: true, AcceptedCapabilities: []string{"filesystem:read"}}); err == nil {
 		t.Fatal("expected tier gate")
+=======
+	intent, err := store.InstallIntent(context.Background(), InstallIntentRequest{Kind: "connector", ID: "conn.github", Version: "1.0.0"})
+	if err != nil {
+		t.Fatal(err)
+>>>>>>> 2b85384 (feat: Add comprehensive autonomous orchestrator tests and new marketplace and event schema test files.)
 	}
+	if _, err := store.InstallMarketplace(context.Background(), InstallRequestV1{Kind: "connector", ID: "conn.github", Version: "1.0.0", IdempotencyKey: intent.IdempotencyKey, AcceptedRisk: true, AcceptedCapabilities: []string{"filesystem:read"}}); err == nil {
+		t.Fatal("expected tier gate")
+	} else if !strings.Contains(err.Error(), "tier") {
+		t.Fatalf("expected tier error, got: %v", err)
+	}
+
 	store.SetCurrentTier("pro")
+<<<<<<< HEAD
 	intent2, err := store.InstallIntent(context.Background(), InstallIntentRequest{Kind: "connector", ID: "conn.github"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	_, err = store.InstallMarketplace(context.Background(), InstallRequestV1{Kind: "connector", ID: "conn.github", Version: "1.0.0", IdempotencyKey: intent2.IdempotencyKey, AcceptedRisk: true, AcceptedCapabilities: []string{"filesystem:read"}})
+=======
+	intent, err = store.InstallIntent(context.Background(), InstallIntentRequest{Kind: "connector", ID: "conn.github", Version: "1.0.0"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = store.InstallMarketplace(context.Background(), InstallRequestV1{Kind: "connector", ID: "conn.github", Version: "1.0.0", IdempotencyKey: intent.IdempotencyKey, AcceptedRisk: true, AcceptedCapabilities: []string{"filesystem:read"}})
+>>>>>>> 2b85384 (feat: Add comprehensive autonomous orchestrator tests and new marketplace and event schema test files.)
 	if err != nil {
 		t.Fatal(err)
 	}
