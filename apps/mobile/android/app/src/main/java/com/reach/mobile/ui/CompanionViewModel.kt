@@ -107,7 +107,7 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
 
     private fun onEvent(event: StreamEvent) {
         _uiState.update { state ->
-            val nextEvents = (state.events + event).takeLast(50)
+            val nextEvents = (state.events + event).takeLast(200)
             var nextState = state.copy(events = nextEvents, status = event.type, error = null)
             if (event.type == "policy.gate.requested") {
                 nextState = nextState.copy(pendingPolicyGate = event.toPolicyGatePrompt())
