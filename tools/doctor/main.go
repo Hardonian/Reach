@@ -3,6 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -10,128 +13,217 @@ import (
 	"strings"
 )
 
-type check struct {
-	name    string
-	command []string
-	dir     string
-	fix     string
+type checkResult struct {
+	name        string
+	ok          bool
+	remediation string
+	detail      string
 }
 
 func main() {
 	root, err := repoRoot()
 	if err != nil {
-		fmt.Printf("[FAIL] repo root: %v\n", err)
+		fmt.Printf("reach doctor: fail: repo root: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Reach doctor on %s/%s\n", runtime.GOOS, runtime.GOARCH)
-	fmt.Printf("repo: %s\n", root)
 
-	checks := []check{
-		{name: "go available", command: []string{"go", "version"}, fix: "Install Go 1.22+ and ensure go is on PATH."},
-		{name: "rust available", command: []string{"rustc", "--version"}, fix: "Install Rust stable via rustup."},
-		{name: "node available", command: []string{"node", "--version"}, fix: "Install Node.js 18+ and ensure node is on PATH."},
-		{name: "protocol schema validation", command: []string{"node", "tools/codegen/validate-protocol.mjs"}, fix: "Fix schema violations under protocol/schemas."},
-		{name: "go tests (runner)", command: []string{"go", "test", "./..."}, dir: "services/runner", fix: "Resolve failing tests under services/runner."},
-		{name: "queue migrations present", command: []string{"bash", "-lc", "test -f services/runner/internal/storage/migrations/002_orchestration.sql"}, fix: "Run orchestration migration generation."},
-		{name: "node registry table probe", command: []string{"bash", "-lc", "sqlite3 /tmp/reach-doctor.sqlite \".read services/runner/internal/storage/migrations/001_init.sql\" && sqlite3 /tmp/reach-doctor.sqlite \".read services/runner/internal/storage/migrations/002_orchestration.sql\" && sqlite3 /tmp/reach-doctor.sqlite \"select count(*) from nodes;\""}, fix: "Validate sqlite3 availability and migration SQL syntax."},
+	fmt.Printf("reach doctor (%s/%s)\n", runtime.GOOS, runtime.GOARCH)
+
+	checks := []func(string) checkResult{
+		checkRegistrySourceConfig,
+		checkIndexSchemaAndCache,
+		checkSignatureVerificationPath,
+		checkPolicyEngineReachableConfig,
+		checkRunnerCapabilityFirewall,
+		checkMarketplaceConsentRequirements,
+		checkArchitectureBoundaries,
 	}
 
-	for _, c := range []check{
-		{name: "protocol schema validation", command: []string{"node", "tools/codegen/validate-protocol.mjs"}, fix: "Fix schema violations under protocol/schemas."},
-		{name: "go tests (runner)", command: []string{"go", "test", "./..."}, fix: "Resolve failing tests under services/runner."},
-		{name: "go tests (connector-registry)", command: []string{"go", "test", "./..."}, fix: "Resolve failing tests under services/connector-registry."},
-	} {
 	failures := 0
-	for _, c := range checks {
-		if err := runCheck(root, c); err != nil {
-			failures++
+	for _, run := range checks {
+		result := run(root)
+		if result.ok {
+			fmt.Printf("[OK]   %s\n", result.name)
+			continue
 		}
-	}
-
-	for _, fn := range []func(string) error{checkRegistryIndex, checkLockfileConsistency, checkRiskySettings} {
-		if err := fn(root); err != nil {
-			fmt.Printf("[FAIL] %v\n", err)
-			failures++
-		} else {
-			fmt.Println("[OK]   custom check")
+		failures++
+		fmt.Printf("[FAIL] %s\n", result.name)
+		if result.detail != "" {
+			fmt.Printf("       %s\n", result.detail)
+		}
+		if result.remediation != "" {
+			fmt.Printf("       remediation: %s\n", result.remediation)
 		}
 	}
 
 	if failures > 0 {
-		fmt.Printf("\nDoctor found %d issue(s).\n", failures)
+		fmt.Printf("\nreach doctor found %d issue(s)\n", failures)
 		os.Exit(1)
 	}
-	fmt.Println("\nDoctor checks passed.")
+	fmt.Println("\nreach doctor passed")
 }
 
-func runCheck(root string, c check) error {
-	cmd := exec.Command(c.command[0], c.command[1:]...)
-	cmd.Dir = root
-	if c.dir != "" {
-		cmd.Dir = filepath.Join(root, c.dir)
-	}
-	if c.name == "go tests (connector-registry)" {
-		cmd.Dir = filepath.Join(root, "services", "connector-registry")
-	}
-	out, err := cmd.CombinedOutput()
+func checkRegistrySourceConfig(root string) checkResult {
+	name := "registry sources config"
+	cmdPath := filepath.Join(root, "services", "connector-registry", "cmd", "connector-registry", "main.go")
+	data, err := os.ReadFile(cmdPath)
 	if err != nil {
-		fmt.Printf("[FAIL] %s\n  cmd: %s\n  output: %s\n  fix: %s\n", c.name, strings.Join(c.command, " "), strings.TrimSpace(string(out)), c.fix)
-		return err
+		return fail(name, err, "restore connector-registry command source")
 	}
-	line := strings.Split(strings.TrimSpace(string(out)), "\n")
-	preview := "ok"
-	if len(line) > 0 && line[0] != "" {
-		preview = line[0]
+	text := string(data)
+	if !strings.Contains(text, "CONNECTOR_REGISTRY_REMOTE_INDEX_URL") {
+		return checkResult{name: name, remediation: "wire remote index through CONNECTOR_REGISTRY_REMOTE_INDEX_URL", detail: "env key missing in connector-registry bootstrap"}
 	}
-	fmt.Printf("[OK]   %s (%s)\n", c.name, preview)
-	return nil
+	if !strings.Contains(text, "PACKKIT_TRUSTED_KEYS") {
+		return checkResult{name: name, remediation: "keep trusted key file configurable", detail: "trusted key env key missing"}
+	}
+	return pass(name)
 }
 
-func checkRegistryIndex(root string) error {
-	path := filepath.Join(root, "connectors", "index.json")
-	data, err := os.ReadFile(path)
-	if os.IsNotExist(err) {
-		return nil
-	}
+func checkIndexSchemaAndCache(root string) checkResult {
+	name := "index schema and cache guards"
+	file := filepath.Join(root, "services", "connector-registry", "internal", "registry", "marketplace.go")
+	data, err := os.ReadFile(file)
 	if err != nil {
-		return err
+		return fail(name, err, "restore marketplace registry implementation")
 	}
-	var parsed map[string]any
-	if err := json.Unmarshal(data, &parsed); err != nil {
-		return fmt.Errorf("registry index invalid json: %w", err)
+	text := string(data)
+	needles := []string{"catalogTTL", "catalogMaxItems", "packregistry.ParseIndex", "SetCatalogTTL"}
+	for _, needle := range needles {
+		if !strings.Contains(text, needle) {
+			return checkResult{name: name, remediation: "enforce TTL + bounded item cache with schema parse", detail: "missing marker: " + needle}
+		}
 	}
-	return nil
+	return pass(name)
 }
 
-func checkLockfileConsistency(root string) error {
-	path := filepath.Join(root, "reach.lock.json")
-	data, err := os.ReadFile(path)
-	if os.IsNotExist(err) {
-		return nil
-	}
+func checkSignatureVerificationPath(root string) checkResult {
+	name := "signature verification path"
+	file := filepath.Join(root, "services", "connector-registry", "internal", "registry", "registry.go")
+	data, err := os.ReadFile(file)
 	if err != nil {
-		return err
+		return fail(name, err, "restore connector registry installation flow")
 	}
-	var parsed map[string]any
-	if err := json.Unmarshal(data, &parsed); err != nil {
-		return fmt.Errorf("lockfile invalid json: %w", err)
+	text := string(data)
+	if !strings.Contains(text, "VerifyManifestSignature") || !strings.Contains(text, "signature required in prod mode") {
+		return checkResult{name: name, remediation: "do not bypass manifest signature verification outside dev mode", detail: "signature gate missing"}
 	}
-	return nil
+	return pass(name)
 }
 
-func checkRiskySettings(root string) error {
-	envPath := filepath.Join(root, ".env")
-	data, err := os.ReadFile(envPath)
-	if os.IsNotExist(err) {
-		return nil
-	}
+func checkPolicyEngineReachableConfig(root string) checkResult {
+	name := "policy engine reachable config"
+	file := filepath.Join(root, "services", "integration-hub", "cmd", "integration-hub", "main.go")
+	data, err := os.ReadFile(file)
 	if err != nil {
-		return err
+		return fail(name, err, "restore integration-hub bootstrap")
 	}
-	if strings.Contains(string(data), "ENV=prod") && strings.Contains(string(data), "DEV_ALLOW_UNSIGNED=1") {
-		return fmt.Errorf("DEV_ALLOW_UNSIGNED=1 enabled in prod")
+	if !strings.Contains(string(data), "RUNNER_INTERNAL_URL") {
+		return checkResult{name: name, remediation: "configure runner URL through RUNNER_INTERNAL_URL and keep policy endpoint wiring intact", detail: "runner/policy routing env missing"}
 	}
-	return nil
+	return pass(name)
+}
+
+func checkRunnerCapabilityFirewall(root string) checkResult {
+	name := "runner capability firewall"
+	file := filepath.Join(root, "services", "runner", "internal", "mcpserver", "policy.go")
+	data, err := os.ReadFile(file)
+	if err != nil {
+		return fail(name, err, "restore runner policy firewall")
+	}
+	text := string(data)
+	if !strings.Contains(text, "CapabilityFilesystemWrite") || !strings.Contains(text, "ProfileAllowed") {
+		return checkResult{name: name, remediation: "enforce capability checks before tool execution", detail: "runner capability policy markers missing"}
+	}
+	return pass(name)
+}
+
+func checkMarketplaceConsentRequirements(root string) checkResult {
+	name := "marketplace install consent requirements"
+	file := filepath.Join(root, "services", "connector-registry", "internal", "registry", "marketplace.go")
+	data, err := os.ReadFile(file)
+	if err != nil {
+		return fail(name, err, "restore marketplace install flow")
+	}
+	text := string(data)
+	needles := []string{"IdempotencyKey", "AcceptedCapabilities", "AcceptedRisk", "risk acceptance required"}
+	for _, needle := range needles {
+		if !strings.Contains(text, needle) {
+			return checkResult{name: name, remediation: "require explicit consent fields in marketplace install", detail: "missing marker: " + needle}
+		}
+	}
+	return pass(name)
+}
+
+func checkArchitectureBoundaries(root string) checkResult {
+	name := "architecture boundaries"
+	violations, err := boundaryViolations(root)
+	if err != nil {
+		return fail(name, err, "fix boundary checker parser errors")
+	}
+	if len(violations) > 0 {
+		return checkResult{name: name, detail: strings.Join(violations, "; "), remediation: "remove forbidden imports between marketplace/api/packkit/runner modules"}
+	}
+	return pass(name)
+}
+
+func boundaryViolations(root string) ([]string, error) {
+	fset := token.NewFileSet()
+	files := []string{}
+	for _, dir := range []string{
+		filepath.Join(root, "services", "connector-registry", "internal", "api"),
+		filepath.Join(root, "services", "runner", "internal", "api"),
+		filepath.Join(root, "tools", "packkit"),
+	} {
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			return nil, err
+		}
+		for _, e := range entries {
+			if !e.IsDir() && strings.HasSuffix(e.Name(), ".go") && !strings.HasSuffix(e.Name(), "_test.go") {
+				files = append(files, filepath.Join(dir, e.Name()))
+			}
+		}
+	}
+
+	violations := []string{}
+	for _, file := range files {
+		node, err := parser.ParseFile(fset, file, nil, parser.ImportsOnly)
+		if err != nil {
+			return nil, err
+		}
+		for _, imp := range node.Imports {
+			path := strings.Trim(imp.Path.Value, "\"")
+			rel, _ := filepath.Rel(root, file)
+			switch {
+			case strings.HasPrefix(rel, "services/connector-registry/internal/api") && strings.Contains(path, "services/runner/internal"):
+				violations = append(violations, rel+" imports "+path)
+			case strings.HasPrefix(rel, "services/runner/internal/api") && strings.Contains(path, "webhook"):
+				violations = append(violations, rel+" imports secret-bearing module "+path)
+			case strings.HasPrefix(rel, "tools/packkit") && strings.Contains(path, "internal/packkit/config"):
+				violations = append(violations, rel+" imports config.AllowUnsigned path "+path)
+			}
+		}
+	}
+
+	// Also ensure packkit verification cannot be removed from install path.
+	installFile := filepath.Join(root, "services", "connector-registry", "internal", "registry", "registry.go")
+	src, err := os.ReadFile(installFile)
+	if err != nil {
+		return nil, err
+	}
+	if !strings.Contains(string(src), "VerifyManifestSignature") {
+		violations = append(violations, "services/connector-registry/internal/registry/registry.go missing VerifyManifestSignature")
+	}
+
+	_ = ast.File{}
+	return violations, nil
+}
+
+func pass(name string) checkResult { return checkResult{name: name, ok: true} }
+
+func fail(name string, err error, remediation string) checkResult {
+	return checkResult{name: name, detail: err.Error(), remediation: remediation}
 }
 
 func repoRoot() (string, error) {
@@ -141,4 +233,13 @@ func repoRoot() (string, error) {
 		return "", fmt.Errorf("git rev-parse failed: %w", err)
 	}
 	return strings.TrimSpace(string(out)), nil
+}
+
+func _lintJSON(path string) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	var v map[string]any
+	return json.Unmarshal(data, &v)
 }

@@ -126,3 +126,67 @@ func TestSHAMismatchRejected(t *testing.T) {
 		t.Fatal("expected sha mismatch")
 	}
 }
+
+func TestRemoteHTTPBlockedWithoutDevFlag(t *testing.T) {
+	t.Setenv("DEV_ALLOW_UNSIGNED", "1")
+	t.Setenv("DEV_ALLOW_INSECURE_REGISTRY", "0")
+	root, _ := setupRegistry(t, false)
+
+	bundlePath := filepath.Join(root, "connectors", "conn.github", "1.0.0", "bundle.tgz")
+	bundle, _ := os.ReadFile(bundlePath)
+	h := sha256.Sum256(bundle)
+
+	var indexBytes []byte
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/index.json" {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write(indexBytes)
+			return
+		}
+		http.FileServer(http.Dir(filepath.Join(root, "connectors"))).ServeHTTP(w, r)
+	}))
+	defer ts.Close()
+
+	idx := map[string]any{"packages": []map[string]any{{"id": "conn.github", "versions": []map[string]string{{"version": "1.0.0", "sha256": hex.EncodeToString(h[:]), "manifest_url": ts.URL + "/conn.github/1.0.0/manifest.json", "bundle_url": ts.URL + "/conn.github/1.0.0/bundle.tgz", "signature_key_id": "dev", "risk_level": "low", "tier_required": "free"}}}}}
+	indexBytes, _ = json.Marshal(idx)
+
+	store, err := NewStore(filepath.Join(root, "connectors"), ts.URL+"/index.json", filepath.Join(root, "cache"), filepath.Join(root, "installed", "connectors"), filepath.Join(root, "reach.lock.json"), map[string]string{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.Install(InstallRequest{ID: "conn.github", Version: "=1.0.0"}); err == nil {
+		t.Fatal("expected http registry urls to be blocked")
+	}
+}
+
+func TestRemoteHTTPAllowedWithDevFlag(t *testing.T) {
+	t.Setenv("DEV_ALLOW_UNSIGNED", "1")
+	t.Setenv("DEV_ALLOW_INSECURE_REGISTRY", "1")
+	root, _ := setupRegistry(t, false)
+
+	bundlePath := filepath.Join(root, "connectors", "conn.github", "1.0.0", "bundle.tgz")
+	bundle, _ := os.ReadFile(bundlePath)
+	h := sha256.Sum256(bundle)
+
+	var indexBytes []byte
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/index.json" {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write(indexBytes)
+			return
+		}
+		http.FileServer(http.Dir(filepath.Join(root, "connectors"))).ServeHTTP(w, r)
+	}))
+	defer ts.Close()
+
+	idx := map[string]any{"packages": []map[string]any{{"id": "conn.github", "versions": []map[string]string{{"version": "1.0.0", "sha256": hex.EncodeToString(h[:]), "manifest_url": ts.URL + "/conn.github/1.0.0/manifest.json", "bundle_url": ts.URL + "/conn.github/1.0.0/bundle.tgz", "signature_key_id": "dev", "risk_level": "low", "tier_required": "free"}}}}}
+	indexBytes, _ = json.Marshal(idx)
+
+	store, err := NewStore(filepath.Join(root, "connectors"), ts.URL+"/index.json", filepath.Join(root, "cache"), filepath.Join(root, "installed", "connectors"), filepath.Join(root, "reach.lock.json"), map[string]string{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.Install(InstallRequest{ID: "conn.github", Version: "=1.0.0"}); err != nil {
+		t.Fatalf("expected http registry allowed in dev flag mode: %v", err)
+	}
+}

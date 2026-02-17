@@ -76,6 +76,24 @@ jobs:
           cd services/integration-hub && go test ./... -run 'OAuth|Webhook|Isolation|Replay|Timestamp' -count=1
           cd ../runner && go test ./... -run 'Tenant|Gate|Capability|Traversal|Spawn' -count=1
 
+  hardening-gates:
+    name: hardening regression gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.7'
+          cache: true
+      - name: reach doctor
+        run: ./reach doctor
+      - name: trust and consent regression tests
+        run: |
+          cd services/connector-registry && go test ./... -run 'InstallIntentAndConsentEnforcement|UnsignedRejectedInProd|TierAndNoAutoUpgrade|RemoteHTTPBlockedWithoutDevFlag|RemoteHTTPAllowedWithDevFlag|MarketplaceIdempotencyFlow' -count=1
+      - name: queue/backpressure regression tests
+        run: |
+          cd services/runner && go test ./internal/jobs -run 'Queue|Enqueue' -count=1
+
   vscode:
     name: vscode extension checks
     runs-on: ubuntu-latest

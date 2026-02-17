@@ -24,7 +24,7 @@ Reach uses a single source of truth for release versioning:
 Run full local health checks:
 
 ```bash
-make doctor
+./reach doctor
 ```
 
 This runs:
