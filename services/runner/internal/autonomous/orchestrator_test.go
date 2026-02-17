@@ -90,8 +90,12 @@ func TestIterationCapEnforced(t *testing.T) {
 	defer db.Close()
 	runID := seedRun(t, store)
 	loop := Loop{
-		Store:           store,
-		Planner:         &fakePlanner{plans: []StepPlan{{Action: ActionExecute, Tool: "t"}}},
+		Store: store,
+		Planner: &fakePlanner{plans: []StepPlan{
+			{Action: ActionExecute, Tool: "t"},
+			{Action: ActionExecute, Tool: "t"},
+			{Action: ActionExecute, Tool: "t"},
+		}},
 		Executor:        &fakeExecutor{},
 		NoProgressLimit: 10,
 		Scheduler:       IdleCycleScheduler{BurstMin: time.Millisecond, BurstMax: time.Millisecond, SleepInterval: time.Millisecond},
