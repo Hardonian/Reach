@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"reach/services/runner/internal/registry"
 	"sync"
 	"time"
 )
@@ -23,10 +24,20 @@ type Challenge struct {
 	IssuedAt             time.Time
 }
 
+type CapabilityAdvertisement struct {
+	CapabilitiesHash           string                      `json:"capabilities_hash"`
+	RegistrySnapshotHash       string                      `json:"registry_snapshot_hash"`
+	PolicyVersion              string                      `json:"policy_version"`
+	DeterminismSupportLevel    int                         `json:"determinism_support_level"` // 0: None, 1: Basic, 2: Strict
+	SupportedOptimizationModes []registry.OptimizationMode `json:"supported_optimization_modes"`
+}
+
 type Response struct {
-	Challenge Challenge
-	NodeID    string
-	Signature string
+	Challenge     Challenge
+	Capabilities  CapabilityAdvertisement
+	NodeID        string
+	Signature     string // Signature over Challenge + Capabilities + NodeID
+	CapabilitySig string // Signed Registry Capability Snapshot (Full snapshot signature)
 }
 
 type SessionToken struct {
@@ -58,16 +69,24 @@ func (h *Handshaker) NewChallenge(policyVersion, registryHash string) (Challenge
 	if _, err := rand.Read(nonce); err != nil {
 		return Challenge{}, err
 	}
-	return Challenge{Nonce: base64.StdEncoding.EncodeToString(nonce), PolicyVersion: policyVersion, RegistrySnapshotHash: registryHash, IssuedAt: time.Now().UTC()}, nil
+	return Challenge{
+		Nonce:                base64.StdEncoding.EncodeToString(nonce),
+		PolicyVersion:        policyVersion,
+		RegistrySnapshotHash: registryHash,
+		IssuedAt:             time.Now().UTC(),
+	}, nil
 }
 
-func SignChallenge(privateKey ed25519.PrivateKey, c Challenge, nodeID string) string {
-	payload := []byte(c.Nonce + "|" + c.PolicyVersion + "|" + c.RegistrySnapshotHash + "|" + nodeID)
+func SignHandshake(privateKey ed25519.PrivateKey, c Challenge, caps CapabilityAdvertisement, nodeID string) string {
+	payload := []byte(c.Nonce + "|" + c.PolicyVersion + "|" + c.RegistrySnapshotHash + "|" +
+		caps.CapabilitiesHash + "|" + caps.RegistrySnapshotHash + "|" + nodeID)
 	return base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, payload))
 }
 
 func (h *Handshaker) Verify(identity NodeIdentity, response Response) (SessionToken, error) {
 	h.emit("handshake.started", identity, response.Challenge, nil)
+
+	// 1. Basic ID and Expiry Checks
 	if response.NodeID != identity.NodeID {
 		err := errors.New("node id mismatch")
 		h.emit("handshake.failed", identity, response.Challenge, err)
@@ -78,17 +97,36 @@ func (h *Handshaker) Verify(identity NodeIdentity, response Response) (SessionTo
 		h.emit("handshake.failed", identity, response.Challenge, err)
 		return SessionToken{}, err
 	}
-	payload := []byte(response.Challenge.Nonce + "|" + response.Challenge.PolicyVersion + "|" + response.Challenge.RegistrySnapshotHash + "|" + response.NodeID)
+
+	// 2. Protocol Compatibility Checks (Phase 1)
+	if response.Capabilities.RegistrySnapshotHash != response.Challenge.RegistrySnapshotHash {
+		err := errors.New("registry snapshot hash mismatch - incompatible node registry")
+		h.emit("handshake.failed", identity, response.Challenge, err)
+		return SessionToken{}, err
+	}
+	if response.Capabilities.PolicyVersion != response.Challenge.PolicyVersion {
+		err := errors.New("policy version mismatch - incompatible policy contract")
+		h.emit("handshake.failed", identity, response.Challenge, err)
+		return SessionToken{}, err
+	}
+
+	// 3. Signature Verification
+	payload := []byte(response.Challenge.Nonce + "|" + response.Challenge.PolicyVersion + "|" +
+		response.Challenge.RegistrySnapshotHash + "|" + response.Capabilities.CapabilitiesHash + "|" +
+		response.Capabilities.RegistrySnapshotHash + "|" + response.NodeID)
+
 	sig, err := base64.StdEncoding.DecodeString(response.Signature)
 	if err != nil {
 		h.emit("handshake.failed", identity, response.Challenge, err)
 		return SessionToken{}, err
 	}
 	if !ed25519.Verify(identity.NodePublicKey, payload, sig) {
-		err := errors.New("invalid signature")
+		err := errors.New("invalid handshake signature")
 		h.emit("handshake.failed", identity, response.Challenge, err)
 		return SessionToken{}, err
 	}
+
+	// 4. Replay Protection
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if _, ok := h.usedSig[response.Signature]; ok {
@@ -97,6 +135,8 @@ func (h *Handshaker) Verify(identity NodeIdentity, response Response) (SessionTo
 		return SessionToken{}, err
 	}
 	h.usedSig[response.Signature] = struct{}{}
+
+	// 5. Success - Issue Token
 	tokenRaw := make([]byte, 24)
 	if _, err := rand.Read(tokenRaw); err != nil {
 		h.emit("handshake.failed", identity, response.Challenge, err)

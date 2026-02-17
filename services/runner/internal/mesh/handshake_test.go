@@ -14,9 +14,22 @@ func TestVerifySignatureAndReplayPrevention(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	sig := SignChallenge(priv, challenge, "node-1")
-	identity := NodeIdentity{NodeID: "node-1", OrgID: "org-1", NodePublicKey: pub, CapabilitiesHash: "abc123"}
-	resp := Response{Challenge: challenge, NodeID: "node-1", Signature: sig}
+
+	caps := CapabilityAdvertisement{
+		CapabilitiesHash:     "hash-1",
+		RegistrySnapshotHash: "abc123",
+		PolicyVersion:        "2026-01",
+	}
+
+	sig := SignHandshake(priv, challenge, caps, "node-1")
+	identity := NodeIdentity{NodeID: "node-1", OrgID: "org-1", NodePublicKey: pub, CapabilitiesHash: "hash-1"}
+	resp := Response{
+		Challenge:    challenge,
+		Capabilities: caps,
+		NodeID:       "node-1",
+		Signature:    sig,
+	}
+
 	if _, err := h.Verify(identity, resp); err != nil {
 		t.Fatalf("expected verify success: %v", err)
 	}

@@ -20,14 +20,20 @@ type ExecutionEnvelope struct {
 
 // ExecutionContext holds the session-specific context for execution.
 type ExecutionContext struct {
-	SessionID   string `json:"session_id"`
-	TenantID    string `json:"tenant_id"`
-	AgentID     string `json:"agent_id"` // Node ID in the spawn tree
-	PackID      string `json:"pack_id,omitempty"`
-	PackVersion string `json:"pack_version,omitempty"`
-	PackHash    string `json:"pack_hash,omitempty"` // For integrity validation on replay
-	RunID       string `json:"run_id,omitempty"`    // Unique ID for the top-level orchestration run
-	IsReplay    bool   `json:"is_replay,omitempty"` // If true, execution must be deterministic and side-effect free if possible
+	SessionID            string `json:"session_id"`
+	TenantID             string `json:"tenant_id"`
+	AgentID              string `json:"agent_id"` // Node ID in the spawn tree
+	PackID               string `json:"pack_id,omitempty"`
+	PackVersion          string `json:"pack_version,omitempty"`
+	PackHash             string `json:"pack_hash,omitempty"`     // For integrity validation on replay
+	RunID                string `json:"run_id,omitempty"`        // Unique ID for the top-level orchestration run (local)
+	GlobalRunID          string `json:"global_run_id,omitempty"` // Mesh-wide run ID
+	OriginNodeID         string `json:"origin_node_id,omitempty"`
+	ExecutionNodeID      string `json:"execution_node_id,omitempty"`
+	RegistrySnapshotHash string `json:"registry_snapshot_hash,omitempty"`
+	PolicyVersion        string `json:"policy_version,omitempty"`
+	IsReplay             bool   `json:"is_replay,omitempty"` // If true, execution must be deterministic and side-effect free if possible
+	Deterministic        bool   `json:"deterministic,omitempty"`
 }
 
 // ExecutionResult captures the outcome of an execution envelope.
