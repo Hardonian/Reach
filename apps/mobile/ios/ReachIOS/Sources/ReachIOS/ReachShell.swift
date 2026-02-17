@@ -44,6 +44,10 @@ public final class ReachViewModel: ObservableObject {
     @Published public var sessionID: String = ""
     @Published public var members: [SessionMember] = []
     @Published public var assignedNode: String = "-"
+    @Published public var syncStatus: String = "Idle"
+    @Published public var repoSyncMode: String = "metadata"
+    @Published public var deviceList: [String] = ["ios-local"]
+    @Published public var tierBadge: String = "FREE"
     @Published public var spawnNodes: [SpawnNode] = []
 
     private var streamTask: Task<Void, Never>?
@@ -153,6 +157,14 @@ public struct ReachShellView: View {
                     .padding(.horizontal)
                 Text("Assigned node: \(model.assignedNode)")
                     .font(.caption)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                Text("Sync: \(model.syncStatus) · Mode: \(model.repoSyncMode) · Tier: \(model.tierBadge)")
+                    .font(.caption2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                Text("Devices: \(model.deviceList.joined(separator: ", "))")
+                    .font(.caption2)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
 

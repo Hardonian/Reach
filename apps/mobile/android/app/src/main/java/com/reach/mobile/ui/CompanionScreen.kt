@@ -81,6 +81,10 @@ fun CompanionScreen(viewModel: CompanionViewModel) {
         Text("session: ${state.sessionId ?: "-"}", color = Color.White, fontFamily = FontFamily.Monospace)
         Text("members: ${state.sessionMembers.joinToString(", ").ifBlank { "-" }}", color = Color(0xFFE1F5FE), fontFamily = FontFamily.Monospace)
         Text("node: ${state.assignedNode ?: "-"}", color = Color(0xFFB9F6CA), fontFamily = FontFamily.Monospace)
+        Text("sync: ${state.syncStatus}", color = Color(0xFFA5D6A7), fontFamily = FontFamily.Monospace)
+        Text("repo sync mode: ${state.repoSyncMode}", color = Color(0xFF80CBC4), fontFamily = FontFamily.Monospace)
+        Text("devices: ${state.deviceList.joinToString(", ")}", color = Color(0xFFCE93D8), fontFamily = FontFamily.Monospace)
+        Text("tier: ${state.tierBadge}", color = Color(0xFFFFCC80), fontFamily = FontFamily.Monospace)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = { viewModel.connect() }) { Text("Connect") }
             Button(onClick = viewModel::refreshWorkspaceFiles, enabled = state.runId != null) { Text("Load Workspace") }

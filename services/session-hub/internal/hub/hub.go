@@ -82,11 +82,19 @@ func (m *Manager) HandleWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	role := Role(r.URL.Query().Get("role"))
+	plan := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("plan")))
+	if plan == "" {
+		plan = "free"
+	}
 	if role == "" {
 		role = RoleViewer
 	}
 	if role != RoleOwner && role != RoleEditor && role != RoleViewer {
 		http.Error(w, "invalid role", http.StatusBadRequest)
+		return
+	}
+	if plan == "free" {
+		http.Error(w, "collaboration requires pro or enterprise tier", http.StatusForbidden)
 		return
 	}
 	s := m.getOrCreate(sessionID, tenant)

@@ -68,6 +68,10 @@ data class CompanionUiState(
     val sessionId: String? = null,
     val sessionMembers: List<String> = emptyList(),
     val assignedNode: String? = null,
+    val syncStatus: String = "Idle",
+    val repoSyncMode: String = "metadata",
+    val deviceList: List<String> = listOf("android-local"),
+    val tierBadge: String = "FREE",
     val spawnNodes: List<SessionNode> = emptyList(),
     val notifications: List<String> = emptyList(),
     val error: String? = null
@@ -125,6 +129,26 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
         _uiState.update { state ->
             val nextEvents = (state.events + event).takeLast(200)
             var nextState = state.copy(events = nextEvents, status = event.type, error = null)
+            if (event.type == "capsule.sync.status") {
+                val payload = event.payloadAsObject()
+                val status = payload?.get("status")?.jsonPrimitive?.content ?: "Unknown"
+                val mode = payload?.get("repo_sync_mode")?.jsonPrimitive?.content ?: nextState.repoSyncMode
+                val tier = payload?.get("tier")?.jsonPrimitive?.content?.uppercase() ?: nextState.tierBadge
+                nextState = nextState.copy(syncStatus = status, repoSyncMode = mode, tierBadge = tier)
+            }
+            if (event.type == "device.registered") {
+                val device = event.payloadAsObject()?.get("device_id")?.jsonPrimitive?.content
+                if (device != null) {
+                    nextState = nextState.copy(deviceList = (nextState.deviceList + device).distinct())
+                }
+            }
+            if (event.type == "policy.gate.requested") {
+                nextState = nextState.copy(pendingPolicyGate = event.toPolicyGatePrompt())
+            }
+            val patchPrompt = event.toPatchPrompt()
+            if (patchPrompt != null) {
+                nextState = nextState.copy(pendingPatch = patchPrompt)
+            }
             val payload = event.payloadAsObject()
             if (event.type == "policy.gate.requested") nextState = nextState.copy(pendingPolicyGate = event.toPolicyGatePrompt())
             event.toPatchPrompt()?.let { nextState = nextState.copy(pendingPatch = it) }
@@ -219,4 +243,3 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
     private fun StreamEvent.toPolicyGatePrompt(): PolicyGatePrompt { val payload = payloadAsObject(); return PolicyGatePrompt(payload?.get("gateId")?.jsonPrimitive?.content ?: eventId, payload?.get("reason")?.jsonPrimitive?.content ?: "Approval required") }
     private fun StreamEvent.toPatchPrompt(): PatchPrompt? { val payload = payloadAsObject() ?: return null; val patchId = payload["patchId"]?.jsonPrimitive?.content ?: return null; val diff = payload["diff"]?.jsonPrimitive?.content ?: return null; val title = payload["title"]?.jsonPrimitive?.content ?: "Patch $patchId"; return PatchPrompt(patchId, title, diff) }
 }
-
