@@ -73,3 +73,32 @@ If you have an emulator/device attached, you can start the installed app from An
 
 ### iOS shell
 A minimal SwiftUI shell lives in `apps/mobile/ios/ReachIOS` and can be compiled in Xcode for SSE terminal streaming.
+
+
+## Run all Go services checks
+
+From repo root:
+
+```bash
+for d in services/*; do
+  if [ -f "$d/go.mod" ]; then
+    (cd "$d" && go vet ./... && go test ./...)
+  fi
+done
+```
+
+## VS Code extension checks
+
+```bash
+cd extensions/vscode
+npm install
+npm run build
+npm run lint
+```
+
+## iOS compile check
+
+```bash
+cd apps/mobile/ios/ReachIOS
+xcodebuild -list
+```

@@ -22,6 +22,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"reach/services/runner/internal/autonomous"
 	"reach/services/runner/internal/jobs"
 	"reach/services/runner/internal/storage"
 )
@@ -123,20 +124,26 @@ type runMeta struct {
 	HostedAllowed bool
 }
 
+type autoControl struct {
+	session jobs.AutonomousSession
+	cancel  context.CancelFunc
+}
+
 type Server struct {
-	store     *jobs.Store
-	sql       *storage.SQLiteStore
-	registry  *NodeRegistry
-	metaMu    sync.RWMutex
-	runMeta   map[string]runMeta
-	autonomMu sync.RWMutex
+	store      *jobs.Store
+	sql        *storage.SQLiteStore
+	registry   *NodeRegistry
+	metaMu     sync.RWMutex
+	runMeta    map[string]runMeta
+	autonomMu  sync.RWMutex
+	autonomous map[string]*autoControl
 
 	requestCounter atomic.Uint64
 	runsCreated    atomic.Uint64
 }
 
 func NewServer(db *storage.SQLiteStore) *Server {
-	return &Server{store: jobs.NewStore(db), sql: db, registry: NewNodeRegistry(), runMeta: map[string]runMeta{}}
+	return &Server{store: jobs.NewStore(db), sql: db, registry: NewNodeRegistry(), runMeta: map[string]runMeta{}, autonomous: map[string]*autoControl{}}
 }
 
 func (s *Server) Handler() http.Handler {
@@ -155,6 +162,9 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("GET /v1/metrics", s.requireAuth(http.HandlerFunc(s.handleMetrics)))
 	mux.Handle("GET /v1/nodes", s.requireAuth(http.HandlerFunc(s.handleListNodes)))
 	mux.Handle("POST /v1/nodes/register", s.requireAuth(http.HandlerFunc(s.handleRegisterNode)))
+	mux.Handle("POST /v1/sessions/{id}/autonomous/start", s.requireAuth(http.HandlerFunc(s.handleAutonomousStart)))
+	mux.Handle("POST /v1/sessions/{id}/autonomous/stop", s.requireAuth(http.HandlerFunc(s.handleAutonomousStop)))
+	mux.Handle("GET /v1/sessions/{id}/autonomous/status", s.requireAuth(http.HandlerFunc(s.handleAutonomousStatus)))
 	return mux
 }
 
@@ -200,16 +210,16 @@ func (s *Server) handleAutonomousStart(w http.ResponseWriter, r *http.Request) {
 	}
 	sess := jobs.AutonomousSession{Goal: body.Goal, MaxIterations: body.MaxIterations, MaxRuntime: time.Duration(body.MaxRuntimeSeconds) * time.Second, MaxToolCalls: body.MaxToolCalls, AllowedCapabilities: body.AllowedCapabilities, Status: jobs.AutonomousRunning, StartedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC()}
 
-	s.mu.Lock()
+	s.autonomMu.Lock()
 	if active, ok := s.autonomous[runID]; ok && active.session.Status == jobs.AutonomousRunning {
-		s.mu.Unlock()
+		s.autonomMu.Unlock()
 		writeError(w, http.StatusConflict, "autonomous session already running")
 		return
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	control := &autoControl{session: sess, cancel: cancel}
 	s.autonomous[runID] = control
-	s.mu.Unlock()
+	s.autonomMu.Unlock()
 
 	burstMin := time.Duration(body.BurstMinSeconds) * time.Second
 	if burstMin <= 0 {
@@ -226,8 +236,8 @@ func (s *Server) handleAutonomousStart(w http.ResponseWriter, r *http.Request) {
 	loop := autonomous.Loop{Store: s.store, Engine: autonomous.StaticEngine{}, IterationTimeout: 15 * time.Second, Scheduler: autonomous.IdleCycleScheduler{BurstMin: burstMin, BurstMax: burstMax, SleepInterval: sleepInterval}}
 	go func() {
 		reason := loop.Run(ctx, tenantID, runID, &control.session)
-		s.mu.Lock()
-		defer s.mu.Unlock()
+		s.autonomMu.Lock()
+		defer s.autonomMu.Unlock()
 		if reason == autonomous.ReasonDone {
 			control.session.Status = jobs.AutonomousCompleted
 		} else {
@@ -243,8 +253,8 @@ func (s *Server) handleAutonomousStart(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleAutonomousStop(w http.ResponseWriter, r *http.Request) {
 	runID := r.PathValue("id")
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.autonomMu.Lock()
+	defer s.autonomMu.Unlock()
 	control, ok := s.autonomous[runID]
 	if !ok {
 		writeError(w, http.StatusNotFound, "autonomous session not found")
@@ -258,8 +268,8 @@ func (s *Server) handleAutonomousStop(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleAutonomousStatus(w http.ResponseWriter, r *http.Request) {
 	runID := r.PathValue("id")
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.autonomMu.RLock()
+	defer s.autonomMu.RUnlock()
 	control, ok := s.autonomous[runID]
 	if !ok {
 		writeError(w, http.StatusNotFound, "autonomous session not found")

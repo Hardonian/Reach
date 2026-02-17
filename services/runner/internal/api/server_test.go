@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"reach/services/runner/internal/storage"
 )
@@ -49,10 +50,18 @@ func createRun(t *testing.T, srv *Server, cookie *http.Cookie, payload string) s
 
 func TestAutonomousStatusLifecycle(t *testing.T) {
 	srv, cookie := newAuthedServer(t)
-	runID := createRun(t, srv, cookie)
+	runID := createRun(t, srv, cookie, `{"capabilities":["tool:echo"]}`)
 	start := doReq(t, srv, cookie, http.MethodPost, "/v1/sessions/"+runID+"/autonomous/start", `{"goal":"ship","max_iterations":2,"max_runtime":2,"max_tool_calls":4,"burst_min_seconds":1,"burst_max_seconds":1,"sleep_seconds":1}`)
 	if start.Code != http.StatusAccepted {
 		t.Fatalf("start failed %d %s", start.Code, start.Body.String())
+	}
+
+	status := doReq(t, srv, cookie, http.MethodGet, "/v1/sessions/"+runID+"/autonomous/status", "")
+	if status.Code != http.StatusOK {
+		t.Fatalf("status failed %d", status.Code)
+	}
+}
+
 func TestSpawnDepthEnforcement(t *testing.T) {
 	srv, cookie := newAuthedServer(t)
 	root := createRun(t, srv, cookie, `{"capabilities":["tool:echo"],"plan_tier":"free"}`)
