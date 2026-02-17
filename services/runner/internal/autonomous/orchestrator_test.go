@@ -50,12 +50,12 @@ func (s *sequenceSignals) Signals(context.Context, jobs.AutonomousSession) Runti
 	return out
 }
 
-func newStore(t *testing.T) *jobs.Store {
+func newStore(t *testing.T) (*jobs.Store, *storage.SQLiteStore) {
 	db, err := storage.NewSQLiteStore(filepath.Join(t.TempDir(), "runner.sqlite"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	return jobs.NewStore(db)
+	return jobs.NewStore(db), db
 }
 
 func seedRun(t *testing.T, store *jobs.Store) string {
