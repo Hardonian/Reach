@@ -8,6 +8,8 @@ export class ReachPanel implements vscode.Disposable {
   private readonly events: BridgeEvent[] = [];
   private readonly artifacts: Artifact[] = [];
   private readonly approvals: ApprovalPrompt[] = [];
+  private readonly sessionMembers = new Set<string>();
+  private readonly liveRuns: { runId: string; nodeId: string }[] = [];
 
   constructor(private readonly bridgeClient: BridgeClient) {}
 
@@ -74,6 +76,15 @@ export class ReachPanel implements vscode.Disposable {
       }
     }
 
+    if (event.type === 'session.member' && typeof event.memberId === 'string') {
+      this.sessionMembers.add(event.memberId);
+    }
+
+    if (event.type === 'session.run' && typeof event.runId === 'string' && typeof event.nodeId === 'string') {
+      this.liveRuns.unshift({ runId: event.runId, nodeId: event.nodeId });
+      this.liveRuns.length = Math.min(this.liveRuns.length, 25);
+    }
+
     this.refresh();
   }
 
@@ -89,7 +100,9 @@ export class ReachPanel implements vscode.Disposable {
       type: 'state',
       events: this.events,
       artifacts: this.artifacts,
-      approvals: this.approvals
+      approvals: this.approvals,
+      sessionMembers: Array.from(this.sessionMembers),
+      liveRuns: this.liveRuns
     });
   }
 
@@ -120,6 +133,12 @@ export class ReachPanel implements vscode.Disposable {
 
   <h2>Approval Prompts</h2>
   <div id="approvals"></div>
+
+  <h2>Session Members</h2>
+  <ul id="sessionMembers"></ul>
+
+  <h2>Live Run Feed</h2>
+  <ul id="liveRuns"></ul>
 
   <script>
     const vscode = acquireVsCodeApi();
@@ -160,6 +179,16 @@ export class ReachPanel implements vscode.Disposable {
           });
         });
       });
+
+      const membersList = document.getElementById('sessionMembers');
+      membersList.innerHTML = message.sessionMembers
+        .map((member) => '<li>' + escapeHtml(member) + '</li>')
+        .join('');
+
+      const liveRuns = document.getElementById('liveRuns');
+      liveRuns.innerHTML = message.liveRuns
+        .map((entry) => '<li>run ' + escapeHtml(entry.runId) + ' → node ' + escapeHtml(entry.nodeId) + '</li>')
+        .join('');
     });
 
     function escapeHtml(content) {
