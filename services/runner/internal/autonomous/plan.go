@@ -1,6 +1,9 @@
 package autonomous
 
-import "context"
+import (
+	"context"
+	"encoding/json"
+)
 
 type OrchestrationBlueprint struct {
 	Plan           PlanDetails    `json:"orchestration_plan"`
@@ -60,10 +63,10 @@ type PolicyTrace struct {
 }
 
 type Budget struct {
-	MaxSpawnDepth       int `json:"max_spawn_depth"`
-	MaxChildrenPerNode  int `json:"max_children_per_node"`
-	EstimatedToolCalls  int `json:"estimated_tool_calls"`
-	RetryLimit          int `json:"retry_limit"`
+	MaxSpawnDepth      int `json:"max_spawn_depth"`
+	MaxChildrenPerNode int `json:"max_children_per_node"`
+	EstimatedToolCalls int `json:"estimated_tool_calls"`
+	RetryLimit         int `json:"retry_limit"`
 }
 
 type Observability struct {
