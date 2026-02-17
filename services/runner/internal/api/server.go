@@ -1,8 +1,6 @@
 package api
 
 import (
-	"archive/zip"
-	"bytes"
 	"compress/gzip"
 	"context"
 	"crypto/rand"
@@ -10,10 +8,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
-	"path/filepath"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -37,10 +34,11 @@ const (
 )
 
 type SpawnContext struct {
-	ParentID    string `json:"parent_id"`
-	Depth       int    `json:"depth"`
-	MaxDepth    int    `json:"max_depth"`
-	MaxChildren int    `json:"max_children"`
+	ParentID         string   `json:"parent_id"`
+	Depth            int      `json:"depth"`
+	MaxDepth         int      `json:"max_depth"`
+	MaxChildren      int      `json:"max_children"`
+	CapabilitySubset []string `json:"capability_subset"`
 }
 
 type runMeta struct {
@@ -50,16 +48,16 @@ type runMeta struct {
 }
 
 type Server struct {
-	version        string
-	store          *jobs.Store
-	queue          *jobs.DurableQueue
-	sql            *storage.SQLiteStore
-	registry       *NodeRegistry
-	metaMu         sync.RWMutex
-	runMeta        map[string]runMeta
-	autonomMu      sync.RWMutex
-	autonomous     map[string]*autoControl
-	metrics        *metrics
+	version    string
+	store      *jobs.Store
+	queue      *jobs.DurableQueue
+	sql        *storage.SQLiteStore
+	registry   *NodeRegistry
+	metaMu     sync.RWMutex
+	runMeta    map[string]runMeta
+	autonomMu  sync.RWMutex
+	autonomous map[string]*autoControl
+	metrics    *metrics
 
 	requestCounter atomic.Uint64
 	runsCreated    atomic.Uint64
@@ -257,6 +255,8 @@ func (s *Server) handleSpawnRun(w http.ResponseWriter, r *http.Request) {
 	if meta.Spawn.Depth+1 > meta.Spawn.MaxDepth {
 		s.metaMu.Unlock()
 		writeTierError(w, "pro", "spawn depth exceeded for current plan")
+		return
+	}
 	deny := func(reason string) {
 		s.spawnDenied.Add(1)
 		s.metaMu.Unlock()
@@ -264,21 +264,12 @@ func (s *Server) handleSpawnRun(w http.ResponseWriter, r *http.Request) {
 		writeError(w, 403, reason)
 	}
 	s.spawnAttempts.Add(1)
-	if parent.Spawn.Depth+1 > parent.Spawn.MaxDepth {
-		deny("max spawn depth exceeded")
-		return
-	}
-	if parent.Children >= parent.Spawn.MaxChildren {
+	if meta.Children >= meta.Spawn.MaxChildren {
 		deny("max children exceeded")
 		return
 	}
-	if !supportsAll(parent.Spawn.CapabilitySubset, body.Capabilities) {
+	if !supportsAll(meta.Spawn.CapabilitySubset, body.Capabilities) {
 		deny("child capabilities exceed parent")
-		return
-	}
-	if meta.Children >= meta.Spawn.MaxChildren {
-		s.metaMu.Unlock()
-		writeError(w, 429, "spawn budget exhausted")
 		return
 	}
 	meta.Children++
@@ -329,8 +320,6 @@ func (s *Server) handleGateDecision(w http.ResponseWriter, r *http.Request) {
 	s.metrics.observeApprovalLatency(time.Since(started))
 	writeJSON(w, 200, map[string]string{"status": "ok"})
 }
-
-
 
 func (s *Server) handleRegisterNode(w http.ResponseWriter, r *http.Request) {
 	var body struct {
