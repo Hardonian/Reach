@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.dev/protocol/integrations/webhook-event.schema.json",
+  "title": "Reach Normalized Webhook Event",
+  "type": "object",
+  "required": ["schemaVersion", "eventId", "tenantId", "provider", "eventType", "occurredAt", "actor", "resource", "raw"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "eventId": {"type": "string", "minLength": 1},
+    "tenantId": {"type": "string", "minLength": 1},
+    "provider": {"type": "string", "enum": ["slack", "google", "github", "jira"]},
+    "eventType": {"type": "string", "minLength": 1},
+    "triggerType": {"type": "string", "enum": ["run.start", "approval", "task.event", "schedule", "unknown"]},
+    "occurredAt": {"type": "string", "format": "date-time"},
+    "actor": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {"id": {"type": "string"}, "email": {"type": "string"}, "displayName": {"type": "string"}},
+      "additionalProperties": false
+    },
+    "resource": {"type": "object", "additionalProperties": true},
+    "raw": {"type": "object", "additionalProperties": true},
+    "labels": {"type": "object", "additionalProperties": {"type": "string"}}
+  },
+  "additionalProperties": false
+}
