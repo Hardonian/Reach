@@ -1,0 +1,4 @@
+=== RUN   TestMarketplaceIdempotencyFlow
+--- PASS: TestMarketplaceIdempotencyFlow (0.02s)
+PASS
+ok  	reach/services/connector-registry/internal/registry	0.735s
