@@ -91,4 +91,4 @@ pub fn apply_tool_result(run_id: u64, tool_result_json: String) -> Result<String
     serde_json::to_string(&run.drain_events()).map_err(|_| FfiError::Serialization)
 }
 
-uniffi::include_scaffolding!("reach");
+uniffi::setup_scaffolding!();
