@@ -1,0 +1,61 @@
+{
+  "name": "reach-vscode",
+  "displayName": "Reach IDE Bridge",
+  "description": "VS Code extension for synchronizing context and applying patches from Reach IDE Bridge",
+  "version": "0.1.0",
+  "publisher": "reach",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "reach.start",
+        "title": "Reach: Start Bridge Connection"
+      },
+      {
+        "command": "reach.openPanel",
+        "title": "Reach: Open Bridge Panel"
+      },
+      {
+        "command": "reach.sendSelection",
+        "title": "Reach: Send Selection to Bridge"
+      }
+    ],
+    "configuration": {
+      "title": "Reach",
+      "properties": {
+        "reach.bridgeUrl": {
+          "type": "string",
+          "default": "ws://localhost:8787",
+          "description": "WebSocket endpoint for Reach IDE Bridge"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -w -p .",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.1",
+    "@types/vscode": "^1.90.0",
+    "@typescript-eslint/eslint-plugin": "^8.14.0",
+    "@typescript-eslint/parser": "^8.14.0",
+    "eslint": "^9.15.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
