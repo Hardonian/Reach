@@ -19,7 +19,7 @@ func main() {
 	}
 	capabilities := strings.Split(os.Getenv("RUNNER_CAPABILITIES"), ",")
 	policy := mcpserver.NewStaticPolicy(capabilities)
-	srv := mcpserver.New(workspace, policy, mcpserver.LogAuditLogger{})
+	srv := mcpserver.New(workspace, policy, mcpserver.LogAuditLogger{}, nil, nil)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()

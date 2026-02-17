@@ -16,6 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -113,6 +114,33 @@ fun CompanionScreen(viewModel: CompanionViewModel) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { viewModel.submitPatchDecision("approve") }) { Text("Approve Patch") }
                 Button(onClick = { viewModel.submitPatchDecision("deny") }) { Text("Deny Patch") }
+            }
+        }
+
+
+        Text("Connectors", color = Color.White)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 160.dp)
+                .background(Color(0xFF11181C))
+                .padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            items(state.connectors) { connector ->
+                val riskColor = when (connector.risk) {
+                    "strict" -> Color(0xFFFF8A80)
+                    "experimental" -> Color(0xFFFFF59D)
+                    else -> Color(0xFFB9F6CA)
+                }
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("${connector.id} (${connector.provider})", color = Color.White)
+                        Switch(checked = connector.enabled, onCheckedChange = { viewModel.toggleConnector(connector.id, it) })
+                    }
+                    Text("Scopes: ${connector.scopes.joinToString()}", color = Color(0xFF80DEEA), fontFamily = FontFamily.Monospace)
+                    Text("Risk: ${connector.risk}", color = riskColor, fontFamily = FontFamily.Monospace)
+                }
             }
         }
 

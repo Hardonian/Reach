@@ -183,3 +183,76 @@ func (s *Store) CheckAndMarkReplay(tenantID, nonce string, maxAge time.Duration)
 	return nil
 }
 func (s *Store) Close() error { return nil }
+
+type ConnectorRecord struct {
+	ID           string
+	TenantID     string
+	Provider     string
+	Version      string
+	Scopes       []string
+	Capabilities []string
+	Status       string
+}
+
+func (s *Store) UpsertConnector(c ConnectorRecord) error {
+	scopes, _ := json.Marshal(c.Scopes)
+	caps, _ := json.Marshal(c.Capabilities)
+	now := time.Now().UTC().Format(time.RFC3339Nano)
+	_, err := s.exec(context.Background(), fmt.Sprintf(`INSERT INTO connectors(id,tenant_id,provider,version,scopes,capabilities,status,created_at,updated_at) VALUES('%s','%s','%s','%s','%s','%s','%s','%s','%s') ON CONFLICT(id,tenant_id) DO UPDATE SET provider=excluded.provider,version=excluded.version,scopes=excluded.scopes,capabilities=excluded.capabilities,status=excluded.status,updated_at=excluded.updated_at;`, esc(c.ID), esc(c.TenantID), esc(c.Provider), esc(c.Version), esc(string(scopes)), esc(string(caps)), esc(c.Status), now, now))
+	return err
+}
+
+func (s *Store) ListConnectors(tenantID string) ([]ConnectorRecord, error) {
+	out, err := s.exec(context.Background(), fmt.Sprintf(`SELECT id,tenant_id,provider,version,scopes,capabilities,status FROM connectors WHERE tenant_id='%s';`, esc(tenantID)))
+	if err != nil {
+		return nil, err
+	}
+	if out == "" {
+		return []ConnectorRecord{}, nil
+	}
+	rows := strings.Split(out, "\n")
+	res := make([]ConnectorRecord, 0, len(rows))
+	for _, ln := range rows {
+		p := strings.Split(ln, "|")
+		if len(p) < 7 {
+			continue
+		}
+		item := ConnectorRecord{ID: p[0], TenantID: p[1], Provider: p[2], Version: p[3], Status: p[6]}
+		_ = json.Unmarshal([]byte(p[4]), &item.Scopes)
+		_ = json.Unmarshal([]byte(p[5]), &item.Capabilities)
+		res = append(res, item)
+	}
+	return res, nil
+}
+
+func (s *Store) SetPolicyProfile(tenantID, profile string) error {
+	_, err := s.exec(context.Background(), fmt.Sprintf(`INSERT INTO tenant_policy_profiles(tenant_id,profile,updated_at) VALUES('%s','%s','%s') ON CONFLICT(tenant_id) DO UPDATE SET profile=excluded.profile,updated_at=excluded.updated_at;`, esc(tenantID), esc(profile), time.Now().UTC().Format(time.RFC3339Nano)))
+	return err
+}
+
+func (s *Store) GetPolicyProfile(tenantID string) (string, error) {
+	out, err := s.exec(context.Background(), fmt.Sprintf(`SELECT profile FROM tenant_policy_profiles WHERE tenant_id='%s';`, esc(tenantID)))
+	if err != nil {
+		return "", err
+	}
+	if out == "" {
+		return "moderate", nil
+	}
+	return out, nil
+}
+
+func (s *Store) GetToken(tenantID, provider string) (accessToken string, scopes []string, err error) {
+	out, err := s.exec(context.Background(), fmt.Sprintf(`SELECT access_token,scopes FROM oauth_tokens WHERE tenant_id='%s' AND provider='%s';`, esc(tenantID), esc(provider)))
+	if err != nil {
+		return "", nil, err
+	}
+	if out == "" {
+		return "", nil, errors.New("token not found")
+	}
+	p := strings.Split(out, "|")
+	if len(p) < 2 {
+		return "", nil, errors.New("token malformed")
+	}
+	_ = json.Unmarshal([]byte(p[1]), &scopes)
+	return p[0], scopes, nil
+}

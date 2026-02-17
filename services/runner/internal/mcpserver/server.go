@@ -16,12 +16,32 @@ import (
 const CapabilityFilesystemWrite = "filesystem:write"
 
 var (
-	ErrToolNotFound     = errors.New("tool not found")
-	ErrCapabilityDenied = errors.New("capability denied")
+	ErrToolNotFound      = errors.New("tool not found")
+	ErrCapabilityDenied  = errors.New("capability denied")
+	ErrConnectorDisabled = errors.New("connector disabled")
+	ErrScopeDenied       = errors.New("scope denied")
+	ErrPolicyDenied      = errors.New("policy denied")
+	ErrApprovalRequired  = errors.New("approval required")
 )
 
 type Policy interface {
 	Allowed(runID, capability string) bool
+	ProfileAllowed(profile, capability string) bool
+}
+
+type ConnectorResolver interface {
+	Resolve(runID, tool string) (ConnectorContext, error)
+}
+
+type ApprovalGate interface {
+	Required(runID, tool string) bool
+}
+
+type ConnectorContext struct {
+	Enabled      bool
+	Scopes       []string
+	Capabilities []string
+	Policy       string
 }
 
 type AuditLogger interface {
@@ -43,14 +63,18 @@ type Server struct {
 	policy        Policy
 	audit         AuditLogger
 	mcpServer     *mcp.Server
+	connectors    ConnectorResolver
+	approvalGate  ApprovalGate
 }
 
-func New(workspaceRoot string, policy Policy, audit AuditLogger) *Server {
+func New(workspaceRoot string, policy Policy, audit AuditLogger, resolver ConnectorResolver, approval ApprovalGate) *Server {
 	s := &Server{
 		workspaceRoot: workspaceRoot,
 		policy:        policy,
 		audit:         audit,
 		mcpServer:     mcp.NewServer(mcp.WithName("reach-runner"), mcp.WithVersion("0.1.0")),
+		connectors:    resolver,
+		approvalGate:  approval,
 	}
 	s.registerTools()
 	return s
@@ -65,7 +89,7 @@ func (s *Server) registerTools() {
 }
 
 func (s *Server) CallTool(ctx context.Context, runID, tool string, input map[string]any) (any, error) {
-	if capErr := s.checkCapabilities(runID, tool); capErr != nil {
+	if capErr := s.checkFirewall(runID, tool); capErr != nil {
 		s.audit.LogToolInvocation(ctx, AuditEntry{RunID: runID, Tool: tool, Input: input, Timestamp: time.Now().UTC(), Error: capErr.Error(), Capabilities: requiredCapabilities(tool)})
 		return nil, capErr
 	}
@@ -85,13 +109,49 @@ func requiredCapabilities(tool string) []string {
 	return nil
 }
 
-func (s *Server) checkCapabilities(runID, tool string) error {
-	for _, capability := range requiredCapabilities(tool) {
-		if !s.policy.Allowed(runID, capability) {
-			return fmt.Errorf("%w: %s", ErrCapabilityDenied, capability)
+func requiredScopes(tool string) []string {
+	if tool == "tool.write_file" {
+		return []string{"workspace:write"}
+	}
+	return []string{"workspace:read"}
+}
+
+func (s *Server) checkFirewall(runID, tool string) error {
+	if s.connectors != nil {
+		ctx, err := s.connectors.Resolve(runID, tool)
+		if err != nil {
+			return err
+		}
+		if !ctx.Enabled {
+			return ErrConnectorDisabled
+		}
+		for _, scope := range requiredScopes(tool) {
+			if !has(ctx.Scopes, scope) {
+				return fmt.Errorf("%w: %s", ErrScopeDenied, scope)
+			}
+		}
+		for _, capability := range requiredCapabilities(tool) {
+			if !has(ctx.Capabilities, capability) {
+				return fmt.Errorf("%w: %s", ErrCapabilityDenied, capability)
+			}
+			if !s.policy.Allowed(runID, capability) || !s.policy.ProfileAllowed(ctx.Policy, capability) {
+				return fmt.Errorf("%w: %s", ErrPolicyDenied, capability)
+			}
 		}
 	}
+	if s.approvalGate != nil && s.approvalGate.Required(runID, tool) {
+		return ErrApprovalRequired
+	}
 	return nil
+}
+
+func has(items []string, needle string) bool {
+	for _, item := range items {
+		if item == needle {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *Server) callEcho(_ context.Context, _ string, input map[string]any) (any, error) {

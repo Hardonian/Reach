@@ -27,6 +27,10 @@
       {
         "command": "reach.sendSelection",
         "title": "Reach: Send Selection to Bridge"
+      },
+      {
+        "command": "reach.listConnectors",
+        "title": "Reach: List Connectors"
       }
     ],
     "configuration": {
@@ -36,6 +40,11 @@
           "type": "string",
           "default": "ws://localhost:8787",
           "description": "WebSocket endpoint for Reach IDE Bridge"
+        },
+        "reach.connectorRegistryUrl": {
+          "type": "string",
+          "default": "http://localhost:8092",
+          "description": "HTTP endpoint for Reach connector registry service"
         }
       }
     }
