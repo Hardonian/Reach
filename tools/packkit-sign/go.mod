@@ -1,4 +1,4 @@
-module reach/services/connector-registry
+module reach/tools/packkit-sign
 
 go 1.22
 

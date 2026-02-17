@@ -86,3 +86,20 @@ func TestFirewallBlocksScopeAndApproval(t *testing.T) {
 		t.Fatalf("expected approval required: %v", err)
 	}
 }
+
+func TestPolicyTemplateMismatchAndManifestCache(t *testing.T) {
+	workspace := t.TempDir()
+	srv := New(workspace, NewStaticPolicy([]string{CapabilityFilesystemWrite}), NopAuditLogger{}, staticResolver{ctx: ConnectorContext{Enabled: true, Scopes: []string{"workspace:read", "workspace:write"}, Capabilities: []string{CapabilityFilesystemWrite}, Policy: "moderate", TemplatePolicy: "strict", ManifestID: "conn.github", ManifestVersion: "1.0.0", ManifestHash: "aaa", CachedValidated: true}}, staticApproval{})
+	if _, err := srv.CallTool(context.Background(), "run-1", "tool.write_file", map[string]any{"path": "x.txt", "content": "x"}); !errors.Is(err, ErrPolicyDenied) {
+		t.Fatalf("expected policy denied: %v", err)
+	}
+
+	srv = New(workspace, NewStaticPolicy([]string{CapabilityFilesystemWrite}), NopAuditLogger{}, staticResolver{ctx: ConnectorContext{Enabled: true, Scopes: []string{"workspace:read", "workspace:write"}, Capabilities: []string{CapabilityFilesystemWrite}, Policy: "moderate", TemplatePolicy: "moderate", ManifestID: "conn.github", ManifestVersion: "1.0.0", ManifestHash: "aaa", CachedValidated: true}}, staticApproval{})
+	if _, err := srv.CallTool(context.Background(), "run-1", "tool.write_file", map[string]any{"path": "x.txt", "content": "x"}); err != nil {
+		t.Fatalf("expected first write success: %v", err)
+	}
+	srv.connectors = staticResolver{ctx: ConnectorContext{Enabled: true, Scopes: []string{"workspace:read", "workspace:write"}, Capabilities: []string{CapabilityFilesystemWrite}, Policy: "moderate", TemplatePolicy: "moderate", ManifestID: "conn.github", ManifestVersion: "1.0.0", ManifestHash: "bbb", CachedValidated: true}}
+	if _, err := srv.CallTool(context.Background(), "run-1", "tool.write_file", map[string]any{"path": "y.txt", "content": "x"}); !errors.Is(err, ErrPolicyDenied) {
+		t.Fatalf("expected manifest hash denial: %v", err)
+	}
+}

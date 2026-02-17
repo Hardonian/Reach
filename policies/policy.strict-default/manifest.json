@@ -1,0 +1,9 @@
+{
+  "kind": "policy_bundle",
+  "id": "policy.strict-default",
+  "version": "1.0.0",
+  "required_capabilities": ["audit:write"],
+  "side_effect_types": ["audit_log"],
+  "risk_level": "low",
+  "tier_requirements": ["free"]
+}

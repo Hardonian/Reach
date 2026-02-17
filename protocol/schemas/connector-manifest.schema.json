@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Connector Manifest",
+  "type": "object",
+  "required": ["id", "version", "required_capabilities", "side_effect_types", "risk_level"],
+  "properties": {
+    "kind": {"const": "connector"},
+    "id": {"type": "string"},
+    "version": {"type": "string"},
+    "package_hash": {"type": "string"},
+    "required_capabilities": {"type": "array", "items": {"type": "string"}},
+    "side_effect_types": {"type": "array", "items": {"type": "string"}},
+    "risk_level": {"type": "string", "enum": ["low", "moderate", "high", "critical"]},
+    "tier_requirements": {"type": "array", "items": {"type": "string"}}
+  }
+}
