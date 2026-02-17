@@ -1,0 +1,112 @@
+package api
+
+import (
+	"encoding/json"
+	"net/http"
+	"time"
+
+	"reach/services/runner/internal/jobs"
+)
+
+func (s *Server) handleExport(w http.ResponseWriter, r *http.Request) {
+	// TODO: implement export
+	writeError(w, http.StatusNotImplemented, "not implemented")
+}
+
+func (s *Server) handleImport(w http.ResponseWriter, r *http.Request) {
+	// TODO: implement import
+	writeError(w, http.StatusNotImplemented, "not implemented")
+}
+
+func (s *Server) handleGetAudit(w http.ResponseWriter, r *http.Request) {
+	// TODO: implement audit
+	writeError(w, http.StatusNotImplemented, "not implemented")
+}
+
+func (s *Server) handleListPlugins(w http.ResponseWriter, r *http.Request) {
+	// TODO: implement plugin listing
+	writeJSON(w, http.StatusOK, map[string][]string{"plugins": {}})
+}
+
+func (s *Server) handleAutonomousStart(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+	tenant := tenantIDFrom(r.Context())
+
+	// Ensure run exists and belongs to tenant
+	if _, err := s.store.GetRun(r.Context(), tenant, runID); err != nil {
+		writeError(w, http.StatusNotFound, "run not found")
+		return
+	}
+
+	var body struct {
+		Goal         string `json:"goal"`
+		MaxIter      int    `json:"max_iterations"`
+		MaxRuntime   int    `json:"max_runtime"`
+		MaxToolCalls int    `json:"max_tool_calls"`
+		BurstMin     int    `json:"burst_min_seconds"`
+		BurstMax     int    `json:"burst_max_seconds"`
+		SleepSeconds int    `json:"sleep_seconds"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid json")
+		return
+	}
+
+	s.autonomMu.Lock()
+	defer s.autonomMu.Unlock()
+
+	if _, active := s.autonomous[runID]; active {
+		writeError(w, http.StatusConflict, "autonomous controls already active")
+		return
+	}
+
+	ctrl := &autoControl{
+		goal:         body.Goal,
+		maxIter:      body.MaxIter,
+		maxRuntime:   time.Duration(body.MaxRuntime) * time.Second,
+		maxToolCalls: body.MaxToolCalls,
+		sleepTime:    time.Duration(body.SleepSeconds) * time.Second,
+		started:      time.Now(),
+	}
+	s.autonomous[runID] = ctrl
+
+	// Log event
+	_ = s.store.PublishEvent(r.Context(), runID, jobs.Event{
+		Type:      "autonomous.started",
+		Payload:   mustJSON(map[string]any{"goal": body.Goal}),
+		CreatedAt: time.Now().UTC(),
+	}, s.requestID(r))
+
+	writeJSON(w, http.StatusAccepted, map[string]string{"status": "started"})
+}
+
+func (s *Server) handleAutonomousStop(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+
+	s.autonomMu.Lock()
+	defer s.autonomMu.Unlock()
+
+	if ctrl, ok := s.autonomous[runID]; ok {
+		if ctrl.cancel != nil {
+			ctrl.cancel()
+		}
+		delete(s.autonomous, runID)
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "stopped"})
+}
+
+func (s *Server) handleAutonomousStatus(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+
+	s.autonomMu.RLock()
+	defer s.autonomMu.RUnlock()
+
+	_, active := s.autonomous[runID]
+	status := "inactive"
+	if active {
+		status = "active"
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": status})
+}

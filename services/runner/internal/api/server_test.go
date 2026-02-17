@@ -19,6 +19,7 @@ func newAuthedServer(t *testing.T) (*Server, *storage.SQLiteStore, *http.Cookie)
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(func() { db.Close() })
 	srv := NewServer(db, "test")
 	login := httptest.NewRecorder()
 	srv.Handler().ServeHTTP(login, httptest.NewRequest(http.MethodPost, "/auth/dev-login", bytes.NewBufferString(`{}`)))
