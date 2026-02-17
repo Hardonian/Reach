@@ -81,4 +81,8 @@ class MockRunnerGateway(
             }
         )
     }
+
+    override suspend fun stopAutonomous(runId: String): Result<Unit> {
+        return Result.success(Unit)
+    }
 }

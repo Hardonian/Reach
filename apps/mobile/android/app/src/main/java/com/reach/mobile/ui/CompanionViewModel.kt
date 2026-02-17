@@ -53,6 +53,14 @@ data class CompanionUiState(
         ConnectorItem("filesystem-admin", "filesystem", listOf("workspace:write"), "strict", false),
         ConnectorItem("jira-experimental", "jira", listOf("tickets:read", "tickets:write"), "experimental", false)
     ),
+    val autonomousIterations: Int = 0,
+    val maxIterations: Int = 0,
+    val maxToolCalls: Int = 0,
+    val toolCallCount: Int = 0,
+    val sessionIdInput: String = "",
+    val sessionId: String? = null,
+    val sessionMembers: List<String> = emptyList(),
+    val assignedNode: String? = null,
     val error: String? = null
 )
 
@@ -64,8 +72,19 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
     private var streamJob: Job? = null
     private var lastEventId: String? = null
 
-    fun onRunIdInputChanged(value: String) {
-        _uiState.update { it.copy(runIdInput = value) }
+    fun onRunIdInputChanged(value: String) { _uiState.update { it.copy(runIdInput = value) } }
+
+    fun onSessionIdInputChanged(value: String) { _uiState.update { it.copy(sessionIdInput = value) } }
+
+    fun joinSession(sessionId: String = _uiState.value.sessionIdInput.trim(), member: String = "mobile-user") {
+        if (sessionId.isBlank()) {
+            _uiState.update { it.copy(error = "Session ID is required") }
+            return
+        }
+        _uiState.update { state ->
+            val members = (state.sessionMembers + member).distinct()
+            state.copy(sessionId = sessionId, sessionMembers = members, status = "Session joined", error = null)
+        }
     }
 
     fun connect(runId: String = _uiState.value.runIdInput.trim()) {
@@ -84,6 +103,7 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
                 workspaceFiles = emptyList(),
                 selectedFilePath = null,
                 selectedFilePreview = "",
+                assignedNode = null,
                 error = null
             )
         }
@@ -115,9 +135,27 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
             if (patchPrompt != null) {
                 nextState = nextState.copy(pendingPatch = patchPrompt)
             }
+            if (event.type == "autonomous.checkpoint") {
+                val payload = event.payloadAsObject()
+                val iteration = payload?.get("iteration")?.jsonPrimitive?.content?.toIntOrNull() ?: nextState.autonomousIterations
+                nextState = nextState.copy(autonomousIterations = iteration)
+            }
+            if (event.type == "autonomous.stopped") {
+                nextState = nextState.copy(status = "Autonomous stopped")
+            }
             if (event.type == "run.completed") {
                 val status = event.payloadAsObject()?.get("status")?.jsonPrimitive?.content ?: "completed"
                 nextState = nextState.copy(status = "Run $status")
+            }
+            if (event.type == "run.node.selected") {
+                val node = event.payloadAsObject()?.get("node_id")?.jsonPrimitive?.content
+                nextState = nextState.copy(assignedNode = node ?: nextState.assignedNode)
+            }
+            if (event.type == "session.member") {
+                val member = event.payloadAsObject()?.get("member_id")?.jsonPrimitive?.content
+                if (member != null) {
+                    nextState = nextState.copy(sessionMembers = (nextState.sessionMembers + member).distinct())
+                }
             }
             nextState
         }
@@ -129,17 +167,9 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             gateway.submitPolicyDecision(runId, prompt.gateId, decision)
                 .onSuccess {
-                    _uiState.update {
-                        it.copy(
-                            pendingPolicyGate = null,
-                            status = "Policy decision sent: $decision",
-                            error = null
-                        )
-                    }
+                    _uiState.update { it.copy(pendingPolicyGate = null, status = "Policy decision sent: $decision", error = null) }
                 }
-                .onFailure { throwable ->
-                    _uiState.update { it.copy(error = throwable.message.orEmpty()) }
-                }
+                .onFailure { throwable -> _uiState.update { it.copy(error = throwable.message.orEmpty()) } }
         }
     }
 
@@ -149,17 +179,19 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             gateway.submitPatchDecision(runId, patch.patchId, decision)
                 .onSuccess {
-                    _uiState.update {
-                        it.copy(
-                            pendingPatch = null,
-                            status = "Patch decision sent: $decision",
-                            error = null
-                        )
-                    }
+                    _uiState.update { it.copy(pendingPatch = null, status = "Patch decision sent: $decision", error = null) }
                 }
-                .onFailure { throwable ->
-                    _uiState.update { it.copy(error = throwable.message.orEmpty()) }
-                }
+                .onFailure { throwable -> _uiState.update { it.copy(error = throwable.message.orEmpty()) } }
+        }
+    }
+
+
+    fun stopAutonomous() {
+        val runId = _uiState.value.runId ?: return
+        viewModelScope.launch {
+            gateway.stopAutonomous(runId)
+                .onSuccess { _uiState.update { it.copy(status = "Stopping autonomous loop", error = null) } }
+                .onFailure { throwable -> _uiState.update { it.copy(error = throwable.message.orEmpty()) } }
         }
     }
 
@@ -167,9 +199,7 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
         val runId = _uiState.value.runId ?: return
         viewModelScope.launch {
             gateway.fetchWorkspaceFiles(runId)
-                .onSuccess { files ->
-                    _uiState.update { it.copy(workspaceFiles = files, error = null) }
-                }
+                .onSuccess { files -> _uiState.update { it.copy(workspaceFiles = files, error = null) } }
                 .onFailure { throwable -> _uiState.update { it.copy(error = throwable.message.orEmpty()) } }
         }
     }
@@ -178,15 +208,7 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
         val runId = _uiState.value.runId ?: return
         viewModelScope.launch {
             gateway.fetchWorkspaceFile(runId, path)
-                .onSuccess { content ->
-                    _uiState.update {
-                        it.copy(
-                            selectedFilePath = path,
-                            selectedFilePreview = content,
-                            error = null
-                        )
-                    }
-                }
+                .onSuccess { content -> _uiState.update { it.copy(selectedFilePath = path, selectedFilePreview = content, error = null) } }
                 .onFailure { throwable -> _uiState.update { it.copy(error = throwable.message.orEmpty()) } }
         }
     }

@@ -25,6 +25,10 @@
         "title": "Reach: Open Bridge Panel"
       },
       {
+        "command": "reach.joinSession",
+        "title": "Reach: Join Collaborative Session"
+      },
+      {
         "command": "reach.sendSelection",
         "title": "Reach: Send Selection to Bridge"
       },

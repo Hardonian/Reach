@@ -15,4 +15,5 @@ object RunnerConfig {
     }
     val workspaceFilesEndpointForRun: (String) -> String = { runId -> "$baseUrl/runs/$runId/workspace/files" }
     val workspaceFileEndpointForRun: (String) -> String = { runId -> "$baseUrl/runs/$runId/workspace/file" }
+    val autonomousStopEndpointForRun: (String) -> String = { runId -> "$baseUrl/v1/sessions/$runId/autonomous/stop" }
 }

@@ -35,6 +35,16 @@ export function activate(context: vscode.ExtensionContext): void {
       contextSync.push();
     }),
     vscode.commands.registerCommand('reach.openPanel', () => panel.open()),
+    vscode.commands.registerCommand('reach.joinSession', async () => {
+      const sessionId = await vscode.window.showInputBox({ prompt: 'Reach session id' });
+      if (!sessionId) {
+        return;
+      }
+      const memberId = await vscode.window.showInputBox({ prompt: 'Member id', value: 'vscode-user' });
+      bridgeClient.send({ type: 'session.join', sessionId, memberId: memberId ?? 'vscode-user' });
+      panel.open();
+      await panel.handleBridgeEvent({ type: 'session.member', memberId: memberId ?? 'vscode-user' });
+    }),
     vscode.commands.registerCommand('reach.sendSelection', () => {
       bridgeClient.send({ type: 'selection', payload: buildContextPayload() });
     }),
@@ -68,6 +78,14 @@ export function activate(context: vscode.ExtensionContext): void {
 
   bridgeClient.connect();
   contextSync.push();
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('reach.autonomousStop', () => {
+      bridgeClient.send({ type: 'autonomous.stop' });
+      vscode.window.setStatusBarMessage('Reach autonomous stop requested', 3000);
+    })
+  );
+
 }
 
 export function deactivate(): void {
