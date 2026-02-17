@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0.0",
+  "eventId": "evt_guard_001",
+  "type": "guardrail.stop",
+  "timestamp": "2026-02-17T06:00:10Z",
+  "payload": {
+    "schemaVersion": "1.0.0",
+    "reason": "max_tool_calls_exceeded",
+    "triggeredBy": "policy-engine",
+    "runId": "run_001"
+  }
+}

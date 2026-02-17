@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.dev/protocol/v1/session.schema.json",
+  "title": "Session",
+  "type": "object",
+  "required": ["schemaVersion", "sessionId", "tenantId", "status", "startedAt", "members"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "sessionId": {"type": "string", "minLength": 1},
+    "tenantId": {"type": "string", "minLength": 1},
+    "status": {"type": "string", "enum": ["started", "active", "paused", "stopped"]},
+    "startedAt": {"type": "string", "format": "date-time"},
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "role"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "role": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

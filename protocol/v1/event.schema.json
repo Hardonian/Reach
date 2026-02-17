@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.dev/protocol/v1/event.schema.json",
+  "title": "ProtocolEvent",
+  "type": "object",
+  "required": ["schemaVersion", "eventId", "type", "timestamp", "payload"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "eventId": {"type": "string", "minLength": 1},
+    "type": {"type": "string", "enum": ["spawn.event", "guardrail.stop", "session.started", "capsule.sync"]},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "payload": {
+      "oneOf": [
+        {"$ref": "spawn.schema.json"},
+        {"$ref": "session.schema.json"},
+        {"$ref": "capsule.schema.json"},
+        {
+          "type": "object",
+          "required": ["schemaVersion", "reason", "triggeredBy", "runId"],
+          "properties": {
+            "schemaVersion": {"const": "1.0.0"},
+            "reason": {"type": "string", "minLength": 1},
+            "triggeredBy": {"type": "string", "minLength": 1},
+            "runId": {"type": "string", "minLength": 1}
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}
