@@ -1,0 +1,6 @@
+=== RUN   TestSpawnDepthEnforcement
+    server_test.go:77: expected child creation, got 403: {"error":"child capabilities exceed parent"}
+--- FAIL: TestSpawnDepthEnforcement (0.03s)
+FAIL
+FAIL	reach/services/runner/internal/api	0.664s
+FAIL
