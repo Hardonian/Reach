@@ -132,12 +132,6 @@ type autoControl struct {
 type Server struct {
 	version string
 
-	store     *jobs.Store
-	sql       *storage.SQLiteStore
-	registry  *NodeRegistry
-	metaMu    sync.RWMutex
-	runMeta   map[string]runMeta
-	autonomMu sync.RWMutex
 	store      *jobs.Store
 	sql        *storage.SQLiteStore
 	registry   *NodeRegistry
@@ -154,9 +148,7 @@ func NewServer(db *storage.SQLiteStore, version string) *Server {
 	if strings.TrimSpace(version) == "" {
 		version = "dev"
 	}
-	return &Server{version: version, store: jobs.NewStore(db), sql: db, registry: NewNodeRegistry(), runMeta: map[string]runMeta{}}
-func NewServer(db *storage.SQLiteStore) *Server {
-	return &Server{store: jobs.NewStore(db), sql: db, registry: NewNodeRegistry(), runMeta: map[string]runMeta{}, autonomous: map[string]*autoControl{}}
+	return &Server{version: version, store: jobs.NewStore(db), sql: db, registry: NewNodeRegistry(), runMeta: map[string]runMeta{}, autonomous: map[string]*autoControl{}}
 }
 
 func (s *Server) Handler() http.Handler {
@@ -521,7 +513,7 @@ func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleGateDecision(w http.ResponseWriter, r *http.Request) {
-	if err := s.store.ResolveGate(r.Context(), r.PathValue("id"), r.PathValue("gate_id"), jobs.GateDecision("approve_once")); err != nil {
+	if err := s.store.ResolveGate(r.Context(), tenantIDFrom(r.Context()), r.PathValue("id"), r.PathValue("gate_id"), jobs.GateDecision("approve_once")); err != nil {
 		writeError(w, 400, err.Error())
 		return
 	}
