@@ -17,6 +17,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "RUNNER_BASE_URL", "\"http://10.0.2.2:8080\"")
+        val mockRunnerEnabled = (project.findProperty("reachMockRunner") as String?)?.toBoolean() ?: true
+        buildConfigField("boolean", "RUNNER_MOCK_MODE", mockRunnerEnabled.toString())
     }
 
     buildTypes {
@@ -63,6 +65,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("androidx.datastore:datastore:1.1.1")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
