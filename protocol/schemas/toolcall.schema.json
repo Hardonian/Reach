@@ -37,4 +37,30 @@
       "description": "Optional per-call timeout hint in milliseconds."
     }
   }
+  "$id": "https://reach/protocol/schemas/toolcall.schema.json",
+  "$defs": {
+    "ToolCall": {
+      "type": "object",
+      "properties": {
+        "step_id": {"type": "string"},
+        "tool_name": {"type": "string"},
+        "input": {}
+      },
+      "required": ["step_id", "tool_name", "input"],
+      "additionalProperties": false
+    },
+    "ToolResult": {
+      "type": "object",
+      "properties": {
+        "step_id": {"type": "string"},
+        "tool_name": {"type": "string"},
+        "output": {},
+        "success": {"type": "boolean"},
+        "error": {"type": ["string", "null"]}
+      },
+      "required": ["step_id", "tool_name", "output", "success", "error"],
+      "additionalProperties": false
+    }
+  },
+  "type": "object"
 }

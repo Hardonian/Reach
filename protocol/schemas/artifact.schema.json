@@ -1,50 +1,28 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://reach.dev/protocol/schemas/artifact.schema.json",
-  "title": "Reach Artifact v0",
-  "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "schemaVersion",
-    "artifactId",
-    "uri",
-    "mediaType"
-  ],
-  "properties": {
-    "schemaVersion": {
-      "type": "string",
-      "const": "0.1.0",
-      "description": "Protocol schema version for this record."
-    },
-    "artifactId": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Stable identifier for an emitted artifact."
-    },
-    "uri": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Location of the artifact in any valid URI-like namespace."
-    },
-    "mediaType": {
-      "type": "string",
-      "minLength": 1,
-      "description": "MIME-style content type for consumers."
-    },
-    "sizeBytes": {
-      "type": "integer",
-      "minimum": 0,
-      "description": "Optional artifact size in bytes."
-    },
-    "sha256": {
-      "type": "string",
-      "pattern": "^[a-fA-F0-9]{64}$",
-      "description": "Optional SHA-256 checksum for integrity verification."
-    },
-    "metadata": {
+  "$id": "https://reach/protocol/schemas/artifact.schema.json",
+  "$defs": {
+    "Diff": {
       "type": "object",
-      "additionalProperties": true,
-      "description": "Optional extensible metadata."
+      "properties": {
+        "path": {"type": "string"},
+        "before": {"type": "string"},
+        "after": {"type": "string"}
+      },
+      "required": ["path", "before", "after"],
+      "additionalProperties": false
+    },
+    "Patch": {
+      "type": "object",
+      "properties": {
+        "diffs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Diff"}
+        }
+      },
+      "required": ["diffs"],
+      "additionalProperties": false
     }
-  }
+  },
+  "type": "object"
 }
