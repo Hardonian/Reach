@@ -19,7 +19,7 @@ func TestCreateRunPersistsAcrossRestart(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := store.AppendEvent(context.Background(), "tenant-a", run.ID, Event{Type: "x", Payload: []byte(`{}`), CreatedAt: time.Now()}); err != nil {
+	if _, err := store.AppendEvent(context.Background(), run.ID, Event{Type: "x", Payload: []byte(`{}`), CreatedAt: time.Now()}); err != nil {
 		t.Fatal(err)
 	}
 	_ = db.Close()

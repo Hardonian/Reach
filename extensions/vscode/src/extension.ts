@@ -47,6 +47,14 @@ export function activate(context: vscode.ExtensionContext): void {
 
   bridgeClient.connect();
   contextSync.push();
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('reach.autonomousStop', () => {
+      bridgeClient.send({ type: 'autonomous.stop' });
+      vscode.window.setStatusBarMessage('Reach autonomous stop requested', 3000);
+    })
+  );
+
 }
 
 export function deactivate(): void {

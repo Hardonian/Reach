@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -67,10 +68,14 @@ fun CompanionScreen(viewModel: CompanionViewModel) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = { viewModel.connect() }) { Text("Connect") }
             Button(onClick = viewModel::refreshWorkspaceFiles, enabled = state.runId != null) { Text("Load Workspace") }
+            Button(onClick = viewModel::stopAutonomous, enabled = state.runId != null) { Text("Stop") }
         }
 
         Text("run_id: ${state.runId ?: "-"}", color = Color.White, fontFamily = FontFamily.Monospace)
         Text("status: ${state.status}", color = Color(0xFFFFF59D), fontFamily = FontFamily.Monospace)
+        Text("autonomous iterations: ${state.autonomousIterations}", color = Color.White, fontFamily = FontFamily.Monospace)
+        LinearProgressIndicator(progress = if (state.maxIterations == 0) 0f else state.autonomousIterations.toFloat() / state.maxIterations.toFloat(), modifier = Modifier.fillMaxWidth())
+        LinearProgressIndicator(progress = if (state.maxToolCalls == 0) 0f else state.toolCallCount.toFloat() / state.maxToolCalls.toFloat(), modifier = Modifier.fillMaxWidth())
         state.error?.let { Text("error: $it", color = Color(0xFFFF8A80), fontFamily = FontFamily.Monospace) }
 
         Text("Recent Events", color = Color.White)

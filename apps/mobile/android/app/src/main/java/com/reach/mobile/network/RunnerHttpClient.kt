@@ -101,4 +101,18 @@ class RunnerHttpClient(
             }
         }
     }
+    fun stopAutonomous(runId: String): Result<Unit> {
+        return runCatching {
+            val request = Request.Builder()
+                .url(RunnerConfig.autonomousStopEndpointForRun(runId))
+                .post("{}".toRequestBody("application/json".toMediaType()))
+                .build()
+            httpClient.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    error("Autonomous stop failed ${response.code}: ${response.body?.string().orEmpty()}")
+                }
+            }
+        }
+    }
+
 }

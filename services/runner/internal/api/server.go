@@ -3,16 +3,23 @@ package api
 import (
 	"archive/zip"
 	"bytes"
+	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
+	"reach/services/runner/internal/autonomous"
 	"reach/services/runner/internal/jobs"
 	"reach/services/runner/internal/plugins"
 	"reach/services/runner/internal/storage"
@@ -22,14 +29,24 @@ type ctxKey string
 
 const tenantKey ctxKey = "tenant"
 
-type Server struct {
-	store                                                                  *jobs.Store
-	sql                                                                    *storage.SQLiteStore
-	requestCounter                                                         atomic.Uint64
-	runsCreated, toolCalls, denials, approvals, failures, exports, imports atomic.Uint64
+type autoControl struct {
+	session jobs.AutonomousSession
+	cancel  context.CancelFunc
 }
 
-func NewServer(db *storage.SQLiteStore) *Server { return &Server{store: jobs.NewStore(db), sql: db} }
+type Server struct {
+	store          *jobs.Store
+	sql            *storage.SQLiteStore
+	requestCounter atomic.Uint64
+
+	runsCreated, toolCalls, denials, approvals, failures, exports, imports atomic.Uint64
+	mu                                                                     sync.RWMutex
+	autonomous                                                             map[string]*autoControl
+}
+
+func NewServer(db *storage.SQLiteStore) *Server {
+	return &Server{store: jobs.NewStore(db), sql: db, autonomous: map[string]*autoControl{}}
+}
 
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
@@ -42,8 +59,15 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("GET /v1/runs/{id}/events", s.requireAuth(http.HandlerFunc(s.handleStreamEvents)))
 	mux.Handle("POST /v1/runs/{id}/tool-result", s.requireAuth(http.HandlerFunc(s.handleToolResult)))
 	mux.Handle("GET /v1/runs/{id}/audit", s.requireAuth(http.HandlerFunc(s.handleGetAudit)))
+	mux.Handle("POST /v1/runs/{id}/export", s.requireAuth(http.HandlerFunc(s.handleExport)))
+	mux.Handle("POST /v1/runs/import", s.requireAuth(http.HandlerFunc(s.handleImport)))
+	mux.Handle("POST /v1/runs/{id}/gates/{gate_id}", s.requireAuth(http.HandlerFunc(s.handleGateDecision)))
+	mux.Handle("GET /v1/plugins", s.requireAuth(http.HandlerFunc(s.handleListPlugins)))
 	mux.Handle("GET /v1/metrics", s.requireAuth(http.HandlerFunc(s.handleMetrics)))
 	mux.Handle("POST /v1/plugins/verify", s.requireAuth(http.HandlerFunc(s.handleVerifyPlugin)))
+	mux.Handle("POST /v1/sessions/{id}/autonomous/start", s.requireAuth(http.HandlerFunc(s.handleAutonomousStart)))
+	mux.Handle("POST /v1/sessions/{id}/autonomous/stop", s.requireAuth(http.HandlerFunc(s.handleAutonomousStop)))
+	mux.Handle("GET /v1/sessions/{id}/autonomous/status", s.requireAuth(http.HandlerFunc(s.handleAutonomousStatus)))
 	return s.withRequestLogging(mux)
 }
 
@@ -64,6 +88,83 @@ func (s *Server) requireAuth(next http.Handler) http.Handler {
 }
 
 func tenantIDFrom(ctx context.Context) string { v, _ := ctx.Value(tenantKey).(string); return v }
+
+func (s *Server) handleAutonomousStart(w http.ResponseWriter, r *http.Request) {
+	tenantID, runID := tenantIDFrom(r.Context()), r.PathValue("id")
+	var body struct {
+		Goal                string   `json:"goal"`
+		MaxIterations       int      `json:"max_iterations"`
+		MaxRuntimeSeconds   int      `json:"max_runtime"`
+		MaxToolCalls        int      `json:"max_tool_calls"`
+		AllowedCapabilities []string `json:"allowed_capabilities"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid json")
+		return
+	}
+	if body.MaxIterations <= 0 {
+		body.MaxIterations = 25
+	}
+	if body.MaxRuntimeSeconds <= 0 {
+		body.MaxRuntimeSeconds = 300
+	}
+	sess := jobs.AutonomousSession{Goal: body.Goal, MaxIterations: body.MaxIterations, MaxRuntime: time.Duration(body.MaxRuntimeSeconds) * time.Second, MaxToolCalls: body.MaxToolCalls, AllowedCapabilities: body.AllowedCapabilities, Status: jobs.AutonomousRunning, StartedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC()}
+
+	s.mu.Lock()
+	if active, ok := s.autonomous[runID]; ok && active.session.Status == jobs.AutonomousRunning {
+		s.mu.Unlock()
+		writeError(w, http.StatusConflict, "autonomous session already running")
+		return
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	control := &autoControl{session: sess, cancel: cancel}
+	s.autonomous[runID] = control
+	s.mu.Unlock()
+
+	loop := autonomous.Loop{Store: s.store, Engine: autonomous.StaticEngine{}, IterationTimeout: 15 * time.Second}
+	go func() {
+		reason := loop.Run(ctx, tenantID, runID, &control.session)
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		if reason == autonomous.ReasonDone {
+			control.session.Status = jobs.AutonomousCompleted
+		} else {
+			control.session.Status = jobs.AutonomousStopped
+		}
+		control.session.StopReason = string(reason)
+		control.session.UpdatedAt = time.Now().UTC()
+		payload, _ := json.Marshal(map[string]any{"reason": reason, "iteration_count": control.session.IterationCount})
+		_ = s.store.PublishEvent(context.Background(), runID, jobs.Event{Type: "autonomous.stopped", Payload: payload, CreatedAt: time.Now().UTC()}, "autonomous")
+	}()
+	writeJSON(w, http.StatusAccepted, map[string]any{"status": control.session.Status, "run_id": runID})
+}
+
+func (s *Server) handleAutonomousStop(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	control, ok := s.autonomous[runID]
+	if !ok {
+		writeError(w, http.StatusNotFound, "autonomous session not found")
+		return
+	}
+	control.session.Status = jobs.AutonomousStopping
+	control.session.StopReason = string(autonomous.ReasonManualStop)
+	control.cancel()
+	writeJSON(w, http.StatusOK, map[string]string{"status": "stopping"})
+}
+
+func (s *Server) handleAutonomousStatus(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	control, ok := s.autonomous[runID]
+	if !ok {
+		writeError(w, http.StatusNotFound, "autonomous session not found")
+		return
+	}
+	writeJSON(w, http.StatusOK, control.session)
+}
 
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	clientID := os.Getenv("GITHUB_CLIENT_ID")
@@ -130,43 +231,7 @@ func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
 	tenantID, runID := tenantIDFrom(r.Context()), r.PathValue("id")
-	store          *jobs.Store
-	requestCounter atomic.Uint64
-	plugins        []PluginManifest
-}
-
-func NewServer(store *jobs.Store) *Server {
-	return &Server{store: store, plugins: loadPlugins()}
-}
-
-func (s *Server) Handler() http.Handler {
-	mux := http.NewServeMux()
-	mux.HandleFunc("POST /v1/runs", s.handleCreateRun)
-	mux.HandleFunc("GET /v1/runs/{id}/events", s.handleStreamEvents)
-	mux.HandleFunc("POST /v1/runs/{id}/tool-result", s.handleToolResult)
-	mux.HandleFunc("GET /v1/runs/{id}/audit", s.handleGetAudit)
-	mux.HandleFunc("POST /v1/runs/{id}/export", s.handleExport)
-	mux.HandleFunc("POST /v1/runs/import", s.handleImport)
-	mux.HandleFunc("POST /v1/runs/{id}/gates/{gate_id}", s.handleGateDecision)
-	mux.HandleFunc("GET /v1/plugins", s.handleListPlugins)
-	return mux
-}
-
-func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
 	requestID := s.requestID(r)
-	var body struct {
-		Capabilities []string `json:"capabilities"`
-	}
-	if r.Body != nil {
-		_ = json.NewDecoder(r.Body).Decode(&body)
-	}
-	run := s.store.CreateRun(requestID, body.Capabilities)
-	writeJSON(w, http.StatusCreated, map[string]string{"run_id": run.ID, "request_id": requestID})
-}
-
-func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
-	requestID := s.requestID(r)
-	runID := r.PathValue("id")
 	var body struct {
 		ToolName             string         `json:"tool_name"`
 		RequiredCapabilities []string       `json:"required_capabilities"`
@@ -176,22 +241,16 @@ func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
 		writeError(w, 400, "invalid json")
 		return
 	}
-
-	pluginID, pluginCaps := requiredPluginCapabilities(s.plugins, body.ToolName)
-	required := append([]string(nil), body.RequiredCapabilities...)
-	required = append(required, pluginCaps...)
-	if err := s.store.CheckCapabilities(runID, required); err != nil {
+	if err := s.store.CheckCapabilities(r.Context(), tenantID, runID, body.RequiredCapabilities); err != nil {
 		gateID := fmt.Sprintf("gate-%d", time.Now().UnixNano())
-		_ = s.store.SetGate(runID, jobs.Gate{ID: gateID, Tool: body.ToolName, Capabilities: required, Reason: err.Error()})
-		payload, _ := json.Marshal(map[string]any{"run_id": runID, "tool": body.ToolName, "capabilities": required, "reason": err.Error(), "gate_id": gateID})
-		_ = s.store.PublishEvent(runID, jobs.Event{Type: "policy.gate.requested", Payload: payload, CreatedAt: time.Now().UTC()}, requestID)
-		_ = s.store.Audit(runID, requestID, "policy.gate.requested", map[string]any{"gate_id": gateID, "tool": body.ToolName, "plugin_id": pluginID})
+		_ = s.store.SetGate(r.Context(), runID, jobs.Gate{ID: gateID, Tool: body.ToolName, Capabilities: body.RequiredCapabilities, Reason: err.Error()})
+		payload, _ := json.Marshal(map[string]any{"run_id": runID, "tool": body.ToolName, "capabilities": body.RequiredCapabilities, "reason": err.Error(), "gate_id": gateID})
+		_ = s.store.PublishEvent(r.Context(), runID, jobs.Event{Type: "policy.gate.requested", Payload: payload, CreatedAt: time.Now().UTC()}, requestID)
 		writeError(w, http.StatusForbidden, err.Error())
 		return
 	}
-	_ = s.store.Audit(runID, requestID, "tool.result.received", map[string]any{"tool_name": body.ToolName, "plugin_id": pluginID, "result": body.Result})
 	payload, _ := json.Marshal(map[string]any{"type": "tool_result", "tool": body.ToolName, "result": body.Result})
-	_ = s.store.PublishEvent(runID, jobs.Event{Type: "tool.result", Payload: payload, CreatedAt: time.Now().UTC()}, requestID)
+	_ = s.store.PublishEvent(r.Context(), runID, jobs.Event{Type: "tool.result", Payload: payload, CreatedAt: time.Now().UTC()}, requestID)
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "request_id": requestID})
 }
 
@@ -204,31 +263,30 @@ func (s *Server) handleGateDecision(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid json")
 		return
 	}
-	if err := s.store.ResolveGate(runID, gateID, body.Decision); err != nil {
+	if err := s.store.ResolveGate(r.Context(), runID, gateID, body.Decision); err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	payload, _ := json.Marshal(map[string]any{"gate_id": gateID, "decision": body.Decision})
-	_ = s.store.PublishEvent(runID, jobs.Event{Type: "policy.gate.resolved", Payload: payload, CreatedAt: time.Now().UTC()}, s.requestID(r))
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
 func (s *Server) handleListPlugins(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]any{"plugins": s.plugins})
+	writeJSON(w, http.StatusOK, map[string]any{"plugins": loadPlugins()})
 }
 
 func (s *Server) handleExport(w http.ResponseWriter, r *http.Request) {
+	tenantID := tenantIDFrom(r.Context())
 	runID := r.PathValue("id")
-	history, err := s.store.EventHistory(runID)
+	history, err := s.store.EventHistory(r.Context(), tenantID, runID, 0)
 	if err != nil {
 		writeError(w, http.StatusNotFound, err.Error())
 		return
 	}
-	audit, _ := s.store.ListAudit(runID)
+	audit, _ := s.store.ListAudit(r.Context(), tenantID, runID)
 	buf := bytes.NewBuffer(nil)
 	zw := zip.NewWriter(buf)
 	writeZip := func(name string, body []byte) { f, _ := zw.Create(name); _, _ = f.Write(body) }
-	manifest, _ := json.Marshal(map[string]any{"version": "0.1.0", "run_id": runID, "created_at": "1970-01-01T00:00:00Z", "files": []string{"events.ndjson", "toolcalls.ndjson", "audit.ndjson"}})
+	manifest, _ := json.Marshal(map[string]any{"version": "0.1.0", "run_id": runID, "files": []string{"events.ndjson", "toolcalls.ndjson", "audit.ndjson"}})
 	writeZip("manifest.json", manifest)
 	var events bytes.Buffer
 	for _, e := range history {
@@ -250,6 +308,7 @@ func (s *Server) handleExport(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleImport(w http.ResponseWriter, r *http.Request) {
+	tenantID := tenantIDFrom(r.Context())
 	data, _ := io.ReadAll(r.Body)
 	zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
 	if err != nil {
@@ -268,19 +327,23 @@ func (s *Server) handleImport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer eventsFile.Close()
-	run := s.store.CreateRun(s.requestID(r), nil)
+	run, err := s.store.CreateRun(r.Context(), tenantID, nil)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 	lines, _ := io.ReadAll(eventsFile)
 	for _, line := range strings.Split(strings.TrimSpace(string(lines)), "\n") {
 		if strings.TrimSpace(line) == "" {
 			continue
 		}
-		_ = s.store.PublishEvent(run.ID, jobs.Event{Type: "replay.event", Payload: []byte(line), CreatedAt: time.Now().UTC()}, "import")
+		_ = s.store.PublishEvent(r.Context(), run.ID, jobs.Event{Type: "replay.event", Payload: []byte(line), CreatedAt: time.Now().UTC()}, "import")
 	}
 	writeJSON(w, http.StatusCreated, map[string]string{"run_id": run.ID, "mode": "replay"})
 }
 
 func (s *Server) handleGetAudit(w http.ResponseWriter, r *http.Request) {
-	entries, err := s.store.ListAudit(r.PathValue("id"))
+	entries, err := s.store.ListAudit(r.Context(), tenantIDFrom(r.Context()), r.PathValue("id"))
 	if err != nil {
 		writeError(w, http.StatusNotFound, err.Error())
 		return
@@ -289,11 +352,8 @@ func (s *Server) handleGetAudit(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleStreamEvents(w http.ResponseWriter, r *http.Request) {
-	run, err := s.store.GetRun(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusNotFound, err.Error())
-		return
-	}
+	tenantID := tenantIDFrom(r.Context())
+	runID := r.PathValue("id")
 	flusher, ok := w.(http.Flusher)
 	if !ok {
 		writeError(w, 500, "streaming unsupported")
@@ -301,11 +361,13 @@ func (s *Server) handleStreamEvents(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/event-stream")
 	fmt.Fprintf(w, "event: heartbeat\ndata: {\"status\":\"ok\"}\n\n")
-	history, _ := s.store.EventHistory(run.ID)
+	history, _ := s.store.EventHistory(r.Context(), tenantID, runID, 0)
 	for _, evt := range history {
-		fmt.Fprintf(w, "event: %s\ndata: %s\n\n", sanitizeEventName(evt.Type), evt.Payload)
+		fmt.Fprintf(w, "id: %d\nevent: %s\ndata: %s\n\n", evt.ID, evt.Type, evt.Payload)
 	}
 	flusher.Flush()
+	ch, cancel := s.store.Subscribe(runID)
+	defer cancel()
 	for {
 		select {
 		case <-r.Context().Done():
@@ -334,7 +396,6 @@ func (s *Server) handleVerifyPlugin(w http.ResponseWriter, r *http.Request) {
 	status := "verified"
 	if err != nil {
 		status = "rejected"
-		s.denials.Add(1)
 	}
 	auditBody, _ := json.Marshal(map[string]any{"plugin_manifest": body.ManifestPath, "key_id": keyID, "result": status, "error": fmt.Sprint(err)})
 	_ = s.store.Audit(r.Context(), tenantIDFrom(r.Context()), "", "plugin.verify", auditBody)
@@ -367,13 +428,7 @@ func (s *Server) randomID(prefix string) string {
 	return prefix + "-" + hex.EncodeToString(b)
 }
 func hashID(v string) string { h := sha256.Sum256([]byte(v)); return hex.EncodeToString(h[:8]) }
-func redact(in []byte) []byte {
-	s := string(in)
-	for _, k := range []string{"token", "secret", "password", "authorization"} {
-		s = strings.ReplaceAll(strings.ToLower(s), k, "[redacted]")
-	}
-	return []byte(s)
-}
+
 func writeError(w http.ResponseWriter, code int, message string) {
 	writeJSON(w, code, map[string]string{"error": message})
 }
@@ -382,8 +437,6 @@ func writeJSON(w http.ResponseWriter, code int, body any) {
 	w.WriteHeader(code)
 	_ = json.NewEncoder(w).Encode(body)
 }
-
-var _ = errors.Is
 
 type PluginManifest struct {
 	ID      string       `json:"id"`
@@ -423,15 +476,4 @@ func loadPlugins() []PluginManifest {
 		}
 	}
 	return []PluginManifest{}
-}
-
-func requiredPluginCapabilities(plugins []PluginManifest, tool string) (string, []string) {
-	for _, p := range plugins {
-		for _, t := range p.Tools {
-			if t.Name == tool {
-				return p.ID, t.RequiredCapabilities
-			}
-		}
-	}
-	return "", nil
 }

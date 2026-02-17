@@ -29,5 +29,5 @@ func (l StoreAuditLogger) LogToolInvocation(ctx context.Context, entry AuditEntr
 	if err != nil {
 		return
 	}
-	_ = l.Store.PublishEvent(entry.RunID, jobs.Event{Type: "tool.audit", Payload: body, CreatedAt: time.Now().UTC()}, "mcp")
+	_ = l.Store.PublishEvent(ctx, entry.RunID, jobs.Event{Type: "tool.audit", Payload: body, CreatedAt: time.Now().UTC()}, "mcp")
 }
