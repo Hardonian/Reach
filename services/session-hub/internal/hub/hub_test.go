@@ -125,12 +125,9 @@ func TestBroadcastToMultipleClients(t *testing.T) {
 	ts := newServer(m)
 	defer ts.Close()
 
-	c1 := dialWS(t, ts.URL, "/ws/session/sess-1?tenant_id=t1&member_id=alice&role=owner&plan=pro")
+	c1 := dialWS(t, ts.URL, "/ws/session/sess-1?tenant_id=t1&member_id=alice&role=owner&plan_tier=pro&plan=pro")
 	defer c1.close()
-	c2 := dialWS(t, ts.URL, "/ws/session/sess-1?tenant_id=t1&member_id=bob&role=editor&plan=pro")
-	c1 := dialWS(t, ts.URL, "/ws/session/sess-1?tenant_id=t1&member_id=alice&role=owner&plan_tier=pro")
-	defer c1.close()
-	c2 := dialWS(t, ts.URL, "/ws/session/sess-1?tenant_id=t1&member_id=bob&role=editor&plan_tier=pro")
+	c2 := dialWS(t, ts.URL, "/ws/session/sess-1?tenant_id=t1&member_id=bob&role=editor&plan_tier=pro&plan=pro")
 	defer c2.close()
 
 	var snapshot map[string]any
@@ -155,8 +152,7 @@ func TestSessionTenantIsolation(t *testing.T) {
 	ts := newServer(m)
 	defer ts.Close()
 
-	c1 := dialWS(t, ts.URL, "/ws/session/sess-1?tenant_id=t1&member_id=alice&role=owner&plan=pro")
-	c1 := dialWS(t, ts.URL, "/ws/session/sess-1?tenant_id=t1&member_id=alice&role=owner&plan_tier=pro")
+	c1 := dialWS(t, ts.URL, "/ws/session/sess-1?tenant_id=t1&member_id=alice&role=owner&plan_tier=pro&plan=pro")
 	defer c1.close()
 	var snapshot map[string]any
 	_ = c1.readJSON(&snapshot)
@@ -169,8 +165,7 @@ func TestSessionTenantIsolation(t *testing.T) {
 	defer conn.Close()
 	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
 	key := base64.StdEncoding.EncodeToString([]byte("0123456789012345"))
-	_, _ = rw.WriteString(fmt.Sprintf("GET /ws/session/sess-1?tenant_id=t2&member_id=bob&role=viewer&plan=pro HTTP/1.1\r\nHost: %s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n", u.Host, key))
-	_, _ = rw.WriteString(fmt.Sprintf("GET /ws/session/sess-1?tenant_id=t2&member_id=bob&role=viewer&plan_tier=pro HTTP/1.1\r\nHost: %s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n", u.Host, key))
+	_, _ = rw.WriteString(fmt.Sprintf("GET /ws/session/sess-1?tenant_id=t2&member_id=bob&role=viewer&plan_tier=pro&plan=pro HTTP/1.1\r\nHost: %s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n", u.Host, key))
 	_ = rw.Flush()
 	status, _ := rw.ReadString('\n')
 	if !strings.Contains(status, "403") {
@@ -178,7 +173,6 @@ func TestSessionTenantIsolation(t *testing.T) {
 	}
 }
 
-func TestCollaborationTierRestriction(t *testing.T) {
 func TestFreeTierCannotJoinCollaboration(t *testing.T) {
 	m := NewManager()
 	ts := newServer(m)
@@ -191,14 +185,8 @@ func TestFreeTierCannotJoinCollaboration(t *testing.T) {
 	}
 	defer conn.Close()
 	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
-	key := base64.StdEncoding.EncodeToString([]byte("1234567890123456"))
-	_, _ = rw.WriteString(fmt.Sprintf("GET /ws/session/sess-2?tenant_id=t1&member_id=alice&role=owner&plan=free HTTP/1.1\r\nHost: %s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n", u.Host, key))
-	_ = rw.Flush()
-	status, _ := rw.ReadString('\n')
-	if !strings.Contains(status, "403") {
-		t.Fatalf("expected 403 got %s", status)
 	key := base64.StdEncoding.EncodeToString([]byte("0123456789012345"))
-	_, _ = rw.WriteString(fmt.Sprintf("GET /ws/session/sess-2?tenant_id=t1&member_id=free&role=viewer&plan_tier=free HTTP/1.1\r\nHost: %s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n", u.Host, key))
+	_, _ = rw.WriteString(fmt.Sprintf("GET /ws/session/sess-2?tenant_id=t1&member_id=free&role=viewer&plan_tier=free&plan=free HTTP/1.1\r\nHost: %s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n", u.Host, key))
 	_ = rw.Flush()
 	status, _ := rw.ReadString('\n')
 	if !strings.Contains(status, "402") {

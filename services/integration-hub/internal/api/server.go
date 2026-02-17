@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,6 +18,9 @@ import (
 	"reach/services/integration-hub/internal/security"
 	"reach/services/integration-hub/internal/storage"
 )
+
+const maxWebhookPayloadBytes int64 = 1 << 20
+const webhookTimestampSkew = 5 * time.Minute
 
 type Server struct {
 	version    string
@@ -105,8 +109,16 @@ func (s *Server) oauthCallback(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid state", http.StatusBadRequest)
 		return
 	}
-	encAccess, _ := s.cipher.Encrypt([]byte("access-" + code))
-	encRefresh, _ := s.cipher.Encrypt([]byte("refresh-" + code))
+	encAccess, err := s.cipher.Encrypt([]byte("access-" + code))
+	if err != nil {
+		http.Error(w, "token encryption failed", http.StatusInternalServerError)
+		return
+	}
+	encRefresh, err := s.cipher.Encrypt([]byte("refresh-" + code))
+	if err != nil {
+		http.Error(w, "token encryption failed", http.StatusInternalServerError)
+		return
+	}
 	if err := s.store.SaveToken(tenantID, provider, encAccess, encRefresh, time.Now().Add(time.Hour).UTC().Format(time.RFC3339), s.clients[provider].Scopes); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -118,9 +130,14 @@ func (s *Server) oauthCallback(w http.ResponseWriter, r *http.Request) {
 func (s *Server) webhook(provider string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tenantID := r.Header.Get("X-Reach-Tenant")
-		body, _ := io.ReadAll(r.Body)
+		r.Body = http.MaxBytesReader(w, r.Body, maxWebhookPayloadBytes)
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "payload too large", http.StatusRequestEntityTooLarge)
+			return
+		}
 		nonce := r.Header.Get("X-Reach-Delivery")
-		if err := s.store.CheckAndMarkReplay(tenantID, nonce, 10*time.Minute); err != nil {
+		if err := s.store.CheckAndMarkReplay(tenantID, provider, nonce, 10*time.Minute); err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
@@ -129,7 +146,7 @@ func (s *Server) webhook(provider string) http.HandlerFunc {
 			http.Error(w, "missing webhook secret", http.StatusUnauthorized)
 			return
 		}
-		if err := verifySignature(provider, secret, r, body); err != nil {
+		if err := verifySignature(provider, secret, r, body, time.Now().UTC()); err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
@@ -148,7 +165,7 @@ func (s *Server) webhook(provider string) http.HandlerFunc {
 	}
 }
 
-func verifySignature(provider, secret string, r *http.Request, body []byte) error {
+func verifySignature(provider, secret string, r *http.Request, body []byte, now time.Time) error {
 	switch provider {
 	case "slack":
 		timestamp := r.Header.Get("X-Slack-Request-Timestamp")
@@ -156,17 +173,31 @@ func verifySignature(provider, secret string, r *http.Request, body []byte) erro
 		if timestamp == "" || sig == "" {
 			return errors.New("missing slack signature")
 		}
+		tsUnix, err := strconv.ParseInt(timestamp, 10, 64)
+		if err != nil {
+			return errors.New("invalid slack timestamp")
+		}
+		ts := time.Unix(tsUnix, 0).UTC()
+		if now.Sub(ts) > webhookTimestampSkew || ts.Sub(now) > webhookTimestampSkew {
+			return errors.New("stale webhook timestamp")
+		}
 		base := []byte("v0:" + timestamp + ":" + string(body))
 		expected := "v0=" + strings.TrimPrefix(security.ComputeHMAC(secret, base), "sha256=")
 		if expected != sig {
 			return errors.New("invalid slack signature")
 		}
 	case "github":
+		if err := verifyReachTimestamp(r, now); err != nil {
+			return err
+		}
 		sig := r.Header.Get("X-Hub-Signature-256")
 		if !security.VerifyHMAC(secret, sig, body) {
 			return errors.New("invalid github signature")
 		}
 	default:
+		if err := verifyReachTimestamp(r, now); err != nil {
+			return err
+		}
 		sig := r.Header.Get("X-Reach-Signature")
 		if !security.VerifyHMAC(secret, sig, body) {
 			return errors.New("invalid webhook signature")
@@ -341,4 +372,20 @@ func (s *Server) internalExecute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, map[string]any{"access_token": string(tok), "provider": in.Provider})
+}
+
+func verifyReachTimestamp(r *http.Request, now time.Time) error {
+	timestamp := strings.TrimSpace(r.Header.Get("X-Reach-Timestamp"))
+	if timestamp == "" {
+		return errors.New("missing webhook timestamp")
+	}
+	tsUnix, err := strconv.ParseInt(timestamp, 10, 64)
+	if err != nil {
+		return errors.New("invalid webhook timestamp")
+	}
+	ts := time.Unix(tsUnix, 0).UTC()
+	if now.Sub(ts) > webhookTimestampSkew || ts.Sub(now) > webhookTimestampSkew {
+		return errors.New("stale webhook timestamp")
+	}
+	return nil
 }
