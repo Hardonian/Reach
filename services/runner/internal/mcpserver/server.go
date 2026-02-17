@@ -8,9 +8,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	policygate "reach/services/runner/internal/policy"
 )
 
 const CapabilityFilesystemWrite = "filesystem:write"
@@ -38,19 +41,24 @@ type ApprovalGate interface {
 }
 
 type ConnectorContext struct {
-	Enabled         bool
-	Scopes          []string
-	Capabilities    []string
-	Policy          string
-	TemplatePolicy  string
-	ManifestID      string
-	ManifestVersion string
-	ManifestHash    string
-	CachedValidated bool
+	Enabled           bool
+	Scopes            []string
+	Capabilities      []string
+	LegacyUnsigned    bool
+	Policy            string
+	PolicyVersion     string
+	TemplatePolicy    string
+	ManifestID        string
+	ManifestVersion   string
+	ManifestHash      string
+	ModelRequirements map[string]string
+	Deterministic     bool
+	CachedValidated   bool
 }
 
 type AuditLogger interface {
 	LogToolInvocation(ctx context.Context, entry AuditEntry)
+	LogAuditEvent(ctx context.Context, entry DeterministicAuditEvent)
 }
 
 type AuditEntry struct {
@@ -63,25 +71,46 @@ type AuditEntry struct {
 	Capabilities []string
 }
 
+type DeterministicAuditEvent struct {
+	Sequence            uint64
+	EventType           string
+	RunID               string
+	PackID              string
+	PackVersion         string
+	PackHash            string
+	NodeID              string
+	OrgID               string
+	PolicyVersion       string
+	ContextSnapshotHash string
+	Timestamp           time.Time
+	Decision            string
+	Reasons             []string
+}
+
 type Server struct {
-	workspaceRoot string
-	policy        Policy
-	audit         AuditLogger
-	mcpServer     *mcp.Server
-	connectors    ConnectorResolver
-	approvalGate  ApprovalGate
-	validated     map[string]string
+	workspaceRoot       string
+	policy              Policy
+	audit               AuditLogger
+	mcpServer           *mcp.Server
+	connectors          ConnectorResolver
+	approvalGate        ApprovalGate
+	validated           map[string]string
+	auditSequence       atomic.Uint64
+	policyMode          policygate.Mode
+	allowLegacyUnsigned bool
 }
 
 func New(workspaceRoot string, policy Policy, audit AuditLogger, resolver ConnectorResolver, approval ApprovalGate) *Server {
 	s := &Server{
-		workspaceRoot: workspaceRoot,
-		policy:        policy,
-		audit:         audit,
-		mcpServer:     mcp.NewServer(mcp.WithName("reach-runner"), mcp.WithVersion("0.1.0")),
-		connectors:    resolver,
-		approvalGate:  approval,
-		validated:     map[string]string{},
+		workspaceRoot:       workspaceRoot,
+		policy:              policy,
+		audit:               audit,
+		mcpServer:           mcp.NewServer(mcp.WithName("reach-runner"), mcp.WithVersion("0.1.0")),
+		connectors:          resolver,
+		approvalGate:        approval,
+		validated:           map[string]string{},
+		policyMode:          policygate.ModeFromEnv(),
+		allowLegacyUnsigned: policygate.AllowLegacyUnsignedFromEnv(),
 	}
 	s.registerTools()
 	return s
@@ -96,14 +125,19 @@ func (s *Server) registerTools() {
 }
 
 func (s *Server) CallTool(ctx context.Context, runID, tool string, input map[string]any) (any, error) {
+	s.logDeterministic(ctx, DeterministicAuditEvent{EventType: "execution.started", RunID: runID, Timestamp: time.Now().UTC()})
 	if capErr := s.checkFirewall(runID, tool); capErr != nil {
 		s.audit.LogToolInvocation(ctx, AuditEntry{RunID: runID, Tool: tool, Input: input, Timestamp: time.Now().UTC(), Error: capErr.Error(), Capabilities: requiredCapabilities(tool)})
+		s.logDeterministic(ctx, DeterministicAuditEvent{EventType: "execution.failed", RunID: runID, Timestamp: time.Now().UTC(), Reasons: []string{capErr.Error()}})
 		return nil, capErr
 	}
 	result, err := s.mcpServer.CallTool(ctx, tool, input, runID)
 	entry := AuditEntry{RunID: runID, Tool: tool, Input: input, Timestamp: time.Now().UTC(), Success: err == nil, Capabilities: requiredCapabilities(tool)}
 	if err != nil {
 		entry.Error = err.Error()
+		s.logDeterministic(ctx, DeterministicAuditEvent{EventType: "execution.failed", RunID: runID, Timestamp: time.Now().UTC(), Reasons: []string{err.Error()}})
+	} else {
+		s.logDeterministic(ctx, DeterministicAuditEvent{EventType: "execution.completed", RunID: runID, Timestamp: time.Now().UTC()})
 	}
 	s.audit.LogToolInvocation(ctx, entry)
 	return result, err
@@ -157,11 +191,56 @@ func (s *Server) checkFirewall(runID, tool string) error {
 				return fmt.Errorf("%w: rule_id=policy-profile capability=%s manifest=%s@%s", ErrPolicyDenied, capability, ctx.ManifestID, ctx.ManifestVersion)
 			}
 		}
+
+		decision := policygate.Evaluate(policygate.Input{
+			Policy: policygate.OrgPolicy{
+				Version:              ctx.PolicyVersion,
+				AllowedPermissions:   ctx.Scopes,
+				AllowedModels:        map[string][]string{"tier": []string{"standard", "high"}, "provider": []string{"openai", "anthropic"}},
+				AllowLegacyUnsigned:  s.allowLegacyUnsigned,
+				RequireDeterministic: false,
+			},
+			Node: policygate.NodeIdentity{NodeID: runID, OrgID: ctx.Policy},
+			Pack: policygate.ExecutionPack{
+				ID:                  ctx.ManifestID,
+				Version:             ctx.ManifestVersion,
+				Hash:                ctx.ManifestHash,
+				DeclaredTools:       []string{tool},
+				DeclaredPermissions: ctx.Scopes,
+				ModelRequirements:   ctx.ModelRequirements,
+				Deterministic:       ctx.Deterministic,
+				Signed:              ctx.ManifestHash != "",
+				LegacyUnsigned:      ctx.LegacyUnsigned,
+			},
+			RequestedTools:       []string{tool},
+			RequestedPermissions: requiredScopes(tool),
+			Mode:                 s.policyMode,
+		})
+		if decision.Allowed {
+			s.logDeterministic(context.Background(), DeterministicAuditEvent{EventType: "pack.admitted", RunID: runID, PackID: ctx.ManifestID, PackVersion: ctx.ManifestVersion, PackHash: ctx.ManifestHash, PolicyVersion: ctx.PolicyVersion, Timestamp: time.Now().UTC(), Decision: "allow"})
+		} else {
+			reasons := make([]string, 0, len(decision.Reasons))
+			for _, reason := range decision.Reasons {
+				reasons = append(reasons, reason.String())
+			}
+			s.logDeterministic(context.Background(), DeterministicAuditEvent{EventType: "pack.denied", RunID: runID, PackID: ctx.ManifestID, PackVersion: ctx.ManifestVersion, PackHash: ctx.ManifestHash, PolicyVersion: ctx.PolicyVersion, Timestamp: time.Now().UTC(), Decision: "deny", Reasons: reasons})
+			if s.policyMode == policygate.ModeEnforce {
+				return fmt.Errorf("%w: %s", ErrPolicyDenied, strings.Join(reasons, ","))
+			}
+		}
 	}
 	if s.approvalGate != nil && s.approvalGate.Required(runID, tool) {
 		return ErrApprovalRequired
 	}
 	return nil
+}
+
+func (s *Server) logDeterministic(ctx context.Context, event DeterministicAuditEvent) {
+	if event.Timestamp.IsZero() {
+		event.Timestamp = time.Now().UTC()
+	}
+	event.Sequence = s.auditSequence.Add(1)
+	s.audit.LogAuditEvent(ctx, event)
 }
 
 func has(items []string, needle string) bool {

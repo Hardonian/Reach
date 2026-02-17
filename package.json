@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "protocol:validate": "node tools/codegen/validate-protocol.mjs"
+    "protocol:validate": "node tools/codegen/validate-protocol.mjs",
+    "audit:inspect": "cd services/runner && go run ./cmd/runner-audit-inspector"
   }
 }

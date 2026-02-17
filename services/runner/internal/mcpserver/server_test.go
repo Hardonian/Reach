@@ -10,6 +10,7 @@ import (
 
 type captureAudit struct {
 	entries []AuditEntry
+	events  []DeterministicAuditEvent
 }
 
 type staticResolver struct{ ctx ConnectorContext }
@@ -22,6 +23,10 @@ func (s staticApproval) Required(_ string, _ string) bool { return s.required }
 
 func (c *captureAudit) LogToolInvocation(_ context.Context, entry AuditEntry) {
 	c.entries = append(c.entries, entry)
+}
+
+func (c *captureAudit) LogAuditEvent(_ context.Context, entry DeterministicAuditEvent) {
+	c.events = append(c.events, entry)
 }
 
 func TestReadWriteAndCapabilityChecks(t *testing.T) {
@@ -101,5 +106,29 @@ func TestPolicyTemplateMismatchAndManifestCache(t *testing.T) {
 	srv.connectors = staticResolver{ctx: ConnectorContext{Enabled: true, Scopes: []string{"workspace:read", "workspace:write"}, Capabilities: []string{CapabilityFilesystemWrite}, Policy: "moderate", TemplatePolicy: "moderate", ManifestID: "conn.github", ManifestVersion: "1.0.0", ManifestHash: "bbb", CachedValidated: true}}
 	if _, err := srv.CallTool(context.Background(), "run-1", "tool.write_file", map[string]any{"path": "y.txt", "content": "x"}); !errors.Is(err, ErrPolicyDenied) {
 		t.Fatalf("expected manifest hash denial: %v", err)
+	}
+}
+
+func TestPolicyGateAllowAndDenyModes(t *testing.T) {
+	workspace := t.TempDir()
+	audit := &captureAudit{}
+	t.Setenv("REACH_ALLOW_LEGACY_UNSIGNED_PACKS", "false")
+	t.Setenv("REACH_POLICY_MODE", "enforce")
+
+	allow := ConnectorContext{Enabled: true, Scopes: []string{"workspace:read", "workspace:write"}, Capabilities: []string{CapabilityFilesystemWrite}, Policy: "moderate", PolicyVersion: "2026-01", TemplatePolicy: "moderate", ManifestID: "conn.github", ManifestVersion: "1.0.0", ManifestHash: "aaa", CachedValidated: true, ModelRequirements: map[string]string{"tier": "standard"}, Deterministic: true}
+	srv := New(workspace, NewStaticPolicy([]string{CapabilityFilesystemWrite}), audit, staticResolver{ctx: allow}, staticApproval{})
+	if _, err := srv.CallTool(context.Background(), "run-2", "tool.write_file", map[string]any{"path": "ok.txt", "content": "ok"}); err != nil {
+		t.Fatalf("expected allow: %v", err)
+	}
+
+	deny := allow
+	deny.ManifestHash = ""
+	srv = New(workspace, NewStaticPolicy([]string{CapabilityFilesystemWrite}), audit, staticResolver{ctx: deny}, staticApproval{})
+	if _, err := srv.CallTool(context.Background(), "run-3", "tool.write_file", map[string]any{"path": "deny.txt", "content": "no"}); !errors.Is(err, ErrPolicyDenied) {
+		t.Fatalf("expected enforce deny: %v", err)
+	}
+
+	if len(audit.events) == 0 {
+		t.Fatal("expected deterministic audit events")
 	}
 }
