@@ -65,6 +65,20 @@ fun CompanionScreen(viewModel: CompanionViewModel) {
             label = { Text("Run ID") },
             modifier = Modifier.fillMaxWidth()
         )
+
+        OutlinedTextField(
+            value = state.sessionIdInput,
+            onValueChange = viewModel::onSessionIdInputChanged,
+            label = { Text("Session ID") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = { viewModel.joinSession() }) { Text("Join Session") }
+        }
+
+        Text("session: ${state.sessionId ?: "-"}", color = Color.White, fontFamily = FontFamily.Monospace)
+        Text("members: ${state.sessionMembers.joinToString(", ").ifBlank { "-" }}", color = Color(0xFFE1F5FE), fontFamily = FontFamily.Monospace)
+        Text("node: ${state.assignedNode ?: "-"}", color = Color(0xFFB9F6CA), fontFamily = FontFamily.Monospace)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = { viewModel.connect() }) { Text("Connect") }
             Button(onClick = viewModel::refreshWorkspaceFiles, enabled = state.runId != null) { Text("Load Workspace") }

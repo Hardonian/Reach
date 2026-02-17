@@ -8,12 +8,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
-	"io"
-	"log"
 	"net/http"
-	"os"
-	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -21,7 +17,6 @@ import (
 
 	"reach/services/runner/internal/autonomous"
 	"reach/services/runner/internal/jobs"
-	"reach/services/runner/internal/plugins"
 	"reach/services/runner/internal/storage"
 )
 
@@ -46,15 +41,93 @@ type Server struct {
 
 func NewServer(db *storage.SQLiteStore) *Server {
 	return &Server{store: jobs.NewStore(db), sql: db, autonomous: map[string]*autoControl{}}
+type Node struct {
+	ID           string   `json:"id"`
+	Type         string   `json:"type"`
+	Capabilities []string `json:"capabilities"`
+	CurrentLoad  int      `json:"current_load"`
+	LatencyMS    int      `json:"latency_ms"`
+	Status       string   `json:"status"`
+}
+
+type NodeRegistry struct {
+	mu    sync.RWMutex
+	nodes map[string]Node
+}
+
+func NewNodeRegistry() *NodeRegistry { return &NodeRegistry{nodes: map[string]Node{}} }
+
+func (r *NodeRegistry) Register(node Node) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.nodes[node.ID] = node
+}
+
+func (r *NodeRegistry) List() []Node {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	out := make([]Node, 0, len(r.nodes))
+	for _, n := range r.nodes {
+		out = append(out, n)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
+	return out
+}
+
+func (r *NodeRegistry) Pick(capabilities []string) (Node, bool) {
+	nodes := r.List()
+	bestScore := int(^uint(0) >> 1)
+	var best Node
+	found := false
+	for _, node := range nodes {
+		if node.Status != "online" {
+			continue
+		}
+		if !supportsAll(node.Capabilities, capabilities) {
+			continue
+		}
+		score := (node.CurrentLoad * 1000) + node.LatencyMS
+		if score < bestScore || (score == bestScore && node.ID < best.ID) {
+			bestScore = score
+			best = node
+			found = true
+		}
+	}
+	return best, found
+}
+
+func supportsAll(have, need []string) bool {
+	set := map[string]struct{}{}
+	for _, h := range have {
+		set[h] = struct{}{}
+	}
+	for _, n := range need {
+		if _, ok := set[n]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
+type Server struct {
+	store      *jobs.Store
+	sql        *storage.SQLiteStore
+	registry   *NodeRegistry
+	runToNode  map[string]string
+	runToNodeM sync.RWMutex
+
+	requestCounter atomic.Uint64
+	runsCreated    atomic.Uint64
+}
+
+func NewServer(db *storage.SQLiteStore) *Server {
+	return &Server{store: jobs.NewStore(db), sql: db, registry: NewNodeRegistry(), runToNode: map[string]string{}}
 }
 
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) { writeJSON(w, 200, map[string]string{"status": "ok"}) })
-	mux.HandleFunc("GET /auth/login", s.handleLogin)
-	mux.HandleFunc("GET /auth/callback", s.handleCallback)
 	mux.HandleFunc("POST /auth/dev-login", s.handleDevLogin)
-	mux.HandleFunc("POST /auth/logout", s.handleLogout)
 	mux.Handle("POST /v1/runs", s.requireAuth(http.HandlerFunc(s.handleCreateRun)))
 	mux.Handle("GET /v1/runs/{id}/events", s.requireAuth(http.HandlerFunc(s.handleStreamEvents)))
 	mux.Handle("POST /v1/runs/{id}/tool-result", s.requireAuth(http.HandlerFunc(s.handleToolResult)))
@@ -69,6 +142,11 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /v1/sessions/{id}/autonomous/stop", s.requireAuth(http.HandlerFunc(s.handleAutonomousStop)))
 	mux.Handle("GET /v1/sessions/{id}/autonomous/status", s.requireAuth(http.HandlerFunc(s.handleAutonomousStatus)))
 	return s.withRequestLogging(mux)
+	mux.Handle("GET /v1/runs/{id}/events", s.requireAuth(http.HandlerFunc(s.handleRunEvents)))
+	mux.Handle("GET /v1/nodes", s.requireAuth(http.HandlerFunc(s.handleListNodes)))
+	mux.Handle("POST /v1/nodes/register", s.requireAuth(http.HandlerFunc(s.handleRegisterNode)))
+	mux.Handle("GET /v1/admin/dashboard", s.requireAuth(http.HandlerFunc(s.handleDashboard)))
+	return mux
 }
 
 func (s *Server) requireAuth(next http.Handler) http.Handler {
@@ -186,25 +264,15 @@ func (s *Server) handleCallback(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, 200, map[string]string{"tenant_id": user})
 }
 func (s *Server) handleDevLogin(w http.ResponseWriter, r *http.Request) {
-	if os.Getenv("ENV") == "prod" {
+	if strings.EqualFold(strings.TrimSpace(r.Header.Get("X-Reach-Env")), "prod") {
 		writeError(w, 403, "disabled in prod")
 		return
 	}
-	uid := os.Getenv("DEV_USER_ID")
-	if uid == "" {
-		uid = "dev-user"
-	}
+	uid := "dev-user"
 	s.setSession(w, r.Context(), uid, uid)
 	writeJSON(w, 200, map[string]string{"tenant_id": uid})
 }
-func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
-	c, err := r.Cookie("reach_session")
-	if err == nil {
-		_ = s.sql.DeleteSession(r.Context(), c.Value)
-	}
-	http.SetCookie(w, &http.Cookie{Name: "reach_session", Value: "", Path: "/", MaxAge: -1, HttpOnly: true})
-	writeJSON(w, 200, map[string]string{"status": "logged_out"})
-}
+
 func (s *Server) setSession(w http.ResponseWriter, ctx context.Context, tenantID, userID string) {
 	sid := s.randomID("sess")
 	now := time.Now().UTC()
@@ -213,13 +281,13 @@ func (s *Server) setSession(w http.ResponseWriter, ctx context.Context, tenantID
 }
 
 func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
-	tenantID := tenantIDFrom(r.Context())
 	var body struct {
 		Capabilities []string `json:"capabilities"`
 	}
 	if r.Body != nil {
 		_ = json.NewDecoder(r.Body).Decode(&body)
 	}
+	tenantID := tenantIDFrom(r.Context())
 	run, err := s.store.CreateRun(r.Context(), tenantID, body.Capabilities)
 	if err != nil {
 		writeError(w, 500, err.Error())
@@ -278,8 +346,20 @@ func (s *Server) handleExport(w http.ResponseWriter, r *http.Request) {
 	tenantID := tenantIDFrom(r.Context())
 	runID := r.PathValue("id")
 	history, err := s.store.EventHistory(r.Context(), tenantID, runID, 0)
+	node, ok := s.registry.Pick(body.Capabilities)
+	if ok {
+		s.runToNodeM.Lock()
+		s.runToNode[run.ID] = node.ID
+		s.runToNodeM.Unlock()
+		_, _ = s.store.AppendEvent(r.Context(), tenantID, run.ID, jobs.Event{Type: "run.node.selected", Payload: mustJSON(map[string]any{"run_id": run.ID, "node_id": node.ID, "node_type": node.Type}), CreatedAt: time.Now().UTC()})
+	}
+	writeJSON(w, 201, map[string]any{"run_id": run.ID, "tenant_id": tenantID, "node_selected": ok})
+}
+
+func (s *Server) handleRunEvents(w http.ResponseWriter, r *http.Request) {
+	events, err := s.store.EventHistory(r.Context(), tenantIDFrom(r.Context()), r.PathValue("id"), 0)
 	if err != nil {
-		writeError(w, http.StatusNotFound, err.Error())
+		writeError(w, 404, err.Error())
 		return
 	}
 	audit, _ := s.store.ListAudit(r.Context(), tenantID, runID)
@@ -377,20 +457,36 @@ func (s *Server) handleStreamEvents(w http.ResponseWriter, r *http.Request) {
 			flusher.Flush()
 		}
 	}
+	writeJSON(w, 200, map[string]any{"events": events})
 }
 
-func (s *Server) handleVerifyPlugin(w http.ResponseWriter, r *http.Request) {
-	var body struct {
-		ManifestPath  string `json:"manifest_path"`
-		SignaturePath string `json:"signature_path"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+func (s *Server) handleListNodes(w http.ResponseWriter, _ *http.Request) {
+	writeJSON(w, 200, map[string]any{"nodes": s.registry.List()})
+}
+
+func (s *Server) handleRegisterNode(w http.ResponseWriter, r *http.Request) {
+	var node Node
+	if err := json.NewDecoder(r.Body).Decode(&node); err != nil {
 		writeError(w, 400, "invalid json")
 		return
 	}
-	keyFile := os.Getenv("PLUGIN_TRUSTED_KEYS")
-	if keyFile == "" {
-		keyFile = "services/runner/config/trusted_plugin_keys.json"
+	if node.ID == "" || node.Status == "" {
+		writeError(w, 400, "node id and status are required")
+		return
+	}
+	s.registry.Register(node)
+	writeJSON(w, 201, map[string]string{"status": "registered"})
+}
+
+func (s *Server) handleDashboard(w http.ResponseWriter, _ *http.Request) {
+	nodes := s.registry.List()
+	totalLatency := 0
+	for _, n := range nodes {
+		totalLatency += n.LatencyMS
+	}
+	avgLatency := 0
+	if len(nodes) > 0 {
+		avgLatency = totalLatency / len(nodes)
 	}
 	keyID, err := plugins.VerifyManifest(body.ManifestPath, body.SignaturePath, keyFile, os.Getenv("DEV_ALLOW_UNSIGNED") == "1")
 	status := "verified"
@@ -407,31 +503,31 @@ func (s *Server) handleVerifyPlugin(w http.ResponseWriter, r *http.Request) {
 }
 func (s *Server) handleMetrics(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, 200, map[string]uint64{"runs_created": s.runsCreated.Load(), "tool_calls": s.toolCalls.Load(), "denials": s.denials.Load(), "approvals": s.approvals.Load(), "failures": s.failures.Load(), "exports": s.exports.Load(), "imports": s.imports.Load()})
-}
-
-func (s *Server) requestID(r *http.Request) string {
-	if rid := strings.TrimSpace(r.Header.Get("X-Request-Id")); rid != "" {
-		return rid
-	}
-	return fmt.Sprintf("req-%09d", s.requestCounter.Add(1))
-}
-func (s *Server) withRequestLogging(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		rid := s.requestID(r)
-		log.Printf("request method=%s path=%s request_id=%s tenant_id=%s", r.Method, r.URL.Path, rid, tenantIDFrom(r.Context()))
-		next.ServeHTTP(w, r)
+	writeJSON(w, 200, map[string]any{
+		"active_sessions": 1,
+		"nodes":           nodes,
+		"latency_ms_avg":  avgLatency,
+		"run_count":       s.runsCreated.Load(),
 	})
 }
+
+func mustJSON(v any) []byte {
+	b, _ := json.Marshal(v)
+	return b
+}
+
 func (s *Server) randomID(prefix string) string {
-	b := make([]byte, 16)
+	b := make([]byte, 8)
 	_, _ = rand.Read(b)
 	return prefix + "-" + hex.EncodeToString(b)
 }
+
 func hashID(v string) string { h := sha256.Sum256([]byte(v)); return hex.EncodeToString(h[:8]) }
 
 func writeError(w http.ResponseWriter, code int, message string) {
 	writeJSON(w, code, map[string]string{"error": message})
 }
+
 func writeJSON(w http.ResponseWriter, code int, body any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
