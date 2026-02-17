@@ -33,12 +33,13 @@ export function PackDiscovery({ onSelect, selectedId }: PackDiscoveryProps) {
 
   const FilterButton = ({ type, label }: { type: FilterType, label: string }) => {
     const isChecked = filter === type;
+    const ariaProps = { 'aria-checked': isChecked };
     return (
       <button
         onClick={() => setFilter(type)}
         className={`filter-chip ${isChecked ? 'active' : ''}`}
         role="radio"
-        aria-checked={isChecked}
+        {...ariaProps}
       >
         {label}
       </button>
