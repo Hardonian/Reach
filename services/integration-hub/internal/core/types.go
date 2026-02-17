@@ -45,3 +45,21 @@ type TriggerRequest struct {
 	Type     string         `json:"type"`
 	Payload  map[string]any `json:"payload"`
 }
+
+type Connector struct {
+	ID           string   `json:"id"`
+	TenantID     string   `json:"tenant_id"`
+	Provider     string   `json:"provider"`
+	Version      string   `json:"version"`
+	Scopes       []string `json:"scopes"`
+	Capabilities []string `json:"capabilities"`
+	Status       string   `json:"status"`
+}
+
+type ConnectorPolicyProfile string
+
+const (
+	ConnectorPolicyStrict       ConnectorPolicyProfile = "strict"
+	ConnectorPolicyModerate     ConnectorPolicyProfile = "moderate"
+	ConnectorPolicyExperimental ConnectorPolicyProfile = "experimental"
+)

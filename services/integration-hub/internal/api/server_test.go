@@ -160,3 +160,79 @@ func TestGoogleEventNormalizationWorkflowStart(t *testing.T) {
 		t.Fatalf("normalized schedule trigger not found: %s", eventsRec.Body.String())
 	}
 }
+
+func TestInternalExecuteTokenIsolation(t *testing.T) {
+	t.Setenv("REACH_INTERNAL_SIGNING_KEY", "internal-secret")
+	srv, _, cleanup := newTestServer(t)
+	defer cleanup()
+	tenant := "t-isolation"
+	h := srv.Routes()
+
+	startReq := httptest.NewRequest(http.MethodPost, "/v1/integrations/github/oauth/start", nil)
+	startReq.Header.Set("X-Reach-Tenant", tenant)
+	startRec := httptest.NewRecorder()
+	h.ServeHTTP(startRec, startReq)
+	var started map[string]any
+	_ = json.Unmarshal(startRec.Body.Bytes(), &started)
+	state := started["state"].(string)
+	cbReq := httptest.NewRequest(http.MethodGet, "/v1/integrations/github/oauth/callback?state="+state+"&code=abc", nil)
+	cbReq.Header.Set("X-Reach-Tenant", tenant)
+	cbRec := httptest.NewRecorder()
+	h.ServeHTTP(cbRec, cbReq)
+	if cbRec.Code != http.StatusOK {
+		t.Fatalf("oauth callback status %d", cbRec.Code)
+	}
+
+	nonce := "n-1"
+	sig := security.ComputeHMAC("internal-secret", []byte(nonce))
+	okReq := httptest.NewRequest(http.MethodPost, "/v1/internal/mcp/execute", bytes.NewBufferString(`{"tenant_id":"`+tenant+`","provider":"github","scope":"repo"}`))
+	okReq.Header.Set("X-Reach-Tenant", tenant)
+	okReq.Header.Set("X-Reach-Execution-Nonce", nonce)
+	okReq.Header.Set("X-Reach-Internal-Signature", sig)
+	okRec := httptest.NewRecorder()
+	h.ServeHTTP(okRec, okReq)
+	if okRec.Code != http.StatusOK || !bytes.Contains(okRec.Body.Bytes(), []byte("access-abc")) {
+		t.Fatalf("expected signed internal token response, got %d %s", okRec.Code, okRec.Body.String())
+	}
+
+	badReq := httptest.NewRequest(http.MethodPost, "/v1/internal/mcp/execute", bytes.NewBufferString(`{"tenant_id":"`+tenant+`","provider":"github","scope":"admin"}`))
+	badReq.Header.Set("X-Reach-Tenant", tenant)
+	badReq.Header.Set("X-Reach-Execution-Nonce", nonce)
+	badReq.Header.Set("X-Reach-Internal-Signature", sig)
+	badRec := httptest.NewRecorder()
+	h.ServeHTTP(badRec, badReq)
+	if badRec.Code != http.StatusForbidden {
+		t.Fatalf("expected scope forbidden, got %d", badRec.Code)
+	}
+}
+
+func TestConnectorCRUDAndPolicyProfile(t *testing.T) {
+	srv, _, cleanup := newTestServer(t)
+	defer cleanup()
+	h := srv.Routes()
+	tenant := "tenant-c"
+
+	upsert := httptest.NewRequest(http.MethodPost, "/v1/connectors", bytes.NewBufferString(`{"id":"conn-1","provider":"github","version":"1.0.0","scopes":["repo"],"capabilities":["filesystem:write"],"status":"enabled"}`))
+	upsert.Header.Set("X-Reach-Tenant", tenant)
+	upsertRec := httptest.NewRecorder()
+	h.ServeHTTP(upsertRec, upsert)
+	if upsertRec.Code != http.StatusOK {
+		t.Fatalf("connector upsert failed: %d", upsertRec.Code)
+	}
+
+	list := httptest.NewRequest(http.MethodGet, "/v1/connectors", nil)
+	list.Header.Set("X-Reach-Tenant", tenant)
+	listRec := httptest.NewRecorder()
+	h.ServeHTTP(listRec, list)
+	if listRec.Code != http.StatusOK || !bytes.Contains(listRec.Body.Bytes(), []byte("conn-1")) {
+		t.Fatalf("connector list failed: %d %s", listRec.Code, listRec.Body.String())
+	}
+
+	profile := httptest.NewRequest(http.MethodPost, "/v1/policy-profile", bytes.NewBufferString(`{"profile":"strict"}`))
+	profile.Header.Set("X-Reach-Tenant", tenant)
+	profileRec := httptest.NewRecorder()
+	h.ServeHTTP(profileRec, profile)
+	if profileRec.Code != http.StatusOK {
+		t.Fatalf("profile update failed: %d", profileRec.Code)
+	}
+}

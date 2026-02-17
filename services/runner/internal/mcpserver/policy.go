@@ -22,3 +22,10 @@ func (p *StaticPolicy) Allowed(_ string, capability string) bool {
 	_, ok := p.allowed[capability]
 	return ok
 }
+
+func (p *StaticPolicy) ProfileAllowed(profile, capability string) bool {
+	if profile == "strict" && capability == CapabilityFilesystemWrite {
+		return false
+	}
+	return p.Allowed("", capability)
+}

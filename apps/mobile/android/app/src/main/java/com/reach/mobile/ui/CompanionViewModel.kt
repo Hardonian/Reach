@@ -28,6 +28,16 @@ data class PatchPrompt(
     val unifiedDiff: String
 )
 
+
+
+data class ConnectorItem(
+    val id: String,
+    val provider: String,
+    val scopes: List<String>,
+    val risk: String,
+    val enabled: Boolean
+)
+
 data class CompanionUiState(
     val runIdInput: String = "",
     val runId: String? = null,
@@ -38,6 +48,11 @@ data class CompanionUiState(
     val workspaceFiles: List<String> = emptyList(),
     val selectedFilePath: String? = null,
     val selectedFilePreview: String = "",
+    val connectors: List<ConnectorItem> = listOf(
+        ConnectorItem("github-core", "github", listOf("workspace:read", "repo:read"), "moderate", true),
+        ConnectorItem("filesystem-admin", "filesystem", listOf("workspace:write"), "strict", false),
+        ConnectorItem("jira-experimental", "jira", listOf("tickets:read", "tickets:write"), "experimental", false)
+    ),
     val autonomousIterations: Int = 0,
     val maxIterations: Int = 0,
     val maxToolCalls: Int = 0,
@@ -198,6 +213,12 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    fun toggleConnector(id: String, enabled: Boolean) {
+        _uiState.update { state ->
+            state.copy(connectors = state.connectors.map { if (it.id == id) it.copy(enabled = enabled) else it })
+        }
+    }
+
     override fun onCleared() {
         streamJob?.cancel()
         super.onCleared()
@@ -220,3 +241,4 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
         return PatchPrompt(patchId = patchId, title = title, unifiedDiff = diff)
     }
 }
+
