@@ -130,6 +130,14 @@ type autoControl struct {
 }
 
 type Server struct {
+	version string
+
+	store     *jobs.Store
+	sql       *storage.SQLiteStore
+	registry  *NodeRegistry
+	metaMu    sync.RWMutex
+	runMeta   map[string]runMeta
+	autonomMu sync.RWMutex
 	store      *jobs.Store
 	sql        *storage.SQLiteStore
 	registry   *NodeRegistry
@@ -142,13 +150,23 @@ type Server struct {
 	runsCreated    atomic.Uint64
 }
 
+func NewServer(db *storage.SQLiteStore, version string) *Server {
+	if strings.TrimSpace(version) == "" {
+		version = "dev"
+	}
+	return &Server{version: version, store: jobs.NewStore(db), sql: db, registry: NewNodeRegistry(), runMeta: map[string]runMeta{}}
 func NewServer(db *storage.SQLiteStore) *Server {
 	return &Server{store: jobs.NewStore(db), sql: db, registry: NewNodeRegistry(), runMeta: map[string]runMeta{}, autonomous: map[string]*autoControl{}}
 }
 
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) { writeJSON(w, 200, map[string]string{"status": "ok"}) })
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, 200, map[string]string{"status": "ok", "version": s.version})
+	})
+	mux.HandleFunc("GET /version", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, 200, map[string]string{"version": s.version})
+	})
 	mux.HandleFunc("POST /auth/dev-login", s.handleDevLogin)
 	mux.Handle("POST /v1/runs", s.requireAuth(http.HandlerFunc(s.handleCreateRun)))
 	mux.Handle("POST /v1/runs/{id}/spawn", s.requireAuth(http.HandlerFunc(s.handleSpawnRun)))

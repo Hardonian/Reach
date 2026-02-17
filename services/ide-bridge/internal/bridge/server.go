@@ -22,6 +22,7 @@ type Config struct {
 	BindAddr      string
 	AuthToken     string
 	RunnerBaseURL string
+	Version       string
 	HTTPClient    *http.Client
 	Logger        *log.Logger
 }
@@ -42,6 +43,9 @@ func NewServer(cfg Config) *Server {
 	if cfg.Logger == nil {
 		cfg.Logger = log.New(io.Discard, "", 0)
 	}
+	if cfg.Version == "" {
+		cfg.Version = "dev"
+	}
 
 	return &Server{
 		cfg:     cfg,
@@ -51,6 +55,12 @@ func NewServer(cfg Config) *Server {
 
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "version": s.cfg.Version})
+	})
+	mux.HandleFunc("/version", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]any{"version": s.cfg.Version})
+	})
 	mux.HandleFunc("/v1/register-editor", s.handleRegisterEditor)
 	mux.HandleFunc("/v1/context/", s.handleUpdateContext)
 	mux.HandleFunc("/v1/ws/", s.handleEditorWebSocket)

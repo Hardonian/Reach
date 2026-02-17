@@ -46,7 +46,7 @@ func newTestServer(t *testing.T) (*Server, *httptest.Server, func()) {
 		"github": {Provider: "github", ClientID: "id", RedirectURI: "http://cb", Scopes: []string{"repo"}},
 		"jira":   {Provider: "jira", ClientID: "id", RedirectURI: "http://cb", Scopes: []string{"read:jira-work"}},
 	}
-	srv := NewServer(store, cipher, router.NewTriggerDispatcher(runner.URL), clients)
+	srv := NewServer(store, cipher, router.NewTriggerDispatcher(runner.URL), clients, "test")
 	cleanup := func() {
 		_ = store.Close()
 		if triggerCalls == 0 {
