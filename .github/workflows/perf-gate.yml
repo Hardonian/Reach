@@ -2,6 +2,40 @@ name: perf-gate
 
 on:
   pull_request:
+  workflow_dispatch:
+
+jobs:
+  perf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Run perf harness (fast)
+        run: go run ./tools/perf --profile fast --out tools/perf/report.json
+      - name: Enforce budgets
+        run: |
+          python - <<'PY'
+          import json,sys
+          with open('tools/perf/report.json') as f:
+              r=json.load(f)
+          limits={
+            'trigger_to_first_event':1200,
+            'approval_to_resume':900,
+            'fanout_latency':700,
+            'spawn_scheduling_overhead':600,
+          }
+          failed=[]
+          for m in r['metrics']:
+              lim=limits.get(m['name'])
+              if lim is not None and m['p95_ms']>lim:
+                  failed.append(f"{m['name']} p95 {m['p95_ms']} > {lim}")
+          if failed:
+              print('\n'.join(failed))
+              sys.exit(1)
+          print('perf budgets passed')
+          PY
     paths:
       - 'services/runner/**'
       - 'services/session-hub/**'

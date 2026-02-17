@@ -145,6 +145,9 @@ type Server struct {
 
 	requestCounter atomic.Uint64
 	runsCreated    atomic.Uint64
+	spawnAttempts  atomic.Uint64
+	spawnDenied    atomic.Uint64
+	toolCalls      atomic.Uint64
 }
 
 func NewServer(db *storage.SQLiteStore, version string) *Server {
@@ -475,10 +478,12 @@ func (s *Server) handleSpawnRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	deny := func(reason string) {
+		s.spawnDenied.Add(1)
 		s.metaMu.Unlock()
 		_ = s.store.PublishEvent(r.Context(), parentID, jobs.Event{Type: "spawn.denied", Payload: mustJSON(map[string]any{"parent_id": parentID, "reason": reason}), CreatedAt: time.Now().UTC()}, s.requestID(r))
 		writeError(w, 403, reason)
 	}
+	s.spawnAttempts.Add(1)
 	if parent.Spawn.Depth+1 > parent.Spawn.MaxDepth {
 		deny("max spawn depth exceeded")
 		return
@@ -562,6 +567,7 @@ func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
 		writeError(w, 403, err.Error())
 		return
 	}
+	s.toolCalls.Add(1)
 	payload := mustJSON(map[string]any{"type": "tool_result", "tool": body.ToolName, "result": body.Result})
 	_ = s.store.PublishEvent(r.Context(), runID, jobs.Event{Type: "tool.result", Payload: payload, CreatedAt: time.Now().UTC()}, s.requestID(r))
 	writeJSON(w, 200, map[string]string{"status": "ok"})
@@ -701,7 +707,11 @@ func (s *Server) handleRegisterNode(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleMetrics(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, 200, map[string]uint64{"runs_created": s.runsCreated.Load()})
+	w.Header().Set("Content-Type", "text/plain; version=0.0.4")
+	_, _ = w.Write([]byte(fmt.Sprintf("runs_created_total %d\n", s.runsCreated.Load())))
+	_, _ = w.Write([]byte(fmt.Sprintf("spawn_attempts_total %d\n", s.spawnAttempts.Load())))
+	_, _ = w.Write([]byte(fmt.Sprintf("spawn_denied_total %d\n", s.spawnDenied.Load())))
+	_, _ = w.Write([]byte(fmt.Sprintf("tool_calls_total{decision=\"allowed\"} %d\n", s.toolCalls.Load())))
 }
 
 func (s *Server) handlePromMetrics(w http.ResponseWriter, r *http.Request) {

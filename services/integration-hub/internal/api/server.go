@@ -6,11 +6,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"reach/services/integration-hub/internal/core"
@@ -24,12 +26,15 @@ const maxWebhookPayloadBytes int64 = 1 << 20
 const webhookTimestampSkew = 5 * time.Minute
 
 type Server struct {
-	version    string
-	store      *storage.Store
-	cipher     *security.Cipher
-	dispatcher *router.TriggerDispatcher
-	clients    map[string]core.OAuthClient
-	limiter    *security.Limiter
+	version            string
+	requestCounter     atomic.Uint64
+	webhookVerifyFail  atomic.Uint64
+	webhookReplayBlock atomic.Uint64
+	store              *storage.Store
+	cipher             *security.Cipher
+	dispatcher         *router.TriggerDispatcher
+	clients            map[string]core.OAuthClient
+	limiter            *security.Limiter
 }
 
 func NewServer(store *storage.Store, cipher *security.Cipher, dispatcher *router.TriggerDispatcher, clients map[string]core.OAuthClient, version string) *Server {
@@ -45,6 +50,7 @@ func (s *Server) Routes() http.Handler {
 		writeJSON(w, map[string]any{"status": "ok", "version": s.version})
 	})
 	mux.HandleFunc("GET /version", func(w http.ResponseWriter, _ *http.Request) { writeJSON(w, map[string]any{"version": s.version}) })
+	mux.HandleFunc("GET /metrics", s.handleMetrics)
 	mux.HandleFunc("GET /v1/integrations", s.listIntegrations)
 	mux.HandleFunc("GET /v1/events", s.listEvents)
 	mux.HandleFunc("GET /v1/audit", s.listAudit)
@@ -61,16 +67,22 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("POST /webhooks/google", s.webhook("google"))
 	mux.HandleFunc("POST /webhooks/jira", s.webhook("jira"))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
 		tenantID := r.Header.Get("X-Reach-Tenant")
-		if tenantID == "" {
+		if tenantID == "" && r.URL.Path != "/healthz" && r.URL.Path != "/version" && r.URL.Path != "/metrics" {
 			http.Error(w, "missing tenant", http.StatusUnauthorized)
+			s.logRequest(r, tenantID, http.StatusUnauthorized, time.Since(start))
 			return
 		}
-		if !s.limiter.Allow(tenantID + ":" + r.URL.Path) {
+		if tenantID != "" && !s.limiter.Allow(tenantID+":"+r.URL.Path) {
 			http.Error(w, "rate limited", http.StatusTooManyRequests)
+			s.logRequest(r, tenantID, http.StatusTooManyRequests, time.Since(start))
 			return
 		}
+		rid := requestID(r, s.requestCounter.Add(1))
+		w.Header().Set("X-Request-ID", rid)
 		mux.ServeHTTP(w, r)
+		s.logRequest(r, tenantID, http.StatusOK, time.Since(start))
 	})
 }
 
@@ -138,6 +150,9 @@ func (s *Server) webhook(provider string) http.HandlerFunc {
 			return
 		}
 		nonce := r.Header.Get("X-Reach-Delivery")
+		if err := s.store.CheckAndMarkReplay(tenantID, nonce, 10*time.Minute); err != nil {
+			s.webhookReplayBlock.Add(1)
+			s.webhookVerifyFail.Add(1)
 		if err := s.store.CheckAndMarkReplay(tenantID, provider, nonce, 10*time.Minute); err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
@@ -160,6 +175,7 @@ func (s *Server) webhook(provider string) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		_ = s.dispatcher.Dispatch(r.Context(), e, correlationFromRequest(r))
 		ctx, cancel := context.WithTimeout(r.Context(), 4*time.Second)
 		defer cancel()
 		_ = s.dispatcher.Dispatch(ctx, r.Header.Get("X-Correlation-ID"), e)
@@ -242,6 +258,7 @@ func (s *Server) approval(w http.ResponseWriter, r *http.Request) {
 	decision, _ := payload["decision"].(string)
 	e := core.NormalizedEvent{SchemaVersion: core.SchemaVersion, EventID: randToken(), TenantID: tenantID, Provider: provider, EventType: "approval." + decision, TriggerType: "approval", OccurredAt: time.Now().UTC(), Actor: map[string]string{"id": "external-user"}, Raw: payload, Resource: map[string]any{"decision": decision}}
 	_ = s.store.SaveEvent(e)
+	_ = s.dispatcher.Dispatch(r.Context(), e, correlationFromRequest(r))
 	ctx, cancel := context.WithTimeout(r.Context(), 4*time.Second)
 	defer cancel()
 	_ = s.dispatcher.Dispatch(ctx, r.Header.Get("X-Correlation-ID"), e)
@@ -379,6 +396,45 @@ func (s *Server) internalExecute(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, map[string]any{"access_token": string(tok), "provider": in.Provider})
 }
 
+func correlationFromRequest(r *http.Request) router.Correlation {
+	return router.Correlation{
+		TraceID:   strings.TrimSpace(r.Header.Get("X-Trace-ID")),
+		SessionID: strings.TrimSpace(r.Header.Get("X-Session-ID")),
+		RunID:     strings.TrimSpace(r.Header.Get("X-Run-ID")),
+		AgentID:   strings.TrimSpace(r.Header.Get("X-Agent-ID")),
+		SpawnID:   strings.TrimSpace(r.Header.Get("X-Spawn-ID")),
+		NodeID:    strings.TrimSpace(r.Header.Get("X-Node-ID")),
+		RequestID: strings.TrimSpace(r.Header.Get("X-Request-ID")),
+	}
+}
+
+func (s *Server) handleMetrics(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "text/plain; version=0.0.4")
+	_, _ = w.Write([]byte(fmt.Sprintf("webhook_verify_fail_total %d\n", s.webhookVerifyFail.Load())))
+	_, _ = w.Write([]byte(fmt.Sprintf("webhook_replay_block_total %d\n", s.webhookReplayBlock.Load())))
+}
+
+func requestID(r *http.Request, fallback uint64) string {
+	if v := strings.TrimSpace(r.Header.Get("X-Request-ID")); v != "" {
+		return v
+	}
+	return fmt.Sprintf("req-%d", fallback)
+}
+
+func (s *Server) logRequest(r *http.Request, tenant string, code int, d time.Duration) {
+	entry := map[string]any{
+		"msg":         "request",
+		"service":     "integration-hub",
+		"path":        r.URL.Path,
+		"method":      r.Method,
+		"status":      code,
+		"duration_ms": d.Milliseconds(),
+		"tenant_id":   tenant,
+		"trace_id":    r.Header.Get("X-Trace-ID"),
+		"request_id":  r.Header.Get("X-Request-ID"),
+	}
+	b, _ := json.Marshal(entry)
+	fmt.Println(string(b))
 func verifyReachTimestamp(r *http.Request, now time.Time) error {
 	timestamp := strings.TrimSpace(r.Header.Get("X-Reach-Timestamp"))
 	if timestamp == "" {
