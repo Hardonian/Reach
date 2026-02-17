@@ -109,33 +109,42 @@ impl RunHandle {
 
         match &step.kind {
             StepKind::ToolCall { tool, input } => {
-                let decision = self.policy.evaluate(Capability::ToolUse {
+                let required_capabilities = vec![Capability::ToolUse {
                     name: tool.name.clone(),
-                });
-                match decision {
-                    Decision::Allow => {
-                        self.pending_events.push_back(RunEvent::ToolCallRequested {
-                            step_id: step.id.clone(),
-                            call: ToolCall {
-                                step_id: step.id.clone(),
-                                tool_name: tool.name.clone(),
-                                input: input.clone(),
-                            },
-                        });
-                        Action::ToolCall(ToolCall {
+                }];
+                if let Some(reason) = self.first_denied_reason(&required_capabilities) {
+                    let message = format!("policy denied tool call {}: {reason}", tool.name);
+                    self.pending_events.push_back(RunEvent::PolicyDenied {
+                        step_id: step.id.clone(),
+                        call: ToolCall {
                             step_id: step.id.clone(),
                             tool_name: tool.name.clone(),
+                            required_capabilities,
                             input: input.clone(),
-                        })
-                    }
-                    Decision::Deny(reason) => {
-                        let message = format!("policy denied tool call {}: {reason}", tool.name);
-                        let _ = self.transition(RunStatus::Failed {
-                            reason: message.clone(),
-                        });
-                        Action::Error { message }
-                    }
+                        },
+                        reason: reason.clone(),
+                    });
+                    let _ = self.transition(RunStatus::Failed {
+                        reason: message.clone(),
+                    });
+                    return Action::Error { message };
                 }
+
+                self.pending_events.push_back(RunEvent::ToolCallRequested {
+                    step_id: step.id.clone(),
+                    call: ToolCall {
+                        step_id: step.id.clone(),
+                        tool_name: tool.name.clone(),
+                        required_capabilities: required_capabilities.clone(),
+                        input: input.clone(),
+                    },
+                });
+                Action::ToolCall(ToolCall {
+                    step_id: step.id.clone(),
+                    tool_name: tool.name.clone(),
+                    required_capabilities,
+                    input: input.clone(),
+                })
             }
             StepKind::EmitArtifact { patch } => {
                 self.pending_events.push_back(RunEvent::ArtifactEmitted {
@@ -167,6 +176,15 @@ impl RunHandle {
     #[must_use]
     pub fn drain_events(&mut self) -> Vec<RunEvent> {
         self.pending_events.drain(..).collect()
+    }
+
+    fn first_denied_reason(&self, required_capabilities: &[Capability]) -> Option<String> {
+        for capability in required_capabilities {
+            if let Decision::Deny(reason) = self.policy.evaluate(capability) {
+                return Some(reason);
+            }
+        }
+        None
     }
 
     fn transition(&mut self, target: RunStatus) -> Result<(), StateTransitionError> {

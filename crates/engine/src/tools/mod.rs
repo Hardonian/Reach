@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::policy::Capability;
 use crate::workflow::StepId;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -14,6 +15,7 @@ pub struct ToolSpec {
 pub struct ToolCall {
     pub step_id: StepId,
     pub tool_name: String,
+    pub required_capabilities: Vec<Capability>,
     pub input: serde_json::Value,
 }
 

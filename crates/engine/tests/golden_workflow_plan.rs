@@ -1,4 +1,9 @@
-use engine::{policy::Policy, state::RunEvent, tools::ToolResult, Action, Engine, EngineConfig};
+use engine::{
+    policy::{Capability, Policy},
+    state::RunEvent,
+    tools::ToolResult,
+    Action, Engine, EngineConfig,
+};
 
 #[test]
 fn deterministic_event_sequence_for_simple_workflow() {
@@ -71,6 +76,9 @@ fn deterministic_event_sequence_for_simple_workflow() {
             call: engine::tools::ToolCall {
                 step_id: "step-1".to_owned(),
                 tool_name: "echo".to_owned(),
+                required_capabilities: vec![Capability::ToolUse {
+                    name: "echo".to_owned(),
+                }],
                 input: serde_json::json!({"message": "hi"}),
             },
         },

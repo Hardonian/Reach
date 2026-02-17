@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"reach/services/runner/internal/engineclient"
@@ -14,6 +15,8 @@ import (
 )
 
 type Server struct {
+	store          *jobs.Store
+	requestCounter atomic.Uint64
 	store  *jobs.Store
 	engine *engineclient.Client
 }
@@ -27,9 +30,20 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /v1/runs", s.handleCreateRun)
 	mux.HandleFunc("GET /v1/runs/{id}/events", s.handleStreamEvents)
 	mux.HandleFunc("POST /v1/runs/{id}/tool-result", s.handleToolResult)
+	mux.HandleFunc("GET /v1/runs/{id}/audit", s.handleGetAudit)
 	return mux
 }
 
+func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
+	requestID := s.requestID(r)
+	var body struct {
+		Capabilities []string `json:"capabilities"`
+	}
+	if r.Body != nil {
+		_ = json.NewDecoder(r.Body).Decode(&body)
+	}
+	run := s.store.CreateRun(requestID, body.Capabilities)
+	writeJSON(w, http.StatusCreated, map[string]string{"run_id": run.ID, "request_id": requestID})
 type createRunRequest struct {
 	Workflow  json.RawMessage `json:"workflow"`
 	Initiator string          `json:"initiator"`
@@ -79,6 +93,7 @@ func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
+	requestID := s.requestID(r)
 	runID := r.PathValue("id")
 	if runID == "" {
 		writeError(w, http.StatusBadRequest, "missing run id")
@@ -95,6 +110,9 @@ func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var body struct {
+		ToolName             string         `json:"tool_name"`
+		RequiredCapabilities []string       `json:"required_capabilities"`
+		Result               map[string]any `json:"result"`
 		StepID   string          `json:"step_id"`
 		ToolName string          `json:"tool_name"`
 		Output   json.RawMessage `json:"output"`
@@ -105,6 +123,24 @@ func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid json")
 		return
 	}
+	if body.ToolName == "" {
+		writeError(w, http.StatusBadRequest, "missing tool_name")
+		return
+	}
+
+	_ = s.store.Audit(runID, requestID, "engine.action.requested", map[string]any{
+		"tool_name":             body.ToolName,
+		"required_capabilities": body.RequiredCapabilities,
+	})
+
+	if err := s.store.CheckCapabilities(runID, body.RequiredCapabilities); err != nil {
+		_ = s.store.Audit(runID, requestID, "tool.execution.rejected", map[string]any{"reason": err.Error()})
+		writeError(w, http.StatusForbidden, err.Error())
+		return
+	}
+
+	_ = s.store.Audit(runID, requestID, "tool.call.executed", map[string]any{"tool_name": body.ToolName})
+	_ = s.store.Audit(runID, requestID, "tool.result.received", map[string]any{"tool_name": body.ToolName, "result": body.Result})
 	if body.StepID == "" || body.ToolName == "" {
 		writeError(w, http.StatusBadRequest, "missing step_id or tool_name")
 		return
@@ -123,6 +159,7 @@ func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := s.store.PublishEvent(runID, jobs.Event{Type: "tool.result", Payload: payload, CreatedAt: time.Now().UTC()}, requestID); err != nil {
 	ctx, cancel := context.WithTimeout(r.Context(), 20*time.Second)
 	defer cancel()
 
@@ -150,7 +187,27 @@ func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "request_id": requestID})
+}
+
+func (s *Server) handleGetAudit(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+	if runID == "" {
+		writeError(w, http.StatusBadRequest, "missing run id")
+		return
+	}
+
+	entries, err := s.store.ListAudit(runID)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if errors.Is(err, jobs.ErrRunNotFound) {
+			status = http.StatusNotFound
+		}
+		writeError(w, status, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{"entries": entries})
 }
 
 func (s *Server) handleStreamEvents(w http.ResponseWriter, r *http.Request) {
@@ -207,6 +264,11 @@ func (s *Server) handleStreamEvents(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Server) requestID(r *http.Request) string {
+	if rid := strings.TrimSpace(r.Header.Get("X-Request-Id")); rid != "" {
+		return rid
+	}
+	return fmt.Sprintf("req-%09d", s.requestCounter.Add(1))
 func (s *Server) advanceRun(ctx context.Context, runID string) error {
 	for {
 		state, err := s.store.EngineState(runID)

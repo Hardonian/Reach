@@ -27,11 +27,27 @@ pub enum StateTransitionError {
 pub enum RunEvent {
     RunCreated,
     RunStarted,
-    ToolCallRequested { step_id: StepId, call: ToolCall },
-    ToolCallCompleted { step_id: StepId, result: ToolResult },
-    ArtifactEmitted { step_id: StepId, patch: Patch },
+    ToolCallRequested {
+        step_id: StepId,
+        call: ToolCall,
+    },
+    ToolCallCompleted {
+        step_id: StepId,
+        result: ToolResult,
+    },
+    PolicyDenied {
+        step_id: StepId,
+        call: ToolCall,
+        reason: String,
+    },
+    ArtifactEmitted {
+        step_id: StepId,
+        patch: Patch,
+    },
     RunCompleted,
-    RunFailed { reason: String },
+    RunFailed {
+        reason: String,
+    },
 }
 
 impl RunStatus {

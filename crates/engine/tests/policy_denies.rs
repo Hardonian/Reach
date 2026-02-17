@@ -55,6 +55,21 @@ fn denied_capability_stops_run_deterministically() {
     assert_eq!(events[0], RunEvent::RunStarted);
     assert_eq!(
         events[1],
+        RunEvent::PolicyDenied {
+            step_id: "step-1".to_owned(),
+            call: engine::tools::ToolCall {
+                step_id: "step-1".to_owned(),
+                tool_name: "dangerous".to_owned(),
+                required_capabilities: vec![Capability::ToolUse {
+                    name: "dangerous".to_owned(),
+                }],
+                input: serde_json::json!({}),
+            },
+            reason: "tool blocked by policy".to_owned(),
+        }
+    );
+    assert_eq!(
+        events[2],
         RunEvent::RunFailed {
             reason: "policy denied tool call dangerous: tool blocked by policy".to_owned()
         }
