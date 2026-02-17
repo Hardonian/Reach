@@ -8,6 +8,7 @@ export class ReachPanel implements vscode.Disposable {
   private readonly events: BridgeEvent[] = [];
   private readonly artifacts: Artifact[] = [];
   private readonly approvals: ApprovalPrompt[] = [];
+  private autonomousBanner = "";
   private readonly sessionMembers = new Set<string>();
   private readonly liveRuns: { runId: string; nodeId: string }[] = [];
 
@@ -68,6 +69,13 @@ export class ReachPanel implements vscode.Disposable {
       this.approvals.length = Math.min(this.approvals.length, 20);
     }
 
+    if (event.type === "autonomous.started") {
+      this.autonomousBanner = "Autonomous mode running";
+    }
+    if (event.type === "autonomous.stopped") {
+      this.autonomousBanner = "Autonomous mode stopped";
+    }
+
     if (event.type === 'patch' && typeof event.diff === 'string') {
       try {
         await previewAndApplyDiff(event.diff);
@@ -101,6 +109,7 @@ export class ReachPanel implements vscode.Disposable {
       events: this.events,
       artifacts: this.artifacts,
       approvals: this.approvals,
+      autonomousBanner: this.autonomousBanner
       sessionMembers: Array.from(this.sessionMembers),
       liveRuns: this.liveRuns
     });
@@ -125,6 +134,7 @@ export class ReachPanel implements vscode.Disposable {
 <body>
   <h1>Reach IDE Bridge</h1>
 
+  <div id="autonomous-banner" style="padding:6px;border:1px solid #4caf50;border-radius:6px;margin-bottom:8px;"></div>
   <h2>Streaming Events</h2>
   <ul id="events"></ul>
 
@@ -146,6 +156,10 @@ export class ReachPanel implements vscode.Disposable {
     window.addEventListener('message', (event) => {
       const message = event.data;
       if (message.type !== 'state') return;
+
+      const banner = document.getElementById('autonomous-banner');
+      banner.textContent = message.autonomousBanner || "";
+      banner.style.display = banner.textContent ? "block" : "none";
 
       const eventsList = document.getElementById('events');
       eventsList.innerHTML = message.events

@@ -38,6 +38,10 @@ data class CompanionUiState(
     val workspaceFiles: List<String> = emptyList(),
     val selectedFilePath: String? = null,
     val selectedFilePreview: String = "",
+    val autonomousIterations: Int = 0,
+    val maxIterations: Int = 0,
+    val maxToolCalls: Int = 0,
+    val toolCallCount: Int = 0,
     val sessionIdInput: String = "",
     val sessionId: String? = null,
     val sessionMembers: List<String> = emptyList(),
@@ -116,6 +120,14 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
             if (patchPrompt != null) {
                 nextState = nextState.copy(pendingPatch = patchPrompt)
             }
+            if (event.type == "autonomous.checkpoint") {
+                val payload = event.payloadAsObject()
+                val iteration = payload?.get("iteration")?.jsonPrimitive?.content?.toIntOrNull() ?: nextState.autonomousIterations
+                nextState = nextState.copy(autonomousIterations = iteration)
+            }
+            if (event.type == "autonomous.stopped") {
+                nextState = nextState.copy(status = "Autonomous stopped")
+            }
             if (event.type == "run.completed") {
                 val status = event.payloadAsObject()?.get("status")?.jsonPrimitive?.content ?: "completed"
                 nextState = nextState.copy(status = "Run $status")
@@ -154,6 +166,16 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
                 .onSuccess {
                     _uiState.update { it.copy(pendingPatch = null, status = "Patch decision sent: $decision", error = null) }
                 }
+                .onFailure { throwable -> _uiState.update { it.copy(error = throwable.message.orEmpty()) } }
+        }
+    }
+
+
+    fun stopAutonomous() {
+        val runId = _uiState.value.runId ?: return
+        viewModelScope.launch {
+            gateway.stopAutonomous(runId)
+                .onSuccess { _uiState.update { it.copy(status = "Stopping autonomous loop", error = null) } }
                 .onFailure { throwable -> _uiState.update { it.copy(error = throwable.message.orEmpty()) } }
         }
     }

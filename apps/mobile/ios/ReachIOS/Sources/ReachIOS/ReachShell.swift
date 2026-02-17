@@ -23,6 +23,8 @@ public final class ReachViewModel: ObservableObject {
     @Published public private(set) var runs: [RunSummary] = []
     @Published public private(set) var terminalLines: [String] = []
     @Published public var command: String = ""
+    @Published public private(set) var autonomousIterations: Int = 0
+    @Published public private(set) var autonomousStatus: String = "idle"
     @Published public var sessionID: String = ""
     @Published public var members: [SessionMember] = []
     @Published public var assignedNode: String = "-"
@@ -110,6 +112,14 @@ public final class ReachViewModel: ObservableObject {
             let eventID = envelope.eventId ?? fallbackEventID ?? "-"
             let eventType = envelope.type ?? "message"
             let line = "[\(eventID)] \(eventType) \(raw)"
+            if eventType == "autonomous.checkpoint",
+               let value = envelope.payload?["iteration"], let i = Int(value) {
+                autonomousIterations = i
+                autonomousStatus = "running"
+            }
+            if eventType == "autonomous.stopped" {
+                autonomousStatus = "stopped"
+            }
             terminalLines = Array((terminalLines + [line]).suffix(maxEvents))
             return
         }
@@ -162,6 +172,10 @@ public struct ReachShellView: View {
                     .font(.system(size: 12, weight: .regular, design: .monospaced))
                     .lineLimit(2)
             }
+
+            Text("Autonomous: \(model.autonomousStatus) · Iterations: \(model.autonomousIterations)")
+                .foregroundStyle(.green)
+                .font(.system(size: 12, weight: .regular, design: .monospaced))
 
             HStack(spacing: 8) {
                 TextField("Command", text: $model.command)

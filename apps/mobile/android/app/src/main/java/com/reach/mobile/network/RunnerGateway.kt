@@ -20,4 +20,5 @@ interface RunnerGateway {
     suspend fun submitPatchDecision(runId: String, patchId: String, decision: String): Result<Unit>
     suspend fun fetchWorkspaceFiles(runId: String): Result<List<String>>
     suspend fun fetchWorkspaceFile(runId: String, path: String): Result<String>
+    suspend fun stopAutonomous(runId: String): Result<Unit>
 }

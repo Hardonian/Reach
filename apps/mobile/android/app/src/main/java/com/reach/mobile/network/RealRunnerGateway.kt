@@ -48,4 +48,8 @@ class RealRunnerGateway(
     override suspend fun fetchWorkspaceFile(runId: String, path: String): Result<String> {
         return httpClient.fetchWorkspaceFile(runId, path)
     }
+
+    override suspend fun stopAutonomous(runId: String): Result<Unit> {
+        return httpClient.stopAutonomous(runId)
+    }
 }
