@@ -74,7 +74,7 @@ func TestSpawnDepthEnforcement(t *testing.T) {
 	// Create child
 	child := doReq(t, srv, cookie, http.MethodPost, "/v1/runs/"+root+"/spawn", `{"capabilities":["tool:echo"]}`)
 	if child.Code != http.StatusCreated {
-		t.Fatalf("expected child creation, got %d", child.Code)
+		t.Fatalf("expected child creation, got %d: %s", child.Code, child.Body.String())
 	}
 	var out map[string]any
 	_ = json.Unmarshal(child.Body.Bytes(), &out)
