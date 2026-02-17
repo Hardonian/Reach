@@ -185,8 +185,6 @@ func TestFreeTierCannotJoinCollaboration(t *testing.T) {
 	}
 	defer conn.Close()
 	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
-	key := base64.StdEncoding.EncodeToString([]byte("1234567890123456"))
-	_, _ = rw.WriteString(fmt.Sprintf("GET /ws/session/sess-2?tenant_id=t1&member_id=free&role=viewer&plan_tier=free HTTP/1.1\r\nHost: %s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n", u.Host, key))
 	key := base64.StdEncoding.EncodeToString([]byte("0123456789012345"))
 	_, _ = rw.WriteString(fmt.Sprintf("GET /ws/session/sess-2?tenant_id=t1&member_id=free&role=viewer&plan_tier=free&plan=free HTTP/1.1\r\nHost: %s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n", u.Host, key))
 	_ = rw.Flush()

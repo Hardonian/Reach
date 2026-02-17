@@ -279,3 +279,52 @@ func TestWebhookReplayAndTimestampRejected(t *testing.T) {
 		t.Fatalf("expected stale timestamp rejected, got %d", rec.Code)
 	}
 }
+
+func TestWebhookReplayGuardScopedByTenantProviderNonce(t *testing.T) {
+	srv, _, cleanup := newTestServer(t)
+	defer cleanup()
+	h := srv.Routes()
+
+	_ = srv.store.SaveWebhookSecret("tenant-r", "github", "ghsecret")
+	_ = srv.store.SaveWebhookSecret("tenant-r", "google", "gsecret")
+
+	nonce := "shared-delivery"
+	now := fmt.Sprint(time.Now().Unix())
+
+	ghPayload := []byte(`{"action":"opened","pull_request":{"html_url":"https://github/pr/1"}}`)
+	ghSig := security.ComputeHMAC("ghsecret", ghPayload)
+	ghReq := httptest.NewRequest(http.MethodPost, "/webhooks/github", bytes.NewReader(ghPayload))
+	ghReq.Header.Set("X-Reach-Tenant", "tenant-r")
+	ghReq.Header.Set("X-Reach-Delivery", nonce)
+	ghReq.Header.Set("X-Hub-Signature-256", ghSig)
+	ghReq.Header.Set("X-Reach-Timestamp", now)
+	ghRec := httptest.NewRecorder()
+	h.ServeHTTP(ghRec, ghReq)
+	if ghRec.Code != http.StatusOK {
+		t.Fatalf("github webhook failed: %d %s", ghRec.Code, ghRec.Body.String())
+	}
+
+	googlePayload := []byte(`{"eventType":"calendar.event.updated","email":"user@corp.com","calendarId":"primary"}`)
+	googleSig := security.ComputeHMAC("gsecret", googlePayload)
+	googleReq := httptest.NewRequest(http.MethodPost, "/webhooks/google", bytes.NewReader(googlePayload))
+	googleReq.Header.Set("X-Reach-Tenant", "tenant-r")
+	googleReq.Header.Set("X-Reach-Delivery", nonce)
+	googleReq.Header.Set("X-Reach-Signature", googleSig)
+	googleReq.Header.Set("X-Reach-Timestamp", now)
+	googleRec := httptest.NewRecorder()
+	h.ServeHTTP(googleRec, googleReq)
+	if googleRec.Code != http.StatusOK {
+		t.Fatalf("google webhook with same nonce should be allowed across provider boundary: %d %s", googleRec.Code, googleRec.Body.String())
+	}
+
+	dupReq := httptest.NewRequest(http.MethodPost, "/webhooks/github", bytes.NewReader(ghPayload))
+	dupReq.Header.Set("X-Reach-Tenant", "tenant-r")
+	dupReq.Header.Set("X-Reach-Delivery", nonce)
+	dupReq.Header.Set("X-Hub-Signature-256", ghSig)
+	dupReq.Header.Set("X-Reach-Timestamp", now)
+	dupRec := httptest.NewRecorder()
+	h.ServeHTTP(dupRec, dupReq)
+	if dupRec.Code != http.StatusUnauthorized {
+		t.Fatalf("duplicate tenant/provider/nonce should be blocked, got %d", dupRec.Code)
+	}
+}
