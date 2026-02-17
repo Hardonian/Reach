@@ -8,20 +8,30 @@ import (
 	"reach/internal/packkit/registry"
 )
 
-func ResolvePackage(id, versionConstraint string, idx registry.Index) (registry.PackageRef, error) {
-	var match *registry.PackageRef
-	for i := range idx.Packages {
-		pkg := idx.Packages[i]
-		if pkg.ID != id || !matchesConstraint(pkg.Version, versionConstraint) {
+type ResolvedPackage struct {
+	ID string
+	registry.PackageVersion
+}
+
+func ResolvePackage(id, versionConstraint string, idx registry.Index) (ResolvedPackage, error) {
+	var match *ResolvedPackage
+	for _, p := range idx.Packages {
+		if p.ID != id {
 			continue
 		}
-		if match == nil || compareVersion(pkg.Version, match.Version) > 0 {
-			copyPkg := pkg
-			match = &copyPkg
+		for _, v := range p.Versions {
+			if !matchesConstraint(v.Version, versionConstraint) {
+				continue
+			}
+			candidate := ResolvedPackage{ID: id, PackageVersion: v}
+			if match == nil || compareVersion(candidate.Version, match.Version) > 0 {
+				copyPkg := candidate
+				match = &copyPkg
+			}
 		}
 	}
 	if match == nil {
-		return registry.PackageRef{}, fmt.Errorf("package not found: %s %s", id, versionConstraint)
+		return ResolvedPackage{}, fmt.Errorf("package not found: %s %s", id, versionConstraint)
 	}
 	return *match, nil
 }

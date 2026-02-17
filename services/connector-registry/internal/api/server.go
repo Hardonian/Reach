@@ -27,6 +27,7 @@ func (s *Server) Handler() http.Handler {
 	})
 	mux.HandleFunc("GET /v1/connectors", s.list)
 	mux.HandleFunc("POST /v1/connectors/install", s.install)
+	mux.HandleFunc("POST /v1/connectors/upgrade", s.upgrade)
 	mux.HandleFunc("DELETE /v1/connectors/", s.uninstall)
 	return mux
 }
@@ -52,6 +53,24 @@ func (s *Server) install(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusCreated, installed)
+}
+
+func (s *Server) upgrade(w http.ResponseWriter, r *http.Request) {
+	var req registry.InstallRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if req.ID == "" {
+		http.Error(w, "connector id required", http.StatusBadRequest)
+		return
+	}
+	installed, err := s.store.Upgrade(req.ID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	writeJSON(w, http.StatusOK, installed)
 }
 
 func (s *Server) uninstall(w http.ResponseWriter, r *http.Request) {

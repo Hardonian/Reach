@@ -7,6 +7,8 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -24,7 +26,7 @@ func setupRegistry(t *testing.T, withSig bool) (string, map[string]string) {
 	manifestBytes, _ := json.Marshal(m)
 	_ = os.WriteFile(filepath.Join(root, "connectors", "conn.github", "1.0.0", "manifest.json"), manifestBytes, 0o644)
 	_ = os.WriteFile(filepath.Join(root, "connectors", "conn.github", "1.0.0", "bundle.tgz"), bundle, 0o644)
-	idx := map[string]any{"packages": []map[string]string{{"id": "conn.github", "version": "1.0.0", "manifest": "conn.github/1.0.0/manifest.json", "sig": "conn.github/1.0.0/manifest.sig", "bundle": "conn.github/1.0.0/bundle.tgz", "hash": hex.EncodeToString(h[:])}}}
+	idx := map[string]any{"packages": []map[string]any{{"id": "conn.github", "versions": []map[string]string{{"version": "1.0.0", "sha256": hex.EncodeToString(h[:]), "manifest_url": "conn.github/1.0.0/manifest.json", "signature_url": "conn.github/1.0.0/manifest.sig", "bundle_url": "conn.github/1.0.0/bundle.tgz", "signature_key_id": "dev", "risk_level": "low", "tier_required": "free"}}}}}
 	idxBytes, _ := json.Marshal(idx)
 	_ = os.WriteFile(filepath.Join(root, "connectors", "index.json"), idxBytes, 0o644)
 
@@ -43,7 +45,7 @@ func setupRegistry(t *testing.T, withSig bool) (string, map[string]string) {
 func TestInstallAndUninstall(t *testing.T) {
 	t.Setenv("DEV_ALLOW_UNSIGNED", "0")
 	root, keys := setupRegistry(t, true)
-	store, err := NewStore(filepath.Join(root, "connectors"), filepath.Join(root, "installed", "connectors"), filepath.Join(root, "reach.lock.json"), keys)
+	store, err := NewStore(filepath.Join(root, "connectors"), "", filepath.Join(root, "cache"), filepath.Join(root, "installed", "connectors"), filepath.Join(root, "reach.lock.json"), keys)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +64,7 @@ func TestInstallAndUninstall(t *testing.T) {
 func TestUnsignedRejectedInProd(t *testing.T) {
 	t.Setenv("DEV_ALLOW_UNSIGNED", "0")
 	root, _ := setupRegistry(t, false)
-	store, err := NewStore(filepath.Join(root, "connectors"), filepath.Join(root, "installed", "connectors"), filepath.Join(root, "reach.lock.json"), map[string]string{})
+	store, err := NewStore(filepath.Join(root, "connectors"), "", filepath.Join(root, "cache"), filepath.Join(root, "installed", "connectors"), filepath.Join(root, "reach.lock.json"), map[string]string{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,14 +73,56 @@ func TestUnsignedRejectedInProd(t *testing.T) {
 	}
 }
 
-func TestUnsignedAllowedInDev(t *testing.T) {
-	t.Setenv("DEV_ALLOW_UNSIGNED", "1")
-	root, _ := setupRegistry(t, false)
-	store, err := NewStore(filepath.Join(root, "connectors"), filepath.Join(root, "installed", "connectors"), filepath.Join(root, "reach.lock.json"), map[string]string{})
+func TestRemoteInstallAndPin(t *testing.T) {
+	t.Setenv("DEV_ALLOW_UNSIGNED", "0")
+	root, keys := setupRegistry(t, true)
+	bundlePath := filepath.Join(root, "connectors", "conn.github", "1.0.0", "bundle.tgz")
+	bundle, _ := os.ReadFile(bundlePath)
+	h := sha256.Sum256(bundle)
+
+	var indexBytes []byte
+	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/index.json" {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write(indexBytes)
+			return
+		}
+		http.FileServer(http.Dir(filepath.Join(root, "connectors"))).ServeHTTP(w, r)
+	}))
+	defer ts.Close()
+
+	idx := map[string]any{"packages": []map[string]any{{"id": "conn.github", "versions": []map[string]string{{"version": "1.0.0", "sha256": hex.EncodeToString(h[:]), "manifest_url": ts.URL + "/conn.github/1.0.0/manifest.json", "signature_url": ts.URL + "/conn.github/1.0.0/manifest.sig", "bundle_url": ts.URL + "/conn.github/1.0.0/bundle.tgz", "signature_key_id": "dev", "risk_level": "low", "tier_required": "free"}}}}}
+	indexBytes, _ = json.Marshal(idx)
+
+	store, err := NewStore(filepath.Join(root, "connectors"), ts.URL+"/index.json", filepath.Join(root, "cache"), filepath.Join(root, "installed", "connectors"), filepath.Join(root, "reach.lock.json"), keys)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := store.Install(InstallRequest{ID: "conn.github", Version: ">=1.0.0"}); err != nil {
-		t.Fatalf("expected install success in dev: %v", err)
+	store.httpClient = ts.Client()
+	installed, err := store.Install(InstallRequest{ID: "conn.github"})
+	if err != nil {
+		t.Fatalf("remote install failed: %v", err)
+	}
+	if installed.PinnedVersion != "1.0.0" {
+		t.Fatalf("unexpected pin %s", installed.PinnedVersion)
+	}
+	if _, err := store.Install(InstallRequest{ID: "conn.github", Version: ">=2.0.0"}); err == nil {
+		t.Fatal("expected pin enforcement error")
+	}
+}
+
+func TestSHAMismatchRejected(t *testing.T) {
+	t.Setenv("DEV_ALLOW_UNSIGNED", "1")
+	root, _ := setupRegistry(t, false)
+	idx := map[string]any{"packages": []map[string]any{{"id": "conn.github", "versions": []map[string]string{{"version": "1.0.0", "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "manifest_url": "conn.github/1.0.0/manifest.json", "bundle_url": "conn.github/1.0.0/bundle.tgz", "signature_key_id": "dev", "risk_level": "low", "tier_required": "free"}}}}}
+	idxBytes, _ := json.Marshal(idx)
+	_ = os.WriteFile(filepath.Join(root, "connectors", "index.json"), idxBytes, 0o644)
+
+	store, err := NewStore(filepath.Join(root, "connectors"), "", filepath.Join(root, "cache"), filepath.Join(root, "installed", "connectors"), filepath.Join(root, "reach.lock.json"), map[string]string{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.Install(InstallRequest{ID: "conn.github", Version: "=1.0.0"}); err == nil {
+		t.Fatal("expected sha mismatch")
 	}
 }

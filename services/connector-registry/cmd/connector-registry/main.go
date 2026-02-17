@@ -20,7 +20,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("load trusted keys: %v", err)
 	}
-	store, err := registry.NewStore(filepath.Join(root, "connectors"), filepath.Join(root, "installed", "connectors"), filepath.Join(root, "reach.lock.json"), keys)
+	remoteIndexURL := os.Getenv("CONNECTOR_REGISTRY_REMOTE_INDEX_URL")
+	cacheRoot := filepath.Join(root, "cache", "connectors")
+	store, err := registry.NewStore(filepath.Join(root, "connectors"), remoteIndexURL, cacheRoot, filepath.Join(root, "installed", "connectors"), filepath.Join(root, "reach.lock.json"), keys)
 	if err != nil {
 		log.Fatalf("init store: %v", err)
 	}
