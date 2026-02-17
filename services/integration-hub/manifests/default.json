@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0.0",
+  "provider": "slack",
+  "events": [
+    {
+      "externalType": "message",
+      "internalTrigger": "run.start",
+      "policyGate": true,
+      "workflow": "runner.start",
+      "description": "Slack /reach run command starts a Reach run"
+    }
+  ]
+}
