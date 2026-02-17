@@ -31,8 +31,8 @@ fun TerminalScreen(viewModel: TerminalViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF0B0F10))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
             text = "Reach Terminal",
@@ -50,10 +50,10 @@ fun TerminalScreen(viewModel: TerminalViewModel) {
                 .fillMaxWidth()
                 .weight(0.8f)
                 .background(Color(0xFF11181C))
-                .padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+                .padding(6.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            items(state.history) { command ->
+            items(items = state.history, key = { it }) { command ->
                 Text(text = "> $command", color = Color(0xFFB0BEC5), fontFamily = FontFamily.Monospace)
             }
         }
@@ -64,10 +64,10 @@ fun TerminalScreen(viewModel: TerminalViewModel) {
                 .fillMaxWidth()
                 .weight(1.2f)
                 .background(Color(0xFF11181C))
-                .padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+                .padding(6.dp),
+            verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
-            items(state.outputLines) { line ->
+            items(items = state.outputLines, key = { it.hashCode() }) { line ->
                 Text(text = line, color = Color(0xFFB9F6CA), fontFamily = FontFamily.Monospace)
             }
         }
@@ -78,10 +78,10 @@ fun TerminalScreen(viewModel: TerminalViewModel) {
                 .fillMaxWidth()
                 .weight(0.8f)
                 .background(Color(0xFF11181C))
-                .padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+                .padding(6.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            items(state.artifacts) { artifact ->
+            items(items = state.artifacts, key = { it.id }) { artifact ->
                 Text(
                     text = "${artifact.path} (${artifact.mimeType ?: "unknown"})",
                     color = Color(0xFF80DEEA),
@@ -106,7 +106,7 @@ fun TerminalScreen(viewModel: TerminalViewModel) {
                     .padding(6.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                items(state.completionSuggestions) { suggestion ->
+                items(items = state.completionSuggestions, key = { it }) { suggestion ->
                     Text(
                         text = suggestion,
                         color = Color(0xFFE1F5FE),

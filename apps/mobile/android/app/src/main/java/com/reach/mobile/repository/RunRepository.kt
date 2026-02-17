@@ -1,12 +1,15 @@
 package com.reach.mobile.repository
 
 import android.content.Context
+import android.os.SystemClock
+import android.util.Log
 import androidx.datastore.core.updateData
 import com.reach.mobile.data.ArtifactRecord
 import com.reach.mobile.data.ProtocolEventParser
 import com.reach.mobile.data.Run
 import com.reach.mobile.data.RunStatus
 import com.reach.mobile.data.StreamEvent
+import com.reach.mobile.BuildConfig
 import com.reach.mobile.network.MockRunnerGateway
 import com.reach.mobile.network.RealRunnerGateway
 import com.reach.mobile.network.RunnerConfig
@@ -20,7 +23,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.UUID
 
 class RunRepository(
@@ -28,6 +34,12 @@ class RunRepository(
     private val gateway: RunnerGateway = if (RunnerConfig.mockMode) MockRunnerGateway() else RealRunnerGateway(),
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 ) {
+    companion object {
+        private const val MAX_EVENTS_IN_MEMORY = 200
+        private const val EVENT_BATCH_SIZE = 12
+        private const val EVENT_BATCH_WINDOW_MS = 120L
+    }
+
     private val dataStore = context.runStateDataStore
 
     private val _runs = MutableStateFlow<List<Run>>(emptyList())
@@ -46,6 +58,9 @@ class RunRepository(
     val streamInfo: StateFlow<String?> = _streamInfo.asStateFlow()
 
     private val lastEventIds = mutableMapOf<String, String>()
+    private val eventBatch = mutableListOf<StreamEvent>()
+    private val batchMutex = Mutex()
+    private var flushJob: Job? = null
     private var streamJob: Job? = null
 
     init {
@@ -115,9 +130,7 @@ class RunRepository(
                 runId = runId,
                 initialLastEventId = lastEventIds[runId],
                 onEvent = { event ->
-                    _events.update { current ->
-                        if (current.any { it.eventId == event.eventId && it.runId == event.runId }) current else current + event
-                    }
+                    enqueueEvent(event)
                     lastEventIds[runId] = event.eventId
                     applyEventToRun(event)
                     persist()
@@ -125,7 +138,7 @@ class RunRepository(
                 onInfo = { info ->
                     _streamInfo.value = info
                     _runs.update { runs ->
-                        runs.map { run -> if (run.id == runId) run.copy(output = run.output + info) else run }
+                        runs.map { run -> if (run.id == runId) run.copy(output = cappedOutput(run.output + info)) else run }
                     }
                     persist()
                 },
@@ -133,7 +146,7 @@ class RunRepository(
                     _runs.update { runs ->
                         runs.map { run ->
                             if (run.id == runId && run.status == RunStatus.RUNNING) {
-                                run.copy(output = run.output + "Stream issue: ${throwable.message.orEmpty()}")
+                                run.copy(output = cappedOutput(run.output + "Stream issue: ${throwable.message.orEmpty()}"))
                             } else run
                         }
                     }
@@ -157,6 +170,55 @@ class RunRepository(
         }
     }
 
+    private fun enqueueEvent(event: StreamEvent) {
+        scope.launch {
+            val startedAt = SystemClock.elapsedRealtime()
+            var flushNow = false
+            batchMutex.withLock {
+                if (eventBatch.none { it.eventId == event.eventId && it.runId == event.runId }) {
+                    eventBatch += event
+                }
+                flushNow = eventBatch.size >= EVENT_BATCH_SIZE
+                if (!flushNow && flushJob == null) {
+                    flushJob = scope.launch {
+                        delay(EVENT_BATCH_WINDOW_MS)
+                        flushEventBatch()
+                    }
+                }
+            }
+            if (flushNow) {
+                flushEventBatch()
+            }
+            debugPerf("event enqueue run=${event.runId} batched=${eventBatch.size} flush=$flushNow took=${SystemClock.elapsedRealtime()-startedAt}ms")
+        }
+    }
+
+    private suspend fun flushEventBatch() {
+        val pending = batchMutex.withLock {
+            if (eventBatch.isEmpty()) {
+                flushJob = null
+                return@withLock emptyList()
+            }
+            val copy = eventBatch.toList()
+            eventBatch.clear()
+            flushJob = null
+            copy
+        }
+
+        val startedAt = SystemClock.elapsedRealtime()
+        _events.update { current -> (current + pending).takeLast(MAX_EVENTS_IN_MEMORY) }
+        debugPerf("event flush count=${pending.size} total=${_events.value.size} took=${SystemClock.elapsedRealtime()-startedAt}ms")
+    }
+
+
+    private fun debugPerf(message: String) {
+        if (BuildConfig.DEBUG) {
+            Log.d("RunRepository", message)
+        }
+    }
+
+    private fun cappedOutput(lines: List<String>): List<String> = lines.takeLast(MAX_EVENTS_IN_MEMORY)
+
     private fun applyEventToRun(event: StreamEvent) {
         _runs.update { runs ->
             runs.map { run ->
@@ -166,7 +228,7 @@ class RunRepository(
                     parsed is com.reach.mobile.data.ArtifactCreatedEvent -> {
                         val record = ArtifactRecord(parsed.payload.artifactId, parsed.payload.path, parsed.payload.mimeType)
                         if (record.id.isNotBlank() && run.artifacts.none { it.id == record.id }) {
-                            run.copy(artifacts = run.artifacts + record, output = run.output + "Artifact: ${parsed.payload.path}")
+                            run.copy(artifacts = run.artifacts + record, output = cappedOutput(run.output + "Artifact: ${parsed.payload.path}"))
                         } else run
                     }
                     parsed is com.reach.mobile.data.RunCompletedEvent -> {
@@ -175,9 +237,9 @@ class RunRepository(
                             "cancelled" -> RunStatus.CANCELLED
                             else -> RunStatus.COMPLETED
                         }
-                        run.copy(status = mapped, output = run.output + "Run completed with status=${parsed.payload.status}")
+                        run.copy(status = mapped, output = cappedOutput(run.output + "Run completed with status=${parsed.payload.status}"))
                     }
-                    else -> run.copy(output = run.output + "(${event.type}) ${event.payload}")
+                    else -> run.copy(output = cappedOutput(run.output + "(${event.type}) ${event.payload}"))
                 }
             }
         }
@@ -188,7 +250,7 @@ class RunRepository(
             dataStore.updateData {
                 PersistedRunState(
                     runs = _runs.value,
-                    events = _events.value.takeLast(500),
+                    events = _events.value.takeLast(MAX_EVENTS_IN_MEMORY),
                     lastEventIds = lastEventIds.toMap(),
                     commandHistory = _commandHistory.value
                 )

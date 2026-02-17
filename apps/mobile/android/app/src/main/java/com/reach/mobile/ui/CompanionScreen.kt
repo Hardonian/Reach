@@ -35,8 +35,8 @@ fun CompanionScreen(viewModel: CompanionViewModel) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text("Policy Gate Requested", style = MaterialTheme.typography.titleLarge)
                 Text(state.pendingPolicyGate.reason)
@@ -53,8 +53,8 @@ fun CompanionScreen(viewModel: CompanionViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF0B0F10))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text("Editor Companion", color = Color(0xFF90CAF9), style = MaterialTheme.typography.titleLarge)
 
@@ -73,7 +73,7 @@ fun CompanionScreen(viewModel: CompanionViewModel) {
         Text("status: ${state.status}", color = Color(0xFFFFF59D), fontFamily = FontFamily.Monospace)
         state.error?.let { Text("error: $it", color = Color(0xFFFF8A80), fontFamily = FontFamily.Monospace) }
 
-        Text("Last 50 Events", color = Color.White)
+        Text("Recent Events", color = Color.White)
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -99,7 +99,7 @@ fun CompanionScreen(viewModel: CompanionViewModel) {
                     .fillMaxWidth()
                     .heightIn(max = 180.dp)
                     .background(Color(0xFF11181C))
-                    .padding(8.dp)
+                    .padding(6.dp)
             ) {
                 items(patch.unifiedDiff.lines()) { line ->
                     val color = when {
@@ -144,7 +144,7 @@ fun CompanionScreen(viewModel: CompanionViewModel) {
                     .fillMaxWidth()
                     .heightIn(max = 160.dp)
                     .background(Color(0xFF11181C))
-                    .padding(8.dp)
+                    .padding(6.dp)
             ) {
                 items(state.selectedFilePreview.lines()) { line ->
                     Text(line, color = Color(0xFFE0F7FA), fontFamily = FontFamily.Monospace)
