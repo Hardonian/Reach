@@ -132,6 +132,11 @@ func (s *Store) AppendEvent(ctx context.Context, runID string, evt Event) (int64
 	if evt.CreatedAt.IsZero() {
 		evt.CreatedAt = time.Now().UTC()
 	}
+	normalized, err := validateAndNormalizeEventPayload(evt.Type, evt.Payload)
+	if err != nil {
+		return 0, err
+	}
+	evt.Payload = normalized
 	return s.events.AppendEvent(ctx, storage.EventRecord{RunID: runID, Type: evt.Type, Payload: evt.Payload, CreatedAt: evt.CreatedAt})
 }
 
@@ -193,7 +198,10 @@ func (s *Store) SetGate(_ context.Context, runID string, gate Gate) error {
 	return s.PublishEvent(context.Background(), runID, Event{Type: "policy.gate.stored", Payload: body, CreatedAt: time.Now().UTC()}, "gate")
 }
 
-func (s *Store) ResolveGate(_ context.Context, runID, gateID string, decision GateDecision) error {
+func (s *Store) ResolveGate(ctx context.Context, tenantID, runID, gateID string, decision GateDecision) error {
+	if _, err := s.GetRun(ctx, tenantID, runID); err != nil {
+		return err
+	}
 	body, _ := json.Marshal(map[string]any{"gate_id": gateID, "decision": decision})
 	return s.PublishEvent(context.Background(), runID, Event{Type: "policy.gate.resolved", Payload: body, CreatedAt: time.Now().UTC()}, "gate")
 }

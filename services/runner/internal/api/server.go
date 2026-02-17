@@ -160,6 +160,7 @@ func NewServer(db *storage.SQLiteStore, version string) *Server {
 		autonomous: map[string]*autoControl{},
 		metrics:    newMetrics(),
 	}
+	return &Server{version: version, store: jobs.NewStore(db), sql: db, registry: NewNodeRegistry(), runMeta: map[string]runMeta{}, autonomous: map[string]*autoControl{}}
 }
 
 func (s *Server) Handler() http.Handler {
@@ -569,6 +570,7 @@ func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleGateDecision(w http.ResponseWriter, r *http.Request) {
 	started := time.Now()
 	if err := s.store.ResolveGate(r.Context(), r.PathValue("id"), r.PathValue("gate_id"), jobs.GateDecision("approve_once")); err != nil {
+	if err := s.store.ResolveGate(r.Context(), tenantIDFrom(r.Context()), r.PathValue("id"), r.PathValue("gate_id"), jobs.GateDecision("approve_once")); err != nil {
 		writeError(w, 400, err.Error())
 		return
 	}

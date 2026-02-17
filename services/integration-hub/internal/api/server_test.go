@@ -122,6 +122,7 @@ func TestGitHubWebhookRoutesToRunnerAndAudit(t *testing.T) {
 	req.Header.Set("X-Reach-Tenant", "tenant-gh")
 	req.Header.Set("X-Reach-Delivery", "gh-delivery")
 	req.Header.Set("X-Hub-Signature-256", sig)
+	req.Header.Set("X-Reach-Timestamp", fmt.Sprint(time.Now().Unix()))
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, req)
 	if rec.Code != http.StatusOK {
@@ -147,6 +148,7 @@ func TestGoogleEventNormalizationWorkflowStart(t *testing.T) {
 	req.Header.Set("X-Reach-Tenant", "tenant-g")
 	req.Header.Set("X-Reach-Delivery", "g-delivery")
 	req.Header.Set("X-Reach-Signature", sig)
+	req.Header.Set("X-Reach-Timestamp", fmt.Sprint(time.Now().Unix()))
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, req)
 	if rec.Code != http.StatusOK {
@@ -234,5 +236,46 @@ func TestConnectorCRUDAndPolicyProfile(t *testing.T) {
 	h.ServeHTTP(profileRec, profile)
 	if profileRec.Code != http.StatusOK {
 		t.Fatalf("profile update failed: %d", profileRec.Code)
+	}
+}
+
+func TestOAuthCallbackRejectsInvalidState(t *testing.T) {
+	srv, _, cleanup := newTestServer(t)
+	defer cleanup()
+	h := srv.Routes()
+	req := httptest.NewRequest(http.MethodGet, "/v1/integrations/github/oauth/callback?state=bad&code=abc", nil)
+	req.Header.Set("X-Reach-Tenant", "t1")
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected invalid state rejection, got %d", rec.Code)
+	}
+}
+
+func TestWebhookReplayAndTimestampRejected(t *testing.T) {
+	srv, _, cleanup := newTestServer(t)
+	defer cleanup()
+	_ = srv.store.SaveWebhookSecret("tenant-gh", "github", "ghsecret")
+	h := srv.Routes()
+	payload := []byte(`{"action":"opened"}`)
+	sig := security.ComputeHMAC("ghsecret", payload)
+	mk := func(delivery, ts string) *httptest.ResponseRecorder {
+		req := httptest.NewRequest(http.MethodPost, "/webhooks/github", bytes.NewReader(payload))
+		req.Header.Set("X-Reach-Tenant", "tenant-gh")
+		req.Header.Set("X-Reach-Delivery", delivery)
+		req.Header.Set("X-Hub-Signature-256", sig)
+		req.Header.Set("X-Reach-Timestamp", ts)
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		return rec
+	}
+	if rec := mk("d1", fmt.Sprint(time.Now().Unix())); rec.Code != http.StatusOK {
+		t.Fatalf("expected first webhook accepted, got %d", rec.Code)
+	}
+	if rec := mk("d1", fmt.Sprint(time.Now().Unix())); rec.Code != http.StatusUnauthorized {
+		t.Fatalf("expected replay rejected, got %d", rec.Code)
+	}
+	if rec := mk("d2", fmt.Sprint(time.Now().Add(-10*time.Minute).Unix())); rec.Code != http.StatusUnauthorized {
+		t.Fatalf("expected stale timestamp rejected, got %d", rec.Code)
 	}
 }
