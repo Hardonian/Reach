@@ -27,6 +27,7 @@ func main() {
 	})
 	mux.HandleFunc("GET /ws/session/{session_id}", m.HandleWS)
 	mux.HandleFunc("GET /v1/admin/sessions", m.HandleListSessions)
+	mux.HandleFunc("GET /metrics", m.HandleMetrics)
 	log.Printf("session-hub listening on %s", addr)
 	log.Fatal(http.ListenAndServe(addr, mux))
 }

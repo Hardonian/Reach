@@ -1,0 +1,31 @@
+{
+  "profile": "fast",
+  "generated_at": "2026-02-17T08:13:55.499481771Z",
+  "metrics": [
+    {
+      "name": "trigger_to_first_event",
+      "p50_ms": 432.72510126146506,
+      "p95_ms": 1058.0697039474599
+    },
+    {
+      "name": "approval_to_resume",
+      "p50_ms": 284.3354205241061,
+      "p95_ms": 652.8339444350534
+    },
+    {
+      "name": "fanout_latency",
+      "p50_ms": 197.46918883378856,
+      "p95_ms": 619.043900837999
+    },
+    {
+      "name": "spawn_scheduling_overhead",
+      "p50_ms": 217.34383386170074,
+      "p95_ms": 564.3087807987672
+    }
+  ],
+  "choke_points": [
+    "1. trigger_to_first_event p95=1058.1ms",
+    "2. approval_to_resume p95=652.8ms",
+    "3. fanout_latency p95=619.0ms"
+  ]
+}

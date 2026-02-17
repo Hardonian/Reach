@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"reach/services/runner/internal/storage"
 )
@@ -19,7 +18,6 @@ func newAuthedServer(t *testing.T) (*Server, *storage.SQLiteStore, *http.Cookie)
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { _ = db.Close() })
 	srv := NewServer(db, "test")
 	login := httptest.NewRecorder()
 	srv.Handler().ServeHTTP(login, httptest.NewRequest(http.MethodPost, "/auth/dev-login", bytes.NewBufferString(`{}`)))
@@ -73,14 +71,27 @@ func TestAutonomousStatusLifecycle(t *testing.T) {
 func TestSpawnDepthEnforcement(t *testing.T) {
 	srv, _, cookie := newAuthedServer(t)
 	root := createRun(t, srv, cookie, `{"capabilities":["tool:echo"],"plan_tier":"free"}`)
-	child := doReq(t, srv, cookie, http.MethodPost, "/v1/runs/"+root+"/spawn", `{"capabilities":["tool:echo"],"budget_slice":20}`)
+	child := doReq(t, srv, cookie, http.MethodPost, "/v1/runs/"+root+"/spawn", `{"capabilities":["tool:echo"]}`)
 	if child.Code != http.StatusCreated {
 		t.Fatalf("expected child creation, got %d", child.Code)
 	}
-	var childOut map[string]any
-	_ = json.Unmarshal(child.Body.Bytes(), &childOut)
-	gchild := doReq(t, srv, cookie, http.MethodPost, "/v1/runs/"+childOut["run_id"].(string)+"/spawn", `{"capabilities":["tool:echo"],"budget_slice":10}`)
+	var out map[string]any
+	_ = json.Unmarshal(child.Body.Bytes(), &out)
+	gchild := doReq(t, srv, cookie, http.MethodPost, "/v1/runs/"+out["run_id"].(string)+"/spawn", `{"capabilities":["tool:echo"]}`)
 	if gchild.Code != http.StatusForbidden {
+		t.Fatalf("expected depth deny, got %d", gchild.Code)
+	}
+}
+
+func TestNodeRegistryRoundTrip(t *testing.T) {
+	srv, cookie := newAuthedServer(t)
+	reg := doReq(t, srv, cookie, http.MethodPost, "/v1/nodes/register", `{"ID":"n1","Type":"local","Status":"online","Capabilities":["tool:echo"],"LatencyMS":10,"LoadScore":1}`)
+	if reg.Code != http.StatusCreated {
+		t.Fatalf("register failed: %d", reg.Code)
+	}
+	list := doReq(t, srv, cookie, http.MethodGet, "/v1/nodes", "")
+	if list.Code != http.StatusOK {
+		t.Fatalf("list failed: %d", list.Code)
 		t.Fatalf("expected depth guardrail deny, got %d", gchild.Code)
 	}
 }
