@@ -1,20 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import { CATALOG, Pack } from '@/lib/packs';
+import { Pack } from '@/lib/packs';
+import { PackDiscovery } from '@/components/PackDiscovery';
+import { ExecutionTimeline, TimelineEvent } from '@/components/ExecutionTimeline';
 
 export default function Home() {
   const [selectedPack, setSelectedPack] = useState<Pack | null>(null);
   const [isRunning, setIsRunning] = useState(false);
-  const [runTimeline, setRunTimeline] = useState<any[]>([]);
+  const [runTimeline, setRunTimeline] = useState<TimelineEvent[]>([]);
   const [activeTab, setActiveTab] = useState<'discover' | 'runs'>('discover');
 
   async function handleRun() {
     if (!selectedPack) return;
     setIsRunning(true);
-    setRunTimeline([]);
+    setRunTimeline([{ type: 'Initializing', status: 'pending', timestamp: Date.now() }]);
 
     try {
+      // Simulate network delay for "feel"
+      await new Promise(r => setTimeout(r, 600));
+
       const res = await fetch('/api/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -23,145 +28,193 @@ export default function Home() {
           inputs: selectedPack.inputs,
         }),
       });
+      
       const data = await res.json();
+      
+      // Clear initial pending state
+      setRunTimeline([]);
+
       if (data.timeline) {
-        // Stagger animation
+        // Stagger animation for dramatic effect
         for (const event of data.timeline) {
-          await new Promise((r) => setTimeout(r, 200));
-          setRunTimeline((prev) => [...prev, event]);
+          // Add random jitter to timing for realism
+          await new Promise((r) => setTimeout(r, Math.random() * 150 + 100));
+          setRunTimeline((prev) => [...prev, {
+            type: event.type || 'Event',
+            details: event.details,
+            status: event.status || 'completed',
+            timestamp: Date.now(),
+          }]);
         }
+        
+        // Final success state
+        setRunTimeline((prev) => [...prev, {
+             type: 'Execution Complete', 
+             status: 'completed', 
+             timestamp: Date.now() 
+        }]);
+
       } else if (data.error) {
-        setRunTimeline([{ type: 'error', details: data.error, status: 'failed' }]);
+        setRunTimeline(prev => [...prev, { type: 'Execution Failed', details: data.error, status: 'failed', timestamp: Date.now() }]);
       }
     } catch (e) {
-      setRunTimeline([{ type: 'error', details: 'Network error', status: 'failed' }]);
+      setRunTimeline(prev => [...prev, { type: 'Network Error', details: 'Failed to reach execution node', status: 'failed', timestamp: Date.now() }]);
     } finally {
       setIsRunning(false);
     }
   }
 
+  const handleCopyLink = () => {
+    if (!selectedPack) return;
+    const payload = {
+      pack: selectedPack,
+      timeline: runTimeline, 
+      timestamp: Date.now()
+    };
+    const token = btoa(JSON.stringify(payload));
+    const url = `${window.location.origin}/share?token=${encodeURIComponent(token)}`;
+    navigator.clipboard.writeText(url);
+    alert('Run Card Link Copied! 🔗');
+  };
+
   return (
-    <div className="min-h-screen pb-24 relative">
-      <header className="p-6 sticky top-0 bg-opacity-90 backdrop-blur-md z-10 border-b border-[var(--border)]">
-        <h1 className="text-2xl font-bold tracking-tight text-[var(--primary)]">REACH ARCADE</h1>
-        <p className="text-sm text-gray-400 mt-1">v1.2.0 • Online</p>
+    <div className="min-h-screen relative">
+      {/* Header */}
+      <header className="app-header">
+        <div className="container p-0 flex justify-between items-center">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-gradient">
+              REACH ARCADE
+            </h1>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="status-dot animate-pulse" />
+              <p className="text-2xs font-mono text-tertiary tracking-widest uppercase">
+                System Online • v1.2.0
+              </p>
+            </div>
+          </div>
+          <div className="user-avatar">
+            👤
+          </div>
+        </div>
       </header>
 
-      <main className="p-4">
+      <main className="container app-content">
         {activeTab === 'discover' && (
-          <div className="grid gap-4">
-            {CATALOG.map((pack) => (
-              <div
-                key={pack.id}
-                onClick={() => { setSelectedPack(pack); setRunTimeline([]); }}
-                className={`card cursor-pointer hover:border-[var(--secondary)] ${
-                  selectedPack?.id === pack.id ? 'border-[var(--secondary)]' : ''
-                }`}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-bold text-lg">{pack.name}</h3>
-                  <span className={`px-2 py-0.5 rounded text-xs font-mono ${
-                    pack.arcadeSafe ? 'bg-[var(--success)] text-black' : 'bg-[var(--error)] text-white'
-                  }`}>
-                    {pack.arcadeSafe ? 'SAFE' : 'UNSAFE'}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-300 mb-3">{pack.description}</p>
-                <div className="flex gap-2 text-xs text-gray-500 font-mono">
-                  <span>{pack.duration}</span>
-                  <span>•</span>
-                  <span>{pack.difficulty.toUpperCase()}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+          <PackDiscovery 
+            onSelect={(pack) => {
+              setSelectedPack(pack);
+              setRunTimeline([]);
+            }} 
+            selectedId={selectedPack?.id}
+          />
         )}
 
-        {selectedPack && activeTab === 'discover' && (
-          <div className="fixed bottom-0 left-0 w-full bg-[var(--surface-highlight)] border-t border-[var(--border)] p-4 pb-8 z-20 rounded-t-2xl shadow-xl transition-transform transform translate-y-0">
-            <div className="max-w-xl mx-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="font-bold">{selectedPack.name}</h2>
-                <button
-                  onClick={() => setSelectedPack(null)}
-                  className="text-gray-400 hover:text-white"
-                >
-                  Close
-                </button>
-              </div>
-              
-              {runTimeline.length > 0 ? (
-                <div className="bg-black/40 p-4 rounded-lg font-mono text-xs mb-4 max-h-40 overflow-y-auto">
-                   {runTimeline.map((ev, i) => (
-                      <div key={i} className="mb-1">
-                        <span className="text-[var(--secondary)]">[{new Date().toLocaleTimeString()}]</span>{' '}
-                        <span className={ev.status === 'failed' ? 'text-[var(--error)]' : 'text-gray-300'}>
-                          {ev.type}
-                        </span>
-                        {ev.details && <div className="pl-4 text-gray-500">{ev.details}</div>}
-                      </div>
-                   ))}
-                </div>
-              ) : (
-                <div className="mb-4 text-sm text-gray-400">
-                  Ready to execute. Estimated duration: {selectedPack.duration}
-                </div>
-              )}
-
-              <div className="flex gap-4 mt-4">
-                <button
-                  disabled={!selectedPack.arcadeSafe || isRunning}
-                  onClick={handleRun}
-                  className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all ${
-                    !selectedPack.arcadeSafe
-                      ? 'bg-gray-700 cursor-not-allowed text-gray-400'
-                      : isRunning
-                      ? 'bg-[var(--secondary)] text-black animate-pulse'
-                      : 'bg-[var(--primary)] text-white hover:opacity-90'
-                  }`}
-                >
-                  {!selectedPack.arcadeSafe ? 'POLICY LOCKED' : isRunning ? 'EXECUTING...' : 'RUN NOW'}
-                </button>
-                
-                {runTimeline.length > 0 && !isRunning && (
-                   <button
-                     onClick={() => {
-                        const payload = {
-                          pack: selectedPack,
-                          timeline: runTimeline, 
-                          timestamp: Date.now()
-                        };
-                        const token = btoa(JSON.stringify(payload));
-                        const url = `${window.location.origin}/share?token=${encodeURIComponent(token)}`;
-                        navigator.clipboard.writeText(url);
-                        alert('Run Card Link Copied!');
-                     }}
-                     className="px-4 py-4 rounded-xl font-bold text-lg bg-[var(--surface-highlight)] border border-[var(--border)] text-[var(--secondary)] hover:bg-[var(--border)] transition-all"
-                   >
-                     SHARE 🔗
-                   </button>
-                )}
-              </div>
-            </div>
+        {/* History Tab placeholder */}
+        {activeTab === 'runs' && (
+          <div className="placeholder-screen">
+             <div className="text-3xl mb-4 opacity-50">📜</div>
+             <p>Local history coming in Phase 2.</p>
           </div>
         )}
       </main>
 
+      {/* Execution Drawer / Modal */}
+      {selectedPack && activeTab === 'discover' && (
+        <>
+          {/* Backdrop */}
+          <div 
+             className="modal-backdrop"
+             onClick={() => !isRunning && setSelectedPack(null)}
+          />
+          
+          {/* Bottom Sheet */}
+          <div className="bottom-sheet">
+            
+            {/* Handle bar for visual affordance */}
+            <div className="sheet-handle" onClick={() => !isRunning && setSelectedPack(null)}>
+              <div className="sheet-handle-bar" />
+            </div>
+
+            {/* Content */}
+            <div className="sheet-content">
+              <div className="sheet-header">
+                <div>
+                  <h2 className="text-2xl font-bold mb-1 leading-tight">{selectedPack.name}</h2>
+                  <p className="text-secondary text-sm">{selectedPack.description}</p>
+                </div>
+                <button
+                  onClick={() => setSelectedPack(null)}
+                  disabled={isRunning}
+                  className="close-btn"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Timeline Area */}
+              <div className="mb-6 min-h-timeline">
+                 {runTimeline.length > 0 ? (
+                    <ExecutionTimeline events={runTimeline} isRunning={isRunning} />
+                 ) : (
+                    <div className="timeline-placeholder">
+                      <div className="text-3xl mb-3 opacity-50">⚡</div>
+                      <p className="text-secondary text-sm mb-1">Ready to Execute</p>
+                      <p className="text-tertiary text-2xs font-mono">
+                        Est. Duration: {selectedPack.duration}
+                      </p>
+                    </div>
+                 )}
+              </div>
+            </div>
+
+            {/* Actions Footer */}
+            <div className="sheet-footer">
+               <div className="action-bar">
+                  <button
+                    disabled={!selectedPack.arcadeSafe || isRunning}
+                    onClick={handleRun}
+                    className="btn-primary flex-1"
+                  >
+                    {!selectedPack.arcadeSafe 
+                      ? '🔒 POLICY LOCKED' 
+                      : isRunning 
+                      ? 'EXECUTING...' 
+                      : 'RUN NOW'
+                    }
+                  </button>
+
+                  {runTimeline.length > 0 && !isRunning && (
+                     <button
+                       onClick={handleCopyLink}
+                       className="btn-icon"
+                       aria-label="Share Run"
+                     >
+                       🔗
+                     </button>
+                  )}
+               </div>
+            </div>
+
+          </div>
+        </>
+      )}
+
       {/* Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 w-full bg-[var(--surface)] border-t border-[var(--border)] h-16 flex justify-around items-center z-50 pb-2">
+      <nav className="bottom-nav">
         <button
           onClick={() => { setActiveTab('discover'); setSelectedPack(null); }}
-          className={`flex flex-col items-center p-2 ${activeTab === 'discover' ? 'text-[var(--secondary)]' : 'text-gray-500'}`}
+          className={`nav-item ${activeTab === 'discover' ? 'active' : ''}`}
         >
-          <span className="text-xl">🎮</span>
-          <span className="text-xs mt-1">Arcade</span>
+          <span className="text-xl mb-1">🎮</span>
+          <span className="text-2xs font-bold tracking-wider">ARCADE</span>
         </button>
         <button
           onClick={() => setActiveTab('runs')}
-          className={`flex flex-col items-center p-2 ${activeTab === 'runs' ? 'text-[var(--secondary)]' : 'text-gray-500'}`}
+          className={`nav-item ${activeTab === 'runs' ? 'active' : ''}`}
         >
-          <span className="text-xl">📜</span>
-          <span className="text-xs mt-1">History</span>
+          <span className="text-xl mb-1">📜</span>
+          <span className="text-2xs font-bold tracking-wider">HISTORY</span>
         </button>
       </nav>
     </div>
