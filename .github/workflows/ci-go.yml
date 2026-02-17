@@ -23,7 +23,8 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: services/runner/go.mod
+          go-version: "1.22.7"
+          cache: true
 
       - name: Go vet
         run: go vet ./...

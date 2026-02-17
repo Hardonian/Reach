@@ -7,12 +7,26 @@ import (
 	"reach/services/connector-registry/internal/registry"
 )
 
-type Server struct{ store *registry.Store }
+type Server struct {
+	store   *registry.Store
+	version string
+}
 
-func New(store *registry.Store) *Server { return &Server{store: store} }
+func New(store *registry.Store, version string) *Server {
+	if version == "" {
+		version = "dev"
+	}
+	return &Server{store: store, version: version}
+}
 
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "version": s.version})
+	})
+	mux.HandleFunc("GET /version", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]any{"version": s.version})
+	})
 	mux.HandleFunc("GET /v1/connectors", s.list)
 	mux.HandleFunc("POST /v1/connectors/install", s.install)
 	return mux

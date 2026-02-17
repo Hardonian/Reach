@@ -31,7 +31,7 @@ func register(t *testing.T, h http.Handler, tenant, id, devType, trust string) {
 }
 
 func TestCapsuleSyncIdempotency(t *testing.T) {
-	h := New(store.New()).Handler()
+	h := New(store.New(), "test").Handler()
 	register(t, h, "t1", "d1", "android", "trusted")
 	payload := `{"tenant_id":"t1","plan":"pro","idempotency_key":"same","device":{"id":"d1","tenant_id":"t1","device_type":"android","trust_level":"trusted","signature":"` + sign("t1", "d1", "android", "trusted") + `"},"metadata":{"session_id":"s1","device_version":1,"repo_metadata":{"profile":{"mode":"metadata"}}}}`
 	rec1 := httptest.NewRecorder()
@@ -44,7 +44,7 @@ func TestCapsuleSyncIdempotency(t *testing.T) {
 }
 
 func TestTierRestrictionEnforcement(t *testing.T) {
-	h := New(store.New()).Handler()
+	h := New(store.New(), "test").Handler()
 	register(t, h, "t1", "d1", "android", "trusted")
 	payload := `{"tenant_id":"t1","plan":"free","device":{"id":"d1","tenant_id":"t1","device_type":"android","trust_level":"trusted","signature":"` + sign("t1", "d1", "android", "trusted") + `"},"metadata":{"session_id":"s2","device_version":1,"repo_metadata":{"profile":{"mode":"diff-only"}}}}`
 	rec := httptest.NewRecorder()
@@ -55,7 +55,7 @@ func TestTierRestrictionEnforcement(t *testing.T) {
 }
 
 func TestDeviceTrustValidation(t *testing.T) {
-	h := New(store.New()).Handler()
+	h := New(store.New(), "test").Handler()
 	register(t, h, "t1", "d1", "android", "untrusted")
 	payload := `{"tenant_id":"t1","plan":"pro","device":{"id":"d1","tenant_id":"t1","device_type":"android","trust_level":"untrusted","signature":"` + sign("t1", "d1", "android", "untrusted") + `"},"metadata":{"session_id":"s3","device_version":1,"repo_metadata":{"profile":{"mode":"metadata"}}}}`
 	rec := httptest.NewRecorder()
@@ -66,7 +66,7 @@ func TestDeviceTrustValidation(t *testing.T) {
 }
 
 func TestRepoSyncModeEnforcement(t *testing.T) {
-	h := New(store.New()).Handler()
+	h := New(store.New(), "test").Handler()
 	register(t, h, "t1", "d1", "ios", "trusted")
 	payload := `{"tenant_id":"t1","plan":"pro","device":{"id":"d1","tenant_id":"t1","device_type":"ios","trust_level":"trusted","signature":"` + sign("t1", "d1", "ios", "trusted") + `"},"metadata":{"session_id":"s4","device_version":1,"repo_metadata":{"profile":{"mode":"full"},"raw_content":"abc"}}}`
 	rec := httptest.NewRecorder()
@@ -77,7 +77,7 @@ func TestRepoSyncModeEnforcement(t *testing.T) {
 }
 
 func TestConfigSyncWorks(t *testing.T) {
-	h := New(store.New()).Handler()
+	h := New(store.New(), "test").Handler()
 	register(t, h, "t1", "d1", "ios", "trusted")
 	seed := `{"tenant_id":"t1","plan":"pro","device":{"id":"d1","tenant_id":"t1","device_type":"ios","trust_level":"trusted","signature":"` + sign("t1", "d1", "ios", "trusted") + `"},"metadata":{"session_id":"s5","device_version":1,"repo_metadata":{"profile":{"mode":"metadata"}}}}`
 	recSeed := httptest.NewRecorder()
@@ -91,7 +91,7 @@ func TestConfigSyncWorks(t *testing.T) {
 }
 
 func TestNoRawRepoContentStoredInFreeTier(t *testing.T) {
-	h := New(store.New()).Handler()
+	h := New(store.New(), "test").Handler()
 	register(t, h, "t1", "d1", "android", "trusted")
 	payload := `{"tenant_id":"t1","plan":"free","device":{"id":"d1","tenant_id":"t1","device_type":"android","trust_level":"trusted","signature":"` + sign("t1", "d1", "android", "trusted") + `"},"metadata":{"session_id":"s6","device_version":1,"repo_metadata":{"profile":{"mode":"metadata"},"raw_content":"SECRET"}}}`
 	rec := httptest.NewRecorder()
