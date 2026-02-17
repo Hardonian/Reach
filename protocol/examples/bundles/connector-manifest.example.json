@@ -1,0 +1,10 @@
+{
+  "kind": "connector",
+  "id": "connector.github",
+  "version": "1.2.0",
+  "package_hash": "f8e7d6c5b4a321",
+  "required_capabilities": ["filesystem:read", "network:https"],
+  "side_effect_types": ["network", "external_api"],
+  "risk_level": "moderate",
+  "tier_requirements": ["pro"]
+}

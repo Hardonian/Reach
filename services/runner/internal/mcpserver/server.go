@@ -38,10 +38,15 @@ type ApprovalGate interface {
 }
 
 type ConnectorContext struct {
-	Enabled      bool
-	Scopes       []string
-	Capabilities []string
-	Policy       string
+	Enabled         bool
+	Scopes          []string
+	Capabilities    []string
+	Policy          string
+	TemplatePolicy  string
+	ManifestID      string
+	ManifestVersion string
+	ManifestHash    string
+	CachedValidated bool
 }
 
 type AuditLogger interface {
@@ -65,6 +70,7 @@ type Server struct {
 	mcpServer     *mcp.Server
 	connectors    ConnectorResolver
 	approvalGate  ApprovalGate
+	validated     map[string]string
 }
 
 func New(workspaceRoot string, policy Policy, audit AuditLogger, resolver ConnectorResolver, approval ApprovalGate) *Server {
@@ -75,6 +81,7 @@ func New(workspaceRoot string, policy Policy, audit AuditLogger, resolver Connec
 		mcpServer:     mcp.NewServer(mcp.WithName("reach-runner"), mcp.WithVersion("0.1.0")),
 		connectors:    resolver,
 		approvalGate:  approval,
+		validated:     map[string]string{},
 	}
 	s.registerTools()
 	return s
@@ -125,17 +132,29 @@ func (s *Server) checkFirewall(runID, tool string) error {
 		if !ctx.Enabled {
 			return ErrConnectorDisabled
 		}
+		if ctx.TemplatePolicy != "" && ctx.Policy != ctx.TemplatePolicy {
+			return fmt.Errorf("%w: rule_id=policy-template-mismatch connector_policy=%s template_policy=%s manifest=%s@%s", ErrPolicyDenied, ctx.Policy, ctx.TemplatePolicy, ctx.ManifestID, ctx.ManifestVersion)
+		}
+		if ctx.ManifestID != "" {
+			cacheKey := ctx.ManifestID + "@" + ctx.ManifestVersion
+			if existing, ok := s.validated[cacheKey]; ok && existing != ctx.ManifestHash {
+				return fmt.Errorf("%w: rule_id=manifest-hash-changed manifest=%s hash=%s", ErrPolicyDenied, cacheKey, ctx.ManifestHash)
+			}
+			if ctx.CachedValidated {
+				s.validated[cacheKey] = ctx.ManifestHash
+			}
+		}
 		for _, scope := range requiredScopes(tool) {
 			if !has(ctx.Scopes, scope) {
-				return fmt.Errorf("%w: %s", ErrScopeDenied, scope)
+				return fmt.Errorf("%w: rule_id=scope-required scope=%s manifest=%s@%s", ErrScopeDenied, scope, ctx.ManifestID, ctx.ManifestVersion)
 			}
 		}
 		for _, capability := range requiredCapabilities(tool) {
 			if !has(ctx.Capabilities, capability) {
-				return fmt.Errorf("%w: %s", ErrCapabilityDenied, capability)
+				return fmt.Errorf("%w: rule_id=capability-not-declared capability=%s manifest=%s@%s", ErrCapabilityDenied, capability, ctx.ManifestID, ctx.ManifestVersion)
 			}
 			if !s.policy.Allowed(runID, capability) || !s.policy.ProfileAllowed(ctx.Policy, capability) {
-				return fmt.Errorf("%w: %s", ErrPolicyDenied, capability)
+				return fmt.Errorf("%w: rule_id=policy-profile capability=%s manifest=%s@%s", ErrPolicyDenied, capability, ctx.ManifestID, ctx.ManifestVersion)
 			}
 		}
 	}

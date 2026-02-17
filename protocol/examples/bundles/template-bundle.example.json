@@ -1,0 +1,9 @@
+{
+  "kind": "template_bundle",
+  "id": "template.research-agent",
+  "version": "2.1.0",
+  "required_capabilities": ["filesystem:read"],
+  "side_effect_types": ["workspace_write"],
+  "risk_level": "moderate",
+  "tier_requirements": ["team"]
+}

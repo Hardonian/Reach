@@ -1,4 +1,4 @@
-module reach/services/connector-registry
+module reach/services/policy-engine
 
 go 1.22
 
