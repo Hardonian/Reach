@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "1.0.0",
+  "eventId": "evt_capsule_001",
+  "type": "capsule.sync",
+  "timestamp": "2026-02-17T06:00:30Z",
+  "payload": {
+    "schemaVersion": "1.0.0",
+    "capsuleId": "cap_001",
+    "session": {
+      "schemaVersion": "1.0.0",
+      "sessionId": "sess_123",
+      "tenantId": "tenant_abc",
+      "status": "active",
+      "startedAt": "2026-02-17T06:00:20Z",
+      "members": [
+        {"id": "ios-user", "role": "viewer"}
+      ]
+    },
+    "spawn": {
+      "schemaVersion": "1.0.0",
+      "spawnId": "spawn_001",
+      "sessionId": "sess_123",
+      "parentSpawnId": null,
+      "goal": "Plan rollout sequence",
+      "depth": 0,
+      "status": "running",
+      "budget": {
+        "maxToolCalls": 25,
+        "usedToolCalls": 3
+      }
+    },
+    "connectors": [
+      {
+        "schemaVersion": "1.0.0",
+        "connectorId": "github-core",
+        "provider": "github",
+        "scopes": ["repo:read"],
+        "risk": "moderate",
+        "enabled": true
+      }
+    ],
+    "syncState": "in_sync",
+    "updatedAt": "2026-02-17T06:00:30Z"
+  }
+}

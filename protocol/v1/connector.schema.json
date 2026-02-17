@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.dev/protocol/v1/connector.schema.json",
+  "title": "Connector",
+  "type": "object",
+  "required": ["schemaVersion", "connectorId", "provider", "scopes", "risk", "enabled"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "connectorId": {"type": "string", "minLength": 1},
+    "provider": {"type": "string", "minLength": 1},
+    "scopes": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "risk": {"type": "string", "enum": ["low", "moderate", "high", "strict", "experimental"]},
+    "enabled": {"type": "boolean"}
+  },
+  "additionalProperties": false
+}

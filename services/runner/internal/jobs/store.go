@@ -132,6 +132,11 @@ func (s *Store) AppendEvent(ctx context.Context, runID string, evt Event) (int64
 	if evt.CreatedAt.IsZero() {
 		evt.CreatedAt = time.Now().UTC()
 	}
+	normalized, err := validateAndNormalizeEventPayload(evt.Type, evt.Payload)
+	if err != nil {
+		return 0, err
+	}
+	evt.Payload = normalized
 	return s.events.AppendEvent(ctx, storage.EventRecord{RunID: runID, Type: evt.Type, Payload: evt.Payload, CreatedAt: evt.CreatedAt})
 }
 
