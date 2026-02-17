@@ -41,9 +41,7 @@ func ApplyBlueprint(session *jobs.AutonomousSession, loop *Loop, bp *Orchestrati
 
 	for _, req := range bp.CapabilityPlan.RequiredCapabilities {
 		if _, ok := allowedCaps[req]; !ok {
-			// In a strict mode, we might error here.
-			// loop.Signals can be used to signal guardrail violations.
-			// For now, just log or note it.
+			return fmt.Errorf("missing required capability: %s", req)
 		}
 	}
 

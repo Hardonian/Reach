@@ -208,8 +208,11 @@ func TestCheckpointCreated(t *testing.T) {
 	defer db.Close()
 	runID := seedRun(t, store)
 	loop := Loop{
-		Store:     store,
-		Planner:   &fakePlanner{plans: []StepPlan{{Action: ActionDone}}},
+		Store: store,
+		Planner: &fakePlanner{plans: []StepPlan{
+			{Action: ActionExecute, Tool: "t"},
+			{Action: ActionDone},
+		}},
 		Executor:  &fakeExecutor{},
 		Scheduler: IdleCycleScheduler{BurstMin: time.Millisecond, BurstMax: time.Millisecond, SleepInterval: time.Millisecond},
 		Sleep:     func(context.Context, time.Duration) bool { return true },
