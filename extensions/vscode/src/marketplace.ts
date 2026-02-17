@@ -37,7 +37,7 @@ export async function runMarketplaceInstall(client: MarketplaceClient): Promise<
   if (ok !== 'Install') {
     return;
   }
-  await client.install(kind, id, intent.resolved_version, intent.permissions_summary?.required_capabilities ?? []);
+  await client.install(kind, id, intent.resolved_version, intent.idempotency_key, intent.permissions_summary?.required_capabilities ?? []);
   void vscode.window.showInformationMessage(`Installed ${id}@${intent.resolved_version}`);
 }
 
@@ -51,7 +51,7 @@ async function installFromItem(client: MarketplaceClient, item: MarketplaceItem)
   if (confirm !== 'Install') {
     return;
   }
-  await client.install(item.kind, item.id, intent.resolved_version, intent.permissions_summary?.required_capabilities ?? []);
+  await client.install(item.kind, item.id, intent.resolved_version, intent.idempotency_key, intent.permissions_summary?.required_capabilities ?? []);
   void vscode.window.showInformationMessage(`Installed ${item.id}@${intent.resolved_version}`);
 }
 
@@ -90,6 +90,6 @@ export async function runMarketplaceUpdate(client: MarketplaceClient): Promise<v
   if (confirm !== 'Update') {
     return;
   }
-  await client.install('connector', target.item.id, intent.resolved_version, intent.permissions_summary?.required_capabilities ?? []);
+  await client.update('connector', target.item.id, intent.resolved_version, intent.idempotency_key, intent.permissions_summary?.required_capabilities ?? []);
   void vscode.window.showInformationMessage(`Updated ${target.item.id} to ${intent.resolved_version}`);
 }

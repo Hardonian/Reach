@@ -54,18 +54,12 @@ type Server struct {
 	store          *jobs.Store
 	queue          *jobs.DurableQueue
 	sql            *storage.SQLiteStore
+	registry       *NodeRegistry
 	metaMu         sync.RWMutex
 	runMeta        map[string]runMeta
-	version string
-
-	store      *jobs.Store
-	sql        *storage.SQLiteStore
-	registry   *NodeRegistry
-	metaMu     sync.RWMutex
-	runMeta    map[string]runMeta
-	autonomMu  sync.RWMutex
-	autonomous map[string]*autoControl
-	metrics    *metrics
+	autonomMu      sync.RWMutex
+	autonomous     map[string]*autoControl
+	metrics        *metrics
 
 	requestCounter atomic.Uint64
 	runsCreated    atomic.Uint64
@@ -78,17 +72,16 @@ func NewServer(db *storage.SQLiteStore, version string) *Server {
 	if strings.TrimSpace(version) == "" {
 		version = "dev"
 	}
-	return &Server{version: version, store: jobs.NewStore(db), queue: jobs.NewDurableQueue(db), sql: db, runMeta: map[string]runMeta{}}
 	return &Server{
 		version:    version,
 		store:      jobs.NewStore(db),
+		queue:      jobs.NewDurableQueue(db),
 		sql:        db,
 		registry:   NewNodeRegistry(),
 		runMeta:    map[string]runMeta{},
 		autonomous: map[string]*autoControl{},
 		metrics:    newMetrics(),
 	}
-	return &Server{version: version, store: jobs.NewStore(db), sql: db, registry: NewNodeRegistry(), runMeta: map[string]runMeta{}, autonomous: map[string]*autoControl{}}
 }
 
 func (s *Server) Handler() http.Handler {
@@ -112,7 +105,6 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /v1/nodes/register", s.requireAuth(http.HandlerFunc(s.handleRegisterNode)))
 	mux.Handle("POST /v1/nodes/heartbeat", s.requireAuth(http.HandlerFunc(s.handleNodeHeartbeat)))
 	mux.Handle("GET /v1/nodes", s.requireAuth(http.HandlerFunc(s.handleListNodes)))
-	return mux
 	mux.Handle("POST /v1/sessions/{id}/autonomous/start", s.requireAuth(http.HandlerFunc(s.handleAutonomousStart)))
 	mux.Handle("POST /v1/sessions/{id}/autonomous/stop", s.requireAuth(http.HandlerFunc(s.handleAutonomousStop)))
 	mux.Handle("GET /v1/sessions/{id}/autonomous/status", s.requireAuth(http.HandlerFunc(s.handleAutonomousStatus)))
@@ -330,7 +322,6 @@ func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleGateDecision(w http.ResponseWriter, r *http.Request) {
 	started := time.Now()
-	if err := s.store.ResolveGate(r.Context(), r.PathValue("id"), r.PathValue("gate_id"), jobs.GateDecision("approve_once")); err != nil {
 	if err := s.store.ResolveGate(r.Context(), tenantIDFrom(r.Context()), r.PathValue("id"), r.PathValue("gate_id"), jobs.GateDecision("approve_once")); err != nil {
 		writeError(w, 400, err.Error())
 		return
@@ -339,14 +330,7 @@ func (s *Server) handleGateDecision(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, 200, map[string]string{"status": "ok"})
 }
 
-func (s *Server) handleRunEvents(w http.ResponseWriter, r *http.Request) {
-	events, err := s.store.EventHistory(r.Context(), tenantIDFrom(r.Context()), r.PathValue("id"), 0)
-	if err != nil {
-		writeError(w, 404, err.Error())
-		return
-	}
-	writeJSON(w, 200, map[string]any{"events": events})
-}
+
 
 func (s *Server) handleRegisterNode(w http.ResponseWriter, r *http.Request) {
 	var body struct {
@@ -387,7 +371,26 @@ func (s *Server) handleNodeHeartbeat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	nodes, err := s.sql.ListNodes(r.Context(), tenantIDFrom(r.Context()))
-	writeJSON(w, 200, map[string]any{"entries": entries})
+	if err != nil {
+		writeError(w, 500, err.Error())
+		return
+	}
+	for _, n := range nodes {
+		if n.ID == body.ID {
+			n.LastHeartbeatAt = time.Now().UTC()
+			n.Status = body.Status
+			n.LatencyMS = body.LatencyMS
+			n.LoadScore = body.LoadScore
+			n.UpdatedAt = time.Now().UTC()
+			if err := s.sql.UpsertNode(r.Context(), n); err != nil {
+				writeError(w, 500, err.Error())
+				return
+			}
+			writeJSON(w, 200, map[string]string{"status": "ok"})
+			return
+		}
+	}
+	writeError(w, 404, "node not found")
 }
 
 func (s *Server) handleRunEvents(w http.ResponseWriter, r *http.Request) {
@@ -415,22 +418,7 @@ func (s *Server) handleRunEvents(w http.ResponseWriter, r *http.Request) {
 		writeError(w, 500, err.Error())
 		return
 	}
-	for _, n := range nodes {
-		if n.ID == body.ID {
-			n.LastHeartbeatAt = time.Now().UTC()
-			n.Status = body.Status
-			n.LatencyMS = body.LatencyMS
-			n.LoadScore = body.LoadScore
-			n.UpdatedAt = time.Now().UTC()
-			if err := s.sql.UpsertNode(r.Context(), n); err != nil {
-				writeError(w, 500, err.Error())
-				return
-			}
-			writeJSON(w, 200, map[string]string{"status": "ok"})
-			return
-		}
-	}
-	writeError(w, 404, "node not found")
+	writeJSON(w, 200, map[string]any{"events": events})
 }
 
 func (s *Server) handleListNodes(w http.ResponseWriter, r *http.Request) {

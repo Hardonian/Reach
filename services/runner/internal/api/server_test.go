@@ -7,14 +7,15 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
-	"testing"
-
 	"reach/services/runner/internal/storage"
+	"testing"
+	"time"
 )
 
 func newAuthedServer(t *testing.T) (*Server, *storage.SQLiteStore, *http.Cookie) {
 	t.Helper()
-	db, err := storage.NewSQLiteStore(filepath.Join(t.TempDir(), "runner.sqlite"))
+	tempDir := t.TempDir()
+	db, err := storage.NewSQLiteStore(filepath.Join(tempDir, "runner.sqlite"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,12 +27,11 @@ func newAuthedServer(t *testing.T) (*Server, *storage.SQLiteStore, *http.Cookie)
 	}
 	for _, c := range login.Result().Cookies() {
 		if c.Name == "reach_session" {
-			return srv, c
+			return srv, db, c
 		}
 	}
 	t.Fatal("missing reach_session cookie")
-	return nil, nil
-	return srv, db, login.Result().Cookies()[0]
+	return nil, nil, nil
 }
 
 func doReq(t *testing.T, srv *Server, cookie *http.Cookie, method, path, body string) *httptest.ResponseRecorder {
@@ -55,7 +55,6 @@ func createRun(t *testing.T, srv *Server, cookie *http.Cookie, payload string) s
 }
 
 func TestAutonomousStatusLifecycle(t *testing.T) {
-	srv, cookie := newAuthedServer(t)
 	srv, _, cookie := newAuthedServer(t)
 	runID := createRun(t, srv, cookie, `{"capabilities":["tool:echo"]}`)
 	start := doReq(t, srv, cookie, http.MethodPost, "/v1/sessions/"+runID+"/autonomous/start", `{"goal":"ship","max_iterations":2,"max_runtime":2,"max_tool_calls":4,"burst_min_seconds":1,"burst_max_seconds":1,"sleep_seconds":1}`)
@@ -71,12 +70,14 @@ func TestAutonomousStatusLifecycle(t *testing.T) {
 func TestSpawnDepthEnforcement(t *testing.T) {
 	srv, _, cookie := newAuthedServer(t)
 	root := createRun(t, srv, cookie, `{"capabilities":["tool:echo"],"plan_tier":"free"}`)
+	// Create child
 	child := doReq(t, srv, cookie, http.MethodPost, "/v1/runs/"+root+"/spawn", `{"capabilities":["tool:echo"]}`)
 	if child.Code != http.StatusCreated {
 		t.Fatalf("expected child creation, got %d", child.Code)
 	}
 	var out map[string]any
 	_ = json.Unmarshal(child.Body.Bytes(), &out)
+	// Create grandchild - should fail due to free tier depth
 	gchild := doReq(t, srv, cookie, http.MethodPost, "/v1/runs/"+out["run_id"].(string)+"/spawn", `{"capabilities":["tool:echo"]}`)
 	if gchild.Code != http.StatusForbidden {
 		t.Fatalf("expected depth deny, got %d", gchild.Code)
@@ -84,7 +85,7 @@ func TestSpawnDepthEnforcement(t *testing.T) {
 }
 
 func TestNodeRegistryRoundTrip(t *testing.T) {
-	srv, cookie := newAuthedServer(t)
+	srv, _, cookie := newAuthedServer(t)
 	reg := doReq(t, srv, cookie, http.MethodPost, "/v1/nodes/register", `{"ID":"n1","Type":"local","Status":"online","Capabilities":["tool:echo"],"LatencyMS":10,"LoadScore":1}`)
 	if reg.Code != http.StatusCreated {
 		t.Fatalf("register failed: %d", reg.Code)
@@ -92,7 +93,6 @@ func TestNodeRegistryRoundTrip(t *testing.T) {
 	list := doReq(t, srv, cookie, http.MethodGet, "/v1/nodes", "")
 	if list.Code != http.StatusOK {
 		t.Fatalf("list failed: %d", list.Code)
-		t.Fatalf("expected depth guardrail deny, got %d", gchild.Code)
 	}
 }
 
