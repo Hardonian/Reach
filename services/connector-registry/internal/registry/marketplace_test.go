@@ -115,3 +115,59 @@ func TestTierAndNoAutoUpgrade(t *testing.T) {
 		t.Fatalf("expected pinned install to be stable: %v", err)
 	}
 }
+
+func TestUpdatePermissionDriftRequiresReConsent(t *testing.T) {
+	t.Setenv("DEV_ALLOW_UNSIGNED", "0")
+	root, keys := setupMarketplaceRegistry(t)
+	// add newer version with additional capability
+	pkgDir := filepath.Join(root, "connectors", "conn.github", "1.1.0")
+	if err := os.MkdirAll(pkgDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	bundle := []byte("bundle-v110")
+	h := sha256.Sum256(bundle)
+	m := map[string]any{"kind": "connector", "id": "conn.github", "version": "1.1.0", "package_hash": hex.EncodeToString(h[:]), "required_capabilities": []string{"filesystem:read", "network:outbound"}, "side_effect_types": []string{"network"}, "risk_level": "medium"}
+	manifestBytes, _ := json.Marshal(m)
+	if err := os.WriteFile(filepath.Join(pkgDir, "manifest.json"), manifestBytes, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(pkgDir, "bundle.tgz"), bundle, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	existingBundle, _ := os.ReadFile(filepath.Join(root, "connectors", "conn.github", "1.0.0", "bundle.tgz"))
+	existingSum := sha256.Sum256(existingBundle)
+	existingHash := hex.EncodeToString(existingSum[:])
+
+	// sign with fresh key and update trust map/index
+	pub, priv, _ := ed25519.GenerateKey(rand.Reader)
+	signed := ed25519.Sign(priv, manifestBytes)
+	sig := map[string]string{"key_id": "dev2", "algorithm": "ed25519", "signature": base64.StdEncoding.EncodeToString(signed)}
+	sigBytes, _ := json.Marshal(sig)
+	if err := os.WriteFile(filepath.Join(pkgDir, "manifest.sig"), sigBytes, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	keys["dev2"] = base64.StdEncoding.EncodeToString(pub)
+
+	idx := map[string]any{"packages": []map[string]any{{"id": "conn.github", "versions": []map[string]string{
+		{"version": "1.0.0", "sha256": existingHash, "manifest_url": "conn.github/1.0.0/manifest.json", "signature_url": "conn.github/1.0.0/manifest.sig", "bundle_url": "conn.github/1.0.0/bundle.tgz", "signature_key_id": "dev", "risk_level": "medium", "tier_required": "pro"},
+		{"version": "1.1.0", "sha256": hex.EncodeToString(h[:]), "manifest_url": "conn.github/1.1.0/manifest.json", "signature_url": "conn.github/1.1.0/manifest.sig", "bundle_url": "conn.github/1.1.0/bundle.tgz", "signature_key_id": "dev2", "risk_level": "medium", "tier_required": "pro"},
+	}}}}
+	idxBytes, _ := json.Marshal(idx)
+	if err := os.WriteFile(filepath.Join(root, "connectors", "index.json"), idxBytes, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	store, err := NewStore(filepath.Join(root, "connectors"), "", filepath.Join(root, "cache"), filepath.Join(root, "installed", "connectors"), filepath.Join(root, "reach.lock.json"), keys)
+	if err != nil {
+		t.Fatal(err)
+	}
+	store.SetCurrentTier("pro")
+	intent, err := store.InstallIntent(context.Background(), InstallIntentRequest{Kind: "connector", ID: "conn.github", Version: "1.1.0"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.InstallMarketplace(context.Background(), InstallRequestV1{Kind: "connector", ID: "conn.github", Version: "1.1.0", IdempotencyKey: intent.IdempotencyKey, AcceptedRisk: true, AcceptedCapabilities: []string{"filesystem:read"}}); err == nil {
+		t.Fatal("expected re-consent capability drift failure")
+	}
+}

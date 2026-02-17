@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"context"
 	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/sha256"
@@ -75,6 +76,7 @@ func TestUnsignedRejectedInProd(t *testing.T) {
 
 func TestRemoteInstallAndPin(t *testing.T) {
 	t.Setenv("DEV_ALLOW_UNSIGNED", "0")
+	t.Setenv("DEV_ALLOW_PRIVATE_REGISTRY", "1")
 	root, keys := setupRegistry(t, true)
 	bundlePath := filepath.Join(root, "connectors", "conn.github", "1.0.0", "bundle.tgz")
 	bundle, _ := os.ReadFile(bundlePath)
@@ -162,6 +164,7 @@ func TestRemoteHTTPBlockedWithoutDevFlag(t *testing.T) {
 func TestRemoteHTTPAllowedWithDevFlag(t *testing.T) {
 	t.Setenv("DEV_ALLOW_UNSIGNED", "1")
 	t.Setenv("DEV_ALLOW_INSECURE_REGISTRY", "1")
+	t.Setenv("DEV_ALLOW_PRIVATE_REGISTRY", "1")
 	root, _ := setupRegistry(t, false)
 
 	bundlePath := filepath.Join(root, "connectors", "conn.github", "1.0.0", "bundle.tgz")
@@ -188,5 +191,31 @@ func TestRemoteHTTPAllowedWithDevFlag(t *testing.T) {
 	}
 	if _, err := store.Install(InstallRequest{ID: "conn.github", Version: "=1.0.0"}); err != nil {
 		t.Fatalf("expected http registry allowed in dev flag mode: %v", err)
+	}
+}
+
+func TestPrivateRegistryHostBlocked(t *testing.T) {
+	t.Setenv("DEV_ALLOW_PRIVATE_REGISTRY", "0")
+	if err := validateRemoteHost("127.0.0.1"); err == nil {
+		t.Fatal("expected localhost/private host to be blocked")
+	}
+}
+
+func TestPrivateRegistryHostAllowedWithDevFlag(t *testing.T) {
+	t.Setenv("DEV_ALLOW_PRIVATE_REGISTRY", "1")
+	if err := validateRemoteHost("127.0.0.1"); err != nil {
+		t.Fatalf("expected private host to be allowed in dev mode: %v", err)
+	}
+}
+
+func TestCrossSchemeRedirectBlocked(t *testing.T) {
+	t.Setenv("DEV_ALLOW_INSECURE_REGISTRY", "1")
+	s := &Store{httpClient: &http.Client{Timeout: defaultTimeout}}
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "https://example.com/index.json", http.StatusFound)
+	}))
+	defer ts.Close()
+	if _, err := s.fetchURLWithRetries(context.Background(), ts.URL, maxManifestSize); err == nil {
+		t.Fatal("expected cross-scheme redirect block")
 	}
 }

@@ -85,11 +85,8 @@ jobs:
         with:
           go-version: '1.22.7'
           cache: true
-      - name: reach doctor
-        run: ./reach doctor
-      - name: trust and consent regression tests
-        run: |
-          cd services/connector-registry && go test ./... -run 'InstallIntentAndConsentEnforcement|UnsignedRejectedInProd|TierAndNoAutoUpgrade|RemoteHTTPBlockedWithoutDevFlag|RemoteHTTPAllowedWithDevFlag|MarketplaceIdempotencyFlow' -count=1
+      - name: release super-gate
+        run: ./reach release-check
       - name: queue/backpressure regression tests
         run: |
           cd services/runner && go test ./internal/jobs -run 'Queue|Enqueue' -count=1
