@@ -1,0 +1,8 @@
+{
+  "name": "reach-protocol",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "protocol:validate": "node tools/codegen/validate-protocol.mjs"
+  }
+}
