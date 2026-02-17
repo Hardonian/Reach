@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
-fun TerminalScreen(viewModel: TerminalViewModel) {
+fun TerminalScreen(viewModel: TerminalViewModel, onMarketplaceClick: () -> Unit) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(
@@ -34,11 +34,20 @@ fun TerminalScreen(viewModel: TerminalViewModel) {
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(
-            text = "Reach Terminal",
-            style = MaterialTheme.typography.titleLarge,
-            color = Color(0xFF90CAF9)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Reach Terminal",
+                style = MaterialTheme.typography.titleLarge,
+                color = Color(0xFF90CAF9)
+            )
+            Button(onClick = onMarketplaceClick) {
+                Text("Marketplace")
+            }
+        }
 
         state.streamInfo?.let {
             Text(text = it, color = Color(0xFFFFF59D), style = MaterialTheme.typography.bodySmall)

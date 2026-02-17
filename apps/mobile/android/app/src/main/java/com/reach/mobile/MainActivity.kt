@@ -16,10 +16,13 @@ import com.reach.mobile.ui.CompanionScreen
 import com.reach.mobile.ui.CompanionViewModel
 import com.reach.mobile.ui.TerminalScreen
 import com.reach.mobile.ui.TerminalViewModel
+import com.reach.mobile.ui.MarketplaceScreen
+import com.reach.mobile.ui.MarketplaceViewModel
 import com.reach.mobile.ui.theme.ReachTheme
 
 private const val TERMINAL_ROUTE = "/"
 private const val COMPANION_ROUTE = "/companion"
+private const val MARKETPLACE_ROUTE = "/marketplace"
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,7 +39,14 @@ class MainActivity : ComponentActivity() {
                     NavHost(navController = navController, startDestination = initialRoute) {
                         composable(TERMINAL_ROUTE) {
                             val terminalViewModel: TerminalViewModel = viewModel()
-                            TerminalScreen(viewModel = terminalViewModel)
+                            TerminalScreen(
+                                viewModel = terminalViewModel,
+                                onMarketplaceClick = { navController.navigate(MARKETPLACE_ROUTE) }
+                            )
+                        }
+                        composable(MARKETPLACE_ROUTE) {
+                            val marketplaceViewModel: MarketplaceViewModel = viewModel()
+                            MarketplaceScreen(viewModel = marketplaceViewModel)
                         }
                         composable(COMPANION_ROUTE) {
                             val companionViewModel: CompanionViewModel = viewModel()
