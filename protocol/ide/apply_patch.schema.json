@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.dev/protocol/ide/apply_patch.schema.json",
+  "title": "Apply Patch Command",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "file_path",
+    "unified_diff"
+  ],
+  "properties": {
+    "file_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "unified_diff": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
