@@ -3,6 +3,7 @@ package hub
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -54,6 +55,15 @@ func (m *Manager) getOrCreate(sessionID, tenant string) *Session {
 	return s
 }
 
+func collaborationAllowed(plan string) bool {
+	switch strings.ToLower(strings.TrimSpace(plan)) {
+	case "pro", "enterprise":
+		return true
+	default:
+		return false
+	}
+}
+
 func (m *Manager) HandleWS(w http.ResponseWriter, r *http.Request) {
 	sessionID := r.PathValue("session_id")
 	tenant := r.URL.Query().Get("tenant_id")
@@ -64,6 +74,11 @@ func (m *Manager) HandleWS(w http.ResponseWriter, r *http.Request) {
 	memberID := r.URL.Query().Get("member_id")
 	if memberID == "" {
 		http.Error(w, "member_id required", http.StatusBadRequest)
+		return
+	}
+	planTier := r.URL.Query().Get("plan_tier")
+	if !collaborationAllowed(planTier) {
+		http.Error(w, "plan does not allow collaboration", http.StatusPaymentRequired)
 		return
 	}
 	role := Role(r.URL.Query().Get("role"))
