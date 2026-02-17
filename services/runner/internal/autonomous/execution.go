@@ -20,9 +20,12 @@ type ExecutionEnvelope struct {
 
 // ExecutionContext holds the session-specific context for execution.
 type ExecutionContext struct {
-	SessionID string `json:"session_id"`
-	TenantID  string `json:"tenant_id"`
-	AgentID   string `json:"agent_id"` // Node ID in the spawn tree
+	SessionID   string `json:"session_id"`
+	TenantID    string `json:"tenant_id"`
+	AgentID     string `json:"agent_id"` // Node ID in the spawn tree
+	PackID      string `json:"pack_id,omitempty"`
+	PackVersion string `json:"pack_version,omitempty"`
+	PackHash    string `json:"pack_hash,omitempty"` // For integrity validation on replay
 }
 
 // ExecutionResult captures the outcome of an execution envelope.
