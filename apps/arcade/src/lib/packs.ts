@@ -9,6 +9,11 @@ export interface Pack {
   arcadeSafe: boolean;
   inputs?: Record<string, string>;
   policyConstraints?: string[];
+  author: {
+    name: string;
+    verified: boolean;
+  };
+  verifiedSignature?: boolean;
 }
 
 export const CATALOG: Pack[] = [
@@ -25,6 +30,11 @@ export const CATALOG: Pack[] = [
       name: 'Agent',
     },
     policyConstraints: ['no-network', 'no-fs-write'],
+    author: {
+      name: 'Reach Team',
+      verified: true,
+    },
+    verifiedSignature: true,
   },
   {
     id: 'weather-fetch-v1',
@@ -39,6 +49,11 @@ export const CATALOG: Pack[] = [
       city: 'San Francisco',
     },
     policyConstraints: ['allow-domain: api.weather.gov'],
+    author: {
+      name: 'WeatherAPI',
+      verified: true,
+    },
+    verifiedSignature: true,
   },
   {
     id: 'math-solver-v1',
@@ -53,6 +68,11 @@ export const CATALOG: Pack[] = [
       expression: '2 + 2 * 4',
     },
     policyConstraints: ['pure-logic'],
+    author: {
+      name: 'Community',
+      verified: false,
+    },
+    verifiedSignature: false,
   },
   {
     id: 'unsafe-pack-v1',
@@ -64,5 +84,10 @@ export const CATALOG: Pack[] = [
     tools: ['fs.read'],
     arcadeSafe: false,
     policyConstraints: ['fs-read-all'],
+    author: {
+      name: 'Unknown',
+      verified: false,
+    },
+    verifiedSignature: false,
   },
 ];
