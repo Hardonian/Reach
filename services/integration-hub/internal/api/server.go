@@ -150,10 +150,9 @@ func (s *Server) webhook(provider string) http.HandlerFunc {
 			return
 		}
 		nonce := r.Header.Get("X-Reach-Delivery")
-		if err := s.store.CheckAndMarkReplay(tenantID, nonce, 10*time.Minute); err != nil {
+		if err := s.store.CheckAndMarkReplay(tenantID, provider, nonce, 10*time.Minute); err != nil {
 			s.webhookReplayBlock.Add(1)
 			s.webhookVerifyFail.Add(1)
-		if err := s.store.CheckAndMarkReplay(tenantID, provider, nonce, 10*time.Minute); err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
@@ -175,10 +174,9 @@ func (s *Server) webhook(provider string) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		_ = s.dispatcher.Dispatch(r.Context(), e, correlationFromRequest(r))
 		ctx, cancel := context.WithTimeout(r.Context(), 4*time.Second)
 		defer cancel()
-		_ = s.dispatcher.Dispatch(ctx, r.Header.Get("X-Correlation-ID"), e)
+		_ = s.dispatcher.Dispatch(ctx, e, correlationFromRequest(r))
 		_ = s.store.WriteAudit(tenantID, "webhook.received", map[string]any{"provider": provider, "eventType": e.EventType, "triggerType": e.TriggerType})
 		writeJSON(w, map[string]any{"status": "accepted", "eventId": e.EventID})
 	}
@@ -258,10 +256,9 @@ func (s *Server) approval(w http.ResponseWriter, r *http.Request) {
 	decision, _ := payload["decision"].(string)
 	e := core.NormalizedEvent{SchemaVersion: core.SchemaVersion, EventID: randToken(), TenantID: tenantID, Provider: provider, EventType: "approval." + decision, TriggerType: "approval", OccurredAt: time.Now().UTC(), Actor: map[string]string{"id": "external-user"}, Raw: payload, Resource: map[string]any{"decision": decision}}
 	_ = s.store.SaveEvent(e)
-	_ = s.dispatcher.Dispatch(r.Context(), e, correlationFromRequest(r))
 	ctx, cancel := context.WithTimeout(r.Context(), 4*time.Second)
 	defer cancel()
-	_ = s.dispatcher.Dispatch(ctx, r.Header.Get("X-Correlation-ID"), e)
+	_ = s.dispatcher.Dispatch(ctx, e, correlationFromRequest(r))
 	_ = s.store.WriteAudit(tenantID, "approval.received", map[string]any{"provider": provider, "decision": decision})
 	writeJSON(w, map[string]any{"status": "processed"})
 }
@@ -435,6 +432,8 @@ func (s *Server) logRequest(r *http.Request, tenant string, code int, d time.Dur
 	}
 	b, _ := json.Marshal(entry)
 	fmt.Println(string(b))
+}
+
 func verifyReachTimestamp(r *http.Request, now time.Time) error {
 	timestamp := strings.TrimSpace(r.Header.Get("X-Reach-Timestamp"))
 	if timestamp == "" {

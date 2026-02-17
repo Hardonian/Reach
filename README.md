@@ -27,6 +27,12 @@ Run full local health checks:
 ./reach doctor
 ```
 
+For a canonical pre-push Go sweep across all Go modules, run:
+
+```bash
+make go-module-sanity
+```
+
 This runs:
 
 - toolchain presence checks (Go, Rust, Cargo, Node)

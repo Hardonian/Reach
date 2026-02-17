@@ -50,6 +50,32 @@ jobs:
         run: go test ./...
 
 
+
+
+  go-module-sanity-fast:
+    name: go module sanity (fast, skip runner)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.7'
+          cache: true
+      - name: go test per module (skip runner)
+        run: SKIP_RUNNER=1 ./tools/ci/go-test-modules.sh
+
+  go-module-sanity:
+    name: go module sanity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.7'
+          cache: true
+      - name: go test per module
+        run: ./tools/ci/go-test-modules.sh
+
   security-gates:
     name: security gates
     runs-on: ubuntu-latest
