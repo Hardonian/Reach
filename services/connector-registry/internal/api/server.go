@@ -33,6 +33,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /v1/marketplace/items/", s.marketplaceItem)
 	mux.HandleFunc("POST /v1/marketplace/install-intent", s.marketplaceInstallIntent)
 	mux.HandleFunc("POST /v1/marketplace/install", s.marketplaceInstall)
+	mux.HandleFunc("POST /v1/marketplace/update", s.marketplaceUpdate)
 	return mux
 }
 
@@ -140,6 +141,20 @@ func (s *Server) marketplaceInstall(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusCreated, installed)
+}
+
+func (s *Server) marketplaceUpdate(w http.ResponseWriter, r *http.Request) {
+	var req registry.InstallRequestV1
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	installed, err := s.store.UpdateMarketplace(r.Context(), req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	writeJSON(w, http.StatusOK, installed)
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

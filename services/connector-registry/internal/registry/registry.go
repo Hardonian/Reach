@@ -66,6 +66,12 @@ type Store struct {
 	currentTier    string
 	catalogCache   catalogCacheEntry
 	catalogTTL     time.Duration
+	installIntents map[string]intentEntry
+}
+
+type intentEntry struct {
+	response  InstallIntentResponse
+	expiresAt time.Time
 }
 
 func NewStore(registryRoot, remoteIndexURL, cacheRoot, installedRoot, lockfilePath string, trustedKeys map[string]string) (*Store, error) {
@@ -81,6 +87,7 @@ func NewStore(registryRoot, remoteIndexURL, cacheRoot, installedRoot, lockfilePa
 		items:          map[string]InstalledConnector{},
 		currentTier:    "free",
 		catalogTTL:     catalogTTL,
+		installIntents: make(map[string]intentEntry),
 	}
 	if err := os.MkdirAll(installedRoot, 0o755); err != nil {
 		return nil, err

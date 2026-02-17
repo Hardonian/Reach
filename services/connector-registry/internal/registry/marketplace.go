@@ -2,6 +2,7 @@ package registry
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -96,6 +97,7 @@ type InstallRequestV1 struct {
 	Kind                 string   `json:"kind"`
 	ID                   string   `json:"id"`
 	Version              string   `json:"version"`
+	IdempotencyKey       string   `json:"idempotency_key"`
 	AcceptedCapabilities []string `json:"accepted_capabilities"`
 	AcceptedRisk         bool     `json:"accepted_risk"`
 }
@@ -104,6 +106,7 @@ type InstallIntentResponse struct {
 	Kind               string             `json:"kind"`
 	ID                 string             `json:"id"`
 	ResolvedVersion    string             `json:"resolved_version"`
+	IdempotencyKey     string             `json:"idempotency_key"`
 	ManifestSummary    manifest.Manifest  `json:"manifest_summary"`
 	PermissionsSummary PermissionsSummary `json:"permissions_summary"`
 	Signature          SignatureSummary   `json:"signature"`
@@ -216,10 +219,13 @@ func (s *Store) InstallIntent(ctx context.Context, req InstallIntentRequest) (In
 	if item.TierRequired == "" {
 		item.TierRequired = pkg.TierRequired
 	}
-	return InstallIntentResponse{
+
+	key := generateIdempotencyKey()
+	resp := InstallIntentResponse{
 		Kind:            req.Kind,
 		ID:              req.ID,
 		ResolvedVersion: pkg.Version,
+		IdempotencyKey:  key,
 		ManifestSummary: m,
 		PermissionsSummary: PermissionsSummary{
 			RequiredCapabilities: append([]string{}, m.RequiredCapabilities...),
@@ -233,44 +239,67 @@ func (s *Store) InstallIntent(ctx context.Context, req InstallIntentRequest) (In
 			Allowed:  tierAllowed(s.currentTier, item.TierRequired),
 			Current:  s.currentTier,
 		},
-	}, nil
+	}
+
+	s.mu.Lock()
+	s.installIntents[key] = intentEntry{response: resp, expiresAt: time.Now().Add(10 * time.Minute)}
+	s.mu.Unlock()
+
+	return resp, nil
 }
 
 func (s *Store) InstallMarketplace(ctx context.Context, req InstallRequestV1) (InstalledConnector, error) {
-	if req.ID == "" || req.Kind == "" || req.Version == "" {
-		return InstalledConnector{}, fmt.Errorf("kind, id, and version are required")
+	return s.completeMarketplaceInstall(ctx, req, false)
+}
+
+func (s *Store) UpdateMarketplace(ctx context.Context, req InstallRequestV1) (InstalledConnector, error) {
+	return s.completeMarketplaceInstall(ctx, req, true)
+}
+
+func (s *Store) completeMarketplaceInstall(ctx context.Context, req InstallRequestV1, allowUpgrade bool) (InstalledConnector, error) {
+	if req.ID == "" || req.Kind == "" || req.Version == "" || req.IdempotencyKey == "" {
+		return InstalledConnector{}, fmt.Errorf("kind, id, version, and idempotency_key are required")
 	}
 	if !req.AcceptedRisk {
 		return InstalledConnector{}, errors.New("risk acceptance required")
 	}
-	item, err := s.GetMarketplaceItem(ctx, req.Kind, req.ID)
-	if err != nil {
-		return InstalledConnector{}, err
+
+	s.mu.Lock()
+	entry, ok := s.installIntents[req.IdempotencyKey]
+	if !ok {
+		s.mu.Unlock()
+		return InstalledConnector{}, fmt.Errorf("invalid or expired idempotency_key")
 	}
-	if !tierAllowed(s.currentTier, item.TierRequired) {
-		return InstalledConnector{}, fmt.Errorf("item requires %s tier; current plan is %s", item.TierRequired, s.currentTier)
+	// Validate intent matches request
+	if entry.response.ID != req.ID || entry.response.Kind != req.Kind || entry.response.ResolvedVersion != req.Version {
+		s.mu.Unlock()
+		return InstalledConnector{}, fmt.Errorf("request does not match intent for this key")
 	}
-	idx, err := s.readIndex(ctx)
-	if err != nil {
-		return InstalledConnector{}, err
+	// Check expiration
+	if time.Now().After(entry.expiresAt) {
+		delete(s.installIntents, req.IdempotencyKey)
+		s.mu.Unlock()
+		return InstalledConnector{}, fmt.Errorf("idempotency_key expired")
 	}
-	pkg, err := resolver.ResolvePackage(req.ID, "="+req.Version, idx)
-	if err != nil {
-		return InstalledConnector{}, err
+	// Commit to consuming this key
+	delete(s.installIntents, req.IdempotencyKey)
+	s.mu.Unlock()
+
+	// Use intent data for validation to ensure WYSIWYG
+	intent := entry.response
+	if !tierAllowed(intent.Tier.Current, intent.Tier.Required) {
+		return InstalledConnector{}, fmt.Errorf("item requires %s tier; current plan is %s", intent.Tier.Required, intent.Tier.Current)
 	}
-	manifestBytes, _, err := s.readManifestAndSig(ctx, pkg)
-	if err != nil {
-		return InstalledConnector{}, err
-	}
-	m, err := manifest.ParseManifest(manifestBytes)
-	if err != nil {
-		return InstalledConnector{}, err
-	}
-	missing := missingCapabilities(m.RequiredCapabilities, req.AcceptedCapabilities)
+
+	missing := missingCapabilities(intent.PermissionsSummary.RequiredCapabilities, req.AcceptedCapabilities)
 	if len(missing) > 0 {
 		return InstalledConnector{}, fmt.Errorf("capability acceptance mismatch, missing: %s", strings.Join(missing, ","))
 	}
-	return s.Install(InstallRequest{ID: req.ID, Version: "=" + req.Version, AllowUpgrade: false})
+
+	// We re-verify signature/hash during actual install via s.Install calling installResolved,
+	// checking against the repo again. This is safer than trusting the intent cache implicitly for the bytes.
+	// But we must ensure specific version.
+	return s.Install(InstallRequest{ID: req.ID, Version: "=" + req.Version, AllowUpgrade: allowUpgrade})
 }
 
 func (s *Store) marketplaceCatalog(ctx context.Context) ([]MarketplaceItem, error) {
@@ -622,4 +651,10 @@ func (s *Store) MarshalCatalogSample(limit int) ([]byte, error) {
 		items = items[:limit]
 	}
 	return json.MarshalIndent(items, "", "  ")
+}
+
+func generateIdempotencyKey() string {
+	b := make([]byte, 16)
+	_, _ = io.ReadFull(rand.Reader, b)
+	return hex.EncodeToString(b)
 }
