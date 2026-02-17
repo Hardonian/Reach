@@ -256,7 +256,7 @@ func (s *Store) UpdateMarketplace(ctx context.Context, req InstallRequestV1) (In
 	return s.completeMarketplaceInstall(ctx, req, true)
 }
 
-func (s *Store) completeMarketplaceInstall(ctx context.Context, req InstallRequestV1, allowUpgrade bool) (InstalledConnector, error) {
+func (s *Store) completeMarketplaceInstall(_ context.Context, req InstallRequestV1, allowUpgrade bool) (InstalledConnector, error) {
 	if req.ID == "" || req.Kind == "" || req.Version == "" || req.IdempotencyKey == "" {
 		return InstalledConnector{}, fmt.Errorf("kind, id, version, and idempotency_key are required")
 	}
