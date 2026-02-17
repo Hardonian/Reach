@@ -2,6 +2,7 @@ package autonomous
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"path/filepath"
 	"testing"
@@ -11,26 +12,40 @@ import (
 	"reach/services/runner/internal/storage"
 )
 
-type fakeEngine struct {
-	results []StepResult
+type fakePlanner struct {
+	plans []StepPlan
+	err   error
+	i     int
+}
+
+func (f *fakePlanner) NextStep(_ context.Context, _ SessionState) (*StepPlan, error) {
+	if f.err != nil {
+		return nil, f.err
+	}
+	if f.i < len(f.plans) {
+		p := f.plans[f.i]
+		f.i++
+		return &p, nil
+	}
+	return &StepPlan{Action: ActionDone}, nil
+}
+
+type fakeExecutor struct {
+	results []ExecutionResult
 	errs    []error
 	i       int
 }
 
-func (f *fakeEngine) Plan(_ context.Context, _ string, _ int) (StepPlan, error) {
-	return StepPlan{ToolName: "t", Input: map[string]any{}}, nil
-}
-
-func (f *fakeEngine) Execute(_ context.Context, _ StepPlan) (StepResult, error) {
+func (f *fakeExecutor) Execute(_ context.Context, _ ExecutionEnvelope) (*ExecutionResult, error) {
 	idx := f.i
 	f.i++
 	if idx < len(f.errs) && f.errs[idx] != nil {
-		return StepResult{}, f.errs[idx]
+		return nil, f.errs[idx]
 	}
 	if idx < len(f.results) {
-		return f.results[idx], nil
+		return &f.results[idx], nil
 	}
-	return StepResult{Success: true, Progressed: true}, nil
+	return &ExecutionResult{Status: StatusSuccess}, nil
 }
 
 type sequenceSignals struct {
@@ -74,7 +89,14 @@ func TestIterationCapEnforced(t *testing.T) {
 	store, db := newStore(t)
 	defer db.Close()
 	runID := seedRun(t, store)
-	loop := Loop{Store: store, Engine: &fakeEngine{}, NoProgressLimit: 10, Scheduler: IdleCycleScheduler{BurstMin: time.Millisecond, BurstMax: time.Millisecond, SleepInterval: time.Millisecond}, Sleep: func(context.Context, time.Duration) bool { return true }}
+	loop := Loop{
+		Store:           store,
+		Planner:         &fakePlanner{plans: []StepPlan{{Action: ActionExecute, Tool: "t"}}},
+		Executor:        &fakeExecutor{},
+		NoProgressLimit: 10,
+		Scheduler:       IdleCycleScheduler{BurstMin: time.Millisecond, BurstMax: time.Millisecond, SleepInterval: time.Millisecond},
+		Sleep:           func(context.Context, time.Duration) bool { return true },
+	}
 	s := testSession()
 	s.MaxIterations = 2
 	reason := loop.Run(context.Background(), "tenant-a", runID, s)
@@ -87,10 +109,22 @@ func TestPauseOnNetworkLossAndResume(t *testing.T) {
 	store, db := newStore(t)
 	defer db.Close()
 	runID := seedRun(t, store)
-	engine := &fakeEngine{results: []StepResult{{Success: true, Progressed: true}, {Success: true, Progressed: true, Done: true}}}
+	// Plan: Execute -> Execute -> Done
+	plans := []StepPlan{
+		{Action: ActionExecute, Tool: "t1"},
+		{Action: ActionExecute, Tool: "t2"},
+		{Action: ActionDone},
+	}
+	planner := &fakePlanner{plans: plans}
+	executor := &fakeExecutor{results: []ExecutionResult{
+		{Status: StatusSuccess, Output: json.RawMessage(`{}`)},
+		{Status: StatusSuccess, Output: json.RawMessage(`{}`)},
+	}}
+
 	loop := Loop{
 		Store:     store,
-		Engine:    engine,
+		Planner:   planner,
+		Executor:  executor,
 		Signals:   &sequenceSignals{list: []RuntimeSignals{{NetworkAvailable: false, BatteryLevel: 90}, {NetworkAvailable: true, BatteryLevel: 90}, {NetworkAvailable: true, BatteryLevel: 90}}},
 		Scheduler: IdleCycleScheduler{BurstMin: 2 * time.Millisecond, BurstMax: 2 * time.Millisecond, SleepInterval: time.Millisecond},
 		Sleep:     func(context.Context, time.Duration) bool { return true },
@@ -121,7 +155,24 @@ func TestNoProgressStop(t *testing.T) {
 	store, db := newStore(t)
 	defer db.Close()
 	runID := seedRun(t, store)
-	loop := Loop{Store: store, Engine: &fakeEngine{results: []StepResult{{Success: true, Progressed: false}, {Success: true, Progressed: false}}}, NoProgressLimit: 2, Scheduler: IdleCycleScheduler{BurstMin: time.Millisecond, BurstMax: time.Millisecond, SleepInterval: time.Millisecond}, Sleep: func(context.Context, time.Duration) bool { return true }}
+	// Executor returns failure -> no progress
+	executor := &fakeExecutor{results: []ExecutionResult{
+		{Status: StatusFailure},
+		{Status: StatusFailure},
+	}}
+	planner := &fakePlanner{plans: []StepPlan{
+		{Action: ActionExecute, Tool: "t"},
+		{Action: ActionExecute, Tool: "t"},
+	}}
+
+	loop := Loop{
+		Store:           store,
+		Planner:         planner,
+		Executor:        executor,
+		NoProgressLimit: 2,
+		Scheduler:       IdleCycleScheduler{BurstMin: time.Millisecond, BurstMax: time.Millisecond, SleepInterval: time.Millisecond},
+		Sleep:           func(context.Context, time.Duration) bool { return true },
+	}
 	reason := loop.Run(context.Background(), "tenant-a", runID, testSession())
 	if reason != ReasonNoProgress {
 		t.Fatalf("expected %s got %s", ReasonNoProgress, reason)
@@ -132,7 +183,13 @@ func TestRuntimeCapEnforced(t *testing.T) {
 	store, db := newStore(t)
 	defer db.Close()
 	runID := seedRun(t, store)
-	loop := Loop{Store: store, Engine: &fakeEngine{results: []StepResult{{Success: true, Progressed: true}}}, Scheduler: IdleCycleScheduler{BurstMin: time.Millisecond, BurstMax: time.Millisecond, SleepInterval: time.Millisecond}, Sleep: func(context.Context, time.Duration) bool { return true }}
+	loop := Loop{
+		Store:     store,
+		Planner:   &fakePlanner{plans: []StepPlan{{Action: ActionExecute, Tool: "t"}}},
+		Executor:  &fakeExecutor{},
+		Scheduler: IdleCycleScheduler{BurstMin: time.Millisecond, BurstMax: time.Millisecond, SleepInterval: time.Millisecond},
+		Sleep:     func(context.Context, time.Duration) bool { return true },
+	}
 	s := testSession()
 	s.MaxRuntime = time.Millisecond
 	s.StartedAt = time.Now().Add(-time.Second)
@@ -146,7 +203,13 @@ func TestCheckpointCreated(t *testing.T) {
 	store, db := newStore(t)
 	defer db.Close()
 	runID := seedRun(t, store)
-	loop := Loop{Store: store, Engine: &fakeEngine{results: []StepResult{{Success: true, Progressed: true, Done: true, Summary: "done"}}}, Scheduler: IdleCycleScheduler{BurstMin: time.Millisecond, BurstMax: time.Millisecond, SleepInterval: time.Millisecond}, Sleep: func(context.Context, time.Duration) bool { return true }}
+	loop := Loop{
+		Store:     store,
+		Planner:   &fakePlanner{plans: []StepPlan{{Action: ActionDone}}},
+		Executor:  &fakeExecutor{},
+		Scheduler: IdleCycleScheduler{BurstMin: time.Millisecond, BurstMax: time.Millisecond, SleepInterval: time.Millisecond},
+		Sleep:     func(context.Context, time.Duration) bool { return true },
+	}
 	reason := loop.Run(context.Background(), "tenant-a", runID, testSession())
 	if reason != ReasonDone {
 		t.Fatalf("expected done got %s", reason)
@@ -170,7 +233,15 @@ func TestManualStopViaCancel(t *testing.T) {
 	store, db := newStore(t)
 	defer db.Close()
 	runID := seedRun(t, store)
-	loop := Loop{Store: store, Engine: &fakeEngine{errs: []error{errors.New("boom"), errors.New("boom")}}, RepeatedFailureLimit: 10, NoProgressLimit: 10, Scheduler: IdleCycleScheduler{BurstMin: time.Millisecond, BurstMax: time.Millisecond, SleepInterval: time.Millisecond}, Sleep: func(context.Context, time.Duration) bool { return true }}
+	loop := Loop{
+		Store:                store,
+		Planner:              &fakePlanner{err: errors.New("boom")}, // This simulates plan error
+		Executor:             &fakeExecutor{},
+		RepeatedFailureLimit: 10,
+		NoProgressLimit:      10,
+		Scheduler:            IdleCycleScheduler{BurstMin: time.Millisecond, BurstMax: time.Millisecond, SleepInterval: time.Millisecond},
+		Sleep:                func(context.Context, time.Duration) bool { return true },
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	reason := loop.Run(ctx, "tenant-a", runID, testSession())

@@ -5,17 +5,17 @@ import (
 	"encoding/json"
 )
 
-// GeminiPlanner is the implementation of the Planner interface for the Gemini 3 Pro mode.
+// GeminiBlueprintPlanner is the implementation of the Planner interface for the Gemini 3 Pro mode.
 // It generates deterministic orchestration plans based on policy constraints and session context.
-type GeminiPlanner struct{}
+type GeminiBlueprintPlanner struct{}
 
 // NewGeminiPlanner creates a new instance of the GeminiPlanner.
-func NewGeminiPlanner() *GeminiPlanner {
-	return &GeminiPlanner{}
+func NewGeminiPlanner() *GeminiBlueprintPlanner {
+	return &GeminiBlueprintPlanner{}
 }
 
 // Generate produces a structured OrchestrationBlueprint for the given objective.
-func (p *GeminiPlanner) Generate(ctx context.Context, sessionContext json.RawMessage, objective string) (*OrchestrationBlueprint, error) {
+func (p *GeminiBlueprintPlanner) Generate(ctx context.Context, sessionContext json.RawMessage, objective string) (*OrchestrationBlueprint, error) {
 	// In a real implementation, this would call the LLM with the context and objective.
 	// For this reference implementation, we return the deterministic plan structure
 	// that validates environment integrity and enforces budget constraints.
@@ -145,4 +145,15 @@ func (p *GeminiPlanner) Generate(ctx context.Context, sessionContext json.RawMes
 	}
 
 	return plan, nil
+}
+
+// GeminiStepPlanner implements StepPlanner using Gemini.
+type GeminiStepPlanner struct{}
+
+func (p *GeminiStepPlanner) NextStep(ctx context.Context, state SessionState) (*StepPlan, error) {
+	// Reference implementation: Always finish.
+	return &StepPlan{
+		Action:    ActionDone,
+		Reasoning: "Reference implementation: Nothing to execute.",
+	}, nil
 }

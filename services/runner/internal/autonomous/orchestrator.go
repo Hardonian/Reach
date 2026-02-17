@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"reach/services/runner/internal/jobs"
+
+	"github.com/google/uuid"
 )
 
 type StatusReason string
@@ -22,6 +24,7 @@ const (
 	ReasonContextCanceled  StatusReason = "context_canceled"
 	ReasonCheckpointFailed StatusReason = "checkpoint_failed"
 	ReasonPaused           StatusReason = "paused"
+	ReasonPlanError        StatusReason = "plan_error"
 )
 
 type PauseReason string
@@ -33,24 +36,6 @@ const (
 	PauseReasonGuardrail    PauseReason = "guardrail_near"
 	PauseReasonPolicyWindow PauseReason = "policy_window"
 )
-
-type StepPlan struct {
-	ToolName string
-	Input    map[string]any
-}
-
-type StepResult struct {
-	Success    bool
-	Progressed bool
-	Summary    string
-	Output     map[string]any
-	Done       bool
-}
-
-type Engine interface {
-	Plan(context.Context, string, int) (StepPlan, error)
-	Execute(context.Context, StepPlan) (StepResult, error)
-}
 
 type RuntimeSignals struct {
 	NetworkAvailable bool
@@ -98,7 +83,8 @@ func (s IdleCycleScheduler) burstForIteration(iteration int) time.Duration {
 
 type Loop struct {
 	Store                *jobs.Store
-	Engine               Engine
+	Planner              StepPlanner
+	Executor             Executor
 	Signals              SignalProvider
 	Scheduler            IdleCycleScheduler
 	RepeatedFailureLimit int
@@ -205,36 +191,85 @@ func (l *Loop) tick(ctx context.Context, tenantID, runID string, session *jobs.A
 		stepCtx, cancel = context.WithTimeout(ctx, l.IterationTimeout)
 		defer cancel()
 	}
-	plan, err := l.Engine.Plan(stepCtx, session.Goal, session.IterationCount)
+
+	// 1. Build Session State for Planner
+	state := SessionState{
+		Goal:           session.Goal,
+		IterationCount: session.IterationCount,
+		// History would need to be rehydrated or maintained in AutonomousSession if we want full history.
+		// For now, passing minimal state.
+		Variables: make(map[string]any),
+	}
+
+	// 2. Planner Step
+	plan, err := l.Planner.NextStep(stepCtx, state)
 	if err != nil {
 		session.FailureStreak++
 		if session.FailureStreak >= l.RepeatedFailureLimit {
 			return ReasonRepeatedFailure
 		}
-		return ""
+		return "" // Retry
 	}
 
-	res, err := l.Engine.Execute(stepCtx, plan)
+	// Handle non-execution actions
+	if plan.Action == ActionDone {
+		return ReasonDone
+	}
+	if plan.Action == ActionWait {
+		return "" // Just finish tick, loop will sleep if burst finished
+	}
+	if plan.Action == ActionFail {
+		return ReasonPlanError
+	}
+
+	// 3. Execution Step
+	// Create Envelope
+	envelope := ExecutionEnvelope{
+		ID:        uuid.New().String(),
+		TaskID:    runID, // Or a sub-task ID
+		ToolName:  plan.Tool,
+		Arguments: plan.Args,
+		Context: ExecutionContext{
+			SessionID: runID,
+			TenantID:  tenantID,
+			AgentID:   "root", // Simplification
+		},
+		Permissions: session.AllowedCapabilities,
+	}
+
+	res, err := l.Executor.Execute(stepCtx, envelope)
+
+	// 4. Update Session
 	session.ToolCallCount++
 	session.IterationCount++
 	session.UpdatedAt = time.Now().UTC()
-	if err != nil || !res.Success {
+
+	var success bool
+
+	if err != nil {
+		success = false
+	} else {
+		success = res.Status == StatusSuccess
+	}
+
+	if !success {
 		session.FailureStreak++
 	} else {
 		session.FailureStreak = 0
 	}
-	if res.Progressed {
+
+	// Progress heuristic: success is progress.
+	if success {
 		session.NoProgressStreak = 0
 	} else {
 		session.NoProgressStreak++
 	}
 
-	if ckErr := l.checkpoint(ctx, tenantID, runID, *session, plan, res); ckErr != nil {
+	// 5. Checkpoint
+	if ckErr := l.checkpoint(ctx, tenantID, runID, *session, *plan, res); ckErr != nil {
 		return ReasonCheckpointFailed
 	}
-	if res.Done {
-		return ReasonDone
-	}
+
 	if session.FailureStreak >= l.RepeatedFailureLimit {
 		return ReasonRepeatedFailure
 	}
@@ -252,7 +287,7 @@ func (l *Loop) publishStateEvent(ctx context.Context, runID, event string, paylo
 	return l.Store.PublishEvent(ctx, runID, jobs.Event{Type: event, Payload: body, CreatedAt: time.Now().UTC()}, "autonomous")
 }
 
-func (l *Loop) checkpoint(ctx context.Context, tenantID, runID string, session jobs.AutonomousSession, plan StepPlan, res StepResult) error {
+func (l *Loop) checkpoint(ctx context.Context, tenantID, runID string, session jobs.AutonomousSession, plan StepPlan, res *ExecutionResult) error {
 	capsule, err := json.Marshal(map[string]any{
 		"goal":            session.Goal,
 		"iteration":       session.IterationCount,
@@ -267,23 +302,42 @@ func (l *Loop) checkpoint(ctx context.Context, tenantID, runID string, session j
 	if err := l.Store.PublishEvent(ctx, runID, jobs.Event{Type: "autonomous.checkpoint", Payload: capsule, CreatedAt: time.Now().UTC()}, "autonomous"); err != nil {
 		return err
 	}
-	auditPayload, _ := json.Marshal(map[string]any{"iteration": session.IterationCount, "delta_summary": res.Summary})
+
+	summary := "executed"
+	if res != nil && res.Error != nil {
+		summary = res.Error.Message
+	}
+
+	auditPayload, _ := json.Marshal(map[string]any{"iteration": session.IterationCount, "delta_summary": summary})
 	if err := l.Store.Audit(ctx, tenantID, runID, "autonomous.checkpoint", auditPayload); err != nil {
 		return err
 	}
 	return nil
 }
 
-// StaticEngine is used by API wiring and tests when a dedicated planner is not configured yet.
-type StaticEngine struct{}
+// StaticPlanner for testing/wiring
+type StaticPlanner struct{}
 
-func (StaticEngine) Plan(_ context.Context, _ string, i int) (StepPlan, error) {
-	if i > 1000000 {
-		return StepPlan{}, errors.New("iteration overflow")
+func (StaticPlanner) NextStep(_ context.Context, s SessionState) (*StepPlan, error) {
+	if s.IterationCount > 1000000 {
+		return nil, errors.New("iteration overflow")
 	}
-	return StepPlan{ToolName: "noop", Input: map[string]any{"iteration": i}}, nil
+	return &StepPlan{
+		Action: ActionExecute,
+		Tool:   "noop",
+		Args:   json.RawMessage(`{"ok":true}`),
+	}, nil
 }
 
-func (StaticEngine) Execute(_ context.Context, _ StepPlan) (StepResult, error) {
-	return StepResult{Success: true, Progressed: false, Summary: "no-op", Output: map[string]any{"ok": true}, Done: false}, nil
+// StaticExecutor for testing/wiring
+type StaticExecutor struct{}
+
+func (StaticExecutor) Execute(_ context.Context, _ ExecutionEnvelope) (*ExecutionResult, error) {
+	return &ExecutionResult{
+		Status: StatusSuccess,
+		Output: json.RawMessage(`{"ok": true}`),
+		Metrics: ExecutionMetrics{
+			Duration: time.Millisecond,
+		},
+	}, nil
 }
