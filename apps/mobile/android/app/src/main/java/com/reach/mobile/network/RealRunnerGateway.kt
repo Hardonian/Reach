@@ -32,4 +32,20 @@ class RealRunnerGateway(
             isActive = isActive
         )
     }
+
+    override suspend fun submitPolicyDecision(runId: String, gateId: String, decision: String): Result<Unit> {
+        return httpClient.submitPolicyDecision(runId, gateId, decision)
+    }
+
+    override suspend fun submitPatchDecision(runId: String, patchId: String, decision: String): Result<Unit> {
+        return httpClient.submitPatchDecision(runId, patchId, decision)
+    }
+
+    override suspend fun fetchWorkspaceFiles(runId: String): Result<List<String>> {
+        return httpClient.fetchWorkspaceFiles(runId)
+    }
+
+    override suspend fun fetchWorkspaceFile(runId: String, path: String): Result<String> {
+        return httpClient.fetchWorkspaceFile(runId, path)
+    }
 }

@@ -15,4 +15,9 @@ interface RunnerGateway {
         onLastEventId: (String) -> Unit,
         isActive: () -> Boolean
     )
+
+    suspend fun submitPolicyDecision(runId: String, gateId: String, decision: String): Result<Unit>
+    suspend fun submitPatchDecision(runId: String, patchId: String, decision: String): Result<Unit>
+    suspend fun fetchWorkspaceFiles(runId: String): Result<List<String>>
+    suspend fun fetchWorkspaceFile(runId: String, path: String): Result<String>
 }
