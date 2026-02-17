@@ -25,7 +25,13 @@ func newAuthedServer(t *testing.T) (*Server, *http.Cookie) {
 	if login.Code != http.StatusOK {
 		t.Fatalf("dev login failed %d", login.Code)
 	}
-	return srv, login.Result().Cookies()[0]
+	for _, c := range login.Result().Cookies() {
+		if c.Name == "reach_session" {
+			return srv, c
+		}
+	}
+	t.Fatal("missing reach_session cookie")
+	return nil, nil
 }
 
 func doReq(t *testing.T, srv *Server, cookie *http.Cookie, method, path, body string) *httptest.ResponseRecorder {
@@ -50,16 +56,11 @@ func createRun(t *testing.T, srv *Server, cookie *http.Cookie, payload string) s
 
 func TestAutonomousStatusLifecycle(t *testing.T) {
 	srv, cookie := newAuthedServer(t)
-	runID := createRun(t, srv, cookie, `{}`)
 	runID := createRun(t, srv, cookie, `{"capabilities":["tool:echo"]}`)
 	start := doReq(t, srv, cookie, http.MethodPost, "/v1/sessions/"+runID+"/autonomous/start", `{"goal":"ship","max_iterations":2,"max_runtime":2,"max_tool_calls":4,"burst_min_seconds":1,"burst_max_seconds":1,"sleep_seconds":1}`)
 	if start.Code != http.StatusAccepted {
 		t.Fatalf("start failed %d %s", start.Code, start.Body.String())
 	}
-}
-
-func TestSpawnDepthEnforcement(t *testing.T) { /* unchanged tests below */
-
 	status := doReq(t, srv, cookie, http.MethodGet, "/v1/sessions/"+runID+"/autonomous/status", "")
 	if status.Code != http.StatusOK {
 		t.Fatalf("status failed %d", status.Code)

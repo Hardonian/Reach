@@ -35,7 +35,7 @@ class RunRepository(
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 ) {
     companion object {
-        private const val MAX_EVENTS_IN_MEMORY = 200
+        private const val MAX_EVENTS_IN_MEMORY = 1000
         private const val EVENT_BATCH_SIZE = 12
         private const val EVENT_BATCH_WINDOW_MS = 120L
     }
