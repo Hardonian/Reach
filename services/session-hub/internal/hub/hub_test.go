@@ -125,9 +125,9 @@ func TestBroadcastToMultipleClients(t *testing.T) {
 	ts := newServer(m)
 	defer ts.Close()
 
-	c1 := dialWS(t, ts.URL, "/ws/session/sess-1?tenant_id=t1&member_id=alice&role=owner")
+	c1 := dialWS(t, ts.URL, "/ws/session/sess-1?tenant_id=t1&member_id=alice&role=owner&plan=pro")
 	defer c1.close()
-	c2 := dialWS(t, ts.URL, "/ws/session/sess-1?tenant_id=t1&member_id=bob&role=editor")
+	c2 := dialWS(t, ts.URL, "/ws/session/sess-1?tenant_id=t1&member_id=bob&role=editor&plan=pro")
 	defer c2.close()
 
 	var snapshot map[string]any
@@ -152,7 +152,7 @@ func TestSessionTenantIsolation(t *testing.T) {
 	ts := newServer(m)
 	defer ts.Close()
 
-	c1 := dialWS(t, ts.URL, "/ws/session/sess-1?tenant_id=t1&member_id=alice&role=owner")
+	c1 := dialWS(t, ts.URL, "/ws/session/sess-1?tenant_id=t1&member_id=alice&role=owner&plan=pro")
 	defer c1.close()
 	var snapshot map[string]any
 	_ = c1.readJSON(&snapshot)
@@ -165,10 +165,31 @@ func TestSessionTenantIsolation(t *testing.T) {
 	defer conn.Close()
 	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
 	key := base64.StdEncoding.EncodeToString([]byte("0123456789012345"))
-	_, _ = rw.WriteString(fmt.Sprintf("GET /ws/session/sess-1?tenant_id=t2&member_id=bob&role=viewer HTTP/1.1\r\nHost: %s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n", u.Host, key))
+	_, _ = rw.WriteString(fmt.Sprintf("GET /ws/session/sess-1?tenant_id=t2&member_id=bob&role=viewer&plan=pro HTTP/1.1\r\nHost: %s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n", u.Host, key))
 	_ = rw.Flush()
 	status, _ := rw.ReadString('\n')
 	if !strings.Contains(status, "403") {
 		t.Fatalf("expected 403, got %s", status)
+	}
+}
+
+func TestCollaborationTierRestriction(t *testing.T) {
+	m := NewManager()
+	ts := newServer(m)
+	defer ts.Close()
+
+	u, _ := url.Parse(ts.URL)
+	conn, err := net.Dial("tcp", u.Host)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
+	key := base64.StdEncoding.EncodeToString([]byte("1234567890123456"))
+	_, _ = rw.WriteString(fmt.Sprintf("GET /ws/session/sess-2?tenant_id=t1&member_id=alice&role=owner&plan=free HTTP/1.1\r\nHost: %s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n", u.Host, key))
+	_ = rw.Flush()
+	status, _ := rw.ReadString('\n')
+	if !strings.Contains(status, "403") {
+		t.Fatalf("expected 403 got %s", status)
 	}
 }

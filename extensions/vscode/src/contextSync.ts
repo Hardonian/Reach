@@ -10,6 +10,9 @@ export function buildContextPayload(): ContextPayload {
     .map((document) => document.uri.fsPath);
   const editor = vscode.window.activeTextEditor;
   const selection = editor?.selection;
+  const config = vscode.workspace.getConfiguration('reach');
+  const tier = (config.get<string>('planTier') ?? 'free') as 'free' | 'pro' | 'enterprise';
+  const repoMode = tier === 'enterprise' ? 'full' : tier === 'pro' ? 'diff-only' : 'metadata';
 
   return createContextPayload({
     workspaceRoot: workspaceFolder?.uri.fsPath ?? null,
@@ -26,8 +29,21 @@ export function buildContextPayload(): ContextPayload {
             character: selection.end.character
           }
         }
-      : null
-  });
+      : null,
+    workspace_config: {
+      model_provider_default: config.get<string>('modelProviderDefault') ?? 'gpt-5.2-codex',
+      spawn_defaults: {
+        max_iterations: config.get<number>('maxIterations') ?? 5
+      },
+      budget_defaults: {
+        max_tokens: config.get<number>('maxTokens') ?? 32768
+      }
+    },
+    repo_sync_profile: {
+      mode: repoMode
+    },
+    tier
+  } as ContextPayload);
 }
 
 export class ContextSync implements vscode.Disposable {

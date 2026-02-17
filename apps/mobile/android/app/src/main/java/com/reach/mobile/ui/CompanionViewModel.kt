@@ -61,6 +61,10 @@ data class CompanionUiState(
     val sessionId: String? = null,
     val sessionMembers: List<String> = emptyList(),
     val assignedNode: String? = null,
+    val syncStatus: String = "Idle",
+    val repoSyncMode: String = "metadata",
+    val deviceList: List<String> = listOf("android-local"),
+    val tierBadge: String = "FREE",
     val error: String? = null
 )
 
@@ -128,6 +132,19 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
         _uiState.update { state ->
             val nextEvents = (state.events + event).takeLast(200)
             var nextState = state.copy(events = nextEvents, status = event.type, error = null)
+            if (event.type == "capsule.sync.status") {
+                val payload = event.payloadAsObject()
+                val status = payload?.get("status")?.jsonPrimitive?.content ?: "Unknown"
+                val mode = payload?.get("repo_sync_mode")?.jsonPrimitive?.content ?: nextState.repoSyncMode
+                val tier = payload?.get("tier")?.jsonPrimitive?.content?.uppercase() ?: nextState.tierBadge
+                nextState = nextState.copy(syncStatus = status, repoSyncMode = mode, tierBadge = tier)
+            }
+            if (event.type == "device.registered") {
+                val device = event.payloadAsObject()?.get("device_id")?.jsonPrimitive?.content
+                if (device != null) {
+                    nextState = nextState.copy(deviceList = (nextState.deviceList + device).distinct())
+                }
+            }
             if (event.type == "policy.gate.requested") {
                 nextState = nextState.copy(pendingPolicyGate = event.toPolicyGatePrompt())
             }
@@ -241,4 +258,3 @@ class CompanionViewModel(application: Application) : AndroidViewModel(applicatio
         return PatchPrompt(patchId = patchId, title = title, unifiedDiff = diff)
     }
 }
-
