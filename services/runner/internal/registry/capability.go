@@ -100,3 +100,23 @@ func (r *InMemoryRegistry) ValidateTools(requestedTools []string) error {
 
 	return nil
 }
+
+// ValidatePackCompatibility ensures that a pack's declared tools exist in the registry.
+func (r *InMemoryRegistry) ValidatePackCompatibility(pack ExecutionPack) error {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	for _, tool := range pack.DeclaredTools {
+		// Check if tool is mapped to a capability
+		if _, exists := r.toolToCap[tool]; exists {
+			continue
+		}
+		// Check if tool ID is itself a capability (direct capability usage)
+		if _, exists := r.capabilities[tool]; exists {
+			continue
+		}
+
+		return fmt.Errorf("pack declares tool '%s' which is not provided by any registered capability", tool)
+	}
+	return nil
+}
