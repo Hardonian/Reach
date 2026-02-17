@@ -23,3 +23,11 @@ These checks run through `reach doctor` and the `hardening regression gates` CI 
 - Pinned installed versions do not silently auto-upgrade.
 - Registry fetches use bounded payload sizes, retries, and HTTP timeouts.
 - Marketplace catalog caching is bounded by TTL and max-items cap.
+
+## Fun Layer: Reach Arcade
+
+### Boundary Rules
+- **Arcade** (`apps/arcade`) is purely a UI presentation layer.
+- **Execution** must remain in `services/runner`. The Arcade cannot contain execution or secret handling logic.
+- **Policy Gate** is mandatory for all Arcade-initiated runs. No bypasses allowed.
+- **No Secrets** in Arcade UI. All sensitive data must be redacted at the API boundary before reaching the client.
