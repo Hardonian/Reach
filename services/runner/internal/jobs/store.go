@@ -43,6 +43,7 @@ type AutonomousStatus string
 const (
 	AutonomousIdle      AutonomousStatus = "idle"
 	AutonomousRunning   AutonomousStatus = "running"
+	AutonomousPaused    AutonomousStatus = "paused"
 	AutonomousStopping  AutonomousStatus = "stopping"
 	AutonomousStopped   AutonomousStatus = "stopped"
 	AutonomousCompleted AutonomousStatus = "completed"
@@ -69,6 +70,7 @@ type Run struct {
 	TenantID     string
 	Capabilities map[string]struct{}
 	Gates        map[string]Gate
+	Autonomous   AutonomousSession
 }
 
 type Store struct {
@@ -85,6 +87,14 @@ func NewStore(db *storage.SQLiteStore) *Store {
 	return &Store{runs: db, events: db, audit: db, subs: map[string][]chan Event{}}
 }
 
+func toCapSet(in []string) map[string]struct{} {
+	out := make(map[string]struct{}, len(in))
+	for _, cap := range in {
+		out[cap] = struct{}{}
+	}
+	return out
+}
+
 func (s *Store) CreateRun(ctx context.Context, tenantID string, capabilities []string) (*Run, error) {
 	id := fmt.Sprintf("run-%06d", s.counter.Add(1))
 	now := time.Now().UTC()
@@ -95,6 +105,7 @@ func (s *Store) CreateRun(ctx context.Context, tenantID string, capabilities []s
 }
 
 func (s *Store) GetRun(ctx context.Context, tenantID, id string) (*Run, error) {
+	r, err := s.runs.GetRun(ctx, tenantID, id)
 	rec, err := s.runs.GetRun(ctx, tenantID, id)
 	if errors.Is(err, storage.ErrNotFound) {
 		return nil, ErrRunNotFound
@@ -102,6 +113,7 @@ func (s *Store) GetRun(ctx context.Context, tenantID, id string) (*Run, error) {
 	if err != nil {
 		return nil, err
 	}
+	return &Run{ID: r.ID, TenantID: r.TenantID, Capabilities: toCapSet(r.Capabilities), Gates: map[string]Gate{}}, nil
 	return &Run{ID: rec.ID, TenantID: rec.TenantID, Capabilities: toCapSet(rec.Capabilities), Gates: map[string]Gate{}}, nil
 }
 

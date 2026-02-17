@@ -109,7 +109,7 @@ export class ReachPanel implements vscode.Disposable {
       events: this.events,
       artifacts: this.artifacts,
       approvals: this.approvals,
-      autonomousBanner: this.autonomousBanner
+      autonomousBanner: this.autonomousBanner,
       sessionMembers: Array.from(this.sessionMembers),
       liveRuns: this.liveRuns
     });

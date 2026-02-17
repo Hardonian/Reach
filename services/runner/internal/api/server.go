@@ -176,6 +176,117 @@ func (s *Server) requireAuth(next http.Handler) http.Handler {
 
 func tenantIDFrom(ctx context.Context) string { v, _ := ctx.Value(tenantKey).(string); return v }
 
+func (s *Server) handleAutonomousStart(w http.ResponseWriter, r *http.Request) {
+	tenantID, runID := tenantIDFrom(r.Context()), r.PathValue("id")
+	var body struct {
+		Goal                string   `json:"goal"`
+		MaxIterations       int      `json:"max_iterations"`
+		MaxRuntimeSeconds   int      `json:"max_runtime"`
+		MaxToolCalls        int      `json:"max_tool_calls"`
+		AllowedCapabilities []string `json:"allowed_capabilities"`
+		BurstMinSeconds     int      `json:"burst_min_seconds"`
+		BurstMaxSeconds     int      `json:"burst_max_seconds"`
+		SleepSeconds        int      `json:"sleep_seconds"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid json")
+		return
+	}
+	if body.MaxIterations <= 0 {
+		body.MaxIterations = 25
+	}
+	if body.MaxRuntimeSeconds <= 0 {
+		body.MaxRuntimeSeconds = 300
+	}
+	sess := jobs.AutonomousSession{Goal: body.Goal, MaxIterations: body.MaxIterations, MaxRuntime: time.Duration(body.MaxRuntimeSeconds) * time.Second, MaxToolCalls: body.MaxToolCalls, AllowedCapabilities: body.AllowedCapabilities, Status: jobs.AutonomousRunning, StartedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC()}
+
+	s.mu.Lock()
+	if active, ok := s.autonomous[runID]; ok && active.session.Status == jobs.AutonomousRunning {
+		s.mu.Unlock()
+		writeError(w, http.StatusConflict, "autonomous session already running")
+		return
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	control := &autoControl{session: sess, cancel: cancel}
+	s.autonomous[runID] = control
+	s.mu.Unlock()
+
+	burstMin := time.Duration(body.BurstMinSeconds) * time.Second
+	if burstMin <= 0 {
+		burstMin = 10 * time.Second
+	}
+	burstMax := time.Duration(body.BurstMaxSeconds) * time.Second
+	if burstMax <= 0 {
+		burstMax = 30 * time.Second
+	}
+	sleepInterval := time.Duration(body.SleepSeconds) * time.Second
+	if sleepInterval <= 0 {
+		sleepInterval = 15 * time.Second
+	}
+	loop := autonomous.Loop{Store: s.store, Engine: autonomous.StaticEngine{}, IterationTimeout: 15 * time.Second, Scheduler: autonomous.IdleCycleScheduler{BurstMin: burstMin, BurstMax: burstMax, SleepInterval: sleepInterval}}
+	go func() {
+		reason := loop.Run(ctx, tenantID, runID, &control.session)
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		if reason == autonomous.ReasonDone {
+			control.session.Status = jobs.AutonomousCompleted
+		} else {
+			control.session.Status = jobs.AutonomousStopped
+		}
+		control.session.StopReason = string(reason)
+		control.session.UpdatedAt = time.Now().UTC()
+		payload, _ := json.Marshal(map[string]any{"reason": reason, "iteration_count": control.session.IterationCount})
+		_ = s.store.PublishEvent(context.Background(), runID, jobs.Event{Type: "autonomous.stopped", Payload: payload, CreatedAt: time.Now().UTC()}, "autonomous")
+	}()
+	writeJSON(w, http.StatusAccepted, map[string]any{"status": control.session.Status, "run_id": runID})
+}
+
+func (s *Server) handleAutonomousStop(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	control, ok := s.autonomous[runID]
+	if !ok {
+		writeError(w, http.StatusNotFound, "autonomous session not found")
+		return
+	}
+	control.session.Status = jobs.AutonomousStopping
+	control.session.StopReason = string(autonomous.ReasonManualStop)
+	control.cancel()
+	writeJSON(w, http.StatusOK, map[string]string{"status": "stopping"})
+}
+
+func (s *Server) handleAutonomousStatus(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	control, ok := s.autonomous[runID]
+	if !ok {
+		writeError(w, http.StatusNotFound, "autonomous session not found")
+		return
+	}
+	writeJSON(w, http.StatusOK, control.session)
+}
+
+func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
+	clientID := os.Getenv("GITHUB_CLIENT_ID")
+	redirect := os.Getenv("GITHUB_REDIRECT_URL")
+	if clientID == "" || redirect == "" {
+		writeError(w, 503, "github oauth is not configured")
+		return
+	}
+	state := s.randomID("state")
+	http.Redirect(w, r, fmt.Sprintf("https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s&scope=read:user&state=%s", clientID, redirect, state), http.StatusFound)
+}
+func (s *Server) handleCallback(w http.ResponseWriter, r *http.Request) {
+	if strings.TrimSpace(r.URL.Query().Get("code")) == "" {
+		writeError(w, 400, "missing code")
+		return
+	}
+	user := "gh-" + hashID(r.URL.Query().Get("code"))
+	s.setSession(w, r.Context(), user, user)
+	writeJSON(w, 200, map[string]string{"tenant_id": user})
+}
 func (s *Server) handleDevLogin(w http.ResponseWriter, r *http.Request) {
 	uid := "dev-user"
 	s.setSession(w, r.Context(), uid, uid)
