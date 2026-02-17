@@ -28,20 +28,24 @@ type Capability struct {
 ## Validation Rules
 
 ### 1. Registry Integrity
+
 - All capabilities must have a unique `ID` + `Version` pair.
 - Circular dependencies are not supported (Capabilities are atomic).
 
 ### 2. Pack Compatibility
+
 - **Tool Existence**: Every tool listed in `RequiredTools` must be available in the underlying runtime environment.
 - **Permission Check**: The runtime must grant the `RequiredPermissions` for the capability to be loadable.
 
 ### 3. Execution Constraints
+
 - **Deterministic Flag**: If `Deterministic` is true, the runtime may cache results based on input hash.
 - **Stateful Flag**: If `Stateful` is true, simple retries are unsafe without rollback mechanisms.
 
 ## Operating Model
 
 The Registry acts as a gatekeeper.
+
 1. **Registration**: Services/Plugins register capabilities at startup.
 2. **Resolution**: The Planner requests capabilities by ID.
 3. **Enforcement**: The Executor verifies that the active `ExecutionPack` includes the necessary capabilities before invoking tools.
@@ -49,9 +53,8 @@ The Registry acts as a gatekeeper.
 ## Standard Capabilities
 
 | ID | Description | Tools | Permissions |
-|----|-------------|-------|-------------|
+| :--- | :--- | :--- | :--- |
 | `io.fs.read` | Read access to file system | `read_file`, `list_dir` | `fs:read` |
 | `io.fs.write` | Write access to file system | `write_file`, `delete_file` | `fs:write` |
 | `net.http.get` | Outbound HTTP GET requests | `http_get` | `net:outbound` |
 | `sys.cmd.exec` | Execute shell commands | `run_command` | `sys:exec` |
-
