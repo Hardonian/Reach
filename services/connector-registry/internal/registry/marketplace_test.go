@@ -69,10 +69,14 @@ func TestInstallIntentAndConsentEnforcement(t *testing.T) {
 	if !intent.Signature.Verified {
 		t.Fatalf("expected verified signature: %+v", intent.Signature)
 	}
-	if _, err := store.InstallMarketplace(context.Background(), InstallRequestV1{Kind: "connector", ID: "conn.github", Version: "1.0.0", AcceptedRisk: false, AcceptedCapabilities: []string{"filesystem:read"}}); err == nil {
+	if _, err := store.InstallMarketplace(context.Background(), InstallRequestV1{Kind: "connector", ID: "conn.github", Version: "1.0.0", IdempotencyKey: intent.IdempotencyKey, AcceptedRisk: false, AcceptedCapabilities: []string{"filesystem:read"}}); err == nil {
 		t.Fatal("expected accepted risk requirement")
 	}
-	if _, err := store.InstallMarketplace(context.Background(), InstallRequestV1{Kind: "connector", ID: "conn.github", Version: "1.0.0", AcceptedRisk: true, AcceptedCapabilities: nil}); err == nil {
+	intent2, err := store.InstallIntent(context.Background(), InstallIntentRequest{Kind: "connector", ID: "conn.github"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.InstallMarketplace(context.Background(), InstallRequestV1{Kind: "connector", ID: "conn.github", Version: "1.0.0", IdempotencyKey: intent2.IdempotencyKey, AcceptedRisk: true, AcceptedCapabilities: nil}); err == nil {
 		t.Fatal("expected capability acceptance requirement")
 	}
 }
@@ -85,11 +89,19 @@ func TestTierAndNoAutoUpgrade(t *testing.T) {
 		t.Fatal(err)
 	}
 	store.SetCurrentTier("free")
-	if _, err := store.InstallMarketplace(context.Background(), InstallRequestV1{Kind: "connector", ID: "conn.github", Version: "1.0.0", AcceptedRisk: true, AcceptedCapabilities: []string{"filesystem:read"}}); err == nil {
+	intent, err := store.InstallIntent(context.Background(), InstallIntentRequest{Kind: "connector", ID: "conn.github"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.InstallMarketplace(context.Background(), InstallRequestV1{Kind: "connector", ID: "conn.github", Version: "1.0.0", IdempotencyKey: intent.IdempotencyKey, AcceptedRisk: true, AcceptedCapabilities: []string{"filesystem:read"}}); err == nil {
 		t.Fatal("expected tier gate")
 	}
 	store.SetCurrentTier("pro")
-	_, err = store.InstallMarketplace(context.Background(), InstallRequestV1{Kind: "connector", ID: "conn.github", Version: "1.0.0", AcceptedRisk: true, AcceptedCapabilities: []string{"filesystem:read"}})
+	intent2, err := store.InstallIntent(context.Background(), InstallIntentRequest{Kind: "connector", ID: "conn.github"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = store.InstallMarketplace(context.Background(), InstallRequestV1{Kind: "connector", ID: "conn.github", Version: "1.0.0", IdempotencyKey: intent2.IdempotencyKey, AcceptedRisk: true, AcceptedCapabilities: []string{"filesystem:read"}})
 	if err != nil {
 		t.Fatal(err)
 	}

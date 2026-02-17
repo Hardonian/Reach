@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cmd="${1:-}"
+case "$cmd" in
+  doctor)
+    shift
+    (cd tools/doctor && go run . "$@")
+    ;;
+  *)
+    echo "usage: reach doctor" >&2
+    exit 1
+    ;;
+esac

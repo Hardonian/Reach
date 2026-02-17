@@ -259,7 +259,9 @@ func (s *Store) fetchURLWithRetries(ctx context.Context, rawURL string, maxBytes
 		return nil, err
 	}
 	if u.Scheme != "https" {
-		return nil, fmt.Errorf("only https urls are allowed: %s", rawURL)
+		if !(u.Scheme == "http" && os.Getenv("DEV_ALLOW_INSECURE_REGISTRY") == "1") {
+			return nil, fmt.Errorf("only https urls are allowed: %s", rawURL)
+		}
 	}
 	var lastErr error
 	for attempt := 0; attempt < s.maxRetries; attempt++ {
