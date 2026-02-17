@@ -60,6 +60,10 @@ type AutonomousSession struct {
 	ToolCallCount       int              `json:"tool_call_count"`
 	FailureStreak       int              `json:"failure_streak"`
 	NoProgressStreak    int              `json:"no_progress_streak"`
+	PackID              string           `json:"pack_id,omitempty"`
+	PackVersion         string           `json:"pack_version,omitempty"`
+	PackHash            string           `json:"pack_hash,omitempty"`
+	Deterministic       bool             `json:"deterministic,omitempty"`
 	StartedAt           time.Time        `json:"started_at"`
 	UpdatedAt           time.Time        `json:"updated_at"`
 	StopReason          string           `json:"stop_reason,omitempty"`

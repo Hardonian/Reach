@@ -26,17 +26,21 @@ type Registry interface {
 	Get(id string) (*Capability, error)
 	List() []Capability
 	ValidateTools(tools []string) error
+	ValidatePackCompatibility(pack ExecutionPack) error
 }
 
 // InMemoryRegistry is a simple thread-safe implementation of Registry.
 type InMemoryRegistry struct {
 	mu           sync.RWMutex
 	capabilities map[string]Capability
+	// simplified tool->cap mapping
+	toolToCap map[string]string
 }
 
 func NewInMemoryRegistry() *InMemoryRegistry {
 	return &InMemoryRegistry{
 		capabilities: make(map[string]Capability),
+		toolToCap:    make(map[string]string),
 	}
 }
 
@@ -47,9 +51,10 @@ func (r *InMemoryRegistry) Register(cap Capability) error {
 	if cap.ID == "" {
 		return errors.New("capability ID is required")
 	}
-	// For now, simple overwrite or check if exists.
-	// In a real system we'd handle versions more gracefully.
 	r.capabilities[cap.ID] = cap
+	for _, t := range cap.RequiredTools {
+		r.toolToCap[t] = cap.ID
+	}
 	return nil
 }
 
