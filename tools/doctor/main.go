@@ -21,6 +21,12 @@ type checkResult struct {
 }
 
 func main() {
+	// Check if running in mobile mode
+	if os.Getenv("REACH_MOBILE") == "1" || os.Getenv("TERMUX_VERSION") != "" {
+		runMobileDoctor()
+		return
+	}
+	
 	root, err := repoRoot()
 	if err != nil {
 		fmt.Printf("reach doctor: fail: repo root: %v\n", err)
@@ -61,6 +67,28 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Println("\nreach doctor passed")
+}
+
+func runMobileDoctor() {
+	doctor := NewMobileDoctor()
+	report := doctor.Run()
+	
+	// Output as JSON if requested
+	if len(os.Args) > 1 && os.Args[1] == "--json" {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		enc.Encode(report)
+		if report.Summary.Overall == "needs_attention" {
+			os.Exit(1)
+		}
+		return
+	}
+	
+	fmt.Print(report.ToHuman())
+	
+	if report.Summary.Overall == "needs_attention" {
+		os.Exit(1)
+	}
 }
 
 func checkRegistrySourceConfig(root string) checkResult {

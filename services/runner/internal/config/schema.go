@@ -31,6 +31,12 @@ type Config struct {
 
 	// Determinism controls determinism guarantees
 	Determinism DeterminismConfig `json:"determinism"`
+
+	// EdgeMode controls constrained environment behavior
+	EdgeMode EdgeModeConfig `json:"edge_mode"`
+
+	// Model controls LLM adapter configuration
+	Model ModelConfig `json:"model"`
 }
 
 // ExecutionConfig controls execution behavior.
@@ -49,6 +55,12 @@ type ExecutionConfig struct {
 
 	// SandboxEnabled controls whether sandboxing is used
 	SandboxEnabled bool `json:"sandbox_enabled" env:"REACH_SANDBOX_ENABLED" default:"true"`
+
+	// StreamingReplay enables memory-efficient streaming replay
+	StreamingReplay bool `json:"streaming_replay" env:"REACH_STREAMING_REPLAY" default:"false"`
+
+	// MaxEventBufferSize limits in-memory event buffer (0 = unlimited)
+	MaxEventBufferSize int `json:"max_event_buffer_size" env:"REACH_MAX_EVENT_BUFFER_SIZE" default:"0"`
 }
 
 // FederationConfig controls federation behavior.
@@ -148,6 +160,51 @@ type DeterminismConfig struct {
 
 	// CanonicalTimeFormat uses canonical time formatting
 	CanonicalTimeFormat bool `json:"canonical_time_format" env:"REACH_DETERMINISM_CANONICAL_TIME" default:"true"`
+}
+
+// EdgeModeConfig controls constrained environment behavior.
+type EdgeModeConfig struct {
+	// Enabled forces edge mode regardless of auto-detection
+	Enabled bool `json:"enabled" env:"REACH_EDGE_MODE" default:"false"`
+
+	// AutoDetect enables automatic edge mode detection
+	AutoDetect bool `json:"auto_detect" env:"REACH_EDGE_AUTO_DETECT" default:"true"`
+
+	// MaxContextTokens limits prompt context size
+	MaxContextTokens int `json:"max_context_tokens" env:"REACH_EDGE_MAX_CONTEXT" default:"4096"`
+
+	// DisableBranching prevents recursive execution branching
+	DisableBranching bool `json:"disable_branching" env:"REACH_EDGE_DISABLE_BRANCHING" default:"true"`
+
+	// SimplifyReasoning reduces reasoning complexity
+	SimplifyReasoning bool `json:"simplify_reasoning" env:"REACH_EDGE_SIMPLIFY_REASONING" default:"true"`
+
+	// MaxConcurrentRuns limits concurrency in edge mode (overrides ExecutionConfig)
+	MaxConcurrentRuns int `json:"max_concurrent_runs" env:"REACH_EDGE_MAX_CONCURRENT" default:"2"`
+
+	// MemoryCapMB limits memory usage (0 = no limit)
+	MemoryCapMB int `json:"memory_cap_mb" env:"REACH_EDGE_MEMORY_CAP_MB" default:"512"`
+}
+
+// ModelConfig controls LLM adapter configuration.
+type ModelConfig struct {
+	// Mode is "auto", "hosted", "local", "edge"
+	Mode string `json:"mode" env:"REACH_MODEL_MODE" default:"auto"`
+
+	// HostedEndpoint is the cloud LLM API endpoint
+	HostedEndpoint string `json:"hosted_endpoint" env:"REACH_MODEL_HOSTED_ENDPOINT" default:""`
+
+	// HostedAPIKey for authentication
+	HostedAPIKey string `json:"hosted_api_key" env:"REACH_MODEL_HOSTED_API_KEY" default:""`
+
+	// HostedModelID is the model to use
+	HostedModelID string `json:"hosted_model_id" env:"REACH_MODEL_HOSTED_MODEL_ID" default:""`
+
+	// LocalEndpoint is the local LLM server (Ollama, etc)
+	LocalEndpoint string `json:"local_endpoint" env:"REACH_MODEL_LOCAL_ENDPOINT" default:"http://localhost:11434"`
+
+	// LocalModelID is the local model name
+	LocalModelID string `json:"local_model_id" env:"REACH_MODEL_LOCAL_MODEL_ID" default:""`
 }
 
 // Default returns the default configuration.
