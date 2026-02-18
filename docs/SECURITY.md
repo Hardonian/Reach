@@ -1,24 +1,31 @@
-# Reach Security Model (Hardening Snapshot)
+# Security Policy
 
-## Trust model
+## Supported versions
 
-- Package integrity requires SHA-256 match between index, bundle, and manifest.
-- Manifest authenticity requires signature verification against trusted keys.
-- Unsigned artifacts are blocked by default and only permitted in explicit dev mode (`DEV_ALLOW_UNSIGNED=1`).
-- Remote registries are HTTPS-only by default; plain HTTP requires explicit dev override (`DEV_ALLOW_INSECURE_REGISTRY=1`).
+Security fixes are applied to the current development branch and the latest release line.
 
-## Consent and capability safety
+## Reporting a vulnerability
 
-Marketplace install/update requires all of:
+Please report vulnerabilities privately to **security@reach.sh** with:
 
-- install intent idempotency key
-- explicit accepted capabilities
-- explicit risk acknowledgement
+- Affected component(s)
+- Reproduction steps
+- Impact assessment
+- Suggested mitigation (if available)
 
-If consent does not match required capabilities/risk, installation is denied.
+Do not open public issues for unpatched vulnerabilities.
 
-## Drift prevention
+## Response targets
 
-- Installed package versions are pinned in lock data and do not silently upgrade.
-- CI gates run regression tests for trust, consent, and queue/backpressure behavior.
-- `reach doctor` enforces architecture boundaries and trust path continuity.
+- Initial triage acknowledgment: within 3 business days
+- Severity assessment and remediation plan: within 7 business days
+- Coordinated disclosure after fix availability
+
+## Disclosure policy
+
+We follow coordinated disclosure. We will credit reporters (if desired) after a fix ships.
+
+## Security hardening references
+
+- `SECURITY.md` (repo root hardening model)
+- `docs/RELEASE.md` (release security gates)

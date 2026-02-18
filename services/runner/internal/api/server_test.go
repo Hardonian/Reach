@@ -10,10 +10,19 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"reach/services/runner/internal/autonomous"
+	"reach/services/runner/internal/registry"
 	"reach/services/runner/internal/storage"
+	"strings"
 	"testing"
 	"time"
 )
+
+type passExecutor struct{}
+
+func (passExecutor) Execute(_ context.Context, _ autonomous.ExecutionEnvelope) (*autonomous.ExecutionResult, error) {
+	return &autonomous.ExecutionResult{Status: autonomous.StatusSuccess}, nil
+}
 
 func newAuthedServer(t *testing.T) (*Server, *storage.SQLiteStore, *http.Cookie) {
 	t.Helper()
@@ -155,5 +164,49 @@ func TestMobileShareRoundTrip(t *testing.T) {
 	}
 	if !bytes.Contains(fetchRec.Body.Bytes(), []byte("[REDACTED]")) {
 		t.Fatalf("expected redacted payload in shared run: %s", fetchRec.Body.String())
+	}
+}
+
+func TestReplaySnapshotMismatchIncrementsMetricThroughMetricsEndpoint(t *testing.T) {
+	t.Setenv("RUNNER_METRICS_ENABLED", "1")
+	srv, _, cookie := newAuthedServer(t)
+	pack := registry.ExecutionPack{
+		Metadata:            registry.PackMetadata{ID: "pack-a", Version: "1.0.0"},
+		DeclaredTools:       []string{"tool.safe"},
+		DeclaredPermissions: []string{},
+		ModelRequirements:   map[string]string{"tier": "standard"},
+		DeterministicFlag:   true,
+	}
+	hash, err := pack.ComputeHash()
+	if err != nil {
+		t.Fatal(err)
+	}
+	pack.SignatureHash = hash
+
+	exec := autonomous.NewPackExecutor(passExecutor{}, pack).WithReplaySnapshotHash("snapshot-a").WithInvariantReporter(srv.metrics)
+
+	res, err := exec.Execute(context.Background(), autonomous.ExecutionEnvelope{
+		ID:       "env-1",
+		ToolName: "tool.safe",
+		Context: autonomous.ExecutionContext{
+			IsReplay:             true,
+			RegistrySnapshotHash: "snapshot-b",
+		},
+		Permissions: []string{},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Error == nil || res.Error.Code != "REPLAY_SNAPSHOT_MISMATCH" {
+		t.Fatalf("expected replay mismatch from pack executor, got %+v", res.Error)
+	}
+
+	metricsRec := doReq(t, srv, cookie, http.MethodGet, "/metrics", "")
+	if metricsRec.Code != http.StatusOK {
+		t.Fatalf("metrics endpoint failed: %d %s", metricsRec.Code, metricsRec.Body.String())
+	}
+	line := "reach_invariant_violations_total{name=\"replay_snapshot_hash_mismatch\"} 1"
+	if !strings.Contains(metricsRec.Body.String(), line) {
+		t.Fatalf("expected invariant violation metric line %q in output:\n%s", line, metricsRec.Body.String())
 	}
 }

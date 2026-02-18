@@ -13,6 +13,7 @@ type PackExecutor struct {
 	Delegate                   Executor
 	Pack                       registry.ExecutionPack
 	ExpectedReplaySnapshotHash string
+	InvariantReporter          invariants.ViolationReporter
 }
 
 func NewPackExecutor(delegate Executor, pack registry.ExecutionPack) *PackExecutor {
@@ -24,6 +25,11 @@ func NewPackExecutor(delegate Executor, pack registry.ExecutionPack) *PackExecut
 
 func (e *PackExecutor) WithReplaySnapshotHash(hash string) *PackExecutor {
 	e.ExpectedReplaySnapshotHash = hash
+	return e
+}
+
+func (e *PackExecutor) WithInvariantReporter(reporter invariants.ViolationReporter) *PackExecutor {
+	e.InvariantReporter = reporter
 	return e
 }
 
@@ -84,7 +90,7 @@ func (e *PackExecutor) Execute(ctx context.Context, envelope ExecutionEnvelope) 
 			}, nil
 		}
 		if e.ExpectedReplaySnapshotHash != "" {
-			if err := invariants.ReplaySnapshotMatches(e.ExpectedReplaySnapshotHash, envelope.Context.RegistrySnapshotHash); err != nil {
+			if err := invariants.ReplaySnapshotMatchesWithReporter(e.ExpectedReplaySnapshotHash, envelope.Context.RegistrySnapshotHash, e.InvariantReporter); err != nil {
 				return &ExecutionResult{
 					EnvelopeID: envelope.ID,
 					Status:     StatusError,

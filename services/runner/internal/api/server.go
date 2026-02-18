@@ -19,7 +19,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"reach/services/runner/internal/invariants"
 	"reach/services/runner/internal/jobs"
 	"reach/services/runner/internal/storage"
 )
@@ -78,7 +77,6 @@ func NewServer(db *storage.SQLiteStore, version string) *Server {
 		version = "dev"
 	}
 	m := newMetrics()
-	invariants.SetViolationReporter(m)
 	return &Server{
 		version:    version,
 		store:      jobs.NewStore(db),
