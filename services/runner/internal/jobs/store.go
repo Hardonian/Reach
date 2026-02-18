@@ -77,6 +77,8 @@ type Run struct {
 	Autonomous   AutonomousSession
 }
 
+type EventObserver func(runID string, evt Event)
+
 type Store struct {
 	runs   storage.RunsStore
 	events storage.EventsStore
@@ -85,10 +87,16 @@ type Store struct {
 	counter atomic.Uint64
 	subMu   sync.RWMutex
 	subs    map[string][]chan Event
+	observe EventObserver
 }
 
 func NewStore(db *storage.SQLiteStore) *Store {
 	return &Store{runs: db, events: db, audit: db, subs: map[string][]chan Event{}}
+}
+
+func (s *Store) WithObserver(observer EventObserver) *Store {
+	s.observe = observer
+	return s
 }
 
 func toCapSet(in []string) map[string]struct{} {
@@ -157,6 +165,9 @@ func (s *Store) PublishEvent(ctx context.Context, runID string, evt Event, _ str
 		case ch <- evt:
 		default:
 		}
+	}
+	if s.observe != nil {
+		s.observe(runID, evt)
 	}
 	return nil
 }

@@ -11,8 +11,20 @@ case "$cmd" in
     shift
     ./tools/release-check.sh "$@"
     ;;
+  federation)
+    shift
+    (cd services/runner && go run ./cmd/reachctl federation "$@")
+    ;;
+  support)
+    shift
+    (cd services/runner && go run ./cmd/reachctl support "$@")
+    ;;
+  arcade)
+    shift
+    (cd services/runner && go run ./cmd/reachctl arcade "$@")
+    ;;
   *)
-    echo "usage: reach doctor|release-check" >&2
+    echo "usage: reach doctor|release-check|federation|support|arcade" >&2
     exit 1
     ;;
 esac
