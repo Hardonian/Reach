@@ -143,6 +143,7 @@ func TestMetricsWithSink(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create sink: %v", err)
 	}
+	defer m.CloseSink()
 
 	m.Counter("test_counter")
 
@@ -157,7 +158,7 @@ func TestDefaultMetrics(t *testing.T) {
 	defaultMetrics = NewMetrics()
 
 	M().Counter("default_test")
-	if count := Default().GetCounter("default_test"); count != 1 {
+	if count := DefaultMetrics().GetCounter("default_test"); count != 1 {
 		t.Errorf("expected default counter=1, got: %d", count)
 	}
 }

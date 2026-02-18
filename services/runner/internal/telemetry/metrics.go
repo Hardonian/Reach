@@ -47,6 +47,7 @@ type Metrics struct {
 
 	// Sink
 	sink     io.Writer
+	sinkFile *os.File
 	sinkPath string
 }
 
@@ -72,8 +73,19 @@ func (m *Metrics) WithSink(path string) (*Metrics, error) {
 	}
 
 	m.sink = file
+	m.sinkFile = file
 	m.sinkPath = path
 	return m, nil
+}
+
+// CloseSink closes the metrics sink file if open.
+func (m *Metrics) CloseSink() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.sinkFile != nil {
+		return m.sinkFile.Close()
+	}
+	return nil
 }
 
 // WithTag adds a tag to all metrics.
@@ -289,10 +301,10 @@ func (m *Metrics) Reset() {
 // Default metrics instance.
 var defaultMetrics = NewMetrics()
 
-// Default returns the default metrics instance.
-func Default() *Metrics { return defaultMetrics }
+// DefaultMetrics returns the default metrics instance.
+func DefaultMetrics() *Metrics { return defaultMetrics }
 
-// M is a shorthand for Default().
+// M is a shorthand for DefaultMetrics().
 func M() *Metrics { return defaultMetrics }
 
 // InitDefaultSink initializes the default metrics sink from environment.
