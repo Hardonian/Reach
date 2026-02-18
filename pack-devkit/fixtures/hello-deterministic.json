@@ -1,0 +1,41 @@
+{
+  "spec_version": "1.0",
+  "name": "hello-deterministic",
+  "description": "Minimal fixture verifying deterministic execution",
+  "pack": {
+    "metadata": {
+      "id": "fixtures.hello-deterministic",
+      "version": "1.0.0",
+      "spec_version": "1.0",
+      "name": "Hello Deterministic",
+      "description": "Minimal deterministic pack",
+      "author": "reach-devkit",
+      "created": "2024-01-01T00:00:00Z"
+    },
+    "declared_tools": ["echo"],
+    "declared_permissions": [],
+    "model_requirements": {"tier": "minimal"},
+    "execution_graph": {
+      "steps": [
+        {"id": "step-1", "tool": "echo", "input": "hello world"}
+      ]
+    },
+    "deterministic": true,
+    "signature_hash": ""
+  },
+  "expected": {
+    "event_log_shape": {
+      "has_run_id": true,
+      "has_pack_ref": true,
+      "has_events": true,
+      "event_count": 1
+    },
+    "determinism": {
+      "hash_stable_across_runs": true,
+      "min_runs": 3
+    },
+    "outputs": {
+      "step_1_result": "hello world"
+    }
+  }
+}

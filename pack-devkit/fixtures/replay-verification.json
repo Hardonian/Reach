@@ -1,0 +1,42 @@
+{
+  "spec_version": "1.0",
+  "name": "replay-verification",
+  "description": "Fixture verifying replay produces identical hash",
+  "pack": {
+    "metadata": {
+      "id": "fixtures.replay-verification",
+      "version": "1.0.0",
+      "spec_version": "1.0",
+      "name": "Replay Verification Test",
+      "description": "Tests replay determinism",
+      "author": "reach-devkit",
+      "created": "2024-01-01T00:00:00Z"
+    },
+    "declared_tools": ["read_file", "hash_content"],
+    "declared_permissions": ["fs:read"],
+    "model_requirements": {"tier": "standard"},
+    "execution_graph": {
+      "steps": [
+        {"id": "step-1", "tool": "read_file", "input": "/fixtures/sample.txt"},
+        {"id": "step-2", "tool": "hash_content", "input": "${step-1.output}"}
+      ]
+    },
+    "deterministic": true,
+    "signature_hash": ""
+  },
+  "fixture_data": {
+    "sample.txt": "This is deterministic fixture content.\n"
+  },
+  "expected": {
+    "replay": {
+      "original_hash_matches_replay": true,
+      "event_sequence_identical": true,
+      "output_values_identical": true
+    },
+    "determinism": {
+      "hash_stable_across_runs": true,
+      "hash_stable_across_replays": true,
+      "min_runs": 5
+    }
+  }
+}

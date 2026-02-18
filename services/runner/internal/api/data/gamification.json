@@ -1,12 +1,12 @@
 {
   "profile": {
-    "xp": 70,
+    "xp": 80,
     "level": 1,
     "streak_days": 0,
     "last_active_day": "",
     "badges": {},
     "stats": {
-      "safe_completions": 7
+      "safe_completions": 8
     },
     "unlocks": {}
   }

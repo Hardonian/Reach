@@ -1,0 +1,45 @@
+{
+  "spec_version": "1.0",
+  "name": "policy-denial",
+  "description": "Fixture verifying policy denial is recorded correctly",
+  "pack": {
+    "metadata": {
+      "id": "fixtures.policy-denial",
+      "version": "1.0.0",
+      "spec_version": "1.0",
+      "name": "Policy Denial Test",
+      "description": "Tests policy gate denial",
+      "author": "reach-devkit",
+      "created": "2024-01-01T00:00:00Z"
+    },
+    "declared_tools": ["exec", "file_write"],
+    "declared_permissions": ["sys:exec"],
+    "model_requirements": {"tier": "standard"},
+    "execution_graph": {
+      "steps": [
+        {"id": "step-1", "tool": "exec", "input": "dangerous_command"}
+      ]
+    },
+    "deterministic": true,
+    "signature_hash": ""
+  },
+  "policy_contract": {
+    "default": "deny",
+    "rules": [
+      {"action": "deny", "resource": "sys:exec", "reason": "high_risk_permission"}
+    ]
+  },
+  "expected": {
+    "event_log_shape": {
+      "has_policy_decision": true,
+      "has_denial_event": true
+    },
+    "policy": {
+      "decision": "deny",
+      "reason_contains": "high_risk_permission"
+    },
+    "determinism": {
+      "hash_includes_denial": true
+    }
+  }
+}
