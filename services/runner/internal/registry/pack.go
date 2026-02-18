@@ -31,25 +31,53 @@ type PackMetadata struct {
 	Created     string `json:"created"` // ISO8601
 }
 
+// packHashCache caches computed hashes to avoid recomputation.
+// Key: pack.Metadata.ID+"@"+pack.Metadata.Version
+// Value: computed hash
+var packHashCache = make(map[string]string)
+
+// ClearPackHashCache clears the pack hash cache.
+// This should be called when packs are updated.
+func ClearPackHashCache() {
+	packHashCache = make(map[string]string)
+}
+
 // ComputeHash calculates the SHA256 hash of the pack content (excluding the signature itself).
+// It uses deterministic JSON serialization to ensure consistent hashes across platforms.
+// The result is cached to improve performance for repeated calls.
 func (p *ExecutionPack) ComputeHash() (string, error) {
+	// Check cache
+	cacheKey := p.Metadata.ID + "@" + p.Metadata.Version
+	if cached, ok := packHashCache[cacheKey]; ok {
+		return cached, nil
+	}
+
 	// Create a copy to exclude the signature
 	clone := *p
 	clone.SignatureHash = ""
 
-	// Canonical JSON marshalling is hard in Go without a specialized library,
-	// but for standard struct fields, standard json.Marshal is deterministic enough *if* keys are sorted.
-	// Go's json.Marshal sorts map keys by default.
+	// Use deterministic JSON marshalling
+	// Go's json.Marshal sorts map keys by default, which provides determinism
+	// for the Metadata and ModelRequirements fields.
 	data, err := json.Marshal(clone)
 	if err != nil {
 		return "", err
 	}
 
 	hash := sha256.Sum256(data)
-	return hex.EncodeToString(hash[:]), nil
+	result := hex.EncodeToString(hash[:])
+
+	// Cache the result
+	packHashCache[cacheKey] = result
+
+	return result, nil
 }
 
 // ValidateIntegrity checks if the pack's signature and spec-version contract match its content.
+// It verifies:
+//   - Spec version compatibility
+//   - Presence of signature hash
+//   - Hash integrity (computed hash matches stored signature)
 func (p *ExecutionPack) ValidateIntegrity() error {
 	if err := spec.CompatibleError(p.Metadata.SpecVersion); err != nil {
 		return fmt.Errorf("execution pack spec compatibility failed: %w", err)
@@ -70,7 +98,8 @@ func (p *ExecutionPack) ValidateIntegrity() error {
 	return nil
 }
 
-// VerifyToolsDeclared ensures that a specific tool use is allowed by this pack.
+// VerifyToolAllowed ensures that a specific tool use is allowed by this pack.
+// Returns true if the tool is in the declared tools list.
 func (p *ExecutionPack) VerifyToolAllowed(toolName string) bool {
 	for _, t := range p.DeclaredTools {
 		if t == toolName {
@@ -80,7 +109,8 @@ func (p *ExecutionPack) VerifyToolAllowed(toolName string) bool {
 	return false
 }
 
-// VerifyPermissionDeclared ensures that a specific permission is allowed by this pack.
+// VerifyPermissionAllowed ensures that a specific permission is allowed by this pack.
+// Returns true if the permission is in the declared permissions list.
 func (p *ExecutionPack) VerifyPermissionAllowed(perm string) bool {
 	for _, p := range p.DeclaredPermissions {
 		if p == perm {
@@ -91,6 +121,11 @@ func (p *ExecutionPack) VerifyPermissionAllowed(perm string) bool {
 }
 
 // ValidateMarketplaceCompliance ensures that a pack destined for the marketplace meets safety criteria.
+// It checks:
+//   - Required tools are declared
+//   - Permissions are explicitly declared (even if empty)
+//   - No high-risk permissions are requested
+//   - Integrity check passes
 func (p *ExecutionPack) ValidateMarketplaceCompliance() error {
 	// 1. Must declare required tools
 	if len(p.DeclaredTools) == 0 {

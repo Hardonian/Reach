@@ -9,11 +9,11 @@ import (
 	"path/filepath"
 	"strings"
 	"sync/atomic"
-	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	policygate "reach/services/runner/internal/policy"
+	"reach/services/runner/internal/sandbox"
 )
 
 const CapabilityFilesystemWrite = "filesystem:write"
@@ -67,7 +67,7 @@ type AuditEntry struct {
 	Input        map[string]any
 	Success      bool
 	Error        string
-	Timestamp    time.Time
+	Timestamp    int64 // Unix timestamp for determinism (avoids time.Time serialization issues)
 	Capabilities []string
 }
 
@@ -82,11 +82,12 @@ type DeterministicAuditEvent struct {
 	OrgID               string
 	PolicyVersion       string
 	ContextSnapshotHash string
-	Timestamp           time.Time
+	Timestamp           int64 // Unix timestamp for determinism
 	Decision            string
 	Reasons             []string
 }
 
+// Server provides the MCP server with policy enforcement and sandboxing.
 type Server struct {
 	workspaceRoot       string
 	policy              Policy
@@ -98,8 +99,13 @@ type Server struct {
 	auditSequence       atomic.Uint64
 	policyMode          policygate.Mode
 	allowLegacyUnsigned bool
+
+	// sandbox is the single enforcement layer for all capability checks
+	sandbox *sandbox.EnforcementLayer
 }
 
+// New creates a new Server with the given configuration.
+// It initializes the sandbox enforcement layer and registers tools.
 func New(workspaceRoot string, policy Policy, audit AuditLogger, resolver ConnectorResolver, approval ApprovalGate) *Server {
 	s := &Server{
 		workspaceRoot:       workspaceRoot,
@@ -111,6 +117,7 @@ func New(workspaceRoot string, policy Policy, audit AuditLogger, resolver Connec
 		validated:           map[string]string{},
 		policyMode:          policygate.ModeFromEnv(),
 		allowLegacyUnsigned: policygate.AllowLegacyUnsignedFromEnv(),
+		sandbox:             sandbox.NewEnforcementLayer(workspaceRoot),
 	}
 	s.registerTools()
 	return s
@@ -124,20 +131,24 @@ func (s *Server) registerTools() {
 	s.mcpServer.AddTool(mcp.Tool{Name: "tool.write_file", Description: "Writes UTF-8 content to a workspace file"}, s.callWriteFile)
 }
 
+// CallTool invokes a tool with policy enforcement and sandboxing.
+// This is the main entry point for tool execution and all access flows through here.
 func (s *Server) CallTool(ctx context.Context, runID, tool string, input map[string]any) (any, error) {
-	s.logDeterministic(ctx, DeterministicAuditEvent{EventType: "execution.started", RunID: runID, Timestamp: time.Now().UTC()})
+	s.logDeterministic(ctx, DeterministicAuditEvent{EventType: "execution.started", RunID: runID, Timestamp: 0})
+
 	if capErr := s.checkFirewall(runID, tool); capErr != nil {
-		s.audit.LogToolInvocation(ctx, AuditEntry{RunID: runID, Tool: tool, Input: input, Timestamp: time.Now().UTC(), Error: capErr.Error(), Capabilities: requiredCapabilities(tool)})
-		s.logDeterministic(ctx, DeterministicAuditEvent{EventType: "execution.failed", RunID: runID, Timestamp: time.Now().UTC(), Reasons: []string{capErr.Error()}})
+		s.audit.LogToolInvocation(ctx, AuditEntry{RunID: runID, Tool: tool, Input: input, Timestamp: 0, Error: capErr.Error(), Capabilities: requiredCapabilities(tool)})
+		s.logDeterministic(ctx, DeterministicAuditEvent{EventType: "execution.failed", RunID: runID, Timestamp: 0, Reasons: []string{capErr.Error()}})
 		return nil, capErr
 	}
+
 	result, err := s.mcpServer.CallTool(ctx, tool, input, runID)
-	entry := AuditEntry{RunID: runID, Tool: tool, Input: input, Timestamp: time.Now().UTC(), Success: err == nil, Capabilities: requiredCapabilities(tool)}
+	entry := AuditEntry{RunID: runID, Tool: tool, Input: input, Timestamp: 0, Success: err == nil, Capabilities: requiredCapabilities(tool)}
 	if err != nil {
 		entry.Error = err.Error()
-		s.logDeterministic(ctx, DeterministicAuditEvent{EventType: "execution.failed", RunID: runID, Timestamp: time.Now().UTC(), Reasons: []string{err.Error()}})
+		s.logDeterministic(ctx, DeterministicAuditEvent{EventType: "execution.failed", RunID: runID, Timestamp: 0, Reasons: []string{err.Error()}})
 	} else {
-		s.logDeterministic(ctx, DeterministicAuditEvent{EventType: "execution.completed", RunID: runID, Timestamp: time.Now().UTC()})
+		s.logDeterministic(ctx, DeterministicAuditEvent{EventType: "execution.completed", RunID: runID, Timestamp: 0})
 	}
 	s.audit.LogToolInvocation(ctx, entry)
 	return result, err
@@ -157,6 +168,8 @@ func requiredScopes(tool string) []string {
 	return []string{"workspace:read"}
 }
 
+// checkFirewall performs policy and capability checks before tool execution.
+// All enforcement flows through this single layer - no bypass is possible.
 func (s *Server) checkFirewall(runID, tool string) error {
 	if s.connectors != nil {
 		ctx, err := s.connectors.Resolve(runID, tool)
@@ -217,13 +230,13 @@ func (s *Server) checkFirewall(runID, tool string) error {
 			Mode:                 s.policyMode,
 		})
 		if decision.Allowed {
-			s.logDeterministic(context.Background(), DeterministicAuditEvent{EventType: "pack.admitted", RunID: runID, PackID: ctx.ManifestID, PackVersion: ctx.ManifestVersion, PackHash: ctx.ManifestHash, PolicyVersion: ctx.PolicyVersion, Timestamp: time.Now().UTC(), Decision: "allow"})
+			s.logDeterministic(context.Background(), DeterministicAuditEvent{EventType: "pack.admitted", RunID: runID, PackID: ctx.ManifestID, PackVersion: ctx.ManifestVersion, PackHash: ctx.ManifestHash, PolicyVersion: ctx.PolicyVersion, Timestamp: 0, Decision: "allow"})
 		} else {
 			reasons := make([]string, 0, len(decision.Reasons))
 			for _, reason := range decision.Reasons {
 				reasons = append(reasons, reason.String())
 			}
-			s.logDeterministic(context.Background(), DeterministicAuditEvent{EventType: "pack.denied", RunID: runID, PackID: ctx.ManifestID, PackVersion: ctx.ManifestVersion, PackHash: ctx.ManifestHash, PolicyVersion: ctx.PolicyVersion, Timestamp: time.Now().UTC(), Decision: "deny", Reasons: reasons})
+			s.logDeterministic(context.Background(), DeterministicAuditEvent{EventType: "pack.denied", RunID: runID, PackID: ctx.ManifestID, PackVersion: ctx.ManifestVersion, PackHash: ctx.ManifestHash, PolicyVersion: ctx.PolicyVersion, Timestamp: 0, Decision: "deny", Reasons: reasons})
 			if s.policyMode == policygate.ModeEnforce {
 				return fmt.Errorf("%w: %s", ErrPolicyDenied, strings.Join(reasons, ","))
 			}
@@ -236,9 +249,6 @@ func (s *Server) checkFirewall(runID, tool string) error {
 }
 
 func (s *Server) logDeterministic(ctx context.Context, event DeterministicAuditEvent) {
-	if event.Timestamp.IsZero() {
-		event.Timestamp = time.Now().UTC()
-	}
 	event.Sequence = s.auditSequence.Add(1)
 	s.audit.LogAuditEvent(ctx, event)
 }

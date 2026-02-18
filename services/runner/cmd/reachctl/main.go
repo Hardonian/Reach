@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -16,6 +14,7 @@ import (
 	"strings"
 
 	"reach/services/runner/internal/arcade/gamification"
+	"reach/services/runner/internal/determinism"
 	"reach/services/runner/internal/federation"
 	"reach/services/runner/internal/support"
 )
@@ -515,10 +514,10 @@ func readCapsule(path string) (capsuleFile, error) {
 	return c, nil
 }
 
+// stableHash computes a deterministic hash of v using the determinism package.
+// This is the single source of truth for hashing in reachctl.
 func stableHash(v any) string {
-	b := []byte(mustJSON(v))
-	h := sha256.Sum256(b)
-	return hex.EncodeToString(h[:])
+	return determinism.Hash(v)
 }
 
 func merkleRoot(leaves []string) string {
@@ -547,40 +546,10 @@ func writeDeterministicJSON(path string, v any) error {
 	return os.WriteFile(path, []byte(mustJSON(v)+"\n"), 0o644)
 }
 
+// mustJSON returns a deterministic JSON representation of v.
+// It uses the determinism package for canonical serialization.
 func mustJSON(v any) string {
-	b, _ := json.Marshal(v)
-	var out any
-	_ = json.Unmarshal(b, &out)
-	canon := canonicalize(out)
-	res, _ := json.Marshal(canon)
-	return string(res)
-}
-
-func canonicalize(v any) any {
-	switch vv := v.(type) {
-	case map[string]any:
-		keys := make([]string, 0, len(vv))
-		for k := range vv {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		res := make([][2]any, 0, len(keys))
-		for _, k := range keys {
-			res = append(res, [2]any{k, canonicalize(vv[k])})
-		}
-		obj := map[string]any{}
-		for _, kv := range res {
-			obj[kv[0].(string)] = kv[1]
-		}
-		return obj
-	case []any:
-		for i := range vv {
-			vv[i] = canonicalize(vv[i])
-		}
-		return vv
-	default:
-		return vv
-	}
+	return determinism.CanonicalJSON(v)
 }
 
 func loadRegistryIndex(dataRoot string) (registryIndex, error) {

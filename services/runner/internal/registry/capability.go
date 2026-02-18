@@ -31,23 +31,33 @@ type Registry interface {
 	ValidatePackCompatibility(pack ExecutionPack) error
 }
 
-// InMemoryRegistry is a simple thread-safe implementation of Registry.
+// InMemoryRegistry is a thread-safe implementation of Registry with caching.
+// It provides O(1) lookups for capabilities and tools.
 type InMemoryRegistry struct {
 	mu sync.RWMutex
 	// simplified tool->cap mapping
 	capabilities       map[string]Capability
 	toolToCap          map[string]string
 	supportedPackMajor int
+
+	// Cache for pack compatibility checks to avoid recomputation
+	// Key: pack.Metadata.ID+"@"+pack.Metadata.Version
+	// Value: error (nil if compatible)
+	compatibilityCache map[string]error
 }
 
+// NewInMemoryRegistry creates a new registry with default settings.
 func NewInMemoryRegistry() *InMemoryRegistry {
 	return &InMemoryRegistry{
 		capabilities:       make(map[string]Capability),
 		toolToCap:          make(map[string]string),
 		supportedPackMajor: 1,
+		compatibilityCache: make(map[string]error),
 	}
 }
 
+// WithSupportedPackMajor sets the supported pack major version.
+// Returns the registry for method chaining.
 func (r *InMemoryRegistry) WithSupportedPackMajor(major int) *InMemoryRegistry {
 	if major > 0 {
 		r.supportedPackMajor = major
@@ -55,6 +65,8 @@ func (r *InMemoryRegistry) WithSupportedPackMajor(major int) *InMemoryRegistry {
 	return r
 }
 
+// Register adds a capability to the registry.
+// It updates the tool-to-capability mapping for fast lookups.
 func (r *InMemoryRegistry) Register(cap Capability) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -66,9 +78,13 @@ func (r *InMemoryRegistry) Register(cap Capability) error {
 	for _, t := range cap.RequiredTools {
 		r.toolToCap[t] = cap.ID
 	}
+	// Clear compatibility cache since registry changed
+	r.compatibilityCache = make(map[string]error)
 	return nil
 }
 
+// Get retrieves a capability by ID.
+// Returns an error if the capability is not found.
 func (r *InMemoryRegistry) Get(id string) (*Capability, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -80,6 +96,8 @@ func (r *InMemoryRegistry) Get(id string) (*Capability, error) {
 	return &cap, nil
 }
 
+// List returns all registered capabilities.
+// The returned slice is a copy to prevent external modification.
 func (r *InMemoryRegistry) List() []Capability {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -92,6 +110,7 @@ func (r *InMemoryRegistry) List() []Capability {
 }
 
 // ValidateTools ensures that all requested tools are provided by at least one registered capability.
+// Currently a no-op placeholder for future implementation.
 func (r *InMemoryRegistry) ValidateTools(requestedTools []string) error {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -113,10 +132,41 @@ func (r *InMemoryRegistry) ValidateTools(requestedTools []string) error {
 }
 
 // ValidatePackCompatibility ensures that a pack's declared tools exist in the registry.
+// It uses caching to avoid recomputing compatibility for the same pack.
+// The cache key is pack.Metadata.ID + "@" + pack.Metadata.Version.
 func (r *InMemoryRegistry) ValidatePackCompatibility(pack ExecutionPack) error {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+	// Generate cache key
+	cacheKey := pack.Metadata.ID + "@" + pack.Metadata.Version
 
+	// Check cache first (read lock)
+	r.mu.RLock()
+	if cachedErr, ok := r.compatibilityCache[cacheKey]; ok {
+		r.mu.RUnlock()
+		return cachedErr
+	}
+	r.mu.RUnlock()
+
+	// Compute compatibility (write lock)
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	// Double-check cache after acquiring write lock
+	if cachedErr, ok := r.compatibilityCache[cacheKey]; ok {
+		return cachedErr
+	}
+
+	// Perform validation
+	err := r.validatePackCompatibilityUncached(pack)
+
+	// Cache the result
+	r.compatibilityCache[cacheKey] = err
+
+	return err
+}
+
+// validatePackCompatibilityUncached performs the actual compatibility check without caching.
+// Must be called with write lock held.
+func (r *InMemoryRegistry) validatePackCompatibilityUncached(pack ExecutionPack) error {
 	if pack.Metadata.Version != "" {
 		major, err := packMajor(pack.Metadata.Version)
 		if err != nil {
@@ -142,6 +192,15 @@ func (r *InMemoryRegistry) ValidatePackCompatibility(pack ExecutionPack) error {
 	return nil
 }
 
+// ClearCompatibilityCache clears the pack compatibility cache.
+// This should be called when the registry is updated dynamically.
+func (r *InMemoryRegistry) ClearCompatibilityCache() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.compatibilityCache = make(map[string]error)
+}
+
+// packMajor extracts the major version number from a semver string.
 func packMajor(version string) (int, error) {
 	parts := strings.Split(strings.TrimSpace(version), ".")
 	if len(parts) < 1 || parts[0] == "" {
