@@ -93,9 +93,9 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <div className="user-avatar">
-            👤
-          </div>
+          <a href="/studio" className="user-avatar" aria-label="Open Reach Studio" title="Open Reach Studio">
+            🧭
+          </a>
         </div>
       </header>
 
