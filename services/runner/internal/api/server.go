@@ -13,12 +13,15 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"reach/services/runner/internal/arcade/gamification"
+	"reach/services/runner/internal/federation"
 	"reach/services/runner/internal/jobs"
 	"reach/services/runner/internal/storage"
 )
@@ -66,6 +69,8 @@ type Server struct {
 	handshakes  map[string]mobileHandshakeChallenge
 
 	requestCounter atomic.Uint64
+	federation     *federation.Coordinator
+	gamification   *gamification.Store
 	runsCreated    atomic.Uint64
 	spawnAttempts  atomic.Uint64
 	spawnDenied    atomic.Uint64
@@ -77,18 +82,30 @@ func NewServer(db *storage.SQLiteStore, version string) *Server {
 		version = "dev"
 	}
 	m := newMetrics()
-	return &Server{
-		version:    version,
-		store:      jobs.NewStore(db),
-		queue:      jobs.NewDurableQueue(db),
-		sql:        db,
-		registry:   NewNodeRegistry(),
-		runMeta:    map[string]runMeta{},
-		autonomous: map[string]*autoControl{},
-		metrics:    m,
-		shareViews: map[string]map[string]any{},
-		handshakes: map[string]mobileHandshakeChallenge{},
+	dataRoot := strings.TrimSpace(os.Getenv("REACH_DATA_DIR"))
+	if dataRoot == "" {
+		dataRoot = "data"
 	}
+	fed := federation.NewCoordinator(filepath.Join(dataRoot, "federation_reputation.json"))
+	_ = fed.Load()
+	game := gamification.NewStore(filepath.Join(dataRoot, "gamification.json"))
+	_ = game.Load()
+	server := &Server{
+		version:      version,
+		store:        jobs.NewStore(db),
+		queue:        jobs.NewDurableQueue(db),
+		sql:          db,
+		registry:     NewNodeRegistry(),
+		runMeta:      map[string]runMeta{},
+		autonomous:   map[string]*autoControl{},
+		metrics:      m,
+		shareViews:   map[string]map[string]any{},
+		handshakes:   map[string]mobileHandshakeChallenge{},
+		federation:   fed,
+		gamification: game,
+	}
+	server.store.WithObserver(server.observeEvent)
+	return server
 }
 
 type mobileHandshakeChallenge struct {
@@ -304,6 +321,13 @@ func (s *Server) withObservability(next http.Handler) http.Handler {
 	})
 }
 
+func (s *Server) observeEvent(_ string, evt jobs.Event) {
+	if s.gamification != nil {
+		s.gamification.ApplyEvent(evt.Type, evt.CreatedAt)
+		_ = s.gamification.Save()
+	}
+}
+
 func parseTier(v string) PlanTier {
 	switch strings.ToLower(strings.TrimSpace(v)) {
 	case "pro":
@@ -504,10 +528,11 @@ func (s *Server) handleGateDecision(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleRegisterNode(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		ID, Type, Status     string
-		Capabilities         []string
-		LatencyMS, LoadScore int
-		Tags                 []string
+		ID, Type, Status, PublicKeyRef, SpecVersion, RegistrySnapshotHash string
+		Capabilities                                                      []string
+		LatencyMS, LoadScore                                              int
+		Tags                                                              []string
+		SupportedModes                                                    []string
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeError(w, 400, "invalid json")
@@ -527,6 +552,11 @@ func (s *Server) handleRegisterNode(w http.ResponseWriter, r *http.Request) {
 		writeError(w, 500, err.Error())
 		return
 	}
+	identity := federation.BuildIdentity(body.ID, body.PublicKeyRef, body.Capabilities, body.RegistrySnapshotHash, body.SupportedModes)
+	node := s.federationStatusNode(body.ID)
+	node.SpecVersion = identity.SpecVersion
+	node.RegistrySnapshotHash = identity.RegistrySnapshotHash
+	s.federationUpsert(node)
 	writeJSON(w, 201, map[string]string{"status": "registered"})
 }
 
@@ -556,11 +586,28 @@ func (s *Server) handleNodeHeartbeat(w http.ResponseWriter, r *http.Request) {
 				writeError(w, 500, err.Error())
 				return
 			}
+			s.federation.RecordDelegation(body.ID, "", "", true, "heartbeat", body.LatencyMS, false)
+			_ = s.federation.Save()
 			writeJSON(w, 200, map[string]string{"status": "ok"})
 			return
 		}
 	}
 	writeError(w, 404, "node not found")
+}
+
+func (s *Server) federationStatusNode(nodeID string) federation.NodeStats {
+	if s.federation == nil {
+		return federation.NodeStats{NodeID: nodeID, Snapshot: federation.ReputationSnapshot{DelegationsFailedByReason: map[string]int{}}}
+	}
+	return s.federation.GetNode(nodeID)
+}
+
+func (s *Server) federationUpsert(node federation.NodeStats) {
+	if s.federation == nil {
+		return
+	}
+	s.federation.UpsertNode(node)
+	_ = s.federation.Save()
 }
 
 func (s *Server) handleRunEvents(w http.ResponseWriter, r *http.Request) {

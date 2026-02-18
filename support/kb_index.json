@@ -1,0 +1,26 @@
+[
+  {
+    "id": "fed-handshake",
+    "title": "Federation handshake failures",
+    "keywords": ["handshake", "registry mismatch", "spec mismatch"],
+    "path": "docs/FEDERATION_COORDINATION.md",
+    "section": "handshake-and-identity",
+    "answer": "Check node identity specVersion and registrySnapshotHash first. Mismatches are auto-rejected for safety."
+  },
+  {
+    "id": "policy-denial",
+    "title": "Policy denial troubleshooting",
+    "keywords": ["policy denial", "gate", "undeclared tool"],
+    "path": "docs/POLICY_GATE.md",
+    "section": "debugging",
+    "answer": "Policy denials mean requested capabilities exceed declared policy. Update declared capabilities; do not bypass gates."
+  },
+  {
+    "id": "replay-mismatch",
+    "title": "Replay mismatch troubleshooting",
+    "keywords": ["replay mismatch", "deterministic", "snapshot hash"],
+    "path": "docs/EXECUTION_MODEL.md",
+    "section": "replay",
+    "answer": "Replay mismatch indicates non-equivalent execution context. Validate pack hash, registry snapshot hash, and deterministic mode."
+  }
+]

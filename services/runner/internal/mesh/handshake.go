@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"reach/services/runner/internal/federation"
 	"reach/services/runner/internal/registry"
 	"reach/services/runner/internal/spec"
 	"sync"
@@ -36,11 +37,12 @@ type CapabilityAdvertisement struct {
 }
 
 type Response struct {
-	Challenge     Challenge
-	Capabilities  CapabilityAdvertisement
-	NodeID        string
-	Signature     string // Signature over Challenge + Capabilities + NodeID
-	CapabilitySig string // Signed Registry Capability Snapshot (Full snapshot signature)
+	Challenge     Challenge               `json:"challenge"`
+	Capabilities  CapabilityAdvertisement `json:"capabilities"`
+	Identity      federation.NodeIdentity `json:"identity"`
+	NodeID        string                  `json:"node_id"`
+	Signature     string                  `json:"signature"` // Signature over Challenge + Capabilities + NodeID
+	CapabilitySig string                  `json:"capability_sig"`
 }
 
 type SessionToken struct {
@@ -93,6 +95,16 @@ func (h *Handshaker) Verify(identity NodeIdentity, response Response) (SessionTo
 	// 1. Basic ID and Expiry Checks
 	if response.NodeID != identity.NodeID {
 		err := errors.New("node id mismatch")
+		h.emit("handshake.failed", identity, response.Challenge, err)
+		return SessionToken{}, err
+	}
+	if response.Identity.NodeID != "" && response.Identity.NodeID != identity.NodeID {
+		err := errors.New("identity node id mismatch")
+		h.emit("handshake.failed", identity, response.Challenge, err)
+		return SessionToken{}, err
+	}
+	if response.Identity.SpecVersion != "" && response.Identity.SpecVersion != response.Challenge.SpecVersion {
+		err := errors.New("identity spec version mismatch")
 		h.emit("handshake.failed", identity, response.Challenge, err)
 		return SessionToken{}, err
 	}

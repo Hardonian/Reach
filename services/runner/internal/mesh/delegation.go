@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reach/services/runner/internal/federation"
 	"reach/services/runner/internal/registry"
 	"reach/services/runner/internal/spec"
 	"sync"
@@ -12,16 +13,17 @@ import (
 
 // DelegationRequest defines the protocol for offloading a pack execution to another node.
 type DelegationRequest struct {
-	Pack            registry.ExecutionPack `json:"pack"`
-	RunID           string                 `json:"run_id"`
-	GlobalRunID     string                 `json:"global_run_id"`
-	OriginNodeID    string                 `json:"origin_node_id"`
-	Deterministic   bool                   `json:"deterministic"`
-	DelegationDepth int                    `json:"delegation_depth"`
-	TTL             time.Duration          `json:"ttl"`
-	PolicyVersion   string                 `json:"policy_version"`
-	RegistryHash    string                 `json:"registry_hash"`
-	SpecVersion     string                 `json:"spec_version"`
+	Pack            registry.ExecutionPack  `json:"pack"`
+	RunID           string                  `json:"run_id"`
+	GlobalRunID     string                  `json:"global_run_id"`
+	OriginNodeID    string                  `json:"origin_node_id"`
+	Deterministic   bool                    `json:"deterministic"`
+	DelegationDepth int                     `json:"delegation_depth"`
+	TTL             time.Duration           `json:"ttl"`
+	PolicyVersion   string                  `json:"policy_version"`
+	RegistryHash    string                  `json:"registry_hash"`
+	SpecVersion     string                  `json:"spec_version"`
+	Identity        federation.NodeIdentity `json:"identity"`
 }
 
 // DelegationResponse captures the outcome of a delegation request.
@@ -33,23 +35,27 @@ type DelegationResponse struct {
 
 // FederatedDelegator handles outgoing and incoming delegation requests.
 type FederatedDelegator struct {
-	mu                 sync.Mutex
-	localNodeID        string
-	maxDepth           int
-	registry           registry.Registry
-	registrySnapshotID string
-	circuitOpen        map[string]bool
-	failureCounts      map[string]int
-	audit              func(event string, req DelegationRequest, err error)
+	mu                  sync.Mutex
+	localNodeID         string
+	maxDepth            int
+	registry            registry.Registry
+	registrySnapshotID  string
+	circuitOpen         map[string]bool
+	failureCounts       map[string]int
+	quarantined         map[string]bool
+	quarantineThreshold int
+	audit               func(event string, req DelegationRequest, err error)
 }
 
 func NewFederatedDelegator(nodeID string, reg registry.Registry) *FederatedDelegator {
 	return &FederatedDelegator{
-		localNodeID:   nodeID,
-		maxDepth:      5,
-		registry:      reg,
-		circuitOpen:   make(map[string]bool),
-		failureCounts: make(map[string]int),
+		localNodeID:         nodeID,
+		maxDepth:            5,
+		registry:            reg,
+		circuitOpen:         make(map[string]bool),
+		failureCounts:       make(map[string]int),
+		quarantined:         make(map[string]bool),
+		quarantineThreshold: 40,
 	}
 }
 
@@ -92,17 +98,20 @@ func (d *FederatedDelegator) AcceptDelegation(ctx context.Context, req Delegatio
 	}
 
 	if err := spec.CompatibleError(req.SpecVersion); err != nil {
+		d.quarantineNode(req.OriginNodeID)
 		d.emit("delegation.rejected", req, err)
 		return DelegationResponse{Status: "rejected", Error: err.Error()}, err
 	}
 
 	// 2. Re-Validate Pack (Phase 2)
 	if err := req.Pack.ValidateIntegrity(); err != nil {
+		d.RecordFailure(req.OriginNodeID)
 		d.emit("delegation.rejected", req, err)
 		return DelegationResponse{Status: "rejected", Error: "invalid pack signature"}, err
 	}
 
 	if err := d.registry.ValidatePackCompatibility(req.Pack); err != nil {
+		d.RecordFailure(req.OriginNodeID)
 		d.emit("delegation.rejected", req, err)
 		return DelegationResponse{Status: "rejected", Error: "incompatible pack version"}, err
 	}
@@ -136,6 +145,7 @@ func (d *FederatedDelegator) RecordFailure(nodeID string) {
 	d.failureCounts[nodeID]++
 	if d.failureCounts[nodeID] > 5 {
 		d.circuitOpen[nodeID] = true
+		d.quarantined[nodeID] = true
 		fmt.Printf("Circuit breaker OPEN for node %s\n", nodeID)
 		time.AfterFunc(1*time.Minute, func() {
 			d.mu.Lock()
@@ -150,5 +160,11 @@ func (d *FederatedDelegator) RecordFailure(nodeID string) {
 func (d *FederatedDelegator) IsNodeHealthy(nodeID string) bool {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	return !d.circuitOpen[nodeID]
+	return !d.circuitOpen[nodeID] && !d.quarantined[nodeID]
+}
+
+func (d *FederatedDelegator) quarantineNode(nodeID string) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.quarantined[nodeID] = true
 }
