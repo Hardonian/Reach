@@ -1,11 +1,15 @@
 package registry
 
-import "testing"
+import (
+	"testing"
+
+	"reach/services/runner/internal/spec"
+)
 
 func compatiblePack(t *testing.T, version string) ExecutionPack {
 	t.Helper()
 	pack := ExecutionPack{
-		Metadata:      PackMetadata{ID: "pack.v", Version: version},
+		Metadata:      PackMetadata{ID: "pack.v", Version: version, SpecVersion: spec.Version},
 		DeclaredTools: []string{"tool.echo"},
 	}
 	h, err := pack.ComputeHash()

@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"reach/services/runner/internal/spec"
 	"time"
 
 	"reach/services/runner/internal/autonomous"
@@ -34,7 +36,7 @@ func (s slowExecutor) Execute(ctx context.Context, envelope autonomous.Execution
 func testPack(t *testing.T, version string) registry.ExecutionPack {
 	t.Helper()
 	pack := registry.ExecutionPack{
-		Metadata:            registry.PackMetadata{ID: "pack.chaos", Version: version},
+		Metadata:            registry.PackMetadata{ID: "pack.chaos", Version: version, SpecVersion: spec.Version},
 		DeclaredTools:       []string{"tool.echo"},
 		DeclaredPermissions: []string{"workspace:read"},
 	}
@@ -67,6 +69,7 @@ func TestChaosRandomNetworkDelayInFederationFailsSafe(t *testing.T) {
 			OriginNodeID:  "node-a",
 			RegistryHash:  "snapshot-a",
 			Deterministic: true,
+			SpecVersion:   spec.Version,
 		})
 		cancel()
 		if err != nil {
@@ -116,6 +119,7 @@ func TestChaosVersionMismatchRejected(t *testing.T) {
 		Pack:         testPack(t, "2.0.0"),
 		OriginNodeID: "node-a",
 		RegistryHash: "snapshot-a",
+		SpecVersion:  spec.Version,
 	})
 	if err == nil || !strings.Contains(err.Error(), "incompatible") {
 		t.Fatalf("expected major version mismatch rejection, got %v", err)
@@ -141,7 +145,7 @@ func TestChaosCorruptedAuditEntryRejected(t *testing.T) {
 
 func TestChaosDelegationRegistryHashCannotChange(t *testing.T) {
 	delegator := testDelegator(t, 1, "snapshot-a")
-	req := mesh.DelegationRequest{Pack: testPack(t, "1.0.0"), OriginNodeID: "node-a", RegistryHash: "snapshot-b"}
+	req := mesh.DelegationRequest{Pack: testPack(t, "1.0.0"), OriginNodeID: "node-a", RegistryHash: "snapshot-b", SpecVersion: spec.Version}
 	if invariants.DelegationRegistryHashPreserved(req, "snapshot-a") {
 		t.Fatal("expected invariant helper to detect mismatch")
 	}
@@ -167,7 +171,7 @@ func TestChaosHandshakeRejectsPolicyVersionMismatch(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	caps := mesh.CapabilityAdvertisement{CapabilitiesHash: "caps", RegistrySnapshotHash: "snapshot-a", PolicyVersion: "2027-01"}
+	caps := mesh.CapabilityAdvertisement{CapabilitiesHash: "caps", RegistrySnapshotHash: "snapshot-a", PolicyVersion: "2027-01", SpecVersion: spec.Version}
 	sig := mesh.SignHandshake(priv, challenge, caps, "node-a")
 	_, err = h.Verify(mesh.NodeIdentity{NodeID: "node-a", NodePublicKey: pub}, mesh.Response{Challenge: challenge, Capabilities: caps, NodeID: "node-a", Signature: sig})
 	if err == nil || !strings.Contains(err.Error(), "policy version mismatch") {

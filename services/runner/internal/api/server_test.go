@@ -15,6 +15,8 @@ import (
 	"reach/services/runner/internal/storage"
 	"strings"
 	"testing"
+
+	"reach/services/runner/internal/spec"
 	"time"
 )
 
@@ -171,7 +173,7 @@ func TestReplaySnapshotMismatchIncrementsMetricThroughMetricsEndpoint(t *testing
 	t.Setenv("RUNNER_METRICS_ENABLED", "1")
 	srv, _, cookie := newAuthedServer(t)
 	pack := registry.ExecutionPack{
-		Metadata:            registry.PackMetadata{ID: "pack-a", Version: "1.0.0"},
+		Metadata:            registry.PackMetadata{ID: "pack-a", Version: "1.0.0", SpecVersion: spec.Version},
 		DeclaredTools:       []string{"tool.safe"},
 		DeclaredPermissions: []string{},
 		ModelRequirements:   map[string]string{"tier": "standard"},
@@ -183,7 +185,11 @@ func TestReplaySnapshotMismatchIncrementsMetricThroughMetricsEndpoint(t *testing
 	}
 	pack.SignatureHash = hash
 
-	exec := autonomous.NewOrchestrationPackExecutor(passExecutor{}, pack, autonomous.PackExecutorOptions{ExpectedReplaySnapshotHash: "snapshot-a", InvariantReporter: srv.metrics})
+	exec := autonomous.NewOrchestrationPackExecutor(passExecutor{}, pack, "snapshot-a", func(_ context.Context, code, _ string) {
+		if code == "REPLAY_SNAPSHOT_MISMATCH" {
+			srv.metrics.RecordInvariantViolation("replay_snapshot_hash_mismatch")
+		}
+	})
 
 	res, err := exec.Execute(context.Background(), autonomous.ExecutionEnvelope{
 		ID:       "env-1",
@@ -191,6 +197,7 @@ func TestReplaySnapshotMismatchIncrementsMetricThroughMetricsEndpoint(t *testing
 		Context: autonomous.ExecutionContext{
 			IsReplay:             true,
 			RegistrySnapshotHash: "snapshot-b",
+			SpecVersion:          spec.Version,
 		},
 		Permissions: []string{},
 	})

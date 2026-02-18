@@ -32,6 +32,7 @@ type ExecutionContext struct {
 	ExecutionNodeID      string `json:"execution_node_id,omitempty"`
 	RegistrySnapshotHash string `json:"registry_snapshot_hash,omitempty"`
 	PolicyVersion        string `json:"policy_version,omitempty"`
+	SpecVersion          string `json:"spec_version,omitempty"`
 	IsReplay             bool   `json:"is_replay,omitempty"` // If true, execution must be deterministic and side-effect free if possible
 	Deterministic        bool   `json:"deterministic,omitempty"`
 }

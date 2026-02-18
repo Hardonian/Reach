@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"reach/services/runner/internal/registry"
+	"reach/services/runner/internal/spec"
 	"sync"
 	"time"
 )
@@ -21,6 +22,7 @@ type Challenge struct {
 	Nonce                string
 	PolicyVersion        string
 	RegistrySnapshotHash string
+	SpecVersion          string
 	IssuedAt             time.Time
 }
 
@@ -28,6 +30,7 @@ type CapabilityAdvertisement struct {
 	CapabilitiesHash           string                      `json:"capabilities_hash"`
 	RegistrySnapshotHash       string                      `json:"registry_snapshot_hash"`
 	PolicyVersion              string                      `json:"policy_version"`
+	SpecVersion                string                      `json:"spec_version"`
 	DeterminismSupportLevel    int                         `json:"determinism_support_level"` // 0: None, 1: Basic, 2: Strict
 	SupportedOptimizationModes []registry.OptimizationMode `json:"supported_optimization_modes"`
 }
@@ -73,13 +76,14 @@ func (h *Handshaker) NewChallenge(policyVersion, registryHash string) (Challenge
 		Nonce:                base64.StdEncoding.EncodeToString(nonce),
 		PolicyVersion:        policyVersion,
 		RegistrySnapshotHash: registryHash,
+		SpecVersion:          spec.Version,
 		IssuedAt:             time.Now().UTC(),
 	}, nil
 }
 
 func SignHandshake(privateKey ed25519.PrivateKey, c Challenge, caps CapabilityAdvertisement, nodeID string) string {
-	payload := []byte(c.Nonce + "|" + c.PolicyVersion + "|" + c.RegistrySnapshotHash + "|" +
-		caps.CapabilitiesHash + "|" + caps.RegistrySnapshotHash + "|" + nodeID)
+	payload := []byte(c.Nonce + "|" + c.PolicyVersion + "|" + c.RegistrySnapshotHash + "|" + c.SpecVersion + "|" +
+		caps.CapabilitiesHash + "|" + caps.RegistrySnapshotHash + "|" + caps.SpecVersion + "|" + nodeID)
 	return base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, payload))
 }
 
@@ -109,11 +113,24 @@ func (h *Handshaker) Verify(identity NodeIdentity, response Response) (SessionTo
 		h.emit("handshake.failed", identity, response.Challenge, err)
 		return SessionToken{}, err
 	}
+	if err := spec.CompatibleError(response.Challenge.SpecVersion); err != nil {
+		h.emit("handshake.failed", identity, response.Challenge, err)
+		return SessionToken{}, err
+	}
+	if err := spec.CompatibleError(response.Capabilities.SpecVersion); err != nil {
+		h.emit("handshake.failed", identity, response.Challenge, err)
+		return SessionToken{}, err
+	}
+	if response.Capabilities.SpecVersion != response.Challenge.SpecVersion {
+		err := errors.New("spec version mismatch - incompatible execution contract")
+		h.emit("handshake.failed", identity, response.Challenge, err)
+		return SessionToken{}, err
+	}
 
 	// 3. Signature Verification
 	payload := []byte(response.Challenge.Nonce + "|" + response.Challenge.PolicyVersion + "|" +
-		response.Challenge.RegistrySnapshotHash + "|" + response.Capabilities.CapabilitiesHash + "|" +
-		response.Capabilities.RegistrySnapshotHash + "|" + response.NodeID)
+		response.Challenge.RegistrySnapshotHash + "|" + response.Challenge.SpecVersion + "|" + response.Capabilities.CapabilitiesHash + "|" +
+		response.Capabilities.RegistrySnapshotHash + "|" + response.Capabilities.SpecVersion + "|" + response.NodeID)
 
 	sig, err := base64.StdEncoding.DecodeString(response.Signature)
 	if err != nil {

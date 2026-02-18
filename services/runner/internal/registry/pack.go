@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
+	"reach/services/runner/internal/spec"
 )
 
 // ExecutionPack represents an immutable, versioned bundle of intent and capabilities.
@@ -22,6 +24,7 @@ type ExecutionPack struct {
 type PackMetadata struct {
 	ID          string `json:"id"`
 	Version     string `json:"version"`
+	SpecVersion string `json:"spec_version,omitempty"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Author      string `json:"author"`
@@ -46,8 +49,12 @@ func (p *ExecutionPack) ComputeHash() (string, error) {
 	return hex.EncodeToString(hash[:]), nil
 }
 
-// ValidateIntegrity checks if the pack's SignatureHash matches its content.
+// ValidateIntegrity checks if the pack's signature and spec-version contract match its content.
 func (p *ExecutionPack) ValidateIntegrity() error {
+	if err := spec.CompatibleError(p.Metadata.SpecVersion); err != nil {
+		return fmt.Errorf("execution pack spec compatibility failed: %w", err)
+	}
+
 	if p.SignatureHash == "" {
 		return errors.New("execution pack has no signature hash")
 	}

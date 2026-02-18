@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"reach/services/runner/internal/spec"
+
 	"reach/services/runner/internal/registry"
 )
 
@@ -17,7 +19,7 @@ func (passthroughExecutor) Execute(_ context.Context, envelope ExecutionEnvelope
 func signedPack(t *testing.T) registry.ExecutionPack {
 	t.Helper()
 	pack := registry.ExecutionPack{
-		Metadata:            registry.PackMetadata{ID: "pack-1", Version: "1.0.0"},
+		Metadata:            registry.PackMetadata{ID: "pack-1", Version: "1.0.0", SpecVersion: spec.Version},
 		DeclaredTools:       []string{"tool.safe"},
 		DeclaredPermissions: []string{"net:read"},
 	}
