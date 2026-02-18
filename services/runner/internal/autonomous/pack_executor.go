@@ -3,13 +3,16 @@ package autonomous
 import (
 	"context"
 	"fmt"
+
+	"reach/services/runner/internal/invariants"
 	"reach/services/runner/internal/registry"
 )
 
 // PackExecutor wraps an Executor and enforces ExecutionPack constraints.
 type PackExecutor struct {
-	Delegate Executor
-	Pack     registry.ExecutionPack
+	Delegate                   Executor
+	Pack                       registry.ExecutionPack
+	ExpectedReplaySnapshotHash string
 }
 
 func NewPackExecutor(delegate Executor, pack registry.ExecutionPack) *PackExecutor {
@@ -17,6 +20,11 @@ func NewPackExecutor(delegate Executor, pack registry.ExecutionPack) *PackExecut
 		Delegate: delegate,
 		Pack:     pack,
 	}
+}
+
+func (e *PackExecutor) WithReplaySnapshotHash(hash string) *PackExecutor {
+	e.ExpectedReplaySnapshotHash = hash
+	return e
 }
 
 func (e *PackExecutor) Execute(ctx context.Context, envelope ExecutionEnvelope) (*ExecutionResult, error) {
@@ -75,7 +83,18 @@ func (e *PackExecutor) Execute(ctx context.Context, envelope ExecutionEnvelope) 
 				},
 			}, nil
 		}
-		// In replay mode, we might also want to ensure the Pack ID matches exactly (already done in step 1).
+		if e.ExpectedReplaySnapshotHash != "" {
+			if err := invariants.ReplaySnapshotMatches(e.ExpectedReplaySnapshotHash, envelope.Context.RegistrySnapshotHash); err != nil {
+				return &ExecutionResult{
+					EnvelopeID: envelope.ID,
+					Status:     StatusError,
+					Error: &ExecutionError{
+						Code:    "REPLAY_SNAPSHOT_MISMATCH",
+						Message: err.Error(),
+					},
+				}, nil
+			}
+		}
 	}
 
 	// 4. Update Context with Pack Info for Downstream Audit
