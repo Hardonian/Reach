@@ -59,8 +59,36 @@ case "$cmd" in
     shift
     (cd services/runner && go run ./cmd/reachctl pack "$@")
     ;;
+  wizard)
+    shift
+    (cd services/runner && go run ./cmd/reachctl wizard "$@")
+    ;;
+  run)
+    shift
+    (cd services/runner && go run ./cmd/reachctl run "$@")
+    ;;
+  share)
+    shift
+    (cd services/runner && go run ./cmd/reachctl share "$@")
+    ;;
+  help|--help|-h)
+    echo "Reach - Deterministic Execution Fabric"
+    echo ""
+    echo "Commands:"
+    echo "  doctor           - System health check"
+    echo "  wizard           - Guided run wizard (mobile-friendly)"
+    echo "  run <pack>       - Quick run a pack"
+    echo "  share            - Share runs via QR/text"
+    echo "  operator         - View operator dashboard"
+    echo "  capsule          - Create/verify capsules"
+    echo "  proof            - Verify execution proofs"
+    echo "  packs            - Search/install packs"
+    echo ""
+    echo "For mobile/Termux: Install with scripts/install-termux.sh"
+    ;;
   *)
-    echo "usage: reach doctor|release-check|serve|federation|support|arcade|capsule|proof|graph|packs|init|explain|operator|pack" >&2
+    echo "usage: reach doctor|release-check|serve|federation|support|arcade|capsule|proof|graph|packs|init|explain|operator|pack|wizard|run|share" >&2
+    echo "       reach help for more info" >&2
     exit 1
     ;;
 

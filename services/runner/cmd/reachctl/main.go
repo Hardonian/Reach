@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -408,24 +409,227 @@ func runExplain(ctx context.Context, dataRoot string, args []string, out io.Writ
 }
 
 func runOperator(ctx context.Context, dataRoot string, out io.Writer, errOut io.Writer) int {
+	isMobile := os.Getenv("REACH_MOBILE") == "1" || os.Getenv("TERMUX_VERSION") != ""
+	
 	coord := federation.NewCoordinator(filepath.Join(dataRoot, "federation_reputation.json"))
 	_ = coord.Load()
 	nodes := coord.Status()
-	runs, _ := os.ReadDir(filepath.Join(dataRoot, "runs"))
-	alerts := 0
+	
+	// Gather comprehensive metrics
+	metrics := calculateOperatorMetrics(dataRoot, nodes)
+	
+	if isMobile {
+		// Mobile-friendly text output
+		printMobileOperatorDashboard(out, metrics)
+		return 0
+	}
+	
+	return writeJSON(out, metrics)
+}
+
+// OperatorMetrics holds all dashboard metrics
+type OperatorMetrics struct {
+	Topology struct {
+		Nodes         int      `json:"nodes"`
+		TrustedPeers  int      `json:"trusted_peers"`
+		Quarantined   int      `json:"quarantined"`
+		NodeIDs       []string `json:"node_ids,omitempty"`
+	} `json:"topology"`
+	
+	Runs struct {
+		Total      int `json:"total"`
+		Active     int `json:"active"`
+		Success    int `json:"success"`
+		Failed     int `json:"failed"`
+		Denied     int `json:"denied"`
+		Mismatches int `json:"mismatches"`
+	} `json:"runs"`
+	
+	Capsules struct {
+		Total     int `json:"total"`
+		Verified  int `json:"verified"`
+	} `json:"capsules"`
+	
+	Health struct {
+		Overall     string  `json:"overall"`
+		ErrorRate   float64 `json:"error_rate"`
+		ReplayHealth string `json:"replay_health"`
+	} `json:"health"`
+	
+	Mobile struct {
+		LowMemoryMode bool   `json:"low_memory_mode"`
+		StorageUsedMB int64  `json:"storage_used_mb"`
+		DataDir       string `json:"data_dir"`
+	} `json:"mobile,omitempty"`
+}
+
+func calculateOperatorMetrics(dataRoot string, nodes []federation.StatusNode) *OperatorMetrics {
+	m := &OperatorMetrics{}
+	
+	// Topology metrics
+	m.Topology.Nodes = len(nodes)
 	for _, n := range nodes {
+		if n.TrustScore > 0.7 && !n.Quarantined {
+			m.Topology.TrustedPeers++
+		}
 		if n.Quarantined {
-			alerts++
+			m.Topology.Quarantined++
+		}
+		if len(m.Topology.NodeIDs) < 5 {
+			m.Topology.NodeIDs = append(m.Topology.NodeIDs, n.NodeID)
 		}
 	}
-	return writeJSON(out, map[string]any{
-		"topology_nodes": len(nodes),
-		"active_runs":    len(runs),
-		"quarantines":    alerts,
-		"replay_alerts":  0,
-		"denials":        0,
-		"error_rate":     0,
+	
+	// Run metrics
+	runsDir := filepath.Join(dataRoot, "runs")
+	if entries, err := os.ReadDir(runsDir); err == nil {
+		m.Runs.Total = len(entries)
+		
+		for _, entry := range entries {
+			if entry.IsDir() {
+				continue
+			}
+			
+			// Load run record to check status
+			rec, err := loadRunRecord(dataRoot, entry.Name()[:len(entry.Name())-5]) // Remove .json
+			if err != nil {
+				continue
+			}
+			
+			// Check policy decision
+			if decision, ok := rec.Policy["decision"].(string); ok {
+				switch decision {
+				case "allow":
+					m.Runs.Success++
+				case "deny":
+					m.Runs.Denied++
+				default:
+					m.Runs.Failed++
+				}
+			}
+			
+			// Check for replay mismatches
+			if len(rec.EventLog) > 0 {
+				expectedHash := stableHash(map[string]any{"event_log": rec.EventLog, "run_id": rec.RunID})
+				// In real implementation, would compare with stored hash
+				_ = expectedHash
+			}
+		}
+	}
+	
+	// Capsule metrics
+	capsulesDir := filepath.Join(dataRoot, "capsules")
+	if entries, err := os.ReadDir(capsulesDir); err == nil {
+		m.Capsules.Total = len(entries)
+		
+		for _, entry := range entries {
+			if entry.IsDir() {
+				continue
+			}
+			
+			path := filepath.Join(capsulesDir, entry.Name())
+			if cap, err := readCapsule(path); err == nil {
+				recomputed := stableHash(map[string]any{"event_log": cap.EventLog, "run_id": cap.Manifest.RunID})
+				if recomputed == cap.Manifest.RunFingerprint {
+					m.Capsules.Verified++
+				} else {
+					m.Runs.Mismatches++
+				}
+			}
+		}
+	}
+	
+	// Health calculation
+	if m.Runs.Total > 0 {
+		m.Health.ErrorRate = float64(m.Runs.Failed+m.Runs.Denied) / float64(m.Runs.Total)
+	}
+	
+	if m.Health.ErrorRate == 0 && m.Runs.Mismatches == 0 && m.Topology.Quarantined == 0 {
+		m.Health.Overall = "healthy"
+		m.Health.ReplayHealth = "verified"
+	} else if m.Health.ErrorRate < 0.1 && m.Runs.Mismatches < 5 {
+		m.Health.Overall = "needs_attention"
+		m.Health.ReplayHealth = "ok"
+	} else {
+		m.Health.Overall = "critical"
+		m.Health.ReplayHealth = "mismatches_detected"
+	}
+	
+	// Mobile metrics
+	m.Mobile.LowMemoryMode = os.Getenv("REACH_LOW_MEMORY") == "1"
+	m.Mobile.DataDir = dataRoot
+	
+	// Calculate storage used
+	var totalSize int64
+	filepath.Walk(dataRoot, func(path string, info os.FileInfo, err error) error {
+		if err == nil && !info.IsDir() {
+			totalSize += info.Size()
+		}
+		return nil
 	})
+	m.Mobile.StorageUsedMB = totalSize / (1024 * 1024)
+	
+	return m
+}
+
+func printMobileOperatorDashboard(out io.Writer, m *OperatorMetrics) {
+	// Header
+	fmt.Fprintln(out, "╔════════════════════════════════════════════════╗")
+	fmt.Fprintln(out, "║        Reach Operator Dashboard (Mobile)       ║")
+	fmt.Fprintln(out, "╚════════════════════════════════════════════════╝")
+	fmt.Fprintln(out)
+	
+	// Status indicator
+	statusEmoji := map[string]string{
+		"healthy":         "✓",
+		"needs_attention": "⚠",
+		"critical":        "✗",
+	}
+	fmt.Fprintf(out, "Health: %s %s\n\n", statusEmoji[m.Health.Overall], strings.ToUpper(m.Health.Overall))
+	
+	// Runs section
+	fmt.Fprintln(out, "┌─ Runs ────────────────────────────────────────┐")
+	fmt.Fprintf(out, "│  Total:     %d\n", m.Runs.Total)
+	fmt.Fprintf(out, "│  ✓ Success: %d\n", m.Runs.Success)
+	fmt.Fprintf(out, "│  ✗ Denied:  %d\n", m.Runs.Denied)
+	if m.Runs.Mismatches > 0 {
+		fmt.Fprintf(out, "│  ⚠ Mismatch:%d\n", m.Runs.Mismatches)
+	}
+	fmt.Fprintln(out, "└───────────────────────────────────────────────┘")
+	fmt.Fprintln(out)
+	
+	// Topology section
+	fmt.Fprintln(out, "┌─ Federation ──────────────────────────────────┐")
+	fmt.Fprintf(out, "│  Nodes:   %d\n", m.Topology.Nodes)
+	fmt.Fprintf(out, "│  Trusted: %d\n", m.Topology.TrustedPeers)
+	if m.Topology.Quarantined > 0 {
+		fmt.Fprintf(out, "│  ⚠ Quarantine: %d\n", m.Topology.Quarantined)
+	}
+	fmt.Fprintln(out, "└───────────────────────────────────────────────┘")
+	fmt.Fprintln(out)
+	
+	// Capsules section
+	fmt.Fprintln(out, "┌─ Capsules ────────────────────────────────────┐")
+	fmt.Fprintf(out, "│  Total:    %d\n", m.Capsules.Total)
+	fmt.Fprintf(out, "│  Verified: %d\n", m.Capsules.Verified)
+	fmt.Fprintln(out, "└───────────────────────────────────────────────┘")
+	fmt.Fprintln(out)
+	
+	// Mobile section
+	if m.Mobile.LowMemoryMode {
+		fmt.Fprintln(out, "┌─ Mobile Settings ─────────────────────────────┐")
+		fmt.Fprintln(out, "│  Low Memory Mode: ON")
+		fmt.Fprintf(out, "│  Storage Used: %d MB\n", m.Mobile.StorageUsedMB)
+		fmt.Fprintln(out, "└───────────────────────────────────────────────┘")
+		fmt.Fprintln(out)
+	}
+	
+	// Quick actions
+	fmt.Fprintln(out, "Quick Actions:")
+	fmt.Fprintln(out, "  reach wizard      - Run guided wizard")
+	fmt.Fprintln(out, "  reach doctor      - Health check")
+	fmt.Fprintln(out, "  reach packs list  - Browse packs")
+	fmt.Fprintln(out)
 }
 
 func runArena(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
