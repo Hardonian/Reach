@@ -88,6 +88,8 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runArena(ctx, dataRoot, args[1:], out, errOut)
 	case "playground":
 		return runPlayground(dataRoot, args[1:], out, errOut)
+	case "pack":
+		return runPackDevKit(args[1:], out, errOut)
 	default:
 		usage(out)
 		return 1

@@ -55,8 +55,13 @@ case "$cmd" in
     shift
     (cd services/runner && go run ./cmd/reachctl operator "$@")
     ;;
+  pack)
+    shift
+    (cd services/runner && go run ./cmd/reachctl pack "$@")
+    ;;
   *)
-    echo "usage: reach doctor|release-check|serve|federation|support|arcade|capsule|proof|graph|packs|init|explain|operator" >&2
+    echo "usage: reach doctor|release-check|serve|federation|support|arcade|capsule|proof|graph|packs|init|explain|operator|pack" >&2
     exit 1
     ;;
+
 esac
