@@ -3,6 +3,8 @@ package registry
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -31,17 +33,26 @@ type Registry interface {
 
 // InMemoryRegistry is a simple thread-safe implementation of Registry.
 type InMemoryRegistry struct {
-	mu           sync.RWMutex
-	capabilities map[string]Capability
+	mu sync.RWMutex
 	// simplified tool->cap mapping
-	toolToCap map[string]string
+	capabilities       map[string]Capability
+	toolToCap          map[string]string
+	supportedPackMajor int
 }
 
 func NewInMemoryRegistry() *InMemoryRegistry {
 	return &InMemoryRegistry{
-		capabilities: make(map[string]Capability),
-		toolToCap:    make(map[string]string),
+		capabilities:       make(map[string]Capability),
+		toolToCap:          make(map[string]string),
+		supportedPackMajor: 1,
 	}
+}
+
+func (r *InMemoryRegistry) WithSupportedPackMajor(major int) *InMemoryRegistry {
+	if major > 0 {
+		r.supportedPackMajor = major
+	}
+	return r
 }
 
 func (r *InMemoryRegistry) Register(cap Capability) error {
@@ -106,6 +117,16 @@ func (r *InMemoryRegistry) ValidatePackCompatibility(pack ExecutionPack) error {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
+	if pack.Metadata.Version != "" {
+		major, err := packMajor(pack.Metadata.Version)
+		if err != nil {
+			return err
+		}
+		if major > r.supportedPackMajor {
+			return fmt.Errorf("pack major version %d is incompatible with node major %d", major, r.supportedPackMajor)
+		}
+	}
+
 	for _, tool := range pack.DeclaredTools {
 		// Check if tool is mapped to a capability
 		if _, exists := r.toolToCap[tool]; exists {
@@ -119,4 +140,16 @@ func (r *InMemoryRegistry) ValidatePackCompatibility(pack ExecutionPack) error {
 		return fmt.Errorf("pack declares tool '%s' which is not provided by any registered capability", tool)
 	}
 	return nil
+}
+
+func packMajor(version string) (int, error) {
+	parts := strings.Split(strings.TrimSpace(version), ".")
+	if len(parts) < 1 || parts[0] == "" {
+		return 0, fmt.Errorf("pack version is invalid: %q", version)
+	}
+	major, err := strconv.Atoi(parts[0])
+	if err != nil || major < 0 {
+		return 0, fmt.Errorf("pack version is invalid: %q", version)
+	}
+	return major, nil
 }
