@@ -9,6 +9,8 @@ import (
 	"reach/services/runner/internal/jobs"
 
 	"github.com/google/uuid"
+
+	"reach/services/runner/internal/spec"
 )
 
 type StatusReason string
@@ -230,9 +232,10 @@ func (l *Loop) tick(ctx context.Context, tenantID, runID string, session *jobs.A
 		ToolName:  plan.Tool,
 		Arguments: plan.Args,
 		Context: ExecutionContext{
-			SessionID: runID,
-			TenantID:  tenantID,
-			AgentID:   "root", // Simplification
+			SessionID:   runID,
+			TenantID:    tenantID,
+			AgentID:     "root", // Simplification
+			SpecVersion: spec.Version,
 		},
 		Permissions: session.AllowedCapabilities,
 	}

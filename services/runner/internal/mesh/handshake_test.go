@@ -5,6 +5,8 @@ import (
 	"crypto/rand"
 	"testing"
 	"time"
+
+	"reach/services/runner/internal/spec"
 )
 
 func TestVerifySignatureAndReplayPrevention(t *testing.T) {
@@ -19,6 +21,7 @@ func TestVerifySignatureAndReplayPrevention(t *testing.T) {
 		CapabilitiesHash:     "hash-1",
 		RegistrySnapshotHash: "abc123",
 		PolicyVersion:        "2026-01",
+		SpecVersion:          spec.Version,
 	}
 
 	sig := SignHandshake(priv, challenge, caps, "node-1")

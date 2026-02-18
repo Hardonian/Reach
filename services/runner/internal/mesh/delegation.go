@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reach/services/runner/internal/registry"
+	"reach/services/runner/internal/spec"
 	"sync"
 	"time"
 )
@@ -20,6 +21,7 @@ type DelegationRequest struct {
 	TTL             time.Duration          `json:"ttl"`
 	PolicyVersion   string                 `json:"policy_version"`
 	RegistryHash    string                 `json:"registry_hash"`
+	SpecVersion     string                 `json:"spec_version"`
 }
 
 // DelegationResponse captures the outcome of a delegation request.
@@ -85,6 +87,11 @@ func (d *FederatedDelegator) AcceptDelegation(ctx context.Context, req Delegatio
 
 	if req.OriginNodeID == d.localNodeID {
 		err := errors.New("recursive delegation detected")
+		d.emit("delegation.rejected", req, err)
+		return DelegationResponse{Status: "rejected", Error: err.Error()}, err
+	}
+
+	if err := spec.CompatibleError(req.SpecVersion); err != nil {
 		d.emit("delegation.rejected", req, err)
 		return DelegationResponse{Status: "rejected", Error: err.Error()}, err
 	}
