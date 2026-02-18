@@ -16,12 +16,11 @@ var ErrRunNotFound = errors.New("run not found")
 var ErrCapabilityDenied = errors.New("capability denied")
 
 // Event represents a single event in the event stream.
-// CreatedAt uses int64 (Unix timestamp) for deterministic serialization.
 type Event struct {
 	ID        int64
 	Type      string
 	Payload   []byte
-	CreatedAt int64 // Unix timestamp for determinism
+	CreatedAt time.Time
 }
 
 type GateDecision string
@@ -143,17 +142,15 @@ func (s *Store) CheckCapabilities(ctx context.Context, tenantID, id string, requ
 }
 
 func (s *Store) AppendEvent(ctx context.Context, runID string, evt Event) (int64, error) {
-	// Use deterministic timestamp (0 = epoch) for replay consistency
-	if evt.CreatedAt == 0 {
-		evt.CreatedAt = 0
+	if evt.CreatedAt.IsZero() {
+		evt.CreatedAt = time.Now().UTC()
 	}
 	normalized, err := validateAndNormalizeEventPayload(evt.Type, evt.Payload)
 	if err != nil {
 		return 0, err
 	}
 	evt.Payload = normalized
-	// Convert int64 timestamp back to time.Time for storage
-	return s.events.AppendEvent(ctx, storage.EventRecord{RunID: runID, Type: evt.Type, Payload: evt.Payload, CreatedAt: time.Unix(evt.CreatedAt, 0)})
+	return s.events.AppendEvent(ctx, storage.EventRecord{RunID: runID, Type: evt.Type, Payload: evt.Payload, CreatedAt: evt.CreatedAt})
 }
 
 func (s *Store) PublishEvent(ctx context.Context, runID string, evt Event, _ string) error {
@@ -183,8 +180,7 @@ func (s *Store) EventHistory(ctx context.Context, tenantID, runID string, after 
 	}
 	out := make([]Event, len(rec))
 	for i, r := range rec {
-		// Convert time.Time to int64 Unix timestamp for determinism
-		out[i] = Event{ID: r.ID, Type: r.Type, Payload: r.Payload, CreatedAt: r.CreatedAt.Unix()}
+		out[i] = Event{ID: r.ID, Type: r.Type, Payload: r.Payload, CreatedAt: r.CreatedAt}
 	}
 	return out, nil
 }

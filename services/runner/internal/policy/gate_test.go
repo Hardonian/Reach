@@ -2,7 +2,14 @@ package policy
 
 import "testing"
 
+func init() {
+	// Clear cache before each test to ensure isolation
+	ClearDecisionCache()
+}
+
 func baseInput() Input {
+	// Clear cache to ensure test isolation
+	ClearDecisionCache()
 	return Input{
 		Policy: OrgPolicy{
 			Version:             "2026-01",

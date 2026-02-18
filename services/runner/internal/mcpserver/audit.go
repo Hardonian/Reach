@@ -30,7 +30,9 @@ func (l StoreAuditLogger) LogToolInvocation(ctx context.Context, entry AuditEntr
 	if l.Store == nil || entry.RunID == "" {
 		return
 	}
-	body, err := json.Marshal(map[string]any{"tool": entry.Tool, "success": entry.Success, "error": entry.Error, "capabilities": entry.Capabilities, "timestamp": entry.Timestamp.Format(time.RFC3339Nano)})
+	// Use Unix timestamp for deterministic serialization
+	ts := time.Unix(entry.Timestamp, 0).Format(time.RFC3339Nano)
+	body, err := json.Marshal(map[string]any{"tool": entry.Tool, "success": entry.Success, "error": entry.Error, "capabilities": entry.Capabilities, "timestamp": ts})
 	if err != nil {
 		return
 	}
@@ -41,6 +43,8 @@ func (l StoreAuditLogger) LogAuditEvent(ctx context.Context, entry Deterministic
 	if l.Store == nil || entry.RunID == "" {
 		return
 	}
+	// Use Unix timestamp for deterministic serialization
+	ts := time.Unix(entry.Timestamp, 0).Format(time.RFC3339Nano)
 	body, err := json.Marshal(map[string]any{
 		"sequence":              entry.Sequence,
 		"event_type":            entry.EventType,
@@ -52,7 +56,7 @@ func (l StoreAuditLogger) LogAuditEvent(ctx context.Context, entry Deterministic
 		"org_id":                entry.OrgID,
 		"policy_version":        entry.PolicyVersion,
 		"context_snapshot_hash": entry.ContextSnapshotHash,
-		"timestamp":             entry.Timestamp.Format(time.RFC3339Nano),
+		"timestamp":             ts,
 		"decision":              entry.Decision,
 		"reasons":               entry.Reasons,
 	})

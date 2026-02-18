@@ -86,8 +86,8 @@ func ClearDecisionCache() {
 }
 
 // cacheKey generates a cache key from the input.
-// The key includes pack hash, requested tools, and requested permissions.
-// This ensures that identical requests get cached results.
+// The key includes pack hash, requested tools, requested permissions, and policy settings.
+// This ensures that identical requests get cached results while respecting policy changes.
 func cacheKey(in Input) string {
 	// Fast path: use pack hash as primary key component
 	var b strings.Builder
@@ -98,6 +98,19 @@ func cacheKey(in Input) string {
 	b.WriteString(strings.Join(in.RequestedPermissions, ","))
 	b.WriteByte('|')
 	b.WriteString(in.Pack.Version)
+	b.WriteByte('|')
+	// Include policy settings that affect the decision
+	if in.Policy.AllowLegacyUnsigned {
+		b.WriteByte('1')
+	} else {
+		b.WriteByte('0')
+	}
+	b.WriteByte('|')
+	if in.Policy.RequireDeterministic {
+		b.WriteByte('1')
+	} else {
+		b.WriteByte('0')
+	}
 	return b.String()
 }
 
