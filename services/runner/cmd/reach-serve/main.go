@@ -206,7 +206,7 @@ func (s *Server) handleGetRun(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
 		"id":         run.ID,
 		"status":     "running",
-		"created_at": run.CreatedAt.Format(time.RFC3339),
+		"created_at": time.Now().UTC().Format(time.RFC3339),
 	})
 }
 
