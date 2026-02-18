@@ -642,6 +642,307 @@ func getenv(key, fallback string) string {
 	return fallback
 }
 
+func runPackDevKit(args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		usagePack(out)
+		return 1
+	}
+
+	switch args[0] {
+	case "test":
+		return runPackTest(args[1:], out, errOut)
+	case "lint":
+		return runPackLint(args[1:], out, errOut)
+	case "doctor":
+		return runPackDoctor(args[1:], out, errOut)
+	case "publish":
+		return runPackPublish(args[1:], out, errOut)
+	case "init":
+		return runPackInit(args[1:], out, errOut)
+	default:
+		usagePack(out)
+		return 1
+	}
+}
+
+func runPackTest(args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reach pack test <path> [--fixture <name>]")
+		return 1
+	}
+
+	packPath := args[0]
+	fixtureName := ""
+
+	// Parse flags
+	for i := 1; i < len(args); i++ {
+		if args[i] == "--fixture" && i+1 < len(args) {
+			fixtureName = args[i+1]
+			break
+		}
+	}
+
+	// Create harness runner
+	fixturesDir := filepath.Join("..", "..", "..", "..", "pack-devkit", "fixtures")
+	if _, err := os.Stat(fixturesDir); os.IsNotExist(err) {
+		// Try alternate path
+		fixturesDir = filepath.Join("pack-devkit", "fixtures")
+	}
+
+	harness := NewHarness(fixturesDir)
+
+	if fixtureName != "" {
+		// Run specific fixture
+		fixture, err := harness.LoadFixture(fixtureName)
+		if err != nil {
+			_, _ = fmt.Fprintf(errOut, "Error loading fixture: %v\n", err)
+			return 1
+		}
+
+		result := harness.RunConformanceTest(fixture, packPath)
+		return writeJSON(out, result)
+	}
+
+	// Run all fixtures
+	results, err := harness.RunAll(packPath)
+	if err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error running tests: %v\n", err)
+		return 1
+	}
+
+	return writeJSON(out, map[string]any{
+		"pack_path": packPath,
+		"results":   results,
+	})
+}
+
+func runPackLint(args []string, out io.Writer, errOut io.Writer) int {
+	jsonOutput := false
+	packPath := ""
+
+	for _, arg := range args {
+		if arg == "--json" {
+			jsonOutput = true
+		} else if packPath == "" && !strings.HasPrefix(arg, "-") {
+			packPath = arg
+		}
+	}
+
+	if packPath == "" {
+		_, _ = fmt.Fprintln(errOut, "usage: reach pack lint <path> [--json]")
+		return 1
+	}
+
+	linter := NewLinter()
+	result := linter.LintPack(packPath)
+
+	if jsonOutput {
+		return writeJSON(out, result)
+	}
+
+	_, _ = fmt.Fprint(out, result.ToHuman())
+	if result.Passed {
+		return 0
+	}
+	return 1
+}
+
+func runPackDoctor(args []string, out io.Writer, errOut io.Writer) int {
+	jsonOutput := false
+	packPath := ""
+
+	for _, arg := range args {
+		if arg == "--json" {
+			jsonOutput = true
+		} else if packPath == "" && !strings.HasPrefix(arg, "-") {
+			packPath = arg
+		}
+	}
+
+	if packPath == "" {
+		_, _ = fmt.Fprintln(errOut, "usage: reach pack doctor <path> [--json]")
+		return 1
+	}
+
+	fixturesDir := filepath.Join("..", "..", "..", "..", "pack-devkit", "fixtures")
+	if _, err := os.Stat(fixturesDir); os.IsNotExist(err) {
+		fixturesDir = filepath.Join("pack-devkit", "fixtures")
+	}
+
+	doctor := NewDoctor(fixturesDir)
+	report := doctor.Diagnose(packPath)
+
+	if jsonOutput {
+		return writeJSON(out, report)
+	}
+
+	_, _ = fmt.Fprint(out, report.ToHuman())
+	switch report.Overall {
+	case "healthy":
+		return 0
+	case "needs_attention":
+		return 0 // Still success, but with warnings
+	default:
+		return 1
+	}
+}
+
+func runPackPublish(args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reach pack publish <path> --registry <gitUrl> [--output <dir>]")
+		return 1
+	}
+
+	packPath := args[0]
+	registryURL := ""
+	outputDir := ""
+	autoPR := false
+
+	for i := 1; i < len(args); i++ {
+		switch args[i] {
+		case "--registry":
+			if i+1 < len(args) {
+				registryURL = args[i+1]
+				i++
+			}
+		case "--output":
+			if i+1 < len(args) {
+				outputDir = args[i+1]
+				i++
+			}
+		case "--auto-pr":
+			autoPR = true
+		}
+	}
+
+	if registryURL == "" {
+		_, _ = fmt.Fprintln(errOut, "Error: --registry is required")
+		return 1
+	}
+
+	if outputDir == "" {
+		outputDir = filepath.Join(packPath, "publish-bundle")
+	}
+
+	fixturesDir := filepath.Join("..", "..", "..", "..", "pack-devkit", "fixtures")
+	if _, err := os.Stat(fixturesDir); os.IsNotExist(err) {
+		fixturesDir = filepath.Join("pack-devkit", "fixtures")
+	}
+
+	publisher := NewPublisher(fixturesDir)
+	config := PublishConfig{
+		PackPath:       packPath,
+		RegistryGitURL: registryURL,
+		AutoPR:         autoPR,
+	}
+
+	bundle, err := publisher.Publish(config)
+	if err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error publishing pack: %v\n", err)
+		return 1
+	}
+
+	// Save bundle
+	if err := publisher.SaveBundle(bundle, outputDir); err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error saving bundle: %v\n", err)
+		return 1
+	}
+
+	result := map[string]any{
+		"pack":         bundle.Entry.Name,
+		"version":      bundle.Entry.Version,
+		"bundle_path":  outputDir,
+		"branch_name":  bundle.BranchName,
+		"instructions": filepath.Join(outputDir, "PR_INSTRUCTIONS.md"),
+		"auto_pr":      autoPR,
+	}
+
+	if autoPR {
+		result["note"] = "Auto PR creation requires GitHub CLI and proper authentication"
+	}
+
+	return writeJSON(out, result)
+}
+
+func runPackInit(args []string, out io.Writer, errOut io.Writer) int {
+	template := "governed-minimal"
+	packName := ""
+
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--template":
+			if i+1 < len(args) {
+				template = args[i+1]
+				i++
+			}
+		default:
+			if packName == "" && !strings.HasPrefix(args[i], "-") {
+				packName = args[i]
+			}
+		}
+	}
+
+	if packName == "" {
+		_, _ = fmt.Fprintln(errOut, "usage: reach pack init [--template <name>] <pack-name>")
+		_, _ = fmt.Fprintln(errOut, "\nAvailable templates:")
+		_, _ = fmt.Fprintln(errOut, "  governed-minimal         - Basic deterministic pack")
+		_, _ = fmt.Fprintln(errOut, "  governed-with-policy     - Pack with policy contract")
+		_, _ = fmt.Fprintln(errOut, "  governed-with-replay-tests - Pack with replay verification")
+		_, _ = fmt.Fprintln(errOut, "  federation-aware         - Pack with federation metadata")
+		return 1
+	}
+
+	// Get templates directory
+	templatesDir := filepath.Join("..", "..", "..", "..", "pack-devkit", "templates")
+	if _, err := os.Stat(templatesDir); os.IsNotExist(err) {
+		templatesDir = filepath.Join("pack-devkit", "templates")
+	}
+
+	templatePath := filepath.Join(templatesDir, template)
+	if _, err := os.Stat(templatePath); os.IsNotExist(err) {
+		_, _ = fmt.Fprintf(errOut, "Template not found: %s\n", template)
+		_, _ = fmt.Fprintf(errOut, "Available templates: governed-minimal, governed-with-policy, governed-with-replay-tests, federation-aware\n")
+		return 1
+	}
+
+	// Copy template to new pack directory
+	packPath := packName
+	if err := copyTemplate(templatePath, packPath, packName); err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error creating pack: %v\n", err)
+		return 1
+	}
+
+	return writeJSON(out, map[string]any{
+		"pack":     packName,
+		"template": template,
+		"path":     packPath,
+		"next_steps": []string{
+			fmt.Sprintf("cd %s", packPath),
+			"reach pack lint .",
+			"reach pack test .",
+			"reach pack doctor .",
+		},
+	})
+}
+
+func usagePack(out io.Writer) {
+	_, _ = io.WriteString(out, `usage: reach pack <command> [options]
+
+Commands:
+  test <path> [--fixture <name>]     Run conformance tests
+  lint <path> [--json]               Lint pack for issues
+  doctor <path> [--json]             Full health check
+  publish <path> --registry <url>    Prepare for publishing
+  init [--template <name>] <name>    Create new pack from template
+
+Examples:
+  reach pack test ./my-pack
+  reach pack lint ./my-pack --json
+  reach pack doctor ./my-pack
+  reach pack publish ./my-pack --registry https://github.com/reach/registry
+`)
+}
+
 func usage(out io.Writer) {
-	_, _ = io.WriteString(out, "usage: reachctl federation status|map --format=json|svg | support ask <question> | arcade profile | capsule create|verify|replay | proof verify <runId|capsule> | graph export <runId> --format=svg|dot|json | packs search|install|verify | init pack --governed | explain <runId> | operator | arena run <scenario> | playground export\n")
+	_, _ = io.WriteString(out, "usage: reachctl federation status|map --format=json|svg | support ask <question> | arcade profile | capsule create|verify|replay | proof verify <runId|capsule> | graph export <runId> --format=svg|dot|json | packs search|install|verify | init pack --governed | explain <runId> | operator | arena run <scenario> | playground export | pack test|lint|doctor|publish|init\n")
 }
