@@ -1,24 +1,30 @@
 package autonomous
 
 import (
-	"reach/services/runner/internal/invariants"
+	"context"
+
 	"reach/services/runner/internal/registry"
 )
 
-// PackExecutorOptions centralizes replay-related wiring for orchestration sites.
-type PackExecutorOptions struct {
-	ExpectedReplaySnapshotHash string
-	InvariantReporter          invariants.ViolationReporter
+// NewOrchestrationPackExecutor centralizes runtime wiring for execution-pack enforcement
+// so replay invariants are always validated with the same snapshot hash + reporter contract.
+func NewOrchestrationPackExecutor(delegate Executor, pack registry.ExecutionPack, snapshotHash string, reporter InvariantReporter) Executor {
+	return NewPackExecutor(
+		delegate,
+		pack,
+		WithSnapshotHash(snapshotHash),
+		WithInvariantReporter(reporter),
+	)
 }
 
-// NewOrchestrationPackExecutor builds a PackExecutor with replay guard and invariant reporting hooks.
-func NewOrchestrationPackExecutor(delegate Executor, pack registry.ExecutionPack, opts PackExecutorOptions) *PackExecutor {
-	exec := NewPackExecutor(delegate, pack)
-	if opts.ExpectedReplaySnapshotHash != "" {
-		exec.WithReplaySnapshotHash(opts.ExpectedReplaySnapshotHash)
+func InvariantAuditReporter(audit func(context.Context, string, map[string]any)) InvariantReporter {
+	return func(ctx context.Context, code, message string) {
+		if audit == nil {
+			return
+		}
+		audit(ctx, "orchestration.invariant_violation", map[string]any{
+			"code":    code,
+			"message": message,
+		})
 	}
-	if opts.InvariantReporter != nil {
-		exec.WithInvariantReporter(opts.InvariantReporter)
-	}
-	return exec
 }
