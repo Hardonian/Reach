@@ -75,3 +75,33 @@ Artifacts are written to `dist/` with SHA256 integrity metadata in `dist/SHA256S
 
 - Rust pinned via `rust-toolchain.toml`
 - Go pinned in CI workflows to `1.22.7`
+
+
+## Mobile Build
+
+### iOS (Swift SDK)
+
+```bash
+cd mobile/ios/ReachSDK
+swift build
+swift test
+```
+
+Optional demo harness directory: `mobile/ios/ReachArcadeDemo`.
+
+### Android (Kotlin SDK + demo)
+
+```bash
+cd mobile/android
+gradle :reach-sdk:test :ReachArcadeDemo:assembleDebug
+```
+
+### Mobile smoke against local runner
+
+```bash
+# in one terminal
+cd services/runner && go run ./cmd/runnerd
+
+# in another terminal
+REACH_BASE_URL=http://localhost:8080 ./tools/mobile-smoke.sh
+```

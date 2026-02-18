@@ -3,8 +3,10 @@ package api
 import (
 	"compress/gzip"
 	"context"
+	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -48,16 +50,20 @@ type runMeta struct {
 }
 
 type Server struct {
-	version    string
-	store      *jobs.Store
-	queue      *jobs.DurableQueue
-	sql        *storage.SQLiteStore
-	registry   *NodeRegistry
-	metaMu     sync.RWMutex
-	runMeta    map[string]runMeta
-	autonomMu  sync.RWMutex
-	autonomous map[string]*autoControl
-	metrics    *metrics
+	version     string
+	store       *jobs.Store
+	queue       *jobs.DurableQueue
+	sql         *storage.SQLiteStore
+	registry    *NodeRegistry
+	metaMu      sync.RWMutex
+	runMeta     map[string]runMeta
+	autonomMu   sync.RWMutex
+	autonomous  map[string]*autoControl
+	metrics     *metrics
+	shareMu     sync.RWMutex
+	shareViews  map[string]map[string]any
+	handshakeMu sync.RWMutex
+	handshakes  map[string]mobileHandshakeChallenge
 
 	requestCounter atomic.Uint64
 	runsCreated    atomic.Uint64
@@ -79,7 +85,17 @@ func NewServer(db *storage.SQLiteStore, version string) *Server {
 		runMeta:    map[string]runMeta{},
 		autonomous: map[string]*autoControl{},
 		metrics:    newMetrics(),
+		shareViews: map[string]map[string]any{},
+		handshakes: map[string]mobileHandshakeChallenge{},
 	}
+}
+
+type mobileHandshakeChallenge struct {
+	Challenge string
+	NodeID    string
+	OrgID     string
+	PubKey    string
+	IssuedAt  time.Time
 }
 
 func (s *Server) Handler() http.Handler {
@@ -93,6 +109,12 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /v1/runs/{id}/spawn", s.requireAuth(http.HandlerFunc(s.handleSpawnRun)))
 	mux.Handle("POST /v1/runs/{id}/tool-result", s.requireAuth(http.HandlerFunc(s.handleToolResult)))
 	mux.Handle("GET /v1/runs/{id}/events", s.requireAuth(http.HandlerFunc(s.handleRunEvents)))
+	mux.Handle("POST /v1/mobile/handshake/challenge", s.requireAuth(http.HandlerFunc(s.handleMobileHandshakeChallenge)))
+	mux.Handle("POST /v1/mobile/handshake/complete", s.requireAuth(http.HandlerFunc(s.handleMobileHandshakeComplete)))
+	mux.Handle("POST /v1/mobile/policy/preflight", s.requireAuth(http.HandlerFunc(s.handleMobilePolicyPreflight)))
+	mux.Handle("GET /v1/mobile/runs/{id}", s.requireAuth(http.HandlerFunc(s.handleMobileRunView)))
+	mux.Handle("POST /v1/mobile/share-tokens", s.requireAuth(http.HandlerFunc(s.handleCreateShareToken)))
+	mux.HandleFunc("GET /v1/mobile/share/{token}", s.handleFetchSharedRun)
 	mux.Handle("POST /v1/runs/{id}/export", s.requireAuth(http.HandlerFunc(s.handleExport)))
 	mux.Handle("POST /v1/runs/import", s.requireAuth(http.HandlerFunc(s.handleImport)))
 	mux.Handle("GET /v1/runs/{id}/audit", s.requireAuth(http.HandlerFunc(s.handleGetAudit)))
@@ -107,6 +129,164 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /v1/sessions/{id}/autonomous/stop", s.requireAuth(http.HandlerFunc(s.handleAutonomousStop)))
 	mux.Handle("GET /v1/sessions/{id}/autonomous/status", s.requireAuth(http.HandlerFunc(s.handleAutonomousStatus)))
 	return s.withObservability(mux)
+}
+
+func (s *Server) handleMobileHandshakeChallenge(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		NodeID    string `json:"node_id"`
+		OrgID     string `json:"org_id"`
+		PublicKey string `json:"public_key"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, 400, "invalid json")
+		return
+	}
+	if strings.TrimSpace(body.NodeID) == "" || strings.TrimSpace(body.OrgID) == "" || strings.TrimSpace(body.PublicKey) == "" {
+		writeError(w, 400, "node_id, org_id, public_key required")
+		return
+	}
+	challenge := s.randomID("challenge")
+	s.handshakeMu.Lock()
+	s.handshakes[challenge] = mobileHandshakeChallenge{Challenge: challenge, NodeID: body.NodeID, OrgID: body.OrgID, PubKey: body.PublicKey, IssuedAt: time.Now().UTC()}
+	s.handshakeMu.Unlock()
+	writeJSON(w, 200, map[string]string{"challenge": challenge})
+}
+
+func (s *Server) handleMobileHandshakeComplete(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		Challenge string `json:"challenge"`
+		Signature string `json:"signature"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, 400, "invalid json")
+		return
+	}
+	s.handshakeMu.Lock()
+	entry, ok := s.handshakes[body.Challenge]
+	if ok {
+		delete(s.handshakes, body.Challenge)
+	}
+	s.handshakeMu.Unlock()
+	if !ok {
+		writeError(w, 404, "challenge not found")
+		return
+	}
+	if time.Since(entry.IssuedAt) > 5*time.Minute {
+		writeError(w, 400, "challenge expired")
+		return
+	}
+	pk, err := base64.StdEncoding.DecodeString(entry.PubKey)
+	if err != nil || len(pk) != ed25519.PublicKeySize {
+		writeError(w, 400, "invalid public key")
+		return
+	}
+	sig, err := base64.StdEncoding.DecodeString(body.Signature)
+	if err != nil || len(sig) != ed25519.SignatureSize {
+		writeError(w, 400, "invalid signature")
+		return
+	}
+	if !ed25519.Verify(ed25519.PublicKey(pk), []byte(entry.Challenge), sig) {
+		writeError(w, 403, "invalid signature")
+		return
+	}
+	sessionToken := s.randomID("mobile")
+	writeJSON(w, 200, map[string]any{"session_token": sessionToken, "expires_in_seconds": 3600, "node_id": entry.NodeID, "org_id": entry.OrgID})
+}
+
+func redactValue(key string, value any) any {
+	lower := strings.ToLower(key)
+	if strings.Contains(lower, "secret") || strings.Contains(lower, "token") || strings.Contains(lower, "key") || strings.Contains(lower, "password") {
+		return "[REDACTED]"
+	}
+	switch typed := value.(type) {
+	case map[string]any:
+		out := make(map[string]any, len(typed))
+		for k, v := range typed {
+			out[k] = redactValue(k, v)
+		}
+		return out
+	case []any:
+		out := make([]any, len(typed))
+		for i, item := range typed {
+			out[i] = redactValue(key, item)
+		}
+		return out
+	default:
+		return value
+	}
+}
+
+func redactPayload(in []byte) map[string]any {
+	var decoded map[string]any
+	if err := json.Unmarshal(in, &decoded); err != nil {
+		return map[string]any{"redacted": true}
+	}
+	out := make(map[string]any, len(decoded))
+	for k, v := range decoded {
+		out[k] = redactValue(k, v)
+	}
+	return out
+}
+
+func (s *Server) handleMobilePolicyPreflight(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		Capabilities []string `json:"capabilities"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, 400, "invalid json")
+		return
+	}
+	writeJSON(w, 200, map[string]any{"allowed": true, "required_gate": false, "missing_capabilities": []string{}, "capabilities": body.Capabilities})
+}
+
+func (s *Server) handleMobileRunView(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+	events, err := s.store.EventHistory(r.Context(), tenantIDFrom(r.Context()), runID, 0)
+	if err != nil {
+		writeError(w, 404, err.Error())
+		return
+	}
+	view := make([]map[string]any, 0, len(events))
+	for _, evt := range events {
+		view = append(view, map[string]any{"id": evt.ID, "type": evt.Type, "payload": redactPayload(evt.Payload), "created_at": evt.CreatedAt})
+	}
+	writeJSON(w, 200, map[string]any{"run_id": runID, "timeline": view})
+}
+
+func (s *Server) handleCreateShareToken(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		RunID string `json:"run_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || strings.TrimSpace(body.RunID) == "" {
+		writeError(w, 400, "run_id required")
+		return
+	}
+	events, err := s.store.EventHistory(r.Context(), tenantIDFrom(r.Context()), body.RunID, 0)
+	if err != nil {
+		writeError(w, 404, err.Error())
+		return
+	}
+	timeline := make([]map[string]any, 0, len(events))
+	for _, evt := range events {
+		timeline = append(timeline, map[string]any{"id": evt.ID, "type": evt.Type, "payload": redactPayload(evt.Payload), "created_at": evt.CreatedAt})
+	}
+	token := s.randomID("share")
+	s.shareMu.Lock()
+	s.shareViews[token] = map[string]any{"run_id": body.RunID, "timeline": timeline}
+	s.shareMu.Unlock()
+	writeJSON(w, 201, map[string]string{"token": token})
+}
+
+func (s *Server) handleFetchSharedRun(w http.ResponseWriter, r *http.Request) {
+	token := r.PathValue("token")
+	s.shareMu.RLock()
+	view, ok := s.shareViews[token]
+	s.shareMu.RUnlock()
+	if !ok {
+		writeError(w, 404, "share token not found")
+		return
+	}
+	writeJSON(w, 200, view)
 }
 
 func (s *Server) withObservability(next http.Handler) http.Handler {
