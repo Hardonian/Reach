@@ -1,5 +1,6 @@
 use engine_core::invariants::{
-    canonical_hash, deterministic_event_logs_match, pack_signature_matches_canonical_hash,
+    canonical_hash, delegation_registry_snapshot_hash_preserved, deterministic_event_logs_match,
+    pack_signature_matches_canonical_hash, policy_gate_rejects_undeclared_tools,
     replay_fails_on_snapshot_mismatch,
 };
 use engine_core::DeterministicEvent;
@@ -32,6 +33,35 @@ fn deterministic_runs_must_produce_identical_event_logs() {
 
     assert!(deterministic_event_logs_match(&run_a, &run_b));
     assert!(!deterministic_event_logs_match(&run_a, &run_c));
+}
+
+#[test]
+fn policy_gate_must_reject_undeclared_tools_every_time() {
+    let declared_tools = ["tool.echo", "tool.search"];
+    assert!(policy_gate_rejects_undeclared_tools(
+        &declared_tools,
+        &["tool.echo"]
+    ));
+    assert!(!policy_gate_rejects_undeclared_tools(
+        &declared_tools,
+        &["tool.exec"]
+    ));
+    assert!(!policy_gate_rejects_undeclared_tools(
+        &declared_tools,
+        &["tool.echo", "tool.exec"]
+    ));
+}
+
+#[test]
+fn delegated_runs_must_preserve_registry_snapshot_hash() {
+    assert!(delegation_registry_snapshot_hash_preserved(
+        "snapshot-a",
+        "snapshot-a"
+    ));
+    assert!(!delegation_registry_snapshot_hash_preserved(
+        "snapshot-a",
+        "snapshot-b"
+    ));
 }
 
 #[test]
