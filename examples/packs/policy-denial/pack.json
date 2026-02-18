@@ -1,0 +1,34 @@
+{
+  "spec_version": "1.0",
+  "metadata": {
+    "id": "examples.policy-denial",
+    "version": "1.0.0",
+    "spec_version": "1.0",
+    "name": "Policy Denial Example",
+    "description": "Demonstrates policy gate denial for high-risk permissions",
+    "author": "reach-examples",
+    "created": "2024-01-01T00:00:00Z"
+  },
+  "declared_tools": ["exec", "read_file"],
+  "declared_permissions": ["sys:exec", "fs:read"],
+  "model_requirements": {
+    "tier": "standard"
+  },
+  "execution_graph": {
+    "steps": [
+      {
+        "id": "step-1",
+        "tool": "exec",
+        "input": "whoami"
+      }
+    ]
+  },
+  "deterministic": true,
+  "governed": true,
+  "policy_contract": "policy.rego",
+  "signing": {
+    "required": true,
+    "key_type": "ed25519"
+  },
+  "signature_hash": ""
+}

@@ -1,0 +1,50 @@
+{
+  "spec_version": "1.0",
+  "metadata": {
+    "id": "{{PACK_ID}}",
+    "version": "1.0.0",
+    "spec_version": "1.0",
+    "name": "{{PACK_NAME}}",
+    "description": "A governed pack with replay verification tests",
+    "author": "your-name",
+    "created": "2024-01-01T00:00:00Z"
+  },
+  "declared_tools": ["echo", "read_file", "hash_content"],
+  "declared_permissions": ["fs:read"],
+  "model_requirements": {
+    "tier": "standard"
+  },
+  "execution_graph": {
+    "steps": [
+      {
+        "id": "step-1",
+        "tool": "echo",
+        "input": "Starting replay test"
+      },
+      {
+        "id": "step-2",
+        "tool": "read_file",
+        "input": "fixtures/sample.txt",
+        "depends_on": ["step-1"]
+      },
+      {
+        "id": "step-3",
+        "tool": "hash_content",
+        "input": "${step-2.output}",
+        "depends_on": ["step-2"]
+      }
+    ]
+  },
+  "deterministic": true,
+  "governed": true,
+  "policy_contract": "policy.rego",
+  "signing": {
+    "required": true,
+    "key_type": "ed25519"
+  },
+  "signature_hash": "",
+  "replay_tests": {
+    "enabled": true,
+    "fixtures": ["fixtures/sample.txt"]
+  }
+}

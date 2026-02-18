@@ -1,0 +1,29 @@
+{
+  "spec_version": "1.0",
+  "metadata": {
+    "id": "examples.minimal-safe",
+    "version": "1.0.0",
+    "spec_version": "1.0",
+    "name": "Minimal Safe Pack",
+    "description": "A minimal safe pack demonstrating deterministic execution",
+    "author": "reach-examples",
+    "created": "2024-01-01T00:00:00Z"
+  },
+  "declared_tools": ["echo"],
+  "declared_permissions": [],
+  "model_requirements": {
+    "tier": "minimal"
+  },
+  "execution_graph": {
+    "steps": [
+      {
+        "id": "step-1",
+        "tool": "echo",
+        "input": "Hello from minimal safe pack"
+      }
+    ]
+  },
+  "deterministic": true,
+  "governed": false,
+  "signature_hash": ""
+}

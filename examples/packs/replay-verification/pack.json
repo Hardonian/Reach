@@ -1,0 +1,41 @@
+{
+  "spec_version": "1.0",
+  "metadata": {
+    "id": "examples.replay-verification",
+    "version": "1.0.0",
+    "spec_version": "1.0",
+    "name": "Replay Verification Example",
+    "description": "Demonstrates deterministic replay with fixture-based testing",
+    "author": "reach-examples",
+    "created": "2024-01-01T00:00:00Z"
+  },
+  "declared_tools": ["echo", "read_file", "hash_content"],
+  "declared_permissions": ["fs:read"],
+  "model_requirements": {
+    "tier": "standard"
+  },
+  "execution_graph": {
+    "steps": [
+      {
+        "id": "step-1",
+        "tool": "echo",
+        "input": "Starting replay verification"
+      },
+      {
+        "id": "step-2",
+        "tool": "read_file",
+        "input": "fixtures/deterministic.txt",
+        "depends_on": ["step-1"]
+      },
+      {
+        "id": "step-3",
+        "tool": "hash_content",
+        "input": "${step-2.output}",
+        "depends_on": ["step-2"]
+      }
+    ]
+  },
+  "deterministic": true,
+  "governed": false,
+  "signature_hash": ""
+}

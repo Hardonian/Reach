@@ -1,0 +1,40 @@
+{
+  "spec_version": "1.0",
+  "metadata": {
+    "id": "{{PACK_ID}}",
+    "version": "1.0.0",
+    "spec_version": "1.0",
+    "name": "{{PACK_NAME}}",
+    "description": "A federation-aware pack with delegation metadata",
+    "author": "your-name",
+    "created": "2024-01-01T00:00:00Z"
+  },
+  "declared_tools": ["echo", "delegate"],
+  "declared_permissions": ["federation:delegate"],
+  "model_requirements": {
+    "tier": "standard"
+  },
+  "execution_graph": {
+    "steps": [
+      {
+        "id": "step-1",
+        "tool": "echo",
+        "input": "Federation-aware pack"
+      }
+    ]
+  },
+  "deterministic": true,
+  "governed": true,
+  "policy_contract": "policy.rego",
+  "federation": {
+    "delegation_allowed": true,
+    "max_hops": 3,
+    "preferred_nodes": [],
+    "trust_threshold": 0.8
+  },
+  "signing": {
+    "required": true,
+    "key_type": "ed25519"
+  },
+  "signature_hash": ""
+}

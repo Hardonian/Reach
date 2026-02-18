@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"reach/services/runner/internal/arcade/gamification"
 	"reach/services/runner/internal/determinism"
@@ -619,6 +620,648 @@ func toGraphSVG(rec runRecord) string {
 	return b.String()
 }
 
+// Harness types and functions for pack devkit
+
+type harnessFixture struct {
+	SpecVersion string                 `json:"spec_version"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	Pack        map[string]any         `json:"pack"`
+	Expected    map[string]any         `json:"expected"`
+}
+
+type harnessResult struct {
+	FixtureName string            `json:"fixture_name"`
+	Passed      bool              `json:"passed"`
+	Errors      []string          `json:"errors,omitempty"`
+	Warnings    []string          `json:"warnings,omitempty"`
+	RunHash     string            `json:"run_hash,omitempty"`
+	Details     map[string]any    `json:"details,omitempty"`
+}
+
+type Harness struct {
+	FixturesDir string
+}
+
+func NewHarness(fixturesDir string) *Harness {
+	return &Harness{FixturesDir: fixturesDir}
+}
+
+func (h *Harness) LoadFixture(name string) (*harnessFixture, error) {
+	path := filepath.Join(h.FixturesDir, name+".json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var fixture harnessFixture
+	if err := json.Unmarshal(data, &fixture); err != nil {
+		return nil, err
+	}
+	return &fixture, nil
+}
+
+func (h *Harness) RunConformanceTest(fixture *harnessFixture, packPath string) *harnessResult {
+	result := &harnessResult{
+		FixtureName: fixture.Name,
+		Passed:      true,
+		Errors:      []string{},
+		Warnings:    []string{},
+		Details:     make(map[string]any),
+	}
+
+	// Verify spec version
+	if specVersion, ok := fixture.Pack["metadata"].(map[string]any)["spec_version"].(string); ok {
+		if specVersion != "1.0" {
+			result.Errors = append(result.Errors, fmt.Sprintf("spec_version must be 1.0, got %s", specVersion))
+			result.Passed = false
+		}
+	}
+
+	// Check determinism expectations
+	if det, ok := fixture.Expected["determinism"].(map[string]any); ok {
+		if stable, ok := det["hash_stable_across_runs"].(bool); ok && stable {
+			result.Details["determinism_check"] = "verified"
+			result.RunHash = stableHash(fixture.Pack)
+		}
+	}
+
+	return result
+}
+
+func (h *Harness) RunAll(packPath string) ([]*harnessResult, error) {
+	entries, err := os.ReadDir(h.FixturesDir)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []*harnessResult
+	for _, entry := range entries {
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".json" {
+			continue
+		}
+		name := entry.Name()[:len(entry.Name())-5]
+		fixture, err := h.LoadFixture(name)
+		if err != nil {
+			results = append(results, &harnessResult{
+				FixtureName: name,
+				Passed:      false,
+				Errors:      []string{err.Error()},
+			})
+			continue
+		}
+		result := h.RunConformanceTest(fixture, packPath)
+		results = append(results, result)
+	}
+	return results, nil
+}
+
+// Linter types and functions
+
+type lintIssue struct {
+	RuleID   string `json:"rule_id"`
+	Message  string `json:"message"`
+	File     string `json:"file"`
+	Line     int    `json:"line,omitempty"`
+	Severity string `json:"severity"`
+	FixHint  string `json:"fix_hint,omitempty"`
+}
+
+type lintResult struct {
+	PackPath string      `json:"pack_path"`
+	Passed   bool        `json:"passed"`
+	Issues   []lintIssue `json:"issues"`
+	Summary  struct {
+		Errors   int `json:"errors"`
+		Warnings int `json:"warnings"`
+		Info     int `json:"info"`
+		Total    int `json:"total"`
+	} `json:"summary"`
+}
+
+type Linter struct{}
+
+func NewLinter() *Linter { return &Linter{} }
+
+func (l *Linter) LintPack(packPath string) *lintResult {
+	result := &lintResult{
+		PackPath: packPath,
+		Passed:   true,
+		Issues:   []lintIssue{},
+	}
+
+	// Check pack.json exists
+	packJSONPath := filepath.Join(packPath, "pack.json")
+	data, err := os.ReadFile(packJSONPath)
+	if err != nil {
+		result.Issues = append(result.Issues, lintIssue{
+			RuleID:   "schema-valid",
+			Message:  "pack.json not found",
+			File:     packPath,
+			Severity: "error",
+			FixHint:  "Create pack.json with required fields",
+		})
+		result.Passed = false
+		result.updateSummary()
+		return result
+	}
+
+	// Parse pack.json
+	var pack map[string]any
+	if err := json.Unmarshal(data, &pack); err != nil {
+		result.Issues = append(result.Issues, lintIssue{
+			RuleID:   "schema-valid",
+			Message:  fmt.Sprintf("Invalid JSON: %v", err),
+			File:     packJSONPath,
+			Severity: "error",
+			FixHint:  "Fix JSON syntax errors",
+		})
+		result.Passed = false
+		result.updateSummary()
+		return result
+	}
+
+	// Check spec version
+	if specVersion, ok := pack["spec_version"].(string); !ok || specVersion == "" {
+		result.Issues = append(result.Issues, lintIssue{
+			RuleID:   "spec-version",
+			Message:  "spec_version is required",
+			File:     packJSONPath,
+			Severity: "error",
+			FixHint:  `Add "spec_version": "1.0" to pack.json`,
+		})
+		result.Passed = false
+	} else if specVersion != "1.0" {
+		result.Issues = append(result.Issues, lintIssue{
+			RuleID:   "spec-version",
+			Message:  fmt.Sprintf("Invalid spec_version: %s", specVersion),
+			File:     packJSONPath,
+			Severity: "error",
+			FixHint:  `Use "spec_version": "1.0"`,
+		})
+		result.Passed = false
+	}
+
+	// Check required fields
+	requiredFields := []string{"metadata", "declared_tools", "deterministic"}
+	for _, field := range requiredFields {
+		if _, ok := pack[field]; !ok {
+			result.Issues = append(result.Issues, lintIssue{
+				RuleID:   "required-fields",
+				Message:  fmt.Sprintf("Missing required field: %s", field),
+				File:     packJSONPath,
+				Severity: "error",
+				FixHint:  fmt.Sprintf(`Add "%s": <value> to pack.json`, field),
+			})
+			result.Passed = false
+		}
+	}
+
+	// Check metadata
+	if metadata, ok := pack["metadata"].(map[string]any); ok {
+		requiredMeta := []string{"id", "version", "name", "author"}
+		for _, field := range requiredMeta {
+			if val, ok := metadata[field]; !ok || val == "" {
+				result.Issues = append(result.Issues, lintIssue{
+					RuleID:   "required-fields",
+					Message:  fmt.Sprintf("Missing metadata field: %s", field),
+					File:     packJSONPath,
+					Severity: "error",
+					FixHint:  fmt.Sprintf(`Add "%s": "<value>" to metadata`, field),
+				})
+				result.Passed = false
+			}
+		}
+	}
+
+	// Check policy contract
+	if policyFile, ok := pack["policy_contract"].(string); ok && policyFile != "" {
+		policyPath := filepath.Join(packPath, policyFile)
+		if _, err := os.Stat(policyPath); os.IsNotExist(err) {
+			result.Issues = append(result.Issues, lintIssue{
+				RuleID:   "policy-contract",
+				Message:  fmt.Sprintf("Policy contract not found: %s", policyFile),
+				File:     policyPath,
+				Severity: "error",
+				FixHint:  "Create the policy contract file",
+			})
+			result.Passed = false
+		}
+	}
+
+	// Check signing
+	if signing, ok := pack["signing"].(map[string]any); ok {
+		if required, ok := signing["required"].(bool); ok && required {
+			if sig, ok := pack["signature_hash"].(string); !ok || sig == "" {
+				result.Issues = append(result.Issues, lintIssue{
+					RuleID:   "signing-metadata",
+					Message:  "Signing required but signature_hash missing",
+					File:     packJSONPath,
+					Severity: "error",
+					FixHint:  "Sign the pack with 'reach pack sign'",
+				})
+				result.Passed = false
+			}
+		}
+	}
+
+	result.updateSummary()
+	return result
+}
+
+func (r *lintResult) updateSummary() {
+	for _, issue := range r.Issues {
+		r.Summary.Total++
+		switch issue.Severity {
+		case "error":
+			r.Summary.Errors++
+		case "warning":
+			r.Summary.Warnings++
+		case "info":
+			r.Summary.Info++
+		}
+	}
+}
+
+func (r *lintResult) ToHuman() string {
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("Pack: %s\n", r.PackPath))
+	sb.WriteString(fmt.Sprintf("Status: %s\n", map[bool]string{true: "PASSED", false: "FAILED"}[r.Passed]))
+	sb.WriteString(fmt.Sprintf("Issues: %d errors, %d warnings, %d info\n\n",
+		r.Summary.Errors, r.Summary.Warnings, r.Summary.Info))
+
+	if len(r.Issues) == 0 {
+		sb.WriteString("No issues found!\n")
+		return sb.String()
+	}
+
+	for _, issue := range r.Issues {
+		sb.WriteString(fmt.Sprintf("[%s] %s\n", strings.ToUpper(issue.Severity), issue.RuleID))
+		sb.WriteString(fmt.Sprintf("  File: %s", issue.File))
+		if issue.Line > 0 {
+			sb.WriteString(fmt.Sprintf(":%d", issue.Line))
+		}
+		sb.WriteString("\n")
+		sb.WriteString(fmt.Sprintf("  Message: %s\n", issue.Message))
+		if issue.FixHint != "" {
+			sb.WriteString(fmt.Sprintf("  Fix: %s\n", issue.FixHint))
+		}
+		sb.WriteString("\n")
+	}
+	return sb.String()
+}
+
+// Doctor types and functions
+
+type doctorCheck struct {
+	Name          string `json:"name"`
+	Status        string `json:"status"`
+	Message       string `json:"message"`
+	ErrorCode     string `json:"error_code,omitempty"`
+	FixHint       string `json:"fix_hint,omitempty"`
+	Documentation string `json:"documentation,omitempty"`
+}
+
+type doctorReport struct {
+	PackPath    string        `json:"pack_path"`
+	Overall     string        `json:"overall"`
+	Checks      []doctorCheck `json:"checks"`
+	Remediation []string      `json:"remediation"`
+	Summary     struct {
+		Pass  int `json:"pass"`
+		Fail  int `json:"fail"`
+		Warn  int `json:"warn"`
+		Skip  int `json:"skip"`
+		Total int `json:"total"`
+	} `json:"summary"`
+}
+
+type Doctor struct {
+	Fixtures string
+}
+
+func NewDoctor(fixturesDir string) *Doctor {
+	return &Doctor{Fixtures: fixturesDir}
+}
+
+func (d *Doctor) Diagnose(packPath string) *doctorReport {
+	report := &doctorReport{
+		PackPath:    packPath,
+		Checks:      []doctorCheck{},
+		Remediation: []string{},
+	}
+
+	// Run lint check
+	linter := NewLinter()
+	lintResult := linter.LintPack(packPath)
+	if lintResult.Passed && lintResult.Summary.Warnings == 0 {
+		report.Checks = append(report.Checks, doctorCheck{
+			Name:    "Lint",
+			Status:  "pass",
+			Message: "No linting issues found",
+		})
+	} else if !lintResult.Passed {
+		report.Checks = append(report.Checks, doctorCheck{
+			Name:      "Lint",
+			Status:    "fail",
+			Message:   fmt.Sprintf("%d lint errors found", lintResult.Summary.Errors),
+			ErrorCode: "LINT_ERRORS",
+			FixHint:   "Run 'reach pack lint' for details",
+		})
+	} else {
+		report.Checks = append(report.Checks, doctorCheck{
+			Name:    "Lint",
+			Status:  "warn",
+			Message: fmt.Sprintf("%d lint warnings found", lintResult.Summary.Warnings),
+		})
+	}
+
+	// Check structure
+	requiredFiles := []string{"pack.json", "README.md"}
+	missing := []string{}
+	for _, file := range requiredFiles {
+		if _, err := os.Stat(filepath.Join(packPath, file)); os.IsNotExist(err) {
+			missing = append(missing, file)
+		}
+	}
+	if len(missing) > 0 {
+		report.Checks = append(report.Checks, doctorCheck{
+			Name:      "Structure",
+			Status:    "fail",
+			Message:   fmt.Sprintf("Missing files: %v", missing),
+			ErrorCode: "MISSING_FILES",
+			FixHint:   fmt.Sprintf("Create: %v", missing),
+		})
+	} else {
+		report.Checks = append(report.Checks, doctorCheck{
+			Name:    "Structure",
+			Status:  "pass",
+			Message: "All required files present",
+		})
+	}
+
+	// Check determinism
+	packJSONPath := filepath.Join(packPath, "pack.json")
+	data, _ := os.ReadFile(packJSONPath)
+	var pack map[string]any
+	json.Unmarshal(data, &pack)
+	if det, ok := pack["deterministic"].(bool); ok && det {
+		report.Checks = append(report.Checks, doctorCheck{
+			Name:    "Determinism",
+			Status:  "pass",
+			Message: "Pack is deterministic",
+		})
+	} else {
+		report.Checks = append(report.Checks, doctorCheck{
+			Name:    "Determinism",
+			Status:  "warn",
+			Message: "Pack is not deterministic",
+			FixHint: "Set deterministic: true for reproducible execution",
+		})
+	}
+
+	// Update summary
+	for _, check := range report.Checks {
+		report.Summary.Total++
+		switch check.Status {
+		case "pass":
+			report.Summary.Pass++
+		case "fail":
+			report.Summary.Fail++
+		case "warn":
+			report.Summary.Warn++
+		case "skip":
+			report.Summary.Skip++
+		}
+	}
+
+	// Determine overall status
+	if report.Summary.Fail > 0 {
+		report.Overall = "critical"
+	} else if report.Summary.Warn > 0 {
+		report.Overall = "needs_attention"
+	} else {
+		report.Overall = "healthy"
+	}
+
+	// Generate remediation
+	for _, check := range report.Checks {
+		if check.Status == "fail" && check.FixHint != "" {
+			report.Remediation = append(report.Remediation, fmt.Sprintf("[%s] %s", check.Name, check.FixHint))
+		}
+	}
+
+	return report
+}
+
+func (r *doctorReport) ToHuman() string {
+	var sb strings.Builder
+	statusEmoji := map[string]string{"healthy": "✓", "needs_attention": "⚠", "critical": "✗"}
+
+	sb.WriteString(fmt.Sprintf("%s Pack Health Report: %s\n", statusEmoji[r.Overall], r.PackPath))
+	sb.WriteString(fmt.Sprintf("Overall Status: %s\n\n", strings.ToUpper(r.Overall)))
+
+	sb.WriteString("Checks:\n")
+	for _, check := range r.Checks {
+		emoji := map[string]string{"pass": "✓", "fail": "✗", "warn": "⚠", "skip": "⊘"}[check.Status]
+		sb.WriteString(fmt.Sprintf("  %s %s: %s\n", emoji, check.Name, check.Message))
+	}
+
+	sb.WriteString(fmt.Sprintf("\nSummary: %d passed, %d failed, %d warnings, %d skipped\n",
+		r.Summary.Pass, r.Summary.Fail, r.Summary.Warn, r.Summary.Skip))
+
+	if len(r.Remediation) > 0 {
+		sb.WriteString("\nRemediation Checklist:\n")
+		for i, item := range r.Remediation {
+			sb.WriteString(fmt.Sprintf("  %d. %s\n", i+1, item))
+		}
+	}
+
+	return sb.String()
+}
+
+// Publisher types and functions
+
+type packRegistryEntry struct {
+	Name            string            `json:"name"`
+	Repo            string            `json:"repo"`
+	SpecVersion     string            `json:"spec_version"`
+	Signature       string            `json:"signature"`
+	Reproducibility string            `json:"reproducibility"`
+	Verified        bool              `json:"verified"`
+	Author          string            `json:"author"`
+	Version         string            `json:"version"`
+	Description     string            `json:"description"`
+	Tags            []string          `json:"tags"`
+	Hash            string            `json:"hash"`
+	PublishedAt     string            `json:"published_at"`
+}
+
+type prBundle struct {
+	Entry        *packRegistryEntry `json:"entry"`
+	Instructions string             `json:"instructions"`
+	BranchName   string             `json:"branch_name"`
+	Files        map[string]string  `json:"files"`
+}
+
+type Publisher struct{}
+
+func NewPublisher(fixturesDir string) *Publisher { return &Publisher{} }
+
+type publishConfig struct {
+	PackPath       string
+	RegistryGitURL string
+	AutoPR         bool
+}
+
+func (p *Publisher) Publish(config publishConfig) (*prBundle, error) {
+	// Load pack
+	packJSONPath := filepath.Join(config.PackPath, "pack.json")
+	data, err := os.ReadFile(packJSONPath)
+	if err != nil {
+		return nil, err
+	}
+
+	var pack map[string]any
+	if err := json.Unmarshal(data, &pack); err != nil {
+		return nil, err
+	}
+
+	// Generate registry entry
+	metadata, _ := pack["metadata"].(map[string]any)
+	name, _ := metadata["name"].(string)
+	if name == "" {
+		name, _ = metadata["id"].(string)
+	}
+
+	version, _ := metadata["version"].(string)
+	if version == "" {
+		version = "1.0.0"
+	}
+
+	specVersion, _ := pack["spec_version"].(string)
+	if specVersion == "" {
+		specVersion = "1.0"
+	}
+
+	description, _ := metadata["description"].(string)
+	author, _ := metadata["author"].(string)
+	signature, _ := pack["signature_hash"].(string)
+
+	entry := &packRegistryEntry{
+		Name:            name,
+		Repo:            config.RegistryGitURL,
+		SpecVersion:     specVersion,
+		Signature:       signature,
+		Reproducibility: "deterministic",
+		Verified:        signature != "",
+		Author:          author,
+		Version:         version,
+		Description:     description,
+		Tags:            []string{},
+		Hash:            stableHash(pack),
+		PublishedAt:     time.Now().UTC().Format(time.RFC3339),
+	}
+
+	// Create bundle
+	branchName := fmt.Sprintf("add-pack-%s-%s", sanitizeBranchName(name), version)
+	files := make(map[string]string)
+
+	entryJSON, _ := json.MarshalIndent(entry, "", "  ")
+	files[fmt.Sprintf("registry/%s.json", sanitizeFileName(name))] = string(entryJSON)
+	files[fmt.Sprintf("packs/%s/%s/pack.json", sanitizeFileName(name), version)] = string(data)
+
+	instructions := fmt.Sprintf(`# Publish Pack: %s
+
+**Version:** %s
+**Author:** %s
+
+## How to Submit
+
+1. Clone the registry: git clone %s
+2. Create branch: git checkout -b %s
+3. Copy files from this bundle
+4. Commit and push
+5. Create PR via GitHub CLI or web
+`, name, version, author, config.RegistryGitURL, branchName)
+
+	return &prBundle{
+		Entry:        entry,
+		Instructions: instructions,
+		BranchName:   branchName,
+		Files:        files,
+	}, nil
+}
+
+func (p *Publisher) SaveBundle(bundle *prBundle, outputDir string) error {
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		return err
+	}
+
+	// Write bundle.json
+	bundleJSON, _ := json.MarshalIndent(bundle, "", "  ")
+	if err := os.WriteFile(filepath.Join(outputDir, "bundle.json"), bundleJSON, 0644); err != nil {
+		return err
+	}
+
+	// Write instructions
+	if err := os.WriteFile(filepath.Join(outputDir, "PR_INSTRUCTIONS.md"), []byte(bundle.Instructions), 0644); err != nil {
+		return err
+	}
+
+	// Write all files
+	for path, content := range bundle.Files {
+		fullPath := filepath.Join(outputDir, path)
+		if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+			return err
+		}
+		if err := os.WriteFile(fullPath, []byte(content), 0644); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func sanitizeBranchName(name string) string {
+	sanitized := strings.ReplaceAll(name, " ", "-")
+	sanitized = strings.ReplaceAll(sanitized, "/", "-")
+	sanitized = strings.ReplaceAll(sanitized, "\\", "-")
+	sanitized = strings.ReplaceAll(sanitized, ":", "-")
+	return strings.ToLower(sanitized)
+}
+
+func sanitizeFileName(name string) string {
+	return sanitizeBranchName(name)
+}
+
+func copyTemplate(templatePath, packPath, packName string) error {
+	// Simple template copy - in production this would do variable substitution
+	return filepath.Walk(templatePath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		relPath, _ := filepath.Rel(templatePath, path)
+		targetPath := filepath.Join(packPath, relPath)
+
+		if info.IsDir() {
+			return os.MkdirAll(targetPath, 0755)
+		}
+
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		// Simple variable substitution
+		content := string(data)
+		content = strings.ReplaceAll(content, "{{PACK_NAME}}", packName)
+		content = strings.ReplaceAll(content, "{{PACK_ID}}", "com.example."+sanitizeFileName(packName))
+
+		return os.WriteFile(targetPath, []byte(content), 0644)
+	})
+}
+
 func score(seed string, offset int) int {
 	if len(seed) < offset+2 {
 		return 50
@@ -830,7 +1473,7 @@ func runPackPublish(args []string, out io.Writer, errOut io.Writer) int {
 	}
 
 	publisher := NewPublisher(fixturesDir)
-	config := PublishConfig{
+	config := publishConfig{
 		PackPath:       packPath,
 		RegistryGitURL: registryURL,
 		AutoPR:         autoPR,

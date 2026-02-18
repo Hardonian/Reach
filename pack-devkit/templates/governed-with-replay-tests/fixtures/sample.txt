@@ -1,0 +1,2 @@
+This is deterministic fixture content for replay testing.
+It will produce the same hash on every run.

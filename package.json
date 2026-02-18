@@ -26,6 +26,7 @@
     "verify:errors": "cd services/runner && go test -v ./internal/errors/...",
     "verify:config": "cd services/runner && go test -v ./internal/config/...",
     "verify:backpressure": "cd services/runner && go test -v ./internal/backpressure/...",
-    "verify:telemetry": "cd services/runner && go test -v ./internal/telemetry/..."
+    "verify:telemetry": "cd services/runner && go test -v ./internal/telemetry/...",
+    "verify:pack": "node scripts/verify-packs.mjs"
   }
 }

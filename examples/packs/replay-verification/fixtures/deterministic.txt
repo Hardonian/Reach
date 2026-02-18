@@ -1,0 +1,3 @@
+This is deterministic content for replay testing.
+The hash of this file will be identical on every run.
+Line 3: Consistent data for verification.

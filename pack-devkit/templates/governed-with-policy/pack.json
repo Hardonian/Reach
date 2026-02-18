@@ -1,0 +1,34 @@
+{
+  "spec_version": "1.0",
+  "metadata": {
+    "id": "{{PACK_ID}}",
+    "version": "1.0.0",
+    "spec_version": "1.0",
+    "name": "{{PACK_NAME}}",
+    "description": "A governed pack with policy contract for access control",
+    "author": "your-name",
+    "created": "2024-01-01T00:00:00Z"
+  },
+  "declared_tools": ["echo", "read_file", "write_file"],
+  "declared_permissions": ["fs:read", "fs:write"],
+  "model_requirements": {
+    "tier": "standard"
+  },
+  "execution_graph": {
+    "steps": [
+      {
+        "id": "step-1",
+        "tool": "echo",
+        "input": "Hello from governed {{PACK_NAME}}"
+      }
+    ]
+  },
+  "deterministic": true,
+  "governed": true,
+  "policy_contract": "policy.rego",
+  "signing": {
+    "required": true,
+    "key_type": "ed25519"
+  },
+  "signature_hash": ""
+}

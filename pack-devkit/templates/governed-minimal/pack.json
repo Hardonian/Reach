@@ -1,0 +1,29 @@
+{
+  "spec_version": "1.0",
+  "metadata": {
+    "id": "{{PACK_ID}}",
+    "version": "1.0.0",
+    "spec_version": "1.0",
+    "name": "{{PACK_NAME}}",
+    "description": "A minimal deterministic execution pack",
+    "author": "your-name",
+    "created": "2024-01-01T00:00:00Z"
+  },
+  "declared_tools": ["echo", "read_file"],
+  "declared_permissions": ["fs:read"],
+  "model_requirements": {
+    "tier": "minimal"
+  },
+  "execution_graph": {
+    "steps": [
+      {
+        "id": "step-1",
+        "tool": "echo",
+        "input": "Hello from {{PACK_NAME}}"
+      }
+    ]
+  },
+  "deterministic": true,
+  "signature_hash": "",
+  "governed": false
+}
