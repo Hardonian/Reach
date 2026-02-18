@@ -1,107 +1,101 @@
 # Reach
 
-Reach is an OSS stack for running deterministic agent workflows across a **mobile cockpit**, a **Go runner**, a **Rust engine**, and **MCP-compatible tools**.
+**Reach is a deterministic execution fabric for AI systems.**
 
-## Versioning
+Reach helps teams run agentic and tool-driven workloads with deterministic replay, policy controls, and signed execution packs so production behavior can be trusted, audited, and reproduced.
 
-Reach uses a single source of truth for release versioning:
+## The problem Reach solves
 
-- `VERSION` at repo root (SemVer)
-- `CHANGELOG.md` in Keep a Changelog format
-- Build pipelines inject this version into service binaries (`main.version`) and expose it via `/version` and `/healthz`
+Most AI systems fail in production because runtime behavior drifts: tools change, policies are bypassed, and replay is unreliable. Reach provides a stable execution plane so operators can enforce capability boundaries, verify integrity, and reproduce outcomes across nodes and environments.
 
-## Architecture
+## Core principles
 
-- `apps/mobile/android` — Android cockpit app
-- `apps/mobile/ios/ReachIOS` — iOS Swift package shell
-- `services/*` — Go services (runner, integration-hub, session-hub, ide-bridge, connector-registry, capsule-sync)
-- `crates/engine*` — Rust deterministic engine and core crates
-- `extensions/vscode` — VS Code extension
-- `protocol/schemas` — JSON Schemas for wire protocol
+- **Determinism**: replayable execution with stable event sequencing.
+- **Policy enforcement**: explicit allow/deny gates around tools and permissions.
+- **Signed packs**: immutable, integrity-checked execution artifacts.
+- **Replay integrity**: snapshot and hash guards to detect drift and tampering.
 
-## Developer checks
+## Architecture overview
 
-Run full local health checks:
+```text
++-------------------+        +-------------------+
+| Clients / IDEs    |  API   | services/runner   |
+| Mobile / VS Code  +------->+ orchestration     |
++-------------------+        +---------+---------+
+                                        |
+                                        | execution packs + policy
+                                        v
+                              +---------+---------+
+                              | crates/engine*    |
+                              | deterministic core|
+                              +---------+---------+
+                                        |
+                                        | tool calls / integrations
+                                        v
+                              +-------------------+
+                              | MCP + connectors  |
+                              +-------------------+
+```
+
+Key paths:
+- `services/*` — Go services (runner, integration-hub, session-hub, registry)
+- `crates/engine*` — Rust deterministic engine/core
+- `extensions/vscode` — VS Code integration
+- `protocol/schemas` — wire contract schemas
+
+## Quickstart (5 minutes)
+
+```bash
+npm install
+(cd extensions/vscode && npm install)
+npm run lint
+npm run typecheck
+npm run build
+```
+
+Run core tests:
+
+```bash
+npm run test
+```
+
+Run local health check:
 
 ```bash
 ./reach doctor
 ```
 
-For a canonical pre-push Go sweep across all Go modules, run:
+## CLI examples
 
 ```bash
-make go-module-sanity
+# Validate release-critical gates
+./reach release-check
+
+# Environment and baseline diagnostics
+./reach doctor
+
+# Runner audit inspection helper
+npm run audit:inspect
 ```
 
-This runs:
+## Hosted vs OSS
 
-- toolchain presence checks (Go, Rust, Cargo, Node)
-- protocol schema validation
-- `go test ./...` in `services/runner`
-- `cargo test -p engine-core`
+- **OSS Reach (this repo)**: self-hosted services, protocol schemas, deterministic core, and extension integrations.
+- **Hosted deployments**: managed operations, uptime/SLO ownership, and centralized observability run by your platform team or managed provider.
 
-## Repo-wide verification commands
+## Roadmap preview
 
-From repo root:
+- Deeper replay verification across orchestration boundaries
+- Expanded federation controls and node compatibility checks
+- Marketplace and signed connector distribution maturity
+- Stronger observability for policy and replay invariants
 
-```bash
-npm install
-(cd extensions/vscode && npm install)
-npm run verify:fast
-npm run verify:full
-```
+## Contributing
 
-Script breakdown:
+- Read `CONTRIBUTING.md` for setup, branch strategy, and PR expectations.
+- Use `npm run verify:full` before opening a PR.
+- See `docs/` for architecture and execution-model references.
 
-- `npm run lint` → protocol validation, Rust fmt/clippy, Go vet (runner), VS Code extension lint
-- `npm run typecheck` → Rust workspace check, VS Code extension TypeScript compile
-- `npm run test` → Rust engine-core tests, Go runner tests, VS Code extension tests
-- `npm run build` → Rust workspace build, Go runner build, VS Code extension build
+## License
 
-## Build release artifacts
-
-```bash
-make release-artifacts
-```
-
-Artifacts are written to `dist/` with SHA256 integrity metadata in `dist/SHA256SUMS`.
-
-## CI and release
-
-- `.github/workflows/ci.yml` runs fast PR checks (protocol, Rust, Go, VS Code)
-- `.github/workflows/release.yml` triggers on `v*` tags and publishes all built binaries + checksums
-
-## Toolchain pinning
-
-- Rust pinned via `rust-toolchain.toml`
-- Go pinned in CI workflows to `1.22.7`
-
-
-## Mobile Build
-
-### iOS (Swift SDK)
-
-```bash
-cd mobile/ios/ReachSDK
-swift build
-swift test
-```
-
-Optional demo harness directory: `mobile/ios/ReachArcadeDemo`.
-
-### Android (Kotlin SDK + demo)
-
-```bash
-cd mobile/android
-gradle :reach-sdk:test :ReachArcadeDemo:assembleDebug
-```
-
-### Mobile smoke against local runner
-
-```bash
-# in one terminal
-cd services/runner && go run ./cmd/runnerd
-
-# in another terminal
-REACH_BASE_URL=http://localhost:8080 ./tools/mobile-smoke.sh
-```
+Reach is licensed under the Apache License 2.0. See `LICENSE`.

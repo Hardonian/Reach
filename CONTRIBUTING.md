@@ -1,85 +1,68 @@
 # Contributing to Reach
 
-Thanks for contributing to Reach.
+Thanks for helping improve Reach.
 
-## Prerequisites
+## Setup
 
-- Go 1.22.x
-- Rust stable (pinned by `rust-toolchain.toml`)
+Prerequisites:
+- Go 1.22+
+- Rust stable (see `rust-toolchain.toml`)
 - Node.js 18+
-- JDK 17+ (Android)
 
-## Verify your environment
-
-From repo root:
+Install and verify:
 
 ```bash
-make doctor
-```
-
-`reach doctor` checks required tooling and runs quick repo health checks.
-
-## Build release artifacts locally
-
-```bash
-make release-artifacts
-```
-
-The script cross-compiles Go service binaries and writes checksums to `dist/SHA256SUMS`.
-
-## Run core checks manually
-
-```bash
-node tools/codegen/validate-protocol.mjs
-cd services/runner && go test ./...
-cargo test -p engine-core
-```
-
-## Release process
-
-1. Update `VERSION`.
-2. Add changelog entry in `CHANGELOG.md`.
-3. Ensure `make doctor` passes.
-4. Tag release: `git tag v$(cat VERSION)`.
-5. Push tag to trigger `.github/workflows/release.yml`.
-
-## Code style expectations
-
-- Keep `crates/engine` deterministic and side-effect free.
-- Keep transport/runtime concerns in runner, FFI, or app layers.
-- Update protocol schemas when wire contracts change.
-- Prefer small, focused pull requests.
-- Ensure CI passes before requesting review.
-
-
-### iOS shell
-A minimal SwiftUI shell lives in `apps/mobile/ios/ReachIOS` and can be compiled in Xcode for SSE terminal streaming.
-
-
-## Run all Go services checks
-
-From repo root:
-
-```bash
-for d in services/*; do
-  if [ -f "$d/go.mod" ]; then
-    (cd "$d" && go vet ./... && go test ./...)
-  fi
-done
-```
-
-## VS Code extension checks
-
-```bash
-cd extensions/vscode
 npm install
-npm run build
+(cd extensions/vscode && npm install)
 npm run lint
+npm run typecheck
+npm run build
 ```
 
-## iOS compile check
+Recommended quick health check:
 
 ```bash
-cd apps/mobile/ios/ReachIOS
-xcodebuild -list
+./reach doctor
 ```
+
+## Branch strategy
+
+- Branch from `main`.
+- Use focused branches named like `feat/<scope>` or `fix/<scope>`.
+- Keep PRs scoped to one behavior change when possible.
+
+## Pull request guidelines
+
+- Include a clear problem statement and root cause.
+- Describe behavior changes and risk surface.
+- Link related issues/specs.
+- Add or update tests for behavior changes.
+- Keep docs in sync for user-facing or operational changes.
+
+## Testing expectations
+
+Before opening a PR, run:
+
+```bash
+npm run verify:full
+```
+
+If your changes are limited to a subsystem, run targeted checks as well:
+
+```bash
+cargo test -p engine-core
+(cd services/runner && go test ./...)
+(cd extensions/vscode && npm run test)
+```
+
+## Security and responsible changes
+
+- Never commit credentials or secrets.
+- Preserve tenant isolation and capability boundaries.
+- Prefer explicit policy and deterministic behavior over hidden fallbacks.
+
+## Release workflow
+
+- Update `CHANGELOG.md` and `VERSION` for release-worthy changes.
+- Run `./reach release-check` before tagging.
+- Review `docs/RELEASE.md` and `docs/RELEASE_CHECKLIST.md`.

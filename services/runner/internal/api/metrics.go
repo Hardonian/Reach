@@ -9,21 +9,23 @@ import (
 )
 
 type metrics struct {
-	mu               sync.Mutex
-	requestDurations map[string][]float64
-	triggerLatency   []float64
-	approvalLatency  []float64
-	sseQueueDepth    map[string]int
-	sseDropped       map[string]uint64
+	mu                  sync.Mutex
+	requestDurations    map[string][]float64
+	triggerLatency      []float64
+	approvalLatency     []float64
+	sseQueueDepth       map[string]int
+	sseDropped          map[string]uint64
+	invariantViolations map[string]uint64
 }
 
 func newMetrics() *metrics {
 	return &metrics{
-		requestDurations: map[string][]float64{},
-		triggerLatency:   []float64{},
-		approvalLatency:  []float64{},
-		sseQueueDepth:    map[string]int{},
-		sseDropped:       map[string]uint64{},
+		requestDurations:    map[string][]float64{},
+		triggerLatency:      []float64{},
+		approvalLatency:     []float64{},
+		sseQueueDepth:       map[string]int{},
+		sseDropped:          map[string]uint64{},
+		invariantViolations: map[string]uint64{},
 	}
 }
 
@@ -64,6 +66,15 @@ func (m *metrics) incSSEDropped(runID string) {
 		m.sseDropped = make(map[string]uint64)
 	}
 	m.sseDropped[runID]++
+}
+
+func (m *metrics) RecordInvariantViolation(name string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.invariantViolations == nil {
+		m.invariantViolations = make(map[string]uint64)
+	}
+	m.invariantViolations[name]++
 }
 
 func appendWindow(dst []float64, value float64) []float64 {
@@ -118,6 +129,11 @@ func (m *metrics) prometheus() string {
 	fmt.Fprintf(&b, "reach_approval_latency_seconds{quantile=\"0.50\"} %.6f\n", p50)
 	fmt.Fprintf(&b, "reach_approval_latency_seconds{quantile=\"0.95\"} %.6f\n", p95)
 
+	b.WriteString("# HELP reach_invariant_violations_total invariant violations observed in runtime paths\n")
+	b.WriteString("# TYPE reach_invariant_violations_total counter\n")
+	for name, total := range m.invariantViolations {
+		fmt.Fprintf(&b, "reach_invariant_violations_total{name=%q} %d\n", name, total)
+	}
 	b.WriteString("# HELP reach_sse_broadcast_queue_depth per-run SSE queue depth\n")
 	b.WriteString("# TYPE reach_sse_broadcast_queue_depth gauge\n")
 	for runID, depth := range m.sseQueueDepth {
