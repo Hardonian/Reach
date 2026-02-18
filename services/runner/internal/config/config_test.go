@@ -148,7 +148,7 @@ func TestValidate(t *testing.T) {
 				return cfg
 			},
 			valid:  false,
-			errors: 1,
+			errors: 2, // Empty URL triggers both "must not be empty" and "must start with http"
 		},
 		{
 			name: "invalid registry url",
