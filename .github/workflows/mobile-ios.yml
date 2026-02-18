@@ -1,0 +1,17 @@
+name: mobile-ios
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  swift-sdk:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build ReachSDK
+        run: |
+          cd mobile/ios/ReachSDK
+          swift build
+          swift test

@@ -3,6 +3,9 @@ package api
 import (
 	"bytes"
 	"context"
+	"crypto/ed25519"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -111,5 +114,46 @@ func TestGateDecisionRequiresTenantOwnership(t *testing.T) {
 	rec := doReq(t, srv, otherCookie, http.MethodPost, "/v1/runs/"+runID+"/gates/g1", `{}`)
 	if rec.Code != http.StatusBadRequest {
 		t.Fatalf("expected cross-tenant gate decision blocked, got %d", rec.Code)
+	}
+}
+
+func TestMobileHandshakeRoundTrip(t *testing.T) {
+	srv, _, cookie := newAuthedServer(t)
+	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatalf("keygen failed: %v", err)
+	}
+	challengeRec := doReq(t, srv, cookie, http.MethodPost, "/v1/mobile/handshake/challenge", `{"node_id":"n1","org_id":"o1","public_key":"`+base64.StdEncoding.EncodeToString(pub)+`"}`)
+	if challengeRec.Code != http.StatusOK {
+		t.Fatalf("challenge failed: %d %s", challengeRec.Code, challengeRec.Body.String())
+	}
+	var challengeBody map[string]string
+	_ = json.Unmarshal(challengeRec.Body.Bytes(), &challengeBody)
+	challenge := challengeBody["challenge"]
+	sig := ed25519.Sign(priv, []byte(challenge))
+	completeRec := doReq(t, srv, cookie, http.MethodPost, "/v1/mobile/handshake/complete", `{"challenge":"`+challenge+`","signature":"`+base64.StdEncoding.EncodeToString(sig)+`"}`)
+	if completeRec.Code != http.StatusOK {
+		t.Fatalf("complete failed: %d %s", completeRec.Code, completeRec.Body.String())
+	}
+}
+
+func TestMobileShareRoundTrip(t *testing.T) {
+	srv, _, cookie := newAuthedServer(t)
+	runID := createRun(t, srv, cookie, `{}`)
+	_ = doReq(t, srv, cookie, http.MethodPost, "/v1/runs/"+runID+"/tool-result", `{"tool_name":"echo","required_capabilities":[],"result":{"secret":"nope","value":"ok"}}`)
+	shareRec := doReq(t, srv, cookie, http.MethodPost, "/v1/mobile/share-tokens", `{"run_id":"`+runID+`"}`)
+	if shareRec.Code != http.StatusCreated {
+		t.Fatalf("share create failed: %d %s", shareRec.Code, shareRec.Body.String())
+	}
+	var tokenBody map[string]string
+	_ = json.Unmarshal(shareRec.Body.Bytes(), &tokenBody)
+	fetchReq := httptest.NewRequest(http.MethodGet, "/v1/mobile/share/"+tokenBody["token"], nil)
+	fetchRec := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(fetchRec, fetchReq)
+	if fetchRec.Code != http.StatusOK {
+		t.Fatalf("share fetch failed: %d %s", fetchRec.Code, fetchRec.Body.String())
+	}
+	if !bytes.Contains(fetchRec.Body.Bytes(), []byte("[REDACTED]")) {
+		t.Fatalf("expected redacted payload in shared run: %s", fetchRec.Body.String())
 	}
 }
