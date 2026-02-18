@@ -11,9 +11,14 @@
     "build": "(cd services/runner && go build ./...) && (cd extensions/vscode && npm run build)",
     "verify:fast": "npm run lint && npm run typecheck",
     "verify:full": "npm run verify:fast && npm run test && npm run build",
+    "verify:smoke": "npm run lint && npm run typecheck && cd services/runner && go build ./...",
     "verify:determinism": "cd services/runner && go test -v ./internal/determinism/...",
     "verify:policy": "cd services/runner && go test -v ./internal/policy/...",
     "verify:registry": "cd services/runner && go test -v ./internal/registry/...",
-    "verify:sandbox": "cd services/runner && go test -v ./internal/sandbox/..."
+    "verify:sandbox": "cd services/runner && go test -v ./internal/sandbox/...",
+    "verify:errors": "cd services/runner && go test -v ./internal/errors/...",
+    "verify:config": "cd services/runner && go test -v ./internal/config/...",
+    "verify:backpressure": "cd services/runner && go test -v ./internal/backpressure/...",
+    "verify:telemetry": "cd services/runner && go test -v ./internal/telemetry/..."
   }
 }
