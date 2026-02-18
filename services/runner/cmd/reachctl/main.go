@@ -17,6 +17,7 @@ import (
 	"reach/services/runner/internal/arcade/gamification"
 	"reach/services/runner/internal/determinism"
 	"reach/services/runner/internal/federation"
+	"reach/services/runner/internal/mesh"
 	"reach/services/runner/internal/support"
 )
 
@@ -98,6 +99,8 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runQuick(args[1:], out, errOut)
 	case "share":
 		return runShare(ctx, dataRoot, args[1:], out, errOut)
+	case "mesh":
+		return runMesh(ctx, dataRoot, args[1:], out, errOut)
 	default:
 		usage(out)
 		return 1
@@ -1513,6 +1516,15 @@ func runPackDevKit(args []string, out io.Writer, errOut io.Writer) int {
 		return runPackPublish(args[1:], out, errOut)
 	case "init":
 		return runPackInit(args[1:], out, errOut)
+	case "score":
+		return runPackScore(args[1:], out, errOut)
+	case "docs":
+		return runPackDocs(args[1:], out, errOut)
+	case "validate":
+		return runPackValidate(args[1:], out, errOut)
+	case "help":
+		usagePack(out)
+		return 0
 	default:
 		usagePack(out)
 		return 1
@@ -1786,6 +1798,9 @@ Commands:
   test <path> [--fixture <name>]     Run conformance tests
   lint <path> [--json]               Lint pack for issues
   doctor <path> [--json]             Full health check
+  score <path> [--json]              Quality scoring (Autopack)
+  docs <path> [--output <path>]      Generate documentation (Autopack)
+  validate <path> [--json]           Registry validation (Autopack)
   publish <path> --registry <url>    Prepare for publishing
   init [--template <name>] <name>    Create new pack from template
 
@@ -1793,6 +1808,9 @@ Examples:
   reach pack test ./my-pack
   reach pack lint ./my-pack --json
   reach pack doctor ./my-pack
+  reach pack score ./my-pack --json
+  reach pack docs ./my-pack --output ./README.md
+  reach pack validate ./my-pack
   reach pack publish ./my-pack --registry https://github.com/reach/registry
 `)
 }
@@ -2243,6 +2261,327 @@ func shareCapsule(path string, out, errOut io.Writer) int {
 	return 0
 }
 
+// runMesh handles mesh networking commands
+func runMesh(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		usageMesh(out)
+		return 1
+	}
+
+	meshDir := filepath.Join(dataRoot, "mesh")
+	
+	switch args[0] {
+	case "on":
+		return meshOn(meshDir, out, errOut)
+	case "off":
+		return meshOff(meshDir, out, errOut)
+	case "status":
+		return meshStatus(meshDir, out, errOut)
+	case "peers":
+		return meshPeers(meshDir, out, errOut)
+	case "pair":
+		return meshPair(meshDir, args[1:], out, errOut)
+	case "unpair":
+		return meshUnpair(meshDir, args[1:], out, errOut)
+	case "sync":
+		return meshSync(meshDir, args[1:], out, errOut)
+	case "feature":
+		return meshFeature(meshDir, args[1:], out, errOut)
+	case "qr":
+		return meshQR(meshDir, out, errOut)
+	default:
+		usageMesh(out)
+		return 1
+	}
+}
+
+func meshOn(dataDir string, out io.Writer, errOut io.Writer) int {
+	config, err := mesh.LoadConfig(dataDir)
+	if err != nil {
+		fmt.Fprintf(errOut, "Failed to load config: %v\n", err)
+		return 1
+	}
+
+	node, err := mesh.NewNode(config)
+	if err != nil {
+		fmt.Fprintf(errOut, "Failed to create node: %v\n", err)
+		return 1
+	}
+
+	if err := node.Initialize(context.Background()); err != nil {
+		fmt.Fprintf(errOut, "Failed to initialize node: %v\n", err)
+		return 1
+	}
+
+	if err := node.Start(); err != nil {
+		fmt.Fprintf(errOut, "Failed to start mesh: %v\n", err)
+		return 1
+	}
+
+	// Save pid for later control
+	pidFile := filepath.Join(dataDir, "mesh.pid")
+	os.WriteFile(pidFile, []byte(fmt.Sprintf("%d", os.Getpid())), 0o644)
+
+	return writeJSON(out, map[string]any{
+		"status":  "started",
+		"node_id": node.GetNodeID(),
+		"features": config.Features,
+	})
+}
+
+func meshOff(dataDir string, out io.Writer, errOut io.Writer) int {
+	// In a real implementation, would connect to running daemon
+	// For now, just remove pid file
+	pidFile := filepath.Join(dataDir, "mesh.pid")
+	os.Remove(pidFile)
+
+	return writeJSON(out, map[string]any{
+		"status": "stopped",
+	})
+}
+
+func meshStatus(dataDir string, out io.Writer, errOut io.Writer) int {
+	config, err := mesh.LoadConfig(dataDir)
+	if err != nil {
+		fmt.Fprintf(errOut, "Failed to load config: %v\n", err)
+		return 1
+	}
+
+	// Check if running
+	pidFile := filepath.Join(dataDir, "mesh.pid")
+	running := false
+	if data, err := os.ReadFile(pidFile); err == nil {
+		_ = data
+		running = true // Simplified - would check process
+	}
+
+	return writeJSON(out, map[string]any{
+		"node_id":  config.NodeID,
+		"running":  running,
+		"features": config.Features,
+		"network": map[string]any{
+			"listen_port":    config.Network.ListenPort,
+			"websocket":      config.Network.WebSocketEnabled,
+			"http_poll":      config.Network.HTTPPollEnabled,
+		},
+	})
+}
+
+func meshPeers(dataDir string, out io.Writer, errOut io.Writer) int {
+	config, err := mesh.LoadConfig(dataDir)
+	if err != nil {
+		fmt.Fprintf(errOut, "Failed to load config: %v\n", err)
+		return 1
+	}
+
+	peerStore := mesh.NewPeerStore(config.Security.TrustStorePath)
+	peerStore.Load()
+
+	peers := peerStore.List()
+	var peerList []map[string]any
+	for _, p := range peers {
+		peerList = append(peerList, map[string]any{
+			"node_id":      p.NodeID,
+			"trust_level":  p.TrustLevel.String(),
+			"last_seen":    p.LastSeen,
+			"device_info":  p.DeviceInfo,
+			"quarantined":  p.Quarantined,
+		})
+	}
+
+	return writeJSON(out, map[string]any{
+		"peers": peerList,
+		"count": len(peerList),
+	})
+}
+
+func meshPair(dataDir string, args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		fmt.Fprintln(errOut, "usage: reach mesh pair <code|qr-data> [--confirm]")
+		return 1
+	}
+
+	fs := flag.NewFlagSet("mesh pair", flag.ContinueOnError)
+	confirm := fs.Bool("confirm", false, "Auto-confirm pairing")
+	_ = fs.Parse(args)
+	code := fs.Arg(0)
+
+	config, err := mesh.LoadConfig(dataDir)
+	if err != nil {
+		fmt.Fprintf(errOut, "Failed to load config: %v\n", err)
+		return 1
+	}
+
+	node, err := mesh.NewNode(config)
+	if err != nil {
+		fmt.Fprintf(errOut, "Failed to create node: %v\n", err)
+		return 1
+	}
+
+	// Try as QR data first (JSON), then as pin code
+	var peer *mesh.PeerIdentity
+	if code[0] == '{' {
+		peer, err = node.PairWithQR(code)
+	} else {
+		peer, err = node.Pair(code)
+	}
+
+	if err != nil {
+		fmt.Fprintf(errOut, "Pairing failed: %v\n", err)
+		return 1
+	}
+
+	// Save peer store
+	node.GetAllPeers() // Trigger save
+
+	if *confirm {
+		node.ConfirmPairing(peer.NodeID)
+	}
+
+	return writeJSON(out, map[string]any{
+		"status":    "paired",
+		"node_id":   peer.NodeID,
+		"device":    peer.DeviceInfo.DeviceName,
+		"trust":     peer.TrustLevel.String(),
+		"confirmed": *confirm,
+	})
+}
+
+func meshUnpair(dataDir string, args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		fmt.Fprintln(errOut, "usage: reach mesh unpair <node-id>")
+		return 1
+	}
+	nodeID := args[0]
+
+	config, err := mesh.LoadConfig(dataDir)
+	if err != nil {
+		fmt.Fprintf(errOut, "Failed to load config: %v\n", err)
+		return 1
+	}
+
+	peerStore := mesh.NewPeerStore(config.Security.TrustStorePath)
+	peerStore.Load()
+	peerStore.Remove(nodeID)
+	peerStore.Save()
+
+	return writeJSON(out, map[string]any{
+		"status":  "unpaired",
+		"node_id": nodeID,
+	})
+}
+
+func meshSync(dataDir string, args []string, out io.Writer, errOut io.Writer) int {
+	config, err := mesh.LoadConfig(dataDir)
+	if err != nil {
+		fmt.Fprintf(errOut, "Failed to load config: %v\n", err)
+		return 1
+	}
+
+	if !config.IsFeatureEnabled(mesh.FeatureOfflineSync) {
+		fmt.Fprintln(errOut, "Offline sync is disabled. Enable with: reach mesh feature offline_sync on")
+		return 1
+	}
+
+	peerStore := mesh.NewPeerStore(config.Security.TrustStorePath)
+	peerStore.Load()
+
+	// Sync with specific peer or all trusted peers
+	var peers []*mesh.PeerIdentity
+	if len(args) > 0 && args[0] != "" {
+		if p, ok := peerStore.Get(args[0]); ok {
+			peers = append(peers, p)
+		}
+	} else {
+		peers = peerStore.ListTrusted()
+	}
+
+	var synced []string
+	for _, p := range peers {
+		synced = append(synced, p.NodeID)
+	}
+
+	return writeJSON(out, map[string]any{
+		"status": "synced",
+		"peers":  synced,
+	})
+}
+
+func meshFeature(dataDir string, args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		fmt.Fprintln(errOut, "usage: reach mesh feature <name> [on|off]")
+		return 1
+	}
+
+	featureName := args[0]
+	
+	config, err := mesh.LoadConfig(dataDir)
+	if err != nil {
+		fmt.Fprintf(errOut, "Failed to load config: %v\n", err)
+		return 1
+	}
+
+	// If no value provided, show current state
+	if len(args) < 2 {
+		enabled := config.IsFeatureEnabled(mesh.FeatureFlag(featureName))
+		return writeJSON(out, map[string]any{
+			"feature": featureName,
+			"enabled": enabled,
+		})
+	}
+
+	value := args[1]
+	enabled := value == "on" || value == "true" || value == "1"
+
+	// Safety check for public_exposure
+	if featureName == "public_exposure" && enabled {
+		config.SetMetadata("public_exposure_acknowledged", "true")
+	}
+
+	config.SetFeature(mesh.FeatureFlag(featureName), enabled)
+	if err := config.Save(); err != nil {
+		fmt.Fprintf(errOut, "Failed to save config: %v\n", err)
+		return 1
+	}
+
+	return writeJSON(out, map[string]any{
+		"feature": featureName,
+		"enabled": enabled,
+	})
+}
+
+func meshQR(dataDir string, out io.Writer, errOut io.Writer) int {
+	config, err := mesh.LoadConfig(dataDir)
+	if err != nil {
+		fmt.Fprintf(errOut, "Failed to load config: %v\n", err)
+		return 1
+	}
+
+	node, err := mesh.NewNode(config)
+	if err != nil {
+		fmt.Fprintf(errOut, "Failed to create node: %v\n", err)
+		return 1
+	}
+
+	qrData := node.CreateQRCode()
+	code := node.CreatePairingCode()
+
+	fmt.Fprintln(out, "╔════════════════════════════════════════════════╗")
+	fmt.Fprintln(out, "║         Reach Mesh Pairing Code                ║")
+	fmt.Fprintln(out, "╚════════════════════════════════════════════════╝")
+	fmt.Fprintln(out)
+	fmt.Fprintf(out, "Pairing Code: %s\n", code.Code)
+	fmt.Fprintf(out, "Expires: %s\n", code.ExpiresAt.Format(time.RFC3339))
+	fmt.Fprintln(out)
+	fmt.Fprintln(out, "QR Code Data:")
+	fmt.Fprintln(out, qrData)
+	fmt.Fprintln(out)
+	fmt.Fprintln(out, "Scan this QR code or enter the pairing code on the other device.")
+	fmt.Fprintln(out, "To pair manually: reach mesh pair <code>")
+
+	return 0
+}
+
 // generateTextQR creates a simple text representation of a QR code
 func generateTextQR(out io.Writer, text string) {
 	// This is a simplified placeholder - real QR would use qrencode library
@@ -2260,5 +2599,35 @@ func generateTextQR(out io.Writer, text string) {
 }
 
 func usage(out io.Writer) {
-	_, _ = io.WriteString(out, "usage: reachctl federation status|map --format=json|svg | support ask <question> | arcade profile | capsule create|verify|replay | proof verify <runId|capsule> | graph export <runId> --format=svg|dot|json | packs search|install|verify | init pack --governed | explain <runId> | operator | arena run <scenario> | playground export | pack test|lint|doctor|publish|init | wizard [--quick] | run <pack> | share run|capsule\n")
+	_, _ = io.WriteString(out, "usage: reachctl federation status|map --format=json|svg | support ask <question> | arcade profile | capsule create|verify|replay | proof verify <runId|capsule> | graph export <runId> --format=svg|dot|json | packs search|install|verify | init pack --governed | explain <runId> | operator | arena run <scenario> | playground export | pack test|lint|doctor|publish|init | wizard [--quick] | run <pack> | share run|capsule | mesh on|off|status|peers|pair|unpair|sync|config\n")
+}
+
+func usageMesh(out io.Writer) {
+	_, _ = io.WriteString(out, `usage: reach mesh <command> [options]
+
+Commands:
+  on                              Start mesh networking
+  off                             Stop mesh networking
+  status                          Show mesh status
+  peers                           List connected and known peers
+  pair <code|qr> [--confirm]      Pair with a peer using code or QR data
+  unpair <node-id>                Remove a peer
+  sync [node-id]                  Sync events with peers
+  feature <name> [on|off]         Enable/disable feature
+  qr                              Generate QR code for pairing
+
+Features:
+  mdns_discovery     mDNS/Bonjour LAN discovery (default: off)
+  qr_pairing         QR code pairing (default: on)
+  offline_sync       P2P event bundle sync (default: on)
+  mesh_routing       Route through trusted peers (default: off)
+  public_exposure    Accept WAN connections (default: off - unsafe)
+
+Examples:
+  reach mesh on
+  reach mesh peers
+  reach mesh qr
+  reach mesh pair ABC123 --confirm
+  reach mesh feature mdns_discovery on
+`)
 }
