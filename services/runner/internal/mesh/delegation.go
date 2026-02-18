@@ -31,13 +31,14 @@ type DelegationResponse struct {
 
 // FederatedDelegator handles outgoing and incoming delegation requests.
 type FederatedDelegator struct {
-	mu            sync.Mutex
-	localNodeID   string
-	maxDepth      int
-	registry      registry.Registry
-	circuitOpen   map[string]bool
-	failureCounts map[string]int
-	audit         func(event string, req DelegationRequest, err error)
+	mu                 sync.Mutex
+	localNodeID        string
+	maxDepth           int
+	registry           registry.Registry
+	registrySnapshotID string
+	circuitOpen        map[string]bool
+	failureCounts      map[string]int
+	audit              func(event string, req DelegationRequest, err error)
 }
 
 func NewFederatedDelegator(nodeID string, reg registry.Registry) *FederatedDelegator {
@@ -55,6 +56,11 @@ func (d *FederatedDelegator) WithAuditSink(fn func(event string, req DelegationR
 	return d
 }
 
+func (d *FederatedDelegator) WithRegistrySnapshotHash(hash string) *FederatedDelegator {
+	d.registrySnapshotID = hash
+	return d
+}
+
 // AcceptDelegation processes an incoming delegation request.
 func (d *FederatedDelegator) AcceptDelegation(ctx context.Context, req DelegationRequest) (DelegationResponse, error) {
 	d.emit("delegation.received", req, nil)
@@ -62,6 +68,17 @@ func (d *FederatedDelegator) AcceptDelegation(ctx context.Context, req Delegatio
 	// 1. Guardrails (Phase 4)
 	if req.DelegationDepth >= d.maxDepth {
 		err := errors.New("max delegation depth exceeded")
+		d.emit("delegation.rejected", req, err)
+		return DelegationResponse{Status: "rejected", Error: err.Error()}, err
+	}
+
+	if err := ctx.Err(); err != nil {
+		d.emit("delegation.rejected", req, err)
+		return DelegationResponse{Status: "rejected", Error: err.Error()}, err
+	}
+
+	if d.registrySnapshotID != "" && req.RegistryHash != d.registrySnapshotID {
+		err := errors.New("registry snapshot hash mismatch")
 		d.emit("delegation.rejected", req, err)
 		return DelegationResponse{Status: "rejected", Error: err.Error()}, err
 	}
