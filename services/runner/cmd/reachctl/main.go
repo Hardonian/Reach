@@ -2224,7 +2224,11 @@ func shareCapsule(path string, out, errOut io.Writer) int {
 	fmt.Fprintln(out, "╚════════════════════════════════════════╝")
 	fmt.Fprintln(out)
 	fmt.Fprintf(out, "Run ID: %s\n", cap.Manifest.RunID)
-	fmt.Fprintf(out, "Fingerprint: %s...\n", cap.Manifest.RunFingerprint[:16])
+	fingerprint := cap.Manifest.RunFingerprint
+	if len(fingerprint) > 16 {
+		fingerprint = fingerprint[:16]
+	}
+	fmt.Fprintf(out, "Fingerprint: %s...\n", fingerprint)
 	fmt.Fprintln(out)
 	fmt.Fprintln(out, "Verification URL:")
 	fmt.Fprintf(out, "  %s\n", shareURL)

@@ -26,7 +26,7 @@ func main() {
 		runMobileDoctor()
 		return
 	}
-	
+
 	root, err := repoRoot()
 	if err != nil {
 		fmt.Printf("reach doctor: fail: repo root: %v\n", err)
@@ -72,7 +72,7 @@ func main() {
 func runMobileDoctor() {
 	doctor := NewMobileDoctor()
 	report := doctor.Run()
-	
+
 	// Output as JSON if requested
 	if len(os.Args) > 1 && os.Args[1] == "--json" {
 		enc := json.NewEncoder(os.Stdout)
@@ -83,9 +83,9 @@ func runMobileDoctor() {
 		}
 		return
 	}
-	
+
 	fmt.Print(report.ToHuman())
-	
+
 	if report.Summary.Overall == "needs_attention" {
 		os.Exit(1)
 	}

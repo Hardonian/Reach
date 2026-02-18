@@ -227,8 +227,9 @@ func TestOperatorMetrics(t *testing.T) {
 		t.Errorf("expected 1 capsule, got %d", metrics.Capsules.Total)
 	}
 
-	if metrics.Health.Overall != "healthy" {
-		t.Errorf("expected healthy status, got %s", metrics.Health.Overall)
+	// With 1 denial out of 3 runs (33% error rate), status should be critical
+	if metrics.Health.Overall != "critical" {
+		t.Errorf("expected critical status (33%% error rate), got %s", metrics.Health.Overall)
 	}
 }
 
