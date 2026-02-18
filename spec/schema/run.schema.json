@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.dev/spec/v1/run.schema.json",
+  "title": "Reach Run",
+  "description": "Schema for a Reach protocol execution run",
+  "type": "object",
+  "required": ["specVersion", "runId", "state", "createdAt", "packMetadata"],
+  "properties": {
+    "specVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Protocol spec version (SemVer)"
+    },
+    "runId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique run identifier"
+    },
+    "state": {
+      "type": "string",
+      "enum": ["PENDING", "PREPARING", "EXECUTING", "COMPLETED", "FAILED", "ABORTED"],
+      "description": "Current run state"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Run creation timestamp (ISO 8601 UTC)"
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Execution start timestamp"
+    },
+    "completedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Execution completion timestamp"
+    },
+    "runHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 hash of the run"
+    },
+    "packMetadata": {
+      "$ref": "#/$defs/PackMetadata"
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RunEvent"
+      },
+      "description": "Ordered list of run events"
+    },
+    "capabilities": {
+      "$ref": "#/$defs/CapabilityDeclaration"
+    },
+    "result": {
+      "$ref": "#/$defs/RunResult"
+    }
+  },
+  "$defs": {
+    "PackMetadata": {
+      "type": "object",
+      "required": ["id", "version", "specVersion"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Pack identifier"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "description": "Pack version (SemVer)"
+        },
+        "specVersion": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "description": "Target protocol spec version"
+        },
+        "hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 hash of pack contents"
+        }
+      }
+    },
+    "RunEvent": {
+      "type": "object",
+      "required": ["eventId", "type", "timestamp", "sequence"],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "run.started",
+            "run.step.started",
+            "tool.invoked",
+            "tool.completed",
+            "tool.failed",
+            "run.step.completed",
+            "run.step.failed",
+            "run.completed",
+            "run.failed",
+            "run.aborted"
+          ]
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Monotonic sequence number"
+        },
+        "payload": {
+          "type": "object"
+        },
+        "previousHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Hash of previous event in chain"
+        }
+      }
+    },
+    "CapabilityDeclaration": {
+      "type": "object",
+      "properties": {
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": { "type": "string" },
+              "version": { "type": "string" }
+            }
+          }
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["uri", "access"],
+            "properties": {
+              "uri": { "type": "string", "format": "uri" },
+              "access": { "enum": ["read", "write", "readwrite"] }
+            }
+          }
+        },
+        "permissions": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "RunResult": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "enum": ["success", "failure", "aborted"]
+        },
+        "exitCode": {
+          "type": "integer"
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "hash"],
+            "properties": {
+              "name": { "type": "string" },
+              "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "uri": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

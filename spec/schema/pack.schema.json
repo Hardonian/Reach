@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.dev/spec/v1/pack.schema.json",
+  "title": "Reach Pack",
+  "description": "Schema for Reach protocol packs",
+  "type": "object",
+  "required": ["specVersion", "id", "version", "manifest", "entrypoint"],
+  "properties": {
+    "specVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Protocol spec version this pack targets"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-zA-Z0-9._-]+$",
+      "description": "Unique pack identifier"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Pack version (SemVer)"
+    },
+    "manifest": {
+      "$ref": "#/$defs/Manifest"
+    },
+    "entrypoint": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Path to main execution file relative to pack root"
+    },
+    "metadata": {
+      "$ref": "#/$defs/Metadata"
+    },
+    "signature": {
+      "$ref": "#/$defs/Signature"
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Dependency"
+      }
+    }
+  },
+  "$defs": {
+    "Manifest": {
+      "type": "object",
+      "required": ["manifestVersion", "capabilities"],
+      "properties": {
+        "manifestVersion": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "capabilities": {
+          "$ref": "#/$defs/Capabilities"
+        },
+        "policies": {
+          "$ref": "#/$defs/Policies"
+        }
+      }
+    },
+    "Capabilities": {
+      "type": "object",
+      "properties": {
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Tool identifier (e.g., 'fs.read', 'http.get')"
+              },
+              "version": {
+                "type": "string",
+                "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+              },
+              "optional": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          }
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["uri", "access"],
+            "properties": {
+              "uri": {
+                "type": "string",
+                "format": "uri",
+                "description": "Resource URI pattern"
+              },
+              "access": {
+                "enum": ["read", "write", "readwrite"]
+              }
+            }
+          }
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["network", "filesystem", "execution", "env_access"]
+          }
+        }
+      }
+    },
+    "Policies": {
+      "type": "object",
+      "properties": {
+        "maxExecutionTime": {
+          "type": "integer",
+          "minimum": 1000,
+          "default": 300000,
+          "description": "Maximum execution time in milliseconds"
+        },
+        "maxToolCalls": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 100,
+          "description": "Maximum number of tool invocations"
+        },
+        "allowedHosts": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Hostname pattern (e.g., '*.example.com')"
+          }
+        },
+        "sandbox": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean", "default": true },
+            "network": { "enum": ["none", "restricted", "full"], "default": "restricted" },
+            "filesystem": { "enum": ["readonly", "readwrite", "isolated"], "default": "isolated" }
+          }
+        }
+      }
+    },
+    "Metadata": {
+      "type": "object",
+      "properties": {
+        "author": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "license": {
+          "type": "string",
+          "description": "SPDX license identifier"
+        },
+        "homepage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "repository": {
+          "type": "string",
+          "format": "uri"
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "maxItems": 20
+        }
+      }
+    },
+    "Signature": {
+      "type": "object",
+      "required": ["algorithm", "digest", "signature"],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "Ed25519"
+        },
+        "digest": {
+          "type": "string",
+          "const": "SHA-256"
+        },
+        "signature": {
+          "type": "string",
+          "description": "Base64-encoded signature"
+        },
+        "publicKey": {
+          "type": "string",
+          "description": "Base64-encoded public key"
+        },
+        "signedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "Dependency": {
+      "type": "object",
+      "required": ["id", "version"],
+      "properties": {
+        "id": { "type": "string" },
+        "version": {
+          "type": "string",
+          "description": "Version constraint (SemVer range)"
+        },
+        "optional": {
+          "type": "boolean",
+          "default": false
+        },
+        "source": {
+          "type": "string",
+          "format": "uri",
+          "description": "Alternative source URI"
+        }
+      }
+    }
+  }
+}

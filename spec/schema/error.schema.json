@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.dev/spec/v1/error.schema.json",
+  "title": "Reach Error",
+  "description": "Schema for Reach protocol errors",
+  "type": "object",
+  "required": ["specVersion", "error"],
+  "properties": {
+    "specVersion": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "error": {
+      "$ref": "#/$defs/ErrorDetails"
+    },
+    "context": {
+      "$ref": "#/$defs/ErrorContext"
+    }
+  },
+  "$defs": {
+    "ErrorDetails": {
+      "type": "object",
+      "required": ["code", "message"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9]*_[A-Z][A-Z0-9_]*$",
+          "description": "Error code in CATEGORY_DETAIL format"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable error message"
+        },
+        "details": {
+          "type": "object",
+          "description": "Additional error-specific details"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["PROTOCOL", "POLICY", "EXECUTION", "FEDERATION", "PACK", "SYSTEM"],
+          "description": "Error category"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["FATAL", "ERROR", "WARNING", "INFO"],
+          "description": "Error severity level"
+        },
+        "recoverable": {
+          "type": "boolean",
+          "description": "Whether the error is recoverable"
+        },
+        "retryable": {
+          "type": "boolean",
+          "description": "Whether the operation can be retried"
+        },
+        "retryAfter": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Suggested retry delay in milliseconds"
+        }
+      }
+    },
+    "ErrorContext": {
+      "type": "object",
+      "properties": {
+        "runId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "stepId": {
+          "type": "string"
+        },
+        "invocationId": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "nodeId": {
+          "type": "string",
+          "description": "Node where error occurred"
+        },
+        "stackTrace": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "function": { "type": "string" },
+              "file": { "type": "string" },
+              "line": { "type": "integer" },
+              "column": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+    "ProtocolErrors": {
+      "type": "string",
+      "enum": [
+        "PROTO_VERSION_MISMATCH",
+        "PROTO_SCHEMA_VIOLATION",
+        "PROTO_INVALID_MESSAGE",
+        "PROTO_SEQUENCE_ERROR",
+        "PROTO_TIMEOUT"
+      ]
+    },
+    "PolicyErrors": {
+      "type": "string",
+      "enum": [
+        "POLICY_VIOLATION",
+        "POLICY_UNDEFINED_TOOL",
+        "POLICY_RESOURCE_ACCESS_DENIED",
+        "POLICY_PERMISSION_DENIED",
+        "POLICY_TIMEOUT_EXCEEDED",
+        "POLICY_RATE_LIMIT_EXCEEDED",
+        "POLICY_CAPABILITY_MISMATCH"
+      ]
+    },
+    "ExecutionErrors": {
+      "type": "string",
+      "enum": [
+        "EXEC_TOOL_NOT_FOUND",
+        "EXEC_TOOL_TIMEOUT",
+        "EXEC_TOOL_FAILED",
+        "EXEC_RESOURCE_UNAVAILABLE",
+        "EXEC_SANDBOX_VIOLATION",
+        "EXEC_MEMORY_EXCEEDED",
+        "EXEC_DISK_EXCEEDED"
+      ]
+    },
+    "FederationErrors": {
+      "type": "string",
+      "enum": [
+        "FED_NODE_UNREACHABLE",
+        "FED_NODE_UNAUTHORIZED",
+        "FED_DELEGATION_INVALID",
+        "FED_DELEGATION_EXPIRED",
+        "FED_SIGNATURE_INVALID",
+        "FED_TRUST_VIOLATION"
+      ]
+    },
+    "PackErrors": {
+      "type": "string",
+      "enum": [
+        "PACK_NOT_FOUND",
+        "PACK_INVALID_MANIFEST",
+        "PACK_INVALID_SIGNATURE",
+        "PACK_VERSION_MISMATCH",
+        "PACK_DEPENDENCY_UNRESOLVED",
+        "PACK_MALFORMED"
+      ]
+    }
+  }
+}

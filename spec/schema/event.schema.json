@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.dev/spec/v1/event.schema.json",
+  "title": "Reach Event",
+  "description": "Schema for Reach protocol events",
+  "type": "object",
+  "required": ["specVersion", "eventId", "type", "timestamp", "payload"],
+  "properties": {
+    "specVersion": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Event schema version"
+    },
+    "eventId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique event identifier"
+    },
+    "runId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Parent run identifier"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "run.started",
+        "run.step.started",
+        "tool.invoked",
+        "tool.completed",
+        "tool.failed",
+        "run.step.completed",
+        "run.step.failed",
+        "run.completed",
+        "run.failed",
+        "run.aborted",
+        "policy.violation",
+        "federation.delegation",
+        "capsule.sync"
+      ],
+      "description": "Event type"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event timestamp (ISO 8601 UTC)"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Monotonic sequence number within run"
+    },
+    "payload": {
+      "oneOf": [
+        { "$ref": "#/$defs/RunStartedPayload" },
+        { "$ref": "#/$defs/StepStartedPayload" },
+        { "$ref": "#/$defs/ToolInvokedPayload" },
+        { "$ref": "#/$defs/ToolCompletedPayload" },
+        { "$ref": "#/$defs/ToolFailedPayload" },
+        { "$ref": "#/$defs/StepCompletedPayload" },
+        { "$ref": "#/$defs/RunCompletedPayload" },
+        { "$ref": "#/$defs/RunFailedPayload" },
+        { "$ref": "#/$defs/PolicyViolationPayload" },
+        { "$ref": "#/$defs/FederationDelegationPayload" }
+      ]
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "source": { "type": "string" },
+        "nodeId": { "type": "string" },
+        "signature": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "RunStartedPayload": {
+      "type": "object",
+      "required": ["runId", "packId", "specVersion"],
+      "properties": {
+        "runId": { "type": "string" },
+        "packId": { "type": "string" },
+        "packVersion": { "type": "string" },
+        "specVersion": { "type": "string" },
+        "capabilities": { "type": "object" }
+      }
+    },
+    "StepStartedPayload": {
+      "type": "object",
+      "required": ["stepId", "stepType"],
+      "properties": {
+        "stepId": { "type": "string" },
+        "stepType": { "type": "string" },
+        "description": { "type": "string" },
+        "dependsOn": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "ToolInvokedPayload": {
+      "type": "object",
+      "required": ["toolName", "invocationId", "arguments"],
+      "properties": {
+        "toolName": { "type": "string" },
+        "invocationId": { "type": "string" },
+        "arguments": { "type": "object" },
+        "timeoutMs": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "ToolCompletedPayload": {
+      "type": "object",
+      "required": ["invocationId", "result"],
+      "properties": {
+        "invocationId": { "type": "string" },
+        "result": { "type": "object" },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "outputHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "ToolFailedPayload": {
+      "type": "object",
+      "required": ["invocationId", "error"],
+      "properties": {
+        "invocationId": { "type": "string" },
+        "error": { "$ref": "#/$defs/ErrorDetails" },
+        "durationMs": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "StepCompletedPayload": {
+      "type": "object",
+      "required": ["stepId", "result"],
+      "properties": {
+        "stepId": { "type": "string" },
+        "result": { "type": "object" },
+        "artifacts": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "RunCompletedPayload": {
+      "type": "object",
+      "required": ["runId", "status"],
+      "properties": {
+        "runId": { "type": "string" },
+        "status": { "const": "success" },
+        "runHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "artifacts": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "RunFailedPayload": {
+      "type": "object",
+      "required": ["runId", "status", "error"],
+      "properties": {
+        "runId": { "type": "string" },
+        "status": { "const": "failure" },
+        "error": { "$ref": "#/$defs/ErrorDetails" },
+        "failedStep": { "type": "string" }
+      }
+    },
+    "PolicyViolationPayload": {
+      "type": "object",
+      "required": ["violationType", "details"],
+      "properties": {
+        "violationType": {
+          "enum": ["UNDEFINED_TOOL", "RESOURCE_ACCESS", "PERMISSION_DENIED", "TIMEOUT_EXCEEDED"]
+        },
+        "details": { "type": "string" },
+        "attemptedCapability": { "type": "string" },
+        "declaredCapabilities": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "FederationDelegationPayload": {
+      "type": "object",
+      "required": ["delegator", "delegate", "scope"],
+      "properties": {
+        "delegator": { "type": "string" },
+        "delegate": { "type": "string" },
+        "scope": { "type": "array", "items": { "type": "string" } },
+        "expiresAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "ErrorDetails": {
+      "type": "object",
+      "required": ["code", "message"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z]+_[A-Z_]+$",
+          "description": "Error code in CATEGORY_DETAIL format"
+        },
+        "message": { "type": "string" },
+        "details": { "type": "object" },
+        "recoverable": { "type": "boolean" },
+        "retryAfter": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

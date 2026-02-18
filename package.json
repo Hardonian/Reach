@@ -27,6 +27,9 @@
     "verify:config": "cd services/runner && go test -v ./internal/config/...",
     "verify:backpressure": "cd services/runner && go test -v ./internal/backpressure/...",
     "verify:telemetry": "cd services/runner && go test -v ./internal/telemetry/...",
-    "verify:pack": "node scripts/verify-packs.mjs"
+    "verify:pack": "node scripts/verify-packs.mjs",
+    "verify:spec": "node tools/validate-spec.mjs",
+    "verify:compat": "node compat/compat-suite.mjs",
+    "spec:validate": "node tools/codegen/validate-protocol.mjs && node compat/compat-suite.mjs"
   }
 }

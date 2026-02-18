@@ -17,6 +17,34 @@ jobs:
           cache: npm
       - name: validate protocol schemas
         run: node tools/codegen/validate-protocol.mjs
+      - name: validate spec schemas
+        run: node tools/validate-spec.mjs
+      - name: run compatibility suite
+        run: node compat/compat-suite.mjs
+
+  spec-conformance:
+    name: spec conformance gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: install dependencies
+        run: npm install
+      - name: validate spec schemas
+        run: npm run verify:spec
+      - name: run compatibility suite
+        run: npm run verify:compat
+      - name: check spec version consistency
+        run: |
+          SPEC_VERSION=$(grep -oP 'specVersion:\s*"\K[0-9]+\.[0-9]+\.[0-9]+' spec/REACH_PROTOCOL_v1.md | head -1)
+          echo "Spec version: $SPEC_VERSION"
+          if [ "$SPEC_VERSION" != "1.0.0" ]; then
+            echo "::error::Spec version mismatch or not found"
+            exit 1
+          fi
 
   rust:
     name: rust checks

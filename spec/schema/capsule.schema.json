@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.dev/spec/v1/capsule.schema.json",
+  "title": "Reach Time Capsule",
+  "description": "Schema for Reach execution time capsules (replayable artifacts)",
+  "type": "object",
+  "required": ["specVersion", "capsuleId", "runId", "createdAt", "manifest"],
+  "properties": {
+    "specVersion": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Capsule format version"
+    },
+    "capsuleId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique capsule identifier"
+    },
+    "runId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Original run identifier"
+    },
+    "runHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Hash of the original run"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Capsule creation timestamp"
+    },
+    "manifest": {
+      "$ref": "#/$defs/CapsuleManifest"
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/CapsuleEvent"
+      },
+      "description": "Complete ordered event log"
+    },
+    "toolRecordings": {
+      "type": "object",
+      "description": "Recorded tool inputs/outputs for replay",
+      "additionalProperties": {
+        "$ref": "#/$defs/ToolRecording"
+      }
+    },
+    "stateSnapshots": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/StateSnapshot"
+      }
+    },
+    "packArchive": {
+      "$ref": "#/$defs/PackArchive"
+    },
+    "proof": {
+      "$ref": "#/$defs/ExecutionProof"
+    }
+  },
+  "$defs": {
+    "CapsuleManifest": {
+      "type": "object",
+      "required": ["format", "compression", "contents"],
+      "properties": {
+        "format": {
+          "type": "string",
+          "const": "reach.capsule.v1"
+        },
+        "compression": {
+          "enum": ["none", "gzip", "zstd"],
+          "default": "gzip"
+        },
+        "contents": {
+          "type": "array",
+          "items": {
+            "enum": ["events", "tool_recordings", "state_snapshots", "pack_archive", "proof"]
+          }
+        },
+        "deterministic": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether capsule is deterministic"
+        }
+      }
+    },
+    "CapsuleEvent": {
+      "type": "object",
+      "required": ["eventId", "type", "timestamp", "sequence", "payload"],
+      "properties": {
+        "eventId": { "type": "string" },
+        "type": { "type": "string" },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp as offset from run start (ms)"
+        },
+        "sequence": { "type": "integer", "minimum": 0 },
+        "payload": { "type": "object" },
+        "hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Event hash for integrity"
+        }
+      }
+    },
+    "ToolRecording": {
+      "type": "object",
+      "required": ["invocationId", "toolName", "input", "output", "recordedAt"],
+      "properties": {
+        "invocationId": { "type": "string" },
+        "toolName": { "type": "string" },
+        "input": { "type": "object" },
+        "output": { "type": "object" },
+        "outputHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "recordedAt": { "type": "string", "format": "date-time" },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "deterministic": { "type": "boolean", "default": true }
+      }
+    },
+    "StateSnapshot": {
+      "type": "object",
+      "required": ["snapshotId", "capturedAt", "state"],
+      "properties": {
+        "snapshotId": { "type": "string" },
+        "capturedAt": { "type": "string", "format": "date-time" },
+        "triggerEvent": { "type": "string" },
+        "state": {
+          "type": "object",
+          "properties": {
+            "variables": { "type": "object" },
+            "resources": { "type": "object" },
+            "context": { "type": "object" }
+          }
+        },
+        "stateHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "PackArchive": {
+      "type": "object",
+      "required": ["hash", "files"],
+      "properties": {
+        "hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "hash"],
+            "properties": {
+              "path": { "type": "string" },
+              "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "size": { "type": "integer", "minimum": 0 }
+            }
+          }
+        }
+      }
+    },
+    "ExecutionProof": {
+      "type": "object",
+      "required": ["type", "algorithm", "value"],
+      "properties": {
+        "type": {
+          "enum": ["run_hash", "merkle_root", "signed_attestation"]
+        },
+        "algorithm": {
+          "type": "string",
+          "const": "SHA-256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "attestations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["nodeId", "signature", "signedAt"],
+            "properties": {
+              "nodeId": { "type": "string" },
+              "signature": { "type": "string" },
+              "signedAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
