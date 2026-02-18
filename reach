@@ -11,6 +11,10 @@ case "$cmd" in
     shift
     ./tools/release-check.sh "$@"
     ;;
+  serve)
+    shift
+    (cd services/runner && go run ./cmd/reach-serve "$@")
+    ;;
   federation)
     shift
     (cd services/runner && go run ./cmd/reachctl federation "$@")
@@ -23,8 +27,36 @@ case "$cmd" in
     shift
     (cd services/runner && go run ./cmd/reachctl arcade "$@")
     ;;
+  capsule)
+    shift
+    (cd services/runner && go run ./cmd/reachctl capsule "$@")
+    ;;
+  proof)
+    shift
+    (cd services/runner && go run ./cmd/reachctl proof "$@")
+    ;;
+  graph)
+    shift
+    (cd services/runner && go run ./cmd/reachctl graph "$@")
+    ;;
+  packs)
+    shift
+    (cd services/runner && go run ./cmd/reachctl packs "$@")
+    ;;
+  init)
+    shift
+    (cd services/runner && go run ./cmd/reachctl init "$@")
+    ;;
+  explain)
+    shift
+    (cd services/runner && go run ./cmd/reachctl explain "$@")
+    ;;
+  operator)
+    shift
+    (cd services/runner && go run ./cmd/reachctl operator "$@")
+    ;;
   *)
-    echo "usage: reach doctor|release-check|federation|support|arcade" >&2
+    echo "usage: reach doctor|release-check|serve|federation|support|arcade|capsule|proof|graph|packs|init|explain|operator" >&2
     exit 1
     ;;
 esac
