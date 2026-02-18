@@ -464,6 +464,7 @@ type registryIndex struct {
 
 type registryEntry struct {
 	Name            string `json:"name"`
+	Description     string `json:"description"`
 	Repo            string `json:"repo"`
 	SpecVersion     string `json:"spec_version"`
 	Signature       string `json:"signature"`

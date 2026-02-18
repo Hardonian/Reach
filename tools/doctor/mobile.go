@@ -139,12 +139,9 @@ func (d *MobileDoctor) detectEnv() MobileEnv {
 		env.TermuxVer = os.Getenv("TERMUX_VERSION")
 	}
 	
-	// Check storage available
-	if stat, err := os.Statvfs(d.DataDir); err == nil {
-		// statvfs gives blocks available * block size
-		// For simplicity, estimate based on typical Android storage
-		env.StorageAvail = 1024 // placeholder, would need proper syscall
-	}
+	// Storage availability check skipped on non-Unix platforms
+	// On Android/Termux, this would use syscall.Statvfs
+	env.StorageAvail = -1 // unknown
 	
 	return env
 }

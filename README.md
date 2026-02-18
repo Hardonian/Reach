@@ -45,6 +45,8 @@ Key paths:
 
 ## Quickstart (5 minutes)
 
+### Desktop/Server
+
 ```bash
 npm install
 (cd extensions/vscode && npm install)
@@ -53,19 +55,32 @@ npm run typecheck
 npm run build
 ```
 
-Run core tests:
-
-```bash
-npm run test
-```
-
 Run local health check:
 
 ```bash
 ./reach doctor
 ```
 
+### Mobile (Android/Termux)
+
+One-line installer:
+
+```bash
+curl -fsSL https://get.reach.dev/termux | bash
+```
+
+Then run the guided wizard:
+
+```bash
+reach wizard    # Choose pack → Run → Verify → Share
+reach operator  # View dashboard
+```
+
+See [Mobile Operator Guide](docs/MOBILE_OPERATOR_GUIDE.md) for details.
+
 ## CLI examples
+
+### Desktop
 
 ```bash
 # Validate release-critical gates
@@ -76,6 +91,25 @@ Run local health check:
 
 # Runner audit inspection helper
 npm run audit:inspect
+```
+
+### Mobile
+
+```bash
+# Guided run wizard (mobile-friendly)
+reach wizard
+
+# Quick run a pack
+reach run <pack-name>
+
+# Share via QR code
+reach share run <run-id>
+
+# View operator dashboard
+reach operator
+
+# Mobile-specific health check
+REACH_MOBILE=1 reach doctor
 ```
 
 ## Hosted vs OSS

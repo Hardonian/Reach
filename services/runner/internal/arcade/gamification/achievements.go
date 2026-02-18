@@ -225,7 +225,7 @@ func (e *AchievementEngine) getStatCount(flags map[string]bool) int {
 	return count
 }
 
-func matchesFlags(data, flags map[string]bool) bool {
+func matchesFlags(data map[string]any, flags map[string]bool) bool {
 	for key, value := range flags {
 		if data[key] != value {
 			return false
@@ -457,7 +457,7 @@ func FormatAchievement(a Achievement) string {
 		RarityLegendary: "\033[33m", // Gold
 	}
 	
-	reset := "\033[0m"
+	resetCode := "\033[0m"
 	color := rarityColors[a.Rarity]
 	
 	unlocked := ""
@@ -465,6 +465,6 @@ func FormatAchievement(a Achievement) string {
 		unlocked = fmt.Sprintf(" (Unlocked: %s)", a.UnlockedAt.Format("2006-01-02"))
 	}
 	
-	return fmt.Sprintf("%s%s %s\033[0m - %s [%s]%s", 
-		color, a.Icon, a.Name, a.Description, a.Rarity, unlocked)
+	return fmt.Sprintf("%s%s %s%s - %s [%s]%s", 
+		color, a.Icon, resetCode, a.Name, a.Description, a.Rarity, unlocked)
 }

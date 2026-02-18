@@ -358,11 +358,17 @@ func (pm *PerformanceMetrics) Record(name string, value time.Duration) {
 	}
 }
 
-// Snapshot returns current metrics.
-func (pm *PerformanceMetrics) Snapshot() PerformanceMetrics {
+// Snapshot returns a copy of current metrics without the mutex.
+func (pm *PerformanceMetrics) Snapshot() map[string]any {
 	pm.mu.RLock()
 	defer pm.mu.RUnlock()
-	return *pm
+	return map[string]any{
+		"eventProcessingTime": pm.EventProcessingTime,
+		"hashComputeTime":     pm.HashComputeTime,
+		"registryLoadTime":    pm.RegistryLoadTime,
+		"memoryUsage":         pm.MemoryUsage,
+		"gcLatency":           pm.GCLatency,
+	}
 }
 
 // GlobalMetrics is the default metrics collector.

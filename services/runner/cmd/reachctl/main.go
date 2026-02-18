@@ -284,6 +284,7 @@ type registryIndex struct {
 }
 type registryEntry struct {
 	Name            string `json:"name"`
+	Description     string `json:"description"`
 	Repo            string `json:"repo"`
 	SpecVersion     string `json:"spec_version"`
 	Signature       string `json:"signature"`
@@ -410,32 +411,32 @@ func runExplain(ctx context.Context, dataRoot string, args []string, out io.Writ
 
 func runOperator(ctx context.Context, dataRoot string, out io.Writer, errOut io.Writer) int {
 	isMobile := os.Getenv("REACH_MOBILE") == "1" || os.Getenv("TERMUX_VERSION") != ""
-	
+
 	coord := federation.NewCoordinator(filepath.Join(dataRoot, "federation_reputation.json"))
 	_ = coord.Load()
 	nodes := coord.Status()
-	
+
 	// Gather comprehensive metrics
 	metrics := calculateOperatorMetrics(dataRoot, nodes)
-	
+
 	if isMobile {
 		// Mobile-friendly text output
 		printMobileOperatorDashboard(out, metrics)
 		return 0
 	}
-	
+
 	return writeJSON(out, metrics)
 }
 
 // OperatorMetrics holds all dashboard metrics
 type OperatorMetrics struct {
 	Topology struct {
-		Nodes         int      `json:"nodes"`
-		TrustedPeers  int      `json:"trusted_peers"`
-		Quarantined   int      `json:"quarantined"`
-		NodeIDs       []string `json:"node_ids,omitempty"`
+		Nodes        int      `json:"nodes"`
+		TrustedPeers int      `json:"trusted_peers"`
+		Quarantined  int      `json:"quarantined"`
+		NodeIDs      []string `json:"node_ids,omitempty"`
 	} `json:"topology"`
-	
+
 	Runs struct {
 		Total      int `json:"total"`
 		Active     int `json:"active"`
@@ -444,18 +445,18 @@ type OperatorMetrics struct {
 		Denied     int `json:"denied"`
 		Mismatches int `json:"mismatches"`
 	} `json:"runs"`
-	
+
 	Capsules struct {
-		Total     int `json:"total"`
-		Verified  int `json:"verified"`
+		Total    int `json:"total"`
+		Verified int `json:"verified"`
 	} `json:"capsules"`
-	
+
 	Health struct {
-		Overall     string  `json:"overall"`
-		ErrorRate   float64 `json:"error_rate"`
-		ReplayHealth string `json:"replay_health"`
+		Overall      string  `json:"overall"`
+		ErrorRate    float64 `json:"error_rate"`
+		ReplayHealth string  `json:"replay_health"`
 	} `json:"health"`
-	
+
 	Mobile struct {
 		LowMemoryMode bool   `json:"low_memory_mode"`
 		StorageUsedMB int64  `json:"storage_used_mb"`
@@ -465,11 +466,11 @@ type OperatorMetrics struct {
 
 func calculateOperatorMetrics(dataRoot string, nodes []federation.StatusNode) *OperatorMetrics {
 	m := &OperatorMetrics{}
-	
+
 	// Topology metrics
 	m.Topology.Nodes = len(nodes)
 	for _, n := range nodes {
-		if n.TrustScore > 0.7 && !n.Quarantined {
+		if n.TrustScore > 70 && !n.Quarantined {
 			m.Topology.TrustedPeers++
 		}
 		if n.Quarantined {
@@ -479,23 +480,23 @@ func calculateOperatorMetrics(dataRoot string, nodes []federation.StatusNode) *O
 			m.Topology.NodeIDs = append(m.Topology.NodeIDs, n.NodeID)
 		}
 	}
-	
+
 	// Run metrics
 	runsDir := filepath.Join(dataRoot, "runs")
 	if entries, err := os.ReadDir(runsDir); err == nil {
 		m.Runs.Total = len(entries)
-		
+
 		for _, entry := range entries {
 			if entry.IsDir() {
 				continue
 			}
-			
+
 			// Load run record to check status
 			rec, err := loadRunRecord(dataRoot, entry.Name()[:len(entry.Name())-5]) // Remove .json
 			if err != nil {
 				continue
 			}
-			
+
 			// Check policy decision
 			if decision, ok := rec.Policy["decision"].(string); ok {
 				switch decision {
@@ -507,7 +508,7 @@ func calculateOperatorMetrics(dataRoot string, nodes []federation.StatusNode) *O
 					m.Runs.Failed++
 				}
 			}
-			
+
 			// Check for replay mismatches
 			if len(rec.EventLog) > 0 {
 				expectedHash := stableHash(map[string]any{"event_log": rec.EventLog, "run_id": rec.RunID})
@@ -516,17 +517,17 @@ func calculateOperatorMetrics(dataRoot string, nodes []federation.StatusNode) *O
 			}
 		}
 	}
-	
+
 	// Capsule metrics
 	capsulesDir := filepath.Join(dataRoot, "capsules")
 	if entries, err := os.ReadDir(capsulesDir); err == nil {
 		m.Capsules.Total = len(entries)
-		
+
 		for _, entry := range entries {
 			if entry.IsDir() {
 				continue
 			}
-			
+
 			path := filepath.Join(capsulesDir, entry.Name())
 			if cap, err := readCapsule(path); err == nil {
 				recomputed := stableHash(map[string]any{"event_log": cap.EventLog, "run_id": cap.Manifest.RunID})
@@ -538,12 +539,12 @@ func calculateOperatorMetrics(dataRoot string, nodes []federation.StatusNode) *O
 			}
 		}
 	}
-	
+
 	// Health calculation
 	if m.Runs.Total > 0 {
 		m.Health.ErrorRate = float64(m.Runs.Failed+m.Runs.Denied) / float64(m.Runs.Total)
 	}
-	
+
 	if m.Health.ErrorRate == 0 && m.Runs.Mismatches == 0 && m.Topology.Quarantined == 0 {
 		m.Health.Overall = "healthy"
 		m.Health.ReplayHealth = "verified"
@@ -554,11 +555,11 @@ func calculateOperatorMetrics(dataRoot string, nodes []federation.StatusNode) *O
 		m.Health.Overall = "critical"
 		m.Health.ReplayHealth = "mismatches_detected"
 	}
-	
+
 	// Mobile metrics
 	m.Mobile.LowMemoryMode = os.Getenv("REACH_LOW_MEMORY") == "1"
 	m.Mobile.DataDir = dataRoot
-	
+
 	// Calculate storage used
 	var totalSize int64
 	filepath.Walk(dataRoot, func(path string, info os.FileInfo, err error) error {
@@ -568,7 +569,7 @@ func calculateOperatorMetrics(dataRoot string, nodes []federation.StatusNode) *O
 		return nil
 	})
 	m.Mobile.StorageUsedMB = totalSize / (1024 * 1024)
-	
+
 	return m
 }
 
@@ -578,7 +579,7 @@ func printMobileOperatorDashboard(out io.Writer, m *OperatorMetrics) {
 	fmt.Fprintln(out, "║        Reach Operator Dashboard (Mobile)       ║")
 	fmt.Fprintln(out, "╚════════════════════════════════════════════════╝")
 	fmt.Fprintln(out)
-	
+
 	// Status indicator
 	statusEmoji := map[string]string{
 		"healthy":         "✓",
@@ -586,7 +587,7 @@ func printMobileOperatorDashboard(out io.Writer, m *OperatorMetrics) {
 		"critical":        "✗",
 	}
 	fmt.Fprintf(out, "Health: %s %s\n\n", statusEmoji[m.Health.Overall], strings.ToUpper(m.Health.Overall))
-	
+
 	// Runs section
 	fmt.Fprintln(out, "┌─ Runs ────────────────────────────────────────┐")
 	fmt.Fprintf(out, "│  Total:     %d\n", m.Runs.Total)
@@ -597,7 +598,7 @@ func printMobileOperatorDashboard(out io.Writer, m *OperatorMetrics) {
 	}
 	fmt.Fprintln(out, "└───────────────────────────────────────────────┘")
 	fmt.Fprintln(out)
-	
+
 	// Topology section
 	fmt.Fprintln(out, "┌─ Federation ──────────────────────────────────┐")
 	fmt.Fprintf(out, "│  Nodes:   %d\n", m.Topology.Nodes)
@@ -607,14 +608,14 @@ func printMobileOperatorDashboard(out io.Writer, m *OperatorMetrics) {
 	}
 	fmt.Fprintln(out, "└───────────────────────────────────────────────┘")
 	fmt.Fprintln(out)
-	
+
 	// Capsules section
 	fmt.Fprintln(out, "┌─ Capsules ────────────────────────────────────┐")
 	fmt.Fprintf(out, "│  Total:    %d\n", m.Capsules.Total)
 	fmt.Fprintf(out, "│  Verified: %d\n", m.Capsules.Verified)
 	fmt.Fprintln(out, "└───────────────────────────────────────────────┘")
 	fmt.Fprintln(out)
-	
+
 	// Mobile section
 	if m.Mobile.LowMemoryMode {
 		fmt.Fprintln(out, "┌─ Mobile Settings ─────────────────────────────┐")
@@ -623,7 +624,7 @@ func printMobileOperatorDashboard(out io.Writer, m *OperatorMetrics) {
 		fmt.Fprintln(out, "└───────────────────────────────────────────────┘")
 		fmt.Fprintln(out)
 	}
-	
+
 	// Quick actions
 	fmt.Fprintln(out, "Quick Actions:")
 	fmt.Fprintln(out, "  reach wizard      - Run guided wizard")
@@ -833,20 +834,20 @@ func toGraphSVG(rec runRecord) string {
 // Harness types and functions for pack devkit
 
 type harnessFixture struct {
-	SpecVersion string                 `json:"spec_version"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Pack        map[string]any         `json:"pack"`
-	Expected    map[string]any         `json:"expected"`
+	SpecVersion string         `json:"spec_version"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Pack        map[string]any `json:"pack"`
+	Expected    map[string]any `json:"expected"`
 }
 
 type harnessResult struct {
-	FixtureName string            `json:"fixture_name"`
-	Passed      bool              `json:"passed"`
-	Errors      []string          `json:"errors,omitempty"`
-	Warnings    []string          `json:"warnings,omitempty"`
-	RunHash     string            `json:"run_hash,omitempty"`
-	Details     map[string]any    `json:"details,omitempty"`
+	FixtureName string         `json:"fixture_name"`
+	Passed      bool           `json:"passed"`
+	Errors      []string       `json:"errors,omitempty"`
+	Warnings    []string       `json:"warnings,omitempty"`
+	RunHash     string         `json:"run_hash,omitempty"`
+	Details     map[string]any `json:"details,omitempty"`
 }
 
 type Harness struct {
@@ -1292,18 +1293,18 @@ func (r *doctorReport) ToHuman() string {
 // Publisher types and functions
 
 type packRegistryEntry struct {
-	Name            string            `json:"name"`
-	Repo            string            `json:"repo"`
-	SpecVersion     string            `json:"spec_version"`
-	Signature       string            `json:"signature"`
-	Reproducibility string            `json:"reproducibility"`
-	Verified        bool              `json:"verified"`
-	Author          string            `json:"author"`
-	Version         string            `json:"version"`
-	Description     string            `json:"description"`
-	Tags            []string          `json:"tags"`
-	Hash            string            `json:"hash"`
-	PublishedAt     string            `json:"published_at"`
+	Name            string   `json:"name"`
+	Repo            string   `json:"repo"`
+	SpecVersion     string   `json:"spec_version"`
+	Signature       string   `json:"signature"`
+	Reproducibility string   `json:"reproducibility"`
+	Verified        bool     `json:"verified"`
+	Author          string   `json:"author"`
+	Version         string   `json:"version"`
+	Description     string   `json:"description"`
+	Tags            []string `json:"tags"`
+	Hash            string   `json:"hash"`
+	PublishedAt     string   `json:"published_at"`
 }
 
 type prBundle struct {
@@ -1818,12 +1819,12 @@ type Wizard struct {
 }
 
 type WizardState struct {
-	Step        int               `json:"step"`
-	SelectedPack string           `json:"selected_pack"`
-	RunID       string            `json:"run_id"`
-	Input       map[string]string `json:"input"`
-	CapsulePath string            `json:"capsule_path"`
-	Success     bool              `json:"success"`
+	Step         int               `json:"step"`
+	SelectedPack string            `json:"selected_pack"`
+	RunID        string            `json:"run_id"`
+	Input        map[string]string `json:"input"`
+	CapsulePath  string            `json:"capsule_path"`
+	Success      bool              `json:"success"`
 }
 
 func NewWizard(dataRoot string, out, errOut io.Writer, quick, json bool) *Wizard {
@@ -1912,7 +1913,7 @@ func (w *Wizard) logError(msg string, err error) {
 
 func (w *Wizard) stepChoosePack() error {
 	w.State.Step = 1
-	
+
 	// Load available packs
 	idx, err := loadRegistryIndex(w.DataRoot)
 	if err != nil {
@@ -1926,7 +1927,7 @@ func (w *Wizard) stepChoosePack() error {
 	if !w.JSONOut {
 		fmt.Fprintln(w.Out, "Step 1/5: Choose a pack to run")
 		fmt.Fprintln(w.Out)
-		
+
 		// Display available packs
 		for i, p := range idx.Packs {
 			verified := ""
@@ -1961,7 +1962,7 @@ func (w *Wizard) stepChoosePack() error {
 
 func (w *Wizard) stepChooseInput() error {
 	w.State.Step = 2
-	
+
 	if !w.JSONOut {
 		fmt.Fprintln(w.Out, "Step 2/5: Configure input")
 		fmt.Fprintln(w.Out)
@@ -1994,18 +1995,18 @@ func (w *Wizard) stepRun(ctx context.Context) error {
 
 	// Create run record
 	record := runRecord{
-		RunID:   w.State.RunID,
-		Pack:    map[string]any{"name": w.State.SelectedPack, "input": w.State.Input},
-		Policy:  map[string]any{"decision": "allow", "reason": "wizard-run"},
+		RunID:  w.State.RunID,
+		Pack:   map[string]any{"name": w.State.SelectedPack, "input": w.State.Input},
+		Policy: map[string]any{"decision": "allow", "reason": "wizard-run"},
 		EventLog: []map[string]any{
 			{"step": 1, "action": "init", "ts": time.Now().UTC().Format(time.RFC3339)},
 			{"step": 2, "action": "execute", "pack": w.State.SelectedPack},
 			{"step": 3, "action": "complete", "status": "success"},
 		},
 		Environment: map[string]string{
-			"os":      runtime.GOOS,
-			"arch":    runtime.GOARCH,
-			"wizard":  "1",
+			"os":     runtime.GOOS,
+			"arch":   runtime.GOARCH,
+			"wizard": "1",
 		},
 	}
 
@@ -2013,7 +2014,7 @@ func (w *Wizard) stepRun(ctx context.Context) error {
 	runsDir := filepath.Join(w.DataRoot, "runs")
 	_ = os.MkdirAll(runsDir, 0755)
 	recordPath := filepath.Join(runsDir, w.State.RunID+".json")
-	
+
 	if err := writeDeterministicJSON(recordPath, record); err != nil {
 		return err
 	}
@@ -2065,7 +2066,7 @@ func (w *Wizard) stepShare() error {
 	cap := buildCapsule(record)
 	capsulesDir := filepath.Join(w.DataRoot, "capsules")
 	_ = os.MkdirAll(capsulesDir, 0755)
-	
+
 	w.State.CapsulePath = filepath.Join(capsulesDir, w.State.RunID+".capsule.json")
 	if err := writeDeterministicJSON(w.State.CapsulePath, cap); err != nil {
 		return err
@@ -2089,9 +2090,9 @@ func runQuick(args []string, out, errOut io.Writer) int {
 		fmt.Fprintln(errOut, "usage: reach run <pack-name> [--input key=value]")
 		return 1
 	}
-	
+
 	packName := args[0]
-	
+
 	// Parse inputs
 	inputs := map[string]string{"mode": "safe"}
 	for i := 1; i < len(args); i++ {
@@ -2103,22 +2104,22 @@ func runQuick(args []string, out, errOut io.Writer) int {
 			i++
 		}
 	}
-	
+
 	fmt.Fprintf(out, "Running pack: %s\n", packName)
 	fmt.Fprintf(out, "Inputs: %v\n", inputs)
-	
+
 	// Delegate to wizard
 	dataRoot := getenv("REACH_DATA_DIR", "data")
 	wizard := NewWizard(dataRoot, out, errOut, true, false)
 	wizard.State.SelectedPack = packName
 	wizard.State.Input = inputs
-	
+
 	ctx := context.Background()
 	if err := wizard.stepRun(ctx); err != nil {
 		fmt.Fprintf(errOut, "Run failed: %v\n", err)
 		return 1
 	}
-	
+
 	fmt.Fprintf(out, "✓ Run created: %s\n", wizard.State.RunID)
 	return 0
 }
@@ -2170,31 +2171,31 @@ func shareRun(dataRoot, runID string, out, errOut io.Writer) int {
 
 	// Generate share data
 	shareURL := fmt.Sprintf("reach://share/%s?v=1", runID)
-	
+
 	fmt.Fprintln(out, "╔════════════════════════════════════════╗")
 	fmt.Fprintln(out, "║        Share Your Run                  ║")
 	fmt.Fprintln(out, "╚════════════════════════════════════════╝")
 	fmt.Fprintln(out)
 	fmt.Fprintf(out, "Run ID: %s\n", runID)
 	fmt.Fprintln(out)
-	
+
 	// Generate QR code (text-based)
 	fmt.Fprintln(out, "Share URL:")
 	fmt.Fprintf(out, "  %s\n", shareURL)
 	fmt.Fprintln(out)
-	
+
 	// Text-based QR representation
 	fmt.Fprintln(out, "QR Code (scan to share):")
 	generateTextQR(out, shareURL)
 	fmt.Fprintln(out)
-	
+
 	fmt.Fprintf(out, "Capsule file: %s\n", capsulePath)
-	
+
 	// Copy to clipboard hint
 	if runtime.GOOS == "android" || os.Getenv("TERMUX_VERSION") != "" {
 		fmt.Fprintln(out, "\nTo share via Android:")
 		fmt.Fprintln(out, "  termux-share -a send <", capsulePath)
-		
+
 		// Attempt to copy to Downloads
 		downloadsPath := "/sdcard/Download/reach-" + runID + ".capsule.json"
 		if input, err := os.ReadFile(capsulePath); err == nil {
@@ -2203,7 +2204,7 @@ func shareRun(dataRoot, runID string, out, errOut io.Writer) int {
 			}
 		}
 	}
-	
+
 	return 0
 }
 
@@ -2230,11 +2231,11 @@ func shareCapsule(path string, out, errOut io.Writer) int {
 	fmt.Fprintln(out)
 	fmt.Fprintln(out, "QR Code:")
 	generateTextQR(out, shareURL)
-	
+
 	// Copy hint
 	fmt.Fprintln(out, "\nTo verify:")
 	fmt.Fprintf(out, "  reach capsule verify %s\n", path)
-	
+
 	return 0
 }
 
