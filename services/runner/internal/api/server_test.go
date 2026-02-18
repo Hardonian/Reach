@@ -183,7 +183,7 @@ func TestReplaySnapshotMismatchIncrementsMetricThroughMetricsEndpoint(t *testing
 	}
 	pack.SignatureHash = hash
 
-	exec := autonomous.NewPackExecutor(passExecutor{}, pack).WithReplaySnapshotHash("snapshot-a").WithInvariantReporter(srv.metrics)
+	exec := autonomous.NewOrchestrationPackExecutor(passExecutor{}, pack, autonomous.PackExecutorOptions{ExpectedReplaySnapshotHash: "snapshot-a", InvariantReporter: srv.metrics})
 
 	res, err := exec.Execute(context.Background(), autonomous.ExecutionEnvelope{
 		ID:       "env-1",

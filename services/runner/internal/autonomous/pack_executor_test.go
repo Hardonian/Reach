@@ -36,7 +36,7 @@ func signedPack(t *testing.T) registry.ExecutionPack {
 
 func TestPackExecutorReplaySnapshotGuardRejectsMismatch(t *testing.T) {
 	delegate := &spyExecutor{}
-	executor := NewPackExecutor(delegate, signedPack(t)).WithReplaySnapshotHash("snapshot-a")
+	executor := NewOrchestrationPackExecutor(delegate, signedPack(t), PackExecutorOptions{ExpectedReplaySnapshotHash: "snapshot-a"})
 
 	res, err := executor.Execute(context.Background(), ExecutionEnvelope{
 		ID:       "env-1",
@@ -61,7 +61,7 @@ func TestPackExecutorReplaySnapshotGuardRejectsMismatch(t *testing.T) {
 
 func TestPackExecutorReplaySnapshotGuardAllowsMatchingSnapshot(t *testing.T) {
 	delegate := &spyExecutor{}
-	executor := NewPackExecutor(delegate, signedPack(t)).WithReplaySnapshotHash("snapshot-a")
+	executor := NewOrchestrationPackExecutor(delegate, signedPack(t), PackExecutorOptions{ExpectedReplaySnapshotHash: "snapshot-a"})
 
 	res, err := executor.Execute(context.Background(), ExecutionEnvelope{
 		ID:       "env-1",
