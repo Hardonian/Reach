@@ -21,9 +21,9 @@ var ErrNotFound = errors.New("not found")
 var migrationFS embed.FS
 
 type RunRecord struct {
-	ID, TenantID, Status string
-	Capabilities         []string
-	CreatedAt            time.Time
+	ID, TenantID, Status, PackCID string
+	Capabilities                  []string
+	CreatedAt                     time.Time
 }
 type EventRecord struct {
 	ID          int64
@@ -77,6 +77,7 @@ type JobAttemptRecord struct {
 
 type NodeRecord struct {
 	ID, TenantID, Type, CapabilitiesJSON, Status, TagsJSON string
+	TPMPubKeyJSON, HardwareFingerprint                     string
 	LastHeartbeatAt                                        time.Time
 	LatencyMS, LoadScore                                   int
 	CreatedAt, UpdatedAt                                   time.Time
@@ -134,11 +135,11 @@ func NewSQLiteStore(path string) (*SQLiteStore, error) {
 
 func (s *SQLiteStore) prepareStmts() error {
 	var err error
-	s.ops.createRun, err = s.db.Prepare("INSERT INTO runs(id,tenant_id,capabilities,created_at,status) VALUES(?,?,?,?,?)")
+	s.ops.createRun, err = s.db.Prepare("INSERT INTO runs(id,tenant_id,capabilities,created_at,status,pack_cid) VALUES(?,?,?,?,?,?)")
 	if err != nil {
 		return err
 	}
-	s.ops.getRun, err = s.db.Prepare("SELECT id,tenant_id,capabilities,created_at,status FROM runs WHERE id=? AND tenant_id=?")
+	s.ops.getRun, err = s.db.Prepare("SELECT id,tenant_id,capabilities,created_at,status,pack_cid FROM runs WHERE id=? AND tenant_id=?")
 	if err != nil {
 		return err
 	}
@@ -178,11 +179,11 @@ func (s *SQLiteStore) prepareStmts() error {
 	if err != nil {
 		return err
 	}
-	s.ops.upsertNode, err = s.db.Prepare("INSERT INTO nodes(id,tenant_id,type,capabilities,status,last_heartbeat_at,latency_ms,load_score,tags,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET tenant_id=excluded.tenant_id,type=excluded.type,capabilities=excluded.capabilities,status=excluded.status,last_heartbeat_at=excluded.last_heartbeat_at,latency_ms=excluded.latency_ms,load_score=excluded.load_score,tags=excluded.tags,updated_at=excluded.updated_at")
+	s.ops.upsertNode, err = s.db.Prepare("INSERT INTO nodes(id,tenant_id,type,capabilities,status,last_heartbeat_at,latency_ms,load_score,tags,tpm_pub_key,hardware_fingerprint,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET tenant_id=excluded.tenant_id,type=excluded.type,capabilities=excluded.capabilities,status=excluded.status,last_heartbeat_at=excluded.last_heartbeat_at,latency_ms=excluded.latency_ms,load_score=excluded.load_score,tags=excluded.tags,tpm_pub_key=excluded.tpm_pub_key,hardware_fingerprint=excluded.hardware_fingerprint,updated_at=excluded.updated_at")
 	if err != nil {
 		return err
 	}
-	s.ops.listNodes, err = s.db.Prepare("SELECT id,tenant_id,type,capabilities,status,last_heartbeat_at,latency_ms,load_score,tags,created_at,updated_at FROM nodes WHERE tenant_id=? ORDER BY id ASC")
+	s.ops.listNodes, err = s.db.Prepare("SELECT id,tenant_id,type,capabilities,status,last_heartbeat_at,latency_ms,load_score,tags,tpm_pub_key,hardware_fingerprint,created_at,updated_at FROM nodes WHERE tenant_id=? ORDER BY id ASC")
 	if err != nil {
 		return err
 	}
@@ -299,7 +300,7 @@ func (s *SQLiteStore) CreateRun(ctx context.Context, rec RunRecord) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	caps, _ := json.Marshal(rec.Capabilities)
-	_, err := s.ops.createRun.ExecContext(ctx, rec.ID, rec.TenantID, string(caps), rec.CreatedAt.UTC(), rec.Status)
+	_, err := s.ops.createRun.ExecContext(ctx, rec.ID, rec.TenantID, string(caps), rec.CreatedAt.UTC(), rec.Status, rec.PackCID)
 	return err
 }
 
@@ -309,7 +310,7 @@ func (s *SQLiteStore) GetRun(ctx context.Context, tenantID, runID string) (RunRe
 	var r RunRecord
 	var caps string
 	var created time.Time
-	err := s.ops.getRun.QueryRowContext(ctx, runID, tenantID).Scan(&r.ID, &r.TenantID, &caps, &created, &r.Status)
+	err := s.ops.getRun.QueryRowContext(ctx, runID, tenantID).Scan(&r.ID, &r.TenantID, &caps, &created, &r.Status, &r.PackCID)
 	if err == sql.ErrNoRows {
 		return r, ErrNotFound
 	}
@@ -537,7 +538,7 @@ func (s *SQLiteStore) FailJob(ctx context.Context, jobID, leaseToken, errMsg str
 func (s *SQLiteStore) UpsertNode(ctx context.Context, rec NodeRecord) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	_, err := s.ops.upsertNode.ExecContext(ctx, rec.ID, rec.TenantID, rec.Type, rec.CapabilitiesJSON, rec.Status, rec.LastHeartbeatAt.UTC(), rec.LatencyMS, rec.LoadScore, rec.TagsJSON, rec.CreatedAt.UTC(), rec.UpdatedAt.UTC())
+	_, err := s.ops.upsertNode.ExecContext(ctx, rec.ID, rec.TenantID, rec.Type, rec.CapabilitiesJSON, rec.Status, rec.LastHeartbeatAt.UTC(), rec.LatencyMS, rec.LoadScore, rec.TagsJSON, rec.TPMPubKeyJSON, rec.HardwareFingerprint, rec.CreatedAt.UTC(), rec.UpdatedAt.UTC())
 	return err
 }
 
@@ -554,7 +555,7 @@ func (s *SQLiteStore) ListNodes(ctx context.Context, tenantID string) ([]NodeRec
 		var r NodeRecord
 		var created, updated time.Time
 		var hbNull sql.NullString
-		if err := rows.Scan(&r.ID, &r.TenantID, &r.Type, &r.CapabilitiesJSON, &r.Status, &hbNull, &r.LatencyMS, &r.LoadScore, &r.TagsJSON, &created, &updated); err != nil {
+		if err := rows.Scan(&r.ID, &r.TenantID, &r.Type, &r.CapabilitiesJSON, &r.Status, &hbNull, &r.LatencyMS, &r.LoadScore, &r.TagsJSON, &r.TPMPubKeyJSON, &r.HardwareFingerprint, &created, &updated); err != nil {
 			return nil, err
 		}
 		if hbNull.Valid && hbNull.String != "" {

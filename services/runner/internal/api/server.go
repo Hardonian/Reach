@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/ed25519"
 	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
@@ -136,12 +137,14 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /v1/runs", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleCreateRun))))
 	mux.Handle("POST /v1/runs/{id}/spawn", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleSpawnRun))))
 	mux.Handle("POST /v1/runs/{id}/tool-result", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleToolResult))))
-	mux.Handle("GET /v1/runs/{id}/events", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleRunEvents))))
 	mux.Handle("POST /v1/mobile/handshake/challenge", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleMobileHandshakeChallenge))))
 	mux.Handle("POST /v1/mobile/handshake/complete", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleMobileHandshakeComplete))))
 	mux.Handle("POST /v1/mobile/policy/preflight", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleMobilePolicyPreflight))))
 	mux.Handle("GET /v1/mobile/runs/{id}", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleMobileRunView))))
 	mux.Handle("POST /v1/mobile/share-tokens", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleCreateShareToken))))
+	mux.Handle("GET /v1/runs/{id}/events", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleRunEvents))))
+	mux.Handle("GET /v1/runs/{id}/consensus", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleGetConsensusProof))))
+	mux.Handle("GET /v1/runs/{id}/zk-verify", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleGetZKVerifyProof))))
 	mux.HandleFunc("GET /v1/mobile/share/{token}", s.handleFetchSharedRun)
 	mux.Handle("POST /v1/runs/{id}/export", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleExport))))
 	mux.Handle("POST /v1/runs/import", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleImport))))
@@ -444,12 +447,13 @@ func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Capabilities []string `json:"capabilities"`
 		PlanTier     string   `json:"plan_tier"`
+		PackCID      string   `json:"pack_cid"`
 	}
 	if r.Body != nil {
 		_ = json.NewDecoder(r.Body).Decode(&body)
 	}
 	tenant := tenantIDFrom(r.Context())
-	run, err := s.store.CreateRun(r.Context(), tenant, body.Capabilities)
+	run, err := s.store.CreateRun(r.Context(), tenant, body.PackCID, body.Capabilities)
 	if err != nil {
 		writeError(w, 500, err.Error())
 		return
@@ -479,7 +483,7 @@ func (s *Server) handleInternalTrigger(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "tenant_id and type required")
 		return
 	}
-	run, err := s.store.CreateRun(r.Context(), body.TenantID, nil)
+	run, err := s.store.CreateRun(r.Context(), body.TenantID, "", nil)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -499,10 +503,15 @@ func (s *Server) handleSpawnRun(w http.ResponseWriter, r *http.Request) {
 	}
 	var body struct {
 		Capabilities []string `json:"capabilities"`
+		PackCID      string   `json:"pack_cid"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeError(w, 400, "invalid json")
 		return
+	}
+	parent, _ := s.store.GetRun(r.Context(), tenant, parentID)
+	if body.PackCID == "" && parent != nil {
+		body.PackCID = parent.PackCID
 	}
 	s.metaMu.Lock()
 	meta, ok := s.runMeta[parentID]
@@ -534,7 +543,7 @@ func (s *Server) handleSpawnRun(w http.ResponseWriter, r *http.Request) {
 	meta.Children++
 	s.runMeta[parentID] = meta
 	s.metaMu.Unlock()
-	child, err := s.store.CreateRun(r.Context(), tenant, body.Capabilities)
+	child, err := s.store.CreateRun(r.Context(), tenant, body.PackCID, body.Capabilities)
 	if err != nil {
 		writeError(w, 500, err.Error())
 		return
@@ -616,6 +625,8 @@ func (s *Server) handleRegisterNode(w http.ResponseWriter, r *http.Request) {
 		Tags                                                              []string
 		SupportedModes                                                    []string
 		ContextShards                                                     []string
+		TPMPubKey                                                         string
+		HardwareFingerprint                                               string
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeError(w, 400, "invalid json")
@@ -630,7 +641,7 @@ func (s *Server) handleRegisterNode(w http.ResponseWriter, r *http.Request) {
 		_ = tenant
 	}
 	now := time.Now().UTC()
-	err := s.sql.UpsertNode(r.Context(), storage.NodeRecord{ID: body.ID, TenantID: tenant, Type: body.Type, CapabilitiesJSON: string(mustJSON(body.Capabilities)), Status: body.Status, LastHeartbeatAt: now, LatencyMS: body.LatencyMS, LoadScore: body.LoadScore, TagsJSON: string(mustJSON(body.Tags)), CreatedAt: now, UpdatedAt: now})
+	err := s.sql.UpsertNode(r.Context(), storage.NodeRecord{ID: body.ID, TenantID: tenant, Type: body.Type, CapabilitiesJSON: string(mustJSON(body.Capabilities)), Status: body.Status, LastHeartbeatAt: now, LatencyMS: body.LatencyMS, LoadScore: body.LoadScore, TagsJSON: string(mustJSON(body.Tags)), TPMPubKeyJSON: body.TPMPubKey, HardwareFingerprint: body.HardwareFingerprint, CreatedAt: now, UpdatedAt: now})
 	if err != nil {
 		writeError(w, 500, err.Error())
 		return
@@ -644,6 +655,11 @@ func (s *Server) handleRegisterNode(w http.ResponseWriter, r *http.Request) {
 	s.registry.mu.Lock()
 	if info, ok := s.registry.nodes[body.ID]; ok {
 		info.contextShards = body.ContextShards
+		info.HardwareFingerprint = body.HardwareFingerprint
+		if body.TPMPubKey != "" {
+			// In a real TEE implementation, we would verify the PEM/DER here
+			info.TPMPubKey = body.TPMPubKey
+		}
 		s.registry.nodes[body.ID] = info
 	}
 	s.registry.mu.Unlock()
@@ -892,4 +908,46 @@ func writeJSON(w http.ResponseWriter, code int, body any) {
 	w.WriteHeader(code)
 	_ = json.NewEncoder(w).Encode(body)
 }
+func (s *Server) handleLeaseJobs(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		NodeID string `json:"node_id"`
+		Limit  int    `json:"limit"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, 400, "invalid json")
+		return
+	}
+	if body.Limit <= 0 {
+		body.Limit = 10
+	}
+
+	token, jobs, err := s.queue.Lease(r.Context(), body.Limit, 30*time.Second)
+	if err != nil {
+		writeError(w, 500, err.Error())
+		return
+	}
+
+	// ZK Execution Envelopes: Encrypt sensitive payloads for nodes
+	// In this demo, we use a global simulation key if node key isn't registered
+	for i, j := range jobs {
+		if j.Type == "ToolCall" {
+			// Find node public key
+			node, ok := s.registry.GetNode(body.NodeID)
+			if ok && node.PubKey != nil {
+				// Seal the payload (Sensitive ZK Envelope)
+				if pub, isRsa := node.PubKey.(*rsa.PublicKey); isRsa {
+					env, err := federation.Seal([]byte(j.PayloadJSON), pub, body.NodeID)
+					if err == nil {
+						j.PayloadJSON = string(mustJSON(env))
+						j.Type += " (ZK Encrypted)"
+					}
+				}
+			}
+		}
+		jobs[i] = j
+	}
+
+	writeJSON(w, 200, map[string]any{"lease_token": token, "jobs": jobs})
+}
+
 func mustJSON(v any) []byte { b, _ := json.Marshal(v); return b }

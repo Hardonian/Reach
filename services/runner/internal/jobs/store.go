@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"reach/services/runner/internal/determinism"
+	"reach/services/runner/internal/pack"
 	"reach/services/runner/internal/storage"
 )
 
@@ -83,6 +84,7 @@ type Run struct {
 	CreatedAt    time.Time
 	IsCritical   bool
 	Fingerprint  string
+	PackCID      string
 	BudgetUSD    float64
 	SpentUSD     float64
 	SpendMu      sync.Mutex
@@ -112,6 +114,7 @@ type Store struct {
 	budgets      [256]*sync.Map // sharded map: runID -> *BudgetController
 	costRegistry *CostRegistry  // Global cost model registry
 	budgetMu     sync.RWMutex   // Protects budget initialization
+	packs        *pack.PackRegistry
 }
 
 // NewStore creates a new Store with budget sharding
@@ -122,6 +125,7 @@ func NewStore(db *storage.SQLiteStore) *Store {
 		audit:        db,
 		drift:        determinism.NewDriftMonitor(),
 		costRegistry: NewCostRegistry(),
+		packs:        pack.NewPackRegistry(),
 	}
 
 	// Initialize budget shards
@@ -208,19 +212,19 @@ func toCapSet(in []string) map[string]struct{} {
 	return out
 }
 
-func (s *Store) CreateRun(ctx context.Context, tenantID string, capabilities []string) (*Run, error) {
+func (s *Store) CreateRun(ctx context.Context, tenantID, packCID string, capabilities []string) (*Run, error) {
 	id := fmt.Sprintf("run-%06d", s.counter.Add(1))
 	now := time.Now().UTC()
-	if err := s.runs.CreateRun(ctx, storage.RunRecord{ID: id, TenantID: tenantID, Capabilities: capabilities, CreatedAt: now, Status: "created"}); err != nil {
+	if err := s.runs.CreateRun(ctx, storage.RunRecord{ID: id, TenantID: tenantID, Capabilities: capabilities, CreatedAt: now, Status: "created", PackCID: packCID}); err != nil {
 		return nil, err
 	}
-	return &Run{ID: id, TenantID: tenantID, Capabilities: toCapSet(capabilities), Gates: map[string]Gate{}, BudgetUSD: 10.0}, nil
+	return &Run{ID: id, TenantID: tenantID, Capabilities: toCapSet(capabilities), Gates: map[string]Gate{}, PackCID: packCID, BudgetUSD: 10.0}, nil
 }
 
-func (s *Store) CreateRunWithBudget(ctx context.Context, tenantID string, capabilities []string, budgetUSD float64) (*Run, error) {
+func (s *Store) CreateRunWithBudget(ctx context.Context, tenantID, packCID string, capabilities []string, budgetUSD float64) (*Run, error) {
 	id := fmt.Sprintf("run-%06d", s.counter.Add(1))
 	now := time.Now().UTC()
-	if err := s.runs.CreateRun(ctx, storage.RunRecord{ID: id, TenantID: tenantID, Capabilities: capabilities, CreatedAt: now, Status: "created"}); err != nil {
+	if err := s.runs.CreateRun(ctx, storage.RunRecord{ID: id, TenantID: tenantID, Capabilities: capabilities, CreatedAt: now, Status: "created", PackCID: packCID}); err != nil {
 		return nil, err
 	}
 
@@ -229,7 +233,7 @@ func (s *Store) CreateRunWithBudget(ctx context.Context, tenantID string, capabi
 		budgetUSD = 10.0
 	}
 
-	return &Run{ID: id, TenantID: tenantID, Capabilities: toCapSet(capabilities), Gates: map[string]Gate{}, BudgetUSD: budgetUSD}, nil
+	return &Run{ID: id, TenantID: tenantID, Capabilities: toCapSet(capabilities), Gates: map[string]Gate{}, PackCID: packCID, BudgetUSD: budgetUSD}, nil
 }
 
 func (s *Store) GetRun(ctx context.Context, tenantID, id string) (*Run, error) {
@@ -247,6 +251,7 @@ func (s *Store) GetRun(ctx context.Context, tenantID, id string) (*Run, error) {
 		Capabilities: toCapSet(rec.Capabilities),
 		Gates:        map[string]Gate{},
 		Status:       rec.Status,
+		PackCID:      rec.PackCID,
 		CreatedAt:    rec.CreatedAt,
 		IsCritical:   rec.Status == "finalized", // Simple heuristic for demo
 		BudgetUSD:    10.0,                      // Default $10 budget for demo

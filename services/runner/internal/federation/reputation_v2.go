@@ -2,7 +2,6 @@
 package federation
 
 import (
-	"fmt"
 	"hash/fnv"
 	"math"
 	"sync"
@@ -33,9 +32,9 @@ type ExecutionOutcome struct {
 
 // TaskProfile describes task requirements for routing
 type TaskProfile struct {
-	Priority           TaskPriority
-	MaxLatencyMs       int
-	RequiredAccuracy   float64
+	Priority             TaskPriority
+	MaxLatencyMs         int
+	RequiredAccuracy     float64
 	RequiredCapabilities []string
 }
 
@@ -53,17 +52,17 @@ const (
 type CircuitState int32
 
 const (
-	StateClosed    CircuitState = 0 // Normal operation
-	StateOpen      CircuitState = 1 // Failing fast
-	StateHalfOpen  CircuitState = 2 // Testing recovery
+	StateClosed   CircuitState = 0 // Normal operation
+	StateOpen     CircuitState = 1 // Failing fast
+	StateHalfOpen CircuitState = 2 // Testing recovery
 )
 
-// ReputationSnapshot for historical tracking
-type ReputationSnapshot struct {
-	Timestamp    int64   `json:"timestamp"`
-	SuccessRate  float64 `json:"success_rate"`
-	LatencyP50   float64 `json:"latency_p50"`
-	LatencyP99   float64 `json:"latency_p99"`
+// MLReputationSnapshot for historical tracking
+type MLReputationSnapshot struct {
+	Timestamp      int64   `json:"timestamp"`
+	SuccessRate    float64 `json:"success_rate"`
+	LatencyP50     float64 `json:"latency_p50"`
+	LatencyP99     float64 `json:"latency_p99"`
 	CompositeScore float64 `json:"composite_score"`
 }
 
@@ -88,7 +87,7 @@ func NewRingBuffer[T any](capacity int) *RingBuffer[T] {
 func (rb *RingBuffer[T]) Push(item T) {
 	rb.mu.Lock()
 	defer rb.mu.Unlock()
-	
+
 	if len(rb.data) < rb.size {
 		rb.data = append(rb.data, item)
 	} else {
@@ -101,13 +100,13 @@ func (rb *RingBuffer[T]) Push(item T) {
 func (rb *RingBuffer[T]) GetAll() []T {
 	rb.mu.RLock()
 	defer rb.mu.RUnlock()
-	
+
 	if len(rb.data) < rb.size {
 		result := make([]T, len(rb.data))
 		copy(result, rb.data)
 		return result
 	}
-	
+
 	result := make([]T, rb.size)
 	for i := 0; i < rb.size; i++ {
 		idx := (rb.head + i) % rb.size
@@ -126,26 +125,26 @@ func (rb *RingBuffer[T]) Len() int {
 // ReputationDimensions tracks multiple performance vectors atomically
 type ReputationDimensions struct {
 	// Atomic counters for lock-free updates
-	SuccessCount      atomic.Uint64
-	FailureCount      atomic.Uint64
-	DriftCount        atomic.Uint64
-	TimeoutCount      atomic.Uint64
+	SuccessCount        atomic.Uint64
+	FailureCount        atomic.Uint64
+	DriftCount          atomic.Uint64
+	TimeoutCount        atomic.Uint64
 	ReplayMismatchCount atomic.Uint64
-	
+
 	// Exponential moving averages (smoothed values stored as uint64)
 	// Values are scaled by 1,000,000 for precision
-	latencyEMA        atomic.Uint64 // milliseconds
-	throughputEMA     atomic.Uint64 // ops/sec
-	
+	latencyEMA    atomic.Uint64 // milliseconds
+	throughputEMA atomic.Uint64 // ops/sec
+
 	// Quality scores (0.0-1.0, stored as uint32 for atomic, scaled by 1,000,000)
 	AccuracyScore     atomic.Uint32 // Verifiable correctness
 	ConsistencyScore  atomic.Uint32 // Low variance in performance
 	AvailabilityScore atomic.Uint32 // Uptime ratio
-	
+
 	// Timestamps
-	LastUpdated       atomic.Int64 // Unix nano
-	LastSuccess       atomic.Int64 // Unix nano
-	LastFailure       atomic.Int64 // Unix nano
+	LastUpdated atomic.Int64 // Unix nano
+	LastSuccess atomic.Int64 // Unix nano
+	LastFailure atomic.Int64 // Unix nano
 }
 
 // GetLatencyEMA returns the current latency EMA in milliseconds
@@ -215,22 +214,22 @@ func (rd *ReputationDimensions) SetAvailabilityScore(val float64) {
 
 // NodeReputation manages multi-dimensional reputation for a single node
 type NodeReputation struct {
-	NodeID      string
-	Dimensions  ReputationDimensions
-	
+	NodeID     string
+	Dimensions ReputationDimensions
+
 	// Weighted composite score (calculated lazily, scaled by 1,000,000)
 	compositeScore atomic.Uint32
 	compositeValid atomic.Bool
-	
+
 	// Historical window for trend analysis
-	history      *RingBuffer[ReputationSnapshot]
-	
+	history *RingBuffer[MLReputationSnapshot]
+
 	// Circuit breaker state
 	circuitState    atomic.Int32 // CircuitState values
 	circuitOpens    atomic.Uint32
 	lastCircuitOpen atomic.Int64 // Unix timestamp
 	circuitMu       sync.Mutex   // For state transitions
-	
+
 	// Configuration
 	mu           sync.RWMutex
 	tags         map[string]string
@@ -241,16 +240,16 @@ type NodeReputation struct {
 func NewNodeReputation(nodeID string) *NodeReputation {
 	nr := &NodeReputation{
 		NodeID:       nodeID,
-		history:      NewRingBuffer[ReputationSnapshot](100),
+		history:      NewRingBuffer[MLReputationSnapshot](100),
 		tags:         make(map[string]string),
 		capabilities: make([]string, 0),
 	}
-	
+
 	// Initialize with neutral scores
 	nr.Dimensions.SetAccuracyScore(0.5)
 	nr.Dimensions.SetConsistencyScore(0.5)
 	nr.Dimensions.SetAvailabilityScore(1.0)
-	
+
 	return nr
 }
 
@@ -258,7 +257,7 @@ func NewNodeReputation(nodeID string) *NodeReputation {
 func (nr *NodeReputation) RecordOutcome(outcome ExecutionOutcome) {
 	now := time.Now().UnixNano()
 	nr.Dimensions.LastUpdated.Store(now)
-	
+
 	switch outcome.Type {
 	case OutcomeSuccess:
 		nr.Dimensions.SuccessCount.Add(1)
@@ -266,32 +265,32 @@ func (nr *NodeReputation) RecordOutcome(outcome ExecutionOutcome) {
 		nr.updateLatencyEMA(outcome.Duration)
 		nr.updateAccuracy(outcome.Verified)
 		nr.recordSuccessForCircuitBreaker()
-		
+
 	case OutcomeFailure:
 		nr.Dimensions.FailureCount.Add(1)
 		nr.Dimensions.LastFailure.Store(now)
 		nr.recordFailureForCircuitBreaker()
-		
+
 	case OutcomeTimeout:
 		nr.Dimensions.TimeoutCount.Add(1)
 		nr.Dimensions.LastFailure.Store(now)
 		nr.Dimensions.SetAvailabilityScore(0)
 		nr.recordFailureForCircuitBreaker()
-		
+
 	case OutcomeDrift:
 		nr.Dimensions.DriftCount.Add(1)
 		nr.Dimensions.LastFailure.Store(now)
 		nr.recordFailureForCircuitBreaker()
-		
+
 	case OutcomeReplayMismatch:
 		nr.Dimensions.ReplayMismatchCount.Add(1)
 		nr.Dimensions.LastFailure.Store(now)
 		nr.recordFailureForCircuitBreaker()
 	}
-	
+
 	// Invalidate composite score
 	nr.compositeValid.Store(false)
-	
+
 	// Snapshot history periodically
 	if nr.Dimensions.SuccessCount.Load()+nr.Dimensions.FailureCount.Load()%10 == 0 {
 		nr.snapshot()
@@ -302,17 +301,17 @@ func (nr *NodeReputation) RecordOutcome(outcome ExecutionOutcome) {
 func (nr *NodeReputation) updateLatencyEMA(duration time.Duration) {
 	newValue := float64(duration.Milliseconds())
 	current := nr.Dimensions.GetLatencyEMA()
-	
+
 	if current == 0 {
 		nr.Dimensions.SetLatencyEMA(newValue)
 		return
 	}
-	
+
 	// EMA: new_ema = 0.7*old + 0.3*new (alpha = 0.3)
 	alpha := 0.3
 	ema := current*(1-alpha) + newValue*alpha
 	nr.Dimensions.SetLatencyEMA(ema)
-	
+
 	// Update consistency based on variance
 	variance := math.Abs(newValue - current)
 	if variance < 100 {
@@ -329,14 +328,14 @@ func (nr *NodeReputation) updateLatencyEMA(duration time.Duration) {
 func (nr *NodeReputation) updateAccuracy(verified bool) {
 	current := nr.Dimensions.GetAccuracyScore()
 	alpha := 0.2 // Slower updates for accuracy
-	
+
 	var target float64
 	if verified {
 		target = 1.0
 	} else {
 		target = 0.5
 	}
-	
+
 	newScore := current*(1-alpha) + target*alpha
 	nr.Dimensions.SetAccuracyScore(newScore)
 }
@@ -344,16 +343,16 @@ func (nr *NodeReputation) updateAccuracy(verified bool) {
 // recordSuccessForCircuitBreaker handles success for circuit state
 func (nr *NodeReputation) recordSuccessForCircuitBreaker() {
 	state := CircuitState(nr.circuitState.Load())
-	
+
 	if state == StateHalfOpen {
 		nr.circuitMu.Lock()
 		defer nr.circuitMu.Unlock()
-		
+
 		// In half-open, enough successes close the circuit
 		successes := nr.Dimensions.SuccessCount.Load()
 		failures := nr.Dimensions.FailureCount.Load()
 		total := successes + failures
-		
+
 		if total >= 5 { // Need 5 samples in half-open
 			recentSuccessRate := float64(successes) / float64(total)
 			if recentSuccessRate > 0.8 { // 80% success to close
@@ -366,32 +365,32 @@ func (nr *NodeReputation) recordSuccessForCircuitBreaker() {
 // recordFailureForCircuitBreaker handles failure for circuit state
 func (nr *NodeReputation) recordFailureForCircuitBreaker() {
 	state := CircuitState(nr.circuitState.Load())
-	
+
 	// Only check thresholds in Closed or HalfOpen state
 	if state == StateOpen {
 		return
 	}
-	
+
 	nr.circuitMu.Lock()
 	defer nr.circuitMu.Unlock()
-	
+
 	successes := nr.Dimensions.SuccessCount.Load()
 	failures := nr.Dimensions.FailureCount.Load()
 	total := successes + failures
-	
+
 	// Need minimum samples before opening
 	if total < 10 {
 		return
 	}
-	
+
 	failureRate := float64(failures) / float64(total)
-	
+
 	// Open circuit if failure rate > 50%
 	if failureRate > 0.5 && CircuitState(nr.circuitState.Load()) != StateOpen {
 		nr.transitionTo(StateOpen)
 		nr.circuitOpens.Add(1)
 		nr.lastCircuitOpen.Store(time.Now().Unix())
-		
+
 		// Schedule recovery attempt
 		go func() {
 			time.Sleep(30 * time.Second) // Cooldown period
@@ -403,7 +402,7 @@ func (nr *NodeReputation) recordFailureForCircuitBreaker() {
 // transitionTo changes circuit state thread-safely
 func (nr *NodeReputation) transitionTo(newState CircuitState) {
 	nr.circuitState.Store(int32(newState))
-	
+
 	if newState == StateClosed {
 		// Reset counters when closing
 		nr.Dimensions.SuccessCount.Store(0)
@@ -423,7 +422,7 @@ func (nr *NodeReputation) IsCircuitOpen() bool {
 
 // snapshot creates a historical snapshot
 func (nr *NodeReputation) snapshot() {
-	snapshot := ReputationSnapshot{
+	snapshot := MLReputationSnapshot{
 		Timestamp:      time.Now().Unix(),
 		SuccessRate:    nr.getSuccessRate(),
 		LatencyP50:     nr.Dimensions.GetLatencyEMA(),
@@ -437,11 +436,11 @@ func (nr *NodeReputation) getSuccessRate() float64 {
 	successes := nr.Dimensions.SuccessCount.Load()
 	failures := nr.Dimensions.FailureCount.Load()
 	total := successes + failures
-	
+
 	if total == 0 {
 		return 0.5 // Neutral default
 	}
-	
+
 	return float64(successes) / float64(total)
 }
 
@@ -451,16 +450,16 @@ func (nr *NodeReputation) GetRoutingScore(task TaskProfile, globalStats *GlobalS
 	if nr.IsCircuitOpen() {
 		return -1.0 // Don't route to open circuits
 	}
-	
+
 	// Lazy composite calculation
 	if !nr.compositeValid.Load() {
 		score := nr.calculateComposite()
 		nr.compositeScore.Store(uint32(score * 1000000))
 		nr.compositeValid.Store(true)
 	}
-	
+
 	composite := float64(nr.compositeScore.Load()) / 1000000
-	
+
 	// Task-specific adjustments
 	switch task.Priority {
 	case PriorityCritical:
@@ -474,18 +473,18 @@ func (nr *NodeReputation) GetRoutingScore(task TaskProfile, globalStats *GlobalS
 			return -1.0 // Need near-perfect reliability
 		}
 		return composite * accuracy * accuracy * successRate // Triple penalty
-		
+
 	case PriorityLatencySensitive:
 		latency := nr.Dimensions.GetLatencyEMA()
 		if task.MaxLatencyMs > 0 && int(latency) > task.MaxLatencyMs {
 			return -1.0 // Too slow
 		}
-		
+
 		if globalStats != nil && globalStats.MeanLatency > 0 {
 			latencyRatio := globalStats.MeanLatency / latency
 			return composite * latencyRatio
 		}
-		
+
 	case PriorityBackground:
 		// Lower standards for background tasks
 		if composite < 0.3 {
@@ -493,7 +492,7 @@ func (nr *NodeReputation) GetRoutingScore(task TaskProfile, globalStats *GlobalS
 		}
 		return composite * 0.8 // Slight penalty
 	}
-	
+
 	return composite
 }
 
@@ -506,23 +505,23 @@ func (nr *NodeReputation) calculateComposite() float64 {
 		consistencyWeight  = 0.20
 		successRateWeight  = 0.20
 	)
-	
+
 	accuracy := nr.Dimensions.GetAccuracyScore()
 	availability := nr.Dimensions.GetAvailabilityScore()
 	consistency := nr.Dimensions.GetConsistencyScore()
 	successRate := nr.getSuccessRate()
-	
+
 	composite := accuracy*accuracyWeight +
 		availability*availabilityWeight +
 		consistency*consistencyWeight +
 		successRate*successRateWeight
-	
+
 	return math.Max(0, math.Min(1, composite))
 }
 
 // GetSnapshot returns current reputation snapshot
-func (nr *NodeReputation) GetSnapshot() ReputationSnapshot {
-	return ReputationSnapshot{
+func (nr *NodeReputation) GetSnapshot() MLReputationSnapshot {
+	return MLReputationSnapshot{
 		Timestamp:      time.Now().Unix(),
 		SuccessRate:    nr.getSuccessRate(),
 		LatencyP50:     nr.Dimensions.GetLatencyEMA(),
@@ -531,7 +530,7 @@ func (nr *NodeReputation) GetSnapshot() ReputationSnapshot {
 }
 
 // GetHistory returns historical snapshots
-func (nr *NodeReputation) GetHistory() []ReputationSnapshot {
+func (nr *NodeReputation) GetHistory() []MLReputationSnapshot {
 	return nr.history.GetAll()
 }
 
@@ -552,31 +551,31 @@ type ReputationEngine struct {
 		Consistency  float64
 		Recency      float64 // Time-decay factor
 	}
-	
+
 	// Node registry (64 shards based on hash)
-	nodes        [64]*sync.Map // shard by hash(nodeID) % 64
-	
+	nodes [64]*sync.Map // shard by hash(nodeID) % 64
+
 	// Global stats for normalization
-	globalMu     sync.RWMutex
-	globalStats  GlobalStats
+	globalMu    sync.RWMutex
+	globalStats GlobalStats
 }
 
 // NewReputationEngine creates a new reputation engine
 func NewReputationEngine() *ReputationEngine {
 	re := &ReputationEngine{}
-	
+
 	// Set default weights
 	re.Weights.Latency = 0.25
 	re.Weights.Accuracy = 0.30
 	re.Weights.Availability = 0.20
 	re.Weights.Consistency = 0.15
 	re.Weights.Recency = 0.10
-	
+
 	// Initialize shards
 	for i := 0; i < 64; i++ {
 		re.nodes[i] = &sync.Map{}
 	}
-	
+
 	return re
 }
 
@@ -590,28 +589,28 @@ func (re *ReputationEngine) getShard(nodeID string) *sync.Map {
 // GetOrCreateNodeReputation gets or creates reputation for a node
 func (re *ReputationEngine) GetOrCreateNodeReputation(nodeID string) *NodeReputation {
 	shard := re.getShard(nodeID)
-	
+
 	if nr, ok := shard.Load(nodeID); ok {
 		return nr.(*NodeReputation)
 	}
-	
+
 	nr := NewNodeReputation(nodeID)
 	actual, loaded := shard.LoadOrStore(nodeID, nr)
 	if loaded {
 		return actual.(*NodeReputation)
 	}
-	
+
 	return nr
 }
 
 // GetNodeReputation retrieves reputation (returns nil if not found)
 func (re *ReputationEngine) GetNodeReputation(nodeID string) *NodeReputation {
 	shard := re.getShard(nodeID)
-	
+
 	if nr, ok := shard.Load(nodeID); ok {
 		return nr.(*NodeReputation)
 	}
-	
+
 	return nil
 }
 
@@ -619,7 +618,7 @@ func (re *ReputationEngine) GetNodeReputation(nodeID string) *NodeReputation {
 func (re *ReputationEngine) RecordOutcome(nodeID string, outcome ExecutionOutcome) {
 	nr := re.GetOrCreateNodeReputation(nodeID)
 	nr.RecordOutcome(outcome)
-	
+
 	// Update global stats periodically
 	if (nr.Dimensions.SuccessCount.Load()+nr.Dimensions.FailureCount.Load())%100 == 0 {
 		re.updateGlobalStats()
@@ -630,7 +629,7 @@ func (re *ReputationEngine) RecordOutcome(nodeID string, outcome ExecutionOutcom
 func (re *ReputationEngine) updateGlobalStats() {
 	var totalLatency, totalSuccessRate float64
 	var count int
-	
+
 	// Iterate all shards
 	for i := 0; i < 64; i++ {
 		re.nodes[i].Range(func(key, value any) bool {
@@ -641,7 +640,7 @@ func (re *ReputationEngine) updateGlobalStats() {
 			return true
 		})
 	}
-	
+
 	if count > 0 {
 		re.globalMu.Lock()
 		re.globalStats.MeanLatency = totalLatency / float64(count)
@@ -663,15 +662,15 @@ func (re *ReputationEngine) SelectBestNodes(task TaskProfile, n int, excludeNode
 	for _, id := range excludeNodes {
 		excludeMap[id] = true
 	}
-	
+
 	type scoredNode struct {
 		nr    *NodeReputation
 		score float64
 	}
-	
+
 	var scored []scoredNode
 	globalStats := re.GetGlobalStats()
-	
+
 	// Collect all nodes with scores
 	for i := 0; i < 64; i++ {
 		re.nodes[i].Range(func(key, value any) bool {
@@ -679,18 +678,18 @@ func (re *ReputationEngine) SelectBestNodes(task TaskProfile, n int, excludeNode
 			if excludeMap[nodeID] {
 				return true
 			}
-			
+
 			nr := value.(*NodeReputation)
 			score := nr.GetRoutingScore(task, &globalStats)
-			
+
 			if score >= 0 { // Only include routable nodes
 				scored = append(scored, scoredNode{nr, score})
 			}
-			
+
 			return true
 		})
 	}
-	
+
 	// Sort by score descending
 	for i := 0; i < len(scored)-1; i++ {
 		for j := i + 1; j < len(scored); j++ {
@@ -699,41 +698,41 @@ func (re *ReputationEngine) SelectBestNodes(task TaskProfile, n int, excludeNode
 			}
 		}
 	}
-	
+
 	// Return top N
 	if n > len(scored) {
 		n = len(scored)
 	}
-	
+
 	result := make([]*NodeReputation, n)
 	for i := 0; i < n; i++ {
 		result[i] = scored[i].nr
 	}
-	
+
 	return result
 }
 
 // GetAllNodes returns all node reputations
 func (re *ReputationEngine) GetAllNodes() []*NodeReputation {
 	var nodes []*NodeReputation
-	
+
 	for i := 0; i < 64; i++ {
 		re.nodes[i].Range(func(key, value any) bool {
 			nodes = append(nodes, value.(*NodeReputation))
 			return true
 		})
 	}
-	
+
 	return nodes
 }
 
 // UpdateNodeTags updates tags for a node
 func (re *ReputationEngine) UpdateNodeTags(nodeID string, tags map[string]string) {
 	nr := re.GetOrCreateNodeReputation(nodeID)
-	
+
 	nr.mu.Lock()
 	defer nr.mu.Unlock()
-	
+
 	for k, v := range tags {
 		nr.tags[k] = v
 	}
@@ -745,10 +744,10 @@ func (re *ReputationEngine) GetNodeTags(nodeID string) map[string]string {
 	if nr == nil {
 		return nil
 	}
-	
+
 	nr.mu.RLock()
 	defer nr.mu.RUnlock()
-	
+
 	// Return copy
 	result := make(map[string]string, len(nr.tags))
 	for k, v := range nr.tags {
@@ -776,7 +775,7 @@ func (re *ReputationEngine) RestoreNode(nodeID string) {
 // GetStats returns engine statistics
 func (re *ReputationEngine) GetStats() map[string]interface{} {
 	var totalNodes, openCircuits uint32
-	
+
 	for i := 0; i < 64; i++ {
 		re.nodes[i].Range(func(key, value any) bool {
 			totalNodes++
@@ -787,10 +786,10 @@ func (re *ReputationEngine) GetStats() map[string]interface{} {
 			return true
 		})
 	}
-	
+
 	return map[string]interface{}{
-		"total_nodes":    totalNodes,
-		"open_circuits":  openCircuits,
-		"global_stats":   re.GetGlobalStats(),
+		"total_nodes":   totalNodes,
+		"open_circuits": openCircuits,
+		"global_stats":  re.GetGlobalStats(),
 	}
 }

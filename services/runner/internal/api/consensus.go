@@ -9,20 +9,20 @@ import (
 // ConsensusManager handles multi-node voting for critical tool results.
 type ConsensusManager struct {
 	mu     sync.Mutex
-	groups map[string]*consensusGroup // key: runID:toolName:step
+	groups map[string]*ConsensusGroup // key: runID:toolName:step
 }
 
-type consensusGroup struct {
-	Threshold int
-	Results   map[string]string         // NodeID -> ResultHash
-	Payloads  map[string]map[string]any // NodeID -> Original Payload
-	Resolved  bool
-	Winner    map[string]any
+type ConsensusGroup struct {
+	Threshold int                       `json:"threshold"`
+	Results   map[string]string         `json:"results"`  // NodeID -> ResultHash
+	Payloads  map[string]map[string]any `json:"payloads"` // NodeID -> Original Payload
+	Resolved  bool                      `json:"resolved"`
+	Winner    map[string]any            `json:"winner"`
 }
 
 func NewConsensusManager() *ConsensusManager {
 	return &ConsensusManager{
-		groups: make(map[string]*consensusGroup),
+		groups: make(map[string]*ConsensusGroup),
 	}
 }
 
@@ -34,7 +34,7 @@ func (m *ConsensusManager) ReceiveResult(runID, toolName string, step int, nodeI
 	key := fmt.Sprintf("%s:%s:%d", runID, toolName, step)
 	group, ok := m.groups[key]
 	if !ok {
-		group = &consensusGroup{
+		group = &ConsensusGroup{
 			Threshold: threshold,
 			Results:   make(map[string]string),
 			Payloads:  make(map[string]map[string]any),
@@ -66,4 +66,12 @@ func (m *ConsensusManager) ReceiveResult(runID, toolName string, step int, nodeI
 	}
 
 	return false, nil, nil
+}
+
+func (m *ConsensusManager) GetGroup(runID, toolName string, step int) (*ConsensusGroup, bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	key := fmt.Sprintf("%s:%s:%d", runID, toolName, step)
+	group, ok := m.groups[key]
+	return group, ok
 }

@@ -22,13 +22,16 @@ type NodeRegistry struct {
 }
 
 type nodeInfo struct {
-	capabilities     []string
-	lastSeen         time.Time
-	latency          time.Duration
-	load             int
-	tags             []string
-	contextShards    []string
-	reliabilityScore float64 // 0.0 - 1.0
+	capabilities        []string
+	lastSeen            time.Time
+	latency             time.Duration
+	load                int
+	tags                []string
+	contextShards       []string
+	reliabilityScore    float64 // 0.0 - 1.0
+	PubKey              any     // *rsa.PublicKey
+	TPMPubKey           any     // *rsa.PublicKey
+	HardwareFingerprint string
 }
 
 func NewNodeRegistry() *NodeRegistry {
@@ -80,4 +83,10 @@ func (r *NodeRegistry) GetReliability(nodeID string) float64 {
 		return info.reliabilityScore
 	}
 	return 0.5 // Unknown
+}
+func (r *NodeRegistry) GetNode(nodeID string) (nodeInfo, bool) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	info, ok := r.nodes[nodeID]
+	return info, ok
 }

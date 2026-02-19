@@ -3,7 +3,6 @@ package api
 import (
 	"sync"
 	"testing"
-	"time"
 )
 
 func TestNewNodeRegistry(t *testing.T) {

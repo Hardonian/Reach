@@ -11,11 +11,14 @@ import (
 
 // LintResult represents the outcome of a pack lint operation.
 type LintResult struct {
-	Valid    bool     `json:"valid"`
-	Errors   []string `json:"errors"`
-	Warnings []string `json:"warnings"`
-	Metadata Metadata `json:"metadata"`
-	Hash     string   `json:"hash"`
+	Valid       bool          `json:"valid"`
+	Errors      []string      `json:"errors"`
+	Warnings    []string      `json:"warnings"`
+	Metadata    Metadata      `json:"metadata"`
+	Hash        string        `json:"hash"`
+	MerkleRoot  string        `json:"merkle_root,omitempty"`
+	MerkleProof *MerkleProof  `json:"merkle_proof,omitempty"`
+	Integrity   *PackIntegrity `json:"integrity,omitempty"`
 }
 
 // Metadata from the pack manifest.
@@ -108,11 +111,80 @@ func Lint(path string) (*LintResult, error) {
 	h.Write(graphData)
 	res.Hash = hex.EncodeToString(h.Sum(nil))
 
+	// 5. Merkle Tree Integration: Content-addressed integrity
+	integrity, err := ComputePackIntegrity(&manifest, graphData)
+	if err != nil {
+		res.Warnings = append(res.Warnings, fmt.Sprintf("merkle tree computation failed: %v", err))
+	} else {
+		res.MerkleRoot = integrity.MerkleRoot
+		res.Integrity = integrity
+
+		// Generate proof for execution graph (leaf index 3)
+		proof, err := integrity.Tree.GetProof(3)
+		if err == nil {
+			res.MerkleProof = proof
+		}
+	}
+
 	if len(res.Errors) > 0 {
 		res.Valid = false
 	}
 
 	return res, nil
+}
+
+// LintWithMerkle performs linting with full Merkle tree verification.
+func LintWithMerkle(path string, verifyProofs bool) (*LintResult, error) {
+	res, err := Lint(path)
+	if err != nil {
+		return nil, err
+	}
+
+	// Additional Merkle verification if requested
+	if verifyProofs && res.Integrity != nil {
+		// Verify all leaves have valid proofs
+		for i := 0; i < 5; i++ {
+			proof, err := res.Integrity.Tree.GetProof(i)
+			if err != nil {
+				res.Warnings = append(res.Warnings, fmt.Sprintf("failed to generate proof for leaf %d: %v", i, err))
+				continue
+			}
+
+			if !VerifyProofHex(proof, res.MerkleRoot) {
+				res.Errors = append(res.Errors, fmt.Sprintf("merkle proof verification failed for leaf %d", i))
+				res.Valid = false
+			}
+		}
+	}
+
+	return res, nil
+}
+
+// VerifyMerkleProof verifies a Merkle proof for a specific pack and leaf.
+func VerifyMerkleProof(manifest *PackManifest, leafIndex int, proof *MerkleProof) (bool, error) {
+	graphData, _ := json.Marshal(manifest.ExecutionGraph)
+	integrity, err := ComputePackIntegrity(manifest, graphData)
+	if err != nil {
+		return false, fmt.Errorf("failed to compute integrity: %w", err)
+	}
+
+	// Regenerate proof at the same index to compare
+	expectedProof, err := integrity.Tree.GetProof(leafIndex)
+	if err != nil {
+		return false, fmt.Errorf("failed to get expected proof: %w", err)
+	}
+
+	return VerifyProof(proof, expectedProof.LeafHash), nil
+}
+
+// GetContentAddress returns the content address (Merkle root) for a pack.
+func GetContentAddress(manifest *PackManifest) (string, error) {
+	graphData, _ := json.Marshal(manifest.ExecutionGraph)
+	integrity, err := ComputePackIntegrity(manifest, graphData)
+	if err != nil {
+		return "", err
+	}
+	return integrity.MerkleRoot, nil
 }
 
 func checkAcyclic(g ExecutionGraph) bool {

@@ -13,6 +13,13 @@ import (
 	"reach/services/runner/internal/spec"
 )
 
+// BudgetProvider interface for budget operations
+type BudgetProvider interface {
+	PredictAndReserve(ctx context.Context, tenantID, runID, tool string, estimatedTokens int) (jobs.AllocationResult, error)
+	CommitSpend(ctx context.Context, tenantID, runID string, allocID uint64, actualCost float64, tool string) error
+	GetBudgetStatus(ctx context.Context, tenantID, runID string) (map[string]interface{}, error)
+}
+
 type StatusReason string
 
 const (
@@ -27,6 +34,7 @@ const (
 	ReasonCheckpointFailed StatusReason = "checkpoint_failed"
 	ReasonPaused           StatusReason = "paused"
 	ReasonPlanError        StatusReason = "plan_error"
+	ReasonBudgetExceeded   StatusReason = "budget_exceeded"
 )
 
 type PauseReason string
@@ -37,6 +45,7 @@ const (
 	PauseReasonUser         PauseReason = "user_paused"
 	PauseReasonGuardrail    PauseReason = "guardrail_near"
 	PauseReasonPolicyWindow PauseReason = "policy_window"
+	PauseReasonBudget       PauseReason = "budget_low"
 )
 
 type RuntimeSignals struct {
@@ -83,6 +92,7 @@ func (s IdleCycleScheduler) burstForIteration(iteration int) time.Duration {
 	return s.BurstMin + offset
 }
 
+// Loop provides the autonomous execution loop with budget integration.
 type Loop struct {
 	Store                *jobs.Store
 	Planner              StepPlanner
@@ -93,6 +103,13 @@ type Loop struct {
 	NoProgressLimit      int
 	IterationTimeout     time.Duration
 	Sleep                func(context.Context, time.Duration) bool
+	
+	// Budget integration
+	BudgetProvider       BudgetProvider
+	TenantID             string
+	RunID                string
+	BudgetEnabled        bool
+	defaultTokenEstimate int
 }
 
 func (l *Loop) Run(ctx context.Context, tenantID, runID string, session *jobs.AutonomousSession) StatusReason {
@@ -102,6 +119,14 @@ func (l *Loop) Run(ctx context.Context, tenantID, runID string, session *jobs.Au
 	if l.NoProgressLimit <= 0 {
 		l.NoProgressLimit = 3
 	}
+	if l.defaultTokenEstimate <= 0 {
+		l.defaultTokenEstimate = 1000
+	}
+	
+	// Store IDs for budget operations
+	l.TenantID = tenantID
+	l.RunID = runID
+	
 	scheduler := l.Scheduler.normalize()
 	sleepFn := l.Sleep
 	if sleepFn == nil {
@@ -163,6 +188,17 @@ func (l *Loop) preflight(ctx context.Context, _ string, session *jobs.Autonomous
 	if session.MaxRuntime > 0 && time.Since(session.StartedAt) >= session.MaxRuntime {
 		return ReasonMaxRuntime, true
 	}
+	
+	// Check budget status if enabled
+	if l.BudgetEnabled && l.BudgetProvider != nil {
+		status, err := l.BudgetProvider.GetBudgetStatus(ctx, l.TenantID, l.RunID)
+		if err == nil {
+			if paused, ok := status["paused"].(bool); ok && paused {
+				return ReasonBudgetExceeded, true
+			}
+		}
+	}
+	
 	return "", false
 }
 
@@ -183,6 +219,17 @@ func (l *Loop) pauseReason(ctx context.Context, session jobs.AutonomousSession) 
 	if sig.GuardrailNear {
 		return PauseReasonGuardrail
 	}
+	
+	// Check budget if enabled
+	if l.BudgetEnabled && l.BudgetProvider != nil {
+		status, err := l.BudgetProvider.GetBudgetStatus(ctx, l.TenantID, l.RunID)
+		if err == nil {
+			if percentUsed, ok := status["percent_used"].(float64); ok && percentUsed >= 80 {
+				return PauseReasonBudget
+			}
+		}
+	}
+	
 	return ""
 }
 
@@ -198,9 +245,15 @@ func (l *Loop) tick(ctx context.Context, tenantID, runID string, session *jobs.A
 	state := SessionState{
 		Goal:           session.Goal,
 		IterationCount: session.IterationCount,
-		// History would need to be rehydrated or maintained in AutonomousSession if we want full history.
-		// For now, passing minimal state.
-		Variables: make(map[string]any),
+		Variables:      make(map[string]any),
+	}
+	
+	// Add budget info to state if available
+	if l.BudgetEnabled && l.BudgetProvider != nil {
+		status, err := l.BudgetProvider.GetBudgetStatus(ctx, tenantID, runID)
+		if err == nil {
+			state.Variables["budget_status"] = status
+		}
 	}
 
 	// 2. Planner Step
@@ -224,25 +277,81 @@ func (l *Loop) tick(ctx context.Context, tenantID, runID string, session *jobs.A
 		return ReasonPlanError
 	}
 
-	// 3. Execution Step
+	// 3. Budget Check: Predict and reserve before execution
+	var allocResult jobs.AllocationResult
+	if l.BudgetEnabled && l.BudgetProvider != nil {
+		estimatedTokens := l.defaultTokenEstimate
+		if plan.EstimatedTokens > 0 {
+			estimatedTokens = plan.EstimatedTokens
+		}
+		
+		allocResult, err = l.BudgetProvider.PredictAndReserve(ctx, tenantID, runID, plan.Tool, estimatedTokens)
+		if err != nil {
+			// Budget check failed
+			session.FailureStreak++
+			_ = l.publishStateEvent(ctx, runID, "autonomous.budget_denied", map[string]any{
+				"tool": plan.Tool,
+				"error": err.Error(),
+			})
+			
+			if errors.Is(err, jobs.ErrBudgetExceeded) {
+				return ReasonBudgetExceeded
+			}
+			return "" // Retry
+		}
+		
+		if !allocResult.Approved {
+			// Budget allocation denied
+			_ = l.publishStateEvent(ctx, runID, "autonomous.budget_exceeded", map[string]any{
+				"tool": plan.Tool,
+				"estimated_cost": allocResult.EstCost,
+			})
+			return ReasonBudgetExceeded
+		}
+	}
+
+	// 4. Execution Step
 	// Create Envelope
 	envelope := ExecutionEnvelope{
 		ID:        uuid.New().String(),
-		TaskID:    runID, // Or a sub-task ID
+		TaskID:    runID,
 		ToolName:  plan.Tool,
 		Arguments: plan.Args,
 		Context: ExecutionContext{
 			SessionID:   runID,
 			TenantID:    tenantID,
-			AgentID:     "root", // Simplification
+			AgentID:     "root",
 			SpecVersion: spec.Version,
 		},
 		Permissions: session.AllowedCapabilities,
 	}
+	
+	// Include budget allocation in envelope if applicable
+	if l.BudgetEnabled {
+		envelope.BudgetAllocID = allocResult.AllocatedID
+		envelope.EstimatedCost = allocResult.EstCost
+	}
 
 	res, err := l.Executor.Execute(stepCtx, envelope)
 
-	// 4. Update Session
+	// 5. Commit or rollback budget allocation
+	if l.BudgetEnabled && l.BudgetProvider != nil {
+		actualCost := allocResult.EstCost // Default to estimate
+		if res != nil && res.Metrics.CostUSD > 0 {
+			actualCost = res.Metrics.CostUSD
+		}
+		
+		commitErr := l.BudgetProvider.CommitSpend(ctx, tenantID, runID, allocResult.AllocatedID, actualCost, plan.Tool)
+		if commitErr != nil {
+			// Log but don't fail the operation
+			_ = l.publishStateEvent(ctx, runID, "autonomous.budget_commit_error", map[string]any{
+				"tool": plan.Tool,
+				"error": commitErr.Error(),
+			})
+		}
+	}
+
+	// 6. Update Session
 	session.ToolCallCount++
 	session.IterationCount++
 	session.UpdatedAt = time.Now().UTC()
@@ -268,7 +377,7 @@ func (l *Loop) tick(ctx context.Context, tenantID, runID string, session *jobs.A
 		session.NoProgressStreak++
 	}
 
-	// 5. Checkpoint
+	// 7. Checkpoint
 	if ckErr := l.checkpoint(ctx, tenantID, runID, *session, *plan, res); ckErr != nil {
 		return ReasonCheckpointFailed
 	}
@@ -291,12 +400,22 @@ func (l *Loop) publishStateEvent(ctx context.Context, runID, event string, paylo
 }
 
 func (l *Loop) checkpoint(ctx context.Context, tenantID, runID string, session jobs.AutonomousSession, plan StepPlan, res *ExecutionResult) error {
+	// Include budget status in checkpoint
+	budgetData := map[string]any{}
+	if l.BudgetEnabled && l.BudgetProvider != nil {
+		status, err := l.BudgetProvider.GetBudgetStatus(ctx, tenantID, runID)
+		if err == nil {
+			budgetData = status
+		}
+	}
+	
 	capsule, err := json.Marshal(map[string]any{
 		"goal":            session.Goal,
 		"iteration":       session.IterationCount,
 		"tool_call_count": session.ToolCallCount,
 		"plan":            plan,
 		"result":          res,
+		"budget":          budgetData,
 		"timestamp":       time.Now().UTC().Format(time.RFC3339Nano),
 	})
 	if err != nil {
@@ -311,7 +430,11 @@ func (l *Loop) checkpoint(ctx context.Context, tenantID, runID string, session j
 		summary = res.Error.Message
 	}
 
-	auditPayload, _ := json.Marshal(map[string]any{"iteration": session.IterationCount, "delta_summary": summary})
+	auditPayload, _ := json.Marshal(map[string]any{
+		"iteration": session.IterationCount,
+		"delta_summary": summary,
+		"budget_enabled": l.BudgetEnabled,
+	})
 	if err := l.Store.Audit(ctx, tenantID, runID, "autonomous.checkpoint", auditPayload); err != nil {
 		return err
 	}
@@ -341,6 +464,7 @@ func (StaticExecutor) Execute(_ context.Context, _ ExecutionEnvelope) (*Executio
 		Output: json.RawMessage(`{"ok": true}`),
 		Metrics: ExecutionMetrics{
 			Duration: time.Millisecond,
+			CostUSD:  0.001,
 		},
 	}, nil
 }
