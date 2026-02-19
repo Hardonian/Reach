@@ -84,16 +84,24 @@ func deriveNodeID(pub ed25519.PublicKey) string {
 
 // SignEnvelope signs a delegation envelope and updates its signature field
 func (kp *KeyPair) SignEnvelope(envelope *ReachDelegationEnvelope) error {
-	// Compute envelope hash if not set
-	if envelope.EnvelopeHash == "" {
-		envelope.EnvelopeHash = determinism.Hash(envelope)
-	}
+	// Save original values to compute canonical hash
+	origHash := envelope.EnvelopeHash
+	origSig := envelope.Signature
+
+	// Compute hash without signature fields for deterministic hashing
+	envelope.EnvelopeHash = ""
+	envelope.Signature = ""
+	envelope.EnvelopeHash = determinism.Hash(envelope)
+
+	// Restore original values
+	envelope.Signature = origSig
 
 	// Sign the envelope hash
 	data := []byte(envelope.EnvelopeHash)
 	sig := ed25519.Sign(kp.PrivateKey, data)
 
 	envelope.Signature = base64.StdEncoding.EncodeToString(sig)
+	_ = origHash // Preserve for reference
 	return nil
 }
 
@@ -121,9 +129,14 @@ func (kp *KeyPair) VerifyEnvelope(envelope *ReachDelegationEnvelope, pubKey ed25
 		return fmt.Errorf("invalid signature encoding: %w", err)
 	}
 
-	// Verify envelope hash
+	// Compute canonical hash (without signature field)
+	origSig := envelope.Signature
+	envelope.Signature = ""
 	expectedHash := determinism.Hash(envelope)
-	if envelope.EnvelopeHash != "" && envelope.EnvelopeHash != expectedHash {
+	envelope.Signature = origSig
+
+	// Verify envelope hash matches
+	if envelope.EnvelopeHash != expectedHash {
 		return fmt.Errorf("envelope hash mismatch: computed %s, expected %s", expectedHash, envelope.EnvelopeHash)
 	}
 
