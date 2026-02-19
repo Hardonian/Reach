@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 
 	"reach/internal/packkit/registry"
 )
@@ -13,7 +14,30 @@ type ResolvedPackage struct {
 	registry.PackageVersion
 }
 
+type version struct {
+	major, minor, patch int
+}
+
+type cachedKey struct {
+	id         string
+	constraint string
+}
+
+var (
+	cache   sync.Map
+	verPool = sync.Pool{
+		New: func() interface{} {
+			return &version{}
+		},
+	}
+)
+
 func ResolvePackage(id, versionConstraint string, idx registry.Index) (ResolvedPackage, error) {
+	key := cachedKey{id: id, constraint: versionConstraint}
+	if cached, ok := cache.Load(key); ok {
+		return cached.(ResolvedPackage), nil
+	}
+
 	var match *ResolvedPackage
 	for _, p := range idx.Packages {
 		if p.ID != id {
@@ -33,6 +57,7 @@ func ResolvePackage(id, versionConstraint string, idx registry.Index) (ResolvedP
 	if match == nil {
 		return ResolvedPackage{}, fmt.Errorf("package not found: %s %s", id, versionConstraint)
 	}
+	cache.Store(key, *match)
 	return *match, nil
 }
 
@@ -50,25 +75,42 @@ func matchesConstraint(version, constraint string) bool {
 }
 
 func compareVersion(a, b string) int {
-	as := strings.Split(a, ".")
-	bs := strings.Split(b, ".")
-	for i := 0; i < 3; i++ {
-		ai := part(as, i)
-		bi := part(bs, i)
-		if ai > bi {
+	va := parseVersion(a)
+	vb := parseVersion(b)
+	if va.major != vb.major {
+		if va.major > vb.major {
 			return 1
 		}
-		if ai < bi {
-			return -1
+		return -1
+	}
+	if va.minor != vb.minor {
+		if va.minor > vb.minor {
+			return 1
 		}
+		return -1
+	}
+	if va.patch != vb.patch {
+		if va.patch > vb.patch {
+			return 1
+		}
+		return -1
 	}
 	return 0
 }
 
-func part(parts []string, i int) int {
-	if len(parts) <= i {
-		return 0
+func parseVersion(s string) *version {
+	v := verPool.Get().(*version)
+	v.major, v.minor, v.patch = 0, 0, 0
+
+	parts := strings.SplitN(s, ".", 3)
+	if len(parts) > 0 {
+		v.major, _ = strconv.Atoi(parts[0])
 	}
-	v, _ := strconv.Atoi(parts[i])
+	if len(parts) > 1 {
+		v.minor, _ = strconv.Atoi(parts[1])
+	}
+	if len(parts) > 2 {
+		v.patch, _ = strconv.Atoi(parts[2])
+	}
 	return v
 }

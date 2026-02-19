@@ -19,130 +19,97 @@ import (
 	"sync"
 )
 
-// EnforcementLayer is the single entry point for all capability checks.
-// All tool access in the system must flow through this layer.
+type envPattern struct {
+	prefix string
+	isWild bool
+}
+
+type runContext struct {
+	caps   map[string]struct{}
+	tools  map[string]struct{}
+	env    map[string]struct{}
+	envPat []envPattern
+}
+
 type EnforcementLayer struct {
-	mu sync.RWMutex
-
-	// declaredCapabilities maps runID -> set of declared capability strings
-	declaredCapabilities map[string]map[string]struct{}
-
-	// declaredTools maps runID -> set of declared tool names
-	declaredTools map[string]map[string]struct{}
-
-	// declaredEnvVars maps runID -> set of allowed environment variable names
-	declaredEnvVars map[string]map[string]struct{}
-
-	// workspaceRoot is the sandboxed filesystem root
+	runs          sync.Map
 	workspaceRoot string
 }
 
-// NewEnforcementLayer creates a new sandbox enforcement layer.
 func NewEnforcementLayer(workspaceRoot string) *EnforcementLayer {
 	return &EnforcementLayer{
-		declaredCapabilities: make(map[string]map[string]struct{}),
-		declaredTools:        make(map[string]map[string]struct{}),
-		declaredEnvVars:      make(map[string]map[string]struct{}),
-		workspaceRoot:        workspaceRoot,
+		workspaceRoot: workspaceRoot,
 	}
 }
 
-// RegisterRun declares the capabilities and tools for a run.
-// This must be called before any tool invocations for the run.
 func (e *EnforcementLayer) RegisterRun(runID string, capabilities []string, tools []string, envVars []string) {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-
-	capSet := make(map[string]struct{}, len(capabilities))
+	ctx := &runContext{
+		caps:  make(map[string]struct{}, len(capabilities)),
+		tools: make(map[string]struct{}, len(tools)),
+		env:   make(map[string]struct{}, len(envVars)),
+	}
 	for _, c := range capabilities {
-		capSet[c] = struct{}{}
+		ctx.caps[c] = struct{}{}
 	}
-	e.declaredCapabilities[runID] = capSet
-
-	toolSet := make(map[string]struct{}, len(tools))
 	for _, t := range tools {
-		toolSet[t] = struct{}{}
+		ctx.tools[t] = struct{}{}
 	}
-	e.declaredTools[runID] = toolSet
-
-	envSet := make(map[string]struct{}, len(envVars))
 	for _, v := range envVars {
-		envSet[v] = struct{}{}
+		ctx.env[v] = struct{}{}
+		if strings.HasSuffix(v, "*") {
+			ctx.envPat = append(ctx.envPat, envPattern{prefix: strings.TrimSuffix(v, "*"), isWild: true})
+		}
 	}
-	e.declaredEnvVars[runID] = envSet
+	e.runs.Store(runID, ctx)
 }
 
-// UnregisterRun removes all declarations for a run.
-// This should be called when a run completes to free memory.
 func (e *EnforcementLayer) UnregisterRun(runID string) {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-
-	delete(e.declaredCapabilities, runID)
-	delete(e.declaredTools, runID)
-	delete(e.declaredEnvVars, runID)
+	e.runs.Delete(runID)
 }
 
-// CheckToolAccess verifies that a tool is allowed for the given run.
-// Returns an error if the tool is not declared.
-func (e *EnforcementLayer) CheckToolAccess(runID string, toolName string) error {
-	e.mu.RLock()
-	defer e.mu.RUnlock()
-
-	tools, ok := e.declaredTools[runID]
+func (e *EnforcementLayer) getCtx(runID string) (*runContext, error) {
+	val, ok := e.runs.Load(runID)
 	if !ok {
-		return fmt.Errorf("sandbox: run %s not registered", runID)
+		return nil, fmt.Errorf("sandbox: run %s not registered", runID)
 	}
+	return val.(*runContext), nil
+}
 
-	if _, allowed := tools[toolName]; !allowed {
+func (e *EnforcementLayer) CheckToolAccess(runID string, toolName string) error {
+	ctx, err := e.getCtx(runID)
+	if err != nil {
+		return err
+	}
+	if _, allowed := ctx.tools[toolName]; !allowed {
 		return fmt.Errorf("sandbox: tool %s not declared for run %s", toolName, runID)
 	}
-
 	return nil
 }
 
-// CheckCapabilityAccess verifies that a capability is allowed for the given run.
-// Returns an error if the capability is not declared.
 func (e *EnforcementLayer) CheckCapabilityAccess(runID string, capability string) error {
-	e.mu.RLock()
-	defer e.mu.RUnlock()
-
-	caps, ok := e.declaredCapabilities[runID]
-	if !ok {
-		return fmt.Errorf("sandbox: run %s not registered", runID)
+	ctx, err := e.getCtx(runID)
+	if err != nil {
+		return err
 	}
-
-	if _, allowed := caps[capability]; !allowed {
+	if _, allowed := ctx.caps[capability]; !allowed {
 		return fmt.Errorf("sandbox: capability %s not declared for run %s", capability, runID)
 	}
-
 	return nil
 }
 
-// CheckEnvAccess verifies that an environment variable can be accessed.
-// Returns an error if the variable is not declared.
 func (e *EnforcementLayer) CheckEnvAccess(runID string, envVar string) error {
-	e.mu.RLock()
-	defer e.mu.RUnlock()
-
-	envs, ok := e.declaredEnvVars[runID]
-	if !ok {
-		return fmt.Errorf("sandbox: run %s not registered", runID)
+	ctx, err := e.getCtx(runID)
+	if err != nil {
+		return err
 	}
-
-	// Allow exact match or prefix match for patterns like "REACH_*"
-	for allowed := range envs {
-		if allowed == envVar {
+	if _, ok := ctx.env[envVar]; ok {
+		return nil
+	}
+	for _, p := range ctx.envPat {
+		if p.isWild && strings.HasPrefix(envVar, p.prefix) {
 			return nil
 		}
-		if strings.HasSuffix(allowed, "*") {
-			prefix := strings.TrimSuffix(allowed, "*")
-			if strings.HasPrefix(envVar, prefix) {
-				return nil
-			}
-		}
 	}
-
 	return fmt.Errorf("sandbox: environment variable %s not declared for run %s", envVar, runID)
 }
 
@@ -199,11 +166,11 @@ func (e *EnforcementLayer) SecureWriteFile(runID string, path string, content []
 
 // AuditEvent represents a sandbox audit event
 type AuditEvent struct {
-	RunID     string
-	Action    string
-	Target    string
-	Allowed   bool
-	Reason    string
+	RunID   string
+	Action  string
+	Target  string
+	Allowed bool
+	Reason  string
 }
 
 // AuditSink receives audit events from the sandbox.

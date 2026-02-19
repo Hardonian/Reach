@@ -80,19 +80,23 @@ type Run struct {
 
 type EventObserver func(runID string, evt Event)
 
+type subEntry struct {
+	ch     chan Event
+	closed atomic.Bool
+}
+
 type Store struct {
 	runs   storage.RunsStore
 	events storage.EventsStore
 	audit  storage.AuditStore
 
 	counter atomic.Uint64
-	subMu   sync.RWMutex
-	subs    map[string][]chan Event
+	subs    sync.Map
 	observe EventObserver
 }
 
 func NewStore(db *storage.SQLiteStore) *Store {
-	return &Store{runs: db, events: db, audit: db, subs: map[string][]chan Event{}}
+	return &Store{runs: db, events: db, audit: db}
 }
 
 func (s *Store) WithObserver(observer EventObserver) *Store {
@@ -159,13 +163,19 @@ func (s *Store) PublishEvent(ctx context.Context, runID string, evt Event, _ str
 		return err
 	}
 	evt.ID = id
-	s.subMu.RLock()
-	defer s.subMu.RUnlock()
-	for _, ch := range s.subs[runID] {
-		select {
-		case ch <- evt:
-		default:
-		}
+	if val, ok := s.subs.Load(runID); ok {
+		subs := val.(*sync.Map)
+		subs.Range(func(key, value any) bool {
+			entry := value.(*subEntry)
+			if entry.closed.Load() {
+				return true
+			}
+			select {
+			case entry.ch <- evt:
+			default:
+			}
+			return true
+		})
 	}
 	if s.observe != nil {
 		s.observe(runID, evt)
@@ -187,25 +197,16 @@ func (s *Store) EventHistory(ctx context.Context, tenantID, runID string, after 
 
 func (s *Store) Subscribe(runID string) (<-chan Event, func()) {
 	ch := make(chan Event, 32)
-	s.subMu.Lock()
-	s.subs[runID] = append(s.subs[runID], ch)
-	s.subMu.Unlock()
+	entry := &subEntry{ch: ch}
+
+	subMapI, _ := s.subs.LoadOrStore(runID, &sync.Map{})
+	subMap := subMapI.(*sync.Map)
+	subMap.Store(ch, entry)
+
 	return ch, func() {
-		s.subMu.Lock()
-		defer s.subMu.Unlock()
+		entry.closed.Store(true)
+		subMap.Delete(ch)
 		close(ch)
-		cur := s.subs[runID]
-		out := cur[:0]
-		for _, c := range cur {
-			if c != ch {
-				out = append(out, c)
-			}
-		}
-		if len(out) == 0 {
-			delete(s.subs, runID)
-		} else {
-			s.subs[runID] = out
-		}
 	}
 }
 
