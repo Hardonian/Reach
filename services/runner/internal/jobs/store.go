@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -15,6 +16,7 @@ import (
 
 var ErrRunNotFound = errors.New("run not found")
 var ErrCapabilityDenied = errors.New("capability denied")
+var ErrBudgetExceeded = errors.New("budget exceeded")
 
 // Event represents a single event in the event stream.
 type Event struct {
@@ -93,6 +95,7 @@ type subEntry struct {
 	closed atomic.Bool
 }
 
+// Store provides durable storage for runs, events, and budgets
 type Store struct {
 	runs   storage.RunsStore
 	events storage.EventsStore
@@ -103,20 +106,98 @@ type Store struct {
 	observe  EventObserver
 	drift    *determinism.DriftMonitor
 	hardened sync.Map // map[string]bool
+	
+	// Budget controllers per run (sharded for concurrency)
+	// 256 shards to reduce lock contention
+	budgets         [256]*sync.Map // sharded map: runID -> *BudgetController
+	costRegistry    *CostRegistry   // Global cost model registry
+	budgetMu        sync.RWMutex    // Protects budget initialization
 }
 
+// NewStore creates a new Store with budget sharding
 func NewStore(db *storage.SQLiteStore) *Store {
-	return &Store{
-		runs:   db,
-		events: db,
-		audit:  db,
-		drift:  determinism.NewDriftMonitor(),
+	s := &Store{
+		runs:         db,
+		events:       db,
+		audit:        db,
+		drift:        determinism.NewDriftMonitor(),
+		costRegistry: NewCostRegistry(),
 	}
+	
+	// Initialize budget shards
+	for i := 0; i < 256; i++ {
+		s.budgets[i] = &sync.Map{}
+	}
+	
+	return s
 }
 
+// WithObserver sets the event observer
 func (s *Store) WithObserver(observer EventObserver) *Store {
 	s.observe = observer
 	return s
+}
+
+// GetCostRegistry returns the global cost registry
+func (s *Store) GetCostRegistry() *CostRegistry {
+	return s.costRegistry
+}
+
+// fnv32a computes FNV-1a hash for sharding
+func fnv32a(s string) uint32 {
+	h := fnv.New32a()
+	h.Write([]byte(s))
+	return h.Sum32()
+}
+
+// shardedBudgetMap selects the appropriate shard for a runID
+func (s *Store) shardedBudgetMap(runID string) *sync.Map {
+	hash := fnv32a(runID)
+	return s.budgets[hash%256]
+}
+
+// GetBudgetController retrieves or creates budget controller for a run
+func (s *Store) GetBudgetController(runID, tenantID string, budgetUSD float64) *BudgetController {
+	shard := s.shardedBudgetMap(runID)
+	
+	// Fast path: check if exists
+	if bc, ok := shard.Load(runID); ok {
+		return bc.(*BudgetController)
+	}
+	
+	// Slow path: create new
+	s.budgetMu.Lock()
+	defer s.budgetMu.Unlock()
+	
+	// Double-check after acquiring lock
+	if bc, ok := shard.Load(runID); ok {
+		return bc.(*BudgetController)
+	}
+	
+	// Create new budget controller
+	bc := NewBudgetController(runID, tenantID, budgetUSD, s.costRegistry)
+	actual, loaded := shard.LoadOrStore(runID, bc)
+	if loaded {
+		return actual.(*BudgetController)
+	}
+	
+	return bc
+}
+
+// GetBudgetControllerForRun gets or creates budget controller with run's budget
+func (s *Store) GetBudgetControllerForRun(ctx context.Context, tenantID, runID string) (*BudgetController, error) {
+	run, err := s.GetRun(ctx, tenantID, runID)
+	if err != nil {
+		return nil, err
+	}
+	
+	return s.GetBudgetController(runID, tenantID, run.BudgetUSD), nil
+}
+
+// RemoveBudgetController removes budget controller for a run (cleanup)
+func (s *Store) RemoveBudgetController(runID string) {
+	shard := s.shardedBudgetMap(runID)
+	shard.Delete(runID)
 }
 
 func toCapSet(in []string) map[string]struct{} {
@@ -133,7 +214,22 @@ func (s *Store) CreateRun(ctx context.Context, tenantID string, capabilities []s
 	if err := s.runs.CreateRun(ctx, storage.RunRecord{ID: id, TenantID: tenantID, Capabilities: capabilities, CreatedAt: now, Status: "created"}); err != nil {
 		return nil, err
 	}
-	return &Run{ID: id, TenantID: tenantID, Capabilities: toCapSet(capabilities), Gates: map[string]Gate{}}, nil
+	return &Run{ID: id, TenantID: tenantID, Capabilities: toCapSet(capabilities), Gates: map[string]Gate{}, BudgetUSD: 10.0}, nil
+}
+
+func (s *Store) CreateRunWithBudget(ctx context.Context, tenantID string, capabilities []string, budgetUSD float64) (*Run, error) {
+	id := fmt.Sprintf("run-%06d", s.counter.Add(1))
+	now := time.Now().UTC()
+	if err := s.runs.CreateRun(ctx, storage.RunRecord{ID: id, TenantID: tenantID, Capabilities: capabilities, CreatedAt: now, Status: "created"}); err != nil {
+		return nil, err
+	}
+	
+	// Ensure minimum budget
+	if budgetUSD <= 0 {
+		budgetUSD = 10.0
+	}
+	
+	return &Run{ID: id, TenantID: tenantID, Capabilities: toCapSet(capabilities), Gates: map[string]Gate{}, BudgetUSD: budgetUSD}, nil
 }
 
 func (s *Store) GetRun(ctx context.Context, tenantID, id string) (*Run, error) {
@@ -281,31 +377,65 @@ func (s *Store) IsHardened(runID string) bool {
 	return ok && val.(bool)
 }
 
+// Legacy CheckBudget - now delegates to BudgetController
 func (s *Store) CheckBudget(ctx context.Context, tenantID, runID string, estimatedCost float64) error {
-	r, err := s.GetRun(ctx, tenantID, runID)
+	bc, err := s.GetBudgetControllerForRun(ctx, tenantID, runID)
 	if err != nil {
 		return err
 	}
-
-	r.SpendMu.Lock()
-	defer r.SpendMu.Unlock()
-
-	if r.SpentUSD+estimatedCost > r.BudgetUSD {
-		return fmt.Errorf("budget exceeded: spent $%.2f, extra cost $%.2f, limit $%.2f", r.SpentUSD, estimatedCost, r.BudgetUSD)
+	
+	alloc := bc.PredictAndReserve(ctx, "unknown", 0)
+	if !alloc.Approved {
+		return ErrBudgetExceeded
 	}
-
+	
+	// Immediately commit for legacy compatibility
+	bc.CommitSpend(alloc.AllocatedID, estimatedCost, "unknown")
+	
 	return nil
 }
 
+// Legacy RecordSpend - now delegates to BudgetController
 func (s *Store) RecordSpend(ctx context.Context, tenantID, runID string, amount float64) error {
-	r, err := s.GetRun(ctx, tenantID, runID)
+	bc, err := s.GetBudgetControllerForRun(ctx, tenantID, runID)
 	if err != nil {
 		return err
 	}
-
-	r.SpendMu.Lock()
-	r.SpentUSD += amount
-	r.SpendMu.Unlock()
-
+	
+	bc.CommitSpend(0, amount, "manual")
+	
 	return s.Audit(ctx, tenantID, runID, "economic.spend", []byte(fmt.Sprintf("$%.2f", amount)))
+}
+
+// PredictAndReserve budget for a tool call
+func (s *Store) PredictAndReserve(ctx context.Context, tenantID, runID, tool string, estimatedTokens int) (AllocationResult, error) {
+	bc, err := s.GetBudgetControllerForRun(ctx, tenantID, runID)
+	if err != nil {
+		return AllocationResult{}, err
+	}
+	
+	return bc.PredictAndReserve(ctx, tool, estimatedTokens), nil
+}
+
+// CommitSpend records actual spend
+func (s *Store) CommitSpend(ctx context.Context, tenantID, runID string, allocID uint64, actualCost float64, tool string) error {
+	bc, err := s.GetBudgetControllerForRun(ctx, tenantID, runID)
+	if err != nil {
+		return err
+	}
+	
+	bc.CommitSpend(allocID, actualCost, tool)
+	
+	// Audit the spend
+	return s.Audit(ctx, tenantID, runID, "economic.spend", []byte(fmt.Sprintf("tool:%s amount:$%.4f", tool, actualCost)))
+}
+
+// GetBudgetStatus returns budget status for a run
+func (s *Store) GetBudgetStatus(ctx context.Context, tenantID, runID string) (map[string]interface{}, error) {
+	bc, err := s.GetBudgetControllerForRun(ctx, tenantID, runID)
+	if err != nil {
+		return nil, err
+	}
+	
+	return bc.GetStatus(), nil
 }
