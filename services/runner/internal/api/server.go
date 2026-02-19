@@ -72,6 +72,7 @@ type Server struct {
 	requestCounter atomic.Uint64
 	federation     *federation.Coordinator
 	gamification   *gamification.Store
+	consensus      *ConsensusManager // New: BFT Consensus
 	runsCreated    atomic.Uint64
 	spawnAttempts  atomic.Uint64
 	spawnDenied    atomic.Uint64
@@ -112,6 +113,7 @@ func NewServer(db *storage.SQLiteStore, version string) *Server {
 		rateLimiter:  NewRateLimiterMiddleware(DefaultRateLimitConfig()),
 	}
 	server.initAdaptiveEngine()
+	server.consensus = NewConsensusManager()
 	server.store.WithObserver(server.observeEvent)
 	return server
 }
@@ -156,6 +158,7 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("GET /v1/nodes", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleListNodes))))
 	mux.Handle("POST /v1/sessions/{id}/autonomous/start", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleAutonomousStart))))
 	mux.Handle("POST /v1/sessions/{id}/autonomous/stop", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleAutonomousStop))))
+	mux.Handle("POST /v1/jobs/lease", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleLeaseJobs))))
 	mux.Handle("GET /v1/sessions/{id}/autonomous/status", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleAutonomousStatus))))
 	return s.withObservability(mux)
 }
@@ -549,6 +552,10 @@ func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
 		ToolName             string         `json:"tool_name"`
 		RequiredCapabilities []string       `json:"required_capabilities"`
 		Result               map[string]any `json:"result"`
+		NodeID               string         `json:"node_id"`     // New: for reputation & BFT
+		StepIndex            int            `json:"step_index"`  // New: for BFT step tracking
+		IsZkProof            bool           `json:"is_zk_proof"` // New: indicates ZK verification
+		ZkHash               string         `json:"zk_hash"`     // New: ZK content hash
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeError(w, 400, "invalid json")
@@ -563,7 +570,23 @@ func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = s.queue.Enqueue(r.Context(), jobs.QueueJob{ID: s.randomID("job"), TenantID: tenant, RunID: runID, Type: jobs.JobToolCall, PayloadJSON: string(mustJSON(body)), IdempotencyKey: runID + ":tool:" + body.ToolName + ":" + hashID(fmt.Sprint(body.Result)), Priority: 40})
-	_ = s.store.PublishEvent(r.Context(), runID, jobs.Event{Type: "tool.result.accepted", Payload: mustJSON(map[string]any{"tool": body.ToolName}), CreatedAt: time.Now().UTC()}, s.requestID(r))
+	_ = s.store.PublishEvent(r.Context(), runID, jobs.Event{Type: "tool.result.accepted", Payload: mustJSON(map[string]any{"tool": body.ToolName, "node_id": body.NodeID}), CreatedAt: time.Now().UTC()}, s.requestID(r))
+
+	// BFT Consensus: Check if this run requires multi-node agreement
+	// For demo, we assume any tool result with StepIndex > 0 might need consensus
+	if body.StepIndex > 0 {
+		reached, winner, err := s.consensus.ReceiveResult(runID, body.ToolName, body.StepIndex, body.NodeID, 2, body.Result)
+		if err != nil {
+			writeError(w, 500, "consensus failure")
+			return
+		}
+		if !reached {
+			writeJSON(w, 202, map[string]string{"status": "waiting_for_consensus"})
+			return
+		}
+		// Overwrite body.Result with the consensus winner
+		body.Result = winner
+	}
 
 	// Record the actual spend
 	_ = s.store.RecordSpend(r.Context(), tenant, runID, estCost)

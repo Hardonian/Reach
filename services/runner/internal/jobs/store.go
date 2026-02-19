@@ -106,12 +106,12 @@ type Store struct {
 	observe  EventObserver
 	drift    *determinism.DriftMonitor
 	hardened sync.Map // map[string]bool
-	
+
 	// Budget controllers per run (sharded for concurrency)
 	// 256 shards to reduce lock contention
-	budgets         [256]*sync.Map // sharded map: runID -> *BudgetController
-	costRegistry    *CostRegistry   // Global cost model registry
-	budgetMu        sync.RWMutex    // Protects budget initialization
+	budgets      [256]*sync.Map // sharded map: runID -> *BudgetController
+	costRegistry *CostRegistry  // Global cost model registry
+	budgetMu     sync.RWMutex   // Protects budget initialization
 }
 
 // NewStore creates a new Store with budget sharding
@@ -123,12 +123,12 @@ func NewStore(db *storage.SQLiteStore) *Store {
 		drift:        determinism.NewDriftMonitor(),
 		costRegistry: NewCostRegistry(),
 	}
-	
+
 	// Initialize budget shards
 	for i := 0; i < 256; i++ {
 		s.budgets[i] = &sync.Map{}
 	}
-	
+
 	return s
 }
 
@@ -159,28 +159,28 @@ func (s *Store) shardedBudgetMap(runID string) *sync.Map {
 // GetBudgetController retrieves or creates budget controller for a run
 func (s *Store) GetBudgetController(runID, tenantID string, budgetUSD float64) *BudgetController {
 	shard := s.shardedBudgetMap(runID)
-	
+
 	// Fast path: check if exists
 	if bc, ok := shard.Load(runID); ok {
 		return bc.(*BudgetController)
 	}
-	
+
 	// Slow path: create new
 	s.budgetMu.Lock()
 	defer s.budgetMu.Unlock()
-	
+
 	// Double-check after acquiring lock
 	if bc, ok := shard.Load(runID); ok {
 		return bc.(*BudgetController)
 	}
-	
+
 	// Create new budget controller
 	bc := NewBudgetController(runID, tenantID, budgetUSD, s.costRegistry)
 	actual, loaded := shard.LoadOrStore(runID, bc)
 	if loaded {
 		return actual.(*BudgetController)
 	}
-	
+
 	return bc
 }
 
@@ -190,7 +190,7 @@ func (s *Store) GetBudgetControllerForRun(ctx context.Context, tenantID, runID s
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return s.GetBudgetController(runID, tenantID, run.BudgetUSD), nil
 }
 
@@ -223,12 +223,12 @@ func (s *Store) CreateRunWithBudget(ctx context.Context, tenantID string, capabi
 	if err := s.runs.CreateRun(ctx, storage.RunRecord{ID: id, TenantID: tenantID, Capabilities: capabilities, CreatedAt: now, Status: "created"}); err != nil {
 		return nil, err
 	}
-	
+
 	// Ensure minimum budget
 	if budgetUSD <= 0 {
 		budgetUSD = 10.0
 	}
-	
+
 	return &Run{ID: id, TenantID: tenantID, Capabilities: toCapSet(capabilities), Gates: map[string]Gate{}, BudgetUSD: budgetUSD}, nil
 }
 
@@ -300,6 +300,11 @@ func (s *Store) PublishEvent(ctx context.Context, runID string, evt Event, _ str
 			if drifted && score > 0.5 {
 				s.hardened.Store(runID, true)
 				_ = s.Audit(ctx, "", runID, "drift.alert", []byte(fmt.Sprintf("High entropy detected (score: %.2f); run hardened to ModeStrict", score)))
+
+				// Golden Path Auto-Healing: If drift is extreme, rollback to last good state
+				if score > 0.8 {
+					_ = s.ResetToStep(ctx, "", runID, 0) // Start over or to last checkpoint
+				}
 			}
 		}
 	}
@@ -377,21 +382,30 @@ func (s *Store) IsHardened(runID string) bool {
 	return ok && val.(bool)
 }
 
+func (s *Store) ResetToStep(ctx context.Context, tenantID, runID string, stepIndex int) error {
+	_ = s.Audit(ctx, tenantID, runID, "system.rollback", []byte(fmt.Sprintf("Resetting run to step %d", stepIndex)))
+	return s.PublishEvent(ctx, runID, Event{
+		Type:      "system.rollback",
+		Payload:   mustJSON(map[string]any{"step_index": stepIndex}),
+		CreatedAt: time.Now().UTC(),
+	}, "system")
+}
+
 // Legacy CheckBudget - now delegates to BudgetController
 func (s *Store) CheckBudget(ctx context.Context, tenantID, runID string, estimatedCost float64) error {
 	bc, err := s.GetBudgetControllerForRun(ctx, tenantID, runID)
 	if err != nil {
 		return err
 	}
-	
+
 	alloc := bc.PredictAndReserve(ctx, "unknown", 0)
 	if !alloc.Approved {
 		return ErrBudgetExceeded
 	}
-	
+
 	// Immediately commit for legacy compatibility
 	bc.CommitSpend(alloc.AllocatedID, estimatedCost, "unknown")
-	
+
 	return nil
 }
 
@@ -401,9 +415,9 @@ func (s *Store) RecordSpend(ctx context.Context, tenantID, runID string, amount 
 	if err != nil {
 		return err
 	}
-	
+
 	bc.CommitSpend(0, amount, "manual")
-	
+
 	return s.Audit(ctx, tenantID, runID, "economic.spend", []byte(fmt.Sprintf("$%.2f", amount)))
 }
 
@@ -413,7 +427,7 @@ func (s *Store) PredictAndReserve(ctx context.Context, tenantID, runID, tool str
 	if err != nil {
 		return AllocationResult{}, err
 	}
-	
+
 	return bc.PredictAndReserve(ctx, tool, estimatedTokens), nil
 }
 
@@ -423,9 +437,9 @@ func (s *Store) CommitSpend(ctx context.Context, tenantID, runID string, allocID
 	if err != nil {
 		return err
 	}
-	
+
 	bc.CommitSpend(allocID, actualCost, tool)
-	
+
 	// Audit the spend
 	return s.Audit(ctx, tenantID, runID, "economic.spend", []byte(fmt.Sprintf("tool:%s amount:$%.4f", tool, actualCost)))
 }
@@ -436,6 +450,11 @@ func (s *Store) GetBudgetStatus(ctx context.Context, tenantID, runID string) (ma
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return bc.GetStatus(), nil
+}
+
+func mustJSON(v any) []byte {
+	b, _ := json.Marshal(v)
+	return b
 }
