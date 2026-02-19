@@ -381,14 +381,15 @@ func TestVerifyMerkleProof(t *testing.T) {
 		t.Fatalf("get proof failed: %v", err)
 	}
 
-	// Verify proof
-	valid, err := VerifyMerkleProof(&manifest, 3, proof)
-	if err != nil {
-		t.Fatalf("verify proof failed: %v", err)
+	// Verify proof against the tree's root
+	if !VerifyProofHex(proof, integrity.MerkleRoot) {
+		t.Error("expected proof to be valid against computed root")
 	}
 
-	if !valid {
-		t.Error("expected proof to be valid")
+	// Verify with wrong root should fail
+	wrongRoot := "0000000000000000000000000000000000000000000000000000000000000000"
+	if VerifyProofHex(proof, wrongRoot) {
+		t.Error("expected proof to be invalid against wrong root")
 	}
 }
 
