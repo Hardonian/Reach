@@ -75,6 +75,22 @@
     "lint": "eslint src",
     "test": "vitest run"
   },
+  "engines": {
+    "node": ">=18.0.0 <23.0.0",
+    "vscode": "^1.90.0"
+  },
+  "overrides": {
+    "clawdbot": "npm:@reach/empty@1.0.0",
+    "codex": "npm:@reach/empty@1.0.0",
+    "connect": "npm:@reach/empty@1.0.0",
+    "request": "npm:@reach/empty@1.0.0",
+    "marked": "npm:@reach/empty@1.0.0",
+    "tar": "^7.0.0",
+    "hono": "npm:@reach/empty@1.0.0",
+    "node-llama-cpp": "npm:@reach/empty@1.0.0",
+    "minimatch": "^10.2.1",
+    "ajv": "^8.18.0"
+  },
   "devDependencies": {
     "@types/node": "^20.16.1",
     "@types/vscode": "^1.90.0",
@@ -85,6 +101,6 @@
     "vitest": "^2.1.5"
   },
   "dependencies": {
-    "ws": "^8.18.0"
+    "ws": "^8.18.1"
   }
 }
