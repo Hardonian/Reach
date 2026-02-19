@@ -48,10 +48,14 @@ type clientState struct {
 	closed   chan struct{}
 }
 
+type sessionData struct {
+	Session
+	mu sync.RWMutex
+}
+
 type Manager struct {
-	mu       sync.RWMutex
-	sessions map[string]*Session
-	clients  map[string]map[*websocketConn]*clientState
+	sessions sync.Map // sessionID -> *sessionData
+	clients  sync.Map // sessionID -> map[*websocketConn]*clientState
 
 	queueDepth    atomic.Int64
 	eventsBatched atomic.Uint64
@@ -59,18 +63,20 @@ type Manager struct {
 }
 
 func NewManager() *Manager {
-	return &Manager{sessions: map[string]*Session{}, clients: map[string]map[*websocketConn]*clientState{}}
+	return &Manager{}
 }
 
-func (m *Manager) getOrCreate(sessionID, tenant string) *Session {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	s, ok := m.sessions[sessionID]
-	if !ok {
-		s = &Session{ID: sessionID, TenantID: tenant, Members: map[string]Role{}, ActiveRuns: map[string]string{}, NodeAssignments: map[string]string{}}
-		m.sessions[sessionID] = s
-	}
-	return s
+func (m *Manager) getOrCreate(sessionID, tenant string) *sessionData {
+	val, _ := m.sessions.LoadOrStore(sessionID, &sessionData{
+		Session: Session{
+			ID:              sessionID,
+			TenantID:        tenant,
+			Members:         make(map[string]Role),
+			ActiveRuns:      make(map[string]string),
+			NodeAssignments: make(map[string]string),
+		},
+	})
+	return val.(*sessionData)
 }
 
 func collaborationAllowed(plan string) bool {
@@ -121,15 +127,18 @@ func (m *Manager) HandleWS(w http.ResponseWriter, r *http.Request) {
 	}
 
 	state := &clientState{memberID: memberID, conn: conn, queue: make(chan queuedEvent, 256), closed: make(chan struct{})}
-	m.mu.Lock()
-	s.Members[memberID] = role
-	if m.clients[sessionID] == nil {
-		m.clients[sessionID] = map[*websocketConn]*clientState{}
-	}
-	m.clients[sessionID][conn] = state
-	m.mu.Unlock()
 
-	_ = conn.WriteJSON(map[string]any{"type": "session.snapshot", "session": s})
+	// Get or create client map for session
+	clientsVal, _ := m.clients.LoadOrStore(sessionID, &sync.Map{})
+	clients := clientsVal.(*sync.Map)
+	clients.Store(conn, state)
+
+	s.mu.Lock()
+	s.Members[memberID] = role
+	s.mu.Unlock()
+
+	snapshot := map[string]any{"type": "session.snapshot", "session": &s.Session}
+	_ = conn.WriteJSON(snapshot)
 	go m.writeLoop(state)
 
 	for {
@@ -142,20 +151,20 @@ func (m *Manager) HandleWS(w http.ResponseWriter, r *http.Request) {
 		if msg.Type == "run.event" || msg.Type == "approval" || msg.Type == "task.update" {
 			if msg.RunID != "" && msg.Payload != nil {
 				if node, ok := msg.Payload["node_id"].(string); ok {
-					m.mu.Lock()
+					s.mu.Lock()
 					s.NodeAssignments[msg.RunID] = node
 					s.ActiveRuns[msg.RunID] = "active"
-					m.mu.Unlock()
+					s.mu.Unlock()
 				}
 			}
-			m.broadcast(sessionID, msg)
+			m.broadcast(sessionID, msg, clients)
 		}
 	}
 
-	m.mu.Lock()
-	delete(m.clients[sessionID], conn)
+	clients.Delete(conn)
+	s.mu.Lock()
 	delete(s.Members, memberID)
-	m.mu.Unlock()
+	s.mu.Unlock()
 	close(state.closed)
 	_ = conn.Close()
 }
@@ -171,12 +180,10 @@ func classifyPriority(event Event) string {
 	}
 }
 
-func (m *Manager) broadcast(sessionID string, event Event) {
-	m.mu.RLock()
-	clients := m.clients[sessionID]
-	m.mu.RUnlock()
+func (m *Manager) broadcast(sessionID string, event Event, clients *sync.Map) {
 	prio := classifyPriority(event)
-	for _, state := range clients {
+	clients.Range(func(key, value any) bool {
+		state := value.(*clientState)
 		select {
 		case state.queue <- queuedEvent{Event: event, Priority: prio}:
 			m.queueDepth.Add(1)
@@ -191,7 +198,8 @@ func (m *Manager) broadcast(sessionID string, event Event) {
 				m.eventsDropped.Add(1)
 			}
 		}
-	}
+		return true
+	})
 }
 
 func (m *Manager) writeLoop(state *clientState) {
@@ -229,13 +237,15 @@ func (m *Manager) writeLoop(state *clientState) {
 }
 
 func (m *Manager) HandleListSessions(w http.ResponseWriter, _ *http.Request) {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-	list := make([]*Session, 0, len(m.sessions))
-	for _, s := range m.sessions {
-		cp := *s
+	list := make([]*Session, 0, 64)
+	m.sessions.Range(func(key, value any) bool {
+		s := value.(*sessionData)
+		s.mu.RLock()
+		cp := s.Session
+		s.mu.RUnlock()
 		list = append(list, &cp)
-	}
+		return true
+	})
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]any{"sessions": list})
 }

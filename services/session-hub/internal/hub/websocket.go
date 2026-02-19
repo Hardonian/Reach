@@ -17,6 +17,19 @@ import (
 
 const wsGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
+var (
+	frameBufPool = sync.Pool{
+		New: func() interface{} {
+			return make([]byte, 0, 256)
+		},
+	}
+	maskKeyPool = sync.Pool{
+		New: func() interface{} {
+			return [4]byte{}
+		},
+	}
+)
+
 type websocketConn struct {
 	conn net.Conn
 	rw   *bufio.ReadWriter
@@ -100,17 +113,36 @@ func (c *websocketConn) readFrame() ([]byte, byte, error) {
 	if err != nil {
 		return nil, 0, err
 	}
-	maskKey := make([]byte, 4)
-	if _, err := io.ReadFull(c.rw, maskKey); err != nil {
+
+	maskKey := maskKeyPool.Get().([4]byte)
+	defer maskKeyPool.Put(maskKey)
+	if _, err := io.ReadFull(c.rw, maskKey[:]); err != nil {
 		return nil, 0, err
 	}
-	payload := make([]byte, length)
+
+	// Reuse buffer from pool if possible
+	payload := frameBufPool.Get().([]byte)[:0]
+	if cap(payload) < length {
+		payload = make([]byte, length)
+	} else {
+		payload = payload[:length]
+	}
 	if _, err := io.ReadFull(c.rw, payload); err != nil {
 		return nil, 0, err
 	}
-	for i := range payload {
+
+	// Unmask using loop unrolling for small payloads
+	for i := 0; i < length-3; i += 4 {
+		m0, m1, m2, m3 := maskKey[0], maskKey[1], maskKey[2], maskKey[3]
+		payload[i] ^= m0
+		payload[i+1] ^= m1
+		payload[i+2] ^= m2
+		payload[i+3] ^= m3
+	}
+	for i := (length / 4) * 4; i < length; i++ {
 		payload[i] ^= maskKey[i%4]
 	}
+
 	return payload, opcode, nil
 }
 
@@ -136,22 +168,28 @@ func (c *websocketConn) readLength(short byte) (int, error) {
 func (c *websocketConn) writeFrame(opcode byte, payload []byte) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	frame := []byte{0x80 | opcode}
+
+	// Pre-allocate frame buffer with enough capacity
+	frameLen := 2 + 8 + len(payload)
+	frame := make([]byte, 0, frameLen)
+	frame = append(frame, 0x80|opcode)
+
 	n := len(payload)
 	switch {
 	case n < 126:
 		frame = append(frame, byte(n))
 	case n <= 65535:
 		frame = append(frame, 126)
-		buf := make([]byte, 2)
-		binary.BigEndian.PutUint16(buf, uint16(n))
-		frame = append(frame, buf...)
+		buf := [2]byte{}
+		binary.BigEndian.PutUint16(buf[:], uint16(n))
+		frame = append(frame, buf[:]...)
 	default:
 		frame = append(frame, 127)
-		buf := make([]byte, 8)
-		binary.BigEndian.PutUint64(buf, uint64(n))
-		frame = append(frame, buf...)
+		buf := [8]byte{}
+		binary.BigEndian.PutUint64(buf[:], uint64(n))
+		frame = append(frame, buf[:]...)
 	}
+
 	frame = append(frame, payload...)
 	if _, err := c.rw.Write(frame); err != nil {
 		return err
