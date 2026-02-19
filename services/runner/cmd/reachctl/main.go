@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"reach/pack-devkit/harness"
 	"reach/services/runner/internal/arcade/gamification"
 	"reach/services/runner/internal/determinism"
 	"reach/services/runner/internal/federation"
