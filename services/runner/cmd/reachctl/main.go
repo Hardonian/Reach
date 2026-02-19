@@ -18,6 +18,7 @@ import (
 	"reach/services/runner/internal/determinism"
 	"reach/services/runner/internal/federation"
 	"reach/services/runner/internal/mesh"
+	"reach/services/runner/internal/poee"
 	"reach/services/runner/internal/support"
 )
 
@@ -101,6 +102,10 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runShare(ctx, dataRoot, args[1:], out, errOut)
 	case "mesh":
 		return runMesh(ctx, dataRoot, args[1:], out, errOut)
+	case "delegate":
+		return runDelegate(ctx, dataRoot, args[1:], out, errOut)
+	case "verify-proof":
+		return runVerifyProof(ctx, dataRoot, args[1:], out, errOut)
 	default:
 		usage(out)
 		return 1
@@ -2269,7 +2274,7 @@ func runMesh(ctx context.Context, dataRoot string, args []string, out io.Writer,
 	}
 
 	meshDir := filepath.Join(dataRoot, "mesh")
-	
+
 	switch args[0] {
 	case "on":
 		return meshOn(meshDir, out, errOut)
@@ -2323,8 +2328,8 @@ func meshOn(dataDir string, out io.Writer, errOut io.Writer) int {
 	os.WriteFile(pidFile, []byte(fmt.Sprintf("%d", os.Getpid())), 0o644)
 
 	return writeJSON(out, map[string]any{
-		"status":  "started",
-		"node_id": node.GetNodeID(),
+		"status":   "started",
+		"node_id":  node.GetNodeID(),
 		"features": config.Features,
 	})
 }
@@ -2360,9 +2365,9 @@ func meshStatus(dataDir string, out io.Writer, errOut io.Writer) int {
 		"running":  running,
 		"features": config.Features,
 		"network": map[string]any{
-			"listen_port":    config.Network.ListenPort,
-			"websocket":      config.Network.WebSocketEnabled,
-			"http_poll":      config.Network.HTTPPollEnabled,
+			"listen_port": config.Network.ListenPort,
+			"websocket":   config.Network.WebSocketEnabled,
+			"http_poll":   config.Network.HTTPPollEnabled,
 		},
 	})
 }
@@ -2381,11 +2386,11 @@ func meshPeers(dataDir string, out io.Writer, errOut io.Writer) int {
 	var peerList []map[string]any
 	for _, p := range peers {
 		peerList = append(peerList, map[string]any{
-			"node_id":      p.NodeID,
-			"trust_level":  p.TrustLevel.String(),
-			"last_seen":    p.LastSeen,
-			"device_info":  p.DeviceInfo,
-			"quarantined":  p.Quarantined,
+			"node_id":     p.NodeID,
+			"trust_level": p.TrustLevel.String(),
+			"last_seen":   p.LastSeen,
+			"device_info": p.DeviceInfo,
+			"quarantined": p.Quarantined,
 		})
 	}
 
@@ -2514,7 +2519,7 @@ func meshFeature(dataDir string, args []string, out io.Writer, errOut io.Writer)
 	}
 
 	featureName := args[0]
-	
+
 	config, err := mesh.LoadConfig(dataDir)
 	if err != nil {
 		fmt.Fprintf(errOut, "Failed to load config: %v\n", err)
@@ -2599,7 +2604,195 @@ func generateTextQR(out io.Writer, text string) {
 }
 
 func usage(out io.Writer) {
-	_, _ = io.WriteString(out, "usage: reachctl federation status|map --format=json|svg | support ask <question> | arcade profile | capsule create|verify|replay | proof verify <runId|capsule> | graph export <runId> --format=svg|dot|json | packs search|install|verify | init pack --governed | explain <runId> | operator | arena run <scenario> | playground export | pack test|lint|doctor|publish|init | wizard [--quick] | run <pack> | share run|capsule | mesh on|off|status|peers|pair|unpair|sync|config\n")
+	_, _ = io.WriteString(out, "usage: reachctl federation status|map --format=json|svg | support ask <question> | arcade profile | capsule create|verify|replay | proof verify <runId|capsule> | graph export <runId> --format=svg|dot|json | packs search|install|verify | init pack --governed | explain <runId> | operator | arena run <scenario> | playground export | pack test|lint|doctor|publish|init | wizard [--quick] | run <pack> | share run|capsule | mesh on|off|status|peers|pair|unpair|sync|config | delegate <peer> <pack> <input> | verify-proof <proof.json>\n")
+}
+
+// PoEE CLI Handlers
+
+func runDelegate(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 3 {
+		_, _ = fmt.Fprintln(errOut, "usage: reach delegate <peer> <pack> <input>")
+		return 1
+	}
+
+	peerID := args[0]
+	packHash := args[1]
+	inputHash := args[2]
+
+	// Load or create PoEE keypair
+	keyStore := poee.NewKeyStore(dataRoot)
+	kp, err := keyStore.LoadOrCreate()
+	if err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error loading keypair: %v\n", err)
+		return 1
+	}
+
+	// Load mesh peer store
+	peerStore := mesh.NewPeerStore(filepath.Join(dataRoot, "trust_store.json"))
+	if err := peerStore.Load(); err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error loading peer store: %v\n", err)
+		return 1
+	}
+
+	// Check explicit trust
+	if err := poee.VerifyPeerTrust(peerStore, peerID); err != nil {
+		_, _ = fmt.Fprintf(errOut, "Trust error: %v\n", err)
+		return 1
+	}
+
+	// Create delegation envelope
+	envelope := poee.CreateDelegationEnvelope(
+		packHash,
+		inputHash,
+		"", // schedulerHash optional
+		kp.NodeID,
+	)
+
+	// Sign the envelope
+	if err := kp.SignEnvelope(envelope); err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error signing envelope: %v\n", err)
+		return 1
+	}
+
+	// Save envelope to trust store
+	trustMgr := poee.NewTrustStoreManager(dataRoot)
+	if err := trustMgr.Load(); err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error loading trust store: %v\n", err)
+		return 1
+	}
+
+	if err := trustMgr.RecordDelegation(envelope.DelegationID, peerID); err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error recording delegation: %v\n", err)
+		return 1
+	}
+
+	// Export envelope to file
+	envelopePath := filepath.Join(dataRoot, ".reach", "delegations", envelope.DelegationID+".json")
+	if err := os.MkdirAll(filepath.Dir(envelopePath), 0o700); err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error creating directory: %v\n", err)
+		return 1
+	}
+
+	envelopeData, err := poee.ExportEnvelopeJSON(envelope)
+	if err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error exporting envelope: %v\n", err)
+		return 1
+	}
+
+	if err := os.WriteFile(envelopePath, envelopeData, 0o600); err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error saving envelope: %v\n", err)
+		return 1
+	}
+
+	// Output delegation info
+	result := map[string]any{
+		"delegation_id":  envelope.DelegationID,
+		"peer_id":        peerID,
+		"pack_hash":      packHash,
+		"input_hash":     inputHash,
+		"envelope_path":  envelopePath,
+		"envelope_hash":  envelope.EnvelopeHash,
+		"signed":         envelope.Signature != "",
+		"trust_required": true,
+		"trust_verified": true,
+	}
+
+	return writeJSON(out, result)
+}
+
+func runVerifyProof(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reach verify-proof <proof.json>")
+		return 1
+	}
+
+	proofPath := args[0]
+
+	// Load proof file
+	proofData, err := os.ReadFile(proofPath)
+	if err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error reading proof file: %v\n", err)
+		return 1
+	}
+
+	proof, err := poee.ImportProofJSON(proofData)
+	if err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error parsing proof: %v\n", err)
+		return 1
+	}
+
+	// Load mesh peer store to get peer public key
+	peerStore := mesh.NewPeerStore(filepath.Join(dataRoot, "trust_store.json"))
+	if err := peerStore.Load(); err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error loading peer store: %v\n", err)
+		return 1
+	}
+
+	// Find envelope for this delegation
+	envelopePath := filepath.Join(dataRoot, ".reach", "delegations", proof.DelegationID+".json")
+	envelopeData, err := os.ReadFile(envelopePath)
+	if err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error reading envelope: %v\n", err)
+		return 1
+	}
+
+	envelope, err := poee.ImportEnvelopeJSON(envelopeData)
+	if err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error parsing envelope: %v\n", err)
+		return 1
+	}
+
+	// Load trust store to get peer info
+	trustMgr := poee.NewTrustStoreManager(dataRoot)
+	if err := trustMgr.Load(); err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error loading trust store: %v\n", err)
+		return 1
+	}
+
+	delegationEntry, ok := trustMgr.GetDelegation(proof.DelegationID)
+	if !ok {
+		_, _ = fmt.Fprintf(errOut, "Delegation %s not found in trust store\n", proof.DelegationID)
+		return 1
+	}
+
+	// Get peer public key
+	peerPubKey, err := poee.NewKeyStore(dataRoot).LoadPeerKey(delegationEntry.PeerID)
+	if err != nil {
+		// Fall back to mesh peer store
+		peer, ok := peerStore.Get(delegationEntry.PeerID)
+		if !ok || len(peer.PublicKey) == 0 {
+			_, _ = fmt.Fprintf(errOut, "Peer %s public key not found\n", delegationEntry.PeerID)
+			return 1
+		}
+		peerPubKey = peer.PeerPublicKey()
+	}
+
+	// Verify proof integrity
+	verifyErr := poee.VerifyProofIntegrity(proof, envelope, peerPubKey)
+
+	// Record result
+	verified := verifyErr == nil
+	if verified {
+		trustMgr.RecordCompletion(proof.DelegationID, proofPath, true)
+	} else {
+		trustMgr.RecordFailure(proof.DelegationID, verifyErr.Error())
+	}
+
+	// Output result
+	result := map[string]any{
+		"proof_path":          proofPath,
+		"delegation_id":       proof.DelegationID,
+		"peer_id":             delegationEntry.PeerID,
+		"verified":            verified,
+		"envelope_hash_match": proof.ExecutionEnvelopeHash == envelope.EnvelopeHash,
+		"signature_valid":     verified,
+	}
+
+	if verifyErr != nil {
+		result["error"] = verifyErr.Error()
+	}
+
+	return writeJSON(out, result)
 }
 
 func usageMesh(out io.Writer) {
