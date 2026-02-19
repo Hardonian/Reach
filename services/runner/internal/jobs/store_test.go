@@ -15,7 +15,7 @@ func TestCreateRunPersistsAcrossRestart(t *testing.T) {
 		t.Fatal(err)
 	}
 	store := NewStore(db)
-	run, err := store.CreateRun(context.Background(), "tenant-a", []string{"tool:echo"})
+	run, err := store.CreateRun(context.Background(), "tenant-a", "", []string{"tool:echo"})
 	if err != nil {
 		t.Fatal(err)
 	}
