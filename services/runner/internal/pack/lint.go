@@ -85,25 +85,17 @@ func Lint(path string) (*LintResult, error) {
 		}
 	}
 
-	// 3. Cycle Detection
-	if hasCycle(manifest.ExecutionGraph) {
-		res.Errors = append(res.Errors, "execution graph contains cycles; it must be a DAG")
-		res.Valid = false
-	}
-
-	// 4. Tool Schema Audit
+	// 4. Tool Registry Audit
 	for _, tool := range manifest.DeclaredTools {
 		if len(tool) > 128 {
 			res.Errors = append(res.Errors, fmt.Sprintf("tool name too long: %s", tool))
 		}
 	}
-
-	// 5. Complexity Audit
 	if len(manifest.ExecutionGraph.Nodes) > 500 {
 		res.Warnings = append(res.Warnings, "large execution graph (>500 nodes); may impact performance")
 	}
 
-	if hasCycle(manifest.ExecutionGraph) {
+	if checkAcyclic(manifest.ExecutionGraph) {
 		res.Errors = append(res.Errors, "execution graph contains cycles; it must be a DAG")
 	}
 
@@ -114,7 +106,7 @@ func Lint(path string) (*LintResult, error) {
 	return res, nil
 }
 
-func hasCycle(g ExecutionGraph) bool {
+func checkAcyclic(g ExecutionGraph) bool {
 	if len(g.Nodes) == 0 {
 		return false
 	}
