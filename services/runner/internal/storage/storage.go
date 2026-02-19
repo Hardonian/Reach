@@ -6,7 +6,6 @@ import (
 	"embed"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -416,7 +415,7 @@ func (s *SQLiteStore) LeaseReadyJobs(ctx context.Context, now time.Time, limit i
 	}
 
 	placeholders := strings.Repeat("?,", len(ids)-1) + "?"
-	query := fmt.Sprintf("UPDATE jobs SET status='leased', lease_token=?, leased_until=?, updated_at=? WHERE id IN ("+placeholders+")", ids...)
+	query := "UPDATE jobs SET status='leased', lease_token=?, leased_until=?, updated_at=? WHERE id IN (" + placeholders + ")"
 	args := make([]any, 3+len(ids))
 	args[0], args[1], args[2] = leaseToken, leaseUntil, nowTime
 	for i, id := range ids {
