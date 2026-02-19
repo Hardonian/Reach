@@ -25,13 +25,13 @@ type ExecutionStrategy struct {
 	CostScore         float64              `json:"costScore"`        // Normalized cost (0.0 - 1.0)
 	QualityScore      float64              `json:"qualityScore"`     // Normalized quality (0.0 - 1.0)
 	ReliabilityScore  float64              `json:"reliabilityScore"` // Normalized reliability (0.0 - 1.0)
-	
+
 	// Reputation-aware routing fields
-	MinNodeReliability float64   `json:"minNodeReliability"` // Minimum node reputation score
-	RequireAttested    bool      `json:"requireAttested"`    // Require attested nodes only
-	TargetNodes        []string  `json:"targetNodes"`        // Specific nodes to target
-	ConsensusMode      ConsensusMode `json:"consensusMode"`  // Multi-node consensus strategy
-	MinConsensusNodes  int       `json:"minConsensusNodes"`  // Minimum nodes for consensus
+	MinNodeReliability float64       `json:"minNodeReliability"` // Minimum node reputation score
+	RequireAttested    bool          `json:"requireAttested"`    // Require attested nodes only
+	TargetNodes        []string      `json:"targetNodes"`        // Specific nodes to target
+	ConsensusMode      ConsensusMode `json:"consensusMode"`      // Multi-node consensus strategy
+	MinConsensusNodes  int           `json:"minConsensusNodes"`  // Minimum nodes for consensus
 }
 
 // ConsensusMode for multi-node execution
@@ -99,7 +99,7 @@ type EngineConfig struct {
 	// Adaptive behaviors
 	AutoCompressContext  bool `json:"autoCompressContext"`
 	AutoDisableBranching bool `json:"autoDisableBranching"`
-	
+
 	// Reputation settings
 	EnableReputationRouting bool    `json:"enableReputationRouting"`
 	DefaultMinReliability   float64 `json:"defaultMinReliability"`
@@ -238,7 +238,7 @@ func (e *Engine) DetermineStrategy(task TaskConstraints) (ExecutionStrategy, err
 		strategy.ReliabilityScore += 0.2 // Critical tasks demand higher reliability
 		strategy.MinNodeReliability = 0.95
 		strategy.RequireAttested = true
-		
+
 		// For critical tasks, use multi-node consensus
 		if task.RequiredAccuracy > 0.99 {
 			strategy.ConsensusMode = ConsensusMajorityVoting
@@ -299,7 +299,7 @@ func (e *Engine) applyReputationRouting(strategy ExecutionStrategy, task TaskCon
 
 	// Get best nodes from reputation engine
 	bestNodes := e.reputationEngine.SelectBestNodes(taskProfile, 5, nil)
-	
+
 	if len(bestNodes) == 0 {
 		strategy.Trace = append(strategy.Trace, "Warning: No qualified nodes found by reputation engine")
 		strategy.EnableDelegation = false
@@ -322,19 +322,19 @@ func (e *Engine) applyReputationRouting(strategy ExecutionStrategy, task TaskCon
 	// Check if we can meet consensus requirements
 	if strategy.ConsensusMode != ConsensusNone {
 		if len(bestNodes) < strategy.MinConsensusNodes {
-			strategy.Trace = append(strategy.Trace, 
-				fmt.Sprintf("Warning: Only %d nodes available for consensus (need %d)", 
+			strategy.Trace = append(strategy.Trace,
+				fmt.Sprintf("Warning: Only %d nodes available for consensus (need %d)",
 					len(bestNodes), strategy.MinConsensusNodes))
 			strategy.ConsensusMode = ConsensusNone
 		} else {
-			strategy.Trace = append(strategy.Trace, 
-				fmt.Sprintf("Selected %d nodes for %s consensus", 
+			strategy.Trace = append(strategy.Trace,
+				fmt.Sprintf("Selected %d nodes for %s consensus",
 					strategy.MinConsensusNodes, strategy.ConsensusMode))
 		}
 	}
 
-	strategy.Trace = append(strategy.Trace, 
-		fmt.Sprintf("Reputation routing: selected %d nodes (min reliability: %.2f)", 
+	strategy.Trace = append(strategy.Trace,
+		fmt.Sprintf("Reputation routing: selected %d nodes (min reliability: %.2f)",
 			len(bestNodes), minReliability))
 
 	return strategy
@@ -361,15 +361,15 @@ func (e *Engine) SimulateOptions(task TaskConstraints) map[string]ExecutionStrat
 
 	// 1. Strict Determinism (Low Entropy)
 	det := ExecutionStrategy{
-		Mode:              ModeFull,
-		ReasoningDepth:    model.ReasoningHigh,
-		PolicyStrictness:  PolicyDraconian,
-		Trace:             []string{"Simulation: Priority = Determinism"},
-		CostScore:         1.0, // Most expensive
-		QualityScore:      1.0,
-		ReliabilityScore:  1.0,
+		Mode:               ModeFull,
+		ReasoningDepth:     model.ReasoningHigh,
+		PolicyStrictness:   PolicyDraconian,
+		Trace:              []string{"Simulation: Priority = Determinism"},
+		CostScore:          1.0, // Most expensive
+		QualityScore:       1.0,
+		ReliabilityScore:   1.0,
 		MinNodeReliability: 0.99,
-		RequireAttested:   true,
+		RequireAttested:    true,
 	}
 	options["deterministic_strict"] = det
 
@@ -437,9 +437,9 @@ type TaskConstraints struct {
 	EstimatedContextTokens  int              `json:"estimatedContextTokens"`
 	IsReplay                bool             `json:"isReplay"`
 	MinReliability          float64          `json:"minReliability"`
-	RequireDelegation       bool             `json:"requireDelegation"` // New: require federated execution
+	RequiredAccuracy        float64          `json:"requiredAccuracy"`     // New: triggers consensus
+	RequireDelegation       bool             `json:"requireDelegation"`    // New: require federated execution
 	RequiredCapabilities    []string         `json:"requiredCapabilities"` // New: required node capabilities
-	RequiredAccuracy        float64          `json:"requiredAccuracy"` // New: required accuracy for consensus
 }
 
 // ReplayEvent represents a simplified event for time-travel simulation.
