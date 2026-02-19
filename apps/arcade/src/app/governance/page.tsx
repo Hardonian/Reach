@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { PolicyRow } from '@/components/PolicyRow';
+import { EmptyState } from '@/components/EmptyState';
+import { StatusIndicator } from '@/components/StatusIndicator';
 
 // Mock data
 const mockPolicies = [
@@ -9,8 +12,8 @@ const mockPolicies = [
     name: 'Data Residency - EU Only',
     description: 'Ensure all data processing occurs within EU regions only',
     type: 'data-residency',
-    severity: 'critical',
-    status: 'active',
+    severity: 'critical' as const,
+    status: 'active' as const,
     regions: ['eu-west-1', 'eu-central-1'],
     createdAt: '2024-01-15',
   },
@@ -19,8 +22,8 @@ const mockPolicies = [
     name: 'Rate Limit - 1000 req/min',
     description: 'Maximum 1000 requests per minute per API key',
     type: 'rate-limit',
-    severity: 'high',
-    status: 'active',
+    severity: 'high' as const,
+    status: 'active' as const,
     limit: 1000,
     window: '1m',
     createdAt: '2024-01-10',
@@ -30,8 +33,8 @@ const mockPolicies = [
     name: 'PII Redaction Required',
     description: 'Automatically redact personally identifiable information',
     type: 'pii',
-    severity: 'critical',
-    status: 'active',
+    severity: 'critical' as const,
+    status: 'active' as const,
     fields: ['email', 'phone', 'ssn'],
     createdAt: '2024-01-05',
   },
@@ -40,8 +43,8 @@ const mockPolicies = [
     name: 'Model Access - GPT-4 Only',
     description: 'Restrict model access to GPT-4 for compliance',
     type: 'model-restriction',
-    severity: 'medium',
-    status: 'draft',
+    severity: 'medium' as const,
+    status: 'draft' as const,
     allowedModels: ['gpt-4'],
     createdAt: '2024-01-20',
   },
@@ -54,7 +57,7 @@ const mockAuditLog = [
     actor: 'admin@company.com',
     action: 'policy.created',
     resource: 'Data Residency - EU Only',
-    status: 'success',
+    status: 'success' as const,
     details: 'Policy activated for all EU workloads',
   },
   {
@@ -63,7 +66,7 @@ const mockAuditLog = [
     actor: 'user@company.com',
     action: 'agent.deployed',
     resource: 'customer-support-bot',
-    status: 'success',
+    status: 'success' as const,
     details: 'Deployed to us-east-1, us-west-2',
   },
   {
@@ -72,7 +75,7 @@ const mockAuditLog = [
     actor: 'system',
     action: 'policy.violation',
     resource: 'data-pipeline-agent',
-    status: 'blocked',
+    status: 'blocked' as const,
     details: 'Attempted to process data outside allowed regions',
   },
   {
@@ -81,7 +84,7 @@ const mockAuditLog = [
     actor: 'admin@company.com',
     action: 'permission.granted',
     resource: 'Engineering Team',
-    status: 'success',
+    status: 'success' as const,
     details: 'Granted deploy access to staging environment',
   },
   {
@@ -90,7 +93,7 @@ const mockAuditLog = [
     actor: 'user@company.com',
     action: 'agent.updated',
     resource: 'notification-router',
-    status: 'failed',
+    status: 'failed' as const,
     details: 'Unauthorized modification attempt',
   },
 ];
@@ -102,30 +105,16 @@ const mockPermissions = [
   { role: 'Viewer', deploy: false, configure: false, audit: true, manageUsers: false, managePolicies: false },
 ];
 
-function SeverityBadge({ severity }: { severity: string }) {
-  const colors = {
-    critical: 'bg-red-500/20 text-red-400',
-    high: 'bg-amber-500/20 text-amber-400',
-    medium: 'bg-blue-500/20 text-blue-400',
-    low: 'bg-gray-500/20 text-gray-400',
-  };
-  return (
-    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[severity as keyof typeof colors]}`}>
-      {severity}
-    </span>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  return (
-    <span className={`status-pill ${status === 'active' ? 'online' : status === 'draft' ? 'pending' : 'offline'}`}>
-      {status}
-    </span>
-  );
-}
-
 export default function Governance() {
   const [activeTab, setActiveTab] = useState<'policies' | 'audit' | 'permissions'>('policies');
+
+  const handleEditPolicy = (id: string) => {
+    console.log('Edit policy:', id);
+  };
+
+  const handleDeletePolicy = (id: string) => {
+    console.log('Delete policy:', id);
+  };
 
   return (
     <div className="section-container py-8">
@@ -159,45 +148,28 @@ export default function Governance() {
             <h2 className="text-xl font-bold">Policy Rules</h2>
             <button className="btn-primary text-sm py-2">+ New Policy</button>
           </div>
-          
+
           <div className="space-y-3">
-            {mockPolicies.map((policy) => (
-              <div key={policy.id} className="card">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-bold">{policy.name}</h3>
-                      <SeverityBadge severity={policy.severity} />
-                      <StatusBadge status={policy.status} />
-                    </div>
-                    <p className="text-gray-400 text-sm mb-3">{policy.description}</p>
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      <span className="px-2 py-1 rounded bg-surface-hover text-gray-500">
-                        Type: {policy.type}
-                      </span>
-                      {policy.regions && (
-                        <span className="px-2 py-1 rounded bg-surface-hover text-gray-500">
-                          Regions: {policy.regions.join(', ')}
-                        </span>
-                      )}
-                      {policy.limit && (
-                        <span className="px-2 py-1 rounded bg-surface-hover text-gray-500">
-                          Limit: {policy.limit}/{policy.window}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="px-3 py-1.5 text-sm text-gray-400 hover:text-white transition-colors">
-                      Edit
-                    </button>
-                    <button className="px-3 py-1.5 text-sm text-red-400 hover:text-red-300 transition-colors">
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+            {mockPolicies.length > 0 ? (
+              mockPolicies.map((policy) => (
+                <PolicyRow
+                  key={policy.id}
+                  {...policy}
+                  onEdit={handleEditPolicy}
+                  onDelete={handleDeletePolicy}
+                />
+              ))
+            ) : (
+              <EmptyState
+                icon="🛡️"
+                title="No policies yet"
+                description="Create your first policy to enforce compliance rules across your agents."
+                action={{
+                  label: 'Create Policy',
+                  onClick: () => console.log('Create policy'),
+                }}
+              />
+            )}
           </div>
         </div>
       )}
@@ -216,43 +188,59 @@ export default function Governance() {
               <button className="btn-secondary text-sm py-2">Export</button>
             </div>
           </div>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border text-left">
-                  <th className="pb-3 text-sm font-medium text-gray-500">Timestamp</th>
-                  <th className="pb-3 text-sm font-medium text-gray-500">Actor</th>
-                  <th className="pb-3 text-sm font-medium text-gray-500">Action</th>
-                  <th className="pb-3 text-sm font-medium text-gray-500">Resource</th>
-                  <th className="pb-3 text-sm font-medium text-gray-500">Status</th>
-                  <th className="pb-3 text-sm font-medium text-gray-500">Details</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mockAuditLog.map((entry) => (
-                  <tr key={entry.id} className="border-b border-border/50">
-                    <td className="py-4 text-sm font-mono text-gray-400">
-                      {new Date(entry.timestamp).toLocaleString()}
-                    </td>
-                    <td className="py-4 text-sm">{entry.actor}</td>
-                    <td className="py-4 text-sm">
-                      <code className="px-2 py-1 rounded bg-surface-hover text-accent">
-                        {entry.action}
-                      </code>
-                    </td>
-                    <td className="py-4 text-sm">{entry.resource}</td>
-                    <td className="py-4">
-                      <span className={`status-pill ${entry.status === 'success' ? 'online' : entry.status === 'blocked' ? 'error' : 'warning'}`}>
-                        {entry.status}
-                      </span>
-                    </td>
-                    <td className="py-4 text-sm text-gray-500">{entry.details}</td>
+
+          {mockAuditLog.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border text-left">
+                    <th className="pb-3 text-sm font-medium text-gray-500">Timestamp</th>
+                    <th className="pb-3 text-sm font-medium text-gray-500">Actor</th>
+                    <th className="pb-3 text-sm font-medium text-gray-500">Action</th>
+                    <th className="pb-3 text-sm font-medium text-gray-500">Resource</th>
+                    <th className="pb-3 text-sm font-medium text-gray-500">Status</th>
+                    <th className="pb-3 text-sm font-medium text-gray-500">Details</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {mockAuditLog.map((entry) => (
+                    <tr key={entry.id} className="border-b border-border/50">
+                      <td className="py-4 text-sm font-mono text-gray-400">
+                        {new Date(entry.timestamp).toLocaleString()}
+                      </td>
+                      <td className="py-4 text-sm">{entry.actor}</td>
+                      <td className="py-4 text-sm">
+                        <code className="px-2 py-1 rounded bg-surface-hover text-accent">
+                          {entry.action}
+                        </code>
+                      </td>
+                      <td className="py-4 text-sm">{entry.resource}</td>
+                      <td className="py-4">
+                        <StatusIndicator
+                          status={
+                            entry.status === 'success'
+                              ? 'online'
+                              : entry.status === 'blocked'
+                              ? 'error'
+                              : 'warning'
+                          }
+                          showLabel
+                          size="sm"
+                        />
+                      </td>
+                      <td className="py-4 text-sm text-gray-500">{entry.details}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <EmptyState
+              icon="📋"
+              title="No audit events"
+              description="Audit events will appear here when actions are performed."
+            />
+          )}
         </div>
       )}
 
@@ -263,7 +251,7 @@ export default function Governance() {
             <h2 className="text-xl font-bold">Permission Matrix</h2>
             <button className="btn-primary text-sm py-2">+ New Role</button>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
