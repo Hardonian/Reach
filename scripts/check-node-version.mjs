@@ -4,9 +4,16 @@
  * Fails in CI if Node version is outside supported range
  */
 
-import { engines } from '../package.json' with { type: 'json' };
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
-const version = engines.node;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Read package.json manually to avoid import assertion issues
+const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf-8'));
+const version = packageJson.engines.node;
 const currentVersion = process.version;
 
 // Parse version requirements

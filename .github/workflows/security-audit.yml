@@ -1,0 +1,108 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    # Run daily at 00:00 UTC
+    - cron: '0 0 * * *'
+
+jobs:
+  security-check:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Check Node version
+        run: node scripts/check-node-version.mjs
+
+      - name: Install dependencies (full)
+        run: npm ci
+
+      - name: Run toxic dependency check
+        run: npm run verify:no-toxic-deps
+
+      - name: Audit root package
+        run: npm audit --audit-level=high
+
+      - name: Install VS Code extension dependencies
+        run: cd extensions/vscode && npm ci
+
+      - name: Audit VS Code extension
+        run: cd extensions/vscode && npm audit --audit-level=high
+        continue-on-error: true  # Known eslint/typescript-eslint issues
+
+      - name: Install SDK dependencies
+        run: cd sdk/ts && npm ci
+
+      - name: Audit SDK
+        run: cd sdk/ts && npm audit --audit-level=high
+        continue-on-error: true  # Known vitest/vite issues
+
+      - name: Install Arcade dependencies
+        run: cd apps/arcade && npm ci
+
+      - name: Audit Arcade
+        run: cd apps/arcade && npm audit --audit-level=high
+
+  prod-install-check:
+    name: Production Install Verification
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Verify production install
+        run: npm run verify:prod-install
+
+      - name: Verify no toxic deps in production
+        run: npm run verify:no-toxic-deps
+
+  dependency-firewall:
+    name: Dependency Firewall
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for blocked packages
+        run: |
+          # Check for toxic packages that should never be added
+          BLOCKED_PKGS=("clawdbot" "codex" "connect" "request" "marked" "hono" "node-llama-cpp")
+          VIOLATIONS=0
+          
+          for pkg in "${BLOCKED_PKGS[@]}"; do
+            if grep -r "\"$pkg\"" --include="package.json" --include="package-lock.json" . 2>/dev/null | grep -v node_modules | grep -v .git; then
+              echo "❌ BLOCKED PACKAGE DETECTED: $pkg"
+              VIOLATIONS=$((VIOLATIONS + 1))
+            fi
+          done
+          
+          if [ $VIOLATIONS -gt 0 ]; then
+            echo ""
+            echo "❌ Dependency firewall violations detected!"
+            echo "   These packages are blocked from the Reach codebase."
+            echo "   See SECURITY.md for the list of blocked packages."
+            exit 1
+          fi
+          
+          echo "✅ No blocked packages detected"

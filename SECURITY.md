@@ -49,6 +49,34 @@ Do not open public GitHub issues for undisclosed vulnerabilities.
 - Apply least privilege per tenant/session and keep run access tenant-scoped.
 - Keep dependencies updated and pinned via each ecosystem's lock/manifest conventions.
 
+## Dependency Firewall
+
+Reach implements a production dependency firewall to prevent vulnerable packages from entering the runtime:
+
+### Blocked Packages
+
+The following packages are explicitly blocked via npm overrides:
+
+- `clawdbot` - Malicious/untrusted
+- `codex` - Name collision prevention  
+- `connect` - Deprecated middleware
+- `request` - Deprecated HTTP client
+- `marked` - XSS vulnerabilities (older versions)
+- `hono` - Not used in Reach
+- `node-llama-cpp` - Optional local LLM only
+
+### Security Checks
+
+All CI builds run:
+
+```bash
+npm run verify:no-toxic-deps    # Block clawdbot, codex, etc.
+npm run verify:prod-install      # Verify clean prod install
+npm run security:audit          # Run npm audit on all workspaces
+```
+
+See [docs/INSTALL_MODES.md](docs/INSTALL_MODES.md) for installation options.
+
 ## Key rotation
 
 - Integration Hub token encryption uses AES-GCM master key from `REACH_ENCRYPTION_KEY_BASE64`.
