@@ -1,0 +1,181 @@
+'use client';
+
+import { useState } from 'react';
+
+const tiers = [
+  {
+    name: 'Starter',
+    description: 'For individuals and small projects',
+    price: 'Free',
+    period: '',
+    features: [
+      '3 active agents',
+      '1,000 requests/month',
+      'Community support',
+      'Basic analytics',
+      'Shared infrastructure',
+    ],
+    cta: 'Get Started',
+    href: '/studio',
+    highlighted: false,
+  },
+  {
+    name: 'Professional',
+    description: 'For growing teams',
+    price: 'Usage-based',
+    period: 'per request',
+    features: [
+      'Unlimited agents',
+      'Pay per request',
+      'Priority support',
+      'Advanced analytics',
+      'Custom domains',
+      'Team collaboration',
+    ],
+    cta: 'Start Free Trial',
+    href: '/studio',
+    highlighted: true,
+  },
+  {
+    name: 'Enterprise',
+    description: 'For organizations at scale',
+    price: 'Custom',
+    period: 'contact us',
+    features: [
+      'Everything in Pro',
+      'Dedicated infrastructure',
+      'SLA guarantees',
+      'SSO & SAML',
+      'Audit logs',
+      'Custom contracts',
+      'Dedicated support',
+    ],
+    cta: 'Contact Sales',
+    href: '/contact',
+    highlighted: false,
+  },
+];
+
+export default function Pricing() {
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+
+  return (
+    <div className="section-container py-8">
+      {/* Header */}
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold mb-4">Simple, Usage-Based Pricing</h1>
+        <p className="text-gray-400 max-w-2xl mx-auto">
+          Start free, scale as you grow. Only pay for what you use with no hidden fees.
+        </p>
+      </div>
+
+      {/* Pricing Grid */}
+      <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        {tiers.map((tier) => (
+          <div
+            key={tier.name}
+            className={`card flex flex-col ${
+              tier.highlighted ? 'border-accent relative' : ''
+            }`}
+          >
+            {tier.highlighted && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="px-3 py-1 text-xs font-medium rounded-full bg-accent text-white">
+                  Most Popular
+                </span>
+              </div>
+            )}
+
+            <div className="mb-6">
+              <h2 className="text-xl font-bold mb-2">{tier.name}</h2>
+              <p className="text-gray-400 text-sm">{tier.description}</p>
+            </div>
+
+            <div className="mb-6">
+              <span className="text-4xl font-bold">{tier.price}</span>
+              {tier.period && (
+                <span className="text-gray-400 ml-2">{tier.period}</span>
+              )}
+            </div>
+
+            <ul className="space-y-3 mb-8 flex-1">
+              {tier.features.map((feature) => (
+                <li key={feature} className="flex items-start gap-3 text-sm">
+                  <svg className="w-5 h-5 text-emerald-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-gray-300">{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            <a
+              href={tier.href}
+              className={`text-center py-3 rounded-lg font-medium transition-colors ${
+                tier.highlighted
+                  ? 'btn-primary'
+                  : 'btn-secondary'
+              }`}
+            >
+              {tier.cta}
+            </a>
+          </div>
+        ))}
+      </div>
+
+      {/* Usage Calculator */}
+      <div className="max-w-3xl mx-auto mt-16">
+        <div className="card">
+          <h2 className="text-xl font-bold mb-4">Estimate Your Usage</h2>
+          <div className="grid md:grid-cols-3 gap-6 text-center">
+            <div>
+              <div className="text-3xl font-bold text-accent">$0.001</div>
+              <div className="text-sm text-gray-400">per request</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-accent">$0.10</div>
+              <div className="text-sm text-gray-400">per compute minute</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-accent">$0.50</div>
+              <div className="text-sm text-gray-400">per GB stored/month</div>
+            </div>
+          </div>
+          <p className="text-center text-sm text-gray-500 mt-6">
+            Volume discounts available for Enterprise plans. Contact sales for details.
+          </p>
+        </div>
+      </div>
+
+      {/* FAQ */}
+      <div className="max-w-3xl mx-auto mt-16">
+        <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
+        <div className="space-y-4">
+          {[
+            {
+              q: 'How does usage-based pricing work?',
+              a: 'You only pay for the requests you make, compute time you use, and storage you consume. No upfront commitments or minimums.',
+            },
+            {
+              q: 'Can I upgrade or downgrade at any time?',
+              a: 'Yes, you can change your plan at any time. Changes take effect immediately.',
+            },
+            {
+              q: 'What happens if I exceed my limits?',
+              a: 'We\'ll notify you when you approach your limits. You can set up auto-scaling or hard limits based on your preferences.',
+            },
+            {
+              q: 'Do you offer refunds?',
+              a: 'Yes, we offer a 30-day money-back guarantee for paid plans.',
+            },
+          ].map((faq, i) => (
+            <div key={i} className="card">
+              <h3 className="font-bold mb-2">{faq.q}</h3>
+              <p className="text-gray-400 text-sm">{faq.a}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
