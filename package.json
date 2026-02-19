@@ -50,6 +50,10 @@
     "clean": "node -e \"const fs=require('fs');['services/runner/reach-serve.exe','services/runner/reachctl.exe'].forEach(f=>{try{fs.unlinkSync(f)}catch(e){}})\" && (npm run clean --workspaces --if-present)"
   },
   "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@typescript-eslint/eslint-plugin": "^8.14.0",
+    "@typescript-eslint/parser": "^8.14.0",
+    "eslint": "^9.15.0",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3"
