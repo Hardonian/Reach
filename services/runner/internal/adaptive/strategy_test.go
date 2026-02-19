@@ -223,8 +223,8 @@ func TestAdaptInputLightCompression(t *testing.T) {
 }
 
 func TestAdaptInputHeavyCompression(t *testing.T) {
-	strategy := ExecutionStrategy{CompressionLevel: 2, ContextWindow: 10}
-	input := make([]byte, 1000)
+	strategy := ExecutionStrategy{CompressionLevel: 2, ContextWindow: 300} // Large enough to avoid negative index
+	input := make([]byte, 10000)
 	for i := range input {
 		input[i] = 'a'
 	}
