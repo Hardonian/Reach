@@ -43,7 +43,8 @@
     "verify:no-toxic-deps": "node scripts/verify-no-toxic-deps.mjs",
     "security:audit": "npm audit && (cd extensions/vscode && npm audit) && (cd sdk/ts && npm audit) && (cd apps/arcade && npm audit)",
     "security:check": "npm run verify:no-toxic-deps && npm run security:audit",
-    "preinstall": "node scripts/check-node-version.mjs"
+    "preinstall": "node scripts/check-node-version.mjs",
+    "clean": "node -e \"const fs=require('fs');['services/runner/reach-serve.exe','services/runner/reachctl.exe'].forEach(f=>{try{fs.unlinkSync(f)}catch(e){}})\" && (cd apps/arcade && rm -rf .next 2>/dev/null || rd /s /q .next 2>nul || true)"
   },
   "overrides": {
     "clawdbot": "npm:@reach/empty@1.0.0",
