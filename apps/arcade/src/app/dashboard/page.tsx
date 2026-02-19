@@ -22,7 +22,7 @@ const mockDeployments = [
 
 // SVG Grid Map Component
 function GlobalActivityMap() {
-  const gridPoints = [];
+  const gridPoints: { x: number; y: number; active: boolean }[] = [];
   for (let x = 0; x < 20; x++) {
     for (let y = 0; y < 10; y++) {
       gridPoints.push({ x: x * 5 + 2.5, y: y * 10 + 5, active: Math.random() > 0.7 });
