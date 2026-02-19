@@ -20,9 +20,10 @@ type ExecutionStrategy struct {
 	ContextWindow     int                  `json:"contextWindow"`
 	TimeoutMultiplier float64              `json:"timeoutMultiplier"`
 	CompressionLevel  int                  `json:"compressionLevel"`
-	Trace             []string             `json:"trace"`        // Decision points
-	CostScore         float64              `json:"costScore"`    // Normalized cost (0.0 - 1.0)
-	QualityScore      float64              `json:"qualityScore"` // Normalized quality (0.0 - 1.0)
+	Trace             []string             `json:"trace"`            // Decision points
+	CostScore         float64              `json:"costScore"`        // Normalized cost (0.0 - 1.0)
+	QualityScore      float64              `json:"qualityScore"`     // Normalized quality (0.0 - 1.0)
+	ReliabilityScore  float64              `json:"reliabilityScore"` // Normalized reliability (0.0 - 1.0)
 }
 
 // StrategyMode indicates the execution approach.
@@ -115,6 +116,7 @@ func (e *Engine) DetermineStrategy(task TaskConstraints) (ExecutionStrategy, err
 		Trace:             []string{"Initialized default strategy"},
 		QualityScore:      1.0,
 		CostScore:         0.8,
+		ReliabilityScore:  1.0, // Default to high reliability
 	}
 
 	// Check device constraints
@@ -126,6 +128,7 @@ func (e *Engine) DetermineStrategy(task TaskConstraints) (ExecutionStrategy, err
 		strategy.Trace = append(strategy.Trace, "Device is mobile: reduced branching and context")
 		strategy.QualityScore -= 0.2
 		strategy.CostScore -= 0.1
+		strategy.ReliabilityScore -= 0.1 // Mobile might imply less stable connections/resources
 	}
 
 	if e.deviceCtx.AvailableRAMMB < uint64(e.config.LowMemoryMB) {
@@ -138,6 +141,7 @@ func (e *Engine) DetermineStrategy(task TaskConstraints) (ExecutionStrategy, err
 		strategy.Trace = append(strategy.Trace, fmt.Sprintf("Low memory (%d MB): enabled minimal mode and high compression", e.deviceCtx.AvailableRAMMB))
 		strategy.QualityScore -= 0.5
 		strategy.CostScore -= 0.5
+		strategy.ReliabilityScore -= 0.2 // Low memory might lead to instability
 	}
 
 	// Check task-specific constraints
@@ -147,10 +151,12 @@ func (e *Engine) DetermineStrategy(task TaskConstraints) (ExecutionStrategy, err
 		strategy.EnableDelegation = false
 		strategy.Trace = append(strategy.Trace, "Mode: Deterministic Strict (delegation disabled)")
 		strategy.CostScore += 0.2
+		strategy.ReliabilityScore += 0.1 // Deterministic mode often implies higher reliability
 	case OptCost:
 		strategy.MaxBranches = 2
 		strategy.Trace = append(strategy.Trace, "Mode: Cost Optimized (restricting parallelism)")
 		strategy.CostScore -= 0.3
+		strategy.ReliabilityScore -= 0.1 // Cost optimization might trade off some reliability
 	case OptLatency:
 		strategy.MaxBranches = 8
 		strategy.Trace = append(strategy.Trace, "Mode: Latency Optimized (increasing parallelism)")
@@ -171,11 +177,25 @@ func (e *Engine) DetermineStrategy(task TaskConstraints) (ExecutionStrategy, err
 	if task.Critical {
 		strategy.PolicyStrictness = PolicyDraconian
 		strategy.Trace = append(strategy.Trace, "Task marked CRITICAL: enabled Draconian policy strictness")
+		strategy.ReliabilityScore += 0.2 // Critical tasks demand higher reliability
 	}
 
 	if task.TimeSensitive {
 		strategy.TimeoutMultiplier = 0.5
 		strategy.Trace = append(strategy.Trace, "Task TIME-SENSITIVE: reduced timeouts")
+		strategy.ReliabilityScore -= 0.05 // Tighter timeouts can sometimes reduce perceived reliability
+	}
+
+	if task.MinReliability > 0 && strategy.ReliabilityScore < task.MinReliability {
+		// Attempt to adjust strategy to meet minimum reliability, or fail
+		if strategy.Mode == ModeMinimal {
+			return strategy, fmt.Errorf("cannot meet minimum reliability of %.2f with current constraints (current: %.2f)", task.MinReliability, strategy.ReliabilityScore)
+		}
+		// Example adjustment: switch to a more robust (but potentially slower/costlier) mode
+		strategy.Mode = ModeConservative
+		strategy.PolicyStrictness = PolicyStrict
+		strategy.Trace = append(strategy.Trace, fmt.Sprintf("Adjusted for minimum reliability (%.2f)", task.MinReliability))
+		strategy.ReliabilityScore = task.MinReliability // Assume adjustment meets it
 	}
 
 	return strategy, nil
@@ -193,6 +213,7 @@ func (e *Engine) SimulateOptions(task TaskConstraints) map[string]ExecutionStrat
 		Trace:            []string{"Simulation: Priority = Determinism"},
 		CostScore:        1.0, // Most expensive
 		QualityScore:     1.0,
+		ReliabilityScore: 1.0,
 	}
 	options["deterministic_strict"] = det
 
@@ -204,6 +225,7 @@ func (e *Engine) SimulateOptions(task TaskConstraints) map[string]ExecutionStrat
 		Trace:            []string{"Simulation: Priority = Lowest Cost"},
 		CostScore:        0.2,
 		QualityScore:     0.4,
+		ReliabilityScore: 0.6,
 	}
 	options["cost_optimized"] = cost
 
@@ -229,6 +251,7 @@ type TaskConstraints struct {
 	TimeSensitive           bool             `json:"timeSensitive"`
 	EstimatedContextTokens  int              `json:"estimatedContextTokens"`
 	IsReplay                bool             `json:"isReplay"`
+	MinReliability          float64          `json:"minReliability"`
 }
 
 // ReplayEvent represents a simplified event for time-travel simulation.

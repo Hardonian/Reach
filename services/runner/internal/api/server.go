@@ -554,12 +554,20 @@ func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
 		writeError(w, 400, "invalid json")
 		return
 	}
-	if err := s.store.CheckCapabilities(r.Context(), tenant, runID, body.RequiredCapabilities); err != nil {
-		writeError(w, 403, err.Error())
+	// Economic Moat: Check budget before proceeding
+	// For demo, we estimate tool cost at $0.05 per call
+	estCost := 0.05
+	if err := s.store.CheckBudget(r.Context(), tenant, runID, estCost); err != nil {
+		writeError(w, http.StatusPaymentRequired, err.Error())
 		return
 	}
+
 	_ = s.queue.Enqueue(r.Context(), jobs.QueueJob{ID: s.randomID("job"), TenantID: tenant, RunID: runID, Type: jobs.JobToolCall, PayloadJSON: string(mustJSON(body)), IdempotencyKey: runID + ":tool:" + body.ToolName + ":" + hashID(fmt.Sprint(body.Result)), Priority: 40})
 	_ = s.store.PublishEvent(r.Context(), runID, jobs.Event{Type: "tool.result.accepted", Payload: mustJSON(map[string]any{"tool": body.ToolName}), CreatedAt: time.Now().UTC()}, s.requestID(r))
+
+	// Record the actual spend
+	_ = s.store.RecordSpend(r.Context(), tenant, runID, estCost)
+
 	writeJSON(w, 200, map[string]string{"status": "queued"})
 	s.toolCalls.Add(1)
 	payload := mustJSON(map[string]any{"type": "tool_result", "tool": body.ToolName, "result": body.Result})

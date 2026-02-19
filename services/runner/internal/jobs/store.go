@@ -81,6 +81,9 @@ type Run struct {
 	CreatedAt    time.Time
 	IsCritical   bool
 	Fingerprint  string
+	BudgetUSD    float64
+	SpentUSD     float64
+	SpendMu      sync.Mutex
 }
 
 type EventObserver func(runID string, evt Event)
@@ -150,6 +153,7 @@ func (s *Store) GetRun(ctx context.Context, tenantID, id string) (*Run, error) {
 		Status:       rec.Status,
 		CreatedAt:    rec.CreatedAt,
 		IsCritical:   rec.Status == "finalized", // Simple heuristic for demo
+		BudgetUSD:    10.0,                      // Default $10 budget for demo
 	}, nil
 }
 
@@ -275,4 +279,33 @@ func (s *Store) ListAudit(ctx context.Context, tenantID, runID string) ([]storag
 func (s *Store) IsHardened(runID string) bool {
 	val, ok := s.hardened.Load(runID)
 	return ok && val.(bool)
+}
+
+func (s *Store) CheckBudget(ctx context.Context, tenantID, runID string, estimatedCost float64) error {
+	r, err := s.GetRun(ctx, tenantID, runID)
+	if err != nil {
+		return err
+	}
+
+	r.SpendMu.Lock()
+	defer r.SpendMu.Unlock()
+
+	if r.SpentUSD+estimatedCost > r.BudgetUSD {
+		return fmt.Errorf("budget exceeded: spent $%.2f, extra cost $%.2f, limit $%.2f", r.SpentUSD, estimatedCost, r.BudgetUSD)
+	}
+
+	return nil
+}
+
+func (s *Store) RecordSpend(ctx context.Context, tenantID, runID string, amount float64) error {
+	r, err := s.GetRun(ctx, tenantID, runID)
+	if err != nil {
+		return err
+	}
+
+	r.SpendMu.Lock()
+	r.SpentUSD += amount
+	r.SpendMu.Unlock()
+
+	return s.Audit(ctx, tenantID, runID, "economic.spend", []byte(fmt.Sprintf("$%.2f", amount)))
 }

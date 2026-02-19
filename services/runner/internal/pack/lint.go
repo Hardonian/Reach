@@ -1,6 +1,8 @@
 package pack
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -13,6 +15,7 @@ type LintResult struct {
 	Errors   []string `json:"errors"`
 	Warnings []string `json:"warnings"`
 	Metadata Metadata `json:"metadata"`
+	Hash     string   `json:"hash"`
 }
 
 // Metadata from the pack manifest.
@@ -98,6 +101,12 @@ func Lint(path string) (*LintResult, error) {
 	if checkAcyclic(manifest.ExecutionGraph) {
 		res.Errors = append(res.Errors, "execution graph contains cycles; it must be a DAG")
 	}
+
+	// 4. Integrity Moat: Fingerprint the pack
+	h := sha256.New()
+	graphData, _ := json.Marshal(manifest.ExecutionGraph)
+	h.Write(graphData)
+	res.Hash = hex.EncodeToString(h.Sum(nil))
 
 	if len(res.Errors) > 0 {
 		res.Valid = false
