@@ -95,10 +95,11 @@ type Store struct {
 	events storage.EventsStore
 	audit  storage.AuditStore
 
-	counter atomic.Uint64
-	subs    sync.Map
-	observe EventObserver
-	drift   *determinism.DriftMonitor
+	counter  atomic.Uint64
+	subs     sync.Map
+	observe  EventObserver
+	drift    *determinism.DriftMonitor
+	hardened sync.Map // map[string]bool
 }
 
 func NewStore(db *storage.SQLiteStore) *Store {
@@ -193,7 +194,13 @@ func (s *Store) PublishEvent(ctx context.Context, runID string, evt Event, _ str
 		if err := json.Unmarshal(evt.Payload, &payload); err == nil {
 			hash := determinism.Hash(payload.Result)
 			// For demo, we use a fixed pack ID
-			s.drift.CheckDrift(runID, "pack-alpha", 0, hash)
+			score, drifted := s.drift.CheckDrift(runID, "pack-alpha", 0, hash)
+
+			// Self-Healing: If drift is high, harden the run
+			if drifted && score > 0.5 {
+				s.hardened.Store(runID, true)
+				_ = s.Audit(ctx, "", runID, "drift.alert", []byte(fmt.Sprintf("High entropy detected (score: %.2f); run hardened to ModeStrict", score)))
+			}
 		}
 	}
 
@@ -263,4 +270,9 @@ func (s *Store) Audit(ctx context.Context, tenantID, runID, typ string, payload 
 
 func (s *Store) ListAudit(ctx context.Context, tenantID, runID string) ([]storage.AuditRecord, error) {
 	return s.audit.ListAudit(ctx, tenantID, runID)
+}
+
+func (s *Store) IsHardened(runID string) bool {
+	val, ok := s.hardened.Load(runID)
+	return ok && val.(bool)
 }

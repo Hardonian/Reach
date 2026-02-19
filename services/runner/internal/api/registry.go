@@ -22,11 +22,12 @@ type NodeRegistry struct {
 }
 
 type nodeInfo struct {
-	capabilities []string
-	lastSeen     time.Time
-	latency      time.Duration
-	load         int
-	tags         []string
+	capabilities  []string
+	lastSeen      time.Time
+	latency       time.Duration
+	load          int
+	tags          []string
+	contextShards []string
 }
 
 func NewNodeRegistry() *NodeRegistry {

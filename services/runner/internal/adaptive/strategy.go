@@ -4,6 +4,7 @@
 package adaptive
 
 import (
+	"context"
 	"fmt"
 	"reach/services/runner/internal/config"
 	"reach/services/runner/internal/model"
@@ -227,6 +228,36 @@ type TaskConstraints struct {
 	Mode                    OptimizationMode `json:"mode"`
 	TimeSensitive           bool             `json:"timeSensitive"`
 	EstimatedContextTokens  int              `json:"estimatedContextTokens"`
+	IsReplay                bool             `json:"isReplay"`
+}
+
+// ReplayEvent represents a simplified event for time-travel simulation.
+type ReplayEvent struct {
+	Type    string
+	Payload []byte
+}
+
+// Replay simulates execution against a historical event log.
+func (e *Engine) Replay(ctx context.Context, history []ReplayEvent) (ExecutionStrategy, error) {
+	// Replay logic: we inject historical context into the engine's current state
+	// For now, we simulate a standard strategy determination but move reasoning
+	// into a "Mock" or "Replay" state where we can compare against history.
+
+	task := TaskConstraints{
+		IsReplay: true,
+	}
+
+	strategy, err := e.DetermineStrategy(task)
+	if err != nil {
+		return strategy, err
+	}
+
+	strategy.Trace = append(strategy.Trace, fmt.Sprintf("Replay initiated with %d historical events", len(history)))
+
+	// In a real implementation, we would step through the 'history' and
+	// verify that 'DetermineStrategy' would yield the same branch points.
+
+	return strategy, nil
 }
 
 // AdaptInput adapts input based on strategy.

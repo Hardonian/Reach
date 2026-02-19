@@ -47,7 +47,8 @@ func VerifyNodeAttestation(pubKey *rsa.PublicKey, quote AttestationQuote, expect
 
 // TrustedNode represents a node that has passed attestation.
 type TrustedNode struct {
-	ID        string
-	PublicKey *rsa.PublicKey
-	Verified  bool
+	ID            string
+	PublicKey     *rsa.PublicKey
+	Verified      bool
+	ContextShards []string
 }

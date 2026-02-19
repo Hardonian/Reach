@@ -61,6 +61,11 @@ func (s *Server) handleGetStrategy(w http.ResponseWriter, r *http.Request) {
 		Critical:                run.IsCritical,
 	}
 
+	// Self-Healing: If run is hardened (due to drift), force Deterministic Strict mode
+	if s.store.IsHardened(run.ID) {
+		constraints.Mode = adaptive.OptDeterministic
+	}
+
 	strategy, err := s.adaptiveEngine.DetermineStrategy(constraints)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to determine execution strategy: "+err.Error())
@@ -186,4 +191,39 @@ func (s *Server) handleAutonomousStatus(w http.ResponseWriter, r *http.Request) 
 	}
 
 	writeJSON(w, http.StatusOK, map[string]string{"status": status})
+}
+
+func (s *Server) handleReplayRun(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+	tenant := tenantIDFrom(r.Context())
+
+	// Fetch historical events for this run
+	history, err := s.store.EventHistory(r.Context(), tenant, runID, 0)
+	if err != nil {
+		writeError(w, http.StatusNotFound, "run or history not found")
+		return
+	}
+
+	// Transform to adaptive replay format
+	replayEvents := make([]adaptive.ReplayEvent, len(history))
+	for i, e := range history {
+		replayEvents[i] = adaptive.ReplayEvent{
+			Type:    e.Type,
+			Payload: e.Payload,
+		}
+	}
+
+	// Simulate replay
+	strategy, err := s.adaptiveEngine.Replay(r.Context(), replayEvents)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "replay failed: "+err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"run_id":       runID,
+		"replay_trace": strategy.Trace,
+		"strategy":     strategy,
+		"event_count":  len(history),
+	})
 }

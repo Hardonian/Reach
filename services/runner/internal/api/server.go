@@ -146,6 +146,7 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("GET /v1/runs/{id}/audit", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleGetAudit))))
 	mux.Handle("GET /v1/runs/{id}/strategy", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleGetStrategy))))
 	mux.Handle("GET /v1/runs/{id}/simulate", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleSimulateOptions))))
+	mux.Handle("POST /v1/runs/{id}/replay", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleReplayRun))))
 	mux.Handle("POST /v1/runs/{id}/gates/{gate_id}", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleGateDecision))))
 	mux.Handle("GET /v1/plugins", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleListPlugins))))
 	mux.HandleFunc("GET /metrics", s.handlePromMetrics)
@@ -583,6 +584,7 @@ func (s *Server) handleRegisterNode(w http.ResponseWriter, r *http.Request) {
 		LatencyMS, LoadScore                                              int
 		Tags                                                              []string
 		SupportedModes                                                    []string
+		ContextShards                                                     []string
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeError(w, 400, "invalid json")
@@ -606,6 +608,15 @@ func (s *Server) handleRegisterNode(w http.ResponseWriter, r *http.Request) {
 	node := s.federationStatusNode(body.ID)
 	node.SpecVersion = identity.SpecVersion
 	node.RegistrySnapshotHash = identity.RegistrySnapshotHash
+
+	// Store context shards in memory registry
+	s.registry.mu.Lock()
+	if info, ok := s.registry.nodes[body.ID]; ok {
+		info.contextShards = body.ContextShards
+		s.registry.nodes[body.ID] = info
+	}
+	s.registry.mu.Unlock()
+
 	s.federationUpsert(node)
 	writeJSON(w, 201, map[string]string{"status": "registered"})
 }
