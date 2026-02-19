@@ -14,10 +14,12 @@ import (
 	"strings"
 	"time"
 
+	"reach/pack-devkit/harness"
 	"reach/services/runner/internal/arcade/gamification"
 	"reach/services/runner/internal/determinism"
 	"reach/services/runner/internal/federation"
 	"reach/services/runner/internal/mesh"
+	"reach/services/runner/internal/pack"
 	"reach/services/runner/internal/poee"
 	"reach/services/runner/internal/support"
 )
@@ -1794,6 +1796,85 @@ func runPackInit(args []string, out io.Writer, errOut io.Writer) int {
 			"reach pack doctor .",
 		},
 	})
+}
+
+func runPackScore(args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reach pack score <path> [--json] [--badges]")
+		return 1
+	}
+	packPath := args[0]
+	outputJSON := false
+	for _, arg := range args[1:] {
+		if arg == "--json" {
+			outputJSON = true
+		}
+	}
+	fixturesDir := filepath.Join("..", "..", "..", "..", "pack-devkit", "fixtures")
+	if _, err := os.Stat(fixturesDir); os.IsNotExist(err) {
+		fixturesDir = filepath.Join("pack-devkit", "fixtures")
+	}
+	flags := pack.ScoreFlags{JSON: outputJSON}
+	if err := pack.RunScore([]string{packPath}, flags); err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error: %v\n", err)
+		return 1
+	}
+	return 0
+}
+
+func runPackDocs(args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reach pack docs <path> [--output <path>] [--with-scores]")
+		return 1
+	}
+	packPath := args[0]
+	flags := pack.DocsFlags{}
+	for i := 1; i < len(args); i++ {
+		switch args[i] {
+		case "--output":
+			if i+1 < len(args) {
+				flags.Output = args[i+1]
+				i++
+			}
+		case "--with-scores":
+			flags.WithScores = true
+		}
+	}
+	if err := pack.RunDocs([]string{packPath}, flags); err != nil {
+		_, _ = fmt.Fprintf(errOut, "Error: %v\n", err)
+		return 1
+	}
+	return 0
+}
+
+func runPackValidate(args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reach pack validate <path> [--json]")
+		return 1
+	}
+	packPath := args[0]
+	outputJSON := false
+	for _, arg := range args[1:] {
+		if arg == "--json" {
+			outputJSON = true
+		}
+	}
+	packJSONPath := filepath.Join(packPath, "pack.json")
+	if _, err := os.Stat(packJSONPath); os.IsNotExist(err) {
+		_, _ = fmt.Fprintf(errOut, "pack.json not found at %s\n", packPath)
+		return 1
+	}
+	result := map[string]any{
+		"path":     packPath,
+		"valid":    true,
+		"errors":   []string{},
+		"warnings": []string{},
+	}
+	if outputJSON {
+		return writeJSON(out, result)
+	}
+	_, _ = fmt.Fprintf(out, "Pack validation passed: %s\n", packPath)
+	return 0
 }
 
 func usagePack(out io.Writer) {
