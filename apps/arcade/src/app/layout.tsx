@@ -1,16 +1,16 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { NavBar } from '@/components/NavBar';
+import { Footer } from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Reach Arcade',
-  description: 'Phone-first playful coding and internet fun layer.',
+  title: 'Reach - Orchestration Platform',
+  description: 'Global orchestration platform for distributed agents, marketplace, and governance.',
 };
 
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
 
 export default function RootLayout({
@@ -20,9 +20,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body style={{ fontFamily: 'Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif' }}>
-        <div className="scanlines" />
-        <main className="container">{children}</main>
+      <body className="min-h-screen flex flex-col">
+        <NavBar />
+        <main className="flex-1">{children}</main>
+        <Footer />
       </body>
     </html>
   );

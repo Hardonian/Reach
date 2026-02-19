@@ -1,232 +1,193 @@
-'use client';
-
-import { useState } from 'react';
-import { Pack } from '@/lib/packs';
-import { PackDiscovery } from '@/components/PackDiscovery';
-import { ExecutionTimeline, TimelineEvent } from '@/components/ExecutionTimeline';
+import { HeroMedia } from '@/components/HeroMedia';
+import Link from 'next/link';
 
 export default function Home() {
-  const [selectedPack, setSelectedPack] = useState<Pack | null>(null);
-  const [isRunning, setIsRunning] = useState(false);
-  const [runTimeline, setRunTimeline] = useState<TimelineEvent[]>([]);
-  const [activeTab, setActiveTab] = useState<'discover' | 'runs'>('discover');
-
-  async function handleRun() {
-    if (!selectedPack) return;
-    setIsRunning(true);
-    setRunTimeline([{ type: 'Initializing', status: 'pending', timestamp: Date.now() }]);
-
-    try {
-      // Simulate network delay for "feel"
-      await new Promise(r => setTimeout(r, 600));
-
-      const res = await fetch('/api/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          packId: selectedPack.id,
-          inputs: selectedPack.inputs,
-        }),
-      });
-      
-      const data = await res.json();
-      
-      // Clear initial pending state
-      setRunTimeline([]);
-
-      if (data.timeline) {
-        // Stagger animation for dramatic effect
-        for (const event of data.timeline) {
-          // Add random jitter to timing for realism
-          await new Promise((r) => setTimeout(r, Math.random() * 150 + 100));
-          setRunTimeline((prev) => [...prev, {
-            type: event.type || 'Event',
-            details: event.details,
-            status: event.status || 'completed',
-            timestamp: Date.now(),
-          }]);
-        }
-        
-        // Final success state
-        setRunTimeline((prev) => [...prev, {
-             type: 'Execution Complete', 
-             status: 'completed', 
-             timestamp: Date.now() 
-        }]);
-
-      } else if (data.error) {
-        setRunTimeline(prev => [...prev, { type: 'Execution Failed', details: data.error, status: 'failed', timestamp: Date.now() }]);
-      }
-    } catch (e) {
-      setRunTimeline(prev => [...prev, { type: 'Network Error', details: 'Failed to reach execution node', status: 'failed', timestamp: Date.now() }]);
-    } finally {
-      setIsRunning(false);
-    }
-  }
-
-  const handleCopyLink = () => {
-    if (!selectedPack) return;
-    const payload = {
-      pack: selectedPack,
-      timeline: runTimeline, 
-      timestamp: Date.now()
-    };
-    const token = btoa(JSON.stringify(payload));
-    const url = `${window.location.origin}/share?token=${encodeURIComponent(token)}`;
-    navigator.clipboard.writeText(url);
-    alert('Run Card Link Copied! 🔗');
-  };
-
   return (
-    <div className="min-h-screen relative">
-      {/* Header */}
-      <header className="app-header">
-        <div className="container p-0 flex justify-between items-center">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-gradient">
-              REACH ARCADE
-            </h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="status-dot animate-pulse" />
-              <p className="text-2xs font-mono text-tertiary tracking-widest uppercase">
-                System Online • v1.2.0
-              </p>
+    <>
+      {/* Hero Section */}
+      <section className="relative min-h-[80vh] flex items-center">
+        <HeroMedia
+          videoSrc="/hero/reach-hero.mp4"
+          fallbackSrc="/hero/reach-hero-fallback.png"
+          className="absolute inset-0"
+        />
+        
+        <div className="section-container relative z-10 py-20">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 mb-6">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-sm text-gray-300">Global Orchestration Network Online</span>
             </div>
-          </div>
-          <a href="/studio" className="user-avatar" aria-label="Open Reach Studio" title="Open Reach Studio">
-            🧭
-          </a>
-        </div>
-      </header>
-
-      <main className="container app-content">
-        {activeTab === 'discover' && (
-          <PackDiscovery 
-            onSelect={(pack) => {
-              setSelectedPack(pack);
-              setRunTimeline([]);
-            }} 
-            selectedId={selectedPack?.id}
-          />
-        )}
-
-        {/* History Tab placeholder */}
-        {activeTab === 'runs' && (
-          <div className="placeholder-screen">
-             <div className="text-3xl mb-4 opacity-50">📜</div>
-             <p>Local history coming in Phase 2.</p>
-          </div>
-        )}
-      </main>
-
-      {/* Execution Drawer / Modal */}
-      {selectedPack && activeTab === 'discover' && (
-        <>
-          {/* Backdrop */}
-          <div 
-             className="modal-backdrop"
-             onClick={() => !isRunning && setSelectedPack(null)}
-             aria-hidden="true"
-          />
-          
-          {/* Bottom Sheet */}
-          <div 
-             className="bottom-sheet"
-             role="dialog"
-             aria-modal="true"
-             aria-labelledby="sheet-title"
-          >
             
-            {/* Handle bar for visual affordance */}
-            <div className="sheet-handle" onClick={() => !isRunning && setSelectedPack(null)} aria-hidden="true">
-              <div className="sheet-handle-bar" />
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+              Orchestrate{' '}
+              <span className="text-gradient">Intelligence</span>
+              <br />
+              At Global Scale
+            </h1>
+            
+            <p className="text-xl text-gray-400 mb-8 max-w-2xl">
+              Build, deploy, and govern distributed AI agents across the world's most reliable 
+              orchestration infrastructure. From edge to cloud, one platform.
+            </p>
+            
+            <div className="flex flex-wrap gap-4">
+              <Link href="/studio" className="btn-primary text-lg">
+                Launch Studio
+              </Link>
+              <Link href="/marketplace" className="btn-secondary text-lg">
+                Explore Marketplace
+              </Link>
             </div>
-
-            {/* Content */}
-            <div className="sheet-content">
-              <div className="sheet-header">
-                <div>
-                  <h2 id="sheet-title" className="text-2xl font-bold mb-1 leading-tight">{selectedPack.name}</h2>
-                  <p className="text-secondary text-sm">{selectedPack.description}</p>
-                </div>
-                <button
-                  onClick={() => setSelectedPack(null)}
-                  disabled={isRunning}
-                  className="close-btn"
-                  aria-label="Close"
-                >
-                  ✕
-                </button>
+            
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-8 mt-16 pt-8 border-t border-white/10">
+              <div>
+                <div className="text-3xl font-bold text-gradient">99.99%</div>
+                <div className="text-sm text-gray-500">Uptime SLA</div>
               </div>
-
-              {/* Timeline Area */}
-              <div className="mb-6 min-h-timeline">
-                 {runTimeline.length > 0 ? (
-                    <ExecutionTimeline events={runTimeline} isRunning={isRunning} />
-                 ) : (
-                    <div className="timeline-placeholder">
-                      <div className="text-3xl mb-3 opacity-50" aria-hidden="true">⚡</div>
-                      <p className="text-secondary text-sm mb-1">Ready to Execute</p>
-                      <p className="text-tertiary text-2xs font-mono">
-                        Est. Duration: {selectedPack.duration}
-                      </p>
-                    </div>
-                 )}
+              <div>
+                <div className="text-3xl font-bold text-gradient">150+</div>
+                <div className="text-sm text-gray-500">Global Nodes</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-gradient">&lt;50ms</div>
+                <div className="text-sm text-gray-500">Latency</div>
               </div>
             </div>
-
-            {/* Actions Footer */}
-            <div className="sheet-footer">
-               <div className="action-bar">
-                  <button
-                    disabled={!selectedPack.arcadeSafe || isRunning}
-                    onClick={handleRun}
-                    className="btn-primary flex-1"
-                  >
-                    {!selectedPack.arcadeSafe 
-                      ? '🔒 POLICY LOCKED' 
-                      : isRunning 
-                      ? 'EXECUTING...' 
-                      : 'RUN NOW'
-                    }
-                  </button>
-
-                  {runTimeline.length > 0 && !isRunning && (
-                     <button
-                       onClick={handleCopyLink}
-                       className="btn-icon"
-                       aria-label="Share Run"
-                       title="Share Run Results"
-                     >
-                       🔗
-                     </button>
-                  )}
-               </div>
-            </div>
-
           </div>
-        </>
-      )}
+        </div>
+      </section>
 
-      {/* Bottom Nav */}
-      <nav className="bottom-nav" aria-label="Main Navigation">
-        <button
-          onClick={() => { setActiveTab('discover'); setSelectedPack(null); }}
-          className={`nav-item ${activeTab === 'discover' ? 'active' : ''}`}
-          aria-current={activeTab === 'discover' ? 'page' : undefined}
-        >
-          <span className="text-xl mb-1" aria-hidden="true">🎮</span>
-          <span className="text-2xs font-bold tracking-wider">ARCADE</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('runs')}
-          className={`nav-item ${activeTab === 'runs' ? 'active' : ''}`}
-          aria-current={activeTab === 'runs' ? 'page' : undefined}
-        >
-          <span className="text-xl mb-1" aria-hidden="true">📜</span>
-          <span className="text-2xs font-bold tracking-wider">HISTORY</span>
-        </button>
-      </nav>
-    </div>
+      {/* How It Works */}
+      <section className="py-24 bg-surface/30">
+        <div className="section-container">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              From concept to global deployment in three simple steps
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: '01',
+                title: 'Design',
+                description: 'Compose agent workflows in our visual studio. Connect pre-built components or create custom agents.',
+                icon: '🎨',
+              },
+              {
+                step: '02',
+                title: 'Deploy',
+                description: 'Push to our global edge network. Automatic scaling, load balancing, and health monitoring included.',
+                icon: '🚀',
+              },
+              {
+                step: '03',
+                title: 'Govern',
+                description: 'Manage permissions, audit trails, and compliance policies across your entire agent ecosystem.',
+                icon: '🛡️',
+              },
+            ].map((item) => (
+              <div key={item.step} className="card gradient-border">
+                <div className="text-4xl mb-4">{item.icon}</div>
+                <div className="text-sm font-mono text-accent mb-2">{item.step}</div>
+                <h3 className="text-xl font-bold mb-3">{item.title}</h3>
+                <p className="text-gray-400 text-sm">{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section className="py-24">
+        <div className="section-container">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Platform Capabilities</h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              Everything you need to build production-grade agent systems
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                title: 'Global Orchestration',
+                description: 'Distribute workloads across 150+ edge locations with intelligent routing.',
+                href: '/dashboard',
+              },
+              {
+                title: 'Agent Marketplace',
+                description: 'Discover and deploy pre-built agents from the community and verified publishers.',
+                href: '/marketplace',
+              },
+              {
+                title: 'Visual Studio',
+                description: 'Design complex workflows with our drag-and-drop orchestration builder.',
+                href: '/studio',
+              },
+              {
+                title: 'Enterprise Governance',
+                description: 'Role-based access, audit logs, and compliance policies at every layer.',
+                href: '/governance',
+              },
+              {
+                title: 'Real-time Monitoring',
+                description: 'Track performance, costs, and agent behavior across your deployment.',
+                href: '/dashboard',
+              },
+              {
+                title: 'Secure Execution',
+                description: 'Sandboxed environments with policy enforcement and encrypted channels.',
+                href: '/governance',
+              },
+            ].map((feature) => (
+              <Link
+                key={feature.title}
+                href={feature.href}
+                className="card group hover:border-accent/50 transition-all"
+              >
+                <h3 className="font-bold mb-2 group-hover:text-accent transition-colors">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-400 text-sm">{feature.description}</p>
+                <div className="mt-4 flex items-center text-accent text-sm font-medium">
+                  Learn more
+                  <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-accent/5 to-transparent" />
+        <div className="section-container relative z-10">
+          <div className="card max-w-3xl mx-auto text-center p-12 gradient-border">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Ready to orchestrate?
+            </h2>
+            <p className="text-gray-400 mb-8 max-w-lg mx-auto">
+              Join thousands of developers building the future of distributed intelligence.
+              Start free, scale as you grow.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link href="/studio" className="btn-primary">
+                Get Started Free
+              </Link>
+              <Link href="/contact" className="btn-secondary">
+                Talk to Sales
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
