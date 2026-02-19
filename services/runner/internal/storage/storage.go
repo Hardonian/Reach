@@ -102,7 +102,6 @@ type preparedOps struct {
 	listAudit      *sql.Stmt
 	enqueueJob     *sql.Stmt
 	getJobByKey    *sql.Stmt
-	leaseJobs      *sql.Stmt
 	getJobsByLease *sql.Stmt
 	completeJob    *sql.Stmt
 	failJob        *sql.Stmt
@@ -203,23 +202,54 @@ func (s *SQLiteStore) prepareStmts() error {
 }
 
 func (s *SQLiteStore) Close() error {
-	s.ops.createRun.Close()
-	s.ops.getRun.Close()
-	s.ops.appendEvent.Close()
-	s.ops.listEvents.Close()
-	s.ops.appendAudit.Close()
-	s.ops.listAudit.Close()
-	s.ops.enqueueJob.Close()
-	s.ops.getJobByKey.Close()
-	s.ops.leaseJobs.Close()
-	s.ops.getJobsByLease.Close()
-	s.ops.completeJob.Close()
-	s.ops.failJob.Close()
-	s.ops.upsertNode.Close()
-	s.ops.listNodes.Close()
-	s.ops.putSession.Close()
-	s.ops.getSession.Close()
-	s.ops.deleteSession.Close()
+	if s.ops.createRun != nil {
+		s.ops.createRun.Close()
+	}
+	if s.ops.getRun != nil {
+		s.ops.getRun.Close()
+	}
+	if s.ops.appendEvent != nil {
+		s.ops.appendEvent.Close()
+	}
+	if s.ops.listEvents != nil {
+		s.ops.listEvents.Close()
+	}
+	if s.ops.appendAudit != nil {
+		s.ops.appendAudit.Close()
+	}
+	if s.ops.listAudit != nil {
+		s.ops.listAudit.Close()
+	}
+	if s.ops.enqueueJob != nil {
+		s.ops.enqueueJob.Close()
+	}
+	if s.ops.getJobByKey != nil {
+		s.ops.getJobByKey.Close()
+	}
+	if s.ops.getJobsByLease != nil {
+		s.ops.getJobsByLease.Close()
+	}
+	if s.ops.completeJob != nil {
+		s.ops.completeJob.Close()
+	}
+	if s.ops.failJob != nil {
+		s.ops.failJob.Close()
+	}
+	if s.ops.upsertNode != nil {
+		s.ops.upsertNode.Close()
+	}
+	if s.ops.listNodes != nil {
+		s.ops.listNodes.Close()
+	}
+	if s.ops.putSession != nil {
+		s.ops.putSession.Close()
+	}
+	if s.ops.getSession != nil {
+		s.ops.getSession.Close()
+	}
+	if s.ops.deleteSession != nil {
+		s.ops.deleteSession.Close()
+	}
 	return s.db.Close()
 }
 
