@@ -1,0 +1,26 @@
+# reach/services/runner/internal/backpressure
+internal\backpressure\backpressure.go:98:34: undefined: errors.CodeRateLimitExceeded
+# reach/services/runner/internal/backpressure
+# [reach/services/runner/internal/backpressure]
+vet.exe: internal\backpressure\backpressure.go:98:34: undefined: errors.CodeRateLimitExceeded
+# reach/services/runner/internal/autonomous
+internal\autonomous\orchestrator.go:284:11: plan.EstimatedTokens undefined (type *StepPlan has no field or method EstimatedTokens)
+internal\autonomous\orchestrator.go:285:27: plan.EstimatedTokens undefined (type *StepPlan has no field or method EstimatedTokens)
+internal\autonomous\orchestrator.go:331:12: envelope.BudgetAllocID undefined (type ExecutionEnvelope has no field or method BudgetAllocID)
+internal\autonomous\orchestrator.go:332:12: envelope.EstimatedCost undefined (type ExecutionEnvelope has no field or method EstimatedCost)
+internal\autonomous\orchestrator.go:340:32: res.Metrics.CostUSD undefined (type ExecutionMetrics has no field or method CostUSD)
+internal\autonomous\orchestrator.go:341:29: res.Metrics.CostUSD undefined (type ExecutionMetrics has no field or method CostUSD)
+internal\autonomous\orchestrator.go:467:4: unknown field CostUSD in struct literal of type ExecutionMetrics
+# reach/services/runner/cmd/reach-serve
+# [reach/services/runner/cmd/reach-serve]
+vet.exe: cmd\reach-serve\main.go:178:71: not enough arguments in call to s.store.CreateRun
+	have (context.Context, string, []string)
+	want (context.Context, string, string, []string)
+# reach/services/runner/internal/autonomous
+# [reach/services/runner/internal/autonomous]
+vet.exe: internal\autonomous\orchestrator.go:284:11: plan.EstimatedTokens undefined (type *StepPlan has no field or method EstimatedTokens)
+# reach/services/runner/internal/jobs
+# [reach/services/runner/internal/jobs]
+vet.exe: internal\jobs\event_schema_test.go:20:67: not enough arguments in call to store.CreateRun
+	have (context.Context, string, nil)
+	want (context.Context, string, string, []string)
