@@ -88,8 +88,7 @@
     "tar": "^7.0.0",
     "hono": "npm:@reach/empty@1.0.0",
     "node-llama-cpp": "npm:@reach/empty@1.0.0",
-    "minimatch": "^10.2.1",
-    "ajv": "^8.18.0"
+    "minimatch": "^10.2.1"
   },
   "devDependencies": {
     "@types/node": "^20.16.1",
