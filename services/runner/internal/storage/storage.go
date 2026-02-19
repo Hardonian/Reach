@@ -263,6 +263,10 @@ func (s *SQLiteStore) query(ctx context.Context, query string, args ...any) (*sq
 func (s *SQLiteStore) queryRow(ctx context.Context, query string, args ...any) *sql.Row {
 	return s.db.QueryRowContext(ctx, query, args...)
 }
+
+func (s *SQLiteStore) Ping(ctx context.Context) error {
+	return s.db.PingContext(ctx)
+}
 func esc(v string) string { return strings.ReplaceAll(v, "'", "''") }
 
 func (s *SQLiteStore) Migrate(ctx context.Context) error {

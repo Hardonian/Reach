@@ -74,7 +74,7 @@ func newStore(t *testing.T) (*jobs.Store, *storage.SQLiteStore) {
 }
 
 func seedRun(t *testing.T, store *jobs.Store) string {
-	r, err := store.CreateRun(context.Background(), "tenant-a", []string{"tool:safe"})
+	r, err := store.CreateRun(context.Background(), "tenant-a", "", []string{"tool:safe"})
 	if err != nil {
 		t.Fatal(err)
 	}

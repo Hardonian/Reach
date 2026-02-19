@@ -3,20 +3,89 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"reach/services/runner/internal/adaptive"
 	"reach/services/runner/internal/jobs"
+	"reach/services/runner/internal/storage"
 )
 
 func (s *Server) handleExport(w http.ResponseWriter, r *http.Request) {
-	// TODO: implement export
-	writeError(w, http.StatusNotImplemented, "not implemented")
+	runID := r.PathValue("id")
+	tenant := tenantIDFrom(r.Context())
+
+	run, err := s.store.GetRun(r.Context(), tenant, runID)
+	if err != nil {
+		writeError(w, http.StatusNotFound, "run not found")
+		return
+	}
+
+	events, err := s.sql.ListEvents(r.Context(), tenant, runID, 0)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to list events: "+err.Error())
+		return
+	}
+
+	audit, err := s.sql.ListAudit(r.Context(), tenant, runID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to list audit: "+err.Error())
+		return
+	}
+
+	bundle := map[string]any{
+		"run":    run,
+		"events": events,
+		"audit":  audit,
+		"export_info": map[string]any{
+			"version":     s.version,
+			"exported_at": time.Now().UTC(),
+		},
+	}
+
+	writeJSON(w, http.StatusOK, bundle)
 }
 
 func (s *Server) handleImport(w http.ResponseWriter, r *http.Request) {
-	// TODO: implement import
-	writeError(w, http.StatusNotImplemented, "not implemented")
+	var bundle struct {
+		Run    storage.RunRecord     `json:"run"`
+		Events []storage.EventRecord `json:"events"`
+		Audit  []storage.AuditRecord `json:"audit"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&bundle); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid bundle json")
+		return
+	}
+
+	tenant := tenantIDFrom(r.Context())
+	if bundle.Run.TenantID != tenant {
+		writeError(w, http.StatusForbidden, "tenant mismatch")
+		return
+	}
+
+	// Transactions are handled within the store/sql methods but here we just do bulk insert
+	if err := s.sql.CreateRun(r.Context(), bundle.Run); err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to import run metadata: "+err.Error())
+		return
+	}
+
+	for _, e := range bundle.Events {
+		if _, err := s.sql.AppendEvent(r.Context(), e); err != nil {
+			writeError(w, http.StatusInternalServerError, "failed to import event: "+err.Error())
+			return
+		}
+	}
+
+	for _, a := range bundle.Audit {
+		if err := s.sql.AppendAudit(r.Context(), a); err != nil {
+			writeError(w, http.StatusInternalServerError, "failed to import audit log: "+err.Error())
+			return
+		}
+	}
+
+	writeJSON(w, http.StatusCreated, map[string]string{"status": "imported", "run_id": bundle.Run.ID})
 }
 
 func (s *Server) handleGetAudit(w http.ResponseWriter, r *http.Request) {
@@ -106,8 +175,45 @@ func (s *Server) handleSimulateOptions(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleListPlugins(w http.ResponseWriter, r *http.Request) {
-	// TODO: implement plugin listing
-	writeJSON(w, http.StatusOK, map[string][]string{"plugins": {}})
+	dataRoot := strings.TrimSpace(os.Getenv("REACH_DATA_DIR"))
+	if dataRoot == "" {
+		dataRoot = "data"
+	}
+	pluginDir := filepath.Join(dataRoot, "plugins")
+
+	files, err := os.ReadDir(pluginDir)
+	if err != nil {
+		// Not an error if dir doesn't exist, just empty list
+		writeJSON(w, http.StatusOK, map[string][]string{"plugins": {}})
+		return
+	}
+
+	var plugins []string
+	for _, f := range files {
+		if f.IsDir() {
+			plugins = append(plugins, f.Name())
+		}
+	}
+
+	writeJSON(w, http.StatusOK, map[string][]string{"plugins": plugins})
+}
+
+func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
+	health := map[string]any{
+		"status":  "ok",
+		"version": s.version,
+		"time":    time.Now().UTC(),
+	}
+
+	if err := s.sql.Ping(r.Context()); err != nil {
+		health["status"] = "degraded"
+		health["database"] = "unreachable: " + err.Error()
+		writeJSON(w, http.StatusServiceUnavailable, health)
+		return
+	}
+
+	health["database"] = "healthy"
+	writeJSON(w, http.StatusOK, health)
 }
 
 func (s *Server) handleAutonomousStart(w http.ResponseWriter, r *http.Request) {

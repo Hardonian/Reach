@@ -133,7 +133,7 @@ func TestChaosCorruptedAuditEntryRejected(t *testing.T) {
 	}
 	defer db.Close()
 	store := jobs.NewStore(db)
-	run, err := store.CreateRun(context.Background(), "tenant-a", nil)
+	run, err := store.CreateRun(context.Background(), "tenant-a", "", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
