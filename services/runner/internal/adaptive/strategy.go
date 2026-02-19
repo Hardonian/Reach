@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"reach/services/runner/internal/config"
+	"reach/services/runner/internal/federation"
 	"reach/services/runner/internal/model"
 )
 
@@ -24,7 +25,24 @@ type ExecutionStrategy struct {
 	CostScore         float64              `json:"costScore"`        // Normalized cost (0.0 - 1.0)
 	QualityScore      float64              `json:"qualityScore"`     // Normalized quality (0.0 - 1.0)
 	ReliabilityScore  float64              `json:"reliabilityScore"` // Normalized reliability (0.0 - 1.0)
+	
+	// Reputation-aware routing fields
+	MinNodeReliability float64   `json:"minNodeReliability"` // Minimum node reputation score
+	RequireAttested    bool      `json:"requireAttested"`    // Require attested nodes only
+	TargetNodes        []string  `json:"targetNodes"`        // Specific nodes to target
+	ConsensusMode      ConsensusMode `json:"consensusMode"`  // Multi-node consensus strategy
+	MinConsensusNodes  int       `json:"minConsensusNodes"`  // Minimum nodes for consensus
 }
+
+// ConsensusMode for multi-node execution
+type ConsensusMode string
+
+const (
+	ConsensusNone           ConsensusMode = "none"
+	ConsensusMajorityVoting ConsensusMode = "majority_voting"
+	ConsensusUnanimous      ConsensusMode = "unanimous"
+	ConsensusProofOfWork    ConsensusMode = "proof_of_work"
+)
 
 // StrategyMode indicates the execution approach.
 type StrategyMode string
@@ -48,9 +66,26 @@ const (
 
 // Engine determines execution strategy based on runtime conditions.
 type Engine struct {
-	config    EngineConfig
-	modelMgr  *model.Manager
-	deviceCtx DeviceContext
+	config           EngineConfig
+	modelMgr         *model.Manager
+	deviceCtx        DeviceContext
+	reputationEngine *federation.ReputationEngine // New: reputation-based routing
+	nodeRegistry     NodeRegistry                 // New: node discovery
+}
+
+// NodeRegistry interface for node discovery
+type NodeRegistry interface {
+	GetNodesWithCapabilities(caps []string) []NodeInfo
+	GetNode(nodeID string) (NodeInfo, bool)
+}
+
+// NodeInfo describes a node in the mesh
+type NodeInfo struct {
+	ID           string
+	Capabilities []string
+	LatencyMs    int
+	LoadScore    int
+	Reliability  float64
 }
 
 // EngineConfig configures the adaptive engine.
@@ -64,17 +99,23 @@ type EngineConfig struct {
 	// Adaptive behaviors
 	AutoCompressContext  bool `json:"autoCompressContext"`
 	AutoDisableBranching bool `json:"autoDisableBranching"`
+	
+	// Reputation settings
+	EnableReputationRouting bool    `json:"enableReputationRouting"`
+	DefaultMinReliability   float64 `json:"defaultMinReliability"`
 }
 
 // DefaultEngineConfig returns sensible defaults.
 func DefaultEngineConfig() EngineConfig {
 	return EngineConfig{
-		LowMemoryMB:          512,
-		LowBandwidthKbps:     100,
-		HighLatencyMs:        1000,
-		MinModelCapability:   model.ReasoningLow,
-		AutoCompressContext:  true,
-		AutoDisableBranching: true,
+		LowMemoryMB:             512,
+		LowBandwidthKbps:        100,
+		HighLatencyMs:           1000,
+		MinModelCapability:      model.ReasoningLow,
+		AutoCompressContext:     true,
+		AutoDisableBranching:    true,
+		EnableReputationRouting: true,
+		DefaultMinReliability:   0.7,
 	}
 }
 
@@ -91,10 +132,26 @@ type DeviceContext struct {
 // NewEngine creates an adaptive execution engine.
 func NewEngine(cfg EngineConfig, modelMgr *model.Manager) *Engine {
 	return &Engine{
-		config:    cfg,
-		modelMgr:  modelMgr,
-		deviceCtx: detectDeviceContext(),
+		config:           cfg,
+		modelMgr:         modelMgr,
+		deviceCtx:        detectDeviceContext(),
+		reputationEngine: federation.NewReputationEngine(),
 	}
+}
+
+// NewEngineWithReputation creates an engine with custom reputation engine
+func NewEngineWithReputation(cfg EngineConfig, modelMgr *model.Manager, repEngine *federation.ReputationEngine) *Engine {
+	return &Engine{
+		config:           cfg,
+		modelMgr:         modelMgr,
+		deviceCtx:        detectDeviceContext(),
+		reputationEngine: repEngine,
+	}
+}
+
+// SetNodeRegistry sets the node registry for discovery
+func (e *Engine) SetNodeRegistry(registry NodeRegistry) {
+	e.nodeRegistry = registry
 }
 
 // DetectContext updates the device context.
@@ -117,6 +174,7 @@ func (e *Engine) DetermineStrategy(task TaskConstraints) (ExecutionStrategy, err
 		QualityScore:      1.0,
 		CostScore:         0.8,
 		ReliabilityScore:  1.0, // Default to high reliability
+		ConsensusMode:     ConsensusNone,
 	}
 
 	// Check device constraints
@@ -178,12 +236,26 @@ func (e *Engine) DetermineStrategy(task TaskConstraints) (ExecutionStrategy, err
 		strategy.PolicyStrictness = PolicyDraconian
 		strategy.Trace = append(strategy.Trace, "Task marked CRITICAL: enabled Draconian policy strictness")
 		strategy.ReliabilityScore += 0.2 // Critical tasks demand higher reliability
+		strategy.MinNodeReliability = 0.95
+		strategy.RequireAttested = true
+		
+		// For critical tasks, use multi-node consensus
+		if task.RequiredAccuracy > 0.99 {
+			strategy.ConsensusMode = ConsensusMajorityVoting
+			strategy.MinConsensusNodes = 3
+			strategy.Trace = append(strategy.Trace, "Critical task with high accuracy: enabled majority voting consensus")
+		}
 	}
 
 	if task.TimeSensitive {
 		strategy.TimeoutMultiplier = 0.5
 		strategy.Trace = append(strategy.Trace, "Task TIME-SENSITIVE: reduced timeouts")
 		strategy.ReliabilityScore -= 0.05 // Tighter timeouts can sometimes reduce perceived reliability
+	}
+
+	// Reputation-aware routing
+	if task.RequireDelegation && e.config.EnableReputationRouting && e.reputationEngine != nil {
+		strategy = e.applyReputationRouting(strategy, task)
 	}
 
 	if task.MinReliability > 0 && strategy.ReliabilityScore < task.MinReliability {
@@ -201,19 +273,103 @@ func (e *Engine) DetermineStrategy(task TaskConstraints) (ExecutionStrategy, err
 	return strategy, nil
 }
 
+// applyReputationRouting selects nodes based on reputation
+func (e *Engine) applyReputationRouting(strategy ExecutionStrategy, task TaskConstraints) ExecutionStrategy {
+	if e.reputationEngine == nil {
+		strategy.Trace = append(strategy.Trace, "Reputation routing disabled: no reputation engine")
+		return strategy
+	}
+
+	// Map task to federation task profile
+	var priority federation.TaskPriority
+	switch {
+	case task.Critical:
+		priority = federation.PriorityCritical
+	case task.TimeSensitive:
+		priority = federation.PriorityLatencySensitive
+	default:
+		priority = federation.PriorityNormal
+	}
+
+	taskProfile := federation.TaskProfile{
+		Priority:         priority,
+		MaxLatencyMs:     task.MaxLatencyMs,
+		RequiredAccuracy: task.RequiredAccuracy,
+	}
+
+	// Get best nodes from reputation engine
+	bestNodes := e.reputationEngine.SelectBestNodes(taskProfile, 5, nil)
+	
+	if len(bestNodes) == 0 {
+		strategy.Trace = append(strategy.Trace, "Warning: No qualified nodes found by reputation engine")
+		strategy.EnableDelegation = false
+		return strategy
+	}
+
+	// Record selected nodes
+	strategy.TargetNodes = make([]string, len(bestNodes))
+	for i, node := range bestNodes {
+		strategy.TargetNodes[i] = node.NodeID
+	}
+
+	// Set minimum reliability based on task
+	minReliability := task.MinReliability
+	if minReliability == 0 {
+		minReliability = e.config.DefaultMinReliability
+	}
+	strategy.MinNodeReliability = minReliability
+
+	// Check if we can meet consensus requirements
+	if strategy.ConsensusMode != ConsensusNone {
+		if len(bestNodes) < strategy.MinConsensusNodes {
+			strategy.Trace = append(strategy.Trace, 
+				fmt.Sprintf("Warning: Only %d nodes available for consensus (need %d)", 
+					len(bestNodes), strategy.MinConsensusNodes))
+			strategy.ConsensusMode = ConsensusNone
+		} else {
+			strategy.Trace = append(strategy.Trace, 
+				fmt.Sprintf("Selected %d nodes for %s consensus", 
+					strategy.MinConsensusNodes, strategy.ConsensusMode))
+		}
+	}
+
+	strategy.Trace = append(strategy.Trace, 
+		fmt.Sprintf("Reputation routing: selected %d nodes (min reliability: %.2f)", 
+			len(bestNodes), minReliability))
+
+	return strategy
+}
+
+// RecordNodeOutcome records execution outcome for reputation tracking
+func (e *Engine) RecordNodeOutcome(nodeID string, outcome federation.ExecutionOutcome) {
+	if e.reputationEngine != nil {
+		e.reputationEngine.RecordOutcome(nodeID, outcome)
+	}
+}
+
+// GetNodeReputation returns reputation for a node
+func (e *Engine) GetNodeReputation(nodeID string) *federation.NodeReputation {
+	if e.reputationEngine == nil {
+		return nil
+	}
+	return e.reputationEngine.GetNodeReputation(nodeID)
+}
+
 // SimulateOptions calculates hypothetical alternatives for the Decision Simulator.
 func (e *Engine) SimulateOptions(task TaskConstraints) map[string]ExecutionStrategy {
 	options := make(map[string]ExecutionStrategy)
 
 	// 1. Strict Determinism (Low Entropy)
 	det := ExecutionStrategy{
-		Mode:             ModeFull,
-		ReasoningDepth:   model.ReasoningHigh,
-		PolicyStrictness: PolicyDraconian,
-		Trace:            []string{"Simulation: Priority = Determinism"},
-		CostScore:        1.0, // Most expensive
-		QualityScore:     1.0,
-		ReliabilityScore: 1.0,
+		Mode:              ModeFull,
+		ReasoningDepth:    model.ReasoningHigh,
+		PolicyStrictness:  PolicyDraconian,
+		Trace:             []string{"Simulation: Priority = Determinism"},
+		CostScore:         1.0, // Most expensive
+		QualityScore:      1.0,
+		ReliabilityScore:  1.0,
+		MinNodeReliability: 0.99,
+		RequireAttested:   true,
 	}
 	options["deterministic_strict"] = det
 
@@ -229,6 +385,34 @@ func (e *Engine) SimulateOptions(task TaskConstraints) map[string]ExecutionStrat
 	}
 	options["cost_optimized"] = cost
 
+	// 3. Reputation-Optimized (new)
+	if e.config.EnableReputationRouting && e.reputationEngine != nil {
+		rep := ExecutionStrategy{
+			Mode:               ModeFull,
+			ReasoningDepth:     model.ReasoningHigh,
+			Trace:              []string{"Simulation: Priority = Reputation-Routed"},
+			CostScore:          0.7,
+			QualityScore:       0.9,
+			ReliabilityScore:   0.95,
+			MinNodeReliability: 0.85,
+		}
+		options["reputation_optimized"] = rep
+	}
+
+	// 4. Consensus (new)
+	consensus := ExecutionStrategy{
+		Mode:              ModeFull,
+		ReasoningDepth:    model.ReasoningHigh,
+		ConsensusMode:     ConsensusMajorityVoting,
+		MinConsensusNodes: 3,
+		Trace:             []string{"Simulation: Priority = Maximum Reliability via Consensus"},
+		CostScore:         2.5, // 2.5x cost
+		QualityScore:      1.0,
+		ReliabilityScore:  0.999,
+		RequireAttested:   true,
+	}
+	options["consensus_3node"] = consensus
+
 	return options
 }
 
@@ -239,6 +423,7 @@ const (
 	OptCost          OptimizationMode = "cost"
 	OptLatency       OptimizationMode = "latency"
 	OptQuality       OptimizationMode = "quality"
+	OptReputation    OptimizationMode = "reputation" // New: optimize for reputation
 )
 
 // TaskConstraints represents the requirements for a specific task.
@@ -252,6 +437,9 @@ type TaskConstraints struct {
 	EstimatedContextTokens  int              `json:"estimatedContextTokens"`
 	IsReplay                bool             `json:"isReplay"`
 	MinReliability          float64          `json:"minReliability"`
+	RequireDelegation       bool             `json:"requireDelegation"` // New: require federated execution
+	RequiredCapabilities    []string         `json:"requiredCapabilities"` // New: required node capabilities
+	RequiredAccuracy        float64          `json:"requiredAccuracy"` // New: required accuracy for consensus
 }
 
 // ReplayEvent represents a simplified event for time-travel simulation.
@@ -443,6 +631,9 @@ func StrategyFromConfig(cfg *config.Config) EngineConfig {
 		AutoCompressContext:  cfg.EdgeMode.SimplifyReasoning,
 		AutoDisableBranching: cfg.EdgeMode.DisableBranching,
 		MinModelCapability:   model.ReasoningLow,
+		// Reputation defaults
+		EnableReputationRouting: true,
+		DefaultMinReliability:   0.7,
 	}
 }
 
@@ -455,4 +646,9 @@ func (s ExecutionStrategy) IsEdgeMode() bool {
 func (s ExecutionStrategy) ContextBudget() int {
 	// Reserve 10% for system/overhead
 	return int(float64(s.ContextWindow) * 0.9)
+}
+
+// GetReputationEngine returns the reputation engine (for testing/advanced use)
+func (e *Engine) GetReputationEngine() *federation.ReputationEngine {
+	return e.reputationEngine
 }
