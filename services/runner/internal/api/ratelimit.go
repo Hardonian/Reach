@@ -242,3 +242,8 @@ func (rl *RateLimiterMiddleware) Stop() {
 	rl.tenantLimiters = make(map[string]*backpressure.RateLimiter)
 	rl.ipLimiters = make(map[string]*backpressure.RateLimiter)
 }
+
+// withRateLimit wraps a handler with rate limiting middleware
+func (s *Server) withRateLimit(next http.Handler) http.Handler {
+	return s.rateLimiter.Middleware(next)
+}
