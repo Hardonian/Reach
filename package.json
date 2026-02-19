@@ -6,6 +6,11 @@
     "node": ">=18.0.0 <23.0.0",
     "npm": ">=9.0.0"
   },
+  "workspaces": [
+    "apps/arcade",
+    "sdk/ts",
+    "extensions/vscode"
+  ],
   "scripts": {
     "protocol:validate": "node tools/codegen/validate-protocol.mjs",
     "audit:inspect": "cd services/runner && go run ./cmd/runner-audit-inspector",
@@ -45,6 +50,11 @@
     "security:check": "npm run verify:no-toxic-deps && npm run security:audit",
     "preinstall": "node scripts/check-node-version.mjs",
     "clean": "node -e \"const fs=require('fs');['services/runner/reach-serve.exe','services/runner/reachctl.exe'].forEach(f=>{try{fs.unlinkSync(f)}catch(e){}})\" && (cd apps/arcade && rm -rf .next 2>/dev/null || rd /s /q .next 2>nul || true)"
+  },
+  "devDependencies": {
+    "next": "16.1.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
   },
   "overrides": {
     "clawdbot": "npm:@reach/empty@1.0.0",
