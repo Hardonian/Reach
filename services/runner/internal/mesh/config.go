@@ -63,26 +63,26 @@ type NetworkConfig struct {
 
 // SecurityConfig holds security-related settings
 type SecurityConfig struct {
-	PrivateKeyPath       string        `json:"private_key_path"`
-	TrustStorePath       string        `json:"trust_store_path"`
-	MaxDelegationDepth   int           `json:"max_delegation_depth"`
-	SessionTTL           time.Duration `json:"session_ttl"`
-	PinCodeLength        int           `json:"pin_code_length"`
-	RequirePinConfirm    bool          `json:"require_pin_confirm"`
-	AutoAcceptTrusted    bool          `json:"auto_accept_trusted"`
-	QuarantineThreshold  int           `json:"quarantine_threshold"`
-	RateLimitPerMinute   int           `json:"rate_limit_per_minute"`
+	PrivateKeyPath      string        `json:"private_key_path"`
+	TrustStorePath      string        `json:"trust_store_path"`
+	MaxDelegationDepth  int           `json:"max_delegation_depth"`
+	SessionTTL          time.Duration `json:"session_ttl"`
+	PinCodeLength       int           `json:"pin_code_length"`
+	RequirePinConfirm   bool          `json:"require_pin_confirm"`
+	AutoAcceptTrusted   bool          `json:"auto_accept_trusted"`
+	QuarantineThreshold int           `json:"quarantine_threshold"`
+	RateLimitPerMinute  int           `json:"rate_limit_per_minute"`
 }
 
 // SyncConfig holds offline sync settings
 type SyncConfig struct {
-	Enabled              bool          `json:"enabled"`
-	BundleMaxSize        int64         `json:"bundle_max_size_bytes"`
-	BundleMaxEvents      int           `json:"bundle_max_events"`
-	ConflictResolution   string        `json:"conflict_resolution"` // "lww" | "vector_clock" | "append_only"
-	SyncInterval         time.Duration `json:"sync_interval"`
-	MaxSyncPeers         int           `json:"max_sync_peers"`
-	VerifySignatures     bool          `json:"verify_signatures"`
+	Enabled            bool          `json:"enabled"`
+	BundleMaxSize      int64         `json:"bundle_max_size_bytes"`
+	BundleMaxEvents    int           `json:"bundle_max_events"`
+	ConflictResolution string        `json:"conflict_resolution"` // "lww" | "vector_clock" | "append_only"
+	SyncInterval       time.Duration `json:"sync_interval"`
+	MaxSyncPeers       int           `json:"max_sync_peers"`
+	VerifySignatures   bool          `json:"verify_signatures"`
 }
 
 // DefaultConfig returns a safe default configuration
@@ -133,12 +133,12 @@ func DefaultConfig(dataDir string) *Config {
 func (c *Config) IsFeatureEnabled(flag FeatureFlag) bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	// Check explicit setting first
 	if enabled, ok := c.Features[string(flag)]; ok {
 		return enabled
 	}
-	
+
 	// Fall back to default
 	return DefaultFeatureStates[flag]
 }
@@ -154,21 +154,21 @@ func (c *Config) SetFeature(flag FeatureFlag, enabled bool) {
 func (c *Config) Validate() error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	// Security checks
 	if c.Security.MaxDelegationDepth < 1 || c.Security.MaxDelegationDepth > 10 {
 		return fmt.Errorf("max_delegation_depth must be between 1 and 10")
 	}
-	
+
 	if c.Security.PinCodeLength < 4 || c.Security.PinCodeLength > 12 {
 		return fmt.Errorf("pin_code_length must be between 4 and 12")
 	}
-	
+
 	// Network checks
 	if c.Network.MaxConnections < 1 || c.Network.MaxConnections > 1000 {
 		return fmt.Errorf("max_connections must be between 1 and 1000")
 	}
-	
+
 	// Public exposure safety check
 	if c.IsFeatureEnabled(FeaturePublicExposure) {
 		// Require explicit acknowledgment in metadata
@@ -176,7 +176,7 @@ func (c *Config) Validate() error {
 			return fmt.Errorf("public_exposure feature requires explicit acknowledgment - set metadata public_exposure_acknowledged=true")
 		}
 	}
-	
+
 	return nil
 }
 
@@ -205,12 +205,12 @@ func LoadConfig(dataDir string) (*Config, error) {
 		}
 		return nil, err
 	}
-	
+
 	cfg := DefaultConfig(dataDir)
 	if err := json.Unmarshal(data, cfg); err != nil {
 		return nil, fmt.Errorf("invalid config file: %w", err)
 	}
-	
+
 	return cfg, nil
 }
 
@@ -218,24 +218,23 @@ func LoadConfig(dataDir string) (*Config, error) {
 func (c *Config) Save() error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	if err := os.MkdirAll(c.DataDir, 0o700); err != nil {
 		return err
 	}
-	
+
 	path := filepath.Join(c.DataDir, "mesh_config.json")
 	data, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		return err
 	}
-	
+
 	// Write with restricted permissions
 	return os.WriteFile(path, data, 0o600)
 }
 
 // generateNodeID creates a unique node identifier
 func generateNodeID() string {
-	b := make([]byte, 16)
 	// Use crypto/rand in real implementation
 	// For now, use timestamp-based ID
 	return fmt.Sprintf("reach-%d", time.Now().UnixNano())
@@ -259,13 +258,13 @@ func LoadOrGenerateKey(path string) (*KeyPair, error) {
 			}, nil
 		}
 	}
-	
+
 	// Generate new key
 	_, privKey, err := ed25519.GenerateKey(nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate key: %w", err)
 	}
-	
+
 	// Save with restricted permissions
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return nil, err
@@ -273,7 +272,7 @@ func LoadOrGenerateKey(path string) (*KeyPair, error) {
 	if err := os.WriteFile(path, privKey, 0o600); err != nil {
 		return nil, err
 	}
-	
+
 	return &KeyPair{
 		PublicKey:  privKey.Public().(ed25519.PublicKey),
 		PrivateKey: privKey,

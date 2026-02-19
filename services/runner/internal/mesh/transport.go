@@ -27,13 +27,13 @@ const (
 type MessageType string
 
 const (
-	MsgTypeHandshake    MessageType = "handshake"
-	MsgTypePing         MessageType = "ping"
-	MsgTypePong         MessageType = "pong"
-	MsgTypeEventBundle  MessageType = "event_bundle"
-	MsgTypeDelegation   MessageType = "delegation"
-	MsgTypeResponse     MessageType = "response"
-	MsgTypeError        MessageType = "error"
+	MsgTypeHandshake   MessageType = "handshake"
+	MsgTypePing        MessageType = "ping"
+	MsgTypePong        MessageType = "pong"
+	MsgTypeEventBundle MessageType = "event_bundle"
+	MsgTypeDelegation  MessageType = "delegation"
+	MsgTypeResponse    MessageType = "response"
+	MsgTypeError       MessageType = "error"
 )
 
 // Message is the envelope for all mesh communications
@@ -93,32 +93,32 @@ func (m *Message) signedData() []byte {
 
 // Connection represents a connection to a peer
 type Connection struct {
-	ID         string
-	NodeID     string
-	Type       TransportType
-	Conn       net.Conn
-	LastActive time.Time
+	ID          string
+	NodeID      string
+	Type        TransportType
+	Conn        net.Conn
+	LastActive  time.Time
 	Established time.Time
-	mu         sync.Mutex
-	writeMu    sync.Mutex
-	closed     bool
-	onClose    func()
+	mu          sync.Mutex
+	writeMu     sync.Mutex
+	closed      bool
+	onClose     func()
 }
 
 // Write sends a message over the connection
 func (c *Connection) Write(msg *Message) error {
 	c.writeMu.Lock()
 	defer c.writeMu.Unlock()
-	
+
 	if c.closed {
 		return errors.New("connection closed")
 	}
-	
+
 	data, err := json.Marshal(msg)
 	if err != nil {
 		return err
 	}
-	
+
 	// Add length prefix for framing
 	frame := make([]byte, 4+len(data))
 	frame[0] = byte(len(data) >> 24)
@@ -126,11 +126,11 @@ func (c *Connection) Write(msg *Message) error {
 	frame[2] = byte(len(data) >> 8)
 	frame[3] = byte(len(data))
 	copy(frame[4:], data)
-	
+
 	if _, err := c.Conn.Write(frame); err != nil {
 		return err
 	}
-	
+
 	c.LastActive = time.Now().UTC()
 	return nil
 }
@@ -139,18 +139,18 @@ func (c *Connection) Write(msg *Message) error {
 func (c *Connection) Close() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	if c.closed {
 		return nil
 	}
-	
+
 	c.closed = true
 	err := c.Conn.Close()
-	
+
 	if c.onClose != nil {
 		c.onClose()
 	}
-	
+
 	return err
 }
 
@@ -163,41 +163,41 @@ func (c *Connection) IsClosed() bool {
 
 // TransportManager handles all peer connections
 type TransportManager struct {
-	mu          sync.RWMutex
-	config      *Config
-	keyPair     *KeyPair
-	peerStore   *PeerStore
-	
+	mu        sync.RWMutex
+	config    *Config
+	keyPair   *KeyPair
+	peerStore *PeerStore
+
 	// Active connections
 	connections map[string]*Connection // keyed by connection ID
 	peers       map[string]string      // nodeID -> connection ID
-	
+
 	// HTTP fallback
-	httpClient  *http.Client
-	httpServer  *http.Server
-	
+	httpClient *http.Client
+	httpServer *http.Server
+
 	// Listeners
-	listeners   []net.Listener
-	
+	listeners []net.Listener
+
 	// Handlers
-	handlers    map[MessageType]func(*Message, *Connection)
-	
+	handlers map[MessageType]func(*Message, *Connection)
+
 	// Lifecycle
-	ctx         context.Context
-	cancel      context.CancelFunc
-	wg          sync.WaitGroup
-	
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
+
 	// Stats
-	bytesIn     int64
-	bytesOut    int64
-	msgsIn      int64
-	msgsOut     int64
+	bytesIn  int64
+	bytesOut int64
+	msgsIn   int64
+	msgsOut  int64
 }
 
 // NewTransportManager creates a transport manager
 func NewTransportManager(config *Config, keyPair *KeyPair, peerStore *PeerStore) *TransportManager {
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	return &TransportManager{
 		config:      config,
 		keyPair:     keyPair,
@@ -228,42 +228,42 @@ func (t *TransportManager) Start() error {
 			return fmt.Errorf("failed to start WebSocket listener: %w", err)
 		}
 	}
-	
+
 	// Start HTTP fallback listener
 	if t.config.Network.HTTPPollEnabled {
 		if err := t.startHTTPListener(); err != nil {
 			return fmt.Errorf("failed to start HTTP listener: %w", err)
 		}
 	}
-	
+
 	// Start connection maintenance
 	t.wg.Add(1)
 	go t.maintenanceLoop()
-	
+
 	return nil
 }
 
 // Stop shuts down all connections
 func (t *TransportManager) Stop() error {
 	t.cancel()
-	
+
 	// Close all connections
 	t.mu.Lock()
 	for _, conn := range t.connections {
 		conn.Close()
 	}
 	t.mu.Unlock()
-	
+
 	// Close listeners
 	for _, ln := range t.listeners {
 		ln.Close()
 	}
-	
+
 	// Shutdown HTTP server
 	if t.httpServer != nil {
 		t.httpServer.Shutdown(context.Background())
 	}
-	
+
 	t.wg.Wait()
 	return nil
 }
@@ -272,7 +272,7 @@ func (t *TransportManager) Stop() error {
 func (t *TransportManager) Connect(address string) (*Connection, error) {
 	// Check if already connected
 	t.mu.RLock()
-	for nodeID, connID := range t.peers {
+	for _, connID := range t.peers {
 		if conn, ok := t.connections[connID]; ok {
 			if conn.Conn.RemoteAddr().String() == address {
 				t.mu.RUnlock()
@@ -281,18 +281,18 @@ func (t *TransportManager) Connect(address string) (*Connection, error) {
 		}
 	}
 	t.mu.RUnlock()
-	
+
 	// Try WebSocket first
 	conn, err := t.dialWebSocket(address)
 	if err == nil {
 		return conn, nil
 	}
-	
+
 	// Fall back to HTTP polling if enabled
 	if t.config.Network.HTTPPollEnabled {
 		return t.dialHTTP(address)
 	}
-	
+
 	return nil, err
 }
 
@@ -302,7 +302,7 @@ func (t *TransportManager) Send(nodeID string, msg *Message) error {
 	if err := msg.Sign(t.keyPair.PrivateKey); err != nil {
 		return err
 	}
-	
+
 	// Find connection
 	t.mu.RLock()
 	connID, ok := t.peers[nodeID]
@@ -312,15 +312,15 @@ func (t *TransportManager) Send(nodeID string, msg *Message) error {
 	}
 	conn, ok := t.connections[connID]
 	t.mu.RUnlock()
-	
+
 	if !ok || conn.IsClosed() {
 		return fmt.Errorf("connection to peer %s is closed", nodeID)
 	}
-	
+
 	if err := conn.Write(msg); err != nil {
 		return err
 	}
-	
+
 	atomic.AddInt64(&t.msgsOut, 1)
 	return nil
 }
@@ -331,14 +331,14 @@ func (t *TransportManager) Broadcast(msg *Message) []error {
 	if err := msg.Sign(t.keyPair.PrivateKey); err != nil {
 		return []error{err}
 	}
-	
+
 	t.mu.RLock()
 	connections := make([]*Connection, 0, len(t.connections))
 	for _, conn := range t.connections {
 		connections = append(connections, conn)
 	}
 	t.mu.RUnlock()
-	
+
 	var errs []error
 	for _, conn := range connections {
 		if !conn.IsClosed() {
@@ -349,7 +349,7 @@ func (t *TransportManager) Broadcast(msg *Message) []error {
 			}
 		}
 	}
-	
+
 	return errs
 }
 
@@ -359,18 +359,18 @@ func (t *TransportManager) startWebSocketListener() error {
 	if err != nil {
 		return err
 	}
-	
+
 	t.listeners = append(t.listeners, ln)
-	
+
 	t.wg.Add(1)
 	go t.acceptLoop(ln)
-	
+
 	// Update config with actual port if random
 	if t.config.Network.ListenPort == 0 {
 		addr := ln.Addr().(*net.TCPAddr)
 		t.config.Network.ListenPort = addr.Port
 	}
-	
+
 	return nil
 }
 
@@ -380,30 +380,30 @@ func (t *TransportManager) startHTTPListener() error {
 	mux.HandleFunc("/mesh/poll", t.handleHTTPPoll)
 	mux.HandleFunc("/mesh/push", t.handleHTTPPush)
 	mux.HandleFunc("/mesh/health", t.handleHealth)
-	
+
 	port := t.config.Network.ListenPort + 1 // HTTP on next port
 	if port == 1 {
 		port = 8080
 	}
-	
+
 	t.httpServer = &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", t.config.Network.ListenAddress, port),
 		Handler: mux,
 	}
-	
+
 	t.wg.Add(1)
 	go func() {
 		defer t.wg.Done()
 		t.httpServer.ListenAndServe()
 	}()
-	
+
 	return nil
 }
 
 // acceptLoop accepts incoming connections
 func (t *TransportManager) acceptLoop(ln net.Listener) {
 	defer t.wg.Done()
-	
+
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -414,7 +414,7 @@ func (t *TransportManager) acceptLoop(ln net.Listener) {
 				continue
 			}
 		}
-		
+
 		t.wg.Add(1)
 		go t.handleConnection(conn)
 	}
@@ -423,7 +423,7 @@ func (t *TransportManager) acceptLoop(ln net.Listener) {
 // handleConnection handles a new incoming connection
 func (t *TransportManager) handleConnection(conn net.Conn) {
 	defer t.wg.Done()
-	
+
 	connection := &Connection{
 		ID:          generateConnectionID(),
 		Type:        TransportWebSocket,
@@ -431,22 +431,22 @@ func (t *TransportManager) handleConnection(conn net.Conn) {
 		LastActive:  time.Now().UTC(),
 		Established: time.Now().UTC(),
 	}
-	
+
 	// Perform handshake
 	nodeID, err := t.performServerHandshake(connection)
 	if err != nil {
 		conn.Close()
 		return
 	}
-	
+
 	connection.NodeID = nodeID
 	connection.onClose = func() {
 		t.removeConnection(connection.ID)
 	}
-	
+
 	// Register connection
 	t.registerConnection(connection)
-	
+
 	// Start read loop
 	t.readLoop(connection)
 }
@@ -454,40 +454,40 @@ func (t *TransportManager) handleConnection(conn net.Conn) {
 // readLoop reads messages from a connection
 func (t *TransportManager) readLoop(conn *Connection) {
 	defer conn.Close()
-	
+
 	for {
 		select {
 		case <-t.ctx.Done():
 			return
 		default:
 		}
-		
+
 		// Read length prefix
 		lenBuf := make([]byte, 4)
 		if _, err := io.ReadFull(conn.Conn, lenBuf); err != nil {
 			return
 		}
-		
+
 		msgLen := int(lenBuf[0])<<24 | int(lenBuf[1])<<16 | int(lenBuf[2])<<8 | int(lenBuf[3])
 		if msgLen > 10*1024*1024 { // 10MB max
 			return
 		}
-		
+
 		// Read message
 		msgBuf := make([]byte, msgLen)
 		if _, err := io.ReadFull(conn.Conn, msgBuf); err != nil {
 			return
 		}
-		
+
 		var msg Message
 		if err := json.Unmarshal(msgBuf, &msg); err != nil {
 			continue
 		}
-		
+
 		atomic.AddInt64(&t.msgsIn, 1)
 		atomic.AddInt64(&t.bytesIn, int64(msgLen))
 		conn.LastActive = time.Now().UTC()
-		
+
 		// Handle message
 		t.handleMessage(&msg, conn)
 	}
@@ -505,12 +505,12 @@ func (t *TransportManager) handleMessage(msg *Message, conn *Connection) {
 			}
 		}
 	}
-	
+
 	// Route to handler
 	t.mu.RLock()
 	handler, ok := t.handlers[msg.Type]
 	t.mu.RUnlock()
-	
+
 	if ok {
 		handler(msg, conn)
 	}
@@ -532,17 +532,17 @@ func (t *TransportManager) handleHTTPPush(w http.ResponseWriter, r *http.Request
 		return
 	}
 	defer r.Body.Close()
-	
+
 	var msg Message
 	if err := json.Unmarshal(body, &msg); err != nil {
 		http.Error(w, "invalid json", http.StatusBadRequest)
 		return
 	}
-	
+
 	// Handle message
 	// In production, would queue for processing
 	_ = msg
-	
+
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -553,7 +553,7 @@ func (t *TransportManager) handleHealth(w http.ResponseWriter, r *http.Request) 
 		"node_id":   t.config.NodeID,
 		"timestamp": time.Now().UTC().Unix(),
 	}
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(status)
 }
@@ -564,9 +564,9 @@ func (t *TransportManager) performServerHandshake(conn *Connection) (string, err
 	challenge := &HandshakeChallenge{
 		NodeID:    t.config.NodeID,
 		Timestamp: time.Now().UTC().Unix(),
-		Nonce:     generateNonce(),
+		Nonce:     base64.RawURLEncoding.EncodeToString(generateNonce()),
 	}
-	
+
 	challengeData, _ := json.Marshal(challenge)
 	msg := &Message{
 		Type:    MsgTypeHandshake,
@@ -574,14 +574,14 @@ func (t *TransportManager) performServerHandshake(conn *Connection) (string, err
 		Payload: challengeData,
 		ID:      generateMessageID(),
 	}
-	
+
 	if err := conn.Write(msg); err != nil {
 		return "", err
 	}
-	
+
 	// Wait for response (simplified - would use timeout)
 	// In production, implement proper timeout and response handling
-	
+
 	return "", nil
 }
 
@@ -591,7 +591,7 @@ func (t *TransportManager) dialWebSocket(address string) (*Connection, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	connection := &Connection{
 		ID:          generateConnectionID(),
 		Type:        TransportWebSocket,
@@ -599,23 +599,23 @@ func (t *TransportManager) dialWebSocket(address string) (*Connection, error) {
 		LastActive:  time.Now().UTC(),
 		Established: time.Now().UTC(),
 	}
-	
+
 	// Perform client handshake
 	if err := t.performClientHandshake(connection); err != nil {
 		conn.Close()
 		return nil, err
 	}
-	
+
 	connection.onClose = func() {
 		t.removeConnection(connection.ID)
 	}
-	
+
 	t.registerConnection(connection)
-	
+
 	// Start read loop
 	t.wg.Add(1)
 	go t.readLoop(connection)
-	
+
 	return connection, nil
 }
 
@@ -633,15 +633,15 @@ func (t *TransportManager) performClientHandshake(conn *Connection) error {
 		PublicKey: t.keyPair.PublicKey,
 		Version:   "1.0",
 	}
-	
+
 	data, _ := json.Marshal(handshake)
 	sig := ed25519.Sign(t.keyPair.PrivateKey, data)
-	
+
 	info := &ClientHandshake{
 		Info:      handshake,
 		Signature: sig,
 	}
-	
+
 	infoData, _ := json.Marshal(info)
 	msg := &Message{
 		Type:    MsgTypeHandshake,
@@ -649,7 +649,7 @@ func (t *TransportManager) performClientHandshake(conn *Connection) error {
 		Payload: infoData,
 		ID:      generateMessageID(),
 	}
-	
+
 	return conn.Write(msg)
 }
 
@@ -657,7 +657,7 @@ func (t *TransportManager) performClientHandshake(conn *Connection) error {
 func (t *TransportManager) registerConnection(conn *Connection) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	
+
 	t.connections[conn.ID] = conn
 	if conn.NodeID != "" {
 		t.peers[conn.NodeID] = conn.ID
@@ -668,7 +668,7 @@ func (t *TransportManager) registerConnection(conn *Connection) {
 func (t *TransportManager) removeConnection(connID string) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	
+
 	if conn, ok := t.connections[connID]; ok {
 		delete(t.connections, connID)
 		if conn.NodeID != "" {
@@ -680,10 +680,10 @@ func (t *TransportManager) removeConnection(connID string) {
 // maintenanceLoop handles periodic tasks
 func (t *TransportManager) maintenanceLoop() {
 	defer t.wg.Done()
-	
+
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-t.ctx.Done():
@@ -698,10 +698,10 @@ func (t *TransportManager) maintenanceLoop() {
 func (t *TransportManager) cleanupStaleConnections() {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	
+
 	timeout := t.config.Network.ConnectionTimeout
 	now := time.Now().UTC()
-	
+
 	for id, conn := range t.connections {
 		if now.Sub(conn.LastActive) > timeout*2 {
 			conn.Close()
@@ -729,7 +729,7 @@ func (t *TransportManager) sendError(conn *Connection, errMsg string) {
 func (t *TransportManager) Stats() TransportStats {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
-	
+
 	return TransportStats{
 		Connections: len(t.connections),
 		Peers:       len(t.peers),
