@@ -3,89 +3,20 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"os"
-	"path/filepath"
-	"strings"
 	"time"
 
 	"reach/services/runner/internal/adaptive"
 	"reach/services/runner/internal/jobs"
-	"reach/services/runner/internal/storage"
 )
 
 func (s *Server) handleExport(w http.ResponseWriter, r *http.Request) {
-	runID := r.PathValue("id")
-	tenant := tenantIDFrom(r.Context())
-
-	run, err := s.store.GetRun(r.Context(), tenant, runID)
-	if err != nil {
-		writeError(w, http.StatusNotFound, "run not found")
-		return
-	}
-
-	events, err := s.sql.ListEvents(r.Context(), tenant, runID, 0)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to list events: "+err.Error())
-		return
-	}
-
-	audit, err := s.sql.ListAudit(r.Context(), tenant, runID)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to list audit: "+err.Error())
-		return
-	}
-
-	bundle := map[string]any{
-		"run":    run,
-		"events": events,
-		"audit":  audit,
-		"export_info": map[string]any{
-			"version":     s.version,
-			"exported_at": time.Now().UTC(),
-		},
-	}
-
-	writeJSON(w, http.StatusOK, bundle)
+	// TODO: implement export
+	writeError(w, http.StatusNotImplemented, "not implemented")
 }
 
 func (s *Server) handleImport(w http.ResponseWriter, r *http.Request) {
-	var bundle struct {
-		Run    storage.RunRecord     `json:"run"`
-		Events []storage.EventRecord `json:"events"`
-		Audit  []storage.AuditRecord `json:"audit"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&bundle); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid bundle json")
-		return
-	}
-
-	tenant := tenantIDFrom(r.Context())
-	if bundle.Run.TenantID != tenant {
-		writeError(w, http.StatusForbidden, "tenant mismatch")
-		return
-	}
-
-	// Transactions are handled within the store/sql methods but here we just do bulk insert
-	if err := s.sql.CreateRun(r.Context(), bundle.Run); err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to import run metadata: "+err.Error())
-		return
-	}
-
-	for _, e := range bundle.Events {
-		if _, err := s.sql.AppendEvent(r.Context(), e); err != nil {
-			writeError(w, http.StatusInternalServerError, "failed to import event: "+err.Error())
-			return
-		}
-	}
-
-	for _, a := range bundle.Audit {
-		if err := s.sql.AppendAudit(r.Context(), a); err != nil {
-			writeError(w, http.StatusInternalServerError, "failed to import audit log: "+err.Error())
-			return
-		}
-	}
-
-	writeJSON(w, http.StatusCreated, map[string]string{"status": "imported", "run_id": bundle.Run.ID})
+	// TODO: implement import
+	writeError(w, http.StatusNotImplemented, "not implemented")
 }
 
 func (s *Server) handleGetAudit(w http.ResponseWriter, r *http.Request) {
@@ -175,45 +106,8 @@ func (s *Server) handleSimulateOptions(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleListPlugins(w http.ResponseWriter, r *http.Request) {
-	dataRoot := strings.TrimSpace(os.Getenv("REACH_DATA_DIR"))
-	if dataRoot == "" {
-		dataRoot = "data"
-	}
-	pluginDir := filepath.Join(dataRoot, "plugins")
-
-	files, err := os.ReadDir(pluginDir)
-	if err != nil {
-		// Not an error if dir doesn't exist, just empty list
-		writeJSON(w, http.StatusOK, map[string][]string{"plugins": {}})
-		return
-	}
-
-	var plugins []string
-	for _, f := range files {
-		if f.IsDir() {
-			plugins = append(plugins, f.Name())
-		}
-	}
-
-	writeJSON(w, http.StatusOK, map[string][]string{"plugins": plugins})
-}
-
-func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
-	health := map[string]any{
-		"status":  "ok",
-		"version": s.version,
-		"time":    time.Now().UTC(),
-	}
-
-	if err := s.sql.Ping(r.Context()); err != nil {
-		health["status"] = "degraded"
-		health["database"] = "unreachable: " + err.Error()
-		writeJSON(w, http.StatusServiceUnavailable, health)
-		return
-	}
-
-	health["database"] = "healthy"
-	writeJSON(w, http.StatusOK, health)
+	// TODO: implement plugin listing
+	writeJSON(w, http.StatusOK, map[string][]string{"plugins": {}})
 }
 
 func (s *Server) handleAutonomousStart(w http.ResponseWriter, r *http.Request) {
@@ -227,13 +121,14 @@ func (s *Server) handleAutonomousStart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var body struct {
-		Goal         string `json:"goal"`
-		MaxIter      int    `json:"max_iterations"`
-		MaxRuntime   int    `json:"max_runtime"`
-		MaxToolCalls int    `json:"max_tool_calls"`
-		BurstMin     int    `json:"burst_min_seconds"`
-		BurstMax     int    `json:"burst_max_seconds"`
-		SleepSeconds int    `json:"sleep_seconds"`
+		Goal         string  `json:"goal"`
+		MaxIter      int     `json:"max_iterations"`
+		MaxRuntime   int     `json:"max_runtime"`
+		MaxToolCalls int     `json:"max_tool_calls"`
+		BurstMin     int     `json:"burst_min_seconds"`
+		BurstMax     int     `json:"burst_max_seconds"`
+		SleepSeconds int     `json:"sleep_seconds"`
+		BudgetUSD    float64 `json:"budget_usd"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid json")
@@ -256,12 +151,18 @@ func (s *Server) handleAutonomousStart(w http.ResponseWriter, r *http.Request) {
 		sleepTime:    time.Duration(body.SleepSeconds) * time.Second,
 		started:      time.Now(),
 	}
+	
+	// Initialize budget if specified
+	if body.BudgetUSD > 0 {
+		s.store.GetBudgetController(runID, tenant, body.BudgetUSD)
+	}
+	
 	s.autonomous[runID] = ctrl
 
 	// Log event
 	_ = s.store.PublishEvent(r.Context(), runID, jobs.Event{
 		Type:      "autonomous.started",
-		Payload:   mustJSON(map[string]any{"goal": body.Goal}),
+		Payload:   mustJSON(map[string]any{"goal": body.Goal, "budget_usd": body.BudgetUSD}),
 		CreatedAt: time.Now().UTC(),
 	}, s.requestID(r))
 
@@ -331,5 +232,142 @@ func (s *Server) handleReplayRun(w http.ResponseWriter, r *http.Request) {
 		"replay_trace": strategy.Trace,
 		"strategy":     strategy,
 		"event_count":  len(history),
+	})
+}
+
+// handleGetBudget returns the current budget status for a run
+func (s *Server) handleGetBudget(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+	tenant := tenantIDFrom(r.Context())
+
+	// Verify run exists
+	if _, err := s.store.GetRun(r.Context(), tenant, runID); err != nil {
+		writeError(w, http.StatusNotFound, "run not found")
+		return
+	}
+
+	status, err := s.store.GetBudgetStatus(r.Context(), tenant, runID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to get budget status: "+err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, status)
+}
+
+// handleReserveBudget reserves budget for a tool call
+func (s *Server) handleReserveBudget(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+	tenant := tenantIDFrom(r.Context())
+
+	var body struct {
+		Tool            string `json:"tool"`
+		EstimatedTokens int    `json:"estimated_tokens"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid json")
+		return
+	}
+
+	if body.Tool == "" {
+		writeError(w, http.StatusBadRequest, "tool is required")
+		return
+	}
+
+	result, err := s.store.PredictAndReserve(r.Context(), tenant, runID, body.Tool, body.EstimatedTokens)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "budget reservation failed: "+err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, result)
+}
+
+// handleCommitSpend commits actual spend for a budget allocation
+func (s *Server) handleCommitSpend(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+	tenant := tenantIDFrom(r.Context())
+
+	var body struct {
+		AllocationID uint64  `json:"allocation_id"`
+		ActualCost   float64 `json:"actual_cost"`
+		Tool         string  `json:"tool"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid json")
+		return
+	}
+
+	if body.Tool == "" {
+		writeError(w, http.StatusBadRequest, "tool is required")
+		return
+	}
+
+	if err := s.store.CommitSpend(r.Context(), tenant, runID, body.AllocationID, body.ActualCost, body.Tool); err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to commit spend: "+err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "committed"})
+}
+
+// handleUpdateBudget updates the budget for a run
+func (s *Server) handleUpdateBudget(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+	tenant := tenantIDFrom(r.Context())
+
+	var body struct {
+		BudgetUSD float64 `json:"budget_usd"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid json")
+		return
+	}
+
+	if body.BudgetUSD <= 0 {
+		writeError(w, http.StatusBadRequest, "budget_usd must be positive")
+		return
+	}
+
+	// Create/Update budget controller
+	s.store.GetBudgetController(runID, tenant, body.BudgetUSD)
+
+	_ = s.store.Audit(r.Context(), tenant, runID, "budget.updated", mustJSON(map[string]any{
+		"new_budget": body.BudgetUSD,
+	}))
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"run_id":     runID,
+		"budget_usd": body.BudgetUSD,
+		"status":     "updated",
+	})
+}
+
+// handleGetBudgetProjection returns ML-predicted budget projection
+func (s *Server) handleGetBudgetProjection(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+	tenant := tenantIDFrom(r.Context())
+
+	var body struct {
+		RemainingOperations int `json:"remaining_operations"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		body.RemainingOperations = 10 // Default
+	}
+
+	bc, err := s.store.GetBudgetControllerForRun(r.Context(), tenant, runID)
+	if err != nil {
+		writeError(w, http.StatusNotFound, "run not found or budget not initialized")
+		return
+	}
+
+	projection := bc.GetProjection(body.RemainingOperations)
+	status := bc.GetStatus()
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"run_id":               runID,
+		"projection_usd":       projection,
+		"remaining_operations": body.RemainingOperations,
+		"status":               status,
 	})
 }

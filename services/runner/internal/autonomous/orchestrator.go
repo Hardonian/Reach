@@ -13,13 +13,6 @@ import (
 	"reach/services/runner/internal/spec"
 )
 
-// BudgetProvider interface for budget operations
-type BudgetProvider interface {
-	PredictAndReserve(ctx context.Context, tenantID, runID, tool string, estimatedTokens int) (jobs.AllocationResult, error)
-	CommitSpend(ctx context.Context, tenantID, runID string, allocID uint64, actualCost float64, tool string) error
-	GetBudgetStatus(ctx context.Context, tenantID, runID string) (map[string]interface{}, error)
-}
-
 type StatusReason string
 
 const (
@@ -45,7 +38,7 @@ const (
 	PauseReasonUser         PauseReason = "user_paused"
 	PauseReasonGuardrail    PauseReason = "guardrail_near"
 	PauseReasonPolicyWindow PauseReason = "policy_window"
-	PauseReasonBudget       PauseReason = "budget_low"
+	PauseReasonBudget       PauseReason = "budget_exceeded"
 )
 
 type RuntimeSignals struct {
@@ -57,6 +50,13 @@ type RuntimeSignals struct {
 
 type SignalProvider interface {
 	Signals(context.Context, jobs.AutonomousSession) RuntimeSignals
+}
+
+// BudgetProvider interface for budget integration
+type BudgetProvider interface {
+	PredictAndReserve(ctx context.Context, tenantID, runID, tool string, estimatedTokens int) (jobs.AllocationResult, error)
+	CommitSpend(ctx context.Context, tenantID, runID string, allocID uint64, actualCost float64, tool string) error
+	GetBudgetStatus(ctx context.Context, tenantID, runID string) (map[string]interface{}, error)
 }
 
 type IdleCycleScheduler struct {
@@ -92,7 +92,6 @@ func (s IdleCycleScheduler) burstForIteration(iteration int) time.Duration {
 	return s.BurstMin + offset
 }
 
-// Loop provides the autonomous execution loop with budget integration.
 type Loop struct {
 	Store                *jobs.Store
 	Planner              StepPlanner
@@ -105,28 +104,25 @@ type Loop struct {
 	Sleep                func(context.Context, time.Duration) bool
 	
 	// Budget integration
-	BudgetProvider       BudgetProvider
-	TenantID             string
-	RunID                string
-	BudgetEnabled        bool
-	defaultTokenEstimate int
+	BudgetProvider BudgetProvider
+	TenantID       string
+	RunID          string
+	
+	// Budget tracking
+	currentAllocation jobs.AllocationResult
+	budgetExceeded    bool
 }
 
 func (l *Loop) Run(ctx context.Context, tenantID, runID string, session *jobs.AutonomousSession) StatusReason {
+	l.TenantID = tenantID
+	l.RunID = runID
+	
 	if l.RepeatedFailureLimit <= 0 {
 		l.RepeatedFailureLimit = 3
 	}
 	if l.NoProgressLimit <= 0 {
 		l.NoProgressLimit = 3
 	}
-	if l.defaultTokenEstimate <= 0 {
-		l.defaultTokenEstimate = 1000
-	}
-	
-	// Store IDs for budget operations
-	l.TenantID = tenantID
-	l.RunID = runID
-	
 	scheduler := l.Scheduler.normalize()
 	sleepFn := l.Sleep
 	if sleepFn == nil {
@@ -189,14 +185,9 @@ func (l *Loop) preflight(ctx context.Context, _ string, session *jobs.Autonomous
 		return ReasonMaxRuntime, true
 	}
 	
-	// Check budget status if enabled
-	if l.BudgetEnabled && l.BudgetProvider != nil {
-		status, err := l.BudgetProvider.GetBudgetStatus(ctx, l.TenantID, l.RunID)
-		if err == nil {
-			if paused, ok := status["paused"].(bool); ok && paused {
-				return ReasonBudgetExceeded, true
-			}
-		}
+	// Check budget pause status
+	if l.budgetExceeded {
+		return ReasonBudgetExceeded, true
 	}
 	
 	return "", false
@@ -219,17 +210,10 @@ func (l *Loop) pauseReason(ctx context.Context, session jobs.AutonomousSession) 
 	if sig.GuardrailNear {
 		return PauseReasonGuardrail
 	}
-	
-	// Check budget if enabled
-	if l.BudgetEnabled && l.BudgetProvider != nil {
-		status, err := l.BudgetProvider.GetBudgetStatus(ctx, l.TenantID, l.RunID)
-		if err == nil {
-			if percentUsed, ok := status["percent_used"].(float64); ok && percentUsed >= 80 {
-				return PauseReasonBudget
-			}
-		}
+	// Check budget via budget provider
+	if l.budgetExceeded {
+		return PauseReasonBudget
 	}
-	
 	return ""
 }
 
@@ -246,14 +230,6 @@ func (l *Loop) tick(ctx context.Context, tenantID, runID string, session *jobs.A
 		Goal:           session.Goal,
 		IterationCount: session.IterationCount,
 		Variables:      make(map[string]any),
-	}
-	
-	// Add budget info to state if available
-	if l.BudgetEnabled && l.BudgetProvider != nil {
-		status, err := l.BudgetProvider.GetBudgetStatus(ctx, tenantID, runID)
-		if err == nil {
-			state.Variables["budget_status"] = status
-		}
 	}
 
 	// 2. Planner Step
@@ -278,40 +254,28 @@ func (l *Loop) tick(ctx context.Context, tenantID, runID string, session *jobs.A
 	}
 
 	// 3. Budget Check: Predict and reserve before execution
-	var allocResult jobs.AllocationResult
-	if l.BudgetEnabled && l.BudgetProvider != nil {
-		estimatedTokens := l.defaultTokenEstimate
-		if plan.EstimatedTokens > 0 {
-			estimatedTokens = plan.EstimatedTokens
-		}
-		
-		allocResult, err = l.BudgetProvider.PredictAndReserve(ctx, tenantID, runID, plan.Tool, estimatedTokens)
+	if l.BudgetProvider != nil && plan.Tool != "" {
+		estimatedTokens := l.estimateTokens(plan.Args)
+		alloc, err := l.BudgetProvider.PredictAndReserve(ctx, tenantID, runID, plan.Tool, estimatedTokens)
 		if err != nil {
-			// Budget check failed
 			session.FailureStreak++
-			_ = l.publishStateEvent(ctx, runID, "autonomous.budget_denied", map[string]any{
-				"tool": plan.Tool,
-				"error": err.Error(),
-			})
-			
-			if errors.Is(err, jobs.ErrBudgetExceeded) {
-				return ReasonBudgetExceeded
-			}
+			_ = l.publishStateEvent(ctx, runID, "autonomous.budget_error", map[string]any{"error": err.Error()})
 			return "" // Retry
 		}
 		
-		if !allocResult.Approved {
-			// Budget allocation denied
+		if !alloc.Approved {
+			l.budgetExceeded = true
 			_ = l.publishStateEvent(ctx, runID, "autonomous.budget_exceeded", map[string]any{
-				"tool": plan.Tool,
-				"estimated_cost": allocResult.EstCost,
+				"estimated_cost": alloc.EstCost,
+				"remaining":      alloc.Remaining,
 			})
 			return ReasonBudgetExceeded
 		}
+		
+		l.currentAllocation = alloc
 	}
 
 	// 4. Execution Step
-	// Create Envelope
 	envelope := ExecutionEnvelope{
 		ID:        uuid.New().String(),
 		TaskID:    runID,
@@ -325,33 +289,10 @@ func (l *Loop) tick(ctx context.Context, tenantID, runID string, session *jobs.A
 		},
 		Permissions: session.AllowedCapabilities,
 	}
-	
-	// Include budget allocation in envelope if applicable
-	if l.BudgetEnabled {
-		envelope.BudgetAllocID = allocResult.AllocatedID
-		envelope.EstimatedCost = allocResult.EstCost
-	}
 
 	res, err := l.Executor.Execute(stepCtx, envelope)
 
-	// 5. Commit or rollback budget allocation
-	if l.BudgetEnabled && l.BudgetProvider != nil {
-		actualCost := allocResult.EstCost // Default to estimate
-		if res != nil && res.Metrics.CostUSD > 0 {
-			actualCost = res.Metrics.CostUSD
-		}
-		
-		commitErr := l.BudgetProvider.CommitSpend(ctx, tenantID, runID, allocResult.AllocatedID, actualCost, plan.Tool)
-		if commitErr != nil {
-			// Log but don't fail the operation
-			_ = l.publishStateEvent(ctx, runID, "autonomous.budget_commit_error", map[string]any{
-				"tool": plan.Tool,
-				"error": commitErr.Error(),
-			})
-		}
-	}
-
-	// 6. Update Session
+	// 5. Update Session
 	session.ToolCallCount++
 	session.IterationCount++
 	session.UpdatedAt = time.Now().UTC()
@@ -377,6 +318,23 @@ func (l *Loop) tick(ctx context.Context, tenantID, runID string, session *jobs.A
 		session.NoProgressStreak++
 	}
 
+	// 6. Commit Budget Spend
+	if l.BudgetProvider != nil && l.currentAllocation.Approved {
+		actualCost := l.calculateActualCost(res, err)
+		commitErr := l.BudgetProvider.CommitSpend(ctx, tenantID, runID, l.currentAllocation.AllocatedID, actualCost, plan.Tool)
+		if commitErr != nil {
+			// Log but don't fail - budget commit failures shouldn't stop execution
+			_ = l.publishStateEvent(ctx, runID, "autonomous.budget_commit_error", map[string]any{"error": commitErr.Error()})
+		}
+		
+		// Publish budget status update periodically
+		if session.IterationCount%10 == 0 {
+			if status, err := l.BudgetProvider.GetBudgetStatus(ctx, tenantID, runID); err == nil {
+				_ = l.publishStateEvent(ctx, runID, "autonomous.budget_status", status)
+			}
+		}
+	}
+
 	// 7. Checkpoint
 	if ckErr := l.checkpoint(ctx, tenantID, runID, *session, *plan, res); ckErr != nil {
 		return ReasonCheckpointFailed
@@ -391,6 +349,33 @@ func (l *Loop) tick(ctx context.Context, tenantID, runID string, session *jobs.A
 	return ""
 }
 
+// estimateTokens estimates token count from arguments
+func (l *Loop) estimateTokens(args json.RawMessage) int {
+	// Simple estimation: ~4 chars per token
+	return len(args) / 4
+}
+
+// calculateActualCost calculates the actual cost from execution result
+func (l *Loop) calculateActualCost(res *ExecutionResult, execErr error) float64 {
+	if execErr != nil || res == nil {
+		return 0.001 // Minimum cost for failed calls
+	}
+	
+	// Base cost calculation based on execution time and status
+	baseCost := 0.001
+	if res.Status == StatusSuccess {
+		baseCost += 0.01 // Success premium
+	}
+	
+	// Time-based cost factor
+	durationSecs := res.Metrics.Duration.Seconds()
+	if durationSecs > 0 {
+		baseCost += durationSecs * 0.001 // $0.001 per second
+	}
+	
+	return baseCost
+}
+
 func (l *Loop) publishStateEvent(ctx context.Context, runID, event string, payload map[string]any) error {
 	body, err := json.Marshal(payload)
 	if err != nil {
@@ -400,22 +385,12 @@ func (l *Loop) publishStateEvent(ctx context.Context, runID, event string, paylo
 }
 
 func (l *Loop) checkpoint(ctx context.Context, tenantID, runID string, session jobs.AutonomousSession, plan StepPlan, res *ExecutionResult) error {
-	// Include budget status in checkpoint
-	budgetData := map[string]any{}
-	if l.BudgetEnabled && l.BudgetProvider != nil {
-		status, err := l.BudgetProvider.GetBudgetStatus(ctx, tenantID, runID)
-		if err == nil {
-			budgetData = status
-		}
-	}
-	
 	capsule, err := json.Marshal(map[string]any{
 		"goal":            session.Goal,
 		"iteration":       session.IterationCount,
 		"tool_call_count": session.ToolCallCount,
 		"plan":            plan,
 		"result":          res,
-		"budget":          budgetData,
 		"timestamp":       time.Now().UTC().Format(time.RFC3339Nano),
 	})
 	if err != nil {
@@ -430,11 +405,7 @@ func (l *Loop) checkpoint(ctx context.Context, tenantID, runID string, session j
 		summary = res.Error.Message
 	}
 
-	auditPayload, _ := json.Marshal(map[string]any{
-		"iteration": session.IterationCount,
-		"delta_summary": summary,
-		"budget_enabled": l.BudgetEnabled,
-	})
+	auditPayload, _ := json.Marshal(map[string]any{"iteration": session.IterationCount, "delta_summary": summary})
 	if err := l.Store.Audit(ctx, tenantID, runID, "autonomous.checkpoint", auditPayload); err != nil {
 		return err
 	}
@@ -464,7 +435,46 @@ func (StaticExecutor) Execute(_ context.Context, _ ExecutionEnvelope) (*Executio
 		Output: json.RawMessage(`{"ok": true}`),
 		Metrics: ExecutionMetrics{
 			Duration: time.Millisecond,
-			CostUSD:  0.001,
 		},
-	}, nil
+	}
+}
+
+// BudgetAwareLoop creates a loop with budget integration from a jobs.Store
+func BudgetAwareLoop(store *jobs.Store, planner StepPlanner, executor Executor, tenantID, runID string) *Loop {
+	// Create budget provider adapter
+	budgetProvider := &storeBudgetProvider{store: store}
+	
+	return &Loop{
+		Store:          store,
+		Planner:        planner,
+		Executor:       executor,
+		BudgetProvider: budgetProvider,
+		TenantID:       tenantID,
+		RunID:          runID,
+		Scheduler: IdleCycleScheduler{
+			BurstMin:      10 * time.Second,
+			BurstMax:      30 * time.Second,
+			SleepInterval: 15 * time.Second,
+		},
+		RepeatedFailureLimit: 3,
+		NoProgressLimit:      3,
+		IterationTimeout:     5 * time.Minute,
+	}
+}
+
+// storeBudgetProvider adapts jobs.Store to BudgetProvider interface
+type storeBudgetProvider struct {
+	store *jobs.Store
+}
+
+func (sbp *storeBudgetProvider) PredictAndReserve(ctx context.Context, tenantID, runID, tool string, estimatedTokens int) (jobs.AllocationResult, error) {
+	return sbp.store.PredictAndReserve(ctx, tenantID, runID, tool, estimatedTokens)
+}
+
+func (sbp *storeBudgetProvider) CommitSpend(ctx context.Context, tenantID, runID string, allocID uint64, actualCost float64, tool string) error {
+	return sbp.store.CommitSpend(ctx, tenantID, runID, allocID, actualCost, tool)
+}
+
+func (sbp *storeBudgetProvider) GetBudgetStatus(ctx context.Context, tenantID, runID string) (map[string]interface{}, error) {
+	return sbp.store.GetBudgetStatus(ctx, tenantID, runID)
 }

@@ -161,7 +161,6 @@ type MerkleProof struct {
 	ProofIndex []int // 0 = left, 1 = right at each level
 }
 
-// GetProof generates a proof for the leaf at the given index.
 func (mt *MerkleTree) GetProof(index int) (*MerkleProof, error) {
 	if index < 0 || index >= len(mt.Leaves) {
 		return nil, fmt.Errorf("index %d out of range [0, %d)", index, len(mt.Leaves))
@@ -172,37 +171,94 @@ func (mt *MerkleTree) GetProof(index int) (*MerkleProof, error) {
 		LeafHash: mt.LeafHashes[index],
 	}
 
-	// Build proof path from bottom to top
-	levelSize := len(mt.Leaves)
-	currentIdx := index
+	// Path from leaf up to root would be easier if we had Parent pointers.
+	// Instead, we traverse from Root down to the leaf and collect siblings.
+	var path [][]byte
+	var indices []int
 
-	for levelSize > 1 {
-		// Find sibling
-		var siblingIdx int
-		if currentIdx%2 == 0 {
-			// Current is left, sibling is right
-			siblingIdx = currentIdx + 1
-			if siblingIdx >= levelSize {
-				// Odd number, duplicate current
-				siblingIdx = currentIdx
-			}
-			proof.ProofIndex = append(proof.ProofIndex, 1) // Sibling is on right
-		} else {
-			// Current is right, sibling is left
-			siblingIdx = currentIdx - 1
-			proof.ProofIndex = append(proof.ProofIndex, 0) // Sibling is on left
-		}
+	if !mt.findPath(mt.Root, index, len(mt.Leaves), &path, &indices) {
+		return nil, errors.New("failed to find proof path")
+	}
 
-		// Get sibling hash
-		siblingHash := mt.getHashAtLevel(levelSize, siblingIdx)
-		proof.ProofPath = append(proof.ProofPath, siblingHash)
-
-		// Move to parent level
-		currentIdx = currentIdx / 2
-		levelSize = (levelSize + 1) / 2
+	// ProofPath should be bottom-to-top
+	for i := len(path) - 1; i >= 0; i-- {
+		proof.ProofPath = append(proof.ProofPath, path[i])
+		proof.ProofIndex = append(proof.ProofIndex, indices[i])
 	}
 
 	return proof, nil
+}
+
+func (mt *MerkleTree) findPath(node *MerkleNode, targetIdx, levelSize int, path *[][]byte, indices *[]int) bool {
+	if node.Leaf {
+		return node.Index == targetIdx
+	}
+
+	// Splitting logic MUST match buildTree
+	split := 1
+	for split < levelSize {
+		if split*2 >= levelSize {
+			break
+		}
+		split *= 2
+	}
+	// Wait, buildTree uses: for i := 0; i < len(nodes); i += 2
+	// This means it grows from bottom up, pairing 0-1, 2-3, 4-5...
+	// The first parentNode covers leaves 0 and 1.
+	// The last parentNode might cover only the last leaf if count is odd.
+	// This is slightly different from power-of-2 split.
+
+	// Let's check buildTree logic:
+	// parentNodes = append(parentNodes, parent)
+	// count of parentNodes = (len(nodes) + 1) / 2
+	// parentNodes[0] covers nodes[0] and nodes[1]
+
+	// So at level-1, parent i covers leaves [2*i, 2*i + 1]
+	// At level-2, grandparent i covers leaves [4*i, 4*i + 3]
+	// At level-L, node i covers 2^L leaves.
+
+	// However, buildTree is recursive: mt.buildTree(parentNodes)
+	// This IS a standard balanced binary tree where:
+	// Left node always covers 2^k leaves where 2^k is the largest power of 2 < levelSize.
+	// NO, that's for some Merkle variants.
+	// Our buildTree splits it differently.
+	// If nodes = 3. parentNodes = [p0, p1]. p0=(n0,n1), p1=(n2,n2).
+	// buildTree([p0, p1]) -> root=(p0,p1).
+	// Root covers [0,2]. Left child p0 covers [0,1]. Right child p1 covers [2].
+
+	// The split for a node covering 'levelSize' leaves is:
+	// leftSize = 1 << floor(log2(levelSize-1))
+	// Example: levelSize=3. log2(2)=1. leftSize=2^1=2. Correct.
+	// Example: levelSize=4. log2(3)=1.xx. leftSize=2^1=2. Correct.
+	// Example: levelSize=5. log2(4)=2. leftSize=2^2=4. Correct.
+
+	leftSize := 1
+	if levelSize > 1 {
+		for leftSize < levelSize {
+			if leftSize*2 >= levelSize {
+				break
+			}
+			leftSize *= 2
+		}
+	}
+
+	if targetIdx < leftSize {
+		// Left branch
+		if mt.findPath(node.Left, targetIdx, leftSize, path, indices) {
+			*path = append(*path, node.Right.Hash)
+			*indices = append(*indices, 1) // Sibling is right
+			return true
+		}
+	} else {
+		// Right branch
+		if mt.findPath(node.Right, targetIdx-leftSize, levelSize-leftSize, path, indices) {
+			*path = append(*path, node.Left.Hash)
+			*indices = append(*indices, 0) // Sibling is left
+			return true
+		}
+	}
+
+	return false
 }
 
 // getHashAtLevel returns the hash at a specific level and index.

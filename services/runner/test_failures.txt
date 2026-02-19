@@ -1,0 +1,94 @@
+?   	reach/services/runner/cmd/reach-serve	[no test files]
+ok  	reach/services/runner/cmd/reachctl	(cached)
+?   	reach/services/runner/cmd/runner-audit-inspector	[no test files]
+?   	reach/services/runner/cmd/runner-mcp	[no test files]
+?   	reach/services/runner/cmd/runnerd	[no test files]
+--- FAIL: TestDetermineStrategyOffline (0.00s)
+    strategy_test.go:140: expected ModeOffline, got full
+    strategy_test.go:143: expected EnableDelegation to be false in offline mode
+    strategy_test.go:146: expected ReasoningLow, got high
+FAIL
+FAIL	reach/services/runner/internal/adaptive	0.612s
+ok  	reach/services/runner/internal/api	0.906s
+ok  	reach/services/runner/internal/arcade/gamification	(cached)
+ok  	reach/services/runner/internal/autonomous	(cached)
+ok  	reach/services/runner/internal/backpressure	(cached)
+ok  	reach/services/runner/internal/config	(cached)
+ok  	reach/services/runner/internal/determinism	(cached)
+ok  	reach/services/runner/internal/engineclient	(cached)
+ok  	reach/services/runner/internal/errors	(cached)
+ok  	reach/services/runner/internal/federation	(cached)
+?   	reach/services/runner/internal/invariants	[no test files]
+ok  	reach/services/runner/internal/jobs	(cached)
+?   	reach/services/runner/internal/mcp	[no test files]
+ok  	reach/services/runner/internal/mcpserver	(cached)
+ok  	reach/services/runner/internal/mesh	(cached)
+ok  	reach/services/runner/internal/model	(cached)
+--- FAIL: TestMerkleProof (0.00s)
+    merkle_test.go:132: proof verification failed for leaf 0
+    merkle_test.go:137: proof hex verification failed for leaf 0
+    merkle_test.go:132: proof verification failed for leaf 1
+    merkle_test.go:137: proof hex verification failed for leaf 1
+    merkle_test.go:132: proof verification failed for leaf 2
+    merkle_test.go:137: proof hex verification failed for leaf 2
+    merkle_test.go:132: proof verification failed for leaf 3
+    merkle_test.go:137: proof hex verification failed for leaf 3
+Usage: reach pack validate <path> [options]
+
+Validate a pack for registry inclusion.
+
+Options:
+  --json          Output results as JSON
+  --fixtures      Path to fixtures directory
+
+Examples:
+  reach pack validate ./my-pack
+  reach pack validate ./my-pack --json
+Usage: reach pack score <path> [options]
+
+Options:
+  --json          Output results as JSON
+  --badges        Include badge generation
+  --fixtures      Path to fixtures directory
+
+Examples:
+  reach pack score ./my-pack
+  reach pack score ./my-pack --json
+  reach pack score ./my-pack --fixtures ./fixtures
+Usage: reach pack docs <path> [options]
+
+Options:
+  --output       Output file path (default: <pack>/README.md)
+  --with-scores  Include scoring results in documentation
+  --registry     Generate in registry format
+
+Examples:
+  reach pack docs ./my-pack
+  reach pack docs ./my-pack --output ./docs/mypack.md
+  reach pack docs ./my-pack --with-scores
+Usage: reach verify:registry-pr [path] [options]
+
+Validate all packs in a registry PR.
+
+Options:
+  --json          Output results as JSON
+
+Examples:
+  reach verify:registry-pr
+  reach verify:registry-pr ./registry --json
+FAIL
+FAIL	reach/services/runner/internal/pack	0.487s
+ok  	reach/services/runner/internal/performance	(cached)
+ok  	reach/services/runner/internal/plugins	(cached)
+ok  	reach/services/runner/internal/poee	(cached)
+ok  	reach/services/runner/internal/policy	(cached)
+ok  	reach/services/runner/internal/registry	(cached)
+ok  	reach/services/runner/internal/sandbox	(cached)
+ok  	reach/services/runner/internal/spec	(cached)
+ok  	reach/services/runner/internal/storage	(cached)
+ok  	reach/services/runner/internal/support	(cached)
+ok  	reach/services/runner/internal/telemetry	(cached)
+ok  	reach/services/runner/internal/workspace	(cached)
+ok  	reach/services/runner/tests/chaos	(cached)
+ok  	reach/services/runner/tests/conformance	(cached)
+FAIL

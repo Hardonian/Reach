@@ -162,6 +162,12 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /v1/sessions/{id}/autonomous/stop", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleAutonomousStop))))
 	mux.Handle("POST /v1/jobs/lease", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleLeaseJobs))))
 	mux.Handle("GET /v1/sessions/{id}/autonomous/status", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleAutonomousStatus))))
+	// Budget endpoints
+	mux.Handle("GET /v1/runs/{id}/budget", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleGetBudget))))
+	mux.Handle("POST /v1/runs/{id}/budget/reserve", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleReserveBudget))))
+	mux.Handle("POST /v1/runs/{id}/budget/commit", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleCommitSpend))))
+	mux.Handle("POST /v1/runs/{id}/budget/update", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleUpdateBudget))))
+	mux.Handle("POST /v1/runs/{id}/budget/projection", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleGetBudgetProjection))))
 	return s.withObservability(mux)
 }
 

@@ -178,6 +178,15 @@ func (e *Engine) DetermineStrategy(task TaskConstraints) (ExecutionStrategy, err
 	}
 
 	// Check device constraints
+	if e.deviceCtx.IsOffline {
+		strategy.Mode = ModeOffline
+		strategy.EnableDelegation = false
+		strategy.ReasoningDepth = model.ReasoningLow
+		strategy.Trace = append(strategy.Trace, "Device is offline: enabled local-only mode")
+		strategy.QualityScore -= 0.3
+		strategy.ReliabilityScore -= 0.1
+	}
+
 	if e.deviceCtx.IsMobile {
 		strategy.Mode = ModeConservative
 		strategy.MaxBranches = 3
