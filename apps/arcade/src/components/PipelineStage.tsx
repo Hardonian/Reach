@@ -12,7 +12,6 @@ interface PipelineStageProps {
   description: string;
   type: StageType;
   status: StageStatus;
-  config?: Record<string, string | number | string[]>;
   isSelected?: boolean;
   onClick?: () => void;
 }

@@ -1,61 +1,61 @@
 'use client';
 
 import { useState } from 'react';
+import { PipelineStage, StageType, StageStatus } from '@/components/PipelineStage';
+import { EmptyState } from '@/components/EmptyState';
 
 // Mock pipeline stages
-const mockPipeline = {
-  name: 'Customer Support Flow',
-  stages: [
-    {
-      id: 'stage-1',
-      name: 'Input Parser',
-      type: 'input',
-      status: 'running',
-      description: 'Parse incoming customer messages',
-      config: { model: 'gpt-4', temperature: 0.3 },
-    },
-    {
-      id: 'stage-2',
-      name: 'Intent Classifier',
-      type: 'processor',
-      status: 'running',
-      description: 'Classify customer intent',
-      config: { categories: ['support', 'sales', 'billing'] },
-    },
-    {
-      id: 'stage-3',
-      name: 'Knowledge Base',
-      type: 'retrieval',
-      status: 'idle',
-      description: 'Query knowledge base for answers',
-      config: { topK: 5, threshold: 0.8 },
-    },
-    {
-      id: 'stage-4',
-      name: 'Response Generator',
-      type: 'processor',
-      status: 'idle',
-      description: 'Generate customer response',
-      config: { maxTokens: 500 },
-    },
-    {
-      id: 'stage-5',
-      name: 'Output Formatter',
-      type: 'output',
-      status: 'idle',
-      description: 'Format and send response',
-      config: { format: 'json' },
-    },
-  ],
-  connections: [
-    { from: 'stage-1', to: 'stage-2' },
-    { from: 'stage-2', to: 'stage-3' },
-    { from: 'stage-3', to: 'stage-4' },
-    { from: 'stage-4', to: 'stage-5' },
-  ],
-};
+const mockStages = [
+  {
+    id: 'stage-1',
+    name: 'Input Parser',
+    type: 'input' as StageType,
+    status: 'running' as StageStatus,
+    description: 'Parse incoming customer messages',
+    config: { model: 'gpt-4', temperature: 0.3 },
+  },
+  {
+    id: 'stage-2',
+    name: 'Intent Classifier',
+    type: 'processor' as StageType,
+    status: 'running' as StageStatus,
+    description: 'Classify customer intent',
+    config: { categories: ['support', 'sales', 'billing'] },
+  },
+  {
+    id: 'stage-3',
+    name: 'Knowledge Base',
+    type: 'retrieval' as StageType,
+    status: 'idle' as StageStatus,
+    description: 'Query knowledge base for answers',
+    config: { topK: 5, threshold: 0.8 },
+  },
+  {
+    id: 'stage-4',
+    name: 'Response Generator',
+    type: 'processor' as StageType,
+    status: 'idle' as StageStatus,
+    description: 'Generate customer response',
+    config: { maxTokens: 500 },
+  },
+  {
+    id: 'stage-5',
+    name: 'Output Formatter',
+    type: 'output' as StageType,
+    status: 'idle' as StageStatus,
+    description: 'Format and send response',
+    config: { format: 'json' },
+  },
+];
 
-const nodeTypes = {
+const connections = [
+  { from: 'stage-1', to: 'stage-2' },
+  { from: 'stage-2', to: 'stage-3' },
+  { from: 'stage-3', to: 'stage-4' },
+  { from: 'stage-4', to: 'stage-5' },
+];
+
+const nodeTypes: Record<StageType, { color: string; icon: string }> = {
   input: { color: '#10B981', icon: '📥' },
   processor: { color: '#7C3AED', icon: '⚙️' },
   retrieval: { color: '#3B82F6', icon: '🔍' },
@@ -63,14 +63,12 @@ const nodeTypes = {
 };
 
 // Simple Pipeline Visualization (static layout without DnD)
-function PipelineView({ 
-  stages, 
-  connections, 
+function PipelineView({
+  stages,
   selectedStage,
-  onSelectStage 
-}: { 
-  stages: typeof mockPipeline.stages;
-  connections: typeof mockPipeline.connections;
+  onSelectStage,
+}: {
+  stages: typeof mockStages;
   selectedStage: string | null;
   onSelectStage: (id: string) => void;
 }) {
@@ -78,11 +76,11 @@ function PipelineView({
     <div className="relative min-h-[400px] p-8 bg-surface/30 rounded-xl border border-border overflow-x-auto">
       <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ minWidth: '600px' }}>
         {connections.map((conn, i) => {
-          const fromIndex = stages.findIndex(s => s.id === conn.from);
-          const toIndex = stages.findIndex(s => s.id === conn.to);
+          const fromIndex = stages.findIndex((s) => s.id === conn.from);
+          const toIndex = stages.findIndex((s) => s.id === conn.to);
           const y1 = fromIndex * 80 + 40;
           const y2 = toIndex * 80 + 40;
-          
+
           return (
             <g key={i}>
               <line
@@ -99,47 +97,16 @@ function PipelineView({
           );
         })}
       </svg>
-      
+
       <div className="relative space-y-6" style={{ minWidth: '600px' }}>
-        {stages.map((stage, index) => {
-          const type = nodeTypes[stage.type as keyof typeof nodeTypes];
-          return (
-            <div
-              key={stage.id}
-              onClick={() => onSelectStage(stage.id)}
-              className={`flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all ${
-                selectedStage === stage.id
-                  ? 'border-accent bg-accent/10'
-                  : 'border-border bg-surface hover:border-accent/50'
-              }`}
-            >
-              <div
-                className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl"
-                style={{ backgroundColor: `${type.color}20` }}
-              >
-                {type.icon}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-bold">{stage.name}</h4>
-                  <span
-                    className={`w-2 h-2 rounded-full ${
-                      stage.status === 'running'
-                        ? 'bg-emerald-500 animate-pulse'
-                        : stage.status === 'error'
-                        ? 'bg-red-500'
-                        : 'bg-gray-500'
-                    }`}
-                  />
-                </div>
-                <p className="text-sm text-gray-500">{stage.description}</p>
-              </div>
-              <div className="text-xs text-gray-500 uppercase tracking-wider">
-                {stage.type}
-              </div>
-            </div>
-          );
-        })}
+        {stages.map((stage) => (
+          <PipelineStage
+            key={stage.id}
+            {...stage}
+            isSelected={selectedStage === stage.id}
+            onClick={() => onSelectStage(stage.id)}
+          />
+        ))}
       </div>
     </div>
   );
@@ -149,7 +116,7 @@ export default function StudioPage() {
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'design' | 'test' | 'deploy'>('design');
 
-  const selectedStageData = mockPipeline.stages.find(s => s.id === selectedStage);
+  const selectedStageData = mockStages.find((s) => s.id === selectedStage);
 
   return (
     <div className="section-container py-8">
@@ -173,9 +140,7 @@ export default function StudioPage() {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 rounded-md text-sm font-medium capitalize transition-colors ${
-              activeTab === tab
-                ? 'bg-accent text-white'
-                : 'text-gray-400 hover:text-white'
+              activeTab === tab ? 'bg-accent text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
             {tab}
@@ -188,14 +153,11 @@ export default function StudioPage() {
           {/* Pipeline Canvas */}
           <div className="lg:col-span-2">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">{mockPipeline.name}</h2>
-              <button className="text-sm text-accent hover:text-accent/80">
-                + Add Stage
-              </button>
+              <h2 className="text-xl font-bold">Customer Support Flow</h2>
+              <button className="text-sm text-accent hover:text-accent/80">+ Add Stage</button>
             </div>
             <PipelineView
-              stages={mockPipeline.stages}
-              connections={mockPipeline.connections}
+              stages={mockStages}
               selectedStage={selectedStage}
               onSelectStage={setSelectedStage}
             />
@@ -209,22 +171,24 @@ export default function StudioPage() {
                 <div className="flex items-center gap-3 mb-4">
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
-                    style={{ backgroundColor: `${nodeTypes[selectedStageData.type as keyof typeof nodeTypes].color}20` }}
+                    style={{
+                      backgroundColor: `${nodeTypes[selectedStageData.type].color}20`,
+                    }}
                   >
-                    {nodeTypes[selectedStageData.type as keyof typeof nodeTypes].icon}
+                    {nodeTypes[selectedStageData.type].icon}
                   </div>
                   <div>
                     <h3 className="font-bold">{selectedStageData.name}</h3>
                     <span className="text-xs text-gray-500 uppercase">{selectedStageData.type}</span>
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm text-gray-500 block mb-1">Description</label>
                     <p className="text-sm">{selectedStageData.description}</p>
                   </div>
-                  
+
                   <div>
                     <label className="text-sm text-gray-500 block mb-2">Configuration</label>
                     <div className="space-y-2">
@@ -246,10 +210,11 @@ export default function StudioPage() {
                 </div>
               </div>
             ) : (
-              <div className="card text-center py-12">
-                <div className="text-4xl mb-4">🎨</div>
-                <p className="text-gray-400">Select a stage to edit properties</p>
-              </div>
+              <EmptyState
+                icon="🎨"
+                title="Select a Stage"
+                description="Click on a pipeline stage to view and edit its properties."
+              />
             )}
 
             {/* Available Nodes */}
