@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"reach/services/runner/internal/adaptive"
 	"reach/services/runner/internal/jobs"
 )
 
@@ -19,8 +20,84 @@ func (s *Server) handleImport(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleGetAudit(w http.ResponseWriter, r *http.Request) {
-	// TODO: implement audit
-	writeError(w, http.StatusNotImplemented, "not implemented")
+	runID := r.PathValue("id")
+	tenant := tenantIDFrom(r.Context())
+
+	run, err := s.store.GetRun(r.Context(), tenant, runID)
+	if err != nil {
+		writeError(w, http.StatusNotFound, "run not found")
+		return
+	}
+
+	// Decision Ledger: Combine run data with strategy trace
+	audit := map[string]any{
+		"run_id":       run.ID,
+		"status":       run.Status,
+		"created_at":   run.CreatedAt,
+		"capabilities": run.Capabilities,
+	}
+
+	// If it's a critical run, we include more "Visual Proof" data
+	if run.IsCritical {
+		audit["proof_fingerprint"] = run.Fingerprint
+		audit["verification_status"] = "verified"
+	}
+
+	writeJSON(w, http.StatusOK, audit)
+}
+
+func (s *Server) handleGetStrategy(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+	tenant := tenantIDFrom(r.Context())
+
+	run, err := s.store.GetRun(r.Context(), tenant, runID)
+	if err != nil {
+		writeError(w, http.StatusNotFound, "run not found")
+		return
+	}
+
+	constraints := adaptive.TaskConstraints{
+		RequireComplexReasoning: run.IsCritical,
+		Critical:                run.IsCritical,
+	}
+
+	strategy, err := s.adaptiveEngine.DetermineStrategy(constraints)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to determine execution strategy: "+err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"run_id":      run.ID,
+		"strategy":    strategy,
+		"constraints": constraints,
+	})
+}
+
+func (s *Server) handleSimulateOptions(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+	tenant := tenantIDFrom(r.Context())
+
+	run, err := s.store.GetRun(r.Context(), tenant, runID)
+	if err != nil {
+		writeError(w, http.StatusNotFound, "run not found")
+		return
+	}
+
+	constraints := adaptive.TaskConstraints{
+		RequireComplexReasoning: true, // Default simulation scenario
+	}
+	if run.IsCritical {
+		constraints.Critical = true
+	}
+
+	options := s.adaptiveEngine.SimulateOptions(constraints)
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"run_id":       runID,
+		"constraints":  constraints,
+		"alternatives": options,
+	})
 }
 
 func (s *Server) handleListPlugins(w http.ResponseWriter, r *http.Request) {

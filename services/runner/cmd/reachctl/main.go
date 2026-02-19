@@ -354,6 +354,17 @@ func runPacks(ctx context.Context, dataRoot string, args []string, out io.Writer
 		validSig := strings.TrimSpace(p.Signature) != ""
 		compatible := p.SpecVersion == specVersion
 		return writeJSON(out, map[string]any{"name": p.Name, "signature_valid": validSig, "spec_compatible": compatible, "verified": p.Verified && validSig && compatible})
+	case "lint":
+		if len(args) < 2 {
+			_, _ = fmt.Fprintln(errOut, "usage: reachctl packs lint <path>")
+			return 1
+		}
+		res, err := pack.Lint(args[1])
+		if err != nil {
+			_, _ = fmt.Fprintln(errOut, err)
+			return 1
+		}
+		return writeJSON(out, res)
 	default:
 		usage(out)
 		return 1

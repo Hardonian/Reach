@@ -20,9 +20,11 @@ import (
 	"sync/atomic"
 	"time"
 
+	"reach/services/runner/internal/adaptive"
 	"reach/services/runner/internal/arcade/gamification"
 	"reach/services/runner/internal/federation"
 	"reach/services/runner/internal/jobs"
+	"reach/services/runner/internal/model"
 	"reach/services/runner/internal/storage"
 )
 
@@ -75,6 +77,7 @@ type Server struct {
 	spawnDenied    atomic.Uint64
 	toolCalls      atomic.Uint64
 	rateLimiter    *RateLimiterMiddleware
+	adaptiveEngine *adaptive.Engine
 }
 
 func NewServer(db *storage.SQLiteStore, version string) *Server {
@@ -90,6 +93,7 @@ func NewServer(db *storage.SQLiteStore, version string) *Server {
 	_ = fed.Load()
 	game := gamification.NewStore(filepath.Join(dataRoot, "gamification.json"))
 	_ = game.Load()
+
 	server := &Server{
 		version:      version,
 		store:        jobs.NewStore(db),
@@ -99,12 +103,15 @@ func NewServer(db *storage.SQLiteStore, version string) *Server {
 		runMeta:      map[string]runMeta{},
 		autonomous:   map[string]*autoControl{},
 		metrics:      m,
+		shareMu:      sync.RWMutex{},
 		shareViews:   map[string]map[string]any{},
+		handshakeMu:  sync.RWMutex{},
 		handshakes:   map[string]mobileHandshakeChallenge{},
 		federation:   fed,
 		gamification: game,
 		rateLimiter:  NewRateLimiterMiddleware(DefaultRateLimitConfig()),
 	}
+	server.initAdaptiveEngine()
 	server.store.WithObserver(server.observeEvent)
 	return server
 }
@@ -137,6 +144,8 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /v1/runs/{id}/export", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleExport))))
 	mux.Handle("POST /v1/runs/import", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleImport))))
 	mux.Handle("GET /v1/runs/{id}/audit", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleGetAudit))))
+	mux.Handle("GET /v1/runs/{id}/strategy", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleGetStrategy))))
+	mux.Handle("GET /v1/runs/{id}/simulate", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleSimulateOptions))))
 	mux.Handle("POST /v1/runs/{id}/gates/{gate_id}", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleGateDecision))))
 	mux.Handle("GET /v1/plugins", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleListPlugins))))
 	mux.HandleFunc("GET /metrics", s.handlePromMetrics)
@@ -148,6 +157,46 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /v1/sessions/{id}/autonomous/stop", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleAutonomousStop))))
 	mux.Handle("GET /v1/sessions/{id}/autonomous/status", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleAutonomousStatus))))
 	return s.withObservability(mux)
+}
+
+func (s *Server) initAdaptiveEngine() {
+	cfg := adaptive.DefaultEngineConfig()
+
+	// Platform-aware optimization
+	platform := model.DetectPlatform()
+	if platform.TotalRAM < 4096 {
+		cfg.LowMemoryMB = 512
+	}
+
+	factory := model.NewFactory(model.FactoryConfig{
+		Mode:     "auto",
+		Platform: platform,
+	})
+
+	registry, err := factory.CreateRegistry(context.Background())
+	if err != nil {
+		// Fallback to minimal registry if creation fails
+		registry = model.NewAdapterRegistry()
+		_ = registry.Register(model.NewSmallModeAdapter(model.SmallModeConfig{EnableTemplating: true}))
+		registry.SetDefault("small-mode")
+	}
+
+	router := factory.CreateRouter(registry)
+	manager := model.NewManager(registry, router, model.FactoryConfig{
+		Mode:     "auto",
+		Platform: platform,
+	})
+
+	s.adaptiveEngine = adaptive.NewEngine(cfg, manager)
+}
+
+// Shutdown gracefully stops the server and its dependencies.
+func (s *Server) Shutdown(ctx context.Context) error {
+	s.handshakeMu.Lock()
+	s.handshakes = nil // Clear challenges
+	s.handshakeMu.Unlock()
+
+	return s.sql.Close()
 }
 
 func (s *Server) handleMobileHandshakeChallenge(w http.ResponseWriter, r *http.Request) {

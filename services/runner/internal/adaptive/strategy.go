@@ -11,32 +11,36 @@ import (
 
 // ExecutionStrategy defines how to execute a task.
 type ExecutionStrategy struct {
-	Mode              StrategyMode       `json:"mode"`
+	Mode              StrategyMode         `json:"mode"`
 	ReasoningDepth    model.ReasoningDepth `json:"reasoningDepth"`
-	MaxBranches       int                `json:"maxBranches"`
-	EnableDelegation  bool               `json:"enableDelegation"`
-	PolicyStrictness  PolicyLevel        `json:"policyStrictness"`
-	ContextWindow     int                `json:"contextWindow"`
-	TimeoutMultiplier float64            `json:"timeoutMultiplier"`
-	CompressionLevel  int                `json:"compressionLevel"`
+	MaxBranches       int                  `json:"maxBranches"`
+	EnableDelegation  bool                 `json:"enableDelegation"`
+	PolicyStrictness  PolicyLevel          `json:"policyStrictness"`
+	ContextWindow     int                  `json:"contextWindow"`
+	TimeoutMultiplier float64              `json:"timeoutMultiplier"`
+	CompressionLevel  int                  `json:"compressionLevel"`
+	Trace             []string             `json:"trace"`        // Decision points
+	CostScore         float64              `json:"costScore"`    // Normalized cost (0.0 - 1.0)
+	QualityScore      float64              `json:"qualityScore"` // Normalized quality (0.0 - 1.0)
 }
 
 // StrategyMode indicates the execution approach.
 type StrategyMode string
 
 const (
-	ModeFull       StrategyMode = "full"       // Normal execution
+	ModeFull         StrategyMode = "full"         // Normal execution
 	ModeConservative StrategyMode = "conservative" // Reduced complexity
-	ModeMinimal    StrategyMode = "minimal"    // Edge mode fallback
-	ModeOffline    StrategyMode = "offline"    // No network, local only
+	ModeMinimal      StrategyMode = "minimal"      // Edge mode fallback
+	ModeOffline      StrategyMode = "offline"      // No network, local only
+	ModeStrict       StrategyMode = "strict"       // Zero-drift, deterministic only
 )
 
 // PolicyLevel indicates policy enforcement strictness.
 type PolicyLevel string
 
 const (
-	PolicyNormal PolicyLevel = "normal"
-	PolicyStrict PolicyLevel = "strict"
+	PolicyNormal    PolicyLevel = "normal"
+	PolicyStrict    PolicyLevel = "strict"
 	PolicyDraconian PolicyLevel = "draconian"
 )
 
@@ -50,36 +54,36 @@ type Engine struct {
 // EngineConfig configures the adaptive engine.
 type EngineConfig struct {
 	// Thresholds for mode selection
-	LowMemoryMB        int           `json:"lowMemoryMb"`
-	LowBandwidthKbps   int           `json:"lowBandwidthKbps"`
-	HighLatencyMs      int           `json:"highLatencyMs"`
+	LowMemoryMB        int                  `json:"lowMemoryMb"`
+	LowBandwidthKbps   int                  `json:"lowBandwidthKbps"`
+	HighLatencyMs      int                  `json:"highLatencyMs"`
 	MinModelCapability model.ReasoningDepth `json:"minModelCapability"`
-	
+
 	// Adaptive behaviors
-	AutoCompressContext bool `json:"autoCompressContext"`
+	AutoCompressContext  bool `json:"autoCompressContext"`
 	AutoDisableBranching bool `json:"autoDisableBranching"`
 }
 
 // DefaultEngineConfig returns sensible defaults.
 func DefaultEngineConfig() EngineConfig {
 	return EngineConfig{
-		LowMemoryMB:         512,
-		LowBandwidthKbps:    100,
-		HighLatencyMs:       1000,
-		MinModelCapability:  model.ReasoningLow,
-		AutoCompressContext: true,
+		LowMemoryMB:          512,
+		LowBandwidthKbps:     100,
+		HighLatencyMs:        1000,
+		MinModelCapability:   model.ReasoningLow,
+		AutoCompressContext:  true,
 		AutoDisableBranching: true,
 	}
 }
 
 // DeviceContext describes the runtime environment.
 type DeviceContext struct {
-	AvailableRAMMB uint64 `json:"availableRamMb"`
-	TotalRAMMB     uint64 `json:"totalRamMb"`
-	CPUCount       int    `json:"cpuCount"`
-	IsMobile       bool   `json:"isMobile"`
-	IsOffline      bool   `json:"isOffline"`
-	NetworkLatencyMs int  `json:"networkLatencyMs"`
+	AvailableRAMMB   uint64 `json:"availableRamMb"`
+	TotalRAMMB       uint64 `json:"totalRamMb"`
+	CPUCount         int    `json:"cpuCount"`
+	IsMobile         bool   `json:"isMobile"`
+	IsOffline        bool   `json:"isOffline"`
+	NetworkLatencyMs int    `json:"networkLatencyMs"`
 }
 
 // NewEngine creates an adaptive execution engine.
@@ -107,16 +111,22 @@ func (e *Engine) DetermineStrategy(task TaskConstraints) (ExecutionStrategy, err
 		ContextWindow:     128000,
 		TimeoutMultiplier: 1.0,
 		CompressionLevel:  0,
+		Trace:             []string{"Initialized default strategy"},
+		QualityScore:      1.0,
+		CostScore:         0.8,
 	}
-	
+
 	// Check device constraints
 	if e.deviceCtx.IsMobile {
 		strategy.Mode = ModeConservative
 		strategy.MaxBranches = 3
 		strategy.ContextWindow = 8192
 		strategy.CompressionLevel = 1
+		strategy.Trace = append(strategy.Trace, "Device is mobile: reduced branching and context")
+		strategy.QualityScore -= 0.2
+		strategy.CostScore -= 0.1
 	}
-	
+
 	if e.deviceCtx.AvailableRAMMB < uint64(e.config.LowMemoryMB) {
 		strategy.Mode = ModeMinimal
 		strategy.ReasoningDepth = model.ReasoningLow
@@ -124,53 +134,99 @@ func (e *Engine) DetermineStrategy(task TaskConstraints) (ExecutionStrategy, err
 		strategy.ContextWindow = 4096
 		strategy.CompressionLevel = 2
 		strategy.PolicyStrictness = PolicyStrict
+		strategy.Trace = append(strategy.Trace, fmt.Sprintf("Low memory (%d MB): enabled minimal mode and high compression", e.deviceCtx.AvailableRAMMB))
+		strategy.QualityScore -= 0.5
+		strategy.CostScore -= 0.5
 	}
-	
-	if e.deviceCtx.IsOffline {
-		strategy.Mode = ModeOffline
-		strategy.EnableDelegation = false
-		strategy.ReasoningDepth = model.ReasoningLow
-	}
-	
-	// Check model capability
-	if e.modelMgr != nil {
-		defaultAdapter := e.modelMgr.DefaultAdapter()
-		// Small mode or local models have lower capability
-		if defaultAdapter == "small-mode" {
-			strategy.Mode = ModeMinimal
-			strategy.ReasoningDepth = model.ReasoningLow
-			strategy.MaxBranches = 1
-			strategy.ContextWindow = 4096
-		}
-	}
-	
+
 	// Check task-specific constraints
+	switch task.Mode {
+	case OptDeterministic:
+		strategy.Mode = ModeStrict
+		strategy.EnableDelegation = false
+		strategy.Trace = append(strategy.Trace, "Mode: Deterministic Strict (delegation disabled)")
+		strategy.CostScore += 0.2
+	case OptCost:
+		strategy.MaxBranches = 2
+		strategy.Trace = append(strategy.Trace, "Mode: Cost Optimized (restricting parallelism)")
+		strategy.CostScore -= 0.3
+	case OptLatency:
+		strategy.MaxBranches = 8
+		strategy.Trace = append(strategy.Trace, "Mode: Latency Optimized (increasing parallelism)")
+		strategy.CostScore += 0.2
+	case OptQuality:
+		strategy.ReasoningDepth = model.ReasoningHigh
+		strategy.Trace = append(strategy.Trace, "Mode: Quality Optimized (requiring high reasoning depth)")
+		strategy.QualityScore += 0.3
+	}
+
 	if task.RequireComplexReasoning {
-		// If we need complex reasoning but can't provide it, error
 		if strategy.ReasoningDepth == model.ReasoningLow {
 			return strategy, fmt.Errorf("task requires complex reasoning but device constrained to low")
 		}
+		strategy.Trace = append(strategy.Trace, "Task requires complex reasoning: ensured HIGH reasoning depth")
 	}
-	
+
 	if task.Critical {
 		strategy.PolicyStrictness = PolicyDraconian
+		strategy.Trace = append(strategy.Trace, "Task marked CRITICAL: enabled Draconian policy strictness")
 	}
-	
+
 	if task.TimeSensitive {
 		strategy.TimeoutMultiplier = 0.5
+		strategy.Trace = append(strategy.Trace, "Task TIME-SENSITIVE: reduced timeouts")
 	}
-	
+
 	return strategy, nil
 }
 
-// TaskConstraints describes what a task needs.
+// SimulateOptions calculates hypothetical alternatives for the Decision Simulator.
+func (e *Engine) SimulateOptions(task TaskConstraints) map[string]ExecutionStrategy {
+	options := make(map[string]ExecutionStrategy)
+
+	// 1. Strict Determinism (Low Entropy)
+	det := ExecutionStrategy{
+		Mode:             ModeFull,
+		ReasoningDepth:   model.ReasoningHigh,
+		PolicyStrictness: PolicyDraconian,
+		Trace:            []string{"Simulation: Priority = Determinism"},
+		CostScore:        1.0, // Most expensive
+		QualityScore:     1.0,
+	}
+	options["deterministic_strict"] = det
+
+	// 2. Cost Optimized
+	cost := ExecutionStrategy{
+		Mode:             ModeMinimal,
+		ReasoningDepth:   model.ReasoningLow,
+		CompressionLevel: 2,
+		Trace:            []string{"Simulation: Priority = Lowest Cost"},
+		CostScore:        0.2,
+		QualityScore:     0.4,
+	}
+	options["cost_optimized"] = cost
+
+	return options
+}
+
+type OptimizationMode string
+
+const (
+	OptDeterministic OptimizationMode = "deterministic"
+	OptCost          OptimizationMode = "cost"
+	OptLatency       OptimizationMode = "latency"
+	OptQuality       OptimizationMode = "quality"
+)
+
+// TaskConstraints represents the requirements for a specific task.
 type TaskConstraints struct {
-	RequireComplexReasoning bool `json:"requireComplexReasoning"`
-	RequireToolCalling      bool `json:"requireToolCalling"`
-	RequireDelegation       bool `json:"requireDelegation"`
-	Critical                bool `json:"critical"`
-	TimeSensitive           bool `json:"timeSensitive"`
-	EstimatedContextTokens  int  `json:"estimatedContextTokens"`
+	RequireComplexReasoning bool             `json:"requireComplexReasoning"`
+	Critical                bool             `json:"critical"`
+	MaxCost                 float64          `json:"maxCost"`
+	MaxLatencyMs            int              `json:"maxLatencyMs"`
+	Mode                    OptimizationMode `json:"mode"`
+	TimeSensitive           bool             `json:"timeSensitive"`
+	EstimatedContextTokens  int              `json:"estimatedContextTokens"`
 }
 
 // AdaptInput adapts input based on strategy.
@@ -178,7 +234,7 @@ func AdaptInput(input string, strategy ExecutionStrategy) string {
 	if strategy.CompressionLevel == 0 {
 		return input
 	}
-	
+
 	// Apply compression based on level
 	switch strategy.CompressionLevel {
 	case 1:
@@ -196,7 +252,7 @@ func compressLight(input string) string {
 	// Simple whitespace normalization
 	result := make([]rune, 0, len(input))
 	lastWasSpace := false
-	
+
 	for _, r := range input {
 		if r == ' ' || r == '\t' || r == '\n' {
 			if !lastWasSpace {
@@ -208,18 +264,18 @@ func compressLight(input string) string {
 			lastWasSpace = false
 		}
 	}
-	
+
 	return string(result)
 }
 
 func compressHeavy(input string, maxTokens int) string {
 	// Estimate tokens (roughly 4 chars per token)
 	maxChars := maxTokens * 4
-	
+
 	if len(input) <= maxChars {
 		return compressLight(input)
 	}
-	
+
 	// Truncate with notice
 	truncated := input[:maxChars-100]
 	return truncated + "\n\n[Content truncated due to context limits. Using edge mode.]"
@@ -233,24 +289,24 @@ func SimplifyTree(tree *ReasoningTree, maxDepth int) *ReasoningTree {
 			Reason: "Execution simplified due to device constraints",
 		}
 	}
-	
+
 	if len(tree.Children) > maxDepth {
 		// Prune excess branches
 		tree.Children = tree.Children[:maxDepth]
 	}
-	
+
 	// Recursively simplify children
 	for i := range tree.Children {
 		tree.Children[i] = SimplifyTree(tree.Children[i], maxDepth-1)
 	}
-	
+
 	return tree
 }
 
 // ReasoningTree represents a plan of action.
 type ReasoningTree struct {
-	Action   string          `json:"action"`
-	Reason   string          `json:"reason"`
+	Action   string           `json:"action"`
+	Reason   string           `json:"reason"`
 	Children []*ReasoningTree `json:"children,omitempty"`
 }
 
@@ -282,21 +338,21 @@ func (e *Engine) PolicyOverride(strategy ExecutionStrategy) PolicyOverride {
 	switch strategy.PolicyStrictness {
 	case PolicyDraconian:
 		return PolicyOverride{
-			DenyUnknownTools: true,
+			DenyUnknownTools:   true,
 			RequireSignedPacks: true,
-			AuditAll: true,
+			AuditAll:           true,
 		}
 	case PolicyStrict:
 		return PolicyOverride{
-			DenyUnknownTools: true,
+			DenyUnknownTools:   true,
 			RequireSignedPacks: false,
-			AuditAll: true,
+			AuditAll:           true,
 		}
 	default: // PolicyNormal
 		return PolicyOverride{
-			DenyUnknownTools: false,
+			DenyUnknownTools:   false,
 			RequireSignedPacks: false,
-			AuditAll: false,
+			AuditAll:           false,
 		}
 	}
 }
@@ -312,27 +368,27 @@ func detectDeviceContext() DeviceContext {
 	ctx := DeviceContext{
 		CPUCount: model.DetectPlatform().CPUCount,
 	}
-	
+
 	// Platform detection
 	platform := model.DetectPlatform()
 	ctx.IsMobile = platform.IsAndroid
 	ctx.TotalRAMMB = platform.TotalRAM
 	ctx.AvailableRAMMB = platform.AvailableRAM
-	
+
 	// Network detection (simplified)
-	ctx.IsOffline = false // Would check connectivity
+	ctx.IsOffline = false     // Would check connectivity
 	ctx.NetworkLatencyMs = 50 // Default assumption
-	
+
 	return ctx
 }
 
 // Integration with config
 func StrategyFromConfig(cfg *config.Config) EngineConfig {
 	return EngineConfig{
-		LowMemoryMB:         cfg.EdgeMode.MemoryCapMB,
-		AutoCompressContext: cfg.EdgeMode.SimplifyReasoning,
+		LowMemoryMB:          cfg.EdgeMode.MemoryCapMB,
+		AutoCompressContext:  cfg.EdgeMode.SimplifyReasoning,
 		AutoDisableBranching: cfg.EdgeMode.DisableBranching,
-		MinModelCapability:  model.ReasoningLow,
+		MinModelCapability:   model.ReasoningLow,
 	}
 }
 

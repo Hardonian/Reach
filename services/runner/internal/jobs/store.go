@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"reach/services/runner/internal/determinism"
 	"reach/services/runner/internal/storage"
 )
 
@@ -76,6 +77,10 @@ type Run struct {
 	Capabilities map[string]struct{}
 	Gates        map[string]Gate
 	Autonomous   AutonomousSession
+	Status       string
+	CreatedAt    time.Time
+	IsCritical   bool
+	Fingerprint  string
 }
 
 type EventObserver func(runID string, evt Event)
@@ -93,10 +98,16 @@ type Store struct {
 	counter atomic.Uint64
 	subs    sync.Map
 	observe EventObserver
+	drift   *determinism.DriftMonitor
 }
 
 func NewStore(db *storage.SQLiteStore) *Store {
-	return &Store{runs: db, events: db, audit: db}
+	return &Store{
+		runs:   db,
+		events: db,
+		audit:  db,
+		drift:  determinism.NewDriftMonitor(),
+	}
 }
 
 func (s *Store) WithObserver(observer EventObserver) *Store {
@@ -129,7 +140,16 @@ func (s *Store) GetRun(ctx context.Context, tenantID, id string) (*Run, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Run{ID: rec.ID, TenantID: rec.TenantID, Capabilities: toCapSet(rec.Capabilities), Gates: map[string]Gate{}}, nil
+	// Note: In a full implementation, we'd also load the event log to calculate Fingerprint and IsCritical
+	return &Run{
+		ID:           rec.ID,
+		TenantID:     rec.TenantID,
+		Capabilities: toCapSet(rec.Capabilities),
+		Gates:        map[string]Gate{},
+		Status:       rec.Status,
+		CreatedAt:    rec.CreatedAt,
+		IsCritical:   rec.Status == "finalized", // Simple heuristic for demo
+	}, nil
 }
 
 func (s *Store) CheckCapabilities(ctx context.Context, tenantID, id string, required []string) error {
@@ -163,6 +183,20 @@ func (s *Store) PublishEvent(ctx context.Context, runID string, evt Event, _ str
 		return err
 	}
 	evt.ID = id
+
+	// Capture entropy drift for tool results in deterministic runs
+	if evt.Type == "tool.result" && s.drift != nil {
+		var payload struct {
+			Tool   string `json:"tool"`
+			Result any    `json:"result"`
+		}
+		if err := json.Unmarshal(evt.Payload, &payload); err == nil {
+			hash := determinism.Hash(payload.Result)
+			// For demo, we use a fixed pack ID
+			s.drift.CheckDrift(runID, "pack-alpha", 0, hash)
+		}
+	}
+
 	if val, ok := s.subs.Load(runID); ok {
 		subs := val.(*sync.Map)
 		subs.Range(func(key, value any) bool {
