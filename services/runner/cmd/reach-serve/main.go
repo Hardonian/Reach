@@ -86,24 +86,24 @@ func run(port int, bindAddr, dataDir string) error {
 	}
 
 	mux := http.NewServeMux()
-	
+
 	// System endpoints
 	mux.HandleFunc("GET /health", server.handleHealth)
 	mux.HandleFunc("GET /version", server.handleVersion)
-	
+
 	// Run endpoints
 	mux.HandleFunc("POST /runs", server.handleCreateRun)
 	mux.HandleFunc("GET /runs/{id}", server.handleGetRun)
 	mux.HandleFunc("GET /runs/{id}/events", server.handleGetRunEvents)
 	mux.HandleFunc("POST /runs/{id}/replay", server.handleReplayRun)
-	
+
 	// Capsule endpoints
 	mux.HandleFunc("POST /capsules", server.handleCreateCapsule)
 	mux.HandleFunc("POST /capsules/verify", server.handleVerifyCapsule)
-	
+
 	// Federation endpoints
 	mux.HandleFunc("GET /federation/status", server.handleFederationStatus)
-	
+
 	// Pack endpoints
 	mux.HandleFunc("GET /packs", server.handleListPacks)
 	mux.HandleFunc("POST /packs/install", server.handleInstallPack)
@@ -175,7 +175,7 @@ func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
 		tier = "free"
 	}
 
-	run, err := s.store.CreateRun(r.Context(), "local", body.Capabilities)
+	run, err := s.store.CreateRun(r.Context(), "local", "", body.Capabilities)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error(), "Please try again later")
 		return
@@ -213,7 +213,7 @@ func (s *Server) handleGetRun(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleGetRunEvents(w http.ResponseWriter, r *http.Request) {
 	runID := r.PathValue("id")
 	after := int64(0)
-	
+
 	if rawAfter := r.URL.Query().Get("after"); rawAfter != "" {
 		if parsed, err := strconv.ParseInt(rawAfter, 10, 64); err == nil {
 			after = parsed
@@ -260,7 +260,7 @@ func (s *Server) streamEvents(w http.ResponseWriter, r *http.Request, events []j
 
 func (s *Server) handleReplayRun(w http.ResponseWriter, r *http.Request) {
 	runID := r.PathValue("id")
-	
+
 	// Load run record from disk (reachctl format)
 	record, err := s.loadRunRecord(runID)
 	if err != nil {
@@ -298,12 +298,12 @@ func (s *Server) handleCreateCapsule(w http.ResponseWriter, r *http.Request) {
 	}
 
 	capsule := s.buildCapsule(record)
-	
+
 	// Save capsule
 	capsuleDir := filepath.Join(s.dataRoot, "capsules")
 	_ = os.MkdirAll(capsuleDir, 0755)
 	capsulePath := filepath.Join(capsuleDir, record.RunID+".capsule.json")
-	
+
 	if err := s.writeDeterministicJSON(capsulePath, capsule); err != nil {
 		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error(), nil)
 		return
@@ -454,8 +454,8 @@ type capsuleManifest struct {
 }
 
 type capsuleFile struct {
-	Manifest   capsuleManifest  `json:"manifest"`
-	EventLog   []map[string]any `json:"event_log"`
+	Manifest capsuleManifest  `json:"manifest"`
+	EventLog []map[string]any `json:"event_log"`
 }
 
 type registryIndex struct {

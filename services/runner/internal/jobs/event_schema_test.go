@@ -17,7 +17,7 @@ func TestAppendEventInjectsSchemaVersion(t *testing.T) {
 	}
 	defer db.Close()
 	store := NewStore(db)
-	run, err := store.CreateRun(context.Background(), "tenant-a", nil)
+	run, err := store.CreateRun(context.Background(), "tenant-a", "", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +50,7 @@ func TestAppendEventRejectsMalformedPayload(t *testing.T) {
 	}
 	defer db.Close()
 	store := NewStore(db)
-	run, err := store.CreateRun(context.Background(), "tenant-a", nil)
+	run, err := store.CreateRun(context.Background(), "tenant-a", "", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

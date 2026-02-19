@@ -9,37 +9,38 @@ type Code string
 // Format: SUBSYSTEM_REASON_DETAIL
 const (
 	// General errors
-	CodeUnknown          Code = "UNKNOWN_ERROR"
-	CodeInternal         Code = "INTERNAL_ERROR"
-	CodeNotImplemented   Code = "NOT_IMPLEMENTED"
-	CodeInvalidArgument  Code = "INVALID_ARGUMENT"
-	CodeTimeout          Code = "TIMEOUT"
-	CodeCancelled        Code = "CANCELLED"
+	CodeUnknown           Code = "UNKNOWN_ERROR"
+	CodeInternal          Code = "INTERNAL_ERROR"
+	CodeNotImplemented    Code = "NOT_IMPLEMENTED"
+	CodeInvalidArgument   Code = "INVALID_ARGUMENT"
+	CodeTimeout           Code = "TIMEOUT"
+	CodeCancelled         Code = "CANCELLED"
 	CodeResourceExhausted Code = "RESOURCE_EXHAUSTED"
+	CodeRateLimitExceeded Code = "RATE_LIMIT_EXCEEDED"
 
 	// Execution errors
-	CodeExecutionFailed     Code = "EXECUTION_FAILED"
-	CodeExecutionTimeout    Code = "EXECUTION_TIMEOUT"
-	CodeExecutionCancelled  Code = "EXECUTION_CANCELLED"
-	CodeMaxConcurrentRuns   Code = "MAX_CONCURRENT_RUNS_EXCEEDED"
-	CodeEventLogTooLarge    Code = "EVENT_LOG_TOO_LARGE"
+	CodeExecutionFailed    Code = "EXECUTION_FAILED"
+	CodeExecutionTimeout   Code = "EXECUTION_TIMEOUT"
+	CodeExecutionCancelled Code = "EXECUTION_CANCELLED"
+	CodeMaxConcurrentRuns  Code = "MAX_CONCURRENT_RUNS_EXCEEDED"
+	CodeEventLogTooLarge   Code = "EVENT_LOG_TOO_LARGE"
 
 	// Policy errors
-	CodePolicyDenied           Code = "POLICY_DENIED"
-	CodePolicyInvalidSignature Code = "POLICY_INVALID_SIGNATURE"
-	CodePolicyUndeclaredTool   Code = "POLICY_UNDECLARED_TOOL"
+	CodePolicyDenied               Code = "POLICY_DENIED"
+	CodePolicyInvalidSignature     Code = "POLICY_INVALID_SIGNATURE"
+	CodePolicyUndeclaredTool       Code = "POLICY_UNDECLARED_TOOL"
 	CodePolicyPermissionEscalation Code = "POLICY_PERMISSION_ESCALATION"
-	CodePolicyModelNotAllowed  Code = "POLICY_MODEL_NOT_ALLOWED"
-	CodePolicyDeterminismRequired Code = "POLICY_DETERMINISM_REQUIRED"
+	CodePolicyModelNotAllowed      Code = "POLICY_MODEL_NOT_ALLOWED"
+	CodePolicyDeterminismRequired  Code = "POLICY_DETERMINISM_REQUIRED"
 
 	// Signature/verification errors
-	CodeSignatureInvalid     Code = "SIGNATURE_INVALID"
-	CodeSignatureMissing     Code = "SIGNATURE_MISSING"
-	CodeSignatureVerifyFailed Code = "SIGNATURE_VERIFY_FAILED"
+	CodeSignatureInvalid              Code = "SIGNATURE_INVALID"
+	CodeSignatureMissing              Code = "SIGNATURE_MISSING"
+	CodeSignatureVerifyFailed         Code = "SIGNATURE_VERIFY_FAILED"
 	CodeSignatureAlgorithmUnsupported Code = "SIGNATURE_ALGORITHM_UNSUPPORTED"
 
 	// Registry errors
-	CodeRegistryNotFound      Code = "REGISTRY_NOT_FOUND"
+	CodeRegistryNotFound        Code = "REGISTRY_NOT_FOUND"
 	CodeRegistryInvalidManifest Code = "REGISTRY_INVALID_MANIFEST"
 	CodeRegistryVersionMismatch Code = "REGISTRY_VERSION_MISMATCH"
 	CodeRegistryInstallFailed   Code = "REGISTRY_INSTALL_FAILED"
@@ -47,34 +48,34 @@ const (
 	CodeRegistryCorrupt         Code = "REGISTRY_CORRUPT"
 
 	// Federation/mesh errors
-	CodeFederationHandshakeFailed   Code = "FEDERATION_HANDSHAKE_FAILED"
-	CodeFederationDelegationFailed  Code = "FEDERATION_DELEGATION_FAILED"
-	CodeFederationNodeUnreachable   Code = "FEDERATION_NODE_UNREACHABLE"
-	CodeFederationSpecMismatch      Code = "FEDERATION_SPEC_MISMATCH"
-	CodeFederationPolicyMismatch    Code = "FEDERATION_POLICY_MISMATCH"
-	CodeFederationRegistryMismatch  Code = "FEDERATION_REGISTRY_MISMATCH"
-	CodeFederationReplayMismatch    Code = "FEDERATION_REPLAY_MISMATCH"
-	CodeFederationCircuitOpen       Code = "FEDERATION_CIRCUIT_OPEN"
+	CodeFederationHandshakeFailed    Code = "FEDERATION_HANDSHAKE_FAILED"
+	CodeFederationDelegationFailed   Code = "FEDERATION_DELEGATION_FAILED"
+	CodeFederationNodeUnreachable    Code = "FEDERATION_NODE_UNREACHABLE"
+	CodeFederationSpecMismatch       Code = "FEDERATION_SPEC_MISMATCH"
+	CodeFederationPolicyMismatch     Code = "FEDERATION_POLICY_MISMATCH"
+	CodeFederationRegistryMismatch   Code = "FEDERATION_REGISTRY_MISMATCH"
+	CodeFederationReplayMismatch     Code = "FEDERATION_REPLAY_MISMATCH"
+	CodeFederationCircuitOpen        Code = "FEDERATION_CIRCUIT_OPEN"
 	CodeFederationMaxRetriesExceeded Code = "FEDERATION_MAX_RETRIES_EXCEEDED"
-	CodeFederationNodeQuarantined   Code = "FEDERATION_NODE_QUARANTINED"
+	CodeFederationNodeQuarantined    Code = "FEDERATION_NODE_QUARANTINED"
 
 	// Replay/audit errors
-	CodeReplayMismatch       Code = "REPLAY_MISMATCH"
-	CodeReplayNotFound       Code = "REPLAY_NOT_FOUND"
-	CodeReplayCorrupt        Code = "REPLAY_CORRUPT"
-	CodeReplayVerifyFailed   Code = "REPLAY_VERIFY_FAILED"
+	CodeReplayMismatch     Code = "REPLAY_MISMATCH"
+	CodeReplayNotFound     Code = "REPLAY_NOT_FOUND"
+	CodeReplayCorrupt      Code = "REPLAY_CORRUPT"
+	CodeReplayVerifyFailed Code = "REPLAY_VERIFY_FAILED"
 
 	// Config errors
-	CodeConfigInvalid        Code = "CONFIG_INVALID"
-	CodeConfigMissing        Code = "CONFIG_MISSING"
-	CodeConfigTypeMismatch   Code = "CONFIG_TYPE_MISMATCH"
+	CodeConfigInvalid          Code = "CONFIG_INVALID"
+	CodeConfigMissing          Code = "CONFIG_MISSING"
+	CodeConfigTypeMismatch     Code = "CONFIG_TYPE_MISMATCH"
 	CodeConfigValidationFailed Code = "CONFIG_VALIDATION_FAILED"
 
 	// Storage errors
-	CodeStorageReadFailed    Code = "STORAGE_READ_FAILED"
-	CodeStorageWriteFailed   Code = "STORAGE_WRITE_FAILED"
-	CodeStorageNotFound      Code = "STORAGE_NOT_FOUND"
-	CodeStorageCorrupt       Code = "STORAGE_CORRUPT"
+	CodeStorageReadFailed  Code = "STORAGE_READ_FAILED"
+	CodeStorageWriteFailed Code = "STORAGE_WRITE_FAILED"
+	CodeStorageNotFound    Code = "STORAGE_NOT_FOUND"
+	CodeStorageCorrupt     Code = "STORAGE_CORRUPT"
 
 	// Sandbox errors
 	CodeSandboxCreateFailed  Code = "SANDBOX_CREATE_FAILED"

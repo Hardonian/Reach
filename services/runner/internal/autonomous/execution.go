@@ -9,13 +9,15 @@ import (
 // ExecutionEnvelope defines the strict contract for any side-effecting operation.
 // It encapsulates the tool execution request with all necessary context.
 type ExecutionEnvelope struct {
-	ID          string           `json:"id"`
-	TaskID      string           `json:"task_id"`
-	ToolName    string           `json:"tool"`
-	Arguments   json.RawMessage  `json:"arguments"`
-	Context     ExecutionContext `json:"context"`
-	Timeout     time.Duration    `json:"-"`
-	Permissions []string         `json:"permissions"`
+	ID            string           `json:"id"`
+	TaskID        string           `json:"task_id"`
+	ToolName      string           `json:"tool"`
+	Arguments     json.RawMessage  `json:"arguments"`
+	Context       ExecutionContext `json:"context"`
+	Timeout       time.Duration    `json:"-"`
+	Permissions   []string         `json:"permissions"`
+	BudgetAllocID uint64           `json:"budget_alloc_id,omitempty"`
+	EstimatedCost float64          `json:"estimated_cost,omitempty"`
 }
 
 // ExecutionContext holds the session-specific context for execution.
@@ -64,6 +66,7 @@ type ExecutionMetrics struct {
 	Duration time.Duration `json:"duration"`
 	Start    time.Time     `json:"start"`
 	End      time.Time     `json:"end"`
+	CostUSD  float64       `json:"cost_usd,omitempty"`
 }
 
 // StepAction defines the intent of the step.
@@ -78,11 +81,12 @@ const (
 
 // StepPlan defines the decision made by the planner.
 type StepPlan struct {
-	Action       StepAction      `json:"action"`
-	Tool         string          `json:"tool,omitempty"`
-	Args         json.RawMessage `json:"args,omitempty"`
-	Reasoning    string          `json:"reasoning,omitempty"`
-	Dependencies []string        `json:"dependencies,omitempty"`
+	Action          StepAction      `json:"action"`
+	Tool            string          `json:"tool,omitempty"`
+	Args            json.RawMessage `json:"args,omitempty"`
+	Reasoning       string          `json:"reasoning,omitempty"`
+	Dependencies    []string        `json:"dependencies,omitempty"`
+	EstimatedTokens int             `json:"estimated_tokens,omitempty"`
 }
 
 // Executor defines the interface for executing atomic tasks.
