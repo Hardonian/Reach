@@ -436,7 +436,7 @@ func (StaticExecutor) Execute(_ context.Context, _ ExecutionEnvelope) (*Executio
 		Metrics: ExecutionMetrics{
 			Duration: time.Millisecond,
 		},
-	}
+	}, nil
 }
 
 // BudgetAwareLoop creates a loop with budget integration from a jobs.Store

@@ -129,8 +129,12 @@ type mobileHandshakeChallenge struct {
 
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /health", s.handleHealth)
-	mux.HandleFunc("GET /healthz", s.handleHealth)
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, 200, map[string]string{"status": "ok", "version": s.version})
+	})
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, 200, map[string]string{"status": "ok", "version": s.version})
+	})
 	mux.HandleFunc("POST /auth/dev-login", s.handleDevLogin)
 	mux.HandleFunc("POST /internal/v1/triggers", s.handleInternalTrigger)
 	mux.Handle("POST /v1/runs", s.requireAuth(s.withRateLimit(http.HandlerFunc(s.handleCreateRun))))

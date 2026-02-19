@@ -1,6 +1,6 @@
 {
   "profile": {
-    "xp": 180,
+    "xp": 190,
     "level": 2,
     "streak_days": 0,
     "last_active_day": "",
@@ -8,7 +8,7 @@
       "Policy Paladin": true
     },
     "stats": {
-      "safe_completions": 18
+      "safe_completions": 19
     },
     "unlocks": {
       "theme": "midnight"

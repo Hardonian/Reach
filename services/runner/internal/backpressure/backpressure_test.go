@@ -391,3 +391,222 @@ func TestRetryWithCircuitBreaker(t *testing.T) {
 		t.Errorf("expected 0 calls (circuit open), got: %d", callCount)
 	}
 }
+
+// FlowController Tests
+
+func TestNewFlowController(t *testing.T) {
+	opts := FlowControllerOptions{
+		Name:           "test",
+		MaxConcurrency: 10,
+	}
+	fc := NewFlowController(opts)
+	defer fc.Stop()
+
+	if fc == nil {
+		t.Fatal("expected non-nil flow controller")
+	}
+}
+
+func TestFlowController_Allow(t *testing.T) {
+	opts := FlowControllerOptions{
+		Name:           "test",
+		MaxConcurrency: 2,
+		RateLimitPerSec: 100,
+		RateLimitBurst: 10,
+	}
+	fc := NewFlowController(opts)
+	defer fc.Stop()
+
+	ctx := context.Background()
+
+	// First two should succeed
+	if err := fc.Allow(ctx); err != nil {
+		t.Fatalf("first allow failed: %v", err)
+	}
+	if err := fc.Allow(ctx); err != nil {
+		t.Fatalf("second allow failed: %v", err)
+	}
+
+	// Release one
+	fc.Release()
+
+	// Should succeed again
+	if err := fc.Allow(ctx); err != nil {
+		t.Fatalf("third allow failed after release: %v", err)
+	}
+
+	fc.RecordSuccess()
+}
+
+func TestFlowController_Stats(t *testing.T) {
+	opts := FlowControllerOptions{
+		Name:           "test",
+		MaxConcurrency: 10,
+	}
+	fc := NewFlowController(opts)
+	defer fc.Stop()
+
+	ctx := context.Background()
+	fc.Allow(ctx)
+	fc.RecordFailure()
+
+	stats := fc.Stats()
+	if stats.Name != "test" {
+		t.Errorf("expected name=test, got: %s", stats.Name)
+	}
+	if stats.RequestsTotal != 1 {
+		t.Errorf("expected total=1, got: %d", stats.RequestsTotal)
+	}
+}
+
+func TestFlowControllerManager(t *testing.T) {
+	mgr := NewFlowControllerManager()
+
+	opts := FlowControllerOptions{
+		MaxConcurrency: 10,
+	}
+
+	// Get or create
+	fc1 := mgr.GetOrCreate("service1", opts)
+	if fc1 == nil {
+		t.Fatal("expected non-nil controller")
+	}
+
+	// Same name should return same controller
+	fc1Again := mgr.GetOrCreate("service1", opts)
+	if fc1 != fc1Again {
+		t.Error("expected same controller for same name")
+	}
+
+	// Different name should return different controller
+	fc2 := mgr.GetOrCreate("service2", opts)
+	if fc1 == fc2 {
+		t.Error("expected different controllers for different names")
+	}
+
+	// Get existing
+	fc, ok := mgr.Get("service1")
+	if !ok {
+		t.Error("expected to find service1")
+	}
+	if fc != fc1 {
+		t.Error("expected to get same controller")
+	}
+
+	// All stats
+	stats := mgr.AllStats()
+	if len(stats) != 2 {
+		t.Errorf("expected 2 stats, got: %d", len(stats))
+	}
+
+	// Remove
+	mgr.Remove("service1")
+	_, ok = mgr.Get("service1")
+	if ok {
+		t.Error("expected service1 to be removed")
+	}
+}
+
+func TestPriorityFlowController(t *testing.T) {
+	pfc := NewPriorityFlowController()
+	defer pfc.Stop()
+
+	ctx := context.Background()
+
+	// Critical should succeed
+	if err := pfc.Allow(ctx, PriorityCritical); err != nil {
+		t.Fatalf("critical allow failed: %v", err)
+	}
+	pfc.Release(PriorityCritical)
+
+	// Normal should succeed
+	if err := pfc.Allow(ctx, PriorityNormal); err != nil {
+		t.Fatalf("normal allow failed: %v", err)
+	}
+	pfc.Release(PriorityNormal)
+
+	// Record outcomes
+	pfc.RecordOutcome(PriorityHigh, true)
+	pfc.RecordOutcome(PriorityLow, false)
+
+	// Stats
+	stats := pfc.AllStats()
+	if len(stats) != 4 {
+		t.Errorf("expected 4 priority levels, got: %d", len(stats))
+	}
+}
+
+func TestAdaptiveBackpressure(t *testing.T) {
+	fc := NewFlowController(DefaultFlowControllerOptions())
+	defer fc.Stop()
+
+	// Mock health checker
+	hc := &mockHealthChecker{
+		load:     0.5,
+		healthy:  true,
+	}
+
+	ab := NewAdaptiveBackpressure(fc, hc)
+
+	ctx := context.Background()
+
+	// Should allow when healthy
+	if err := ab.Allow(ctx); err != nil {
+		t.Fatalf("allow failed: %v", err)
+	}
+	ab.Release()
+
+	// Record outcome
+	ab.RecordOutcome(true)
+
+	// Make unhealthy
+	hc.healthy = false
+	if err := ab.Allow(ctx); err == nil {
+		t.Error("expected error when unhealthy")
+	} else {
+		ab.Release() // Need to release since allow succeeded before health check
+	}
+}
+
+// Mock health checker for testing
+type mockHealthChecker struct {
+	load    float64
+	healthy bool
+}
+
+func (m *mockHealthChecker) GetLoad() float64 {
+	return m.load
+}
+
+func (m *mockHealthChecker) IsHealthy() bool {
+	return m.healthy
+}
+
+// Benchmarks
+
+func BenchmarkFlowControllerAllow(b *testing.B) {
+	fc := NewFlowController(FlowControllerOptions{
+		MaxConcurrency: 1000,
+		RateLimitPerSec: 100000,
+	})
+	defer fc.Stop()
+
+	ctx := context.Background()
+	
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		fc.Allow(ctx)
+		fc.Release()
+	}
+}
+
+func BenchmarkSemaphore(b *testing.B) {
+	s := NewSemaphore(1000)
+	ctx := context.Background()
+	
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		s.Acquire(ctx)
+		s.Release()
+	}
+}
