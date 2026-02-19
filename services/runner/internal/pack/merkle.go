@@ -158,7 +158,7 @@ type MerkleProof struct {
 	Index      int
 	LeafHash   []byte
 	ProofPath  [][]byte
-	ProofIndex []int // 0 = left sibling, 1 = right sibling (meaning current node is on the right)
+	ProofIndex []int // 0 = left, 1 = right at each level
 }
 
 // GetProof generates a proof for the leaf at the given index.
@@ -173,49 +173,56 @@ func (mt *MerkleTree) GetProof(index int) (*MerkleProof, error) {
 	}
 	copy(proof.LeafHash, mt.LeafHashes[index])
 
-	// Build proof path by traversing the tree
-	// We'll rebuild parent level by level to find siblings
+	// Handle single leaf case
+	if len(mt.Leaves) == 1 {
+		return proof, nil
+	}
+
+	// Build proof path by traversing up the tree
 	currentLevel := make([]*MerkleNode, len(mt.Leaves))
 	copy(currentLevel, mt.Leaves)
 	currentIdx := index
 
 	for len(currentLevel) > 1 {
-		nextLevel := make([]*MerkleNode, 0, (len(currentLevel)+1)/2)
+		// Find sibling
+		var siblingHash []byte
+		if currentIdx%2 == 0 {
+			// Current is left, sibling is right
+			if currentIdx+1 < len(currentLevel) {
+				siblingHash = currentLevel[currentIdx+1].Hash
+			} else {
+				// Odd number, sibling is the same node
+				siblingHash = currentLevel[currentIdx].Hash
+			}
+			proof.ProofIndex = append(proof.ProofIndex, 1) // Sibling is on right
+		} else {
+			// Current is right, sibling is left
+			siblingHash = currentLevel[currentIdx-1].Hash
+			proof.ProofIndex = append(proof.ProofIndex, 0) // Sibling is on left
+		}
 
+		// Copy sibling hash
+		hashCopy := make([]byte, len(siblingHash))
+		copy(hashCopy, siblingHash)
+		proof.ProofPath = append(proof.ProofPath, hashCopy)
+
+		// Build parent level
+		var parentLevel []*MerkleNode
 		for i := 0; i < len(currentLevel); i += 2 {
 			left := currentLevel[i]
 			var right *MerkleNode
-
 			if i+1 < len(currentLevel) {
 				right = currentLevel[i+1]
 			} else {
-				right = left // Duplicate for odd
+				right = left
 			}
-
-			// Check if current index is at this pair
-			if currentIdx == i {
-				// Current is left, sibling is right
-				siblingHash := make([]byte, len(right.Hash))
-				copy(siblingHash, right.Hash)
-				proof.ProofPath = append(proof.ProofPath, siblingHash)
-				proof.ProofIndex = append(proof.ProofIndex, 1) // Sibling is on right
-			} else if currentIdx == i+1 {
-				// Current is right, sibling is left
-				siblingHash := make([]byte, len(left.Hash))
-				copy(siblingHash, left.Hash)
-				proof.ProofPath = append(proof.ProofPath, siblingHash)
-				proof.ProofIndex = append(proof.ProofIndex, 0) // Sibling is on left
-			}
-
-			// Create parent for next level
 			parentHash := mt.hashPair(left.Hash, right.Hash)
 			parent := &MerkleNode{Hash: parentHash}
-			nextLevel = append(nextLevel, parent)
+			parentLevel = append(parentLevel, parent)
 		}
 
-		// Update current index to parent index
+		currentLevel = parentLevel
 		currentIdx = currentIdx / 2
-		currentLevel = nextLevel
 	}
 
 	return proof, nil
@@ -226,13 +233,18 @@ func VerifyProof(proof *MerkleProof, rootHash []byte) bool {
 	currentHash := make([]byte, len(proof.LeafHash))
 	copy(currentHash, proof.LeafHash)
 
+	// Handle single leaf case
+	if len(proof.ProofPath) == 0 {
+		return hex.EncodeToString(currentHash) == hex.EncodeToString(rootHash)
+	}
+
 	for i, siblingHash := range proof.ProofPath {
 		var combined []byte
 		if proof.ProofIndex[i] == 0 {
-			// Sibling is on the left: hash(sibling || current)
+			// Sibling is on the left
 			combined = append(siblingHash, currentHash...)
 		} else {
-			// Sibling is on the right: hash(current || sibling)
+			// Sibling is on the right
 			combined = append(currentHash, siblingHash...)
 		}
 

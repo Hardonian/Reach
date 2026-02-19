@@ -1,16 +1,17 @@
 {
   "profile": {
-    "xp": 190,
-    "level": 2,
+    "xp": 210,
+    "level": 3,
     "streak_days": 0,
     "last_active_day": "",
     "badges": {
       "Policy Paladin": true
     },
     "stats": {
-      "safe_completions": 19
+      "safe_completions": 21
     },
     "unlocks": {
+      "flair": "streak-spark",
       "theme": "midnight"
     }
   }
