@@ -30,6 +30,10 @@
     "verify:pack": "node scripts/verify-packs.mjs",
     "verify:spec": "node tools/validate-spec.mjs",
     "verify:compat": "node compat/compat-suite.mjs",
-    "spec:validate": "node tools/codegen/validate-protocol.mjs && node compat/compat-suite.mjs"
+    "verify:suite-doctor": "node scripts/suite-doctor.mjs",
+    "verify:arcade": "cd apps/arcade && npm run verify",
+    "verify:web": "npm run verify:arcade",
+    "spec:validate": "node tools/codegen/validate-protocol.mjs && node compat/compat-suite.mjs",
+    "verify:all": "npm run verify:full && npm run verify:suite-doctor && npm run verify:web"
   }
 }
