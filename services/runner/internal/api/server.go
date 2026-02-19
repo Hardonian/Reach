@@ -53,21 +53,20 @@ type runMeta struct {
 }
 
 type Server struct {
-	version     string
-	store       *jobs.Store
-	queue       *jobs.DurableQueue
-	sql         *storage.SQLiteStore
-	registry    *NodeRegistry
-	metaMu      sync.RWMutex
-	runMeta     map[string]runMeta
-	autonomMu   sync.RWMutex
-	autonomous  map[string]*autoControl
-	metrics     *metrics
-	shareMu     sync.RWMutex
-	shareViews  map[string]map[string]any
-	handshakeMu sync.RWMutex
-	handshakes  map[string]mobileHandshakeChallenge
-
+	version        string
+	store          *jobs.Store
+	queue          *jobs.DurableQueue
+	sql            *storage.SQLiteStore
+	registry       *NodeRegistry
+	metaMu         sync.RWMutex
+	runMeta        map[string]runMeta
+	autonomMu      sync.RWMutex
+	autonomous     map[string]*autoControl
+	metrics        *metrics
+	shareMu        sync.RWMutex
+	shareViews     map[string]map[string]any
+	handshakeMu    sync.RWMutex
+	handshakes     map[string]mobileHandshakeChallenge
 	requestCounter atomic.Uint64
 	federation     *federation.Coordinator
 	gamification   *gamification.Store
@@ -75,6 +74,7 @@ type Server struct {
 	spawnAttempts  atomic.Uint64
 	spawnDenied    atomic.Uint64
 	toolCalls      atomic.Uint64
+	rateLimiter    *RateLimiterMiddleware
 }
 
 func NewServer(db *storage.SQLiteStore, version string) *Server {
@@ -103,6 +103,7 @@ func NewServer(db *storage.SQLiteStore, version string) *Server {
 		handshakes:   map[string]mobileHandshakeChallenge{},
 		federation:   fed,
 		gamification: game,
+		rateLimiter:  NewRateLimiterMiddleware(DefaultRateLimitConfig()),
 	}
 	server.store.WithObserver(server.observeEvent)
 	return server
