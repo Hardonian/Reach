@@ -61,3 +61,21 @@ services/
 
 ### Blockers: None
 All baseline checks pass. Proceeding with full implementation.
+
+## Phase 0 Update (2026-02-20)
+
+### Additional Packages Installed
+- `better-sqlite3` — Node.js synchronous SQLite for cloud control plane
+- `@types/better-sqlite3` — TypeScript types
+- `zod` — Schema validation for all API inputs
+- `stripe` — Stripe billing SDK
+- `@xyflow/react` — React Flow for Visual Workflow Builder
+
+### Implementation Plan
+1. Cloud DB schema + auth layer in arcade
+2. `/api/v1/*` routes replacing mock data with real SQLite persistence
+3. Visual Workflow Builder at `/builder` using React Flow
+4. Real marketplace publish/browse/install endpoints
+5. Stripe billing with webhook raw-body verification
+6. Partner docs pages (HuggingFace, Vercel, Stripe)
+7. Smoke scripts + RUNBOOK.md
