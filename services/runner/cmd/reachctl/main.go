@@ -1371,6 +1371,128 @@ func (d *Doctor) Diagnose(packPath string) *doctorReport {
 		})
 	}
 
+	// Check spec version
+	if specVersion, ok := pack["specVersion"].(string); ok && specVersion != "" {
+		report.Checks = append(report.Checks, doctorCheck{
+			Name:    "SpecVersion",
+			Status:  "pass",
+			Message: fmt.Sprintf("Spec version: %s", specVersion),
+		})
+	} else {
+		report.Checks = append(report.Checks, doctorCheck{
+			Name:      "SpecVersion",
+			Status:    "fail",
+			Message:   "Missing or invalid specVersion",
+			ErrorCode: "MISSING_SPEC_VERSION",
+			FixHint:   "Add specVersion field to pack.json (e.g., '1.0')",
+		})
+	}
+
+	// Check metadata
+	if metadata, ok := pack["metadata"].(map[string]any); ok {
+		name, hasName := metadata["name"].(string)
+		version, hasVersion := metadata["version"].(string)
+		
+		if hasName && name != "" && hasVersion && version != "" {
+			report.Checks = append(report.Checks, doctorCheck{
+				Name:    "Metadata",
+				Status:  "pass",
+				Message: fmt.Sprintf("Name: %s, Version: %s", name, version),
+			})
+		} else {
+			missing := []string{}
+			if !hasName || name == "" {
+				missing = append(missing, "name")
+			}
+			if !hasVersion || version == "" {
+				missing = append(missing, "version")
+			}
+			report.Checks = append(report.Checks, doctorCheck{
+				Name:      "Metadata",
+				Status:    "fail",
+				Message:   fmt.Sprintf("Missing metadata fields: %v", missing),
+				ErrorCode: "MISSING_METADATA",
+				FixHint:   fmt.Sprintf("Add to metadata: %v", missing),
+			})
+		}
+	} else {
+		report.Checks = append(report.Checks, doctorCheck{
+			Name:      "Metadata",
+			Status:    "fail",
+			Message:   "Missing metadata section",
+			ErrorCode: "MISSING_METADATA",
+			FixHint:   "Add metadata section with name and version",
+		})
+	}
+
+	// Check execution graph
+	if execGraph, ok := pack["executionGraph"].(map[string]any); ok {
+		if nodes, ok := execGraph["nodes"].([]any); ok && len(nodes) > 0 {
+			report.Checks = append(report.Checks, doctorCheck{
+				Name:    "ExecutionGraph",
+				Status:  "pass",
+				Message: fmt.Sprintf("%d nodes defined", len(nodes)),
+			})
+		} else {
+			report.Checks = append(report.Checks, doctorCheck{
+				Name:      "ExecutionGraph",
+				Status:    "warn",
+				Message:   "Execution graph has no nodes",
+				ErrorCode: "EMPTY_EXECUTION_GRAPH",
+				FixHint:   "Add nodes to executionGraph",
+			})
+		}
+	} else {
+		report.Checks = append(report.Checks, doctorCheck{
+			Name:      "ExecutionGraph",
+			Status:    "fail",
+			Message:   "Missing executionGraph",
+			ErrorCode: "MISSING_EXECUTION_GRAPH",
+			FixHint:   "Add executionGraph section with nodes",
+		})
+	}
+
+	// Check for security issues
+	if policy, ok := pack["policy"].(map[string]any); ok {
+		if sandbox, ok := policy["sandbox"].(bool); ok && sandbox {
+			report.Checks = append(report.Checks, doctorCheck{
+				Name:    "Security",
+				Status:  "pass",
+				Message: "Sandboxing enabled",
+			})
+		} else {
+			report.Checks = append(report.Checks, doctorCheck{
+				Name:    "Security",
+				Status:  "warn",
+				Message: "Sandboxing not enabled",
+				FixHint: "Enable sandbox in policy for security",
+			})
+		}
+	} else {
+		report.Checks = append(report.Checks, doctorCheck{
+			Name:    "Security",
+			Status:  "warn",
+			Message: "No policy section defined",
+			FixHint: "Add policy section with sandbox settings",
+		})
+	}
+
+	// Check for signature if this is a published pack
+	if signature, ok := pack["signature"].(string); ok && signature != "" {
+		report.Checks = append(report.Checks, doctorCheck{
+			Name:    "Signature",
+			Status:  "pass",
+			Message: "Pack is signed",
+		})
+	} else {
+		report.Checks = append(report.Checks, doctorCheck{
+			Name:    "Signature",
+			Status:  "warn",
+			Message: "Pack is not signed",
+			FixHint: "Sign pack for registry submission",
+		})
+	}
+
 	// Update summary
 	for _, check := range report.Checks {
 		report.Summary.Total++
