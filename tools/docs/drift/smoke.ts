@@ -37,7 +37,7 @@ async function runSmokeTests() {
   console.log(`Target: ${baseUrl}`);
   
   const routes = getRoutes().filter(r => r.startsWith('/docs') || r === '/faq' || r === '/support' || r === '/pricing');
-  console.log(`Testing ${routes.size} documentation routes...`);
+  console.log(`Testing ${routes.length} documentation routes...`);
 
   let failures = 0;
   for (const route of routes) {
@@ -51,7 +51,7 @@ async function runSmokeTests() {
         failures++;
       }
     } catch (err) {
-      console.error(`[ERR] ${route} -> ${err.message}`);
+      console.error(`[ERR] ${route} -> ${(err as Error).message}`);
       failures++;
     }
   }

@@ -1,6 +1,7 @@
 {
   "allowlist": [
     "deterministic",
-    "minimal dependencies"
+    "minimal dependencies",
+    "soc2"
   ]
 }
