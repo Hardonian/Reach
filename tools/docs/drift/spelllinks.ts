@@ -10,7 +10,7 @@ const RULES = [
   },
   {
     name: 'No double spaces in titles',
-    pattern: /^#+\s+.*\s{2,}.*$/m,
+    pattern: /^#+[ \t]+.*[ \t]{2,}.*$/m,
     message: 'Double spaces detected in heading.',
   },
   {
