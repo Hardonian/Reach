@@ -58,15 +58,15 @@ export default function AgentsPage() {
         <div className="bg-black/40 border border-accent/20 rounded-xl p-8">
           <ul className="space-y-4 text-gray-400 font-medium">
             <li className="flex gap-4">
-              <span className="text-accent flex-shrink-0">●</span>
+              <span className="text-accent shrink-0">●</span>
               <span><strong>Production-grade:</strong> Agents must never emit placeholders, TODOs, or stubs.</span>
             </li>
             <li className="flex gap-4">
-              <span className="text-accent flex-shrink-0">●</span>
+              <span className="text-accent shrink-0">●</span>
               <span><strong>Deterministic Change:</strong> Prefer minimal diffs. Favor structural improvements over cosmetic ripples.</span>
             </li>
             <li className="flex gap-4">
-              <span className="text-accent flex-shrink-0">●</span>
+              <span className="text-accent shrink-0">●</span>
               <span><strong>Graceful Degradation:</strong> User-facing routes managed by agents must never hard-500.</span>
             </li>
             <li className="flex gap-4">

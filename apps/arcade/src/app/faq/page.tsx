@@ -189,8 +189,7 @@ export default function FAQPage() {
             filteredFaqs.map((faq, index) => (
               <div 
                 key={index}
-                className="group border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 transition-colors"
-                style={{ backgroundColor: openIndex === index ? 'rgba(255, 255, 255, 0.03)' : 'transparent' }}
+                className={`group border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 transition-colors ${openIndex === index ? 'bg-white/5' : 'bg-transparent'}`}
               >
                 <button
                   onClick={() => setOpenIndex(openIndex === index ? null : index)}

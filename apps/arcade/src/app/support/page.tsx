@@ -67,7 +67,7 @@ export default function SupportPage() {
           {supportTiers.map((tier) => (
             <div 
               key={tier.name}
-              className={`flex flex-col p-8 rounded-3xl border ${tier.highlighted ? 'border-accent/40 bg-accent/5' : 'border-white/5 bg-white/[0.02]'}`}
+              className={`flex flex-col p-8 rounded-3xl border ${tier.highlighted ? 'border-accent/40 bg-accent/5' : 'border-white/5 bg-white/2'}`}
             >
               <h3 className="text-xl font-bold mb-2">{tier.name}</h3>
               <p className="text-sm text-gray-500 mb-8">{tier.description}</p>

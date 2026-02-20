@@ -50,7 +50,7 @@ export default function SystemStatusPage() {
               </thead>
               <tbody className="divide-y divide-white/5">
                 {systems.map((s) => (
-                  <tr key={s.name} className="group hover:bg-white/[0.02] transition-colors">
+                  <tr key={s.name} className="group hover:bg-white/2 transition-colors">
                     <td className="px-8 py-6 font-semibold text-white">{s.name}</td>
                     <td className="px-8 py-6">
                       <span className="flex items-center gap-2 text-sm text-green-400">

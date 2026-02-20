@@ -84,7 +84,7 @@ export default function DocsPage() {
           ))}
         </div>
 
-        <div className="mt-20 p-1 bg-gradient-to-r from-accent/20 via-border to-accent/20 rounded-3xl">
+        <div className="mt-20 p-1 bg-linear-to-r from-accent/20 via-border to-accent/20 rounded-3xl">
           <div className="bg-[#0A0A0B] rounded-[calc(1.5rem-1px)] p-12 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="max-w-md">
               <h2 className="text-3xl font-bold mb-4">Enterprise Grade Support</h2>
