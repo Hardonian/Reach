@@ -176,12 +176,18 @@ func compareEval() {
 			continue
 		}
 
-		// Extract test ID from runID (eval-{testID}-{ts})
-		parts := strings.Split(res.RunID, "-")
-		testID := "unknown"
-		if len(parts) >= 2 {
-			testID = parts[1]
+		// Strictly filter for evaluation runs
+		if !strings.HasPrefix(res.RunID, "eval-") {
+			continue
 		}
+
+		// Extract test ID from runID (eval-{testID}-{ts})
+		// We want everything between the first "eval-" and the last hyphen
+		parts := strings.Split(res.RunID, "-")
+		if len(parts) < 3 {
+			continue
+		}
+		testID := strings.Join(parts[1:len(parts)-1], "-")
 
 		info, _ := os.Stat(f)
 		byTest[testID] = append(byTest[testID], resEntry{path: f, ts: info.ModTime().Unix(), res: res})
