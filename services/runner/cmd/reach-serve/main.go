@@ -19,6 +19,7 @@ import (
 	"syscall"
 	"time"
 
+	"reach/services/runner/internal/contextkeys"
 	"reach/services/runner/internal/determinism"
 	"reach/services/runner/internal/federation"
 	"reach/services/runner/internal/jobs"
@@ -271,6 +272,10 @@ func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	s.metrics.runsCreated.Add(1)
+	
+	// Set execution ID in context for downstream propagation
+	ctx := contextkeys.ContextWithExecutionID(r.Context(), run.ID)
+	r = r.WithContext(ctx)
 
 	writeJSON(w, http.StatusCreated, map[string]any{
 		"id":           run.ID,
@@ -278,6 +283,7 @@ func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
 		"tier":         tier,
 		"capabilities": body.Capabilities,
 		"created_at":   time.Now().UTC().Format(time.RFC3339),
+		"correlation_id": contextkeys.CorrelationIDFromContext(ctx),
 	})
 }
 
@@ -689,17 +695,44 @@ func (s *Server) findPack(idx registryIndex, name string) (registryEntry, bool) 
 // Middleware
 type contextKey string
 
-const correlationIDKey contextKey = "correlation_id"
 const serverKey contextKey = "server"
 
 func withCorrelationID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id := r.Header.Get("X-Correlation-ID")
-		if id == "" {
-			id = "corr_" + strings.ReplaceAll(strconv.FormatInt(time.Now().UnixNano(), 36), " ", "")
+		// Get or generate correlation ID
+		corrID := r.Header.Get("X-Correlation-ID")
+		if corrID == "" {
+			corrID = "corr_" + strings.ReplaceAll(strconv.FormatInt(time.Now().UnixNano(), 36), " ", "")
 		}
-		ctx := context.WithValue(r.Context(), correlationIDKey, id)
-		w.Header().Set("X-Correlation-ID", id)
+		
+		ctx := contextkeys.ContextWithCorrelationID(r.Context(), corrID)
+		
+		// Propagate execution ID if provided
+		if execID := r.Header.Get("X-Execution-ID"); execID != "" {
+			ctx = contextkeys.ContextWithExecutionID(ctx, execID)
+		}
+		
+		// Propagate session ID if provided
+		if sessionID := r.Header.Get("X-Session-ID"); sessionID != "" {
+			ctx = contextkeys.ContextWithSessionID(ctx, sessionID)
+		}
+		
+		// Propagate tenant ID if provided
+		if tenantID := r.Header.Get("X-Tenant-ID"); tenantID != "" {
+			ctx = contextkeys.ContextWithTenantID(ctx, tenantID)
+		}
+		
+		// Propagate user ID if provided
+		if userID := r.Header.Get("X-User-ID"); userID != "" {
+			ctx = contextkeys.ContextWithUserID(ctx, userID)
+		}
+		
+		// Set response headers for traceability
+		w.Header().Set("X-Correlation-ID", corrID)
+		if execID := contextkeys.ExecutionIDFromContext(ctx); execID != "" {
+			w.Header().Set("X-Execution-ID", execID)
+		}
+		
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -707,7 +740,7 @@ func withCorrelationID(next http.Handler) http.Handler {
 func withLogging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		corrID, _ := r.Context().Value(correlationIDKey).(string)
+		trace := contextkeys.GetTraceContext(r.Context())
 		
 		// Get server from context if available for metrics
 		server, _ := r.Context().Value(serverKey).(*Server)
@@ -725,7 +758,17 @@ func withLogging(next http.Handler) http.Handler {
 			server.metrics.requestsError.Add(1)
 		}
 
-		log.Printf("[%s] %s %s %d %s", corrID, r.Method, r.URL.Path, rw.status, time.Since(start))
+		// Enhanced logging with all trace IDs
+		log.Printf("[corr=%s exec=%s session=%s tenant=%s] %s %s %d %s",
+			trace.CorrelationID,
+			trace.ExecutionID,
+			trace.SessionID,
+			trace.TenantID,
+			r.Method,
+			r.URL.Path,
+			rw.status,
+			time.Since(start),
+		)
 	})
 }
 
