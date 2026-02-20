@@ -14,6 +14,10 @@ import (
 type FeatureFlag string
 
 const (
+	// FeatureMeshEnabled is the master switch for the entire mesh layer.
+	// When disabled (default), no mesh subsystems are started and single-node
+	// operation is completely unaffected. Must be explicitly enabled.
+	FeatureMeshEnabled FeatureFlag = "mesh_enabled"
 	// FeatureMDNS enables mDNS/Bonjour discovery on LAN
 	FeatureMDNS FeatureFlag = "mdns_discovery"
 	// FeatureQRPairing enables QR code and short code pairing
@@ -24,15 +28,20 @@ const (
 	FeatureOfflineSync FeatureFlag = "offline_sync"
 	// FeatureMeshRouting enables routing through trusted peers
 	FeatureMeshRouting FeatureFlag = "mesh_routing"
+	// FeatureTaskRouting enables cross-node task routing
+	FeatureTaskRouting FeatureFlag = "task_routing"
 )
 
-// DefaultFeatureStates defines safe-by-default feature states
+// DefaultFeatureStates defines safe-by-default feature states.
+// The mesh layer is DISABLED by default — single-node users are never affected.
 var DefaultFeatureStates = map[FeatureFlag]bool{
+	FeatureMeshEnabled:    false, // DISABLED by default - must opt in
 	FeatureMDNS:           false, // Disabled by default - opt-in
-	FeatureQRPairing:      true,  // Enabled for manual pairing
+	FeatureQRPairing:      true,  // Enabled for manual pairing (only active when mesh is enabled)
 	FeaturePublicExposure: false, // NEVER enabled by default
-	FeatureOfflineSync:    true,  // Enabled for local-first
+	FeatureOfflineSync:    true,  // Enabled for local-first (only active when mesh is enabled)
 	FeatureMeshRouting:    false, // Disabled until explicitly configured
+	FeatureTaskRouting:    false, // Disabled until explicitly configured
 }
 
 // Config holds mesh configuration with safe defaults
@@ -85,15 +94,19 @@ type SyncConfig struct {
 	VerifySignatures   bool          `json:"verify_signatures"`
 }
 
-// DefaultConfig returns a safe default configuration
+// DefaultConfig returns a safe default configuration.
+// Mesh is DISABLED by default — must be explicitly enabled via feature flags.
 func DefaultConfig(dataDir string) *Config {
 	nodeID := generateNodeID()
 	return &Config{
 		NodeID:  nodeID,
 		DataDir: dataDir,
 		Features: map[string]bool{
-			string(FeatureQRPairing):   true,
-			string(FeatureOfflineSync): true,
+			string(FeatureMeshEnabled):  false, // Disabled by default
+			string(FeatureQRPairing):    true,
+			string(FeatureOfflineSync):  true,
+			string(FeatureTaskRouting):  false,
+			string(FeatureMeshRouting):  false,
 		},
 		Network: NetworkConfig{
 			ListenAddress:     "0.0.0.0",
@@ -129,10 +142,32 @@ func DefaultConfig(dataDir string) *Config {
 	}
 }
 
-// IsFeatureEnabled checks if a feature is enabled
+// IsMeshEnabled returns true only if the master mesh feature flag is enabled.
+// When false, no mesh subsystems should be started and single-node operation
+// is completely unaffected.
+func (c *Config) IsMeshEnabled() bool {
+	return c.IsFeatureEnabled(FeatureMeshEnabled)
+}
+
+// IsFeatureEnabled checks if a feature is enabled.
+// Sub-features of mesh (routing, sync, etc.) are only considered enabled
+// if the master mesh flag is also enabled.
 func (c *Config) IsFeatureEnabled(flag FeatureFlag) bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
+
+	// Sub-features require the master mesh flag (except the master flag itself)
+	if flag != FeatureMeshEnabled {
+		masterEnabled := false
+		if v, ok := c.Features[string(FeatureMeshEnabled)]; ok {
+			masterEnabled = v
+		} else {
+			masterEnabled = DefaultFeatureStates[FeatureMeshEnabled]
+		}
+		if !masterEnabled {
+			return false
+		}
+	}
 
 	// Check explicit setting first
 	if enabled, ok := c.Features[string(flag)]; ok {

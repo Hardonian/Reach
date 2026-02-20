@@ -37,6 +37,41 @@ type Config struct {
 
 	// Model controls LLM adapter configuration
 	Model ModelConfig `json:"model"`
+
+	// Mesh controls distributed agent mesh coordination.
+	// Disabled by default — must be explicitly enabled. Single-node users are never affected.
+	Mesh MeshConfig `json:"mesh"`
+}
+
+// MeshConfig controls the distributed agent mesh layer.
+// The entire mesh layer is gated behind Enabled=false by default.
+type MeshConfig struct {
+	// Enabled is the master switch for the mesh layer. Disabled by default.
+	Enabled bool `json:"enabled" env:"REACH_MESH_ENABLED" default:"false"`
+
+	// DataDir is where mesh state (keys, peer store) is persisted
+	DataDir string `json:"data_dir" env:"REACH_MESH_DATA_DIR" default:""`
+
+	// ListenPort is the mesh transport port (0 = random)
+	ListenPort int `json:"listen_port" env:"REACH_MESH_LISTEN_PORT" default:"0"`
+
+	// MaxHops limits task routing chain depth
+	MaxHops int `json:"max_hops" env:"REACH_MESH_MAX_HOPS" default:"5"`
+
+	// RateLimitPerNodePerMinute limits inbound requests from any single peer
+	RateLimitPerNodePerMinute int `json:"rate_limit_per_node_per_minute" env:"REACH_MESH_RATE_LIMIT_PER_NODE" default:"60"`
+
+	// GlobalRateLimitPerMinute limits total inbound mesh requests
+	GlobalRateLimitPerMinute int `json:"global_rate_limit_per_minute" env:"REACH_MESH_GLOBAL_RATE_LIMIT" default:"300"`
+
+	// MaxConcurrentTasks limits simultaneous mesh task executions
+	MaxConcurrentTasks int `json:"max_concurrent_tasks" env:"REACH_MESH_MAX_CONCURRENT_TASKS" default:"10"`
+
+	// TaskRoutingEnabled enables cross-node task routing (requires Enabled=true)
+	TaskRoutingEnabled bool `json:"task_routing_enabled" env:"REACH_MESH_TASK_ROUTING" default:"false"`
+
+	// CorrelationLogging enables cross-node correlation ID logging
+	CorrelationLogging bool `json:"correlation_logging" env:"REACH_MESH_CORRELATION_LOGGING" default:"true"`
 }
 
 // ExecutionConfig controls execution behavior.
@@ -248,6 +283,15 @@ func Default() *Config {
 			StrictMode:          false,
 			VerifyOnLoad:        true,
 			CanonicalTimeFormat: true,
+		},
+		Mesh: MeshConfig{
+			Enabled:                   false, // Disabled by default — must opt in
+			MaxHops:                   5,
+			RateLimitPerNodePerMinute: 60,
+			GlobalRateLimitPerMinute:  300,
+			MaxConcurrentTasks:        10,
+			TaskRoutingEnabled:        false,
+			CorrelationLogging:        true,
 		},
 	}
 }
