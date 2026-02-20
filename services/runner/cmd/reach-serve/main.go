@@ -269,6 +269,8 @@ func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error(), "Please try again later")
 		return
 	}
+	
+	s.metrics.runsCreated.Add(1)
 
 	writeJSON(w, http.StatusCreated, map[string]any{
 		"id":           run.ID,
