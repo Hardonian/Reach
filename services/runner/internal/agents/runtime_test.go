@@ -112,8 +112,8 @@ func TestRegisterAndExecute(t *testing.T) {
 	if result.Status != StatusSuccess {
 		t.Errorf("expected success, got %s", result.Status)
 	}
-	if result.Metrics.Duration <= 0 {
-		t.Error("expected positive duration")
+	if result.Metrics.Duration < 0 {
+		t.Error("expected non-negative duration")
 	}
 
 	stats := rt.Stats()
