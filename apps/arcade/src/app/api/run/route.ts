@@ -12,8 +12,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const body = await req.json();
+    const body = await req.json() as { packId?: unknown; inputs?: unknown };
     const { packId, inputs } = body;
+
+    if (!packId || typeof packId !== 'string') {
+      return NextResponse.json({ error: 'Invalid request: packId required' }, { status: 400 });
+    }
 
     const pack = CATALOG.find((p) => p.id === packId);
 

@@ -22,7 +22,7 @@ export default async function SharePage({
       // Decode base64
       const json = atob(token);
       data = JSON.parse(json);
-    } catch (e) {
+    } catch {
       error = 'Invalid share token.';
     }
   } else {
