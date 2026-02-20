@@ -17,6 +17,8 @@ func (c *LocalMCPClient) Call(ctx context.Context, runID string, action string, 
 		toolName = "tool.read_file"
 	} else if action == "write_file" {
 		toolName = "tool.write_file"
+	} else if action == "summarize" {
+		toolName = "tool.summarize"
 	}
 
 	return c.server.CallTool(ctx, runID, toolName, inputs)
