@@ -6,6 +6,7 @@ pub mod tools;
 pub mod workflow;
 
 use std::collections::VecDeque;
+use std::time::Duration;
 
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
@@ -32,6 +33,78 @@ pub enum EngineError {
     Parse(String),
     #[error("state transition failed: {0}")]
     Transition(#[from] StateTransitionError),
+    #[error("budget exceeded: spent {spent:.4} of {limit:.4} USD")]
+    BudgetExceeded { spent: f64, limit: f64 },
+    #[error("step timeout: step {step_id} exceeded {timeout_ms}ms")]
+    StepTimeout { step_id: String, timeout_ms: u64 },
+    #[error("run timeout: elapsed {elapsed_ms}ms exceeds {limit_ms}ms")]
+    RunTimeout { elapsed_ms: u64, limit_ms: u64 },
+}
+
+/// Controls that govern execution behaviour for a run.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutionControls {
+    /// Maximum number of steps before the run is automatically stopped.
+    #[serde(default)]
+    pub max_steps: Option<usize>,
+    /// Per-step timeout. If a step exceeds this, the run fails.
+    #[serde(default)]
+    pub step_timeout: Option<Duration>,
+    /// Total run timeout. If the run exceeds this, it is cancelled.
+    #[serde(default)]
+    pub run_timeout: Option<Duration>,
+    /// Budget limit in USD. The run is paused when the budget is exceeded.
+    #[serde(default)]
+    pub budget_limit_usd: Option<f64>,
+    /// Minimum delay between consecutive steps (rate limiting).
+    #[serde(default)]
+    pub min_step_interval: Option<Duration>,
+}
+
+impl Default for ExecutionControls {
+    fn default() -> Self {
+        Self {
+            max_steps: None,
+            step_timeout: None,
+            run_timeout: None,
+            budget_limit_usd: None,
+            min_step_interval: None,
+        }
+    }
+}
+
+/// Tracks budget consumption for a run.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct BudgetTracker {
+    pub spent_usd: f64,
+    pub reserved_usd: f64,
+    pub step_costs: Vec<StepCost>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StepCost {
+    pub step_id: String,
+    pub cost_usd: f64,
+}
+
+impl BudgetTracker {
+    #[must_use]
+    pub fn total_committed(&self) -> f64 {
+        self.spent_usd + self.reserved_usd
+    }
+
+    pub fn reserve(&mut self, amount: f64) {
+        self.reserved_usd += amount;
+    }
+
+    pub fn commit(&mut self, step_id: String, actual_cost: f64) {
+        self.reserved_usd = (self.reserved_usd - actual_cost).max(0.0);
+        self.spent_usd += actual_cost;
+        self.step_costs.push(StepCost {
+            step_id,
+            cost_usd: actual_cost,
+        });
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -41,6 +114,9 @@ pub struct RunHandle {
     status: RunStatus,
     current_step: usize,
     pending_events: VecDeque<RunEvent>,
+    controls: ExecutionControls,
+    budget: BudgetTracker,
+    steps_executed: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -49,6 +125,8 @@ pub enum Action {
     ToolCall(ToolCall),
     EmitArtifact(crate::artifacts::Patch),
     Done,
+    Paused { reason: String },
+    Cancelled { reason: String },
     Error { message: String },
 }
 
@@ -71,12 +149,24 @@ impl Engine {
     }
 
     pub fn start_run(&self, workflow: Workflow, policy: Policy) -> Result<RunHandle, EngineError> {
+        self.start_run_with_controls(workflow, policy, ExecutionControls::default())
+    }
+
+    pub fn start_run_with_controls(
+        &self,
+        workflow: Workflow,
+        policy: Policy,
+        controls: ExecutionControls,
+    ) -> Result<RunHandle, EngineError> {
         let mut handle = RunHandle {
             workflow,
             policy,
             status: RunStatus::Created,
             current_step: 0,
             pending_events: VecDeque::new(),
+            controls,
+            budget: BudgetTracker::default(),
+            steps_executed: 0,
         };
         handle.transition(RunStatus::Running)?;
         Ok(handle)
@@ -89,6 +179,68 @@ impl RunHandle {
         &self.status
     }
 
+    #[must_use]
+    pub fn controls(&self) -> &ExecutionControls {
+        &self.controls
+    }
+
+    #[must_use]
+    pub fn budget(&self) -> &BudgetTracker {
+        &self.budget
+    }
+
+    #[must_use]
+    pub fn steps_executed(&self) -> usize {
+        self.steps_executed
+    }
+
+    /// Pause the run. Only valid when the run is in the `Running` state.
+    pub fn pause(&mut self, reason: &str) -> Result<(), EngineError> {
+        self.transition(RunStatus::Paused {
+            reason: reason.to_owned(),
+        })?;
+        Ok(())
+    }
+
+    /// Resume a paused run. Only valid when the run is in the `Paused` state.
+    pub fn resume(&mut self) -> Result<(), EngineError> {
+        self.transition(RunStatus::Running)?;
+        Ok(())
+    }
+
+    /// Cancel the run. Valid from `Running` or `Paused` states.
+    pub fn cancel(&mut self, reason: &str) -> Result<(), EngineError> {
+        self.transition(RunStatus::Cancelled {
+            reason: reason.to_owned(),
+        })?;
+        Ok(())
+    }
+
+    /// Record a cost against the run's budget and check the budget limit.
+    pub fn record_cost(
+        &mut self,
+        step_id: String,
+        cost_usd: f64,
+    ) -> Result<(), EngineError> {
+        self.budget.commit(step_id, cost_usd);
+
+        if let Some(limit) = self.controls.budget_limit_usd {
+            if self.budget.spent_usd >= limit {
+                let _ = self.transition(RunStatus::Paused {
+                    reason: format!(
+                        "budget exceeded: spent ${:.4} of ${:.4}",
+                        self.budget.spent_usd, limit
+                    ),
+                });
+                return Err(EngineError::BudgetExceeded {
+                    spent: self.budget.spent_usd,
+                    limit,
+                });
+            }
+        }
+        Ok(())
+    }
+
     pub fn next_action(&mut self) -> Action {
         if matches!(self.status, RunStatus::Failed { .. }) {
             return Action::Error {
@@ -97,6 +249,27 @@ impl RunHandle {
         }
         if matches!(self.status, RunStatus::Completed) {
             return Action::Done;
+        }
+        if let RunStatus::Paused { ref reason } = self.status {
+            return Action::Paused {
+                reason: reason.clone(),
+            };
+        }
+        if let RunStatus::Cancelled { ref reason } = self.status {
+            return Action::Cancelled {
+                reason: reason.clone(),
+            };
+        }
+
+        // Check max steps limit
+        if let Some(max_steps) = self.controls.max_steps {
+            if self.steps_executed >= max_steps {
+                let reason = format!("max steps reached: {max_steps}");
+                let _ = self.transition(RunStatus::Cancelled {
+                    reason: reason.clone(),
+                });
+                return Action::Cancelled { reason };
+            }
         }
 
         let Some(step) = self.workflow.steps.get(self.current_step) else {
@@ -153,6 +326,7 @@ impl RunHandle {
                     patch: patch.clone(),
                 });
                 self.current_step += 1;
+                self.steps_executed += 1;
                 Action::EmitArtifact(patch.clone())
             }
         }
@@ -171,6 +345,7 @@ impl RunHandle {
             result: tool_result,
         });
         self.current_step += 1;
+        self.steps_executed += 1;
         Ok(())
     }
 

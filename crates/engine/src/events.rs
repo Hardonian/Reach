@@ -10,6 +10,9 @@ pub enum EventKind {
     Entered,
     Completed,
     Denied,
+    Paused,
+    Resumed,
+    Cancelled,
 }
 
 impl EngineEvent {
