@@ -11,12 +11,18 @@ import (
 	"reach/services/runner/internal/backpressure"
 )
 
+// trackedLimiter wraps a rate limiter with last-access tracking for cleanup.
+type trackedLimiter struct {
+	limiter    *backpressure.RateLimiter
+	lastAccess time.Time
+}
+
 // RateLimiterMiddleware provides per-tenant and per-IP rate limiting
 type RateLimiterMiddleware struct {
 	// tenantLimiters maps tenantID to rate limiter
-	tenantLimiters map[string]*backpressure.RateLimiter
+	tenantLimiters map[string]*trackedLimiter
 	// ipLimiters maps IP address to rate limiter
-	ipLimiters map[string]*backpressure.RateLimiter
+	ipLimiters map[string]*trackedLimiter
 	// mu protects the maps
 	mu sync.RWMutex
 	// config for rate limiting
@@ -73,8 +79,8 @@ func NewRateLimiterMiddleware(config RateLimitConfig) *RateLimiterMiddleware {
 	}
 
 	rl := &RateLimiterMiddleware{
-		tenantLimiters: make(map[string]*backpressure.RateLimiter),
-		ipLimiters:     make(map[string]*backpressure.RateLimiter),
+		tenantLimiters: make(map[string]*trackedLimiter),
+		ipLimiters:     make(map[string]*trackedLimiter),
 		config:         config,
 	}
 
@@ -114,53 +120,63 @@ func (rl *RateLimiterMiddleware) Middleware(next http.Handler) http.Handler {
 // getTenantLimiter gets or creates a rate limiter for a tenant
 func (rl *RateLimiterMiddleware) getTenantLimiter(tenantID string) *backpressure.RateLimiter {
 	rl.mu.RLock()
-	limiter, exists := rl.tenantLimiters[tenantID]
+	tl, exists := rl.tenantLimiters[tenantID]
 	rl.mu.RUnlock()
 
 	if exists {
-		return limiter
+		tl.lastAccess = time.Now()
+		return tl.limiter
 	}
 
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
 	// Double-check after acquiring write lock
-	if limiter, exists := rl.tenantLimiters[tenantID]; exists {
-		return limiter
+	if tl, exists := rl.tenantLimiters[tenantID]; exists {
+		tl.lastAccess = time.Now()
+		return tl.limiter
 	}
 
 	// Create new limiter: requests per minute converted to per second
 	rate := float64(rl.config.RequestsPerMinutePerTenant) / 60.0
-	limiter = backpressure.NewRateLimiter(rate, rl.config.BurstSizePerTenant)
-	rl.tenantLimiters[tenantID] = limiter
+	tl = &trackedLimiter{
+		limiter:    backpressure.NewRateLimiter(rate, rl.config.BurstSizePerTenant),
+		lastAccess: time.Now(),
+	}
+	rl.tenantLimiters[tenantID] = tl
 
-	return limiter
+	return tl.limiter
 }
 
 // getIPLimiter gets or creates a rate limiter for an IP
 func (rl *RateLimiterMiddleware) getIPLimiter(ip string) *backpressure.RateLimiter {
 	rl.mu.RLock()
-	limiter, exists := rl.ipLimiters[ip]
+	tl, exists := rl.ipLimiters[ip]
 	rl.mu.RUnlock()
 
 	if exists {
-		return limiter
+		tl.lastAccess = time.Now()
+		return tl.limiter
 	}
 
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
 	// Double-check after acquiring write lock
-	if limiter, exists := rl.ipLimiters[ip]; exists {
-		return limiter
+	if tl, exists := rl.ipLimiters[ip]; exists {
+		tl.lastAccess = time.Now()
+		return tl.limiter
 	}
 
 	// Create new limiter: requests per minute converted to per second
 	rate := float64(rl.config.RequestsPerMinutePerIP) / 60.0
-	limiter = backpressure.NewRateLimiter(rate, rl.config.BurstSizePerIP)
-	rl.ipLimiters[ip] = limiter
+	tl = &trackedLimiter{
+		limiter:    backpressure.NewRateLimiter(rate, rl.config.BurstSizePerIP),
+		lastAccess: time.Now(),
+	}
+	rl.ipLimiters[ip] = tl
 
-	return limiter
+	return tl.limiter
 }
 
 // getClientIP extracts the client IP from the request
@@ -217,14 +233,25 @@ func (rl *RateLimiterMiddleware) cleanupLoop() {
 	}
 }
 
-// cleanup removes stale rate limiters
+// cleanup removes stale rate limiters that haven't been accessed within MaxAge.
 func (rl *RateLimiterMiddleware) cleanup() {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
-	// Note: In a production system, you'd track last used time
-	// For now, we don't aggressively clean up as limiters are lightweight
-	// This could be enhanced with a last-accessed timestamp
+	cutoff := time.Now().Add(-rl.config.MaxAge)
+
+	for key, tl := range rl.tenantLimiters {
+		if tl.lastAccess.Before(cutoff) {
+			tl.limiter.Stop()
+			delete(rl.tenantLimiters, key)
+		}
+	}
+	for key, tl := range rl.ipLimiters {
+		if tl.lastAccess.Before(cutoff) {
+			tl.limiter.Stop()
+			delete(rl.ipLimiters, key)
+		}
+	}
 }
 
 // Stop stops all rate limiters and cleanup goroutine
@@ -232,15 +259,15 @@ func (rl *RateLimiterMiddleware) Stop() {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
-	for _, limiter := range rl.tenantLimiters {
-		limiter.Stop()
+	for _, tl := range rl.tenantLimiters {
+		tl.limiter.Stop()
 	}
-	for _, limiter := range rl.ipLimiters {
-		limiter.Stop()
+	for _, tl := range rl.ipLimiters {
+		tl.limiter.Stop()
 	}
 
-	rl.tenantLimiters = make(map[string]*backpressure.RateLimiter)
-	rl.ipLimiters = make(map[string]*backpressure.RateLimiter)
+	rl.tenantLimiters = make(map[string]*trackedLimiter)
+	rl.ipLimiters = make(map[string]*trackedLimiter)
 }
 
 // withRateLimit wraps a handler with rate limiting middleware

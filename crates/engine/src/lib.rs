@@ -155,7 +155,7 @@ impl Engine {
                 MAX_WORKFLOW_SIZE
             )));
         }
-        serde_json::from_str::<Workflow>(workflow_dsl_or_json)
+        let workflow = serde_json::from_str::<Workflow>(workflow_dsl_or_json)
             .with_context(|| {
                 if self.config.strict_schema {
                     "strict schema validation rejected workflow"
@@ -163,7 +163,10 @@ impl Engine {
                     "failed to parse workflow JSON"
                 }
             })
-            .map_err(|err| EngineError::Parse(err.to_string()))
+            .map_err(|err| EngineError::Parse(err.to_string()))?;
+
+        workflow.validate().map_err(EngineError::Parse)?;
+        Ok(workflow)
     }
 
     pub fn start_run(&self, workflow: Workflow, policy: Policy) -> Result<RunHandle, EngineError> {
@@ -290,7 +293,7 @@ impl RunHandle {
             }
         }
 
-        let Some(step) = self.workflow.steps.get(self.current_step) else {
+        let Some(step) = self.workflow.steps.get(self.current_step).cloned() else {
             if self.transition(RunStatus::Completed).is_err() {
                 return Action::Error {
                     message: "unable to complete run".to_owned(),
@@ -299,8 +302,8 @@ impl RunHandle {
             return Action::Done;
         };
 
-        match &step.kind {
-            StepKind::ToolCall { tool, input } => {
+        match step.kind {
+            StepKind::ToolCall { ref tool, ref input } => {
                 let required_capabilities = vec![Capability::ToolUse {
                     name: tool.name.clone(),
                 }];
@@ -332,13 +335,13 @@ impl RunHandle {
                     },
                 });
                 Action::ToolCall(ToolCall {
-                    step_id: step.id.clone(),
+                    step_id: step.id,
                     tool_name: tool.name.clone(),
                     required_capabilities,
                     input: input.clone(),
                 })
             }
-            StepKind::EmitArtifact { patch } => {
+            StepKind::EmitArtifact { ref patch } => {
                 self.push_event(RunEvent::ArtifactEmitted {
                     step_id: step.id.clone(),
                     patch: patch.clone(),

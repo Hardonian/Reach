@@ -713,7 +713,9 @@ func (s *Server) handleNodeHeartbeat(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			s.federation.RecordDelegation(body.ID, "", "", true, "heartbeat", body.LatencyMS, false)
-			_ = s.federation.Save()
+			if err := s.federation.Save(); err != nil {
+				fmt.Fprintf(os.Stderr, "federation save failed: %v\n", err)
+			}
 			writeJSON(w, 200, map[string]string{"status": "ok"})
 			return
 		}

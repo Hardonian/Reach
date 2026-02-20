@@ -37,11 +37,11 @@ impl Policy {
                 if rule.allow {
                     Decision::Allow
                 } else {
-                    Decision::Deny(
-                        rule.reason
-                            .clone()
-                            .unwrap_or_else(|| "capability denied".to_owned()),
-                    )
+                    Decision::Deny(rule.reason.clone().unwrap_or_else(|| {
+                        // Include the capability in the default message so
+                        // operators can identify which rule lacks a reason.
+                        format!("capability denied by policy: {requested:?}")
+                    }))
                 }
             })
     }

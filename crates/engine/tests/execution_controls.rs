@@ -287,7 +287,9 @@ fn budget_tracking_accumulates() {
     run.record_cost("extra".to_owned(), 0.02).expect("cost 2");
 
     let budget = run.budget();
-    assert!((budget.spent_usd - 0.03).abs() < f64::EPSILON);
+    // Use a tolerance that accommodates floating-point accumulation error
+    // (f64::EPSILON is ~2.2e-16, too strict for summed values).
+    assert!((budget.spent_usd - 0.03).abs() < 1e-10);
     assert_eq!(budget.step_costs.len(), 2);
 }
 

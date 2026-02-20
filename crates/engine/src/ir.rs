@@ -1,5 +1,19 @@
 use std::collections::BTreeMap;
 
+/// Maximum length for any identifier (workflow id, node id, task name).
+const MAX_ID_LEN: usize = 256;
+
+/// Returns `true` if `id` is a well-formed identifier: non-empty, at most
+/// [`MAX_ID_LEN`] bytes, and contains only ASCII alphanumerics, hyphens, or
+/// underscores.
+fn is_valid_id(id: &str) -> bool {
+    !id.is_empty()
+        && id.len() <= MAX_ID_LEN
+        && id
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+}
+
 /// A deterministic workflow graph.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Workflow {
@@ -15,26 +29,30 @@ impl Workflow {
     }
 
     pub fn validate(&self) -> Result<(), String> {
-        if self.id.is_empty() {
-            return Err("workflow id must not be empty".to_string());
+        if !is_valid_id(&self.id) {
+            return Err(format!(
+                "workflow id must be 1-{MAX_ID_LEN} ASCII alphanumeric/hyphen/underscore chars"
+            ));
         }
-        if self.start.is_empty() {
-            return Err("workflow start must not be empty".to_string());
+        if !is_valid_id(&self.start) {
+            return Err(format!(
+                "workflow start must be 1-{MAX_ID_LEN} ASCII alphanumeric/hyphen/underscore chars"
+            ));
         }
         if !self.nodes.contains_key(&self.start) {
             return Err("workflow start node is missing".to_string());
         }
 
         for (id, node) in &self.nodes {
-            if id.is_empty() {
-                return Err("node id must not be empty".to_string());
+            if !is_valid_id(id) {
+                return Err(format!(
+                    "node id must be 1-{MAX_ID_LEN} ASCII alphanumeric/hyphen/underscore chars"
+                ));
             }
-            if node
-                .next
-                .iter()
-                .any(|target| !self.nodes.contains_key(target))
-            {
-                return Err(format!("node {id} points to a missing successor"));
+            for target in &node.next {
+                if !self.nodes.contains_key(target) {
+                    return Err(format!("node {id} points to a missing successor"));
+                }
             }
         }
 
@@ -88,6 +106,33 @@ mod tests {
         };
 
         assert!(workflow.validate().is_ok());
+    }
+
+    #[test]
+    fn validate_rejects_invalid_ids() {
+        let nodes = BTreeMap::from([(
+            "start".to_string(),
+            WorkflowNode {
+                kind: NodeKind::Terminal,
+                next: vec![],
+            },
+        )]);
+
+        // Spaces in workflow id
+        let wf = Workflow {
+            id: "bad id".to_string(),
+            start: "start".to_string(),
+            nodes: nodes.clone(),
+        };
+        assert!(wf.validate().is_err());
+
+        // Empty workflow id
+        let wf = Workflow {
+            id: "".to_string(),
+            start: "start".to_string(),
+            nodes: nodes.clone(),
+        };
+        assert!(wf.validate().is_err());
     }
 
     #[test]

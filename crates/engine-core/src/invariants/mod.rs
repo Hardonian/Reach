@@ -61,31 +61,47 @@ pub fn replay_fails_on_snapshot_mismatch(
 
 #[must_use]
 pub fn minor_version_forward_compatible(current: &str, candidate: &str) -> bool {
-    let (current_major, current_minor, _) = parse_semver(current);
-    let (candidate_major, candidate_minor, _) = parse_semver(candidate);
+    let (Ok((current_major, current_minor, _)), Ok((candidate_major, candidate_minor, _))) =
+        (parse_semver(current), parse_semver(candidate))
+    else {
+        // Malformed versions are never compatible.
+        return false;
+    };
     current_major == candidate_major && candidate_minor >= current_minor
 }
 
 #[must_use]
 pub fn patch_upgrade_replay_compatible(source: &str, target: &str) -> bool {
-    let (source_major, source_minor, _) = parse_semver(source);
-    let (target_major, target_minor, _) = parse_semver(target);
+    let (Ok((source_major, source_minor, _)), Ok((target_major, target_minor, _))) =
+        (parse_semver(source), parse_semver(target))
+    else {
+        return false;
+    };
     source_major == target_major && source_minor == target_minor
 }
 
+/// Errors from semantic version parsing.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SemverError {
+    /// The version string does not have exactly three dot-separated segments.
+    BadFormat,
+    /// A segment is not a valid unsigned integer.
+    InvalidSegment,
+}
+
 /// Parses a semver string into (major, minor, patch).
-/// Returns (0, 0, 0) for any segment that fails to parse, but logs the
-/// failure case to prevent silent version mismatches.
-fn parse_semver(version: &str) -> (u32, u32, u32) {
+///
+/// Returns `Err` for any input that is not exactly three dot-separated unsigned
+/// integers, preventing silent version mismatches.
+fn parse_semver(version: &str) -> Result<(u32, u32, u32), SemverError> {
     let parts: Vec<&str> = version.split('.').collect();
     if parts.len() != 3 {
-        // Non-standard semver format — treat as 0.0.0 to fail version checks safely.
-        return (0, 0, 0);
+        return Err(SemverError::BadFormat);
     }
-    let major = parts[0].parse::<u32>().unwrap_or(0);
-    let minor = parts[1].parse::<u32>().unwrap_or(0);
-    let patch = parts[2].parse::<u32>().unwrap_or(0);
-    (major, minor, patch)
+    let major = parts[0].parse::<u32>().map_err(|_| SemverError::InvalidSegment)?;
+    let minor = parts[1].parse::<u32>().map_err(|_| SemverError::InvalidSegment)?;
+    let patch = parts[2].parse::<u32>().map_err(|_| SemverError::InvalidSegment)?;
+    Ok((major, minor, patch))
 }
 
 #[cfg(test)]
@@ -107,13 +123,20 @@ mod tests {
 
     #[test]
     fn parse_semver_valid() {
-        assert_eq!(parse_semver("1.2.3"), (1, 2, 3));
+        assert_eq!(parse_semver("1.2.3"), Ok((1, 2, 3)));
     }
 
     #[test]
-    fn parse_semver_invalid_returns_zeros() {
-        assert_eq!(parse_semver("abc.def.xyz"), (0, 0, 0));
-        assert_eq!(parse_semver("1.2"), (0, 0, 0));
-        assert_eq!(parse_semver(""), (0, 0, 0));
+    fn parse_semver_invalid_returns_error() {
+        assert_eq!(parse_semver("abc.def.xyz"), Err(SemverError::InvalidSegment));
+        assert_eq!(parse_semver("1.2"), Err(SemverError::BadFormat));
+        assert_eq!(parse_semver(""), Err(SemverError::BadFormat));
+    }
+
+    #[test]
+    fn malformed_versions_are_never_compatible() {
+        assert!(!minor_version_forward_compatible("bad", "1.2.3"));
+        assert!(!minor_version_forward_compatible("1.2.3", "bad"));
+        assert!(!patch_upgrade_replay_compatible("1.2", "1.2.3"));
     }
 }

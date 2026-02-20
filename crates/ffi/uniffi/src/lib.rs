@@ -16,6 +16,9 @@ static ENGINES: Lazy<Mutex<HashMap<u64, Engine>>> = Lazy::new(|| Mutex::new(Hash
 static RUNS: Lazy<Mutex<HashMap<u64, RunHandle>>> = Lazy::new(|| Mutex::new(HashMap::new()));
 static NEXT_ID: AtomicU64 = AtomicU64::new(1);
 
+/// Maximum allowed JSON payload size (16 MiB) to prevent unbounded allocations.
+const MAX_JSON_LEN: usize = 16 * 1024 * 1024;
+
 #[derive(Debug, Error, uniffi::Error)]
 pub enum FfiError {
     #[error("unknown engine id")]
@@ -28,6 +31,8 @@ pub enum FfiError {
     Engine,
     #[error("lock poisoned")]
     LockPoisoned,
+    #[error("input exceeds maximum allowed size")]
+    InputTooLarge,
 }
 
 #[uniffi::export]
@@ -40,6 +45,9 @@ pub fn create_engine() -> Result<u64, FfiError> {
 
 #[uniffi::export]
 pub fn compile_workflow(engine_id: u64, workflow_json: String) -> Result<String, FfiError> {
+    if workflow_json.len() > MAX_JSON_LEN {
+        return Err(FfiError::InputTooLarge);
+    }
     let engines = ENGINES.lock().map_err(|_| FfiError::LockPoisoned)?;
     let engine = engines.get(&engine_id).ok_or(FfiError::UnknownEngine)?;
     let workflow = engine
@@ -54,6 +62,9 @@ pub fn start_run(
     workflow_json: String,
     policy_json: String,
 ) -> Result<u64, FfiError> {
+    if workflow_json.len() > MAX_JSON_LEN || policy_json.len() > MAX_JSON_LEN {
+        return Err(FfiError::InputTooLarge);
+    }
     let workflow: Workflow =
         serde_json::from_str(&workflow_json).map_err(|_| FfiError::Serialization)?;
     let policy: Policy = serde_json::from_str(&policy_json).map_err(|_| FfiError::Serialization)?;
@@ -81,6 +92,9 @@ pub fn next_action(run_id: u64) -> Result<String, FfiError> {
 
 #[uniffi::export]
 pub fn apply_tool_result(run_id: u64, tool_result_json: String) -> Result<String, FfiError> {
+    if tool_result_json.len() > MAX_JSON_LEN {
+        return Err(FfiError::InputTooLarge);
+    }
     let tool_result: ToolResult =
         serde_json::from_str(&tool_result_json).map_err(|_| FfiError::Serialization)?;
 

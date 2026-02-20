@@ -349,8 +349,10 @@ fn wrap_event(
             run_id: run_id.to_owned(),
             event_type: "artifact.created".to_owned(),
             timestamp,
-            payload: serde_json::to_value(patch)
-                .unwrap_or_else(|_| serde_json::json!({"diffs": []})),
+            payload: serde_json::to_value(&patch).unwrap_or_else(|e| {
+                eprintln!("ERROR: failed to serialize artifact patch: {e}");
+                serde_json::json!({"diffs": [], "error": "serialization failed"})
+            }),
         },
         RunEvent::RunCompleted => EventEnvelope {
             schema_version: SCHEMA_VERSION,
