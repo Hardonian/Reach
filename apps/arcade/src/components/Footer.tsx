@@ -1,3 +1,4 @@
+import Link from 'next/link';
 export function Footer() {
   return (
     <footer className="border-t border-border mt-auto">
@@ -30,10 +31,11 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Resources</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><a href="/docs" className="hover:text-white transition-colors">Documentation</a></li>
-              <li><a href="/pricing" className="hover:text-white transition-colors">Pricing</a></li>
-              <li><a href="/contact" className="hover:text-white transition-colors">Contact</a></li>
-              <li><a href="https://github.com" className="hover:text-white transition-colors">GitHub</a></li>
+              <li><Link href="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
+              <li><Link href="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
+              <li><Link href="/support" className="hover:text-white transition-colors">Support</Link></li>
+              <li><Link href="/support/status" className="hover:text-white transition-colors">System Status</Link></li>
+              <li><Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
             </ul>
           </div>
         </div>

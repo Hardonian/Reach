@@ -8,10 +8,10 @@ const navItems = [
   { href: '/', label: 'Home' },
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/marketplace', label: 'Marketplace' },
-  { href: '/studio', label: 'Studio' },
   { href: '/governance', label: 'Governance' },
   { href: '/docs', label: 'Docs' },
-  { href: '/pricing', label: 'Pricing' },
+  { href: '/faq', label: 'FAQ' },
+  { href: '/support', label: 'Support' },
 ];
 
 export function NavBar() {

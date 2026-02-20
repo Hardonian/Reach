@@ -1,134 +1,112 @@
-export default function Agents() {
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Agents & Roles | Reach Documentation',
+  description: 'Learn about the autonomous agent roles and responsibilities within the Reach ecosystem.',
+};
+
+export default function AgentsPage() {
   return (
-    <div className="section-container py-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <a href="/docs" className="text-gray-400 hover:text-white transition-colors">
-            ← Back to Documentation
-          </a>
-        </div>
-
-        <h1 className="text-4xl font-bold mb-4">Agents</h1>
-        <p className="text-gray-400 mb-8">
-          Understand how Reach agents work, their lifecycle, and how to build powerful autonomous capabilities.
+    <div className="space-y-12">
+      <header>
+        <h1 className="text-4xl font-bold mb-4">Agents & Roles</h1>
+        <p className="text-xl text-gray-400">
+          Reach uses a specialized multi-agent system where roles are strictly defined 
+          by capabilities and governance boundaries.
         </p>
+      </header>
 
-        <div className="space-y-8">
-          <section className="card">
-            <h2 className="text-xl font-bold mb-4">What is an Agent?</h2>
-            <p className="text-gray-400">
-              An agent in Reach is an autonomous software entity that can perceive its environment, make decisions, and take actions to achieve specific goals. Agents can be simple task automators or complex AI systems capable of reasoning and learning.
+      <section className="space-y-6">
+        <h2 className="text-2xl font-bold border-b border-border pb-2">Autonomous Roles</h2>
+        <p className="text-gray-400">
+          Every agent operating within Reach is assigned a specific role. This role determines 
+          the default capability set and the policy gates applied during execution.
+        </p>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="card bg-white/5 p-6 rounded-xl border border-white/10">
+            <h3 className="font-bold mb-2 text-accent">Architecture Agent</h3>
+            <p className="text-sm text-gray-400">
+              Responsible for system design, maintaining invariants, and ensuring modular cohesion across the repository. 
+              Owns the <code>ADR</code> (Architectural Decision Record) lifecycle.
             </p>
-          </section>
-
-          <section className="card">
-            <h2 className="text-xl font-bold mb-4">Agent Structure</h2>
-            <div className="space-y-4 text-gray-400">
-              <div>
-                <h3 className="font-semibold text-white">Manifest (agent.yaml)</h3>
-                <p>Defines the agent&apos;s identity, version, capabilities, and metadata.</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-white">Entry Point</h3>
-                <p>The main code file that handles incoming requests and orchestrates behavior.</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-white">Capabilities</h3>
-                <p>Modular components that provide specific functionality (APIs, tools, integrations).</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-white">State</h3>
-                <p>Persistent storage for agent memory and context across invocations.</p>
-              </div>
-            </div>
-          </section>
-
-          <section className="card">
-            <h2 className="text-xl font-bold mb-4">Agent Lifecycle</h2>
-            <div className="space-y-3 text-gray-400">
-              <div className="flex items-start gap-3">
-                <span className="text-accent font-bold">1.</span>
-                <div>
-                  <span className="font-semibold text-white">Create:</span> Define agent manifest and implement logic
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-accent font-bold">2.</span>
-                <div>
-                  <span className="font-semibold text-white">Build:</span> Package agent and dependencies
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-accent font-bold">3.</span>
-                <div>
-                  <span className="font-semibold text-white">Test:</span> Validate behavior in local environment
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-accent font-bold">4.</span>
-                <div>
-                  <span className="font-semibold text-white">Deploy:</span> Publish to Reach network
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-accent font-bold">5.</span>
-                <div>
-                  <span className="font-semibold text-white">Execute:</span> Handle requests and perform tasks
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-accent font-bold">6.</span>
-                <div>
-                  <span className="font-semibold text-white">Monitor:</span> Track performance and health
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="card">
-            <h2 className="text-xl font-bold mb-4">Agent Types</h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="bg-black/30 p-4 rounded-lg">
-                <h3 className="font-semibold text-white mb-2">Task Agents</h3>
-                <p className="text-gray-400 text-sm">Execute specific, well-defined tasks like data processing or API calls.</p>
-              </div>
-              <div className="bg-black/30 p-4 rounded-lg">
-                <h3 className="font-semibold text-white mb-2">Conversational Agents</h3>
-                <p className="text-gray-400 text-sm">Handle natural language interactions and maintain context.</p>
-              </div>
-              <div className="bg-black/30 p-4 rounded-lg">
-                <h3 className="font-semibold text-white mb-2">Orchestrator Agents</h3>
-                <p className="text-gray-400 text-sm">Coordinate multiple agents and manage complex workflows.</p>
-              </div>
-              <div className="bg-black/30 p-4 rounded-lg">
-                <h3 className="font-semibold text-white mb-2">Autonomous Agents</h3>
-                <p className="text-gray-400 text-sm">Self-directed agents that can plan and execute multi-step goals.</p>
-              </div>
-            </div>
-          </section>
-
-          <section className="card">
-            <h2 className="text-xl font-bold mb-4">Example Agent</h2>
-            <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
-              <p>{`// agent.js`}</p>
-              <p>{`export default async function handler(request, context) {`}</p>
-              <p>{`  const { message } = request.body;`}</p>
-              <p>{`  `}</p>
-              <p>{`  // Process the request`}</p>
-              <p>{`  const response = await context.llm.complete({`}</p>
-              <p>{`    prompt: \`User said: \${message}\`,`}</p>
-              <p>{`    model: 'gpt-4'`}</p>
-              <p>{`  });`}</p>
-              <p>{`  `}</p>
-              <p>{`  return {`}</p>
-              <p>{`    status: 200,`}</p>
-              <p>{`    body: { reply: response.text }`}</p>
-              <p>{`  };`}</p>
-              <p>{`}`}</p>
-            </div>
-          </section>
+          </div>
+          <div className="card bg-white/5 p-6 rounded-xl border border-white/10">
+            <h3 className="font-bold mb-2 text-accent">Code Quality Agent</h3>
+            <p className="text-sm text-gray-400">
+              Enforces linting, typechecking, and build stability. Executes hydration and performance passes 
+              and ensures vulnerability hygiene.
+            </p>
+          </div>
+          <div className="card bg-white/5 p-6 rounded-xl border border-white/10">
+            <h3 className="font-bold mb-2 text-accent">Design Agent</h3>
+            <p className="text-sm text-gray-400">
+              Ensures visual system integrity. Manages design tokens, UI coherence, and alignment with the 
+              canonical brand prompts.
+            </p>
+          </div>
+          <div className="card bg-white/5 p-6 rounded-xl border border-white/10">
+            <h3 className="font-bold mb-2 text-accent">Infrastructure Agent</h3>
+            <p className="text-sm text-gray-400">
+              Focuses on CI resilience, environment validation, security hardening, and production deployment readiness.
+            </p>
+          </div>
         </div>
-      </div>
+      </section>
+
+      <section className="space-y-6">
+        <h2 className="text-2xl font-bold border-b border-border pb-2">Global Principles</h2>
+        <div className="bg-black/40 border border-accent/20 rounded-xl p-8">
+          <ul className="space-y-4 text-gray-400 font-medium">
+            <li className="flex gap-4">
+              <span className="text-accent flex-shrink-0">●</span>
+              <span><strong>Production-grade:</strong> Agents must never emit placeholders, TODOs, or stubs.</span>
+            </li>
+            <li className="flex gap-4">
+              <span className="text-accent flex-shrink-0">●</span>
+              <span><strong>Deterministic Change:</strong> Prefer minimal diffs. Favor structural improvements over cosmetic ripples.</span>
+            </li>
+            <li className="flex gap-4">
+              <span className="text-accent flex-shrink-0">●</span>
+              <span><strong>Graceful Degradation:</strong> User-facing routes managed by agents must never hard-500.</span>
+            </li>
+            <li className="flex gap-4">
+              <span className="text-accent flex-shrink-0">●</span>
+              <span><strong>High Leverage:</strong> Optimize for clarity and minimal context usage in all generated artifacts.</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section className="space-y-6">
+        <h2 className="text-2xl font-bold border-b border-border pb-2">Injection Protocol</h2>
+        <p className="text-gray-400 text-sm">
+          When new constraints or skills are introduced to an agent, they follow a three-step injection protocol:
+        </p>
+        <div className="bg-white/5 p-6 rounded-xl border border-white/10 font-mono text-xs text-gray-300">
+          1. Append the new capability or rule to the agent's manifest. <br/>
+          2. Refine for clarity and remove any duplication with existing rules. <br/>
+          3. Preserve prior valid decisions unless explicitly superseded.
+        </div>
+      </section>
+
+      <section className="space-y-6">
+        <h2 className="text-2xl font-bold border-b border-border pb-2">Agent Governance</h2>
+        <p className="text-gray-400">
+          Agent definitions and constraints are stored in the root of the repository.
+        </p>
+        <ul className="space-y-2 text-sm">
+          <li><code className="text-accent">/AGENTS.md</code> — Role definitions and responsibilities</li>
+          <li><code className="text-accent">/SKILLS.md</code> — Skill sets and capability mappings</li>
+          <li><code className="text-accent">/MODEL_SPEC.md</code> — Model constraints and routing rules</li>
+        </ul>
+      </section>
+
+      <footer className="pt-8 border-t border-border flex justify-between items-center text-sm">
+        <span className="text-gray-500">Last updated: February 20, 2026</span>
+        <div className="flex gap-4">
+          <a href="/docs/governance" className="text-accent hover:underline">Governance Model →</a>
+        </div>
+      </footer>
     </div>
   );
 }
