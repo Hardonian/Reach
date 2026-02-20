@@ -1,0 +1,13 @@
+{
+  "run_id": "eval-smoke-1-1771558102",
+  "timestamp": "2026-02-20T03:28:22.9199993Z",
+  "score": 0.9999999999999999,
+  "grounding": 1,
+  "policy_compliance": 1,
+  "tool_correctness": 1,
+  "structural_validity": 1,
+  "latency_ms": 0,
+  "token_usage": 100,
+  "hallucination_alert": false,
+  "policy_violation_risk": false
+}
