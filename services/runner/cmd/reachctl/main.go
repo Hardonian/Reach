@@ -18,6 +18,7 @@ import (
 	"reach/services/runner/internal/determinism"
 	"reach/services/runner/internal/federation"
 	"reach/services/runner/internal/jobs"
+	"reach/services/runner/internal/mcpserver"
 	"reach/services/runner/internal/mesh"
 	"reach/services/runner/internal/pack"
 	"reach/services/runner/internal/poee"
@@ -2259,8 +2260,11 @@ func runQuick(args []string, out, errOut io.Writer) int {
 	registry := pack.NewPackRegistry()
 	cid := registry.Register(lintRes)
 
-	// 3. Execute
-	executor := jobs.NewDAGExecutor(registry)
+	// 3. Execute with MCP enforcement
+	mcpSrv := mcpserver.New("../../", &simplePolicy{}, &simpleAudit{}, &simpleResolver{}, &simpleApproval{})
+	client := &LocalMCPClient{server: mcpSrv}
+
+	executor := jobs.NewDAGExecutor(registry, client)
 	ctx := context.Background()
 	results, err := executor.ExecuteGraph(ctx, cid, inputs)
 	if err != nil {

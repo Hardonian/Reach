@@ -3,14 +3,19 @@ package jobs
 import (
 	"context"
 	"fmt"
-	"os"
 	"reach/services/runner/internal/pack"
 	"sync"
 )
 
+// ToolClient defines the interface for executing actions via MCP or other connectors.
+type ToolClient interface {
+	Call(ctx context.Context, runID string, action string, inputs map[string]any) (any, error)
+}
+
 // DAGExecutor handles the parallel/sequential execution of pack nodes.
 type DAGExecutor struct {
 	Registry *pack.PackRegistry
+	Client   ToolClient
 }
 
 // ExecutionState tracks the progress of a DAG run.
@@ -19,8 +24,8 @@ type ExecutionState struct {
 	mu      sync.Mutex
 }
 
-func NewDAGExecutor(registry *pack.PackRegistry) *DAGExecutor {
-	return &DAGExecutor{Registry: registry}
+func NewDAGExecutor(registry *pack.PackRegistry, client ToolClient) *DAGExecutor {
+	return &DAGExecutor{Registry: registry, Client: client}
 }
 
 // ExecuteGraph traverses the pack's execution graph and runs nodes.
@@ -78,22 +83,18 @@ func (e *DAGExecutor) ExecuteNode(ctx context.Context, node pack.Node, inputs ma
 }
 
 func (e *DAGExecutor) handleAction(ctx context.Context, node pack.Node, _ map[string]interface{}) (interface{}, error) {
-	switch node.Action {
-	case "read_file":
-		path, ok := node.Inputs["path"].(string)
-		if !ok {
-			return nil, fmt.Errorf("read_file requires 'path' input")
-		}
-		// Security: In production, validate path against sandbox rules
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read file: %w", err)
-		}
-		return string(data), nil
-	case "summarize":
-		// Placeholder for LLM call
-		return "This is a simulated summary of the data.", nil
-	default:
-		return fmt.Sprintf("Result of action: %s", node.Action), nil
+	if e.Client == nil {
+		return nil, fmt.Errorf("no tool client configured")
 	}
+
+	// We use the node ID or a generic run context for the runID in this simple implementation.
+	runID := "todo-run-id"
+
+	// Map generic node actions to tool names if necessary
+	toolName := node.Tool
+	if toolName == "" {
+		toolName = node.Action
+	}
+
+	return e.Client.Call(ctx, runID, toolName, node.Inputs)
 }
