@@ -70,7 +70,7 @@ export default function AgentsPage() {
               <span><strong>Graceful Degradation:</strong> User-facing routes managed by agents must never hard-500.</span>
             </li>
             <li className="flex gap-4">
-              <span className="text-accent flex-shrink-0">●</span>
+              <span className="text-accent shrink-0">●</span>
               <span><strong>High Leverage:</strong> Optimize for clarity and minimal context usage in all generated artifacts.</span>
             </li>
           </ul>
