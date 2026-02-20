@@ -1,13 +1,3 @@
-# Reach
-
-**Reach is a deterministic execution fabric for AI systems.**
-
-Reach helps teams run agentic and tool-driven workloads with deterministic replay, policy controls, and signed execution packs so production behavior can be trusted, audited, and reproduced.
-
-## The problem Reach solves
-
-Most AI systems fail in production because runtime behavior drifts: tools change, policies are bypassed, and replay is unreliable. Reach provides a stable execution plane so operators can enforce capability boundaries, verify integrity, and reproduce outcomes across nodes and environments.
-
 ## Core principles
 
 - **Determinism**: replayable execution with stable event sequencing.

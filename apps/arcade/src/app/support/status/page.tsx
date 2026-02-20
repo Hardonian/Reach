@@ -91,6 +91,23 @@ export default function SystemStatusPage() {
             Reach status data is updated every 60 seconds. <br/>
             For personalized status reports, please visit your organization dashboard.
           </p>
+          <div className="mt-8 pt-8 border-t border-white/5 grid md:grid-cols-2 gap-8 text-left max-w-2xl mx-auto">
+            <div>
+              <h4 className="text-sm font-bold text-white mb-2 uppercase tracking-widest">Communication</h4>
+              <p className="text-xs text-gray-400">
+                Major outages are broadcast via our official 𝕏 feed and the 
+                Reach status Discord channel. Critical security patches are 
+                coordinated via the security mailing list.
+              </p>
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white mb-2 uppercase tracking-widest">Tracking</h4>
+              <p className="text-xs text-gray-400">
+                You can track active resolution progress in the 
+                <a href="https://github.com" className="text-accent hover:underline ml-1">GitHub Status Discussion</a>.
+              </p>
+            </div>
+          </div>
         </footer>
       </div>
     </div>

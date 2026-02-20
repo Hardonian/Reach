@@ -22,7 +22,7 @@ export default function EnginePage() {
           and state transition within a signed capsule. 
         </p>
         <div className="bg-white/5 p-6 rounded-xl border border-white/10 font-mono text-sm">
-          Execution = (Signed Pack + Input State + Policy Gate) -> Verifiable Capsule
+          Execution = (Signed Pack + Input State + Policy Gate) -{'>'} Verifiable Capsule
         </div>
       </section>
 
