@@ -238,16 +238,23 @@ func TestRunQuick(t *testing.T) {
 	os.Setenv("REACH_DATA_DIR", tmpDir)
 	defer os.Unsetenv("REACH_DATA_DIR")
 
-	// Setup registry
-	registryDir := filepath.Join(tmpDir, "registry")
-	os.MkdirAll(registryDir, 0755)
-	registry := map[string]any{
-		"packs": []map[string]any{
-			{"name": "quick.test", "spec_version": "1.0"},
+	// Setup packs directory with actual pack file
+	packsDir := filepath.Join(tmpDir, "packs")
+	os.MkdirAll(packsDir, 0755)
+	pack := map[string]any{
+		"metadata": map[string]any{
+			"name":    "quick.test",
+			"version": "1.0.0",
+		},
+		"spec_version": "1.0",
+		"execution_graph": map[string]any{
+			"nodes": []map[string]any{
+				{"id": "node1", "type": "Action", "action": "test"},
+			},
 		},
 	}
-	data, _ := json.Marshal(registry)
-	os.WriteFile(filepath.Join(registryDir, "index.json"), data, 0644)
+	data, _ := json.Marshal(pack)
+	os.WriteFile(filepath.Join(packsDir, "quick.test.json"), data, 0644)
 
 	var out, errOut bytes.Buffer
 	code := runQuick([]string{"quick.test", "--input", "mode=test"}, &out, &errOut)
