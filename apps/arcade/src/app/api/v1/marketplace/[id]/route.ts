@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPackBySlug, getPack, listPackVersions } from '@/lib/cloud-db';
 import { cloudErrorResponse } from '@/lib/cloud-auth';
+import { logger } from '@/lib/logger';
 import { formatPack } from '../route';
 
 export const runtime = 'nodejs';
@@ -25,7 +26,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       },
     });
   } catch (err) {
-    console.error('[marketplace/:id]', err);
+    logger.error('Failed to get pack', err);
     return cloudErrorResponse('Failed to get pack', 500);
   }
 }

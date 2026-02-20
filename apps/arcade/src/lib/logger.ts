@@ -15,11 +15,19 @@ interface LogEntry {
 const isServer = typeof window === 'undefined';
 
 function formatLog(entry: LogEntry): { msg: string; args: any[] } {
-  // Deep clone and sanitize
-  const sanitized = sanitize(JSON.parse(JSON.stringify(entry))) as LogEntry;
+  const sanitizedContext = entry.context ? sanitize(entry.context) as Record<string, unknown> : undefined;
   
   if (isServer && env.NODE_ENV === 'production') {
-    return { msg: JSON.stringify(sanitized), args: [] };
+    const jsonEntry = {
+      ...entry,
+      context: sanitizedContext,
+      error: entry.error instanceof Error ? { 
+        name: entry.error.name, 
+        message: entry.error.message, 
+        stack: entry.error.stack 
+      } : entry.error
+    };
+    return { msg: JSON.stringify(sanitize(jsonEntry)), args: [] };
   }
   
   if (isServer) {
@@ -30,10 +38,10 @@ function formatLog(entry: LogEntry): { msg: string; args: any[] } {
       error: '\x1b[31m', // Red
     }[entry.level];
     const reset = '\x1b[0m';
-    const ctxStr = sanitized.context ? ` ${JSON.stringify(sanitized.context)}` : '';
+    const ctxStr = sanitizedContext ? ` ${JSON.stringify(sanitizedContext)}` : '';
     const errStr = entry.error ? `\n${entry.error instanceof Error ? entry.error.stack : String(entry.error)}` : '';
-    const corr = sanitized.correlationId ? ` [${sanitized.correlationId}]` : '';
-    return { msg: `${color}${sanitized.level.toUpperCase()}${reset} ${sanitized.timestamp}${corr}: ${sanitized.message}${ctxStr}${errStr}`, args: [] };
+    const corr = entry.correlationId ? ` [${entry.correlationId}]` : '';
+    return { msg: `${color}${entry.level.toUpperCase()}${reset} ${entry.timestamp}${corr}: ${entry.message}${ctxStr}${errStr}`, args: [] };
   }
 
   // Browser pretty print
@@ -45,11 +53,11 @@ function formatLog(entry: LogEntry): { msg: string; args: any[] } {
     error: 'color: #f44336',
   }[entry.level];
   
-  const msg = `%c${sanitized.level.toUpperCase()}%c ${sanitized.message}`;
+  const msg = `%c${entry.level.toUpperCase()}%c ${entry.message}`;
   args.push(color, 'color: inherit');
-  if (sanitized.context) args.push(sanitized.context);
-  if (entry.error) args.push(entry.error); // Error objects often don't JSON.stringify well
-  if (sanitized.correlationId) args.push({ correlationId: sanitized.correlationId });
+  if (sanitizedContext) args.push(sanitizedContext);
+  if (entry.error) args.push(entry.error);
+  if (entry.correlationId) args.push({ correlationId: entry.correlationId });
 
   return { msg, args };
 }

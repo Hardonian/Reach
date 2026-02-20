@@ -3,6 +3,7 @@ import { getUserByEmail, createSession, listTenantsForUser } from '@/lib/cloud-d
 import { verifyPassword } from '@/lib/cloud-db';
 import { LoginSchema, parseBody } from '@/lib/cloud-schemas';
 import { setSessionCookie, cloudErrorResponse } from '@/lib/cloud-auth';
+import { logger } from '@/lib/logger';
 
 export const runtime = 'nodejs';
 
@@ -11,7 +12,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const body = await req.json().catch(() => ({}));
     const parsed = parseBody(LoginSchema, body);
     if ('errors' in parsed) {
-      return cloudErrorResponse(parsed.errors.errors[0]?.message ?? 'Invalid input', 400);
+      return cloudErrorResponse(parsed.errors.issues[0]?.message ?? 'Invalid input', 400);
     }
     const { email, password } = parsed.data;
 
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     });
     return setSessionCookie(res, session.id);
   } catch (err) {
-    console.error('[auth/login]', err);
+    logger.error('Login failed', err);
     return cloudErrorResponse('Login failed', 500);
   }
 }

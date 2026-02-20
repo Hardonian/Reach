@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { browsePacks } from '@/lib/cloud-db';
 import { BrowsePacksSchema, parseBody } from '@/lib/cloud-schemas';
 import { cloudErrorResponse } from '@/lib/cloud-auth';
+import { logger } from '@/lib/logger';
 
 export const runtime = 'nodejs';
 
@@ -9,7 +10,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     const qp = Object.fromEntries(req.nextUrl.searchParams.entries());
     const parsed = parseBody(BrowsePacksSchema, qp);
-    if ('errors' in parsed) return cloudErrorResponse(parsed.errors.errors[0]?.message ?? 'Invalid query', 400);
+    if ('errors' in parsed) return cloudErrorResponse(parsed.errors.issues[0]?.message ?? 'Invalid query', 400);
 
     const { search, category, sort, verifiedOnly, page, limit } = parsed.data;
     const result = browsePacks({ search, category, sort, verifiedOnly, page, limit, visibility: 'public' });
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       has_more: result.total > page * limit,
     });
   } catch (err) {
-    console.error('[marketplace]', err);
+    logger.error('Failed to browse marketplace', err);
     return cloudErrorResponse('Failed to browse marketplace', 500);
   }
 }

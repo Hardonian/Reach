@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, cloudErrorResponse, requireRole, auditLog } from '@/lib/cloud-auth';
 import { createApiKey, listApiKeys } from '@/lib/cloud-db';
 import { CreateApiKeySchema, parseBody } from '@/lib/cloud-schemas';
+import { logger } from '@/lib/logger';
 
 export const runtime = 'nodejs';
 
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(CreateApiKeySchema, body);
-  if ('errors' in parsed) return cloudErrorResponse(parsed.errors.errors[0]?.message ?? 'Invalid input', 400);
+  if ('errors' in parsed) return cloudErrorResponse(parsed.errors.issues[0]?.message ?? 'Invalid input', 400);
 
   const { key, rawKey } = createApiKey(ctx.tenantId, ctx.userId, parsed.data.name, parsed.data.scopes);
   auditLog(ctx, 'api_key.create', 'api_key', key.id, { name: key.name }, req);

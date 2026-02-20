@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, cloudErrorResponse } from '@/lib/cloud-auth';
 import { getEntitlement } from '@/lib/cloud-db';
 import { createPortalSession, BillingDisabledError } from '@/lib/stripe';
+import { logger } from '@/lib/logger';
 
 export const runtime = 'nodejs';
 
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ portal_url: portal.url });
   } catch (err) {
     if (err instanceof BillingDisabledError) return cloudErrorResponse(err.message, 503);
-    console.error('[billing/portal]', err);
+    logger.error('Failed to create portal session', err);
     return cloudErrorResponse('Failed to create portal session', 500);
   }
 }

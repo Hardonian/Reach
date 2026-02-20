@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, cloudErrorResponse } from '@/lib/cloud-auth';
 import { listTenantsForUser, listApiKeys } from '@/lib/cloud-db';
+import { logger } from '@/lib/logger';
 
 export const runtime = 'nodejs';
 
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       api_keys: keys,
     });
   } catch (err) {
-    console.error('[auth/me]', err);
+    logger.error('Failed to fetch user info', err);
     return cloudErrorResponse('Failed to fetch user info', 500);
   }
 }

@@ -9,6 +9,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { constructWebhookEvent, getPlanForPriceId, BillingDisabledError } from '@/lib/stripe';
 import { upsertWebhookEvent, markWebhookProcessed, upsertEntitlement, PLAN_LIMITS } from '@/lib/cloud-db';
 import type Stripe from 'stripe';
+import { env } from '@/lib/env';
+import { logger } from '@/lib/logger';
 
 export const runtime = 'nodejs';
 
@@ -16,7 +18,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  if (process.env.BILLING_ENABLED !== 'true') {
+  if (env.BILLING_ENABLED !== true) {
     return NextResponse.json({ error: 'Billing not enabled' }, { status: 503 });
   }
 
@@ -32,7 +34,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     event = constructWebhookEvent(rawBody, sig);
   } catch (err) {
-    console.error('[webhook] signature verification failed:', err);
+    logger.error('Signature verification failed', err);
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
@@ -51,7 +53,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (err instanceof BillingDisabledError) {
       return NextResponse.json({ error: err.message }, { status: 503 });
     }
-    console.error('[webhook] handler error:', err);
+    logger.error('Webhook handler error', err);
     // Return 200 to prevent Stripe from retrying (we've stored the event)
     return NextResponse.json({ ok: false, error: 'Handler error, will retry' }, { status: 200 });
   }
@@ -65,7 +67,7 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     case 'customer.subscription.updated': {
       const sub = data as Stripe.Subscription;
       const tenantId = (sub.metadata?.['tenant_id'] as string) ?? '';
-      if (!tenantId) { console.warn('[webhook] no tenant_id in subscription metadata'); return; }
+      if (!tenantId) { logger.warn('no tenant_id in subscription metadata'); return; }
       const priceId = (sub.items?.data?.[0]?.price?.id as string) ?? '';
       const plan = getPlanForPriceId(priceId);
       const limits = PLAN_LIMITS[plan] ?? PLAN_LIMITS['pro'];
@@ -81,7 +83,7 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         period_start: sub.current_period_start ? new Date(sub.current_period_start * 1000).toISOString() : undefined,
         period_end: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : undefined,
       } as Parameters<typeof upsertEntitlement>[1]);
-      console.info(`[webhook] subscription ${event.type} for tenant ${tenantId} → plan ${plan}`);
+      logger.info(`Subscription ${event.type} processed`, { tenantId, plan });
       break;
     }
 
@@ -98,7 +100,7 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         pack_limit: PLAN_LIMITS['free'].pack_limit,
         retention_days: PLAN_LIMITS['free'].retention_days,
       } as Parameters<typeof upsertEntitlement>[1]);
-      console.info(`[webhook] subscription canceled for tenant ${tenantId} → downgraded to free`);
+      logger.info('Subscription canceled', { tenantId });
       break;
     }
 
@@ -109,7 +111,7 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         // Reset monthly usage on successful invoice payment (new billing period)
         const { resetMonthlyUsage } = await import('@/lib/cloud-db');
         resetMonthlyUsage(tenantId);
-        console.info(`[webhook] invoice.paid — reset usage for tenant ${tenantId}`);
+        logger.info('Invoice paid — reset usage', { tenantId });
       }
       break;
     }
@@ -119,13 +121,13 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       const tenantId = (invoice.subscription_details?.metadata?.['tenant_id'] as string) ?? '';
       if (tenantId) {
         upsertEntitlement(tenantId, { status: 'past_due' } as Parameters<typeof upsertEntitlement>[1]);
-        console.warn(`[webhook] invoice.payment_failed for tenant ${tenantId}`);
+        logger.warn('Invoice payment failed', { tenantId });
       }
       break;
     }
 
     default:
       // Unhandled event types: just log
-      console.info(`[webhook] unhandled event: ${event.type}`);
+      logger.info('Unhandled Stripe event', { type: event.type });
   }
 }

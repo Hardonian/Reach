@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { CATALOG } from '@/lib/packs';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { sanitizeEvent } from '@/lib/sanitize';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for') || 'unknown';
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(sanitizedPayload);
 
   } catch (error) {
-    console.error('Runner API error:', error);
+    logger.error('Runner API error', error);
     return NextResponse.json({ error: 'Internal Runner Error' }, { status: 500 });
   }
 }
