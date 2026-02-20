@@ -34,6 +34,8 @@ const (
 	MsgTypeDelegation  MessageType = "delegation"
 	MsgTypeResponse    MessageType = "response"
 	MsgTypeError       MessageType = "error"
+	MsgTypeTaskRoute   MessageType = "task_route"
+	MsgTypeTaskResult  MessageType = "task_result"
 )
 
 // Message is the envelope for all mesh communications
