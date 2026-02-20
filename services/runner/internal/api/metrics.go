@@ -16,6 +16,8 @@ type metrics struct {
 	sseQueueDepth       map[string]int
 	sseDropped          map[string]uint64
 	invariantViolations map[string]uint64
+	tokenUsage          map[string]uint64 // model_id -> total tokens
+	costAccumulator     map[string]float64 // model_id -> total cost USD
 }
 
 func newMetrics() *metrics {
@@ -26,6 +28,8 @@ func newMetrics() *metrics {
 		sseQueueDepth:       map[string]int{},
 		sseDropped:          map[string]uint64{},
 		invariantViolations: map[string]uint64{},
+		tokenUsage:          map[string]uint64{},
+		costAccumulator:     map[string]float64{},
 	}
 }
 
@@ -75,6 +79,24 @@ func (m *metrics) RecordInvariantViolation(name string) {
 		m.invariantViolations = make(map[string]uint64)
 	}
 	m.invariantViolations[name]++
+}
+
+func (m *metrics) recordTokenUsage(modelID string, tokens uint64) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.tokenUsage == nil {
+		m.tokenUsage = make(map[string]uint64)
+	}
+	m.tokenUsage[modelID] += tokens
+}
+
+func (m *metrics) recordCost(modelID string, costUSD float64) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.costAccumulator == nil {
+		m.costAccumulator = make(map[string]float64)
+	}
+	m.costAccumulator[modelID] += costUSD
 }
 
 func appendWindow(dst []float64, value float64) []float64 {
@@ -144,5 +166,18 @@ func (m *metrics) prometheus() string {
 	for runID, dropped := range m.sseDropped {
 		fmt.Fprintf(&b, "reach_sse_dropped_events_total{run_id=%q} %d\n", runID, dropped)
 	}
+
+	b.WriteString("# HELP reach_token_usage_total cumulative token usage by model\n")
+	b.WriteString("# TYPE reach_token_usage_total counter\n")
+	for modelID, tokens := range m.tokenUsage {
+		fmt.Fprintf(&b, "reach_token_usage_total{model=%q} %d\n", modelID, tokens)
+	}
+
+	b.WriteString("# HELP reach_cost_usd_total cumulative estimated cost by model\n")
+	b.WriteString("# TYPE reach_cost_usd_total counter\n")
+	for modelID, cost := range m.costAccumulator {
+		fmt.Fprintf(&b, "reach_cost_usd_total{model=%q} %.6f\n", modelID, cost)
+	}
+
 	return b.String()
 }

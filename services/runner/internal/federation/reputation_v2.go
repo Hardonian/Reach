@@ -4,6 +4,7 @@ package federation
 import (
 	"hash/fnv"
 	"math"
+	"sort"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -291,8 +292,9 @@ func (nr *NodeReputation) RecordOutcome(outcome ExecutionOutcome) {
 	// Invalidate composite score
 	nr.compositeValid.Store(false)
 
-	// Snapshot history periodically
-	if nr.Dimensions.SuccessCount.Load()+nr.Dimensions.FailureCount.Load()%10 == 0 {
+	// Snapshot history periodically (every 10 executions)
+	total := nr.Dimensions.SuccessCount.Load() + nr.Dimensions.FailureCount.Load()
+	if total > 0 && total%10 == 0 {
 		nr.snapshot()
 	}
 }
@@ -620,7 +622,8 @@ func (re *ReputationEngine) RecordOutcome(nodeID string, outcome ExecutionOutcom
 	nr.RecordOutcome(outcome)
 
 	// Update global stats periodically
-	if (nr.Dimensions.SuccessCount.Load()+nr.Dimensions.FailureCount.Load())%100 == 0 {
+	execTotal := nr.Dimensions.SuccessCount.Load() + nr.Dimensions.FailureCount.Load()
+	if execTotal > 0 && execTotal%100 == 0 {
 		re.updateGlobalStats()
 	}
 }
@@ -691,13 +694,9 @@ func (re *ReputationEngine) SelectBestNodes(task TaskProfile, n int, excludeNode
 	}
 
 	// Sort by score descending
-	for i := 0; i < len(scored)-1; i++ {
-		for j := i + 1; j < len(scored); j++ {
-			if scored[j].score > scored[i].score {
-				scored[i], scored[j] = scored[j], scored[i]
-			}
-		}
-	}
+	sort.Slice(scored, func(i, j int) bool {
+		return scored[i].score > scored[j].score
+	})
 
 	// Return top N
 	if n > len(scored) {

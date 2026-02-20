@@ -141,10 +141,15 @@ func (m *Metrics) Gauge(name string, value float64) {
 	m.writeSink(name, TypeGauge, value)
 }
 
-// Timer records a timer metric.
+// Timer records a timer metric with bounded sample retention.
 func (m *Metrics) Timer(name string, duration time.Duration) {
 	m.mu.Lock()
-	m.timers[name] = append(m.timers[name], duration)
+	const maxTimerSamples = 4096
+	samples := append(m.timers[name], duration)
+	if len(samples) > maxTimerSamples {
+		samples = samples[len(samples)-maxTimerSamples:]
+	}
+	m.timers[name] = samples
 	m.mu.Unlock()
 
 	m.writeSink(name, TypeTimer, float64(duration.Nanoseconds()))
