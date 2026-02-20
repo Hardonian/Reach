@@ -9,15 +9,24 @@ import (
 	"strings"
 )
 
+// PackQualityScore represents the calculated score for a pack.
+type PackQualityScore struct {
+	StabilityScore  float64 `json:"stability"`
+	GroundingScore  float64 `json:"grounding"`
+	ComplianceScore float64 `json:"compliance"`
+	EfficiencyScore float64 `json:"efficiency"`
+	ReputationScore float64 `json:"reputation_score"` // 0-100
+}
+
 // LintResult represents the outcome of a pack lint operation.
 type LintResult struct {
-	Valid       bool          `json:"valid"`
-	Errors      []string      `json:"errors"`
-	Warnings    []string      `json:"warnings"`
-	Metadata    Metadata      `json:"metadata"`
-	Hash        string        `json:"hash"`
-	MerkleRoot  string        `json:"merkle_root,omitempty"`
-	MerkleProof *MerkleProof  `json:"merkle_proof,omitempty"`
+	Valid       bool           `json:"valid"`
+	Errors      []string       `json:"errors"`
+	Warnings    []string       `json:"warnings"`
+	Metadata    Metadata       `json:"metadata"`
+	Hash        string         `json:"hash"`
+	MerkleRoot  string         `json:"merkle_root,omitempty"`
+	MerkleProof *MerkleProof   `json:"merkle_proof,omitempty"`
 	Integrity   *PackIntegrity `json:"integrity,omitempty"`
 }
 

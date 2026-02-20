@@ -7,6 +7,10 @@ case "$cmd" in
     shift
     (cd tools/doctor && go run . "$@")
     ;;
+  eval)
+    shift
+    (cd tools/reach-eval && go run . "$@")
+    ;;
   release-check)
     shift
     ./tools/release-check.sh "$@"
@@ -84,6 +88,7 @@ case "$cmd" in
     echo ""
     echo "Commands:"
     echo "  doctor           - System health check"
+    echo "  eval             - Evaluate runs and regressions"
     echo "  wizard           - Guided run wizard (mobile-friendly)"
     echo "  run <pack>       - Quick run a pack"
     echo "  share            - Share runs via QR/text"
@@ -95,7 +100,7 @@ case "$cmd" in
     echo "For mobile/Termux: Install with scripts/install-termux.sh"
     ;;
   *)
-    echo "usage: reach doctor|release-check|serve|federation|support|arcade|capsule|proof|graph|packs|init|explain|operator|pack|wizard|run|share|delegate|verify-proof" >&2
+    echo "usage: reach doctor|eval|release-check|serve|federation|support|arcade|capsule|proof|graph|packs|init|explain|operator|pack|wizard|run|share|delegate|verify-proof" >&2
     echo "       reach help for more info" >&2
     exit 1
     ;;
