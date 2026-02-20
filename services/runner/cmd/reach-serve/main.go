@@ -399,6 +399,8 @@ func (s *Server) handleCreateCapsule(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error(), nil)
 		return
 	}
+	
+	s.metrics.capsulesCreated.Add(1)
 
 	writeJSON(w, http.StatusCreated, map[string]any{
 		"manifest":    capsule.Manifest,
