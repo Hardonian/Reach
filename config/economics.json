@@ -1,5 +1,5 @@
 {
-  "version": "1.1",
+  "version": "1.2",
   "currency": "USD",
   "compute": {
     "cost_per_ms": 0.0000000167,
@@ -12,10 +12,13 @@
   "models": {
     "gpt-4": { "input_1k": 0.03, "output_1k": 0.06 },
     "gpt-4o": { "input_1k": 0.005, "output_1k": 0.015 },
+    "gpt-4o-mini": { "input_1k": 0.00015, "output_1k": 0.0006 },
     "gpt-3.5-turbo": { "input_1k": 0.0005, "output_1k": 0.0015 },
     "claude-3-opus": { "input_1k": 0.015, "output_1k": 0.075 },
     "claude-3.5-sonnet": { "input_1k": 0.003, "output_1k": 0.015 },
     "claude-3-haiku": { "input_1k": 0.00025, "output_1k": 0.00125 },
+    "claude-4-sonnet": { "input_1k": 0.003, "output_1k": 0.015 },
+    "claude-4-opus": { "input_1k": 0.015, "output_1k": 0.075 },
     "local-llama": { "input_1k": 0.0, "output_1k": 0.0 }
   }
 }

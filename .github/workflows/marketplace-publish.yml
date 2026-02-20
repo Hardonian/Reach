@@ -27,6 +27,13 @@ jobs:
           echo "type=$TYPE" >> "$GITHUB_OUTPUT"
           echo "id=$ID" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Validate semver format
+        run: |
+          VERSION="${{ steps.meta.outputs.version }}"
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$'; then
+            echo "::error::Invalid semver version: $VERSION"
+            exit 1
+          fi
       - name: Build pack
         run: |
           go run ./tools/packkit-build --type "${{ steps.meta.outputs.type }}" --path "./${{ steps.meta.outputs.type }}s/${{ steps.meta.outputs.id }}" --out ./dist
@@ -43,6 +50,8 @@ jobs:
           echo "$PACKKIT_PRIVATE_KEY_B64" > private.pem
           MANIFEST=$(find dist -name manifest.json | head -n1)
           go run ./tools/packkit-sign --manifest "$MANIFEST" --key private.pem --key-id marketplace
+          # Securely remove key material after signing
+          shred -u private.pem 2>/dev/null || rm -f private.pem
       - name: Update static index
         run: |
           mkdir -p docs/marketplace/registry

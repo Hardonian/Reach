@@ -68,12 +68,23 @@ program
       console.log(`Avg Latency:      ${agg.avg_latency_ms.toFixed(0)}ms`);
       console.log(`Total Tokens:     ${agg.total_tokens}`);
       console.log(`Success Rate:     ${(agg.success_rate * 100).toFixed(1)}%`);
+      console.log(`Total Margin:     $${agg.total_margin.toFixed(4)}`);
+
+      if (agg.anomaly_count > 0) {
+        console.log(`\n[!] Cost Anomalies: ${agg.anomaly_count} runs exceeded $5.00 threshold`);
+      }
+
+      if (agg.unknown_models.length > 0) {
+        console.log(`\n[!] Unpriced Models: ${agg.unknown_models.join(', ')}`);
+        console.log(`    Add these to config/economics.json for accurate costing.`);
+      }
 
       console.log(`\nCost by Model:`);
       Object.entries(agg.cost_by_model)
         .sort(([, a], [, b]) => b - a)
         .forEach(([id, cost]) => {
-          console.log(`  - ${id}: $${cost.toFixed(4)}`);
+          const suffix = agg.unknown_models.includes(id) ? ' (unpriced!)' : '';
+          console.log(`  - ${id}: $${cost.toFixed(4)}${suffix}`);
         });
 
       console.log(`\nTop Expensive Workflows:`);

@@ -12,12 +12,29 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const pack = getPackBySlug(id) ?? getPack(id);
   if (!pack) return cloudErrorResponse('Pack not found', 404);
 
+  // Reject flagged packs from installation
+  if (pack.flagged === 1) {
+    return cloudErrorResponse('This pack has been flagged for review and cannot be installed', 403);
+  }
+
   const body = await req.json().catch(() => ({})) as { version?: string };
   const version = body.version ?? pack.latest_version;
   const pv = getPackVersion(pack.id, version);
 
+  if (!pv) {
+    return cloudErrorResponse(`Version ${version} not found for this pack`, 404);
+  }
+
   incrementDownload(pack.id);
   auditLog(ctx, 'pack.install', 'pack', pack.id, { version }, req);
+
+  // Safely parse manifest to prevent crashes on corrupted data
+  let manifest: unknown;
+  try {
+    manifest = JSON.parse(pv.manifest_json);
+  } catch {
+    manifest = { name: pack.name, version };
+  }
 
   return NextResponse.json({
     ok: true,
@@ -25,7 +42,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     slug: pack.slug,
     version,
     installed_at: new Date().toISOString(),
-    manifest: pv ? JSON.parse(pv.manifest_json) : { name: pack.name, version },
+    manifest,
     // CLI install command for users
     install_command: `reachctl packs install ${pack.slug}@${version}`,
   });

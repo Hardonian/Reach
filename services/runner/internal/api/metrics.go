@@ -8,6 +8,9 @@ import (
 	"time"
 )
 
+// maxMetricCardinality prevents unbounded memory growth from high-cardinality labels.
+const maxMetricCardinality = 10000
+
 type metrics struct {
 	mu                  sync.Mutex
 	requestDurations    map[string][]float64
@@ -60,6 +63,15 @@ func (m *metrics) setSSEQueueDepth(runID string, depth int) {
 	if m.sseQueueDepth == nil {
 		m.sseQueueDepth = make(map[string]int)
 	}
+	// Evict stale entries when cardinality limit is reached
+	if len(m.sseQueueDepth) >= maxMetricCardinality {
+		for k := range m.sseQueueDepth {
+			if k != runID {
+				delete(m.sseQueueDepth, k)
+				break
+			}
+		}
+	}
 	m.sseQueueDepth[runID] = depth
 }
 
@@ -68,6 +80,14 @@ func (m *metrics) incSSEDropped(runID string) {
 	defer m.mu.Unlock()
 	if m.sseDropped == nil {
 		m.sseDropped = make(map[string]uint64)
+	}
+	if len(m.sseDropped) >= maxMetricCardinality {
+		for k := range m.sseDropped {
+			if k != runID {
+				delete(m.sseDropped, k)
+				break
+			}
+		}
 	}
 	m.sseDropped[runID]++
 }

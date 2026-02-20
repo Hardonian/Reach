@@ -28,6 +28,16 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   }
 }
 
+/** Safely parse JSON or return fallback. */
+function safeJsonParse(json: string | null | undefined, fallback: unknown = []): unknown {
+  if (!json) return fallback;
+  try {
+    return JSON.parse(json);
+  } catch {
+    return fallback;
+  }
+}
+
 export function formatPack(p: ReturnType<typeof browsePacks>['packs'][number]) {
   return {
     id: p.id,
@@ -45,9 +55,9 @@ export function formatPack(p: ReturnType<typeof browsePacks>['packs'][number]) {
     downloads: p.downloads,
     rating: p.rating_count > 0 ? p.rating_sum / p.rating_count : 0,
     rating_count: p.rating_count,
-    tools: JSON.parse(p.tools_json),
-    tags: JSON.parse(p.tags_json),
-    permissions: JSON.parse(p.permissions_json),
+    tools: safeJsonParse(p.tools_json, []),
+    tags: safeJsonParse(p.tags_json, []),
+    permissions: safeJsonParse(p.permissions_json, []),
     data_handling: p.data_handling,
     flagged: p.flagged === 1,
     created_at: p.created_at,

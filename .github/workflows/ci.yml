@@ -177,6 +177,23 @@ jobs:
       - name: queue/backpressure regression tests
         run: |
           cd services/runner && go test ./internal/jobs -run 'Queue|Enqueue' -count=1
+      - name: trust layer and audit tests
+        run: |
+          cd services/runner && go test ./internal/audit/... ./internal/federation/... -count=1
+      - name: validate economics config
+        run: |
+          node -e "
+            const fs = require('fs');
+            const cfg = JSON.parse(fs.readFileSync('config/economics.json', 'utf8'));
+            if (!cfg.version) { console.error('Missing version'); process.exit(1); }
+            if (!cfg.models || Object.keys(cfg.models).length === 0) { console.error('No models defined'); process.exit(1); }
+            for (const [id, rates] of Object.entries(cfg.models)) {
+              if (typeof rates.input_1k !== 'number' || typeof rates.output_1k !== 'number') {
+                console.error('Invalid rates for model: ' + id); process.exit(1);
+              }
+            }
+            console.log('Economics config validated: ' + Object.keys(cfg.models).length + ' models');
+          "
 
   vscode:
     name: vscode extension checks

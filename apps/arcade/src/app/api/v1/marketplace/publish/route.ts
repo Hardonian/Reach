@@ -18,6 +18,12 @@ export const runtime = 'nodejs';
 // Tools that require explicit security declaration
 const HIGH_RISK_TOOLS = new Set(['shell.exec', 'fs.write', 'network.raw', 'process.spawn', 'crypto.key']);
 
+// Maximum allowed manifest sizes to prevent abuse
+const MAX_README_LENGTH = 50_000;
+const MAX_TOOLS_COUNT = 100;
+const MAX_TAGS_COUNT = 20;
+const MAX_PERMISSIONS_COUNT = 50;
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const ctx = await requireAuth(req);
   if (ctx instanceof NextResponse) return ctx;
@@ -34,6 +40,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const manifest = parsed.data;
+
+  // ── Size and cardinality guards ──────────────────────────────────────
+  if (manifest.readme && manifest.readme.length > MAX_README_LENGTH) {
+    return cloudErrorResponse(`README exceeds maximum length of ${MAX_README_LENGTH} characters`, 422);
+  }
+  if (manifest.tools.length > MAX_TOOLS_COUNT) {
+    return cloudErrorResponse(`Too many tools declared (max ${MAX_TOOLS_COUNT})`, 422);
+  }
+  if (manifest.tags && manifest.tags.length > MAX_TAGS_COUNT) {
+    return cloudErrorResponse(`Too many tags (max ${MAX_TAGS_COUNT})`, 422);
+  }
+  if (manifest.permissions.length > MAX_PERMISSIONS_COUNT) {
+    return cloudErrorResponse(`Too many permissions (max ${MAX_PERMISSIONS_COUNT})`, 422);
+  }
 
   // ── Automated security checks ─────────────────────────────────────────
   const warnings: string[] = [];

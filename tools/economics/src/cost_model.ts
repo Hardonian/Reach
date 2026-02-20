@@ -1,4 +1,4 @@
-import { EconomicsConfig, LedgerEntry } from './types';
+import { EconomicsConfig, LedgerEntry, PLAN_TIERS } from './types';
 
 export interface CostBreakdown {
   compute_cost: number;
@@ -7,18 +7,25 @@ export interface CostBreakdown {
   total_cost: number;
   currency: string;
   margin_at_tier: number | null;
+  model_known: boolean;
 }
+
+/** Cost anomaly threshold: flag individual runs exceeding this USD amount. */
+const COST_ANOMALY_THRESHOLD_USD = 5.0;
 
 /**
  * Calculate the total cost of a single execution run.
  * Includes token costs, compute costs, and optional storage costs.
+ * Tracks whether the model was found in config for visibility into unpriced models.
  */
 export function calculateRunCost(entry: LedgerEntry, config: EconomicsConfig): CostBreakdown {
-  const modelRates = config.models[entry.model_id] || { input_1k: 0, output_1k: 0 };
+  const modelRates = config.models[entry.model_id];
+  const model_known = !!modelRates;
+  const rates = modelRates || { input_1k: 0, output_1k: 0 };
 
   const token_cost =
-    (entry.tokens_in / 1000 * modelRates.input_1k) +
-    (entry.tokens_out / 1000 * modelRates.output_1k);
+    (entry.tokens_in / 1000 * rates.input_1k) +
+    (entry.tokens_out / 1000 * rates.output_1k);
 
   const compute_cost = entry.duration_ms * config.compute.cost_per_ms;
 
@@ -26,13 +33,22 @@ export function calculateRunCost(entry: LedgerEntry, config: EconomicsConfig): C
 
   const total_cost = compute_cost + token_cost + storage_cost;
 
+  // Compute margin at tier if plan_tier is available
+  let margin_at_tier: number | null = null;
+  if (entry.plan_tier && PLAN_TIERS[entry.plan_tier]) {
+    const tier = PLAN_TIERS[entry.plan_tier];
+    const revenue_per_run = tier.runs_per_month > 0 ? tier.monthly_price / tier.runs_per_month : 0;
+    margin_at_tier = revenue_per_run - total_cost;
+  }
+
   return {
     compute_cost,
     token_cost,
     storage_cost,
     total_cost,
     currency: config.currency,
-    margin_at_tier: null,
+    margin_at_tier,
+    model_known,
   };
 }
 
@@ -49,6 +65,9 @@ export interface AggregatedCosts {
   cost_by_model: Record<string, number>;
   cost_by_workflow: Record<string, number>;
   cost_by_tenant: Record<string, number>;
+  unknown_models: string[];
+  anomaly_count: number;
+  total_margin: number;
 }
 
 export function aggregateCosts(entries: LedgerEntry[], config: EconomicsConfig): AggregatedCosts {
@@ -56,9 +75,12 @@ export function aggregateCosts(entries: LedgerEntry[], config: EconomicsConfig):
   let totalTokens = 0;
   let totalDuration = 0;
   let successCount = 0;
+  let anomalyCount = 0;
+  let totalMargin = 0;
   const costByModel: Record<string, number> = {};
   const costByWorkflow: Record<string, number> = {};
   const costByTenant: Record<string, number> = {};
+  const unknownModels = new Set<string>();
 
   for (const entry of entries) {
     const cost = calculateRunCost(entry, config);
@@ -66,6 +88,18 @@ export function aggregateCosts(entries: LedgerEntry[], config: EconomicsConfig):
     totalTokens += (entry.tokens_in + entry.tokens_out);
     totalDuration += entry.duration_ms;
     if (entry.status === 'success') successCount++;
+
+    if (!cost.model_known) {
+      unknownModels.add(entry.model_id);
+    }
+
+    if (cost.total_cost > COST_ANOMALY_THRESHOLD_USD) {
+      anomalyCount++;
+    }
+
+    if (cost.margin_at_tier !== null) {
+      totalMargin += cost.margin_at_tier;
+    }
 
     costByModel[entry.model_id] = (costByModel[entry.model_id] || 0) + cost.total_cost;
     costByWorkflow[entry.workflow_id] = (costByWorkflow[entry.workflow_id] || 0) + cost.total_cost;
@@ -82,5 +116,8 @@ export function aggregateCosts(entries: LedgerEntry[], config: EconomicsConfig):
     cost_by_model: costByModel,
     cost_by_workflow: costByWorkflow,
     cost_by_tenant: costByTenant,
+    unknown_models: Array.from(unknownModels),
+    anomaly_count: anomalyCount,
+    total_margin: totalMargin,
   };
 }
