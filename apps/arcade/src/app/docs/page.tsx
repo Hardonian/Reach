@@ -3,34 +3,34 @@ export default function Docs() {
     {
       title: 'Getting Started',
       items: [
-        { title: 'Quick Start', href: '#quick-start' },
-        { title: 'Installation', href: '#installation' },
-        { title: 'Configuration', href: '#configuration' },
+        { title: 'Quick Start', href: '/docs/quick-start' },
+        { title: 'Installation', href: '/docs/installation' },
+        { title: 'Configuration', href: '/docs/configuration' },
       ],
     },
     {
       title: 'Core Concepts',
       items: [
-        { title: 'Agents', href: '#agents' },
-        { title: 'Pipelines', href: '#pipelines' },
-        { title: 'Orchestration', href: '#orchestration' },
-        { title: 'Governance', href: '#governance' },
+        { title: 'Agents', href: '/docs/agents' },
+        { title: 'Pipelines', href: '/docs/pipelines' },
+        { title: 'Orchestration', href: '/docs/orchestration' },
+        { title: 'Governance', href: '/docs/governance' },
       ],
     },
     {
       title: 'Platform',
       items: [
-        { title: 'Dashboard', href: '#dashboard' },
-        { title: 'Marketplace', href: '#marketplace' },
-        { title: 'Studio', href: '#studio' },
+        { title: 'Dashboard', href: '/docs/dashboard' },
+        { title: 'Marketplace', href: '/docs/marketplace' },
+        { title: 'Studio', href: '/docs/studio' },
       ],
     },
     {
       title: 'API Reference',
       items: [
-        { title: 'Authentication', href: '#auth' },
-        { title: 'Endpoints', href: '#endpoints' },
-        { title: 'Webhooks', href: '#webhooks' },
+        { title: 'Authentication', href: '/docs/auth' },
+        { title: 'Endpoints', href: '/docs/endpoints' },
+        { title: 'Webhooks', href: '/docs/webhooks' },
       ],
     },
   ];
@@ -67,7 +67,7 @@ export default function Docs() {
         <div className="mt-12 card gradient-border">
           <h2 className="text-xl font-bold mb-4">Need Help?</h2>
           <p className="text-gray-400 mb-4">
-            Can't find what you're looking for? Reach out to our support team or join the community.
+            Can&apos;t find what you&apos;re looking for? Reach out to our support team or join the community.
           </p>
           <div className="flex gap-4">
             <a href="/contact" className="btn-primary text-sm py-2">Contact Support</a>
