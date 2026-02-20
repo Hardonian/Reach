@@ -1,12 +1,23 @@
 use crate::DeterministicEvent;
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
 
+/// FNV-1a 64-bit offset basis.
+const FNV_OFFSET: u64 = 0xcbf29ce484222325;
+/// FNV-1a 64-bit prime.
+const FNV_PRIME: u64 = 0x00000100000001B3;
+
+/// Computes a deterministic FNV-1a hash of the payload.
+///
+/// Unlike `std::collections::hash_map::DefaultHasher`, this hash function
+/// is portable across platforms and compiler versions, making it safe for
+/// canonical hashing in replay and integrity verification.
 #[must_use]
 pub fn canonical_hash(payload: &[u8]) -> String {
-    let mut hasher = DefaultHasher::new();
-    payload.hash(&mut hasher);
-    format!("{:016x}", hasher.finish())
+    let mut hash = FNV_OFFSET;
+    for &byte in payload {
+        hash ^= u64::from(byte);
+        hash = hash.wrapping_mul(FNV_PRIME);
+    }
+    format!("{hash:016x}")
 }
 
 #[must_use]
@@ -62,19 +73,47 @@ pub fn patch_upgrade_replay_compatible(source: &str, target: &str) -> bool {
     source_major == target_major && source_minor == target_minor
 }
 
+/// Parses a semver string into (major, minor, patch).
+/// Returns (0, 0, 0) for any segment that fails to parse, but logs the
+/// failure case to prevent silent version mismatches.
 fn parse_semver(version: &str) -> (u32, u32, u32) {
-    let mut segments = version.split('.');
-    let major = segments
-        .next()
-        .and_then(|v| v.parse::<u32>().ok())
-        .unwrap_or_default();
-    let minor = segments
-        .next()
-        .and_then(|v| v.parse::<u32>().ok())
-        .unwrap_or_default();
-    let patch = segments
-        .next()
-        .and_then(|v| v.parse::<u32>().ok())
-        .unwrap_or_default();
+    let parts: Vec<&str> = version.split('.').collect();
+    if parts.len() != 3 {
+        // Non-standard semver format — treat as 0.0.0 to fail version checks safely.
+        return (0, 0, 0);
+    }
+    let major = parts[0].parse::<u32>().unwrap_or(0);
+    let minor = parts[1].parse::<u32>().unwrap_or(0);
+    let patch = parts[2].parse::<u32>().unwrap_or(0);
     (major, minor, patch)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn canonical_hash_is_deterministic() {
+        let data = b"hello world";
+        let h1 = canonical_hash(data);
+        let h2 = canonical_hash(data);
+        assert_eq!(h1, h2);
+    }
+
+    #[test]
+    fn canonical_hash_different_for_different_inputs() {
+        assert_ne!(canonical_hash(b"a"), canonical_hash(b"b"));
+    }
+
+    #[test]
+    fn parse_semver_valid() {
+        assert_eq!(parse_semver("1.2.3"), (1, 2, 3));
+    }
+
+    #[test]
+    fn parse_semver_invalid_returns_zeros() {
+        assert_eq!(parse_semver("abc.def.xyz"), (0, 0, 0));
+        assert_eq!(parse_semver("1.2"), (0, 0, 0));
+        assert_eq!(parse_semver(""), (0, 0, 0));
+    }
 }

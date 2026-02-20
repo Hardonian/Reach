@@ -46,3 +46,48 @@ impl Policy {
             })
     }
 }
+
+/// Execution-level policy constraints for the state machine.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ExecutionPolicy {
+    /// Maximum number of state transitions before the run is rejected.
+    pub max_transitions: usize,
+    /// Whether decision nodes are allowed in the workflow.
+    pub allow_decisions: bool,
+}
+
+impl Default for ExecutionPolicy {
+    fn default() -> Self {
+        Self {
+            max_transitions: usize::MAX,
+            allow_decisions: true,
+        }
+    }
+}
+
+/// Errors arising from execution policy enforcement.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PolicyError {
+    /// The run exceeded the maximum number of allowed state transitions.
+    TransitionLimitReached,
+    /// A decision node was encountered but decisions are disallowed by policy.
+    DecisionNodeDisallowed,
+}
+
+impl ExecutionPolicy {
+    /// Check whether a transition is permitted given the current count.
+    pub fn evaluate_transition(&self, transitions: usize) -> Result<(), PolicyError> {
+        if transitions >= self.max_transitions {
+            return Err(PolicyError::TransitionLimitReached);
+        }
+        Ok(())
+    }
+
+    /// Check whether decision nodes are allowed.
+    pub fn evaluate_decision(&self) -> Result<(), PolicyError> {
+        if !self.allow_decisions {
+            return Err(PolicyError::DecisionNodeDisallowed);
+        }
+        Ok(())
+    }
+}

@@ -374,6 +374,7 @@ func (s *Server) handleFetchSharedRun(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) withObservability(next http.Handler) http.Handler {
+	const maxBodySize = 10 * 1024 * 1024 // 10 MiB request body limit
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		started := time.Now()
 		correlationID := strings.TrimSpace(r.Header.Get("X-Correlation-ID"))
@@ -381,6 +382,10 @@ func (s *Server) withObservability(next http.Handler) http.Handler {
 			correlationID = s.requestID(r)
 		}
 		w.Header().Set("X-Correlation-ID", correlationID)
+		// Limit request body size to prevent DoS via oversized payloads
+		if r.Body != nil {
+			r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
+		}
 		ctx := context.WithValue(r.Context(), ctxKey("correlation_id"), correlationID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 		s.metrics.observeRequest(r.Method+" "+r.URL.Path, time.Since(started))
@@ -390,7 +395,9 @@ func (s *Server) withObservability(next http.Handler) http.Handler {
 func (s *Server) observeEvent(_ string, evt jobs.Event) {
 	if s.gamification != nil {
 		s.gamification.ApplyEvent(evt.Type, evt.CreatedAt)
-		_ = s.gamification.Save()
+		if err := s.gamification.Save(); err != nil {
+			fmt.Fprintf(os.Stderr, "gamification save failed: %v\n", err)
+		}
 	}
 }
 
@@ -459,7 +466,10 @@ func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
 		PackCID      string   `json:"pack_cid"`
 	}
 	if r.Body != nil {
-		_ = json.NewDecoder(r.Body).Decode(&body)
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			writeError(w, 400, "invalid json")
+			return
+		}
 	}
 	tenant := tenantIDFrom(r.Context())
 	run, err := s.store.CreateRun(r.Context(), tenant, body.PackCID, body.Capabilities)
@@ -506,8 +516,9 @@ func (s *Server) handleInternalTrigger(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleSpawnRun(w http.ResponseWriter, r *http.Request) {
 	parentID := r.PathValue("id")
 	tenant := tenantIDFrom(r.Context())
-	if _, err := s.store.GetRun(r.Context(), tenant, parentID); err != nil {
-		writeError(w, 404, err.Error())
+	parent, err := s.store.GetRun(r.Context(), tenant, parentID)
+	if err != nil {
+		writeError(w, 404, "parent run not found")
 		return
 	}
 	var body struct {
@@ -518,7 +529,6 @@ func (s *Server) handleSpawnRun(w http.ResponseWriter, r *http.Request) {
 		writeError(w, 400, "invalid json")
 		return
 	}
-	parent, _ := s.store.GetRun(r.Context(), tenant, parentID)
 	if body.PackCID == "" && parent != nil {
 		body.PackCID = parent.PackCID
 	}
@@ -609,7 +619,6 @@ func (s *Server) handleToolResult(w http.ResponseWriter, r *http.Request) {
 	// Record the actual spend
 	_ = s.store.RecordSpend(r.Context(), tenant, runID, estCost)
 
-	writeJSON(w, 200, map[string]string{"status": "queued"})
 	s.toolCalls.Add(1)
 	payload := mustJSON(map[string]any{"type": "tool_result", "tool": body.ToolName, "result": body.Result})
 	_ = s.store.PublishEvent(r.Context(), runID, jobs.Event{Type: "tool.result", Payload: payload, CreatedAt: time.Now().UTC()}, s.requestID(r))

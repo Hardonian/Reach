@@ -101,6 +101,22 @@ func (s *Store) Get(nodeID string) NodeStats {
 	return n
 }
 
+// Update atomically reads, modifies, and writes back a node under a single lock hold.
+// This prevents the race condition where Get() + modify + Upsert() could lose concurrent updates.
+func (s *Store) Update(nodeID string, fn func(node *NodeStats)) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	n, ok := s.Nodes[nodeID]
+	if !ok {
+		n = NodeStats{NodeID: nodeID, Snapshot: ReputationSnapshot{DelegationsFailedByReason: map[string]int{}}}
+	}
+	if n.Snapshot.DelegationsFailedByReason == nil {
+		n.Snapshot.DelegationsFailedByReason = map[string]int{}
+	}
+	fn(&n)
+	s.Nodes[nodeID] = n
+}
+
 func (s *Store) List() []NodeStats {
 	s.mu.Lock()
 	defer s.mu.Unlock()

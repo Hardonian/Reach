@@ -424,7 +424,19 @@ func (s *Server) handleVerifyCapsule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	capsule, err := s.readCapsule(body.Path)
+	// Sanitize path: resolve to absolute and ensure it's within the data directory
+	absPath, err := filepath.Abs(body.Path)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "INVALID_REQUEST", "Invalid path", nil)
+		return
+	}
+	capsuleDir := filepath.Join(s.dataRoot, "capsules")
+	if !strings.HasPrefix(absPath, capsuleDir) {
+		writeError(w, http.StatusForbidden, "ACCESS_DENIED", "Path must be within capsules directory", nil)
+		return
+	}
+
+	capsule, err := s.readCapsule(absPath)
 	if err != nil {
 		writeError(w, http.StatusNotFound, "CAPSULE_NOT_FOUND", err.Error(), nil)
 		return
@@ -793,6 +805,21 @@ type visitor struct {
 }
 
 func withRateLimit(next http.Handler) http.Handler {
+	// Periodically clean up stale rate-limit entries to prevent unbounded memory growth
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			rateLimitMu.Lock()
+			for ip, v := range rateLimits {
+				if time.Since(v.lastSeen) > 2*time.Minute {
+					delete(rateLimits, ip)
+				}
+			}
+			rateLimitMu.Unlock()
+		}
+	}()
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ip, _, _ := net.SplitHostPort(r.RemoteAddr)
 
