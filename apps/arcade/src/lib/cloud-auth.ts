@@ -11,6 +11,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { env } from './env';
+import { logger } from './logger';
 import {
   getSession,
   getUserById,
@@ -74,7 +76,7 @@ export async function resolveAuth(req: NextRequest, tenantIdOverride?: string): 
     }
 
     // ── Session Auth ──────────────────────────────────────────────────────
-    const cookieName = process.env.REACH_SESSION_COOKIE_NAME ?? 'reach_session';
+    const cookieName = env.REACH_SESSION_COOKIE_NAME;
     const sessionId = req.cookies.get(cookieName)?.value;
     if (sessionId) {
       const session = getSession(sessionId);
@@ -100,7 +102,7 @@ export async function resolveAuth(req: NextRequest, tenantIdOverride?: string): 
     if (err instanceof CloudDisabledError) {
       return cloudErrorResponse('Cloud features are disabled (REACH_CLOUD_ENABLED not set)', 503, corrId);
     }
-    console.error('[cloud-auth] error:', err);
+    logger.error('Authentication error', err, { url: req.url }, corrId);
     return cloudErrorResponse('Internal authentication error', 500, corrId);
   }
 }
@@ -130,11 +132,11 @@ export function auditLog(ctx: AuthContext, action: string, resource: string, res
 
 /** Set session cookie on a response */
 export function setSessionCookie(res: NextResponse, sessionId: string): NextResponse {
-  const cookieName = process.env.REACH_SESSION_COOKIE_NAME ?? 'reach_session';
-  const ttlHours = parseInt(process.env.REACH_SESSION_TTL_HOURS ?? '24', 10);
+  const cookieName = env.REACH_SESSION_COOKIE_NAME;
+  const ttlHours = env.REACH_SESSION_TTL_HOURS;
   res.cookies.set(cookieName, sessionId, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: ttlHours * 3600,
     path: '/',
@@ -144,7 +146,7 @@ export function setSessionCookie(res: NextResponse, sessionId: string): NextResp
 
 /** Clear session cookie */
 export function clearSessionCookie(res: NextResponse): NextResponse {
-  const cookieName = process.env.REACH_SESSION_COOKIE_NAME ?? 'reach_session';
+  const cookieName = env.REACH_SESSION_COOKIE_NAME;
   res.cookies.set(cookieName, '', { maxAge: 0, path: '/' });
   return res;
 }

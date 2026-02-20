@@ -5,13 +5,14 @@
  * Falls back gracefully when disabled.
  */
 import Stripe from 'stripe';
+import { env } from './env';
 
 export class BillingDisabledError extends Error {
   constructor() { super('BILLING_ENABLED is not set or STRIPE_SECRET_KEY is missing.'); }
 }
 
 function isBillingEnabled(): boolean {
-  return process.env.BILLING_ENABLED === 'true' && !!process.env.STRIPE_SECRET_KEY;
+  return env.BILLING_ENABLED === true && !!env.STRIPE_SECRET_KEY;
 }
 
 let _stripe: Stripe | undefined;
@@ -19,7 +20,7 @@ let _stripe: Stripe | undefined;
 export function getStripe(): Stripe {
   if (!isBillingEnabled()) throw new BillingDisabledError();
   if (_stripe) return _stripe;
-  _stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  _stripe = new Stripe(env.STRIPE_SECRET_KEY!, {
     apiVersion: '2025-01-27.acacia',
   });
   return _stripe;
@@ -29,9 +30,9 @@ export function getStripe(): Stripe {
 // Set these env vars to real Stripe Price IDs:
 //   STRIPE_PRICE_PRO, STRIPE_PRICE_TEAM, STRIPE_PRICE_ENTERPRISE
 export const PLAN_PRICE_IDS: Record<string, string | undefined> = {
-  pro:        process.env.STRIPE_PRICE_PRO,
-  team:       process.env.STRIPE_PRICE_TEAM,
-  enterprise: process.env.STRIPE_PRICE_ENTERPRISE,
+  pro:        env.STRIPE_PRICE_PRO,
+  team:       env.STRIPE_PRICE_TEAM,
+  enterprise: env.STRIPE_PRICE_ENTERPRISE,
 };
 
 export function getPlanForPriceId(priceId: string): string {
@@ -77,7 +78,7 @@ export async function createPortalSession(customerId: string, returnUrl: string)
 // ── Webhook signature verification ─────────────────────────────────────────
 export function constructWebhookEvent(rawBody: Buffer, sig: string): Stripe.Event {
   const stripe = getStripe();
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  const secret = env.STRIPE_WEBHOOK_SECRET;
   if (!secret) throw new Error('STRIPE_WEBHOOK_SECRET not configured');
   return stripe.webhooks.constructEvent(rawBody, sig, secret);
 }

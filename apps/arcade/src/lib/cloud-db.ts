@@ -15,17 +15,18 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
+import { env } from './env';
 
 export class CloudDisabledError extends Error {
   constructor() { super('REACH_CLOUD_ENABLED is not set. Cloud features disabled.'); }
 }
 
 function isCloudEnabled(): boolean {
-  return process.env.REACH_CLOUD_ENABLED === 'true';
+  return env.REACH_CLOUD_ENABLED === true;
 }
 
 // ── Singleton DB handle ────────────────────────────────────────────────────
-const DB_PATH = process.env.CLOUD_DB_PATH ?? path.join(process.cwd(), 'reach-cloud.db');
+const DB_PATH = env.CLOUD_DB_PATH ?? path.join(process.cwd(), 'reach-cloud.db');
 
 let _db: Database.Database | undefined;
 
@@ -399,7 +400,7 @@ export function createSession(userId: string, tenantId?: string): WebSession {
   const db = getDB();
   const id = crypto.randomBytes(32).toString('hex');
   const now = new Date().toISOString();
-  const ttlHours = parseInt(process.env.REACH_SESSION_TTL_HOURS ?? '24', 10);
+  const ttlHours = env.REACH_SESSION_TTL_HOURS;
   const expiresAt = new Date(Date.now() + ttlHours * 3600000).toISOString();
   db.prepare(`INSERT INTO web_sessions (id, user_id, tenant_id, expires_at, created_at) VALUES (?,?,?,?,?)`)
     .run(id, userId, tenantId ?? null, expiresAt, now);

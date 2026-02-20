@@ -1,4 +1,5 @@
 import { redis } from './redis';
+import { logger } from './logger';
 
 // Fallback in-memory store if Redis is unavailable
 const memoryStore = new Map<string, { count: number; windowStart: number }>();
@@ -19,7 +20,7 @@ export async function checkRateLimit(ip: string, limit: number = 10, windowSecon
         remaining: Math.max(0, limit - current),
       };
     } catch (error) {
-      console.warn('Redis rate limit error, falling back to memory:', error);
+      logger.warn('Redis rate limit error, falling back to memory', { ip, error });
     }
   }
 
