@@ -2264,8 +2264,8 @@ func runQuick(args []string, out, errOut io.Writer) int {
 	cid := registry.Register(lintRes)
 
 	// 3. Execute with MCP enforcement
-	mcpSrv := mcpserver.New("../../", &simplePolicy{}, &simpleAudit{}, &simpleResolver{}, &simpleApproval{})
-	client := &LocalMCPClient{server: mcpSrv}
+	mcpSrv := mcpserver.NewMockServer("../../")
+	client := &mcpserver.LocalMCPClient{Server: mcpSrv}
 
 	executor := jobs.NewDAGExecutor(registry, client)
 	ctx := context.Background()
