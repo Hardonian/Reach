@@ -240,7 +240,7 @@ export function StudioShell() {
         {active === 'Graph' && (
           <>
             <h2>Graph</h2>
-            <p>DAG overlay markers:</p>
+            <p>Workflow overlay markers:</p>
             <ul>
               <li>🟢 policy allow nodes</li>
               <li>🔴 policy deny nodes</li>

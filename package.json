@@ -18,7 +18,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "(cd services/runner && go test ./...) && npm run test --workspaces --if-present",
     "build": "(cd services/runner && go build ./...) && npm run build --workspaces --if-present",
-    "verify:fast": "npm run lint && npm run typecheck && npm run verify:env",
+    "verify:fast": "npm run lint && npm run typecheck && npm run verify:env && npm run validate:language",
     "verify:full": "npm run verify:fast && npm run test && npm run build && npm run docs:doctor && npm run security:check",
     "verify:env": "node scripts/verify-env.mjs",
     "validate": "npm run verify:full",
@@ -50,6 +50,7 @@
     "security:check": "npm run verify:no-toxic-deps && npm run security:audit",
     "preinstall": "node scripts/check-node-version.mjs",
     "clean": "node -e \"const fs=require('fs');['services/runner/reach-serve.exe','services/runner/reachctl.exe'].forEach(f=>{try{fs.unlinkSync(f)}catch(e){}})\" && (npm run clean --workspaces --if-present)",
+    "validate:language": "npx tsx scripts/enforce-canonical-language.ts",
     "docs:doctor": "npx tsx tools/docs/drift/run.ts",
     "docs:doctor:fix": "npx tsx tools/docs/drift/run.ts --fix"
   },
