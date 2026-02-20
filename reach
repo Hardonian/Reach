@@ -97,6 +97,7 @@ case "$cmd" in
     echo "  run <pack>       - Quick run a pack"
     echo "  share            - Share runs via QR/text"
     echo "  operator         - View operator dashboard"
+    echo "  audit            - Export/verify signed audit logs"
     echo "  capsule          - Create/verify capsules"
     echo "  proof            - Verify execution proofs"
     echo "  packs            - Search/install packs"
@@ -104,7 +105,7 @@ case "$cmd" in
     echo "For mobile/Termux: Install with scripts/install-termux.sh"
     ;;
   *)
-    echo "usage: reach doctor|eval|release-check|serve|federation|support|arcade|capsule|proof|graph|packs|init|explain|operator|pack|wizard|run|share|delegate|verify-proof" >&2
+    echo "usage: reach doctor|audit|eval|release-check|serve|federation|support|arcade|capsule|proof|graph|packs|init|explain|operator|pack|wizard|run|share|delegate|verify-proof" >&2
     echo "       reach help for more info" >&2
     exit 1
     ;;
