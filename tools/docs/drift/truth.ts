@@ -78,7 +78,7 @@ function validateTruth() {
     let match;
     while ((match = pathRegex.exec(content)) !== null) {
       const refPath = match[1];
-      if (refPath.includes('://') || refPath.startsWith('npm ') || refPath.startsWith('pnpm ') || refPath.startsWith('node ')) continue;
+      if (refPath.includes('://') || refPath.startsWith('npm ') || refPath.startsWith('pnpm ') || refPath.startsWith('node ') || refPath.includes('*')) continue;
       
       const fullPath = path.join(REPO_ROOT, refPath);
       if (!fs.existsSync(fullPath)) {

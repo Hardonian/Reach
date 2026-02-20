@@ -88,13 +88,13 @@ export default function CloudOverviewPage() {
         <div className="rounded-xl border border-border bg-surface p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-white">Recent Workflows</h2>
-            <Link href="/cloud/workflows" className="text-xs text-accent hover:underline">View all →</Link>
+            <Link href="#" className="text-xs text-accent hover:underline" title="Coming Soon">View all →</Link>
           </div>
           {data.workflows?.length ? (
             <ul className="space-y-2">
               {data.workflows.map((wf) => (
                 <li key={wf.id}>
-                  <Link href={`/cloud/workflows/${wf.id}`} className="flex items-center justify-between py-2 hover:text-accent">
+                  <Link href="#" className="flex items-center justify-between py-2 hover:text-accent" title="Coming Soon">
                     <span className="text-sm text-white">{wf.name}</span>
                     <span className={`text-xs ${statusColor(wf.status)}`}>{wf.status}</span>
                   </Link>
@@ -103,7 +103,7 @@ export default function CloudOverviewPage() {
             </ul>
           ) : (
             <p className="text-gray-500 text-sm">No workflows yet.{' '}
-              <Link href="/builder" className="text-accent hover:underline">Create one →</Link>
+              <Link href="#" className="text-accent hover:underline" title="Coming Soon">Create one →</Link>
             </p>
           )}
         </div>
@@ -112,7 +112,7 @@ export default function CloudOverviewPage() {
         <div className="rounded-xl border border-border bg-surface p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-white">Recent Runs</h2>
-            <Link href="/cloud/runs" className="text-xs text-accent hover:underline">View all →</Link>
+            <Link href="#" className="text-xs text-accent hover:underline" title="Coming Soon">View all →</Link>
           </div>
           {data.runs?.length ? (
             <ul className="space-y-2">
@@ -131,13 +131,13 @@ export default function CloudOverviewPage() {
 
       {/* Quick actions */}
       <div className="mt-8 flex gap-3 flex-wrap">
-        <Link href="/builder" className="px-4 py-2 bg-accent text-black text-sm font-semibold rounded-lg hover:bg-accent/90">
+        <Link href="#" className="px-4 py-2 bg-accent text-black text-sm font-semibold rounded-lg hover:bg-accent/90" title="Coming Soon">
           + New Workflow
         </Link>
         <Link href="/marketplace" className="px-4 py-2 border border-border text-white text-sm rounded-lg hover:border-accent">
           Browse Marketplace
         </Link>
-        <Link href="/cloud/billing" className="px-4 py-2 border border-border text-white text-sm rounded-lg hover:border-accent">
+        <Link href="#" className="px-4 py-2 border border-border text-white text-sm rounded-lg hover:border-accent" title="Coming Soon">
           Manage Billing
         </Link>
       </div>

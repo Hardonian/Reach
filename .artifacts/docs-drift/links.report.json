@@ -1,32 +1,6 @@
 {
-  "timestamp": "2026-02-20T16:58:07.090Z",
+  "timestamp": "2026-02-20T17:00:41.902Z",
   "totalFilesChecked": 78,
-  "totalLinksFound": 57,
-  "issues": [
-    {
-      "file": "apps\\arcade\\src\\app\\cloud\\page.tsx",
-      "link": "/cloud/workflows",
-      "type": "404"
-    },
-    {
-      "file": "apps\\arcade\\src\\app\\cloud\\page.tsx",
-      "link": "/builder",
-      "type": "404"
-    },
-    {
-      "file": "apps\\arcade\\src\\app\\cloud\\page.tsx",
-      "link": "/cloud/runs",
-      "type": "404"
-    },
-    {
-      "file": "apps\\arcade\\src\\app\\cloud\\page.tsx",
-      "link": "/builder",
-      "type": "404"
-    },
-    {
-      "file": "apps\\arcade\\src\\app\\cloud\\page.tsx",
-      "link": "/cloud/billing",
-      "type": "404"
-    }
-  ]
+  "totalLinksFound": 52,
+  "issues": []
 }

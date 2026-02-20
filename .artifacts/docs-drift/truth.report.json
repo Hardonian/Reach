@@ -1,23 +1,4 @@
 {
-  "timestamp": "2026-02-20T16:58:08.644Z",
-  "issues": [
-    {
-      "file": "README.md",
-      "reference": "services/*",
-      "type": "file",
-      "message": "File reference does not exist: services/*"
-    },
-    {
-      "file": "README.md",
-      "reference": "crates/engine*",
-      "type": "file",
-      "message": "File reference does not exist: crates/engine*"
-    },
-    {
-      "file": "SECURITY.md",
-      "reference": "REACH_ENCRYPTION_KEY_BASE64",
-      "type": "env",
-      "message": "Environment variable referenced but missing from .env.example: REACH_ENCRYPTION_KEY_BASE64"
-    }
-  ]
+  "timestamp": "2026-02-20T17:00:43.452Z",
+  "issues": []
 }
