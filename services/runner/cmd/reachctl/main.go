@@ -112,6 +112,10 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runDelegate(ctx, dataRoot, args[1:], out, errOut)
 	case "verify-proof":
 		return runVerifyProof(ctx, dataRoot, args[1:], out, errOut)
+	case "runs":
+		return runRuns(ctx, dataRoot, args[1:], out, errOut)
+	case "plugins":
+		return runPlugins(dataRoot, args[1:], out, errOut)
 	default:
 		usage(out)
 		return 1
@@ -372,6 +376,118 @@ func runPacks(ctx context.Context, dataRoot string, args []string, out io.Writer
 		return writeJSON(out, res)
 	default:
 		usage(out)
+		return 1
+	}
+}
+
+func runRuns(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		usage(out)
+		return 1
+	}
+	switch args[0] {
+	case "list":
+		runsDir := filepath.Join(dataRoot, "runs")
+		entries, err := os.ReadDir(runsDir)
+		if err != nil {
+			_, _ = fmt.Fprintln(errOut, "no runs found")
+			return 1
+		}
+		var results []map[string]any
+		for _, entry := range entries {
+			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".json") {
+				id := entry.Name()[:len(entry.Name())-5]
+				rec, _ := loadRunRecord(dataRoot, id)
+				results = append(results, map[string]any{
+					"id":         id,
+					"steps":      len(rec.EventLog),
+					"policy":     rec.Policy["decision"],
+					"latency_ms": rec.Latency,
+				})
+			}
+		}
+		return writeJSON(out, results)
+	case "export":
+		if len(args) < 2 {
+			_, _ = fmt.Fprintln(errOut, "usage: reachctl runs export <runId> [output.json]")
+			return 1
+		}
+		runID := args[1]
+		output := runID + ".export.json"
+		if len(args) > 2 {
+			output = args[2]
+		}
+		rec, err := loadRunRecord(dataRoot, runID)
+		if err != nil {
+			_, _ = fmt.Fprintln(errOut, err)
+			return 1
+		}
+		exportData := map[string]any{
+			"version":   specVersion,
+			"timestamp": time.Now().Format(time.RFC3339),
+			"record":    rec,
+		}
+		if err := writeDeterministicJSON(output, exportData); err != nil {
+			_, _ = fmt.Fprintln(errOut, err)
+			return 1
+		}
+		fmt.Fprintf(out, "Run %s exported to %s\n", runID, output)
+		return 0
+	case "import":
+		if len(args) < 2 {
+			_, _ = fmt.Fprintln(errOut, "usage: reachctl runs import <file.json>")
+			return 1
+		}
+		b, err := os.ReadFile(args[1])
+		if err != nil {
+			_, _ = fmt.Fprintln(errOut, err)
+			return 1
+		}
+		var exportData struct {
+			Record runRecord `json:"record"`
+		}
+		if err := json.Unmarshal(b, &exportData); err != nil {
+			_, _ = fmt.Fprintln(errOut, "invalid export format")
+			return 1
+		}
+		rec := exportData.Record
+		if rec.RunID == "" {
+			_, _ = fmt.Fprintln(errOut, "no RunID in export")
+			return 1
+		}
+		targetPath := filepath.Join(dataRoot, "runs", rec.RunID+".json")
+		if err := writeDeterministicJSON(targetPath, rec); err != nil {
+			_, _ = fmt.Fprintln(errOut, err)
+			return 1
+		}
+		fmt.Fprintf(out, "Run %s imported from %s\n", rec.RunID, args[1])
+		return 0
+	default:
+		_, _ = fmt.Fprintln(errOut, "unknown runs command")
+		return 1
+	}
+}
+
+func runPlugins(dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		usage(out)
+		return 1
+	}
+	switch args[0] {
+	case "list":
+		pluginDir := filepath.Join(dataRoot, "plugins")
+		_ = os.MkdirAll(pluginDir, 0755)
+		entries, err := os.ReadDir(pluginDir)
+		if err != nil {
+			return writeJSON(out, []string{})
+		}
+		var results []string
+		for _, entry := range entries {
+			results = append(results, entry.Name())
+		}
+		return writeJSON(out, results)
+	default:
+		_, _ = fmt.Fprintln(errOut, "unknown plugins command")
 		return 1
 	}
 }

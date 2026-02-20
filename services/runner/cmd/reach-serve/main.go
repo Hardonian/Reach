@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -110,7 +111,7 @@ func run(port int, bindAddr, dataDir string) error {
 	mux.HandleFunc("POST /packs/verify", server.handleVerifyPack)
 
 	// Wrap with middleware
-	handler := withLogging(withRecovery(mux))
+	handler := withRateLimit(withCorrelationID(withLogging(withRecovery(mux))))
 
 	addr := net.JoinHostPort(bindAddr, strconv.Itoa(port))
 	srv := &http.Server{
@@ -594,11 +595,87 @@ func (s *Server) findPack(idx registryIndex, name string) (registryEntry, bool) 
 }
 
 // Middleware
+type contextKey string
+
+const correlationIDKey contextKey = "correlation_id"
+
+func withCorrelationID(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := r.Header.Get("X-Correlation-ID")
+		if id == "" {
+			id = "corr_" + strings.ReplaceAll(strconv.FormatInt(time.Now().UnixNano(), 36), " ", "")
+		}
+		ctx := context.WithValue(r.Context(), correlationIDKey, id)
+		w.Header().Set("X-Correlation-ID", id)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 func withLogging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
+		corrID, _ := r.Context().Value(correlationIDKey).(string)
+
+		// Custom response writer to capture status code
+		rw := &responseWriter{ResponseWriter: w, status: http.StatusOK}
+		next.ServeHTTP(rw, r)
+
+		log.Printf("[%s] %s %s %d %s", corrID, r.Method, r.URL.Path, rw.status, time.Since(start))
+	})
+}
+
+type responseWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (rw *responseWriter) WriteHeader(code int) {
+	rw.status = code
+	rw.ResponseWriter.WriteHeader(code)
+}
+
+var (
+	rateLimitMu sync.Mutex
+	rateLimits  = make(map[string]*visitor)
+)
+
+type visitor struct {
+	lastSeen time.Time
+	count    int
+}
+
+func withRateLimit(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+
+		rateLimitMu.Lock()
+		v, ok := rateLimits[ip]
+		if !ok {
+			v = &visitor{lastSeen: time.Now()}
+			rateLimits[ip] = v
+		}
+
+		// Reset count if more than 1 minute passed
+		if time.Since(v.lastSeen) > time.Minute {
+			v.count = 0
+		}
+
+		v.count++
+		v.lastSeen = time.Now()
+		count := v.count
+		rateLimitMu.Unlock()
+
+		// Limit to 100 requests per minute per IP for production-bound hardening
+		limit := 100
+		w.Header().Set("X-RateLimit-Limit", strconv.Itoa(limit))
+		w.Header().Set("X-RateLimit-Remaining", strconv.Itoa(limit-count))
+
+		if count > limit {
+			writeError(w, http.StatusTooManyRequests, "RATE_LIMIT_EXCEEDED", "Too many requests", "Wait 60 seconds and try again")
+			return
+		}
+
 		next.ServeHTTP(w, r)
-		log.Printf("%s %s %s", r.Method, r.URL.Path, time.Since(start))
 	})
 }
 
