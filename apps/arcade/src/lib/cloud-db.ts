@@ -453,8 +453,13 @@ export function lookupApiKey(rawKey: string): { key: ApiKey; tenant: Tenant } | 
     FROM api_keys k JOIN tenants t ON t.id = k.tenant_id
     WHERE k.key_hash=? AND k.revoked_at IS NULL AND t.deleted_at IS NULL`).get(keyHash) as Record<string, unknown> | undefined;
   if (!row) return undefined;
-  // touch last_used_at
-  db.prepare('UPDATE api_keys SET last_used_at=? WHERE id=?').run(new Date().toISOString(), row.id);
+
+  // Throttled update: only update last_used_at if it's older than 5 minutes
+  const now = new Date();
+  const lastUsed = row.last_used_at ? new Date(row.last_used_at as string) : new Date(0);
+  if (now.getTime() - lastUsed.getTime() > 5 * 60 * 1000) {
+    db.prepare('UPDATE api_keys SET last_used_at=? WHERE id=?').run(now.toISOString(), row.id);
+  }
   const key: ApiKey = {
     id: row.id as string,
     tenant_id: row.tenant_id as string,

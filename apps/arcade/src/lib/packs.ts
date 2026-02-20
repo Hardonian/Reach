@@ -91,3 +91,5 @@ export const CATALOG: Pack[] = [
     verifiedSignature: false,
   },
 ];
+
+export const PACK_MAP = new Map(CATALOG.map((p) => [p.id, p]));

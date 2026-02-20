@@ -9,9 +9,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "tsc --noEmit",
+    "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run typecheck && npm run build"
+    "verify": "npm run typecheck && npm run lint && npm run build"
   },
   "dependencies": {
     "@xyflow/react": "^12.10.1",

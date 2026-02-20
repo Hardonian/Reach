@@ -23,6 +23,7 @@ import {
   CloudDisabledError,
 } from './cloud-db';
 import type { Tenant, User, Role } from './cloud-db';
+import { redis } from './redis';
 
 export interface AuthContext {
   userId: string;
@@ -50,6 +51,23 @@ export function cloudErrorResponse(msg: string, status: number, corrId?: string)
   }, { status });
 }
 
+const AUTH_CACHE_TTL = 60; // seconds
+
+async function getCachedAuth(key: string): Promise<AuthContext | null> {
+  if (!redis) return null;
+  try {
+    const val = await redis.get(`auth:${key}`);
+    return val ? JSON.parse(val) : null;
+  } catch { return null; }
+}
+
+async function setCachedAuth(key: string, ctx: AuthContext): Promise<void> {
+  if (!redis) return;
+  try {
+    await redis.set(`auth:${key}`, JSON.stringify(ctx), 'EX', AUTH_CACHE_TTL);
+  } catch { /* ignore */ }
+}
+
 /**
  * Resolve the current user + tenant from request.
  * Checks Bearer header (API key) then session cookie.
@@ -63,6 +81,12 @@ export async function resolveAuth(req: NextRequest, tenantIdOverride?: string): 
     const authHeader = req.headers.get('authorization');
     if (authHeader?.startsWith('Bearer rk_')) {
       const rawKey = authHeader.slice(7);
+      
+      // Try cache first
+      const cacheKey = `rk:${rawKey.slice(-12)}`; // last 12 chars for cache key (enough entropy)
+      const cached = await getCachedAuth(cacheKey);
+      if (cached) return { ...cached, correlationId: corrId };
+
       const result = lookupApiKey(rawKey);
       if (!result) {
         return cloudErrorResponse('Invalid or revoked API key', 401, corrId);
@@ -72,13 +96,24 @@ export async function resolveAuth(req: NextRequest, tenantIdOverride?: string): 
       if (!user) return cloudErrorResponse('User not found', 401, corrId);
       const membership = getMembership(tenant.id, key.user_id);
       const role: Role = membership?.role ?? 'member';
-      return { userId: key.user_id, tenantId: tenant.id, role, user, tenant, correlationId: corrId };
+      
+      const ctx: AuthContext = { userId: key.user_id, tenantId: tenant.id, role, user, tenant, correlationId: corrId };
+      await setCachedAuth(cacheKey, ctx);
+      return ctx;
     }
 
     // ── Session Auth ──────────────────────────────────────────────────────
     const cookieName = env.REACH_SESSION_COOKIE_NAME;
     const sessionId = req.cookies.get(cookieName)?.value;
     if (sessionId) {
+      // Try cache first
+      const cached = await getCachedAuth(`sess:${sessionId}`);
+      
+      // If cached tenantId matches the requested one (if any)
+      if (cached && (!tenantIdOverride || cached.tenantId === tenantIdOverride)) {
+        return { ...cached, correlationId: corrId };
+      }
+
       const session = getSession(sessionId);
       if (!session) return cloudErrorResponse('Session expired or invalid', 401, corrId);
       const user = getUserById(session.user_id);
@@ -94,7 +129,9 @@ export async function resolveAuth(req: NextRequest, tenantIdOverride?: string): 
       const membership = getMembership(tenantId, user.id);
       if (!membership) return cloudErrorResponse('Not a member of this tenant', 403, corrId);
 
-      return { userId: user.id, tenantId, role: membership.role, user, tenant, correlationId: corrId };
+      const ctx: AuthContext = { userId: user.id, tenantId, role: membership.role, user, tenant, correlationId: corrId };
+      await setCachedAuth(`sess:${sessionId}`, ctx);
+      return ctx;
     }
 
     return cloudErrorResponse('Authentication required. Use Bearer API key or session cookie.', 401, corrId);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { CATALOG } from '@/lib/packs';
+import { PACK_MAP } from '@/lib/packs';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { sanitizeEvent } from '@/lib/sanitize';
 import { logger } from '@/lib/logger';
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid request: packId required' }, { status: 400 });
     }
 
-    const pack = CATALOG.find((p) => p.id === packId);
+    const pack = PACK_MAP.get(packId);
 
     if (!pack) {
       return NextResponse.json({ error: 'Pack not found' }, { status: 404 });
