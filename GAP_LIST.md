@@ -16,6 +16,12 @@ Status: READY FOR PRODUCTION
 - [x] Added missing runPackScore, runPackDocs, runPackValidate functions to reachctl
 - [x] Added unit tests for `storage` package (TestSQLiteStore_CRUD, TestSQLiteStore_Ping)
 - [x] All Go tests passing
+- [x] **pack package has comprehensive test files** (lint_test.go, merkle_test.go, pack_test.go)
+- [x] **adaptive package has comprehensive test files** (strategy_test.go)
+- [x] **engineclient package has comprehensive test files** (client_test.go)
+- [x] **spec package has comprehensive test files** (version_test.go)
+- [x] **plugins package has comprehensive test files** (verify_test.go)
+- [x] **performance package has comprehensive test files** (performance_test.go)
 
 ### Security & Hardening
 
@@ -37,14 +43,7 @@ Status: READY FOR PRODUCTION
 
 ## 🔴 CRITICAL (Must Fix)
 
-### Missing Test Coverage
-
-- [ ] pack package has no test files (logic covered by integration tests, but needs unit tests)
-- [ ] adaptive package has no test files
-- [ ] engineclient package has no test files
-- [ ] spec package has no test files
-- [ ] plugins package has no test files
-- [ ] performance package has no test files
+*All critical items resolved*
 
 ## 🟡 IMPORTANT (Should Fix)
 
@@ -84,6 +83,9 @@ bash scripts/security-scan.sh
 
 # Check health
 curl http://localhost:8787/health
+
+# Run all tests
+cd services/runner && go test ./...
 ```
 
 ## Files Changed in Recent Hardening Pass
@@ -92,3 +94,5 @@ curl http://localhost:8787/health
 2. `services/runner/cmd/reachctl/main.go` - Added `runs` and `plugins` subcommands; implemented export/import.
 3. `scripts/security-scan.sh` - NEW: Automated secret and pattern scanner.
 4. `services/runner/internal/jobs/branching.go` - Implemented deterministic branching.
+5. `services/runner/internal/agents/runtime_test.go` - Fixed timing-sensitive test.
+6. `services/runner/cmd/reachctl/main_test.go` - Fixed pack loading test.
