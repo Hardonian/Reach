@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"reach/core/evaluation"
 	"reach/services/runner/internal/arcade/gamification"
 	"reach/services/runner/internal/determinism"
 	"reach/services/runner/internal/federation"
@@ -2268,7 +2269,7 @@ func runQuick(args []string, out, errOut io.Writer) int {
 
 	executor := jobs.NewDAGExecutor(registry, client)
 	ctx := context.Background()
-	results, err := executor.ExecuteGraph(ctx, cid, inputs)
+	results, state, err := executor.ExecuteGraph(ctx, cid, inputs)
 	if err != nil {
 		fmt.Fprintf(errOut, "Execution failed: %v\n", err)
 		return 1
@@ -2277,12 +2278,31 @@ func runQuick(args []string, out, errOut io.Writer) int {
 	runID := fmt.Sprintf("run-%d", time.Now().Unix())
 	fmt.Fprintf(out, "✓ Execution complete: %s\n", runID)
 
-	// 4. Save Record
+	// 4. Scoring
+	eval := evaluation.NewEvaluator()
+	test := &evaluation.TestDefinition{
+		ID:               "demo-smoke",
+		Input:            "read VERSION and summarize",
+		ToolExpectations: []string{"read_file", "summarize"},
+	}
+	finalResultJSON, _ := json.Marshal(results["node2"])
+	scoreRes, scoreErr := eval.ScoreRun(ctx, test, runID, string(finalResultJSON), nil, time.Duration(state.Latency)*time.Millisecond, state.TokenUsage)
+	if scoreErr == nil {
+		fmt.Fprintf(out, "🎯 Evaluation Score: %.2f (G:%.2f, P:%.2f, T:%.2f)\n",
+			scoreRes.Score, scoreRes.Grounding, scoreRes.PolicyCompliance, scoreRes.ToolCorrectness)
+	}
+
+	// 5. Save Record
 	record := runRecord{
-		RunID:       runID,
-		Pack:        map[string]any{"name": packName, "cid": cid, "inputs": inputs},
-		Environment: map[string]string{"os": runtime.GOOS, "arch": runtime.GOARCH},
-		EventLog:    []map[string]any{},
+		RunID:      runID,
+		Latency:    state.Latency,
+		TokenUsage: state.TokenUsage,
+		Pack:       map[string]any{"name": packName, "cid": cid, "inputs": inputs},
+		Environment: map[string]string{
+			"os":   runtime.GOOS,
+			"arch": runtime.GOARCH,
+		},
+		EventLog: []map[string]any{},
 	}
 	for nodeID, res := range results {
 		record.EventLog = append(record.EventLog, map[string]any{
