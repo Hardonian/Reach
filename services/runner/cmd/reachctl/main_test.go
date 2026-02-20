@@ -246,8 +246,8 @@ func TestRunQuick(t *testing.T) {
 			"name":    "quick.test",
 			"version": "1.0.0",
 		},
-		"spec_version": "1.0",
-		"execution_graph": map[string]any{
+		"specVersion": "1.0",
+		"executionGraph": map[string]any{
 			"nodes": []map[string]any{
 				{"id": "node1", "type": "Action", "action": "test"},
 			},
