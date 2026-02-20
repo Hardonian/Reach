@@ -1,42 +1,6 @@
 import Link from 'next/link';
 
-const sidebarItems = [
-  {
-    title: 'Getting Started',
-    items: [
-      { title: 'Quick Start', href: '/docs/quick-start' },
-      { title: 'Installation', href: '/docs/installation' },
-      { title: 'Configuration', href: '/docs/configuration' },
-    ],
-  },
-  {
-    title: 'Core Architecture',
-    items: [
-      { title: 'Overview', href: '/docs/architecture' },
-      { title: 'Agents & Roles', href: '/docs/agents' },
-      { title: 'Model Context Protocol', href: '/docs/mcp' },
-      { title: 'Deterministic Engine', href: '/docs/engine' },
-    ],
-  },
-  {
-    title: 'Operations',
-    items: [
-      { title: 'CLI Reference', href: '/docs/cli' },
-      { title: 'Deployment', href: '/docs/deployment' },
-      { title: 'Security', href: '/docs/security' },
-      { title: 'Observability', href: '/docs/observability' },
-    ],
-  },
-  {
-    title: 'Reference',
-    items: [
-      { title: 'API Endpoints', href: '/docs/endpoints' },
-      { title: 'Governance', href: '/docs/governance' },
-      { title: 'Integrations', href: '/docs/integrations' },
-      { title: 'Error Codes', href: '/docs/errors' },
-    ],
-  },
-];
+import { sidebarItems } from '@/lib/docs/nav';
 
 export default function DocsLayout({
   children,

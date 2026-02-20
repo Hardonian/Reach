@@ -104,6 +104,22 @@ export default function SupportPage() {
             Report Issue on GitHub
           </Link>
         </div>
+
+        {/* Bug Report Checklist */}
+        <section className="mt-16 bg-[#0E0E14] rounded-3xl p-8 border border-white/5">
+          <h3 className="text-xl font-bold mb-6">Bug Report Checklist</h3>
+          <div className="grid md:grid-cols-2 gap-8 text-sm text-gray-400">
+            <ul className="space-y-3">
+              <li className="flex gap-2"><span>1.</span> <strong>Version:</strong> Include <code>reach version</code> and node version.</li>
+              <li className="flex gap-2"><span>2.</span> <strong>Reproduction:</strong> Provide a minimal execution pack and clear steps.</li>
+              <li className="flex gap-2"><span>3.</span> <strong>Expected vs Actual:</strong> Explain the deterministic divergence.</li>
+            </ul>
+            <ul className="space-y-3">
+              <li className="flex gap-2"><span>4.</span> <strong>Logs:</strong> Attach <code>.artifacts/run.log</code> (redact secrets!).</li>
+              <li className="flex gap-2"><span>5.</span> <strong>Environment:</strong> Specify if running on Cloud, Edge, or Local.</li>
+            </ul>
+          </div>
+        </section>
       </div>
     </div>
   );
