@@ -17,6 +17,7 @@ import (
 	"reach/services/runner/internal/arcade/gamification"
 	"reach/services/runner/internal/determinism"
 	"reach/services/runner/internal/federation"
+	"reach/services/runner/internal/jobs"
 	"reach/services/runner/internal/mesh"
 	"reach/services/runner/internal/pack"
 	"reach/services/runner/internal/poee"
@@ -2206,9 +2207,10 @@ func runQuick(args []string, out, errOut io.Writer) int {
 	}
 
 	packName := args[0]
+	dataRoot := getenv("REACH_DATA_DIR", "data")
 
 	// Parse inputs
-	inputs := map[string]string{"mode": "safe"}
+	inputs := map[string]interface{}{"mode": "safe"}
 	for i := 1; i < len(args); i++ {
 		if strings.HasPrefix(args[i], "--input") && i+1 < len(args) {
 			parts := strings.SplitN(args[i+1], "=", 2)
@@ -2220,21 +2222,78 @@ func runQuick(args []string, out, errOut io.Writer) int {
 	}
 
 	fmt.Fprintf(out, "Running pack: %s\n", packName)
-	fmt.Fprintf(out, "Inputs: %v\n", inputs)
 
-	// Delegate to wizard
-	dataRoot := getenv("REACH_DATA_DIR", "data")
-	wizard := NewWizard(dataRoot, out, errOut, true, false)
-	wizard.State.SelectedPack = packName
-	wizard.State.Input = inputs
+	// 1. Load pack from disk
+	packPath := filepath.Join(dataRoot, "packs", packName+".json")
+	if _, err := os.Stat(packPath); os.IsNotExist(err) {
+		// Fallback to internal demo pack if specified
+		if packName == "arcadeSafe.demo" {
+			fmt.Fprintln(out, "Using internal demo pack...")
+			// Create a dummy pack on the fly for demonstration
+			manifest := pack.PackManifest{
+				Metadata:    pack.Metadata{Name: "arcadeSafe.demo", Version: "1.0.0"},
+				SpecVersion: "1.0",
+				ExecutionGraph: pack.ExecutionGraph{
+					Nodes: []pack.Node{
+						{ID: "node1", Type: "Action", Action: "read_file", Inputs: map[string]any{"path": "../../VERSION"}},
+						{ID: "node2", Type: "Action", Action: "summarize"},
+					},
+				},
+			}
+			data, _ := json.Marshal(manifest)
+			_ = os.MkdirAll(filepath.Dir(packPath), 0755)
+			_ = os.WriteFile(packPath, data, 0644)
+		} else {
+			fmt.Fprintf(errOut, "Pack %s not found at %s. Install it first using 'reach packs install'.\n", packName, packPath)
+			return 1
+		}
+	}
 
-	ctx := context.Background()
-	if err := wizard.stepRun(ctx); err != nil {
-		fmt.Fprintf(errOut, "Run failed: %v\n", err)
+	// 2. Lint and Register
+	lintRes, err := pack.Lint(packPath)
+	if err != nil || !lintRes.Valid {
+		fmt.Fprintf(errOut, "Pack lint failed: %v %v\n", err, lintRes.Errors)
 		return 1
 	}
 
-	fmt.Fprintf(out, "✓ Run created: %s\n", wizard.State.RunID)
+	registry := pack.NewPackRegistry()
+	cid := registry.Register(lintRes)
+
+	// 3. Execute
+	executor := jobs.NewDAGExecutor(registry)
+	ctx := context.Background()
+	results, err := executor.ExecuteGraph(ctx, cid, inputs)
+	if err != nil {
+		fmt.Fprintf(errOut, "Execution failed: %v\n", err)
+		return 1
+	}
+
+	runID := fmt.Sprintf("run-%d", time.Now().Unix())
+	fmt.Fprintf(out, "✓ Execution complete: %s\n", runID)
+
+	// 4. Save Record
+	record := runRecord{
+		RunID:       runID,
+		Pack:        map[string]any{"name": packName, "cid": cid, "inputs": inputs},
+		Environment: map[string]string{"os": runtime.GOOS, "arch": runtime.GOARCH},
+		EventLog:    []map[string]any{},
+	}
+	for nodeID, res := range results {
+		record.EventLog = append(record.EventLog, map[string]any{
+			"node":   nodeID,
+			"result": res,
+			"ts":     time.Now().UTC().Format(time.RFC3339),
+		})
+	}
+
+	runsDir := filepath.Join(dataRoot, "runs")
+	_ = os.MkdirAll(runsDir, 0755)
+	recordPath := filepath.Join(runsDir, runID+".json")
+	if err := writeDeterministicJSON(recordPath, record); err != nil {
+		fmt.Fprintf(errOut, "Failed to save record: %v\n", err)
+		return 1
+	}
+
 	return 0
 }
 

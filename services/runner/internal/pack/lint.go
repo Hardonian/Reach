@@ -20,14 +20,15 @@ type PackQualityScore struct {
 
 // LintResult represents the outcome of a pack lint operation.
 type LintResult struct {
-	Valid       bool           `json:"valid"`
-	Errors      []string       `json:"errors"`
-	Warnings    []string       `json:"warnings"`
-	Metadata    Metadata       `json:"metadata"`
-	Hash        string         `json:"hash"`
-	MerkleRoot  string         `json:"merkle_root,omitempty"`
-	MerkleProof *MerkleProof   `json:"merkle_proof,omitempty"`
-	Integrity   *PackIntegrity `json:"integrity,omitempty"`
+	Valid       bool            `json:"valid"`
+	Errors      []string        `json:"errors"`
+	Warnings    []string        `json:"warnings"`
+	Metadata    Metadata        `json:"metadata"`
+	Hash        string          `json:"hash"`
+	MerkleRoot  string          `json:"merkle_root,omitempty"`
+	MerkleProof *MerkleProof    `json:"merkle_proof,omitempty"`
+	Integrity   *PackIntegrity  `json:"integrity,omitempty"`
+	Graph       *ExecutionGraph `json:"execution_graph,omitempty"`
 }
 
 // Metadata from the pack manifest.
@@ -45,8 +46,11 @@ type ExecutionGraph struct {
 }
 
 type Node struct {
-	ID   string `json:"id"`
-	Type string `json:"type"` // Action, Condition, Parallel
+	ID     string         `json:"id"`
+	Type   string         `json:"type"` // Action, Condition, Parallel
+	Tool   string         `json:"tool,omitempty"`
+	Action string         `json:"action,omitempty"`
+	Inputs map[string]any `json:"inputs,omitempty"`
 }
 
 type Edge struct {
@@ -84,6 +88,7 @@ func Lint(path string) (*LintResult, error) {
 		Metadata: manifest.Metadata,
 		Errors:   []string{},
 		Warnings: []string{},
+		Graph:    &manifest.ExecutionGraph,
 	}
 
 	// 1. Spec Version Check

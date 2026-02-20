@@ -18,9 +18,13 @@ type Evaluator struct {
 
 // NewEvaluator creates a new evaluation engine with default paths.
 func NewEvaluator() *Evaluator {
+	dataRoot := os.Getenv("REACH_DATA_DIR")
+	if dataRoot == "" {
+		dataRoot = "data"
+	}
 	return &Evaluator{
-		ResultsDir:  "evaluation/results",
-		FeedbackDir: "evaluation/feedback",
+		ResultsDir:  filepath.Join(dataRoot, "evaluation", "results"),
+		FeedbackDir: filepath.Join(dataRoot, "evaluation", "feedback"),
 	}
 }
 

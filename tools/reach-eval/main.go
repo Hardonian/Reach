@@ -47,12 +47,12 @@ func runEval() {
 	fmt.Printf("Running evaluations (all: %v, suite: %s)...\n", *all, *suite)
 
 	// Implementation:
-	// 1. Load tests from /evaluation/tests/*.json
+	// 1. Load tests from data/evaluation/tests/*.json
 	// 2. Execute runs (via internal API or reachctl)
 	// 3. Score results using core/evaluation engine
-	// 4. Save to /evaluation/results/*.json
+	// 4. Save to data/evaluation/results/*.json
 
-	fmt.Println("Evaluation complete. Results saved to /evaluation/results/")
+	fmt.Println("Evaluation complete. Results saved to data/evaluation/results/")
 }
 
 func compareEval() {
