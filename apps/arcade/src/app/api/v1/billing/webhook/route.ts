@@ -60,7 +60,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 }
 
 async function handleStripeEvent(event: Stripe.Event): Promise<void> {
-  const data = event.data.object as Record<string, unknown>;
+  const data = event.data.object as unknown as Record<string, unknown>;
 
   switch (event.type) {
     case 'customer.subscription.created':
