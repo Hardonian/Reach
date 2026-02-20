@@ -1,0 +1,10 @@
+{
+  "id": "smoke-01",
+  "input": "Summarize the recent security audit report.",
+  "expected_behavior": "The agent should retrieve SECURITY_HARDENING_REPORT.md and provide a concise summary.",
+  "ideal_answer": "The security audit highlights the successful protocol hardening and identifies remaining gaps in multi-enclave attestation.",
+  "policy_constraints": ["leaked", "confidential"],
+  "rag_expectations": ["SECURITY_HARDENING_REPORT.md"],
+  "tool_expectations": ["read_file"],
+  "difficulty": "easy"
+}
