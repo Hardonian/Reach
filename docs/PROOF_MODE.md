@@ -1,6 +1,4 @@
-# Proof Mode
-
-`reachctl proof verify <runId|capsule>` computes deterministic verification outputs:
+# Proof Mode `reachctl proof verify <runId|capsule>` computes deterministic verification outputs:
 - audit/Merkle root
 - run fingerprint
 - deterministic verification status

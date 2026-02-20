@@ -1,10 +1,6 @@
-# Reach Installation Modes
+# Reach Installation Modes This document describes the different installation modes available for Reach and their security implications.
 
-This document describes the different installation modes available for Reach and their security implications.
-
-## Installation Modes
-
-### 1. Core Mode (Default) ⭐ RECOMMENDED
+## Installation Modes ### 1. Core Mode (Default) ⭐ RECOMMENDED
 
 The safest installation mode with minimal dependencies and no native build requirements.
 
@@ -29,9 +25,7 @@ npm ci --omit=dev
 - Docker containers
 - Environments with strict security requirements
 
-### 2. Development Mode
-
-Full installation with all development dependencies for contributing to Reach.
+### 2. Development Mode Full installation with all development dependencies for contributing to Reach.
 
 ```bash
 npm ci
@@ -54,9 +48,7 @@ npm ci
 - Running tests
 - Building from source
 
-## Blocked Packages
-
-The following packages are explicitly blocked from the Reach dependency tree via npm overrides:
+## Blocked Packages The following packages are explicitly blocked from the Reach dependency tree via npm overrides:
 
 | Package | Reason | Alternative |
 |---------|--------|-------------|
@@ -68,9 +60,7 @@ The following packages are explicitly blocked from the Reach dependency tree via
 | `hono` | Not used in Reach | N/A |
 | `node-llama-cpp` | Optional local LLM feature only | See Optional Features |
 
-## Optional Features
-
-### Local LLM Support (Advanced)
+## Optional Features ### Local LLM Support (Advanced)
 
 If you need local LLM support via `node-llama-cpp`, you must explicitly opt-in:
 
@@ -94,9 +84,7 @@ npm install --save-optional node-llama-cpp
 - Not recommended for production deployments
 - Use cloud-based LLM APIs instead when possible
 
-## Verification
-
-### Verify Production Install
+## Verification ### Verify Production Install
 
 ```bash
 npm run verify:prod-install
@@ -108,9 +96,7 @@ This script:
 3. Confirms SDK builds (or warns if TypeScript needed)
 4. Verifies Go services compile
 
-### Verify No Toxic Dependencies
-
-```bash
+### Verify No Toxic Dependencies ```bash
 npm run verify:no-toxic-deps
 ```
 
@@ -119,25 +105,19 @@ This script checks for:
 - Vulnerable versions of restricted packages (tar, ws)
 - Dev dependencies in production installs
 
-### Security Audit
-
-```bash
+### Security Audit ```bash
 npm run security:audit
 ```
 
 Runs `npm audit` on all workspaces and reports results.
 
-## Node.js Version Requirements
-
-Reach supports Node.js versions:
+## Node.js Version Requirements Reach supports Node.js versions:
 - Minimum: 18.0.0
 - Maximum: 22.x (23.x not yet supported)
 
 The `preinstall` script will warn (or fail in CI) if your Node version is outside this range.
 
-## CI Security Gates
-
-All pull requests are checked by:
+## CI Security Gates All pull requests are checked by:
 
 1. **Dependency Firewall** - Blocks known malicious packages
 2. **Toxic Dependency Check** - Scans for clawdbot, codex, etc.
@@ -146,17 +126,13 @@ All pull requests are checked by:
 
 See `.github/workflows/security-audit.yml` for implementation details.
 
-## Reporting Security Issues
-
-If you discover a security vulnerability in Reach:
+## Reporting Security Issues If you discover a security vulnerability in Reach:
 
 1. **DO NOT** open a public issue
 2. Email security@reach.io with details
 3. Allow 72 hours for initial response
 4. Follow responsible disclosure practices
 
-## Related Documentation
-
-- [SECURITY.md](../SECURITY.md) - Security policy and reporting
+## Related Documentation - [SECURITY.md](../SECURITY.md) - Security policy and reporting
 - [AUDIT_REPORT.md](../AUDIT_REPORT.md) - Current audit status
 - [CONTRIBUTING.md](../CONTRIBUTING.md) - Development setup

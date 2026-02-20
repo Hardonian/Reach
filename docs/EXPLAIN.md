@@ -1,6 +1,4 @@
-# Reach Explain
-
-`reachctl explain <runId>` outputs deterministic human-readable run explanations:
+# Reach Explain `reachctl explain <runId>` outputs deterministic human-readable run explanations:
 - what happened
 - policy allow/deny reasoning
 - delegation summary

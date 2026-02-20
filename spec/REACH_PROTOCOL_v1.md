@@ -1,14 +1,10 @@
-# Reach Protocol Specification v1.0.0
-
-**Status:** NORMATIVE  
-**Effective Date:** 2026-02-18  
-**specVersion:** 1.0.0  
+# Reach Protocol Specification v1.0.0 **Status:** NORMATIVE
+**Effective Date:** 2026-02-18
+**specVersion:** 1.0.0
 
 ---
 
-## 1. Scope
-
-This document defines the Reach Protocol v1.0.0, a formal specification for deterministic, auditable, and federated execution of agentic tasks. It specifies:
+## 1. Scope This document defines the Reach Protocol v1.0.0, a formal specification for deterministic, auditable, and federated execution of agentic tasks. It specifies:
 
 - Execution model and lifecycle semantics
 - Policy enforcement requirements
@@ -17,18 +13,14 @@ This document defines the Reach Protocol v1.0.0, a formal specification for dete
 - Error classification and guarantees
 - Artifact requirements
 
-## 2. Conformance
-
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
+## 2. Conformance The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
 
 A conforming implementation MUST:
 1. Satisfy all MUST-level requirements
 2. Produce valid output for all conformance test cases
 3. Maintain backward compatibility within major versions
 
-## 3. Execution Model
-
-### 3.1 Run Lifecycle
+## 3. Execution Model ### 3.1 Run Lifecycle
 
 A **Run** represents a single execution of a Reach Pack. The lifecycle consists of the following states:
 
@@ -57,9 +49,7 @@ PENDING → PREPARING → EXECUTING → COMPLETED
 | EXECUTING → FAILED | Error or violation | Error code emitted, partial state captured |
 | Any → ABORTED | SIGTERM/SIGINT received | Graceful cleanup within 30s |
 
-### 3.2 Event Ordering
-
-Events within a Run MUST be emitted in the following order:
+### 3.2 Event Ordering Events within a Run MUST be emitted in the following order:
 
 1. `run.started` - Run initialization complete
 2. `run.step.started` - Individual step begins (one per step)
@@ -74,9 +64,7 @@ Events within a Run MUST be emitted in the following order:
 - Tool events MUST be nested within their enclosing step
 - Run termination MUST follow all step events
 
-### 3.3 Deterministic Hash Rules
-
-Each Run MUST produce a deterministic hash that uniquely identifies its execution. The hash is computed as:
+### 3.3 Deterministic Hash Rules Each Run MUST produce a deterministic hash that uniquely identifies its execution. The hash is computed as:
 
 ```
 runHash = SHA256(orderedEventHashes)
@@ -92,9 +80,7 @@ eventHash = SHA256(eventType || timestamp || payloadHash || prevEventHash)
 
 **Replay Guarantee**: Given identical inputs and identical initial state, a conforming implementation MUST produce identical run hashes.
 
-### 3.4 Replay Guarantees
-
-A Run is **replayable** if:
+### 3.4 Replay Guarantees A Run is **replayable** if:
 
 1. All tool invocations are recorded with their inputs
 2. All external state access is captured
@@ -106,9 +92,7 @@ A Run is **replayable** if:
 - Replay MAY skip actual tool execution if outputs are recorded
 - Replay MUST validate recorded outputs match expected hashes
 
-## 4. Policy Enforcement Model
-
-### 4.1 Declaration Requirements
+## 4. Policy Enforcement Model ### 4.1 Declaration Requirements
 
 Before execution, a Pack MUST declare:
 
@@ -133,9 +117,7 @@ Before execution, a Pack MUST declare:
 }
 ```
 
-### 4.2 Capability Enforcement Semantics
-
-The runtime MUST enforce capability restrictions:
+### 4.2 Capability Enforcement Semantics The runtime MUST enforce capability restrictions:
 
 - **Tool Allowlist**: Only declared tools MAY be invoked
 - **Resource Boundaries**: Access outside declared resources MUST fail
@@ -147,9 +129,7 @@ The runtime MUST enforce capability restrictions:
 2. Per-invocation: Verify tool is in allowlist
 3. Post-execution: Audit actual vs declared capability usage
 
-### 4.3 Denial Behavior Requirements
-
-When a capability check fails:
+### 4.3 Denial Behavior Requirements When a capability check fails:
 
 1. **Immediate Halt**: Current step MUST terminate
 2. **Structured Error**: Error MUST include:
@@ -159,9 +139,7 @@ When a capability check fails:
 3. **Audit Trail**: Violation MUST be recorded in run events
 4. **No Partial Effects**: Partial tool effects MUST be rolled back
 
-## 5. Pack Structure
-
-### 5.1 Required Fields
+## 5. Pack Structure ### 5.1 Required Fields
 
 A valid Reach Pack MUST contain:
 
@@ -173,17 +151,13 @@ A valid Reach Pack MUST contain:
 | `manifest` | object | Capability declarations |
 | `entrypoint` | string | Path to main execution file |
 
-### 5.2 specVersion
-
-The `specVersion` field declares the protocol version the pack targets:
+### 5.2 specVersion The `specVersion` field declares the protocol version the pack targets:
 
 - Format: `MAJOR.MINOR.PATCH` per SemVer 2.0.0
 - Current: `1.0.0`
 - Runtime MUST reject packs with unsupported major versions
 
-### 5.3 Manifest Schema
-
-The manifest declares capabilities and metadata:
+### 5.3 Manifest Schema The manifest declares capabilities and metadata:
 
 ```json
 {
@@ -200,18 +174,14 @@ The manifest declares capabilities and metadata:
 }
 ```
 
-### 5.4 Signing Requirements
-
-Packs SHOULD be signed for integrity verification:
+### 5.4 Signing Requirements Packs SHOULD be signed for integrity verification:
 
 - **Signature Algorithm**: Ed25519
 - **Digest Algorithm**: SHA-256
 - **Signature Location**: `.reach/signature` file
 - **Verification**: Runtime MUST verify signature before execution if present
 
-## 6. Federation Semantics
-
-### 6.1 Node Identity Model
+## 6. Federation Semantics ### 6.1 Node Identity Model
 
 Each federation node has:
 
@@ -225,9 +195,7 @@ Each federation node has:
 - Public key MUST be registered in federation registry
 - All federation messages MUST be signed
 
-### 6.2 Delegation Contract
-
-Delegation allows one node to execute on behalf of another:
+### 6.2 Delegation Contract Delegation allows one node to execute on behalf of another:
 
 ```json
 {
@@ -248,9 +216,7 @@ Delegation allows one node to execute on behalf of another:
 3. Expiration MUST be enforced
 4. Signature MUST verify against delegator's public key
 
-### 6.3 Trust Boundary Rules
-
-Trust boundaries define security domains:
+### 6.3 Trust Boundary Rules Trust boundaries define security domains:
 
 - **Intra-node**: Within same node, full trust
 - **Inter-node**: Cross-node, verify all signatures
@@ -262,9 +228,7 @@ Trust boundaries define security domains:
 - Delegation chains MUST be validated at each hop
 - Revoked delegations MUST be honored within 60 seconds
 
-## 7. Error Model
-
-### 7.1 Error Code Namespace
+## 7. Error Model ### 7.1 Error Code Namespace
 
 Error codes follow the pattern: `CATEGORY_SUBCATEGORY_DETAIL`
 
@@ -278,9 +242,7 @@ Error codes follow the pattern: `CATEGORY_SUBCATEGORY_DETAIL`
 | Federation | `FED_` | Federation communication errors |
 | Pack | `PACK_` | Pack validation errors |
 
-### 7.2 Error Classification Guarantees
-
-**Hard Failures** (MUST terminate run):
+### 7.2 Error Classification Guarantees **Hard Failures** (MUST terminate run):
 - `PROTO_VERSION_MISMATCH`
 - `POLICY_VIOLATION`
 - `PACK_INVALID_SIGNATURE`
@@ -304,9 +266,7 @@ Error codes follow the pattern: `CATEGORY_SUBCATEGORY_DETAIL`
 }
 ```
 
-## 8. Artifact Guarantees
-
-### 8.1 Time Capsule Requirements
+## 8. Artifact Guarantees ### 8.1 Time Capsule Requirements
 
 Time capsules preserve execution state for replay:
 
@@ -321,50 +281,38 @@ Time capsules preserve execution state for replay:
 - Compression: gzip
 - Naming: `{runHash}.capsule.tar.gz`
 
-### 8.2 Deterministic Export Requirements
-
-Exported artifacts MUST be deterministic:
+### 8.2 Deterministic Export Requirements Exported artifacts MUST be deterministic:
 
 1. **Canonical JSON**: Keys sorted, no extra whitespace
 2. **Normalized Paths**: Absolute paths converted to relative
 3. **Timestamp Freezing**: Timestamps recorded as offsets from run start
 
-### 8.3 Proof Model Expectations
-
-Proofs provide cryptographic verification of execution:
+### 8.3 Proof Model Expectations Proofs provide cryptographic verification of execution:
 
 - **Run Proof**: Signed run hash attesting to execution
 - **Step Proofs**: Individual step attestations
 - **Verification**: Third parties can verify without re-execution
 
-## 9. Versioning Policy
-
-### 9.1 Backward Compatibility
+## 9. Versioning Policy ### 9.1 Backward Compatibility
 
 - **Major version changes**: Breaking changes, explicit migration required
 - **Minor version changes**: New features, backward compatible
 - **Patch version changes**: Bug fixes, no behavior changes
 
-### 9.2 Deprecation Rules
-
-Deprecated features:
+### 9.2 Deprecation Rules Deprecated features:
 
 1. MUST be documented in CHANGELOG
 2. MUST emit warnings when used
 3. MUST be supported for minimum 2 minor versions
 4. MAY be removed in next major version
 
-### 9.3 Migration Expectations
-
-When specVersion changes:
+### 9.3 Migration Expectations When specVersion changes:
 
 - Runtime MUST provide clear error messages
 - Migration tools SHOULD be provided
 - Old format support MAY be maintained via adapter
 
-## 10. Conformance Testing
-
-Implementations MUST pass:
+## 10. Conformance Testing Implementations MUST pass:
 
 1. **Schema Validation**: All structures validate against JSON Schema
 2. **Determinism Tests**: Same input produces same hash
@@ -374,13 +322,9 @@ Implementations MUST pass:
 
 ---
 
-## Appendix A: Normative References
-
-- RFC 2119: Key words for use in RFCs
+## Appendix A: Normative References - RFC 2119: Key words for use in RFCs
 - RFC 3339: Date and Time on the Internet
 - SemVer 2.0.0: Semantic Versioning
 - JSON Schema Draft 2020-12
 
-## Appendix B: Change Log
-
-See [CHANGELOG.md](./CHANGELOG.md)
+## Appendix B: Change Log See [CHANGELOG.md](./CHANGELOG.md)

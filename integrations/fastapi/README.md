@@ -1,16 +1,10 @@
-# Reach FastAPI Integration
+# Reach FastAPI Integration Integration kit for using Reach with FastAPI.
 
-Integration kit for using Reach with FastAPI.
-
-## Setup
-
-```bash
+## Setup ```bash
 pip install fastapi uvicorn reach-sdk
 ```
 
-## Basic Example
-
-```python
+## Basic Example ```python
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from reach_sdk import create_client
@@ -18,8 +12,7 @@ import os
 
 app = FastAPI(title="Reach Integration Example")
 
-# Create Reach client
-reach = create_client(
+# Create Reach client reach = create_client(
     base_url=os.getenv("REACH_BASE_URL", "http://127.0.0.1:8787")
 )
 
@@ -102,23 +95,15 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
-## Running
+## Running ```bash
+# Set environment variable export REACH_BASE_URL=http://127.0.0.1:8787
 
-```bash
-# Set environment variable
-export REACH_BASE_URL=http://127.0.0.1:8787
-
-# Run the server
-uvicorn main:app --reload
+# Run the server uvicorn main:app --reload
 ```
 
-## API Documentation
-
-FastAPI automatically generates interactive API documentation:
+## API Documentation FastAPI automatically generates interactive API documentation:
 
 - Swagger UI: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
 
-## License
-
-Apache 2.0
+## License Apache 2.0

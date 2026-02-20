@@ -11,7 +11,7 @@ export default function SecurityPage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">Security Model</h1>
         <p className="text-xl text-gray-400">
-          Reach implements a multi-layered security architecture designed to contain agent execution 
+          Reach implements a multi-layered security architecture designed to contain agent execution
           and prevent unauthorized data access or system mutation.
         </p>
       </header>
@@ -19,7 +19,7 @@ export default function SecurityPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">Layer 1: Signed Execution Packs</h2>
         <p className="text-gray-400">
-          All agentic workloads in Reach are bundled into <strong>Execution Packs</strong>. These 
+          All agentic workloads in Reach are bundled into <strong>Execution Packs</strong>. These
           packs are immutable and cryptographically signed.
         </p>
         <div className="bg-white/5 p-6 rounded-xl border border-white/10">
@@ -68,14 +68,14 @@ export default function SecurityPage() {
           <div className="card border border-white/5 p-6 rounded-xl">
             <h4 className="font-bold mb-2">Secret Scrubbing</h4>
             <p className="text-xs text-gray-500">
-              API keys and session tokens identified in logs or event streams are automatically masked 
+              API keys and session tokens identified in logs or event streams are automatically masked
               before being sent to the UI or stored in observability backends.
             </p>
           </div>
           <div className="card border border-white/5 p-6 rounded-xl">
             <h4 className="font-bold mb-2">Data Sovereignty</h4>
             <p className="text-xs text-gray-500">
-              Reach can operate in "Offline-First" mode. In this state, all data, audit logs, and 
+              Reach can operate in "Offline-First" mode. In this state, all data, audit logs, and
               vector embeddings remain strictly local to the device.
             </p>
           </div>
@@ -94,7 +94,7 @@ policy:
   enforce_signatures: true
   block_undeclared_capabilities: true
   max_retries: 3
-  
+
 isolation:
   max_memory_mb: 512
   max_cpu_percent: 50

@@ -1,10 +1,6 @@
-# {{PACK_NAME}}
+# {{PACK_NAME}} A governed execution pack with policy contract for the Reach protocol.
 
-A governed execution pack with policy contract for the Reach protocol.
-
-## Structure
-
-```
+## Structure ```
 .
 ├── pack.json          # Pack manifest
 ├── policy.rego        # Policy contract (Rego)
@@ -14,33 +10,21 @@ A governed execution pack with policy contract for the Reach protocol.
     └── policy_test.sh
 ```
 
-## Policy
-
-This pack includes a policy contract (`policy.rego`) that:
+## Policy This pack includes a policy contract (`policy.rego`) that:
 - Requires signing for execution
 - Denies high-risk permissions for unverified publishers
 - Explicitly allows specific tools
 
-## Usage
+## Usage ```bash
+# Lint the pack reach pack lint .
 
-```bash
-# Lint the pack
-reach pack lint .
+# Run conformance tests reach pack test .
 
-# Run conformance tests
-reach pack test .
+# Full health check reach pack doctor .
 
-# Full health check
-reach pack doctor .
-
-# Sign the pack (required for governed packs)
-reach pack sign . --key <keyfile>
+# Sign the pack (required for governed packs) reach pack sign . --key <keyfile>
 ```
 
-## Determinism
+## Determinism This pack is configured for deterministic execution with governance controls.
 
-This pack is configured for deterministic execution with governance controls.
-
-## License
-
-MIT
+## License MIT

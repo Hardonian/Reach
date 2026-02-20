@@ -1,19 +1,13 @@
-# Reach Autopack Specification
-
-## Overview
+# Reach Autopack Specification ## Overview
 
 Autopack is Reach's community-scale engine for pack quality assurance, automated documentation, and registry validation. It enables npm-scale pack ecosystems without ecosystem rot through automated scoring and CI gates.
 
-## Design Principles
-
-1. **OSS-first**: PR-based registry contributions, no centralized service required
+## Design Principles 1. **OSS-first**: PR-based registry contributions, no centralized service required
 2. **Determinism-preserving**: All existing determinism/policy/signing/audit/replay unchanged
 3. **Minimal dependencies**: Self-contained Go implementation
 4. **Badge-based**: Quality communicated via standardized badges
 
-## Scoring Rubric
-
-### 1. Determinism Score (0-100)
+## Scoring Rubric ### 1. Determinism Score (0-100)
 
 Measures pack reproducibility and replay fidelity.
 
@@ -28,9 +22,7 @@ Measures pack reproducibility and replay fidelity.
 determinism_score = (hash_stability * 0.4) + (replay_success * 0.4) + (spec_compliance * 0.2)
 ```
 
-### 2. Policy Hygiene Score (0-100)
-
-Measures adherence to principle of least privilege.
+### 2. Policy Hygiene Score (0-100) Measures adherence to principle of least privilege.
 
 | Criteria | Weight | Description |
 |----------|--------|-------------|
@@ -43,9 +35,7 @@ Measures adherence to principle of least privilege.
 policy_score = (declaration_accuracy * 0.5) + (permission_scope * 0.3) + (policy_contract * 0.2)
 ```
 
-### 3. Supply Chain Score (0-100)
-
-Measures trustworthiness and provenance.
+### 3. Supply Chain Score (0-100) Measures trustworthiness and provenance.
 
 | Criteria | Weight | Description |
 |----------|--------|-------------|
@@ -58,9 +48,7 @@ Measures trustworthiness and provenance.
 supply_chain_score = (signature_valid * 0.4) + (author_verified * 0.3) + (reproducible_build * 0.3)
 ```
 
-### 4. Performance Score (0-100)
-
-Measures execution efficiency on standard fixtures.
+### 4. Performance Score (0-100) Measures execution efficiency on standard fixtures.
 
 | Criteria | Weight | Description |
 |----------|--------|-------------|
@@ -73,9 +61,7 @@ Measures execution efficiency on standard fixtures.
 performance_score = (cold_start_score * 0.4) + (execution_score * 0.4) + (memory_score * 0.2)
 ```
 
-## Badge Rules
-
-### Overall Quality Badges
+## Badge Rules ### Overall Quality Badges
 
 | Badge | Condition | Display |
 |-------|-----------|---------|
@@ -84,9 +70,7 @@ performance_score = (cold_start_score * 0.4) + (execution_score * 0.4) + (memory
 | 🥉 Bronze | All scores ≥ 60 | `![Bronze](https://img.shields.io/badge/quality-bronze-orange)` |
 | ⚠️ Needs Work | Any score < 60 | `![Needs Work](https://img.shields.io/badge/quality-needs%20work-red)` |
 
-### Category Badges
-
-| Category | Badge | Condition |
+### Category Badges | Category | Badge | Condition |
 |----------|-------|-----------|
 | Determinism | 🔒 Deterministic | Score ≥ 90 |
 | Determinism | ⚠️ Variable | Score < 90 |
@@ -97,32 +81,24 @@ performance_score = (cold_start_score * 0.4) + (execution_score * 0.4) + (memory
 | Performance | 🚀 Fast | Score ≥ 90 |
 | Performance | 🐢 Slow | Score < 60 |
 
-### Verified Badges
-
-| Badge | Condition |
+### Verified Badges | Badge | Condition |
 |-------|-----------|
 | ✓ Registry Verified | Passed all CI gates |
 | ✓ Replay Tested | Replay score = 100 |
 | ✓ Community Review | 3+ community approvals |
 
-## CLI Commands
-
-### `reach pack score <path>`
+## CLI Commands ### `reach pack score <path>`
 
 Runs full scoring suite on a pack.
 
 ```bash
-# Score a local pack
-reach pack score ./my-pack
+# Score a local pack reach pack score ./my-pack
 
-# Output JSON for CI
-reach pack score ./my-pack --json
+# Output JSON for CI reach pack score ./my-pack --json
 
-# Score with specific fixtures
-reach pack score ./my-pack --fixtures ./fixtures
+# Score with specific fixtures reach pack score ./my-pack --fixtures ./fixtures
 
-# Generate badge report
-reach pack score ./my-pack --badges
+# Generate badge report reach pack score ./my-pack --badges
 ```
 
 Output:
@@ -143,24 +119,17 @@ Output:
 }
 ```
 
-### `reach pack docs <path>`
-
-Generates documentation for a pack.
+### `reach pack docs <path>` Generates documentation for a pack.
 
 ```bash
-# Generate markdown docs
-reach pack docs ./my-pack --output ./docs
+# Generate markdown docs reach pack docs ./my-pack --output ./docs
 
-# Include scoring results
-reach pack docs ./my-pack --with-scores
+# Include scoring results reach pack docs ./my-pack --with-scores
 
-# Generate for registry
-reach pack docs ./my-pack --registry-format
+# Generate for registry reach pack docs ./my-pack --registry-format
 ```
 
-## CI Gates
-
-### `verify:registry-pr`
+## CI Gates ### `verify:registry-pr`
 
 GitHub Action workflow for registry PR validation.
 
@@ -183,9 +152,7 @@ jobs:
         run: reach verify:registry-pr
 ```
 
-### Validation Steps
-
-1. **Schema Validation**
+### Validation Steps 1. **Schema Validation**
    - Metadata schema compliance
    - Required fields present
    - Version format valid
@@ -215,9 +182,7 @@ jobs:
    - No high-risk permissions without justification
    - Default deny must be set
 
-## Registry Structure
-
-```
+## Registry Structure ```
 registry/
 ├── packs/
 │   ├── com.example.pack/
@@ -231,9 +196,7 @@ registry/
 └── badges/              # Generated badge images
 ```
 
-## API Reference
-
-### Score Report Format
+## API Reference ### Score Report Format
 
 ```go
 type ScoreReport struct {
@@ -255,9 +218,7 @@ type CategoryScores struct {
 }
 ```
 
-### Documentation Format
-
-```go
+### Documentation Format ```go
 type PackDocs struct {
     Metadata    PackMetadata   `json:"metadata"`
     README      string         `json:"readme"`

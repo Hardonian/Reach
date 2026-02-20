@@ -1,6 +1,4 @@
-# Reach – Code Quality Agent
-
-## Mission
+# Reach – Code Quality Agent ## Mission
 Keep the repo clean, fast, safe, and boring (in the best way).
 
 ## Responsibilities

@@ -11,7 +11,7 @@ export default function IntegrationsPage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">Integrations</h1>
         <p className="text-xl text-gray-400">
-          Reach is built to be the execution layer for your entire stack. 
+          Reach is built to be the execution layer for your entire stack.
           Connect to IDEs, cloud providers, and custom services via our standardized protocol.
         </p>
       </header>
@@ -21,7 +21,7 @@ export default function IntegrationsPage() {
         <div className="card bg-white/5 p-8 rounded-xl border border-white/10">
           <h3 className="text-xl font-bold text-white mb-2">VS Code</h3>
           <p className="text-sm text-gray-400 mb-6">
-            The Reach VS Code extension provides integrated agent execution, real-time event logs, 
+            The Reach VS Code extension provides integrated agent execution, real-time event logs,
             and pack management directly within your editor.
           </p>
           <ul className="grid md:grid-cols-2 gap-4 text-xs text-gray-500 mb-6">

@@ -18,7 +18,7 @@ export function GlobalActivityMap({ className = '' }: GlobalActivityMapProps) {
     const points: GridPoint[] = [];
     // Use deterministic pseudo-random based on position for stable SSR/client
     const isActive = (x: number, y: number) => ((x * 7 + y * 13) % 10) > 6;
-    
+
     for (let x = 0; x < 20; x++) {
       for (let y = 0; y < 10; y++) {
         points.push({
@@ -32,7 +32,7 @@ export function GlobalActivityMap({ className = '' }: GlobalActivityMapProps) {
   }, []);
 
   // Active points for rendering connections
-  const activePoints = React.useMemo(() => 
+  const activePoints = React.useMemo(() =>
     gridPoints.filter((p) => p.active),
     [gridPoints]
   );
@@ -57,7 +57,7 @@ export function GlobalActivityMap({ className = '' }: GlobalActivityMapProps) {
           // Only connect to next point to avoid excessive lines
           const nextPoint = activePoints[i + 1];
           if (!nextPoint) return null;
-          
+
           return (
             <line
               key={`line-${i}`}

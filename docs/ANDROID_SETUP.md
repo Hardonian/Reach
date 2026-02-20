@@ -1,69 +1,48 @@
-# Android Setup Guide
+# Android Setup Guide Reach runs on Android via Termux, enabling on-device execution packs and edge-first AI workflows.
 
-Reach runs on Android via Termux, enabling on-device execution packs and edge-first AI workflows.
-
-## Prerequisites
-
-- Android 8.0+ (API 26+)
+## Prerequisites - Android 8.0+ (API 26+)
 - 2GB+ free storage
 - 4GB+ RAM recommended
 
-## Installation
-
-### Step 1: Install Termux
+## Installation ### Step 1: Install Termux
 
 Download Termux from F-Droid (recommended) or GitHub:
 
 ```bash
-# F-Droid (preferred)
-https://f-droid.org/packages/com.termux/
+# F-Droid (preferred) https://f-droid.org/packages/com.termux/
 
-# GitHub releases
-https://github.com/termux/termux-app/releases
+# GitHub releases https://github.com/termux/termux-app/releases
 ```
 
 > **Note**: Do not use the Play Store version - it's outdated and unsupported.
 
-### Step 2: Bootstrap Script
-
-Run the one-command installer:
+### Step 2: Bootstrap Script Run the one-command installer:
 
 ```bash
-# Download and run bootstrap
-curl -fsSL https://get.reach.dev/android-bootstrap.sh | bash
+# Download and run bootstrap curl -fsSL https://get.reach.dev/android-bootstrap.sh | bash
 ```
 
 Or manually:
 
 ```bash
-# Update packages
-pkg update && pkg upgrade -y
+# Update packages pkg update && pkg upgrade -y
 
-# Install dependencies
-pkg install -y golang git nodejs ollama
+# Install dependencies pkg install -y golang git nodejs ollama
 
-# Install Reach
-go install github.com/reach/reach/services/runner/cmd/reachctl@latest
+# Install Reach go install github.com/reach/reach/services/runner/cmd/reachctl@latest
 
-# Create config directory
-mkdir -p ~/.reach
+# Create config directory mkdir -p ~/.reach
 ```
 
-### Step 3: Start Ollama (Optional)
-
-For local LLM support:
+### Step 3: Start Ollama (Optional) For local LLM support:
 
 ```bash
-# Download a small model
-ollama pull llama3.2:3b
+# Download a small model ollama pull llama3.2:3b
 
-# Start server
-ollama serve &
+# Start server ollama serve &
 ```
 
-### Step 4: Verify Installation
-
-```bash
+### Step 4: Verify Installation ```bash
 reach doctor
 ```
 
@@ -76,9 +55,7 @@ Expected output:
 ⚠ Ollama not running (optional)
 ```
 
-## File System Constraints
-
-### Storage Locations
+## File System Constraints ### Storage Locations
 
 | Path | Purpose | Notes |
 |------|---------|-------|
@@ -87,9 +64,7 @@ Expected output:
 | `/sdcard/Download/reach` | Shared storage | Accessible to other apps |
 | Termux internal | Cache | Private to Termux |
 
-### Android Permissions
-
-Termux doesn't require special permissions for:
+### Android Permissions Termux doesn't require special permissions for:
 - Local file access (internal storage)
 - Network connections
 - Background execution
@@ -100,59 +75,40 @@ For external storage:
 termux-setup-storage
 ```
 
-## Performance Tuning
-
-### Memory Management
+## Performance Tuning ### Memory Management
 
 Android apps have memory limits. Reach auto-configures for constrained environments:
 
 ```bash
-# Check auto-detected limits
-reach config get edge_mode
+# Check auto-detected limits reach config get edge_mode
 
-# Manual override
-reach config set edge_mode.memory_cap_mb 256
+# Manual override reach config set edge_mode.memory_cap_mb 256
 reach config set edge_mode.max_context_tokens 2048
 ```
 
-### Battery Optimization
-
-Disable battery optimization for Termux:
+### Battery Optimization Disable battery optimization for Termux:
 
 1. Settings → Apps → Termux → Battery
 2. Set to "Unrestricted" or "Don't optimize"
 
-### Background Execution
-
-Keep Reach running:
+### Background Execution Keep Reach running:
 
 ```bash
-# Using termux-wake-lock
-termux-wake-lock
+# Using termux-wake-lock termux-wake-lock
 
-# Run your pack
-reach run --edge ./my-pack.tar.gz
+# Run your pack reach run --edge ./my-pack.tar.gz
 
-# Release wake lock
-termux-wake-unlock
+# Release wake lock termux-wake-unlock
 ```
 
-## PWA Strategy
+## PWA Strategy For a web-based interface on Android:
 
-For a web-based interface on Android:
+### Option 1: Termux + Web Server ```bash
+# In Termux, start Reach server reach serve --addr :8080 &
 
-### Option 1: Termux + Web Server
+# Open browser to http://localhost:8080 ```
 
-```bash
-# In Termux, start Reach server
-reach serve --addr :8080 &
-
-# Open browser to http://localhost:8080
-```
-
-### Option 2: PWA Wrapper
-
-Create a simple PWA:
+### Option 2: PWA Wrapper Create a simple PWA:
 
 ```html
 <!-- index.html -->
@@ -164,7 +120,7 @@ Create a simple PWA:
     <script>
         // Connect to local Reach instance
         const API = 'http://localhost:8080';
-        
+
         async function runPack() {
             const response = await fetch(`${API}/api/v1/run`, {
                 method: 'POST',
@@ -188,15 +144,11 @@ Serve with any static file server:
 python3 -m http.server 8000
 ```
 
-### Add to Home Screen
-
-1. Open in Chrome
+### Add to Home Screen 1. Open in Chrome
 2. Menu → "Add to Home screen"
 3. Launch as standalone app
 
-## React Native Wrapper (Future)
-
-A minimal React Native wrapper is planned:
+## React Native Wrapper (Future) A minimal React Native wrapper is planned:
 
 ```javascript
 // reach-rn-bridge
@@ -214,103 +166,67 @@ export async function runPack(packPath, options) {
 
 For now, use the PWA approach or Termux directly.
 
-## Common Issues
-
-### "Permission Denied" Errors
+## Common Issues ### "Permission Denied" Errors
 
 ```bash
-# Fix Termux permissions
-termux-fix-shebang $(which reach)
+# Fix Termux permissions termux-fix-shebang $(which reach)
 
-# Or reinstall
-pkg reinstall reach
+# Or reinstall pkg reinstall reach
 ```
 
-### Out of Memory
-
-```bash
-# Reduce memory limits
-export REACH_EDGE_MEMORY_CAP_MB=256
+### Out of Memory ```bash
+# Reduce memory limits export REACH_EDGE_MEMORY_CAP_MB=256
 export REACH_EDGE_MAX_CONTEXT=2048
 
-# Kill background processes
-pkill -f ollama
+# Kill background processes pkill -f ollama
 ```
 
-### Network Unavailable
+### Network Unavailable ```bash
+# Check network ping google.com
 
-```bash
-# Check network
-ping google.com
-
-# Reset Termux network
-termux-wifi-enable true
+# Reset Termux network termux-wifi-enable true
 ```
 
-### Slow Performance
+### Slow Performance ```bash
+# Use smaller model ollama pull tinyllama:1.1b
 
-```bash
-# Use smaller model
-ollama pull tinyllama:1.1b
-
-# Disable metrics
-reach config set telemetry.metrics_enabled false
+# Disable metrics reach config set telemetry.metrics_enabled false
 ```
 
-## Development Workflow
-
-### Developing on Android
+## Development Workflow ### Developing on Android
 
 ```bash
-# Create pack directory
-mkdir -p ~/reach-packs/my-pack
+# Create pack directory mkdir -p ~/reach-packs/my-pack
 cd ~/reach-packs/my-pack
 
-# Edit files (using nano/vim)
-nano reach.yaml
+# Edit files (using nano/vim) nano reach.yaml
 
-# Pack and test
-reach pack . && reach run --edge ./my-pack.tar.gz
+# Pack and test reach pack . && reach run --edge ./my-pack.tar.gz
 ```
 
-### Sync from Desktop
+### Sync from Desktop ```bash
+# Using rsync over SSH rsync -avz ~/reach-packs/ phone:/data/data/com.termux/files/home/reach-packs/
+
+# Or using ADB adb push ~/reach-packs/ /sdcard/Download/reach/
+```
+
+## Debugging ### View Logs
 
 ```bash
-# Using rsync over SSH
-rsync -avz ~/reach-packs/ phone:/data/data/com.termux/files/home/reach-packs/
+# Termux session tail -f ~/.reach/logs/reach.log
 
-# Or using ADB
-adb push ~/reach-packs/ /sdcard/Download/reach/
+# With logcat logcat -s "Reach:*"
 ```
 
-## Debugging
+### Check Resource Usage ```bash
+# Memory top -p $(pgrep reach)
 
-### View Logs
+# Disk usage du -sh ~/.reach/
 
-```bash
-# Termux session
-tail -f ~/.reach/logs/reach.log
-
-# With logcat
-logcat -s "Reach:*"
+# Network netstat -tlnp | grep reach
 ```
 
-### Check Resource Usage
-
-```bash
-# Memory
-top -p $(pgrep reach)
-
-# Disk usage
-du -sh ~/.reach/
-
-# Network
-netstat -tlnp | grep reach
-```
-
-## Security Considerations
-
-### Sandboxing
+## Security Considerations ### Sandboxing
 
 Reach's sandbox is limited on Android:
 - No chroot (requires root)
@@ -322,9 +238,7 @@ Policy enforcement still works:
 - Network access controls
 - File system restrictions
 
-### Key Storage
-
-Private keys are stored in:
+### Key Storage Private keys are stored in:
 ```
 /data/data/com.termux/files/home/.reach/keys/
 ```
@@ -334,21 +248,14 @@ This location is:
 - Encrypted at rest (Android 10+)
 - Not accessible to other apps
 
-## Uninstallation
+## Uninstallation ```bash
+# Remove Reach go clean -i github.com/reach/reach/...
 
-```bash
-# Remove Reach
-go clean -i github.com/reach/reach/...
+# Remove config rm -rf ~/.reach
 
-# Remove config
-rm -rf ~/.reach
-
-# Remove Termux data (DANGER: deletes everything)
-rm -rf /data/data/com.termux
+# Remove Termux data (DANGER: deletes everything) rm -rf /data/data/com.termux
 ```
 
-## Further Reading
-
-- [Edge Mode](./EDGE_MODE.md)
+## Further Reading - [Edge Mode](./EDGE_MODE.md)
 - [Termux Wiki](https://wiki.termux.com/)
 - [Ollama on Mobile](https://github.com/ollama/ollama/blob/main/docs/android.md)

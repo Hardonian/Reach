@@ -18,8 +18,8 @@ export default function EnginePage() {
       <section className="space-y-4">
         <h2 className="text-2xl font-bold border-b border-border pb-2">How it Works</h2>
         <p>
-          Unlike standard execution environments, the Reach engine captures every side effect, tool call, 
-          and state transition within a signed capsule. 
+          Unlike standard execution environments, the Reach engine captures every side effect, tool call,
+          and state transition within a signed capsule.
         </p>
         <div className="bg-white/5 p-6 rounded-xl border border-white/10 font-mono text-sm">
           Execution = (Signed Pack + Input State + Policy Gate) -{'>'} Verifiable Capsule

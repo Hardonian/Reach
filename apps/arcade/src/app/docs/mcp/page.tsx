@@ -11,7 +11,7 @@ export default function MCPPage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">Model Context Protocol (MCP)</h1>
         <p className="text-xl text-gray-400">
-          Reach uses the Model Context Protocol (MCP) as the standard interface between LLMs and 
+          Reach uses the Model Context Protocol (MCP) as the standard interface between LLMs and
           external data/tools.
         </p>
       </header>
@@ -19,7 +19,7 @@ export default function MCPPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">Why MCP?</h2>
         <p className="text-gray-400">
-          Before MCP, every AI integration required custom "glue code" for authentication, data formatting, 
+          Before MCP, every AI integration required custom "glue code" for authentication, data formatting,
           and error handling. Reach adopts MCP to provide:
         </p>
         <div className="grid md:grid-cols-3 gap-6">
@@ -97,7 +97,7 @@ export default function MCPPage() {
           <div>
             <h3 className="font-bold mb-2">Enforcement</h3>
             <p className="text-sm text-gray-400">
-              If an agent attempts to call an MCP tool not present in its signed capability pack, 
+              If an agent attempts to call an MCP tool not present in its signed capability pack,
               the Reach Runner terminates the process immediately with a <code>CAPABILITY_VIOLATION</code>.
             </p>
           </div>

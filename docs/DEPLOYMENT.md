@@ -1,40 +1,26 @@
-# Reach Deployment Guide
+# Reach Deployment Guide ## Deployment Scenarios
 
-## Deployment Scenarios
+### Local Development ```bash
+# Quick start reach serve
 
-### Local Development
+# With custom port reach serve --port 8080
 
-```bash
-# Quick start
-reach serve
-
-# With custom port
-reach serve --port 8080
-
-# With custom data directory
-reach serve --data ./my-data
+# With custom data directory reach serve --data ./my-data
 ```
 
-### Docker Deployment
-
-```bash
-# Run with Docker
-docker run -d \
+### Docker Deployment ```bash
+# Run with Docker docker run -d \
   --name reach \
   -p 8787:8787 \
   -v $(pwd)/data:/data \
   reach/reach:latest
 
-# View logs
-docker logs -f reach
+# View logs docker logs -f reach
 
-# Stop
-docker stop reach
+# Stop docker stop reach
 ```
 
-### Docker Compose
-
-```yaml
+### Docker Compose ```yaml
 version: '3.8'
 
 services:
@@ -59,9 +45,7 @@ volumes:
   reach-data:
 ```
 
-### Kubernetes
-
-```yaml
+### Kubernetes ```yaml
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -137,9 +121,7 @@ spec:
       storage: 10Gi
 ```
 
-## Reverse Proxy Setup
-
-### Nginx
+## Reverse Proxy Setup ### Nginx
 
 ```nginx
 upstream reach {
@@ -156,11 +138,11 @@ server {
     location / {
         proxy_pass http://reach;
         proxy_http_version 1.1;
-        
+
         # SSE support
         proxy_set_header Connection '';
         proxy_buffering off;
-        
+
         # Headers
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -170,17 +152,13 @@ server {
 }
 ```
 
-### Caddy
-
-```caddy
+### Caddy ```caddy
 reach.example.com {
     reverse_proxy localhost:8787
 }
 ```
 
-### Traefik
-
-```yaml
+### Traefik ```yaml
 labels:
   - "traefik.enable=true"
   - "traefik.http.routers.reach.rule=Host(`reach.example.com`)"
@@ -189,28 +167,20 @@ labels:
   - "traefik.http.services.reach.loadbalancer.server.port=8787"
 ```
 
-## Environment Variables
-
-| Variable | Description | Default |
+## Environment Variables | Variable | Description | Default |
 |----------|-------------|---------|
 | `REACH_DATA_DIR` | Data directory | `./data` |
 | `REACH_LOG_LEVEL` | Log level | `info` |
 | `REACH_BIND` | Bind address | `127.0.0.1` |
 | `REACH_PORT` | Server port | `8787` |
 
-## Health Checks
+## Health Checks ```bash
+# Basic health check curl http://localhost:8787/health
 
-```bash
-# Basic health check
-curl http://localhost:8787/health
-
-# Version check
-curl http://localhost:8787/version
+# Version check curl http://localhost:8787/version
 ```
 
-## Monitoring
-
-### Prometheus Metrics
+## Monitoring ### Prometheus Metrics
 
 Enable metrics endpoint:
 
@@ -225,72 +195,46 @@ Access metrics:
 curl http://localhost:8787/metrics
 ```
 
-### Grafana Dashboard
+### Grafana Dashboard Import the official Reach dashboard (ID: 12345) or use the provided JSON in `monitoring/grafana-dashboard.json`.
 
-Import the official Reach dashboard (ID: 12345) or use the provided JSON in `monitoring/grafana-dashboard.json`.
-
-## Backup and Recovery
-
-### Automated Backups
+## Backup and Recovery ### Automated Backups
 
 ```bash
 #!/bin/bash
-# backup.sh
-
-BACKUP_DIR="/backups/reach"
+# backup.sh BACKUP_DIR="/backups/reach"
 DATE=$(date +%Y%m%d_%H%M%S)
 
-# Create backup
-tar czf "$BACKUP_DIR/reach_$DATE.tar.gz" data/
+# Create backup tar czf "$BACKUP_DIR/reach_$DATE.tar.gz" data/
 
-# Keep only last 7 days
-find "$BACKUP_DIR" -name "reach_*.tar.gz" -mtime +7 -delete
+# Keep only last 7 days find "$BACKUP_DIR" -name "reach_*.tar.gz" -mtime +7 -delete
 ```
 
-### Recovery
+### Recovery ```bash
+# Stop server pkill reach
 
-```bash
-# Stop server
-pkill reach
+# Restore from backup tar xzf reach_20240101_120000.tar.gz
 
-# Restore from backup
-tar xzf reach_20240101_120000.tar.gz
-
-# Restart server
-reach serve
+# Restart server reach serve
 ```
 
-## Troubleshooting
-
-### Server Won't Start
+## Troubleshooting ### Server Won't Start
 
 ```bash
-# Check port availability
-lsof -i :8787
+# Check port availability lsof -i :8787
 
-# Check data directory permissions
-ls -la data/
+# Check data directory permissions ls -la data/
 
-# Check logs
-reach serve 2>&1 | tee reach.log
+# Check logs reach serve 2>&1 | tee reach.log
 ```
 
-### High Memory Usage
+### High Memory Usage ```bash
+# Limit memory with Docker docker run -m 512m reach/reach:latest
 
-```bash
-# Limit memory with Docker
-docker run -m 512m reach/reach:latest
-
-# Monitor memory
-docker stats reach
+# Monitor memory docker stats reach
 ```
 
-### Database Issues
+### Database Issues ```bash
+# Verify database integrity sqlite3 data/reach.sqlite "PRAGMA integrity_check;"
 
-```bash
-# Verify database integrity
-sqlite3 data/reach.sqlite "PRAGMA integrity_check;"
-
-# Backup database
-cp data/reach.sqlite data/reach.sqlite.backup
+# Backup database cp data/reach.sqlite data/reach.sqlite.backup
 ```

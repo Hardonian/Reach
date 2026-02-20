@@ -1,11 +1,7 @@
-# Reach Protocol Architecture
-
-## Overview
+# Reach Protocol Architecture ## Overview
 Reach is a deterministic execution protocol designed for auditable, high-trust coordination between distributed agents. It transforms a standard task execution queue into a verifiable "Decision Fortress" using economic moats, hardware-level trust, and cryptographic proofs.
 
-## Core Components
-
-### 1. Runner (Agent Gateway)
+## Core Components ### 1. Runner (Agent Gateway)
 - **API Server**: Entry point for runs, tool results, and management (Import/Export/Audit).
 - **Durable Queue**: Ensures Exactly-Once execution semantics for tool calls.
 - **Node Registry**: Manages hardware-attested executors (TPM/TEE) and their reputation scores.

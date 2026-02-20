@@ -1,10 +1,6 @@
-# Contributing to Reach
+# Contributing to Reach Thank you for your interest in contributing to Reach! This document provides comprehensive guidelines for contributing to the project.
 
-Thank you for your interest in contributing to Reach! This document provides comprehensive guidelines for contributing to the project.
-
-## Table of Contents
-
-- [Code of Conduct](#code-of-conduct)
+## Table of Contents - [Code of Conduct](#code-of-conduct)
 - [Getting Started](#getting-started)
 - [Development Setup](#development-setup)
 - [Project Structure](#project-structure)
@@ -17,18 +13,14 @@ Thank you for your interest in contributing to Reach! This document provides com
 - [Security](#security)
 - [Release Process](#release-process)
 
-## Code of Conduct
-
-This project adheres to a code of conduct. By participating, you are expected to uphold this code:
+## Code of Conduct This project adheres to a code of conduct. By participating, you are expected to uphold this code:
 
 - Be respectful and inclusive
 - Welcome newcomers
 - Focus on constructive feedback
 - Respect different viewpoints and experiences
 
-## Getting Started
-
-### Prerequisites
+## Getting Started ### Prerequisites
 
 - **Go** 1.23+ (for backend services)
 - **Rust** stable (see `rust-toolchain.toml` for engine)
@@ -36,9 +28,7 @@ This project adheres to a code of conduct. By participating, you are expected to
 - **SQLite** 3.35+ (database)
 - **Git** 2.30+
 
-### Quick Setup
-
-```bash
+### Quick Setup ```bash
 # Clone the repository
 git clone https://github.com/yourorg/reach.git
 cd reach
@@ -51,9 +41,7 @@ npm install
 ./reach doctor
 ```
 
-## Development Setup
-
-### Full Environment Setup
+## Development Setup ### Full Environment Setup
 
 ```bash
 # Install Go dependencies
@@ -72,9 +60,7 @@ mkdir -p data
 npm run verify:full
 ```
 
-### Docker Development (Recommended)
-
-```bash
+### Docker Development (Recommended) ```bash
 # Start development environment
 docker-compose up -d runner
 
@@ -85,9 +71,7 @@ docker-compose logs -f runner
 docker-compose exec runner go test ./...
 ```
 
-### IDE Setup
-
-**VS Code** (recommended):
+### IDE Setup **VS Code** (recommended):
 - Install recommended extensions (see `.vscode/extensions.json`)
 - Use workspace settings for consistent formatting
 - Install the Reach VS Code extension from `extensions/vscode/`
@@ -101,9 +85,7 @@ docker-compose exec runner go test ./...
 - Use `vim-go` or `coc-go`
 - Enable LSP support
 
-## Project Structure
-
-```
+## Project Structure ```
 Reach/
 ├── services/
 │   └── runner/           # Main Go service
@@ -131,9 +113,7 @@ Reach/
 └── docker/               # Docker configurations
 ```
 
-## Development Workflow
-
-### Branch Strategy
+## Development Workflow ### Branch Strategy
 
 - `main` - Production-ready code
 - `develop` - Integration branch (optional)
@@ -142,9 +122,7 @@ Reach/
 - `docs/<documentation>` - Documentation updates
 - `refactor/<scope>` - Code refactoring
 
-### Creating a Branch
-
-```bash
+### Creating a Branch ```bash
 # Sync with main
 git checkout main
 git pull origin main
@@ -156,9 +134,7 @@ git checkout -b feat/my-feature
 git checkout -b fix/bug-description
 ```
 
-### Commit Messages
-
-Follow conventional commits:
+### Commit Messages Follow conventional commits:
 
 ```
 <type>(<scope>): <description>
@@ -188,9 +164,7 @@ docs(architecture): add module boundaries diagram
 test(adaptive): add strategy selection tests
 ```
 
-## Code Style
-
-### Go
+## Code Style ### Go
 
 - Follow standard Go conventions
 - Run `go fmt` before committing
@@ -211,9 +185,7 @@ Key conventions:
 - Keep functions focused and small
 - Document exported functions
 
-### Rust
-
-- Follow Rust API guidelines
+### Rust - Follow Rust API guidelines
 - Run `cargo fmt` and `cargo clippy`
 - Use `cargo check` for quick validation
 
@@ -224,9 +196,7 @@ cargo clippy -- -D warnings
 cargo check
 ```
 
-### TypeScript/JavaScript
-
-- Use TypeScript strict mode
+### TypeScript/JavaScript - Use TypeScript strict mode
 - Follow ESLint configuration
 - Use Prettier for formatting
 
@@ -235,9 +205,7 @@ npm run lint
 npm run typecheck
 ```
 
-## Testing
-
-### Running Tests
+## Testing ### Running Tests
 
 **All tests:**
 ```bash
@@ -273,18 +241,16 @@ go test -coverprofile=coverage.out ./...
 go tool cover -html=coverage.out
 ```
 
-### Writing Tests
-
-**Go Tests:**
+### Writing Tests **Go Tests:**
 ```go
 func TestFeature(t *testing.T) {
     // Setup
     db := setupTestDB(t)
     defer db.Close()
-    
+
     // Execute
     result, err := db.GetSomething(ctx, "id")
-    
+
     // Assert
     if err != nil {
         t.Fatalf("unexpected error: %v", err)
@@ -297,7 +263,7 @@ func TestFeature(t *testing.T) {
 func BenchmarkFeature(b *testing.B) {
     db := setupTestDB(b)
     defer db.Close()
-    
+
     b.ResetTimer()
     for i := 0; i < b.N; i++ {
         db.GetSomething(ctx, "id")
@@ -311,9 +277,7 @@ func BenchmarkFeature(b *testing.B) {
 - Mock external dependencies
 - Clean up resources with `defer`
 
-### Integration Tests
-
-Located in `tests/integration/`:
+### Integration Tests Located in `tests/integration/`:
 
 ```bash
 # Run integration tests
@@ -324,16 +288,12 @@ go test -v ./...
 go test -v -tags=integration ./...
 ```
 
-### Load Tests
-
-```bash
+### Load Tests ```bash
 cd tests/load
 k6 run scenario.js
 ```
 
-## Documentation
-
-### Code Documentation
+## Documentation ### Code Documentation
 
 - Document all exported functions, types, and packages
 - Include examples for complex functions
@@ -349,20 +309,14 @@ package storage
 func (s *SQLiteStore) CreateRun(ctx context.Context, rec RunRecord) error
 ```
 
-### User Documentation
-
-- Update `docs/` for user-facing features
+### User Documentation - Update `docs/` for user-facing features
 - Update `README.md` for setup/usage changes
 - Update `CHANGELOG.md` for release notes
 
-### Architecture Documentation
-
-- Update `ARCHITECTURE.md` for structural changes
+### Architecture Documentation - Update `ARCHITECTURE.md` for structural changes
 - Update relevant ADRs in `docs/architecture/`
 
-## Submitting Changes
-
-### Before Submitting
+## Submitting Changes ### Before Submitting
 
 1. **Run verification:**
 ```bash
@@ -389,9 +343,7 @@ cd services/runner && go test ./...
 git diff main
 ```
 
-### Pull Request Template
-
-```markdown
+### Pull Request Template ```markdown
 ## Summary
 Brief description of changes
 
@@ -416,9 +368,7 @@ What could go wrong?
 - [ ] Changelog updated (if applicable)
 ```
 
-### Creating a Pull Request
-
-1. Push your branch:
+### Creating a Pull Request 1. Push your branch:
 ```bash
 git push origin feat/my-feature
 ```
@@ -433,34 +383,26 @@ git push origin feat/my-feature
 - Code owners for affected areas
 - At least one senior maintainer
 
-## Review Process
-
-### As a Reviewer
+## Review Process ### As a Reviewer
 
 - Review within 48 hours
 - Be constructive and specific
 - Approve only when satisfied
 - Request changes for issues
 
-### As an Author
-
-- Respond to all comments
+### As an Author - Respond to all comments
 - Make requested changes promptly
 - Resolve conversations when fixed
 - Re-request review when ready
 
-### Review Criteria
-
-- **Correctness**: Does it work? Are edge cases handled?
+### Review Criteria - **Correctness**: Does it work? Are edge cases handled?
 - **Testing**: Are there adequate tests?
 - **Documentation**: Is it documented?
 - **Security**: Any security concerns?
 - **Performance**: Any performance implications?
 - **Style**: Does it follow conventions?
 
-## Security
-
-### Security Guidelines
+## Security ### Security Guidelines
 
 - Never commit secrets, passwords, or API keys
 - Use environment variables for configuration
@@ -469,16 +411,12 @@ git push origin feat/my-feature
 - Escape output (prevent XSS)
 - Follow OWASP guidelines
 
-### Reporting Security Issues
-
-- Email security@reach.io
+### Reporting Security Issues - Email security@reach.io
 - Do not open public issues for security bugs
 - Include reproduction steps
 - Allow 90 days before public disclosure
 
-### Security Checklist
-
-- [ ] No hardcoded credentials
+### Security Checklist - [ ] No hardcoded credentials
 - [ ] Input validation
 - [ ] Output encoding
 - [ ] SQL injection prevention
@@ -487,18 +425,14 @@ git push origin feat/my-feature
 - [ ] Secure defaults
 - [ ] Audit logging for sensitive operations
 
-## Release Process
-
-### Versioning
+## Release Process ### Versioning
 
 We follow [Semantic Versioning](https://semver.org/):
 - MAJOR: Incompatible API changes
 - MINOR: Backward-compatible functionality
 - PATCH: Backward-compatible bug fixes
 
-### Preparing a Release
-
-1. Update version:
+### Preparing a Release 1. Update version:
 ```bash
 # Update VERSION file
 echo "1.2.3" > VERSION
@@ -519,9 +453,7 @@ echo "1.2.3" > VERSION
 - Include all changes since last release
 - Get approvals
 
-### Creating a Release
-
-```bash
+### Creating a Release ```bash
 # Tag the release
 git tag -a v1.2.3 -m "Release version 1.2.3"
 git push origin v1.2.3
@@ -530,38 +462,28 @@ git push origin v1.2.3
 # Go to Releases → Draft a new release
 ```
 
-### Post-Release
-
-- Monitor error rates
+### Post-Release - Monitor error rates
 - Monitor performance metrics
 - Be prepared to rollback
 
-## Getting Help
-
-### Resources
+## Getting Help ### Resources
 
 - [Documentation](docs/)
 - [Architecture](ARCHITECTURE.md)
 - [API Reference](docs/api/)
 - [Troubleshooting](docs/troubleshooting.md)
 
-### Communication
-
-- GitHub Issues: Bug reports, feature requests
+### Communication - GitHub Issues: Bug reports, feature requests
 - GitHub Discussions: Questions, ideas
 - Slack: Real-time chat (invite-only)
 - Email: reach@example.com
 
-### Office Hours
-
-Join our weekly office hours:
+### Office Hours Join our weekly office hours:
 - When: Thursdays 2pm UTC
 - Where: Zoom link in calendar
 - What: Ask questions, get help, discuss ideas
 
-## Recognition
-
-Contributors will be:
+## Recognition Contributors will be:
 - Listed in CONTRIBUTORS.md
 - Mentioned in release notes
 - Added to the organization (for significant contributions)

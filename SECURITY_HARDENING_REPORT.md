@@ -1,22 +1,16 @@
-# Security Hardening Implementation Report
-
-**Date:** 2026-02-18  
-**Scope:** Production Dependency Firewall  
+# Security Hardening Implementation Report **Date:** 2026-02-18
+**Scope:** Production Dependency Firewall
 **Status:** ✅ COMPLETE
 
 ---
 
-## Executive Summary
-
-Implemented a comprehensive production dependency firewall for Reach that prevents toxic packages from entering the runtime, enforces Node.js version compatibility, and adds CI gates to prevent regressions.
+## Executive Summary Implemented a comprehensive production dependency firewall for Reach that prevents toxic packages from entering the runtime, enforces Node.js version compatibility, and adds CI gates to prevent regressions.
 
 **Key Finding:** The toxic packages mentioned in the mission (clawdbot, codex, connect, request, marked, hono, node-llama-cpp) were **NOT present** in the codebase. The firewall is now in place to ensure they never enter.
 
 ---
 
-## Changes Made
-
-### 1. Root package.json
+## Changes Made ### 1. Root package.json
 **File:** `package.json`
 
 **Added:**
@@ -120,9 +114,7 @@ Added "Dependency Firewall" section explaining:
 
 ---
 
-## Verification Results
-
-### Toxic Dependency Check
+## Verification Results ### Toxic Dependency Check
 ```bash
 $ node scripts/verify-no-toxic-deps.mjs
 
@@ -160,9 +152,7 @@ $ npm run typecheck
 # VS Code extension builds successfully
 ```
 
-### Security Audit Summary
-
-| Workspace | Status | Notes |
+### Security Audit Summary | Workspace | Status | Notes |
 |-----------|--------|-------|
 | Root | ✅ Clean | No dependencies |
 | VS Code Ext | ⚠️ 15 vulns | All in dev tooling (eslint, vitest) |
@@ -178,9 +168,7 @@ These affect **build/test tools only**, not production runtime.
 
 ---
 
-## Remaining Advisory Acceptance
-
-The following vulnerabilities remain because they are in **dev-only tooling**:
+## Remaining Advisory Acceptance The following vulnerabilities remain because they are in **dev-only tooling**:
 
 1. **minimatch/ajv in eslint/typescript-eslint** (15 vulns)
    - **Risk:** Low (dev tool ReDoS requires malicious input)
@@ -201,9 +189,7 @@ The following vulnerabilities remain because they are in **dev-only tooling**:
 
 ---
 
-## How to Use
-
-### Verify Production Install
+## How to Use ### Verify Production Install
 ```bash
 npm run verify:prod-install
 ```
@@ -225,9 +211,7 @@ npm ci --omit=dev
 
 ---
 
-## Files Changed
-
-| File | Change |
+## Files Changed | File | Change |
 |------|--------|
 | `package.json` | Added engines, overrides, security scripts |
 | `extensions/vscode/package.json` | Added engines, overrides, upgraded ws |
@@ -242,23 +226,19 @@ npm ci --omit=dev
 
 ---
 
-## Compliance
-
-✅ Production runtime does NOT include toxic packages  
-✅ Dev tooling isolated (won't be in prod installs)  
-✅ CI gates prevent regressions  
-✅ Safe overrides applied (ws, tar)  
-✅ Node engine compatibility enforced  
-✅ Clear documentation provided  
-✅ No execution semantics changed  
-✅ No required runtime features removed  
-✅ No secret leakage  
+## Compliance ✅ Production runtime does NOT include toxic packages
+✅ Dev tooling isolated (won't be in prod installs)
+✅ CI gates prevent regressions
+✅ Safe overrides applied (ws, tar)
+✅ Node engine compatibility enforced
+✅ Clear documentation provided
+✅ No execution semantics changed
+✅ No required runtime features removed
+✅ No secret leakage
 
 ---
 
-## Next Steps (Optional)
-
-1. **Monitor eslint v10**: When released, update to resolve minimatch/ajv vulnerabilities
+## Next Steps (Optional) 1. **Monitor eslint v10**: When released, update to resolve minimatch/ajv vulnerabilities
 2. **Monitor vitest v4**: Major version update will resolve esbuild vulnerability
 3. **Create @reach/empty package**: Currently references placeholder - create actual empty package for cleaner overrides
 4. **Consider pnpm**: pnpm's stricter dependency resolution could provide additional safety

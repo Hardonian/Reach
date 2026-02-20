@@ -11,7 +11,7 @@ export default function APIPage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">API Reference</h1>
         <p className="text-xl text-gray-400">
-          The Reach platform exposes a series of gRPC and REST APIs via its core services 
+          The Reach platform exposes a series of gRPC and REST APIs via its core services
           to enable orchestration, registry management, and session control.
         </p>
       </header>
@@ -56,7 +56,7 @@ export default function APIPage() {
 
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">Common Workflows</h2>
-        
+
         <div className="space-y-8">
           <div>
             <h3 className="font-bold text-white mb-4">1. Submitting a Run</h3>

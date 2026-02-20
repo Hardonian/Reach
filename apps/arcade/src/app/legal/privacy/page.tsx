@@ -15,8 +15,8 @@ export default function PrivacyPage() {
         <section>
           <h2>1. Data Sovereignty</h2>
           <p>
-            Reach is designed with "Data Sovereignty First" principles. By default, Reach operates 
-            in your infrastructure. We only collect the minimal metadata required to orchestrate 
+            Reach is designed with "Data Sovereignty First" principles. By default, Reach operates
+            in your infrastructure. We only collect the minimal metadata required to orchestrate
             determinstic execution packs across your distributed nodes.
           </p>
         </section>
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
         <section>
           <h2>3. Data Retention</h2>
           <p>
-            Audit logs and execution capsules are retained for 30 days by default in the managed service. 
+            Audit logs and execution capsules are retained for 30 days by default in the managed service.
             Self-hosted instances allow for indefinite retention policies managed by the operator.
           </p>
         </section>
@@ -41,7 +41,7 @@ export default function PrivacyPage() {
         <section>
           <h2>4. Your Rights</h2>
           <p>
-            You have the right to access, export, or delete your tenant data at any time via the 
+            You have the right to access, export, or delete your tenant data at any time via the
             Reach Dashboard or the <code>reach account purge</code> CLI command.
           </p>
         </section>

@@ -1,6 +1,4 @@
-# Performance Harness
-
-## Local runner metrics check
+# Performance Harness ## Local runner metrics check
 
 1. Start runner with metrics:
 

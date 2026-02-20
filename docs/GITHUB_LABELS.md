@@ -1,6 +1,4 @@
-# Recommended GitHub Labels
-
-Core workflow labels:
+# Recommended GitHub Labels Core workflow labels:
 
 - `type:bug`
 - `type:feature`

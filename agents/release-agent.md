@@ -1,6 +1,4 @@
-# Reach – Release Agent
-
-## Mission
+# Reach – Release Agent ## Mission
 Ship clean releases with traceable changes.
 
 ## Responsibilities

@@ -1,22 +1,14 @@
-# Reach Next.js Integration
+# Reach Next.js Integration Integration kit for using Reach with Next.js App Router.
 
-Integration kit for using Reach with Next.js App Router.
-
-## Setup
-
-```bash
+## Setup ```bash
 npm install @reach/sdk
 ```
 
-## Environment Variables
-
-```env
+## Environment Variables ```env
 REACH_BASE_URL=http://127.0.0.1:8787
 ```
 
-## API Route Handler
-
-Create `app/api/reach/route.ts`:
+## API Route Handler Create `app/api/reach/route.ts`:
 
 ```typescript
 import { NextRequest, NextResponse } from 'next/server';
@@ -40,9 +32,7 @@ export async function POST(request: NextRequest) {
 }
 ```
 
-## Page Component
-
-Create `app/runs/page.tsx`:
+## Page Component Create `app/runs/page.tsx`:
 
 ```tsx
 import { createReachClient } from '@reach/sdk';
@@ -51,7 +41,7 @@ const client = createReachClient();
 
 export default async function RunsPage() {
   const health = await client.health();
-  
+
   return (
     <div>
       <h1>Reach Status</h1>
@@ -62,9 +52,7 @@ export default async function RunsPage() {
 }
 ```
 
-## Client Component with Streaming
-
-```tsx
+## Client Component with Streaming ```tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -97,6 +85,4 @@ export function RunEvents({ runId }: { runId: string }) {
 }
 ```
 
-## License
-
-Apache 2.0
+## License Apache 2.0

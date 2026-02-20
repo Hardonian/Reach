@@ -1,6 +1,4 @@
-# Release Checklist
-
-Use this checklist before creating a release tag.
+# Release Checklist Use this checklist before creating a release tag.
 
 - [ ] `VERSION` updated
 - [ ] `CHANGELOG.md` updated

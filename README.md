@@ -1,25 +1,17 @@
-# Reach
-
-**Reach is a deterministic execution fabric for AI systems.**
+# Reach **Reach is a deterministic execution fabric for AI systems.**
 
 Reach helps teams run agentic and tool-driven workloads with deterministic replay, policy controls, and signed execution packs so production behavior can be trusted, audited, and reproduced.
 
 **[Documentation](https://reach.dev/docs)** | **[FAQ](https://reach.dev/faq)** | **[Support](https://reach.dev/support)**
 
-## The problem Reach solves
+## The problem Reach solves Most AI systems fail in production because runtime behavior drifts: tools change, policies are bypassed, and replay is unreliable. Reach provides a stable execution plane so operators can enforce capability boundaries, verify integrity, and reproduce outcomes across nodes and environments.
 
-Most AI systems fail in production because runtime behavior drifts: tools change, policies are bypassed, and replay is unreliable. Reach provides a stable execution plane so operators can enforce capability boundaries, verify integrity, and reproduce outcomes across nodes and environments.
-
-## Core principles
-
-- **Determinism**: replayable execution with stable event sequencing.
+## Core principles - **Determinism**: replayable execution with stable event sequencing.
 - **Policy enforcement**: explicit allow/deny gates around tools and permissions.
 - **Signed packs**: immutable, integrity-checked execution artifacts.
 - **Replay integrity**: snapshot and hash guards to detect drift and tampering.
 
-## Architecture overview
-
-```text
+## Architecture overview ```text
 +-------------------+        +-------------------+
 | Clients / IDEs    |  API   | services/runner   |
 | Mobile / VS Code  +------->+ orchestration     |
@@ -46,9 +38,7 @@ Key paths:
 - `extensions/vscode` — VS Code integration
 - `protocol/schemas` — wire contract schemas
 
-## Quickstart (5 minutes)
-
-### Desktop/Server
+## Quickstart (5 minutes) ### Desktop/Server
 
 ```bash
 npm install
@@ -64,9 +54,7 @@ Run local health check:
 ./reach doctor
 ```
 
-### Mobile (Android/Termux)
-
-One-line installer:
+### Mobile (Android/Termux) One-line installer:
 
 ```bash
 curl -fsSL https://get.reach.dev/termux | bash
@@ -81,9 +69,7 @@ reach operator  # View dashboard
 
 See [Mobile Operator Guide](docs/MOBILE_OPERATOR_GUIDE.md) for details.
 
-## CLI examples
-
-### Desktop
+## CLI examples ### Desktop
 
 ```bash
 # Validate release-critical gates
@@ -96,9 +82,7 @@ See [Mobile Operator Guide](docs/MOBILE_OPERATOR_GUIDE.md) for details.
 npm run audit:inspect
 ```
 
-### Mobile
-
-```bash
+### Mobile ```bash
 # Guided run wizard (mobile-friendly)
 reach wizard
 
@@ -115,21 +99,15 @@ reach operator
 REACH_MOBILE=1 reach doctor
 ```
 
-## Hosted vs OSS
-
-- **OSS Reach (this repo)**: self-hosted services, protocol schemas, deterministic core, and extension integrations.
+## Hosted vs OSS - **OSS Reach (this repo)**: self-hosted services, protocol schemas, deterministic core, and extension integrations.
 - **Hosted deployments**: managed operations, uptime/SLO ownership, and centralized observability run by your platform team or managed provider.
 
-## Roadmap preview
-
-- Deeper replay verification across orchestration boundaries
+## Roadmap preview - Deeper replay verification across orchestration boundaries
 - Expanded federation controls and node compatibility checks
 - Marketplace and signed connector distribution maturity
 - Stronger observability for policy and replay invariants
 
-## Troubleshooting
-
-### Installation Issues
+## Troubleshooting ### Installation Issues
 
 **Problem**: `npm install` fails
 
@@ -157,9 +135,7 @@ cargo clean
 cargo build --release
 ```
 
-### Runtime Issues
-
-**Problem**: `./reach doctor` fails
+### Runtime Issues **Problem**: `./reach doctor` fails
 
 - Check Go version: `go version` (need 1.23+)
 - Check Node version: `node --version` (need 18+)
@@ -189,9 +165,7 @@ rm data/*.db-wal data/*.db-shm
 - Ensure data directory is writable: `chmod 755 data/`
 - Run with debug logging: `REACH_LOG_LEVEL=debug reach wizard`
 
-### Docker Issues
-
-**Problem**: Container won't start
+### Docker Issues **Problem**: Container won't start
 
 ```bash
 # View logs
@@ -211,9 +185,7 @@ sudo chown -R 1000:1000 data/
 docker-compose restart
 ```
 
-### Mobile (Termux) Issues
-
-**Problem**: `curl install` fails
+### Mobile (Termux) Issues **Problem**: `curl install` fails
 
 ```bash
 # Update packages
@@ -235,9 +207,7 @@ pkg install proot-distro
 REACH_MAX_CONCURRENT_RUNS=1 reach run <pack>
 ```
 
-### Test Failures
-
-**Problem**: Go tests timeout
+### Test Failures **Problem**: Go tests timeout
 
 ```bash
 # Run with longer timeout
@@ -254,16 +224,12 @@ go test ./internal/storage -v
 - Ensure temp directory writable
 - Check disk space
 
-### Getting Help
-
-1. Check logs: `REACH_LOG_LEVEL=debug <command>`
+### Getting Help 1. Check logs: `REACH_LOG_LEVEL=debug <command>`
 2. Run doctor: `./reach doctor`
 3. Search issues: [GitHub Issues](../../issues)
 4. Read docs: [docs/](./docs/)
 
-## Documentation Integrity
-
-Reach uses a **Docs Drift Guard** to ensure that documentation, environment variables, and CLI commands remain synchronized with the codebase.
+## Documentation Integrity Reach uses a **Docs Drift Guard** to ensure that documentation, environment variables, and CLI commands remain synchronized with the codebase.
 
 - **Run Audit**: `npm run docs:doctor`
 - **Autofix Casing**: `npm run docs:doctor:fix`
@@ -271,12 +237,8 @@ Reach uses a **Docs Drift Guard** to ensure that documentation, environment vari
 
 See [DOCS_DRIFT_GUARD.md](DOCS_DRIFT_GUARD.md) for detailed architecture.
 
-## Contributing
-
-- Read `CONTRIBUTING.md` for setup, branch strategy, and PR expectations.
+## Contributing - Read `CONTRIBUTING.md` for setup, branch strategy, and PR expectations.
 - Use `npm run verify:full` before opening a PR.
 - See `docs/` for architecture and execution-model references.
 
-## License
-
-Reach is licensed under the Apache License 2.0. See `LICENSE`.
+## License Reach is licensed under the Apache License 2.0. See `LICENSE`.

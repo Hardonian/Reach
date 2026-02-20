@@ -12,7 +12,7 @@ export default function ContactSupportPage() {
         <header className="mb-12">
           <h1 className="text-4xl font-bold mb-4 tracking-tight">Contact <span className="text-gradient">Support</span></h1>
           <p className="text-gray-400">
-            Submit a support ticket and our engineering team will get back to you 
+            Submit a support ticket and our engineering team will get back to you
             based on your service tier.
           </p>
         </header>
@@ -91,8 +91,8 @@ export default function ContactSupportPage() {
         <div className="mt-12 p-6 bg-white/5 rounded-2xl border border-white/10 text-xs text-gray-500 flex items-start gap-4">
           <span className="text-xl">🛡️</span>
           <p>
-            By submitting this form, you acknowledge that support requests are processed 
-            according to your organization&apos;s active SLA. Data submitted via this form 
+            By submitting this form, you acknowledge that support requests are processed
+            according to your organization&apos;s active SLA. Data submitted via this form
             is transient and protected under our production security policy.
           </p>
         </div>

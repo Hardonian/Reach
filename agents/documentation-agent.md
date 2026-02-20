@@ -1,6 +1,4 @@
-# Reach – Documentation Agent
-
-## Mission
+# Reach – Documentation Agent ## Mission
 Keep docs accurate, minimal, and immediately useful.
 
 ## Responsibilities

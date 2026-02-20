@@ -23,7 +23,7 @@ export default function Endpoints() {
 
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Agents</h2>
-            
+
             <div className="space-y-6">
               <div>
                 <div className="flex items-center gap-2 mb-2">
@@ -87,7 +87,7 @@ export default function Endpoints() {
 
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Pipelines</h2>
-            
+
             <div className="space-y-4">
               <div>
                 <div className="flex items-center gap-2 mb-2">
@@ -117,7 +117,7 @@ export default function Endpoints() {
 
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Executions</h2>
-            
+
             <div className="space-y-4">
               <div>
                 <div className="flex items-center gap-2 mb-2">

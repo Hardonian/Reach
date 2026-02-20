@@ -18,7 +18,7 @@ export function PackDiscovery({ onSelect, selectedId }: PackDiscoveryProps) {
   const filteredPacks = useMemo(() => {
     return CATALOG.filter(pack => {
       // 1. Filter by text search
-      if (search && !pack.name.toLowerCase().includes(search.toLowerCase()) && 
+      if (search && !pack.name.toLowerCase().includes(search.toLowerCase()) &&
           !pack.description.toLowerCase().includes(search.toLowerCase())) {
         return false;
       }
@@ -58,7 +58,7 @@ export function PackDiscovery({ onSelect, selectedId }: PackDiscoveryProps) {
               onChange={(e) => setSearch(e.target.value)}
               className="search-input"
             />
-            
+
             <div className="filter-chips" role="group" aria-label="Filter capabilities">
               <FilterButton type="all" label="All" />
               <FilterButton type="verified" label="Verified" />
@@ -82,9 +82,9 @@ export function PackDiscovery({ onSelect, selectedId }: PackDiscoveryProps) {
         <div className="discovery-grid" role="list">
           {filteredPacks.map((pack) => (
             <div key={pack.id} className="animate-in fade-in zoom-in duration-300" role="listitem">
-               <PackCard 
-                 pack={pack} 
-                 onClick={() => onSelect(pack)} 
+               <PackCard
+                 pack={pack}
+                 onClick={() => onSelect(pack)}
                  isSelected={selectedId === pack.id}
                />
             </div>

@@ -15,7 +15,7 @@ export default function CookiesPage() {
         <section>
           <h2>1. Minimalist Approach</h2>
           <p>
-            Reach uses a strictly minimalist approach to browser storage. We do not use advertising 
+            Reach uses a strictly minimalist approach to browser storage. We do not use advertising
             trackers or third-party marketing cookies.
           </p>
         </section>
@@ -35,7 +35,7 @@ export default function CookiesPage() {
         <section>
           <h2>3. Managing Cookies</h2>
           <p>
-            You can disable cookies in your browser settings, but please note that the Reach Arcade 
+            You can disable cookies in your browser settings, but please note that the Reach Arcade
             dashboard will not function without the essential session cookies.
           </p>
         </section>
@@ -43,7 +43,7 @@ export default function CookiesPage() {
         <section>
           <h2>4. Local Storage</h2>
           <p>
-            We may use the <code>localStorage</code> API to cache non-sensitive configuration data 
+            We may use the <code>localStorage</code> API to cache non-sensitive configuration data
             locally for performance optimization.
           </p>
         </section>

@@ -1,6 +1,4 @@
-# Reach – Architecture Agent
-
-## Mission
+# Reach – Architecture Agent ## Mission
 Maintain architectural coherence, boundaries, and invariants for Reach.
 
 ## Responsibilities

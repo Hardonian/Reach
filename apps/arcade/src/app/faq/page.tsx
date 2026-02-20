@@ -136,7 +136,7 @@ export default function FAQPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const filteredFaqs = useMemo(() => {
-    return faqs.filter(faq => 
+    return faqs.filter(faq =>
       faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
       faq.answer.toLowerCase().includes(searchQuery.toLowerCase()) ||
       faq.category.toLowerCase().includes(searchQuery.toLowerCase())
@@ -162,7 +162,7 @@ export default function FAQPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      
+
       <div className="max-w-3xl mx-auto">
         <header className="mb-12 text-center">
           <h1 className="text-4xl font-bold mb-4">Frequently Asked Questions</h1>
@@ -187,7 +187,7 @@ export default function FAQPage() {
         <div className="space-y-4">
           {filteredFaqs.length > 0 ? (
             filteredFaqs.map((faq, index) => (
-              <div 
+              <div
                 key={index}
                 className={`group border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 transition-colors ${openIndex === index ? 'bg-white/5' : 'bg-transparent'}`}
               >
@@ -207,7 +207,7 @@ export default function FAQPage() {
                     ↓
                   </span>
                 </button>
-                <div 
+                <div
                   className={`transition-all duration-300 ease-in-out ${openIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
                 >
                   <div className="p-6 pt-0 text-gray-400 leading-relaxed border-t border-white/5 mt-2">

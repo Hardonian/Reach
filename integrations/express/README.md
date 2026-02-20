@@ -1,17 +1,11 @@
-# Reach Express Integration
+# Reach Express Integration Integration kit for using Reach with Express.js.
 
-Integration kit for using Reach with Express.js.
-
-## Setup
-
-```bash
+## Setup ```bash
 npm install @reach/sdk express
 npm install -D @types/express
 ```
 
-## Basic Example
-
-```typescript
+## Basic Example ```typescript
 import express from 'express';
 import { createReachClient } from '@reach/sdk';
 
@@ -80,13 +74,9 @@ app.listen(PORT, () => {
 });
 ```
 
-## Environment Variables
-
-```env
+## Environment Variables ```env
 REACH_BASE_URL=http://127.0.0.1:8787
 PORT=3000
 ```
 
-## License
-
-Apache 2.0
+## License Apache 2.0

@@ -1,8 +1,6 @@
-# Reach – Stitch UI System Prompt
+# Reach – Stitch UI System Prompt Design an enterprise orchestration platform UI for **Reach**.
 
-Design an enterprise orchestration platform UI for **Reach**.
-
-**Palette:** midnight blue base, deep violet accents, crisp white highlights  
+**Palette:** midnight blue base, deep violet accents, crisp white highlights
 **Style:** infrastructure-grade, minimal clutter, consistent spacing, WCAG AA
 
 ## Pages

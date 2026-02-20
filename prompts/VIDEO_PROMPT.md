@@ -1,6 +1,4 @@
-# Reach – Veo 3.1 Hero Video Prompt
-
-**Format:** 4K 16:9 master, 12s seamless loop
+# Reach – Veo 3.1 Hero Video Prompt **Format:** 4K 16:9 master, 12s seamless loop
 
 Global mesh network forms across continents; nodes light in synchronized patterns.
 Modular agents snap together; UI overlays for health, deployments, marketplace.

@@ -4,7 +4,7 @@ import React from 'react';
 // Simple map for tool icons
 const TOOL_ICONS: Record<string, string> = {
   'console.log': '📝',
-  'http.get': '🌐', 
+  'http.get': '🌐',
   'math.eval': '🧮',
   'fs.read': '📂',
 };
@@ -60,7 +60,7 @@ export function PackCard({ pack, onClick, isSelected }: PackCardProps) {
                   </span>
                 )}
               </div>
-              
+
               <div className="flex items-center gap-2 font-mono mt-1 text-xs text-tertiary">
                  <span>{pack.duration}</span>
                  <span aria-hidden="true">•</span>
@@ -72,7 +72,7 @@ export function PackCard({ pack, onClick, isSelected }: PackCardProps) {
               </div>
             </div>
         </div>
-        
+
         {/* Safety Badge */}
         <span className={`pack-badge ${pack.arcadeSafe ? 'safe' : 'unsafe'}`}>
           {pack.arcadeSafe ? 'SAFE' : 'UNSAFE'}
@@ -87,8 +87,8 @@ export function PackCard({ pack, onClick, isSelected }: PackCardProps) {
       <div className="flex items-center justify-between relative z-10">
         <div className="pack-tools" aria-label={`Tools used: ${pack.tools.join(', ') || 'None'}`}>
            {pack.tools.map((tool, i) => (
-             <div 
-               key={i} 
+             <div
+               key={i}
                className="tool-icon"
                title={tool}
              >
@@ -99,7 +99,7 @@ export function PackCard({ pack, onClick, isSelected }: PackCardProps) {
              <span className="italic text-xs text-tertiary">No tools declared</span>
            )}
         </div>
-        
+
         <div className="arrow-icon" aria-hidden="true">
           →
         </div>

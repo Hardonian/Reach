@@ -11,26 +11,26 @@ export default function Home() {
           fallbackSrc="/hero/reach-hero-fallback.png"
           className="absolute inset-0"
         />
-        
+
         <div className="section-container relative z-10 py-20">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 mb-6">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span className="text-sm text-gray-300">Global Orchestration Network Online</span>
             </div>
-            
+
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
               Orchestrate{' '}
               <span className="text-gradient">Intelligence</span>
               <br />
               At Global Scale
             </h1>
-            
+
             <p className="text-xl text-gray-400 mb-8 max-w-2xl">
-              Build, deploy, and govern distributed AI agents across the world's most reliable 
+              Build, deploy, and govern distributed AI agents across the world's most reliable
               orchestration infrastructure. From edge to cloud, one platform.
             </p>
-            
+
             <div className="flex flex-wrap gap-4">
               <Link href="/studio" className="btn-primary text-lg">
                 Launch Studio
@@ -39,7 +39,7 @@ export default function Home() {
                 Explore Marketplace
               </Link>
             </div>
-            
+
             {/* Stats */}
             <div className="grid grid-cols-3 gap-8 mt-16 pt-8 border-t border-white/10">
               <div>
@@ -68,7 +68,7 @@ export default function Home() {
               From concept to global deployment in three simple steps
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
@@ -110,7 +110,7 @@ export default function Home() {
               Everything you need to build production-grade agent systems
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               {

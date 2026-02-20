@@ -1,6 +1,4 @@
-# OSS-first Pack Registry
-
-Reach supports a Git-style registry index (`data/registry/index.json`) with pack metadata:
+# OSS-first Pack Registry Reach supports a Git-style registry index (`data/registry/index.json`) with pack metadata:
 - spec compatibility
 - signature
 - reproducibility rating

@@ -1,54 +1,38 @@
-# Reach Python SDK
+# Reach Python SDK Python SDK for Reach - deterministic execution fabric for AI systems.
 
-Python SDK for Reach - deterministic execution fabric for AI systems.
-
-## Installation
-
-```bash
+## Installation ```bash
 pip install reach-sdk
 ```
 
-## Quick Start
-
-```python
+## Quick Start ```python
 from reach_sdk import create_client
 
-# Create client (connects to local server by default)
-client = create_client()
+# Create client (connects to local server by default) client = create_client()
 
-# Check health
-health = client.health()
+# Check health health = client.health()
 print(f"Status: {health['status']}")
 
-# Create a run
-run = client.create_run(capabilities=["tool.read"])
+# Create a run run = client.create_run(capabilities=["tool.read"])
 print(f"Run ID: {run['id']}")
 
-# Get run events
-events = client.get_run_events(run['id'])
+# Get run events events = client.get_run_events(run['id'])
 for event in events:
     print(f"Event: {event['type']}")
 
-# Create a capsule
-capsule = client.create_capsule(run['id'])
+# Create a capsule capsule = client.create_capsule(run['id'])
 print(f"Capsule created: {capsule['capsulePath']}")
 ```
 
-## Configuration
-
-```python
+## Configuration ```python
 from reach_sdk import ReachClient
 
-# Connect to remote server
-client = ReachClient(
+# Connect to remote server client = ReachClient(
     base_url="http://reach-server.example.com:8787",
     timeout=60.0
 )
 ```
 
-## Error Handling
-
-```python
+## Error Handling ```python
 from reach_sdk import ReachClient
 from reach_sdk.exceptions import ReachAPIError, ReachTimeoutError
 
@@ -64,14 +48,9 @@ except ReachTimeoutError:
     print("Request timed out")
 ```
 
-## Streaming Events
-
-```python
-# Stream events in real-time
-for event in client.stream_run_events(run['id']):
+## Streaming Events ```python
+# Stream events in real-time for event in client.stream_run_events(run['id']):
     print(f"Event: {event['type']} - {event['payload']}")
 ```
 
-## License
-
-Apache 2.0
+## License Apache 2.0

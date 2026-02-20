@@ -54,7 +54,7 @@ export default function DocsPage() {
             Reach <span className="text-gradient">Documentation</span>
           </h1>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            Everything you need to build, deploy, and govern deterministic agentic 
+            Everything you need to build, deploy, and govern deterministic agentic
             workloads at global scale.
           </p>
         </header>
@@ -89,7 +89,7 @@ export default function DocsPage() {
             <div className="max-w-md">
               <h2 className="text-3xl font-bold mb-4">Enterprise Grade Support</h2>
               <p className="text-gray-400 mb-6">
-                Looking for SLAs, mission-critical response times, or custom 
+                Looking for SLAs, mission-critical response times, or custom
                 integration assistance? Our team is here to help.
               </p>
               <div className="flex gap-4">

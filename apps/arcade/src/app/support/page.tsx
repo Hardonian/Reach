@@ -38,7 +38,7 @@ export default function SupportPage() {
         <header className="mb-16 text-center">
           <h1 className="text-4xl font-bold mb-4">Support Center</h1>
           <p className="text-gray-400 max-w-2xl mx-auto">
-            Choose the right level of support for your team. From self-service documentation 
+            Choose the right level of support for your team. From self-service documentation
             to dedicated enterprise engineering.
           </p>
         </header>
@@ -65,13 +65,13 @@ export default function SupportPage() {
         {/* Support Tiers */}
         <div className="grid md:grid-cols-3 gap-8 mb-20">
           {supportTiers.map((tier) => (
-            <div 
+            <div
               key={tier.name}
               className={`flex flex-col p-8 rounded-3xl border ${tier.highlighted ? 'border-accent/40 bg-accent/5' : 'border-white/5 bg-white/2'}`}
             >
               <h3 className="text-xl font-bold mb-2">{tier.name}</h3>
               <p className="text-sm text-gray-500 mb-8">{tier.description}</p>
-              
+
               <ul className="space-y-4 mb-8 flex-1">
                 {tier.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-3 text-sm text-gray-400">
@@ -81,7 +81,7 @@ export default function SupportPage() {
                 ))}
               </ul>
 
-              <Link 
+              <Link
                 href={tier.href}
                 className={tier.highlighted ? 'btn-primary text-center py-3' : 'btn-secondary text-center py-3'}
               >
@@ -96,7 +96,7 @@ export default function SupportPage() {
           <div>
             <h2 className="text-2xl font-bold mb-2 text-white">Found a bug?</h2>
             <p className="text-gray-400 text-sm max-w-sm">
-              Our engineering team tracks all issues on GitHub. Help us improve the 
+              Our engineering team tracks all issues on GitHub. Help us improve the
               deterministic engine by reporting bugs and edge cases.
             </p>
           </div>

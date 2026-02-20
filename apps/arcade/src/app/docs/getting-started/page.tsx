@@ -11,7 +11,7 @@ export default function GettingStartedPage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">Getting Started</h1>
         <p className="text-xl text-gray-400">
-          Reach is a deterministic execution fabric. In this guide, we will set up the Reach environment, 
+          Reach is a deterministic execution fabric. In this guide, we will set up the Reach environment,
           execute your first signed pack, and verify its results.
         </p>
       </header>
@@ -56,7 +56,7 @@ export default function GettingStartedPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">3. Running the Wizard</h2>
         <p className="text-gray-400">
-          The <code>reach wizard</code> is the fastest way to explore the Reach marketplace and 
+          The <code>reach wizard</code> is the fastest way to explore the Reach marketplace and
           execute your first task.
         </p>
         <div className="space-y-4">

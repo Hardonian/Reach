@@ -1,12 +1,8 @@
-# Reach Portability Guide
-
-## Overview
+# Reach Portability Guide ## Overview
 
 Reach is designed to be highly portable across different environments and deployment scenarios.
 
-## Deployment Matrix
-
-| Environment | Installation Method | Complexity | Best For |
+## Deployment Matrix | Environment | Installation Method | Complexity | Best For |
 |-------------|-------------------|------------|----------|
 | Local Dev | npm/npx | Low | Development, testing |
 | Local Dev | Docker | Low | Isolated environments |
@@ -15,19 +11,14 @@ Reach is designed to be highly portable across different environments and deploy
 | Production | Binary | Low | Bare metal, VMs |
 | Edge | Single Binary | Medium | Resource-constrained environments |
 
-## Local Development
-
-### Using npx (No Installation)
+## Local Development ### Using npx (No Installation)
 
 ```bash
-# Run without installing
-npx @reach/cli doctor
+# Run without installing npx @reach/cli doctor
 npx @reach/cli serve
 ```
 
-### Using Docker Compose
-
-```yaml
+### Using Docker Compose ```yaml
 version: '3.8'
 services:
   reach:
@@ -40,9 +31,7 @@ services:
       - REACH_DATA_DIR=/data
 ```
 
-## CI/CD Integration
-
-### GitHub Actions
+## CI/CD Integration ### GitHub Actions
 
 ```yaml
 name: Reach Tests
@@ -52,12 +41,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Reach
         uses: reach/setup-action@v1
         with:
           version: 'latest'
-      
+
       - name: Run tests
         run: |
           reach doctor
@@ -65,9 +54,7 @@ jobs:
           npm run test:integration
 ```
 
-### GitLab CI
-
-```yaml
+### GitLab CI ```yaml
 test:
   image: reach/reach:latest
   script:
@@ -76,9 +63,7 @@ test:
     - pytest tests/
 ```
 
-## Production Deployment
-
-### Docker
+## Production Deployment ### Docker
 
 ```dockerfile
 FROM reach/reach:latest
@@ -90,9 +75,7 @@ EXPOSE 8787
 CMD ["reach", "serve", "--config", "/etc/reach/config.yaml"]
 ```
 
-### Kubernetes
-
-```yaml
+### Kubernetes ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -135,11 +118,8 @@ spec:
       targetPort: 8787
 ```
 
-### systemd Service
-
-```ini
-# /etc/systemd/system/reach.service
-[Unit]
+### systemd Service ```ini
+# /etc/systemd/system/reach.service [Unit]
 Description=Reach Server
 After=network.target
 
@@ -154,38 +134,24 @@ RestartSec=5
 WantedBy=multi-user.target
 ```
 
-## Single Binary Deployment
+## Single Binary Deployment For environments where a single binary is preferred:
 
-For environments where a single binary is preferred:
+### Building ```bash
+# Build static binary make build-static
 
-### Building
+# Output: ./reach-static ```
 
-```bash
-# Build static binary
-make build-static
+### Deployment ```bash
+# Copy to target system scp reach-static user@server:/usr/local/bin/reach
 
-# Output: ./reach-static
+# Run directly reach serve
 ```
 
-### Deployment
-
-```bash
-# Copy to target system
-scp reach-static user@server:/usr/local/bin/reach
-
-# Run directly
-reach serve
-```
-
-### Limitations
-
-- Single binary mode has limited plugin support
+### Limitations - Single binary mode has limited plugin support
 - Some features may require additional configuration
 - Database is SQLite-only in single binary mode
 
-## Cross-Platform Support
-
-| Platform | Tier | Notes |
+## Cross-Platform Support | Platform | Tier | Notes |
 |----------|------|-------|
 | Linux x64 | Tier 1 | Full support |
 | macOS x64/ARM | Tier 1 | Full support |
@@ -193,9 +159,7 @@ reach serve
 | Linux ARM64 | Tier 2 | Full support |
 | FreeBSD | Tier 3 | Community support |
 
-## Reverse Proxy Configuration
-
-### Nginx
+## Reverse Proxy Configuration ### Nginx
 
 ```nginx
 server {
@@ -213,51 +177,35 @@ server {
 }
 ```
 
-### Traefik
-
-```yaml
+### Traefik ```yaml
 labels:
   - "traefik.enable=true"
   - "traefik.http.routers.reach.rule=Host(`reach.example.com`)"
   - "traefik.http.services.reach.loadbalancer.server.port=8787"
 ```
 
-## Offline-First Mode
-
-Reach is designed to work completely offline:
+## Offline-First Mode Reach is designed to work completely offline:
 
 ```bash
-# Start in offline mode (no external dependencies)
-reach serve --offline
+# Start in offline mode (no external dependencies) reach serve --offline
 
-# All features work locally:
-# - Run execution
-# - Event logging
-# - Capsule creation/verification
-# - Pack management
-# - Federation status (local nodes only)
+# All features work locally: # - Run execution
+# - Event logging # - Capsule creation/verification
+# - Pack management # - Federation status (local nodes only)
 ```
 
-## Migration Between Environments
-
-### Export Data
+## Migration Between Environments ### Export Data
 
 ```bash
-# Export all runs
-tar czf reach-backup.tar.gz data/
+# Export all runs tar czf reach-backup.tar.gz data/
 ```
 
-### Import Data
-
-```bash
-# Import to new environment
-tar xzf reach-backup.tar.gz
+### Import Data ```bash
+# Import to new environment tar xzf reach-backup.tar.gz
 reach serve
 ```
 
-## Security Considerations
-
-- Always bind to `127.0.0.1` in local development
+## Security Considerations - Always bind to `127.0.0.1` in local development
 - Use `0.0.0.0` only behind a reverse proxy
 - Enable authentication in production
 - Use TLS for external access

@@ -1,6 +1,4 @@
-# ReachSDK (Swift SPM)
-
-## Build
+# ReachSDK (Swift SPM) ## Build
 
 ```bash
 cd mobile/ios/ReachSDK
@@ -8,9 +6,7 @@ swift build
 swift test
 ```
 
-## Use
-
-```swift
+## Use ```swift
 let client = ReachClient(baseURL: ProcessInfo.processInfo.environment["REACH_BASE_URL"] ?? "http://localhost:8080")
 ```
 

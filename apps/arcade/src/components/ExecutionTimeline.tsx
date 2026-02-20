@@ -33,10 +33,10 @@ export function ExecutionTimeline({ events, isRunning }: ExecutionTimelineProps)
   };
 
   return (
-    <div 
-      className="timeline-container" 
-      role="log" 
-      aria-live="polite" 
+    <div
+      className="timeline-container"
+      role="log"
+      aria-live="polite"
       aria-label="Execution Timeline"
     >
       <ul className="list-none p-0 m-0">
@@ -47,12 +47,12 @@ export function ExecutionTimeline({ events, isRunning }: ExecutionTimelineProps)
           const isFailed = event.status === 'failed';
 
           return (
-            <li 
+            <li
               key={index}
               className={`timeline-event ${isActive ? 'active' : ''} ${!isActive && !isLast ? 'opacity-80' : ''}`}
             >
               {/* Timeline Node */}
-              <div 
+              <div
                 className={`timeline-node ${isActive ? 'active' : ''} ${isFailed ? 'failed' : ''}`}
                 aria-hidden="true"
               >
@@ -69,7 +69,7 @@ export function ExecutionTimeline({ events, isRunning }: ExecutionTimelineProps)
                       {event.timestamp ? new Date(event.timestamp).toLocaleTimeString() : ''}
                     </span>
                 </div>
-                
+
                 {event.details && (
                   <div className="text-xs font-mono text-secondary line-clamp-2">
                     {event.details}
@@ -77,14 +77,14 @@ export function ExecutionTimeline({ events, isRunning }: ExecutionTimelineProps)
                 )}
                 <span className="sr-only">Status: {event.status || 'completed'}</span>
               </div>
-              
+
               {/* Connector Line Fill for active step */}
               {isActive && <div className="timeline-connector" aria-hidden="true" />}
             </li>
           );
         })}
       </ul>
-      
+
       {/* Loading Indicator */}
       {isRunning && (
         <div className="timeline-event animate-pulse" role="status" aria-label="Processing">

@@ -1,10 +1,6 @@
-# {{PACK_NAME}}
+# {{PACK_NAME}} A minimal deterministic execution pack for the Reach protocol.
 
-A minimal deterministic execution pack for the Reach protocol.
-
-## Structure
-
-```
+## Structure ```
 .
 ├── pack.json          # Pack manifest
 ├── README.md          # This file
@@ -12,23 +8,14 @@ A minimal deterministic execution pack for the Reach protocol.
     └── conformance_test.sh
 ```
 
-## Usage
+## Usage ```bash
+# Lint the pack reach pack lint .
 
-```bash
-# Lint the pack
-reach pack lint .
+# Run conformance tests reach pack test .
 
-# Run conformance tests
-reach pack test .
-
-# Full health check
-reach pack doctor .
+# Full health check reach pack doctor .
 ```
 
-## Determinism
+## Determinism This pack is configured for deterministic execution. The same inputs will always produce the same outputs and event log hashes.
 
-This pack is configured for deterministic execution. The same inputs will always produce the same outputs and event log hashes.
-
-## License
-
-MIT
+## License MIT

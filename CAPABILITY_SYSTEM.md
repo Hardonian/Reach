@@ -1,3 +1,1 @@
-# Capability System
-
-Each run is created with explicit capabilities. Tool execution checks required capabilities before accepting tool results or privileged actions. Capability denials are counted in metrics and recorded in audit storage.
+# Capability System Each run is created with explicit capabilities. Tool execution checks required capabilities before accepting tool results or privileged actions. Capability denials are counted in metrics and recorded in audit storage.

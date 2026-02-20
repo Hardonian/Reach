@@ -1,6 +1,4 @@
-# Reach VS Code Extension
-
-## Install and build
+# Reach VS Code Extension ## Install and build
 
 ```bash
 cd extensions/vscode
@@ -8,18 +6,14 @@ npm install
 npm run build
 ```
 
-## Launch in VS Code
-
-1. Open `extensions/vscode` in VS Code.
+## Launch in VS Code 1. Open `extensions/vscode` in VS Code.
 2. Run **Run Extension** from the debug panel (or press `F5`).
 3. In the Extension Development Host, open the command palette and run:
    - `Reach: Start Bridge Connection`
    - `Reach: Open Bridge Panel`
    - `Reach: Send Selection to Bridge`
 
-## Context payload shape
-
-```json
+## Context payload shape ```json
 {
   "workspace_root": "/workspace/Reach",
   "open_files": [

@@ -1,10 +1,6 @@
-# Reach Studio Marketplace Submission Pack
+# Reach Studio Marketplace Submission Pack This document captures the current submission readiness workflow for distribution channels used by Reach clients.
 
-This document captures the current submission readiness workflow for distribution channels used by Reach clients.
-
-## 1) Google Play (Android)
-
-### Build + SDK requirements
+## 1) Google Play (Android) ### Build + SDK requirements
 - Android Gradle wrapper present in `apps/mobile/android/`.
 - Required Android SDK components:
   - platform-tools
@@ -12,51 +8,39 @@ This document captures the current submission readiness workflow for distributio
   - platforms;android-35
   - cmdline-tools;latest
 
-### Release artifacts
-- Build signed AAB:
+### Release artifacts - Build signed AAB:
   - `cd apps/mobile/android`
   - `./gradlew bundleRelease`
 - Output path:
   - `apps/mobile/android/app/build/outputs/bundle/release/*.aab`
 
-### Policy + listing checklist
-- Data safety form completed using Reach data flow map (no secrets in logs).
+### Policy + listing checklist - Data safety form completed using Reach data flow map (no secrets in logs).
 - Content rating questionnaire completed.
 - App access declarations included (if test account is required).
 - Cryptography declaration set to standard TLS + signing only.
 
-## 2) Apple App Store (iOS)
-
-### Build + SDK requirements
+## 2) Apple App Store (iOS) ### Build + SDK requirements
 - Xcode 16+ and iOS SDK 18+.
 - Matching bundle identifier and signing profile configured in App Store Connect.
 
-### Release artifacts
-- Archive with Xcode Organizer, export for App Store Connect.
+### Release artifacts - Archive with Xcode Organizer, export for App Store Connect.
 - Upload through Xcode Organizer or Transporter.
 
-### Compliance checklist
-- Privacy nutrition labels mapped from Reach telemetry/events.
+### Compliance checklist - Privacy nutrition labels mapped from Reach telemetry/events.
 - Encryption export compliance answered for TLS/signing usage.
 - App Review notes include deterministic replay + policy-gate behavior summary.
 
-## 3) Additional channels
-
-### Microsoft Store (Windows)
+## 3) Additional channels ### Microsoft Store (Windows)
 - Package with MSIX (or PWA packaging if web-first distribution).
 - Provide privacy URL, support URL, and deterministic execution disclosure.
 
-### macOS notarized distribution
-- Produce signed app bundle.
+### macOS notarized distribution - Produce signed app bundle.
 - Run notarization + staple process before release.
 
-### Linux package registries
-- Provide reproducible build metadata.
+### Linux package registries - Provide reproducible build metadata.
 - Include detached signatures and checksums.
 
-## 4) Shared approval packet (all stores)
-
-Attach the following for every store submission:
+## 4) Shared approval packet (all stores) Attach the following for every store submission:
 - Security model references:
   - `SECURITY.md`
   - `SECURITY_MODEL.md`
@@ -70,9 +54,7 @@ Attach the following for every store submission:
 - Support and escalation:
   - `support/kb_index.json`
 
-## 5) Submission sign-off matrix
-
-Before submitting, verify:
+## 5) Submission sign-off matrix Before submitting, verify:
 - lint/typecheck/test/build all pass in CI.
 - No secrets or API keys committed.
 - Policy gate and signature verification paths are enabled by default.

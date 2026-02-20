@@ -4,7 +4,7 @@ import { useState, Suspense, lazy } from 'react';
 import { StatusIndicator } from '@/components/StatusIndicator';
 
 // Lazy load the heavy visualization component
-const GlobalActivityMap = lazy(() => 
+const GlobalActivityMap = lazy(() =>
   import('@/components/GlobalActivityMap').then(mod => ({ default: mod.GlobalActivityMap }))
 );
 
@@ -89,8 +89,8 @@ export default function Dashboard() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <StatusIndicator 
-                      status={node.status} 
+                    <StatusIndicator
+                      status={node.status}
                       pulse={node.status === 'online'}
                     />
                     <div>
@@ -128,9 +128,9 @@ export default function Dashboard() {
                     </div>
                     <div className="text-sm text-gray-500">{dep.region} • {dep.updated}</div>
                   </div>
-                  <StatusIndicator 
-                    status={dep.status} 
-                    showLabel 
+                  <StatusIndicator
+                    status={dep.status}
+                    showLabel
                     size="sm"
                     pulse={dep.status === 'running'}
                   />

@@ -1,61 +1,43 @@
-# Achievements
+# Achievements Reach includes a safe, cosmetic-only achievement system to recognize milestones and encourage best practices.
 
-Reach includes a safe, cosmetic-only achievement system to recognize milestones and encourage best practices.
-
-## Principles
-
-**Achievements NEVER unlock capabilities.** They are purely cosmetic and for status recognition. This ensures:
+## Principles **Achievements NEVER unlock capabilities.** They are purely cosmetic and for status recognition. This ensures:
 
 - No pay-to-win or grind-to-unlock mechanics
 - Security boundaries remain unchanged
 - Determinism guarantees unaffected
 - Policy enforcement unchanged
 
-## Achievement List
-
-### Beginner
+## Achievement List ### Beginner
 
 | Icon | Name | Description | Rarity |
 |------|------|-------------|--------|
 | 🚀 | First Run | Execute your first Reach pack | Common |
 | ✓ | Replay Verified | Successfully verify a deterministic replay | Common |
 
-### Creation
-
-| Icon | Name | Description | Rarity |
+### Creation | Icon | Name | Description | Rarity |
 |------|------|-------------|--------|
 | 💊 | Capsule Created | Create your first execution capsule | Common |
 | 📦 | Pack Published | Publish a pack to the registry | Uncommon |
 
-### Trust & Determinism
-
-| Icon | Name | Description | Rarity |
+### Trust & Determinism | Icon | Name | Description | Rarity |
 |------|------|-------------|--------|
 | 🎯 | 100% Determinism | 10 consecutive verified runs | Rare |
 | 🔮 | Determinism Sage | 100 consecutive verified runs | Legendary |
 
-### Federation
-
-| Icon | Name | Description | Rarity |
+### Federation | Icon | Name | Description | Rarity |
 |------|------|-------------|--------|
 | 🤝 | Federation Node Trusted | Establish trust with a federation node | Uncommon |
 
-### Edge Mode
-
-| Icon | Name | Description | Rarity |
+### Edge Mode | Icon | Name | Description | Rarity |
 |------|------|-------------|--------|
 | 📱 | Edge Mode Master | Complete 25 runs in Edge Mode | Uncommon |
 | 🏕️ | Offline Warrior | Complete 10 runs offline | Rare |
 
-### Milestones
-
-| Icon | Name | Description | Rarity |
+### Milestones | Icon | Name | Description | Rarity |
 |------|------|-------------|--------|
 | 🏆 | Veteran Runner | Execute 100 total runs | Epic |
 
-## Storage
-
-Achievements are stored locally in:
+## Storage Achievements are stored locally in:
 
 ```
 ~/.reach/profile/achievements.json
@@ -85,9 +67,7 @@ Example:
 }
 ```
 
-## CLI Commands
-
-### View Profile
+## CLI Commands ### View Profile
 
 ```bash
 reach profile
@@ -112,23 +92,17 @@ Stats:
 Recent: 1 new achievement today
 ```
 
-### List All Achievements
-
-```bash
+### List All Achievements ```bash
 reach achievements
 ```
 
 Output shows locked and unlocked achievements with progress.
 
-### Achievement Details
-
-```bash
+### Achievement Details ```bash
 reach achievements show determinism_sage
 ```
 
-## Programmatic Access
-
-### Go API
+## Programmatic Access ### Go API
 
 ```go
 import "reach/services/runner/internal/arcade/gamification"
@@ -147,9 +121,7 @@ progress := engine.GetProgress()
 fmt.Printf("Runs: %d\n", progress.Stats.TotalRuns)
 ```
 
-### JavaScript SDK
-
-```typescript
+### JavaScript SDK ```typescript
 import { Achievements } from '@reach/sdk';
 
 const achievements = new Achievements();
@@ -160,9 +132,7 @@ const profile = await achievements.getProfile();
 console.log(`Unlocked: ${profile.unlockedCount}/${profile.totalAchievements}`);
 ```
 
-## Web Surface
-
-If running a web UI, achievements can be displayed:
+## Web Surface If running a web UI, achievements can be displayed:
 
 ```html
 <div id="achievements">
@@ -176,16 +146,12 @@ If running a web UI, achievements can be displayed:
 </div>
 ```
 
-## Privacy
-
-- Achievements are stored **locally only**
+## Privacy - Achievements are stored **locally only**
 - No cloud sync or telemetry
 - No personally identifiable information
 - Safe to backup or delete
 
-## Reset
-
-To reset achievements:
+## Reset To reset achievements:
 
 ```bash
 rm ~/.reach/profile/achievements.json
@@ -198,9 +164,7 @@ engine.Reset()
 engine.Save()
 ```
 
-## Implementation Notes
-
-### Event Recording
+## Implementation Notes ### Event Recording
 
 The engine listens to execution events:
 
@@ -215,12 +179,8 @@ The engine listens to execution events:
 | `run.edge_mode` | edgeModeRuns++ |
 | `run.offline` | offlineRuns++ |
 
-### Thread Safety
+### Thread Safety The achievement engine is thread-safe. Events can be recorded from multiple goroutines safely.
 
-The achievement engine is thread-safe. Events can be recorded from multiple goroutines safely.
-
-### Performance
-
-- Minimal overhead: events are counted, not stored
+### Performance - Minimal overhead: events are counted, not stored
 - Lazy loading: achievements loaded on first access
 - Efficient storage: JSON file only written on save

@@ -24,8 +24,8 @@ export default function LegalIndexPage() {
 
         <div className="grid gap-6">
           {sections.map((s) => (
-            <Link 
-              key={s.href} 
+            <Link
+              key={s.href}
               href={s.href}
               className="group block p-8 rounded-2xl bg-white/5 border border-white/10 hover:border-accent/50 transition-all"
             >

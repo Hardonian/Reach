@@ -45,14 +45,14 @@ export default function ArchitecturePage() {
           <li className="flex gap-4">
             <div className="font-bold text-white shrink-0 w-32">Runner</div>
             <div className="text-gray-400">
-              The core execution service (<code>services/runner</code>). Owns runtime execution, queueing, 
+              The core execution service (<code>services/runner</code>). Owns runtime execution, queueing,
               and capability firewalls. It is the only component allowed to interact with the OS and network.
             </div>
           </li>
           <li className="flex gap-4">
             <div className="font-bold text-white shrink-0 w-32">Policy Engine</div>
             <div className="text-gray-400">
-              Evaluates allow/deny decisions based on signed policy profiles. It operates as a stateless 
+              Evaluates allow/deny decisions based on signed policy profiles. It operates as a stateless
               oracle for the Runner.
             </div>
           </li>
@@ -65,7 +65,7 @@ export default function ArchitecturePage() {
           <li className="flex gap-4">
             <div className="font-bold text-white shrink-0 w-32">Marketplace</div>
             <div className="text-gray-400">
-              A pure discovery layer. It can suggest packs and connectors but has no authority to install 
+              A pure discovery layer. It can suggest packs and connectors but has no authority to install
               or execute code without explicit user consent.
             </div>
           </li>

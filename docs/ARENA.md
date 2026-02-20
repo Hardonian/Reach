@@ -1,6 +1,4 @@
-# Multi-Agent Arena Mode
-
-Run deterministic safe scenario competition:
+# Multi-Agent Arena Mode Run deterministic safe scenario competition:
 - `reachctl arena run <scenario>`
 
 Arena mode uses `arcadeSafe` packs only and scores each pack on:

@@ -24,7 +24,7 @@ export default async function HomePage() {
   return (
     <main style={{ padding: '2rem', fontFamily: 'system-ui, sans-serif' }}>
       <h1>Reach Next.js Integration</h1>
-      
+
       {health ? (
         <>
           <section style={{ marginBottom: '2rem' }}>

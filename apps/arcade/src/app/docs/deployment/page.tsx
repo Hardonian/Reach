@@ -21,7 +21,7 @@ export default function DeploymentPage() {
           <div className="card bg-white/5 p-6 rounded-xl border border-white/10">
             <h3 className="font-bold mb-2 text-accent">Server / Cloud</h3>
             <p className="text-sm text-gray-400">
-              Ideal for high-throughput orchestration and production API loads. 
+              Ideal for high-throughput orchestration and production API loads.
               Supports Docker, Kubernetes, and bare metal (Linux/amd64/arm64).
             </p>
             <div className="mt-4 flex gap-2">
@@ -31,7 +31,7 @@ export default function DeploymentPage() {
           <div className="card bg-white/5 p-6 rounded-xl border border-white/10">
             <h3 className="font-bold mb-2 text-accent">Mobile (Termux)</h3>
             <p className="text-sm text-gray-400">
-              Run localized agent workloads directly on Android devices. 
+              Run localized agent workloads directly on Android devices.
               Optimized for low-memory and offline-first scenarios.
             </p>
             <div className="mt-4 flex gap-2">
@@ -103,11 +103,11 @@ services:
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">Static Asset Preparation</h2>
         <p className="text-gray-400">
-          When deploying the <strong>Reach Arcade</strong>, ensure static params are generated for 
+          When deploying the <strong>Reach Arcade</strong>, ensure static params are generated for
           all documentation routes to prevent runtime lookups.
         </p>
         <div className="bg-white/5 p-6 rounded-xl border border-white/10 italic text-sm text-gray-400">
-          "Reach builds are strictly validated. If a route defined in the navigation map is missing 
+          "Reach builds are strictly validated. If a route defined in the navigation map is missing
           during the build phase, the CI pipeline will terminate with a <code>ROUTE_INTEGRITY_FAILURE</code>."
         </div>
       </section>

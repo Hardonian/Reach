@@ -1,6 +1,4 @@
-# Reach – Infrastructure Agent
-
-## Mission
+# Reach – Infrastructure Agent ## Mission
 Ensure deployment, runtime, and CI health.
 
 ## Responsibilities

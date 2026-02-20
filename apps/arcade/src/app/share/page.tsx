@@ -60,7 +60,7 @@ export default async function SharePage({
       <div className="card">
         <h2 className="text-xl font-bold mb-2">{pack.name}</h2>
         <p className="text-secondary text-sm mb-4">{pack.description}</p>
-        
+
         <div className="code-block">
           {timeline.map((ev, i) => (
             <div key={i} className="timeline-log-entry">
@@ -79,7 +79,7 @@ export default async function SharePage({
       </div>
 
       <div className="text-center">
-        <Link 
+        <Link
           href="/"
           className="btn-primary btn-large"
         >

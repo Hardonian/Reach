@@ -1,10 +1,6 @@
-# {{PACK_NAME}}
+# {{PACK_NAME}} A governed execution pack with replay verification tests for the Reach protocol.
 
-A governed execution pack with replay verification tests for the Reach protocol.
-
-## Structure
-
-```
+## Structure ```
 .
 ├── pack.json          # Pack manifest
 ├── policy.rego        # Policy contract
@@ -16,33 +12,22 @@ A governed execution pack with replay verification tests for the Reach protocol.
 └── README.md          # This file
 ```
 
-## Replay Testing
-
-This pack includes replay verification to ensure deterministic execution:
+## Replay Testing This pack includes replay verification to ensure deterministic execution:
 
 1. **Fixture-based testing**: Uses `fixtures/sample.txt` as deterministic input
 2. **Hash verification**: Step 3 computes a hash of the fixture content
 3. **Replay stability**: Multiple runs produce identical event logs and hashes
 
-## Usage
+## Usage ```bash
+# Run all tests reach pack test .
 
-```bash
-# Run all tests
-reach pack test .
+# Run replay-specific tests reach pack test . --fixture replay-verification
 
-# Run replay-specific tests
-reach pack test . --fixture replay-verification
-
-# Full health check
-reach pack doctor .
+# Full health check reach pack doctor .
 ```
 
-## Determinism Guarantees
-
-- Same fixture content → Same hash
+## Determinism Guarantees - Same fixture content → Same hash
 - Same execution path → Same event log
 - Same event log → Same run fingerprint
 
-## License
-
-MIT
+## License MIT

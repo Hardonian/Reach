@@ -11,7 +11,7 @@ export default function AgentsPage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">Agents & Roles</h1>
         <p className="text-xl text-gray-400">
-          Reach uses a specialized multi-agent system where roles are strictly defined 
+          Reach uses a specialized multi-agent system where roles are strictly defined
           by capabilities and governance boundaries.
         </p>
       </header>
@@ -19,28 +19,28 @@ export default function AgentsPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">Autonomous Roles</h2>
         <p className="text-gray-400">
-          Every agent operating within Reach is assigned a specific role. This role determines 
+          Every agent operating within Reach is assigned a specific role. This role determines
           the default capability set and the policy gates applied during execution.
         </p>
         <div className="grid md:grid-cols-2 gap-6">
           <div className="card bg-white/5 p-6 rounded-xl border border-white/10">
             <h3 className="font-bold mb-2 text-accent">Architecture Agent</h3>
             <p className="text-sm text-gray-400">
-              Responsible for system design, maintaining invariants, and ensuring modular cohesion across the repository. 
+              Responsible for system design, maintaining invariants, and ensuring modular cohesion across the repository.
               Owns the <code>ADR</code> (Architectural Decision Record) lifecycle.
             </p>
           </div>
           <div className="card bg-white/5 p-6 rounded-xl border border-white/10">
             <h3 className="font-bold mb-2 text-accent">Code Quality Agent</h3>
             <p className="text-sm text-gray-400">
-              Enforces linting, typechecking, and build stability. Executes hydration and performance passes 
+              Enforces linting, typechecking, and build stability. Executes hydration and performance passes
               and ensures vulnerability hygiene.
             </p>
           </div>
           <div className="card bg-white/5 p-6 rounded-xl border border-white/10">
             <h3 className="font-bold mb-2 text-accent">Design Agent</h3>
             <p className="text-sm text-gray-400">
-              Ensures visual system integrity. Manages design tokens, UI coherence, and alignment with the 
+              Ensures visual system integrity. Manages design tokens, UI coherence, and alignment with the
               canonical brand prompts.
             </p>
           </div>

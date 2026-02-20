@@ -1,6 +1,4 @@
-# Marketplace Pack Publishing
-
-## Build
+# Marketplace Pack Publishing ## Build
 
 ```bash
 go run ./tools/packkit-build --type connector --path ./connectors/slack --out ./dist
@@ -12,29 +10,21 @@ Build output:
 - `bundle.tar.gz` (generated artifact; do not commit binary archives to git)
 - `sha256.txt`
 
-## Sign
-
-```bash
+## Sign ```bash
 go run ./tools/packkit-sign --manifest ./dist/connector-slack-1.2.0/manifest.json --key ./private.pem --key-id marketplace
 ```
 
 Produces `manifest.sig` next to the manifest.
 
-## Install
-
-```bash
+## Install ```bash
 curl -X POST http://localhost:8092/v1/connectors/install -d '{"id":"connector-slack","version":"=1.2.0"}'
 ```
 
-## Upgrade (explicit only)
-
-```bash
+## Upgrade (explicit only) ```bash
 curl -X POST http://localhost:8092/v1/connectors/upgrade -d '{"id":"connector-slack"}'
 ```
 
-## CI publish workflow summary
-
-`marketplace-publish.yml` runs on `pack-*` tags and performs:
+## CI publish workflow summary `marketplace-publish.yml` runs on `pack-*` tags and performs:
 
 1. pack build
 2. manifest version/tag match check
