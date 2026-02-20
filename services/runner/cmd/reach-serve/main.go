@@ -11,9 +11,11 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -39,6 +41,20 @@ type Server struct {
 	sql        *storage.SQLiteStore
 	federation *federation.Coordinator
 	dataRoot   string
+	
+	// Metrics for Prometheus
+	metrics *ServerMetrics
+}
+
+// ServerMetrics holds Prometheus-style metrics
+type ServerMetrics struct {
+	requestsTotal   atomic.Uint64
+	requestsActive  atomic.Int64
+	requestsError   atomic.Uint64
+	runsCreated     atomic.Uint64
+	runsCompleted   atomic.Uint64
+	capsulesCreated atomic.Uint64
+	startTime       time.Time
 }
 
 func main() {
@@ -84,6 +100,9 @@ func run(port int, bindAddr, dataDir string) error {
 		sql:        db,
 		federation: fed,
 		dataRoot:   dataDir,
+		metrics: &ServerMetrics{
+			startTime: time.Now().UTC(),
+		},
 	}
 
 	mux := http.NewServeMux()
@@ -91,6 +110,7 @@ func run(port int, bindAddr, dataDir string) error {
 	// System endpoints
 	mux.HandleFunc("GET /health", server.handleHealth)
 	mux.HandleFunc("GET /version", server.handleVersion)
+	mux.HandleFunc("GET /metrics", server.handleMetrics)
 
 	// Run endpoints
 	mux.HandleFunc("POST /runs", server.handleCreateRun)
@@ -110,8 +130,12 @@ func run(port int, bindAddr, dataDir string) error {
 	mux.HandleFunc("POST /packs/install", server.handleInstallPack)
 	mux.HandleFunc("POST /packs/verify", server.handleVerifyPack)
 
-	// Wrap with middleware
-	handler := withRateLimit(withCorrelationID(withLogging(withRecovery(mux))))
+	// Wrap with middleware - inject server for metrics
+	muxWithServer := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), serverKey, server)
+		mux.ServeHTTP(w, r.WithContext(ctx))
+	})
+	handler := withRateLimit(withCorrelationID(withLogging(withRecovery(muxWithServer))))
 
 	addr := net.JoinHostPort(bindAddr, strconv.Itoa(port))
 	srv := &http.Server{
@@ -145,10 +169,74 @@ func run(port int, bindAddr, dataDir string) error {
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{
-		"status":  "ok",
-		"version": s.version,
+	// Check database connectivity
+	dbStatus := "ok"
+	if err := s.sql.Ping(r.Context()); err != nil {
+		dbStatus = "error"
+	}
+	
+	writeJSON(w, http.StatusOK, map[string]any{
+		"status":     "ok",
+		"version":    s.version,
+		"database":   dbStatus,
+		"uptime":     time.Since(s.metrics.startTime).Seconds(),
 	})
+}
+
+func (s *Server) handleMetrics(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain; version=0.0.4")
+	
+	var memStats runtime.MemStats
+	runtime.ReadMemStats(&memStats)
+	
+	metrics := fmt.Sprintf(`# HELP reach_requests_total Total number of HTTP requests
+# TYPE reach_requests_total counter
+reach_requests_total %d
+
+# HELP reach_requests_active Current number of active requests
+# TYPE reach_requests_active gauge
+reach_requests_active %d
+
+# HELP reach_requests_error_total Total number of HTTP request errors
+# TYPE reach_requests_error_total counter
+reach_requests_error_total %d
+
+# HELP reach_runs_created_total Total number of runs created
+# TYPE reach_runs_created_total counter
+reach_runs_created_total %d
+
+# HELP reach_runs_completed_total Total number of runs completed
+# TYPE reach_runs_completed_total counter
+reach_runs_completed_total %d
+
+# HELP reach_capsules_created_total Total number of capsules created
+# TYPE reach_capsules_created_total counter
+reach_capsules_created_total %d
+
+# HELP reach_uptime_seconds Server uptime in seconds
+# TYPE reach_uptime_seconds gauge
+reach_uptime_seconds %.0f
+
+# HELP reach_memory_alloc_bytes Current memory allocation in bytes
+# TYPE reach_memory_alloc_bytes gauge
+reach_memory_alloc_bytes %d
+
+# HELP reach_goroutines_total Current number of goroutines
+# TYPE reach_goroutines_total gauge
+reach_goroutines_total %d
+`,
+		s.metrics.requestsTotal.Load(),
+		s.metrics.requestsActive.Load(),
+		s.metrics.requestsError.Load(),
+		s.metrics.runsCreated.Load(),
+		s.metrics.runsCompleted.Load(),
+		s.metrics.capsulesCreated.Load(),
+		time.Since(s.metrics.startTime).Seconds(),
+		memStats.Alloc,
+		runtime.NumGoroutine(),
+	)
+	
+	w.Write([]byte(metrics))
 }
 
 func (s *Server) handleVersion(w http.ResponseWriter, r *http.Request) {
@@ -598,6 +686,7 @@ func (s *Server) findPack(idx registryIndex, name string) (registryEntry, bool) 
 type contextKey string
 
 const correlationIDKey contextKey = "correlation_id"
+const serverKey contextKey = "server"
 
 func withCorrelationID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -615,10 +704,22 @@ func withLogging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		corrID, _ := r.Context().Value(correlationIDKey).(string)
+		
+		// Get server from context if available for metrics
+		server, _ := r.Context().Value(serverKey).(*Server)
+		if server != nil {
+			server.metrics.requestsTotal.Add(1)
+			server.metrics.requestsActive.Add(1)
+			defer server.metrics.requestsActive.Add(-1)
+		}
 
 		// Custom response writer to capture status code
 		rw := &responseWriter{ResponseWriter: w, status: http.StatusOK}
 		next.ServeHTTP(rw, r)
+		
+		if server != nil && rw.status >= 400 {
+			server.metrics.requestsError.Add(1)
+		}
 
 		log.Printf("[%s] %s %s %d %s", corrID, r.Method, r.URL.Path, rw.status, time.Since(start))
 	})
