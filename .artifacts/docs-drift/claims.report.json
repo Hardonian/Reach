@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-02-20T16:58:10.152Z",
+  "issues": [
+    {
+      "file": "apps\\arcade\\src\\app\\faq\\page.tsx",
+      "claim": "SOC2",
+      "context": "...SO/SAML integration, custom compliance reporting (SOC2/GDPR), audit log streaming, and dedicated support..."
+    }
+  ]
+}

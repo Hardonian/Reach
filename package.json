@@ -47,7 +47,9 @@
     "security:audit": "npm audit --workspaces && npm audit",
     "security:check": "npm run verify:no-toxic-deps && npm run security:audit",
     "preinstall": "node scripts/check-node-version.mjs",
-    "clean": "node -e \"const fs=require('fs');['services/runner/reach-serve.exe','services/runner/reachctl.exe'].forEach(f=>{try{fs.unlinkSync(f)}catch(e){}})\" && (npm run clean --workspaces --if-present)"
+    "clean": "node -e \"const fs=require('fs');['services/runner/reach-serve.exe','services/runner/reachctl.exe'].forEach(f=>{try{fs.unlinkSync(f)}catch(e){}})\" && (npm run clean --workspaces --if-present)",
+    "docs:doctor": "npx tsx tools/docs/drift/run.ts",
+    "docs:doctor:fix": "npx tsx tools/docs/drift/run.ts --fix"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

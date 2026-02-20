@@ -1,0 +1,6 @@
+{
+  "allowlist": [
+    "deterministic",
+    "minimal dependencies"
+  ]
+}
