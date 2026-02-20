@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"reach/services/runner/internal/jobs"
 	"reach/services/runner/internal/mcpserver"
 )
 
@@ -10,7 +11,7 @@ type LocalMCPClient struct {
 	server *mcpserver.Server
 }
 
-func (c *LocalMCPClient) Call(ctx context.Context, runID string, action string, inputs map[string]any) (any, error) {
+func (c *LocalMCPClient) Call(ctx context.Context, runID string, action string, inputs map[string]any) (jobs.ToolResult, error) {
 	// Map 'read_file' to 'tool.read_file' as expected by mcpserver
 	toolName := action
 	if action == "read_file" {
@@ -21,7 +22,11 @@ func (c *LocalMCPClient) Call(ctx context.Context, runID string, action string, 
 		toolName = "tool.summarize"
 	}
 
-	return c.server.CallTool(ctx, runID, toolName, inputs)
+	out, err := c.server.CallTool(ctx, runID, toolName, inputs)
+	return jobs.ToolResult{
+		Output:     out,
+		TokenUsage: 50, // Simulated token count for demo
+	}, err
 }
 
 // Simple implementations for mcpserver requirements
