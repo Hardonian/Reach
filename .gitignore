@@ -86,3 +86,10 @@ crates/ffi/c_abi/target/
 *.pem
 *.key
 *.crt
+
+# ======================================
+# Reach Artifacts
+# ======================================
+.artifacts/
+playwright-report/
+test-results/

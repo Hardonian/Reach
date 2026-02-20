@@ -1,3 +1,5 @@
+# Pull Request Template
+
 ## Description
 
 <!-- Describe the changes and the motivation behind them. -->
@@ -17,11 +19,13 @@
 ## Verification
 
 ### Automated Checks
+
 - [ ] `npm run verify` passes locally.
 - [ ] `npm run docs:doctor` reports no drift.
 - [ ] New tests added for the change.
 
 ### Manual Verification
+
 <!-- Describe the manual tests you performed to verify your changes. -->
 
 ## Checklist

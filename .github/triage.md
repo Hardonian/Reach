@@ -25,6 +25,7 @@ This document describes how we prioritize and label issues in the Reach reposito
 - `area:docs`: Documentation and FAQ.
 
 ## Triage Process
+
 1. **Initial Review**: Confirm the bug reproduction steps or feature alignment.
 2. **Labeling**: Apply `area`, `type`, and `priority` labels.
 3. **Assignment**: Assign to a maintainer or mark as `help wanted`.

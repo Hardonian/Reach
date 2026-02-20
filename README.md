@@ -261,6 +261,16 @@ go test ./internal/storage -v
 3. Search issues: [GitHub Issues](../../issues)
 4. Read docs: [docs/](./docs/)
 
+## Documentation Integrity
+
+Reach uses a **Docs Drift Guard** to ensure that documentation, environment variables, and CLI commands remain synchronized with the codebase.
+
+- **Run Audit**: `npm run docs:doctor`
+- **Autofix Casing**: `npm run docs:doctor:fix`
+- **CI Enforcement**: Every PR is audited for broken links and stale "Repo Truth" references.
+
+See [DOCS_DRIFT_GUARD.md](DOCS_DRIFT_GUARD.md) for detailed architecture.
+
 ## Contributing
 
 - Read `CONTRIBUTING.md` for setup, branch strategy, and PR expectations.
