@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"time"
 
 	"reach/core/evaluation"
@@ -140,7 +142,101 @@ func runEval() {
 }
 
 func compareEval() {
-	fmt.Println("Regression check: comparing results...")
+	compareCmd := flag.NewFlagSet("compare", flag.ExitOnError)
+	baselineFile := compareCmd.String("baseline", "", "Path to baseline result file")
+	compareCmd.Parse(os.Args[2:])
+
+	dataRoot := os.Getenv("REACH_DATA_DIR")
+	if dataRoot == "" {
+		dataRoot = "data"
+	}
+	resultsDir := filepath.Join(dataRoot, "evaluation", "results")
+
+	files, err := filepath.Glob(filepath.Join(resultsDir, "*.json"))
+	if err != nil || len(files) == 0 {
+		fmt.Println("No evaluation results found to compare.")
+		return
+	}
+
+	// Group and sort results by test name and timestamp
+	type resEntry struct {
+		path string
+		ts   int64
+		res  evaluation.ScoringResult
+	}
+	byTest := make(map[string][]resEntry)
+
+	for _, f := range files {
+		b, err := os.ReadFile(f)
+		if err != nil {
+			continue
+		}
+		var res evaluation.ScoringResult
+		if err := json.Unmarshal(b, &res); err != nil {
+			continue
+		}
+
+		// Extract test ID from runID (eval-{testID}-{ts})
+		parts := strings.Split(res.RunID, "-")
+		testID := "unknown"
+		if len(parts) >= 2 {
+			testID = parts[1]
+		}
+
+		info, _ := os.Stat(f)
+		byTest[testID] = append(byTest[testID], resEntry{path: f, ts: info.ModTime().Unix(), res: res})
+	}
+
+	fmt.Printf("\n🔍 Reach Drift Detection Report\n")
+	fmt.Printf("%-20s | %-10s | %-10s | %-10s\n", "Test ID", "Baseline", "Current", "Delta")
+	fmt.Println(strings.Repeat("-", 60))
+
+	var regressions int
+	for testID, entries := range byTest {
+		// Sort by timestamp descending
+		sort.Slice(entries, func(i, j int) bool {
+			return entries[i].ts > entries[j].ts
+		})
+
+		current := entries[0].res
+		var baseline evaluation.ScoringResult
+		foundBaseline := false
+
+		if *baselineFile != "" {
+			// Load specific baseline
+			b, err := os.ReadFile(*baselineFile)
+			if err == nil {
+				json.Unmarshal(b, &baseline)
+				foundBaseline = true
+			}
+		} else if len(entries) > 1 {
+			// Use second latest as baseline
+			baseline = entries[1].res
+			foundBaseline = true
+		}
+
+		if foundBaseline {
+			delta := current.Score - baseline.Score
+			status := "CORRECTED"
+			if delta < 0 {
+				status = "REGRESSION"
+				regressions++
+			} else if delta == 0 {
+				status = "STABLE"
+			}
+
+			fmt.Printf("%-20s | %10.2f | %10.2f | %10.2f [%s]\n", testID, baseline.Score, current.Score, delta, status)
+		} else {
+			fmt.Printf("%-20s | %10s | %10.2f | %10s\n", testID, "N/A", current.Score, "NEW")
+		}
+	}
+
+	if regressions > 0 {
+		fmt.Printf("\n⚠️ Alert: %d regressions detected!\n", regressions)
+		os.Exit(1)
+	} else {
+		fmt.Println("\n✅ No regressions detected.")
+	}
 }
 
 func suggestRAG() {

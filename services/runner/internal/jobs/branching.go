@@ -3,6 +3,7 @@ package jobs
 import (
 	"context"
 	"fmt"
+	"hash/fnv"
 	"math/rand"
 )
 
@@ -22,9 +23,24 @@ func (b *ConfidenceWeightedBranch) DecideBranch(ctx context.Context, primaryPath
 	return fallbackPath()
 }
 
-// SimulateExecution runs a "dry-run" to estimate outcome confidence.
-func SimulateExecution(ctx context.Context, action string) float64 {
-	// In a real implementation, this would use a smaller model to simulate the outcome
-	// and return a probability of success.
-	return rand.Float64()
+// SimulateExecution runs a deterministic "dry-run" to estimate outcome confidence.
+// It uses a hash of the action and run-specific context to ensure consistency.
+func SimulateExecution(ctx context.Context, action string, runID string) float64 {
+	// Deterministic seed based on action and runID
+	h := fnv.New64a()
+	h.Write([]byte(action))
+	h.Write([]byte(runID))
+
+	seed := int64(h.Sum64())
+	r := rand.New(rand.NewSource(seed))
+
+	// Simulation logic: baseline confidence is high but action-dependent
+	baseConf := 0.75
+	if action == "unsafe_op" {
+		baseConf = 0.4
+	}
+
+	// Add some deterministic variance
+	variance := (r.Float64() - 0.5) * 0.2 // +/- 10%
+	return baseConf + variance
 }
