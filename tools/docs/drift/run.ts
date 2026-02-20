@@ -11,7 +11,8 @@ const IS_FIX_MODE = process.argv.includes('--fix');
 const SCRIPTS = [
   'links.ts',
   'truth.ts',
-  'claims.ts'
+  'claims.ts',
+  'spelllinks.ts'
 ];
 
 function runDoctor() {
