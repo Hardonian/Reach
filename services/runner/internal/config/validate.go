@@ -65,6 +65,12 @@ func (c *Config) Validate() *ValidationResult {
 	// Determinism validation
 	result.validateDeterminism(c)
 
+	// Cloud validation
+	result.validateCloud(c)
+
+	// Feature flag dependency validation
+	result.validateFeatureFlags(c)
+
 	return result
 }
 
@@ -161,6 +167,37 @@ func (r *ValidationResult) validateSecurity(c *Config) {
 
 func (r *ValidationResult) validateDeterminism(c *Config) {
 	// Determinism settings are boolean, always valid
+}
+
+func (r *ValidationResult) validateCloud(c *Config) {
+	if !c.Cloud.Enabled {
+		return
+	}
+	if c.Cloud.DatabasePath == "" {
+		r.add("cloud.database_path", "required when cloud is enabled")
+	}
+	if c.Cloud.SessionSecret == "" {
+		r.add("cloud.session_secret", "required when cloud is enabled")
+	}
+	if c.Cloud.MaxTenantsPerUser < 1 {
+		r.add("cloud.max_tenants_per_user", "must be >= 1")
+	}
+}
+
+func (r *ValidationResult) validateFeatureFlags(c *Config) {
+	// Feature dependency enforcement: features that require other features
+	if c.FeatureFlags.ReputationRouting && !c.Federation.Enabled {
+		r.add("feature_flags.reputation_routing", "requires federation.enabled=true")
+	}
+	if c.FeatureFlags.MultiNodeConsensus && !c.Federation.Enabled {
+		r.add("feature_flags.multi_node_consensus", "requires federation.enabled=true")
+	}
+	if c.FeatureFlags.MarketplaceEnabled && !c.Cloud.Enabled {
+		r.add("feature_flags.marketplace_enabled", "requires cloud.enabled=true")
+	}
+	if c.FeatureFlags.GamificationEnabled && !c.Cloud.Enabled {
+		r.add("feature_flags.gamification_enabled", "requires cloud.enabled=true")
+	}
 }
 
 func (r *ValidationResult) add(field, message string) {

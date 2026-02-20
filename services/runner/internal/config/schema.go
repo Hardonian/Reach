@@ -41,6 +41,57 @@ type Config struct {
 	// Mesh controls distributed agent mesh coordination.
 	// Disabled by default — must be explicitly enabled. Single-node users are never affected.
 	Mesh MeshConfig `json:"mesh"`
+
+	// Cloud controls SaaS/cloud features (billing, multi-tenant, etc.).
+	// Disabled by default — requires REACH_CLOUD_ENABLED=true.
+	Cloud CloudConfig `json:"cloud"`
+
+	// FeatureFlags controls runtime feature toggles.
+	// All flags default to safe values.
+	FeatureFlags FeatureFlagConfig `json:"feature_flags"`
+}
+
+// CloudConfig gates all SaaS/cloud features.
+type CloudConfig struct {
+	// Enabled is the master gate for cloud features. Disabled by default.
+	Enabled bool `json:"enabled" env:"REACH_CLOUD_ENABLED" default:"false"`
+
+	// DatabasePath is the path to the cloud SQLite database
+	DatabasePath string `json:"database_path" env:"REACH_CLOUD_DB_PATH" default:""`
+
+	// StripeSecretKey for billing integration (never logged)
+	StripeSecretKey string `json:"stripe_secret_key" env:"REACH_STRIPE_SECRET_KEY" default:""`
+
+	// StripeWebhookSecret for webhook verification
+	StripeWebhookSecret string `json:"stripe_webhook_secret" env:"REACH_STRIPE_WEBHOOK_SECRET" default:""`
+
+	// SessionSecret for cookie signing
+	SessionSecret string `json:"session_secret" env:"REACH_SESSION_SECRET" default:""`
+
+	// MaxTenantsPerUser limits multi-tenant sprawl
+	MaxTenantsPerUser int `json:"max_tenants_per_user" env:"REACH_CLOUD_MAX_TENANTS" default:"5"`
+}
+
+// FeatureFlagConfig provides centralized feature toggles.
+// All flags default to false (off) for safety.
+type FeatureFlagConfig struct {
+	// CostAwareRouting enables cost-budget enforcement in model routing
+	CostAwareRouting bool `json:"cost_aware_routing" env:"REACH_FF_COST_AWARE_ROUTING" default:"false"`
+
+	// ReputationRouting enables reputation-based federation node selection
+	ReputationRouting bool `json:"reputation_routing" env:"REACH_FF_REPUTATION_ROUTING" default:"false"`
+
+	// AuditHashChain enables SHA256 hash-chain audit verification
+	AuditHashChain bool `json:"audit_hash_chain" env:"REACH_FF_AUDIT_HASH_CHAIN" default:"false"`
+
+	// MarketplaceEnabled enables the pack marketplace
+	MarketplaceEnabled bool `json:"marketplace_enabled" env:"REACH_FF_MARKETPLACE" default:"false"`
+
+	// GamificationEnabled enables gamification scoring from events
+	GamificationEnabled bool `json:"gamification_enabled" env:"REACH_FF_GAMIFICATION" default:"false"`
+
+	// MultiNodeConsensus enables multi-node execution consensus
+	MultiNodeConsensus bool `json:"multi_node_consensus" env:"REACH_FF_MULTI_NODE_CONSENSUS" default:"false"`
 }
 
 // MeshConfig controls the distributed agent mesh layer.
@@ -292,6 +343,18 @@ func Default() *Config {
 			MaxConcurrentTasks:        10,
 			TaskRoutingEnabled:        false,
 			CorrelationLogging:        true,
+		},
+		Cloud: CloudConfig{
+			Enabled:           false, // Disabled by default — requires explicit opt-in
+			MaxTenantsPerUser: 5,
+		},
+		FeatureFlags: FeatureFlagConfig{
+			CostAwareRouting:    false,
+			ReputationRouting:   false,
+			AuditHashChain:      false,
+			MarketplaceEnabled:  false,
+			GamificationEnabled: false,
+			MultiNodeConsensus:  false,
 		},
 	}
 }
