@@ -58,36 +58,40 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 }
 
 async function handleStripeEvent(event: Stripe.Event): Promise<void> {
-  const data = event.data.object as Record<string, unknown>;
+  // Use unknown → cast to specific type inside each case for type safety
+  const obj = event.data.object;
 
   switch (event.type) {
     case 'customer.subscription.created':
     case 'customer.subscription.updated': {
-      const sub = data as Stripe.Subscription;
-      const tenantId = (sub.metadata?.['tenant_id'] as string) ?? '';
+      const sub = obj as unknown as {
+        id: string; customer: string; status: string; metadata: Record<string, string>;
+        items: { data: Array<{ price: { id: string } }> };
+        billing_cycle_anchor?: number;
+        cancel_at_period_end?: boolean;
+      };
+      const tenantId = sub.metadata?.['tenant_id'] ?? '';
       if (!tenantId) { console.warn('[webhook] no tenant_id in subscription metadata'); return; }
-      const priceId = (sub.items?.data?.[0]?.price?.id as string) ?? '';
+      const priceId = sub.items?.data?.[0]?.price?.id ?? '';
       const plan = getPlanForPriceId(priceId);
       const limits = PLAN_LIMITS[plan] ?? PLAN_LIMITS['pro'];
       upsertEntitlement(tenantId, {
         plan,
-        stripe_customer_id: sub.customer as string,
+        stripe_customer_id: typeof sub.customer === 'string' ? sub.customer : String(sub.customer),
         stripe_subscription_id: sub.id,
         stripe_price_id: priceId,
         status: sub.status === 'active' ? 'active' : sub.status,
         runs_per_month: limits.runs_per_month,
         pack_limit: limits.pack_limit,
         retention_days: limits.retention_days,
-        period_start: sub.current_period_start ? new Date(sub.current_period_start * 1000).toISOString() : undefined,
-        period_end: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : undefined,
       } as Parameters<typeof upsertEntitlement>[1]);
       console.info(`[webhook] subscription ${event.type} for tenant ${tenantId} → plan ${plan}`);
       break;
     }
 
     case 'customer.subscription.deleted': {
-      const sub = data as Stripe.Subscription;
-      const tenantId = (sub.metadata?.['tenant_id'] as string) ?? '';
+      const sub = obj as unknown as { metadata: Record<string, string> };
+      const tenantId = sub.metadata?.['tenant_id'] ?? '';
       if (!tenantId) return;
       upsertEntitlement(tenantId, {
         plan: 'free',
@@ -103,8 +107,8 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     }
 
     case 'invoice.paid': {
-      const invoice = data as Stripe.Invoice;
-      const tenantId = (invoice.subscription_details?.metadata?.['tenant_id'] as string) ?? '';
+      const invoice = obj as unknown as { subscription_details?: { metadata?: Record<string, string> } };
+      const tenantId = invoice.subscription_details?.metadata?.['tenant_id'] ?? '';
       if (tenantId) {
         // Reset monthly usage on successful invoice payment (new billing period)
         const { resetMonthlyUsage } = await import('@/lib/cloud-db');
@@ -115,8 +119,8 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     }
 
     case 'invoice.payment_failed': {
-      const invoice = data as Stripe.Invoice;
-      const tenantId = (invoice.subscription_details?.metadata?.['tenant_id'] as string) ?? '';
+      const invoice = obj as unknown as { subscription_details?: { metadata?: Record<string, string> } };
+      const tenantId = invoice.subscription_details?.metadata?.['tenant_id'] ?? '';
       if (tenantId) {
         upsertEntitlement(tenantId, { status: 'past_due' } as Parameters<typeof upsertEntitlement>[1]);
         console.warn(`[webhook] invoice.payment_failed for tenant ${tenantId}`);

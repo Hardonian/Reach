@@ -28,7 +28,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if ('errors' in parsed) {
     return NextResponse.json({
       valid: false,
-      errors: parsed.errors.errors.map((e) => e.message),
+      errors: parsed.errors.issues.map((e: { message: string }) => e.message),
       warnings: [],
     }, { status: 422 });
   }

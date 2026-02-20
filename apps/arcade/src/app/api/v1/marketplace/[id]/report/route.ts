@@ -15,7 +15,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(ReportSchema, body);
-  if ('errors' in parsed) return cloudErrorResponse(parsed.errors.errors[0]?.message ?? 'Invalid input', 400);
+  if ('errors' in parsed) return cloudErrorResponse(parsed.firstMessage, 400);
 
   // Flag the pack for moderation review
   if (parsed.data.reason === 'security' || parsed.data.reason === 'malicious') {

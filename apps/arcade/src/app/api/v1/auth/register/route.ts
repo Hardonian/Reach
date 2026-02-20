@@ -10,7 +10,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const body = await req.json().catch(() => ({}));
     const parsed = parseBody(RegisterSchema, body);
     if ('errors' in parsed) {
-      return cloudErrorResponse(parsed.errors.errors[0]?.message ?? 'Invalid input', 400);
+      return cloudErrorResponse(parsed.firstMessage, 400);
     }
     const { email, password, displayName, tenantName, tenantSlug } = parsed.data;
 

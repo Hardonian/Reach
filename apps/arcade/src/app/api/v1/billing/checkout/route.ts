@@ -16,7 +16,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(CheckoutSchema, body);
-  if ('errors' in parsed) return cloudErrorResponse(parsed.errors.errors[0]?.message ?? 'Invalid input', 400);
+  if ('errors' in parsed) return cloudErrorResponse(parsed.firstMessage, 400);
 
   try {
     const ent = getEntitlement(ctx.tenantId);

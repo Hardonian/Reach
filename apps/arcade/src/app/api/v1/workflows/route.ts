@@ -20,7 +20,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(CreateWorkflowSchema, body);
-  if ('errors' in parsed) return cloudErrorResponse(parsed.errors.errors[0]?.message ?? 'Invalid input', 400);
+  if ('errors' in parsed) return cloudErrorResponse(parsed.firstMessage, 400);
 
   const graphJson = parsed.data.graph ? JSON.stringify(parsed.data.graph) : JSON.stringify({ nodes: [], edges: [], triggers: [{ type: 'manual' }], policies: [], version: 1 });
   const workflow = createWorkflow(

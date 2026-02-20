@@ -19,7 +19,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(CreateProjectSchema, body);
-  if ('errors' in parsed) return cloudErrorResponse(parsed.errors.errors[0]?.message ?? 'Invalid input', 400);
+  if ('errors' in parsed) return cloudErrorResponse(parsed.firstMessage, 400);
 
   const project = createProject(ctx.tenantId, parsed.data.name, parsed.data.description);
   auditLog(ctx, 'project.create', 'project', project.id, { name: project.name }, req);

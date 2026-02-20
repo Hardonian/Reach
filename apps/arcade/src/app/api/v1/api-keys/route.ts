@@ -22,7 +22,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(CreateApiKeySchema, body);
-  if ('errors' in parsed) return cloudErrorResponse(parsed.errors.errors[0]?.message ?? 'Invalid input', 400);
+  if ('errors' in parsed) return cloudErrorResponse(parsed.firstMessage, 400);
 
   const { key, rawKey } = createApiKey(ctx.tenantId, ctx.userId, parsed.data.name, parsed.data.scopes);
   auditLog(ctx, 'api_key.create', 'api_key', key.id, { name: key.name }, req);
