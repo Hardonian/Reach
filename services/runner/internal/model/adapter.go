@@ -28,19 +28,20 @@ type ModelCapabilities struct {
 	SupportsJSON    bool           `json:"supportsJson"`
 	Quantization    string         `json:"quantization,omitempty"`
 	EstimatedVRAMMB int            `json:"estimatedVramMb,omitempty"`
+	CostPer1kTokens float64        `json:"costPer1kTokens,omitempty"`
 }
 
 // GenerateOptions configures a generation request.
 type GenerateOptions struct {
-	Temperature     float64           `json:"temperature,omitempty"`
-	MaxTokens       int               `json:"maxTokens,omitempty"`
-	TopP            float64           `json:"topP,omitempty"`
-	TopK            int               `json:"topK,omitempty"`
-	StopSequences   []string          `json:"stopSequences,omitempty"`
-	Tools           []ToolDefinition  `json:"tools,omitempty"`
-	RequireJSON     bool              `json:"requireJson,omitempty"`
-	JSONSchema      json.RawMessage   `json:"jsonSchema,omitempty"`
-	SystemPrompt    string            `json:"systemPrompt,omitempty"`
+	Temperature   float64          `json:"temperature,omitempty"`
+	MaxTokens     int              `json:"maxTokens,omitempty"`
+	TopP          float64          `json:"topP,omitempty"`
+	TopK          int              `json:"topK,omitempty"`
+	StopSequences []string         `json:"stopSequences,omitempty"`
+	Tools         []ToolDefinition `json:"tools,omitempty"`
+	RequireJSON   bool             `json:"requireJson,omitempty"`
+	JSONSchema    json.RawMessage  `json:"jsonSchema,omitempty"`
+	SystemPrompt  string           `json:"systemPrompt,omitempty"`
 }
 
 // ToolDefinition describes a tool available to the model.
@@ -59,12 +60,12 @@ type ToolCall struct {
 
 // ModelOutput is the standardized response from any model adapter.
 type ModelOutput struct {
-	Content      string           `json:"content,omitempty"`
-	ToolCalls    []ToolCall       `json:"toolCalls,omitempty"`
-	FinishReason string           `json:"finishReason"`
-	Usage        TokenUsage       `json:"usage"`
-	Metadata     map[string]any   `json:"metadata,omitempty"`
-	Error        error            `json:"-"`
+	Content      string         `json:"content,omitempty"`
+	ToolCalls    []ToolCall     `json:"toolCalls,omitempty"`
+	FinishReason string         `json:"finishReason"`
+	Usage        TokenUsage     `json:"usage"`
+	Metadata     map[string]any `json:"metadata,omitempty"`
+	Error        error          `json:"-"`
 }
 
 // TokenUsage tracks consumption.
@@ -76,32 +77,32 @@ type TokenUsage struct {
 
 // GenerateInput contains the prompt and context.
 type GenerateInput struct {
-	Messages []Message `json:"messages"`
+	Messages []Message       `json:"messages"`
 	Context  json.RawMessage `json:"context,omitempty"`
 }
 
 // Message represents a chat message.
 type Message struct {
-	Role       string          `json:"role"` // system, user, assistant, tool
-	Content    string          `json:"content"`
-	ToolCalls  []ToolCall      `json:"toolCalls,omitempty"`
-	ToolCallID string          `json:"toolCallId,omitempty"`
+	Role       string     `json:"role"` // system, user, assistant, tool
+	Content    string     `json:"content"`
+	ToolCalls  []ToolCall `json:"toolCalls,omitempty"`
+	ToolCallID string     `json:"toolCallId,omitempty"`
 }
 
 // ReachModelAdapter is the unified interface for all model backends.
 type ReachModelAdapter interface {
 	// Name returns the adapter identifier.
 	Name() string
-	
+
 	// Capabilities describes what this model can do.
 	Capabilities() ModelCapabilities
-	
+
 	// Generate produces output from the model.
 	Generate(ctx context.Context, input GenerateInput, opts GenerateOptions) (*ModelOutput, error)
-	
+
 	// Available returns true if the adapter can be used (connected, loaded, etc).
 	Available(ctx context.Context) bool
-	
+
 	// Health returns detailed health status.
 	Health(ctx context.Context) HealthStatus
 }
@@ -116,7 +117,7 @@ type HealthStatus struct {
 
 // AdapterRegistry manages multiple model adapters.
 type AdapterRegistry struct {
-	adapters map[string]ReachModelAdapter
+	adapters       map[string]ReachModelAdapter
 	defaultAdapter string
 }
 
@@ -186,13 +187,14 @@ func (r *AdapterRegistry) AvailableAdapters(ctx context.Context) []ReachModelAda
 
 // RouteInput contains parameters for routing decisions.
 type RouteInput struct {
-	Complexity     Complexity   `json:"complexity"`
-	RequireTools   bool         `json:"requireTools"`
-	RequireJSON    bool         `json:"requireJson"`
-	MaxLatencyMs   int          `json:"maxLatencyMs"`
-	Offline        bool         `json:"offline"`
-	PreferredModel string       `json:"preferredModel,omitempty"`
-	ContextTokens  int          `json:"contextTokens"`
+	Complexity     Complexity `json:"complexity"`
+	RequireTools   bool       `json:"requireTools"`
+	RequireJSON    bool       `json:"requireJson"`
+	MaxLatencyMs   int        `json:"maxLatencyMs"`
+	Offline        bool       `json:"offline"`
+	PreferredModel string     `json:"preferredModel,omitempty"`
+	ContextTokens  int        `json:"contextTokens"`
+	BudgetUSD      float64    `json:"budget_usd"`
 }
 
 // Complexity estimates task difficulty.
@@ -236,25 +238,25 @@ func (r *Router) Route(ctx context.Context, input RouteInput) (ReachModelAdapter
 			}
 		}
 	}
-	
+
 	// Get all available adapters
 	available := r.registry.AvailableAdapters(ctx)
 	if len(available) == 0 {
 		return nil, fmt.Errorf("no model adapters available")
 	}
-	
+
 	// Edge mode: prefer smallest/fastest model
 	if r.config.EdgeMode || input.Offline {
 		return r.selectEdgeAdapter(available, input)
 	}
-	
+
 	// Normal routing: match capabilities to complexity
 	return r.selectBestAdapter(available, input)
 }
 
 func (r *Router) matchesRequirements(adapter ReachModelAdapter, input RouteInput) bool {
 	caps := adapter.Capabilities()
-	
+
 	if input.RequireTools && !caps.ToolCalling {
 		return false
 	}
@@ -271,22 +273,22 @@ func (r *Router) selectEdgeAdapter(adapters []ReachModelAdapter, input RouteInpu
 	// Select smallest model that can handle the task
 	var selected ReachModelAdapter
 	var selectedVRAM int = int(^uint(0) >> 1) // MaxInt
-	
+
 	for _, adapter := range adapters {
 		caps := adapter.Capabilities()
-		
+
 		// Skip if can't meet requirements
 		if !r.matchesRequirements(adapter, input) {
 			continue
 		}
-		
+
 		// Prefer smallest VRAM footprint
 		if caps.EstimatedVRAMMB < selectedVRAM {
 			selected = adapter
 			selectedVRAM = caps.EstimatedVRAMMB
 		}
 	}
-	
+
 	if selected == nil {
 		return nil, fmt.Errorf("no edge-suitable adapter found")
 	}
@@ -296,21 +298,21 @@ func (r *Router) selectEdgeAdapter(adapters []ReachModelAdapter, input RouteInpu
 func (r *Router) selectBestAdapter(adapters []ReachModelAdapter, input RouteInput) (ReachModelAdapter, error) {
 	var selected ReachModelAdapter
 	var bestScore int
-	
+
 	for _, adapter := range adapters {
 		caps := adapter.Capabilities()
-		
+
 		if !r.matchesRequirements(adapter, input) {
 			continue
 		}
-		
+
 		score := r.scoreAdapter(caps, input)
 		if score > bestScore {
 			bestScore = score
 			selected = adapter
 		}
 	}
-	
+
 	if selected == nil {
 		return nil, fmt.Errorf("no suitable adapter found for requirements")
 	}
@@ -319,24 +321,24 @@ func (r *Router) selectBestAdapter(adapters []ReachModelAdapter, input RouteInpu
 
 func (r *Router) scoreAdapter(caps ModelCapabilities, input RouteInput) int {
 	score := 0
-	
+
 	// Prefer models with sufficient but not excessive context
 	if caps.MaxContext >= input.ContextTokens*2 {
 		score += 10
 	} else if caps.MaxContext >= input.ContextTokens {
 		score += 5
 	}
-	
+
 	// Tool calling bonus if needed
 	if input.RequireTools && caps.ToolCalling {
 		score += 20
 	}
-	
+
 	// JSON support bonus if needed
 	if input.RequireJSON && caps.SupportsJSON {
 		score += 15
 	}
-	
+
 	// Complexity matching
 	switch input.Complexity {
 	case ComplexitySimple:
@@ -352,11 +354,18 @@ func (r *Router) scoreAdapter(caps ModelCapabilities, input RouteInput) int {
 			score += 10
 		}
 	}
-	
-	// Edge mode: penalize large models
-	if r.config.EdgeMode {
-		score -= caps.EstimatedVRAMMB / 100
+
+	// Cost penalty if budget is tight
+	if input.BudgetUSD > 0 && caps.CostPer1kTokens > 0 {
+		// Calculate estimated cost for 1k tokens
+		estimatedCost := caps.CostPer1kTokens
+		if estimatedCost > input.BudgetUSD {
+			score -= 50 // Heavy penalty if over budget
+		} else {
+			// Prefer cheaper models even if within budget
+			score += int((input.BudgetUSD - estimatedCost) * 10)
+		}
 	}
-	
+
 	return score
 }

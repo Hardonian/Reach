@@ -3,9 +3,12 @@ package jobs
 import "time"
 
 type AuditEntry struct {
-	RunID     string         `json:"run_id"`
-	RequestID string         `json:"request_id"`
-	Timestamp time.Time      `json:"timestamp"`
-	Type      string         `json:"type"`
-	Payload   map[string]any `json:"payload"`
+	RunID        string         `json:"run_id"`
+	RequestID    string         `json:"request_id"`
+	Timestamp    time.Time      `json:"timestamp"`
+	Type         string         `json:"type"`
+	Payload      map[string]any `json:"payload"`
+	PreviousHash string         `json:"previous_hash"`
+	EntryHash    string         `json:"entry_hash"`
+	Signature    string         `json:"signature,omitempty"`
 }

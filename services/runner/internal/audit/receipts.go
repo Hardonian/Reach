@@ -1,0 +1,72 @@
+package audit
+
+import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"time"
+)
+
+// ExecutionReceipt is a signed proof of a pack execution.
+type ExecutionReceipt struct {
+	RunID       string    `json:"run_id"`
+	PackCID     string    `json:"pack_cid"`
+	Timestamp   time.Time `json:"timestamp"`
+	InputHash   string    `json:"input_hash"`
+	OutputHash  string    `json:"output_hash"`
+	NodeResults []string  `json:"node_results_hashes"`
+	ReceiptHash string    `json:"receipt_hash"` // SHA256 of the receipt content
+	Signature   string    `json:"signature"`    // HMAC or RSA signature
+}
+
+// ReceiptManager handles creation and verification of receipts.
+type ReceiptManager struct {
+	SecretKey string
+}
+
+func NewReceiptManager(secret string) *ReceiptManager {
+	return &ReceiptManager{SecretKey: secret}
+}
+
+// GenerateReceipt creates a signed receipt for an execution run.
+func (m *ReceiptManager) GenerateReceipt(runID, packCID string, inputs, outputs any) (*ExecutionReceipt, error) {
+	receipt := &ExecutionReceipt{
+		RunID:     runID,
+		PackCID:   packCID,
+		Timestamp: time.Now().UTC(),
+	}
+
+	// Hash inputs and outputs
+	inData, _ := json.Marshal(inputs)
+	outData, _ := json.Marshal(outputs)
+
+	h := sha256.New()
+	h.Write(inData)
+	receipt.InputHash = hex.EncodeToString(h.Sum(nil))
+
+	h.Reset()
+	h.Write(outData)
+	receipt.OutputHash = hex.EncodeToString(h.Sum(nil))
+
+	// Compute Receipt Hash
+	rData, _ := json.Marshal(receipt)
+	h.Reset()
+	h.Write(rData)
+	receipt.ReceiptHash = hex.EncodeToString(h.Sum(nil))
+
+	// Sign
+	mac := hmac.New(sha256.New, []byte(m.SecretKey))
+	mac.Write([]byte(receipt.ReceiptHash))
+	receipt.Signature = hex.EncodeToString(mac.Sum(nil))
+
+	return receipt, nil
+}
+
+// VerifyReceipt checks the integrity and signature of a receipt.
+func (m *ReceiptManager) VerifyReceipt(r *ExecutionReceipt) bool {
+	mac := hmac.New(sha256.New, []byte(m.SecretKey))
+	mac.Write([]byte(r.ReceiptHash))
+	expected := hex.EncodeToString(mac.Sum(nil))
+	return r.Signature == expected
+}
