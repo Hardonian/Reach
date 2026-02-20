@@ -1,11 +1,11 @@
-name: Bug report
+name: 🐛 Bug report
 description: Report a reproducible defect in Reach
-labels: [bug]
+labels: [bug, status:triage]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting a bug. Please include clear reproduction details.
+        Thanks for reporting a bug. Please ensure you have redacted any secrets from your logs before submission.
   - type: textarea
     id: summary
     attributes:
@@ -27,16 +27,34 @@ body:
   - type: textarea
     id: expected
     attributes:
-      label: Expected behavior
+      label: Expected vs Actual behavior
+      description: What did you expect to happen, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Details
+      description: OS version, Node/Go/Rust versions, and reach version.
+      placeholder: |
+        OS: Windows 11
+        Node: v20.10.0
+        reach: v2.4.1
     validations:
       required: true
   - type: textarea
     id: logs
     attributes:
-      label: Logs / screenshots
-      description: Paste relevant logs, stack traces, or screenshots.
-  - type: input
-    id: version
+      label: Logs / Redacted Run Artifacts
+      description: Paste relevant logs or .artifacts content here. REMOVE SECRETS.
+  - type: checkboxes
+    id: checks
     attributes:
-      label: Commit / branch
-      description: SHA or branch name where the issue occurs.
+      label: Pre-submission Checklist
+      options:
+        - label: I have run `./reach doctor` and confirmed my environment is healthy.
+          required: true
+        - label: I have redacted all secrets (API keys, PII) from the logs provided.
+          required: true
+        - label: I am using the latest version of the code.
+          required: true
