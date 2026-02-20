@@ -48,7 +48,8 @@ export async function auditSpelling(fix: boolean = false) {
     let modified = false;
 
     for (const rule of RULES) {
-      if (rule.pattern.test(content)) {
+      const match = content.match(rule.pattern);
+      if (match) {
         if (fix && (rule.name === 'Trailing whitespace' || rule.name === 'No double spaces in titles')) {
           const original = content;
           if (rule.name === 'Trailing whitespace') {
@@ -69,7 +70,7 @@ export async function auditSpelling(fix: boolean = false) {
             console.log(`[FIXED] ${rule.name} in ${file}`);
           }
         } else {
-          console.warn(`[HYGIENE] ${rule.name} in ${file}: ${rule.message}`);
+          console.warn(`[HYGIENE] ${rule.name} in ${file}: ${rule.message} (Matched: "${match[0].replace(/\n/g, '\\n')}")`);
           issueCount++;
         }
       }
