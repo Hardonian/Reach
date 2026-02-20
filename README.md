@@ -1,3 +1,15 @@
+# Reach
+
+**Reach is a deterministic execution fabric for AI systems.**
+
+Reach helps teams run agentic and tool-driven workloads with deterministic replay, policy controls, and signed execution packs so production behavior can be trusted, audited, and reproduced.
+
+**[Documentation](https://reach.dev/docs)** | **[FAQ](https://reach.dev/faq)** | **[Support](https://reach.dev/support)**
+
+## The problem Reach solves
+
+Most AI systems fail in production because runtime behavior drifts: tools change, policies are bypassed, and replay is unreliable. Reach provides a stable execution plane so operators can enforce capability boundaries, verify integrity, and reproduce outcomes across nodes and environments.
+
 ## Core principles
 
 - **Determinism**: replayable execution with stable event sequencing.
@@ -28,6 +40,7 @@
 ```
 
 Key paths:
+
 - `services/*` — Go services (runner, integration-hub, session-hub, registry)
 - `crates/engine*` — Rust deterministic engine/core
 - `extensions/vscode` — VS Code integration
@@ -62,7 +75,7 @@ curl -fsSL https://get.reach.dev/termux | bash
 Then run the guided wizard:
 
 ```bash
-reach wizard    # Choose pack → Run → Verify → Share
+reach wizard    # Choose pack -> Run -> Verify -> Share
 reach operator  # View dashboard
 ```
 
@@ -119,6 +132,7 @@ REACH_MOBILE=1 reach doctor
 ### Installation Issues
 
 **Problem**: `npm install` fails
+
 ```bash
 # Clear cache and retry
 npm cache clean --force
@@ -127,6 +141,7 @@ npm install
 ```
 
 **Problem**: Go dependencies not found
+
 ```bash
 cd services/runner
 go mod download
@@ -134,6 +149,7 @@ go mod tidy
 ```
 
 **Problem**: Rust compilation errors
+
 ```bash
 cd crates/engine
 rustup update
@@ -144,11 +160,13 @@ cargo build --release
 ### Runtime Issues
 
 **Problem**: `./reach doctor` fails
+
 - Check Go version: `go version` (need 1.23+)
 - Check Node version: `node --version` (need 18+)
 - Check Rust: `rustc --version`
 
 **Problem**: Port 8080 already in use
+
 ```bash
 # Find and kill process
 lsof -ti:8080 | xargs kill -9
@@ -157,6 +175,7 @@ REACH_PORT=8081 ./reach doctor
 ```
 
 **Problem**: Database locked errors
+
 ```bash
 # Kill any hanging processes
 pkill -f reach-runner
@@ -165,6 +184,7 @@ rm data/*.db-wal data/*.db-shm
 ```
 
 **Problem**: `reach wizard` hangs
+
 - Check SQLite installation
 - Ensure data directory is writable: `chmod 755 data/`
 - Run with debug logging: `REACH_LOG_LEVEL=debug reach wizard`
@@ -172,6 +192,7 @@ rm data/*.db-wal data/*.db-shm
 ### Docker Issues
 
 **Problem**: Container won't start
+
 ```bash
 # View logs
 docker-compose logs runner
@@ -183,6 +204,7 @@ docker-compose up -d
 ```
 
 **Problem**: Permission denied on volumes
+
 ```bash
 # Fix ownership
 sudo chown -R 1000:1000 data/
@@ -192,6 +214,7 @@ docker-compose restart
 ### Mobile (Termux) Issues
 
 **Problem**: `curl install` fails
+
 ```bash
 # Update packages
 pkg update
@@ -204,6 +227,7 @@ cd reach
 ```
 
 **Problem**: Out of memory errors
+
 ```bash
 # Use swap
 pkg install proot-distro
@@ -214,6 +238,7 @@ REACH_MAX_CONCURRENT_RUNS=1 reach run <pack>
 ### Test Failures
 
 **Problem**: Go tests timeout
+
 ```bash
 # Run with longer timeout
 cd services/runner
@@ -224,6 +249,7 @@ go test ./internal/storage -v
 ```
 
 **Problem**: SQLite tests fail
+
 - Check SQLite version: `sqlite3 --version` (need 3.35+)
 - Ensure temp directory writable
 - Check disk space
