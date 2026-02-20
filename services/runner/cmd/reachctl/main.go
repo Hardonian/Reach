@@ -2236,7 +2236,7 @@ func runQuick(args []string, out, errOut io.Writer) int {
 				SpecVersion: "1.0",
 				ExecutionGraph: pack.ExecutionGraph{
 					Nodes: []pack.Node{
-						{ID: "node1", Type: "Action", Action: "read_file", Inputs: map[string]any{"path": "../../VERSION"}},
+						{ID: "node1", Type: "Action", Action: "read_file", Inputs: map[string]any{"path": "VERSION"}},
 						{ID: "node2", Type: "Action", Action: "summarize"},
 					},
 				},
