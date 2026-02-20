@@ -10,6 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"reach/core/evaluation"
 	"reach/services/runner/internal/determinism"
 	"reach/services/runner/internal/pack"
 	"reach/services/runner/internal/storage"
@@ -80,6 +81,8 @@ type Run struct {
 	Capabilities map[string]struct{}
 	Gates        map[string]Gate
 	Autonomous   AutonomousSession
+	Evaluation   *evaluation.ScoringResult
+	Feedback     *evaluation.Feedback
 	Status       string
 	CreatedAt    time.Time
 	IsCritical   bool
