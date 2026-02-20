@@ -272,11 +272,18 @@ func (e *Engine) DetermineStrategy(task TaskConstraints) (ExecutionStrategy, err
 		if strategy.Mode == ModeMinimal {
 			return strategy, fmt.Errorf("cannot meet minimum reliability of %.2f with current constraints (current: %.2f)", task.MinReliability, strategy.ReliabilityScore)
 		}
-		// Example adjustment: switch to a more robust (but potentially slower/costlier) mode
 		strategy.Mode = ModeConservative
 		strategy.PolicyStrictness = PolicyStrict
 		strategy.Trace = append(strategy.Trace, fmt.Sprintf("Adjusted for minimum reliability (%.2f)", task.MinReliability))
-		strategy.ReliabilityScore = task.MinReliability // Assume adjustment meets it
+		strategy.ReliabilityScore = task.MinReliability
+	}
+
+	// Cost budget enforcement — clamp strategy to stay within budget
+	if task.MaxCost > 0 && strategy.CostScore > task.MaxCost {
+		strategy.MaxBranches = 1
+		strategy.CompressionLevel = 2
+		strategy.CostScore = task.MaxCost
+		strategy.Trace = append(strategy.Trace, fmt.Sprintf("Cost capped at $%.4f: reduced branching and enabled compression", task.MaxCost))
 	}
 
 	return strategy, nil
@@ -439,16 +446,18 @@ const (
 type TaskConstraints struct {
 	RequireComplexReasoning bool             `json:"requireComplexReasoning"`
 	Critical                bool             `json:"critical"`
-	MaxCost                 float64          `json:"maxCost"`
+	MaxCost                 float64          `json:"maxCost"`          // USD budget cap for this task
 	MaxLatencyMs            int              `json:"maxLatencyMs"`
 	Mode                    OptimizationMode `json:"mode"`
 	TimeSensitive           bool             `json:"timeSensitive"`
 	EstimatedContextTokens  int              `json:"estimatedContextTokens"`
+	EstimatedOutputTokens   int              `json:"estimatedOutputTokens"` // Expected output volume
 	IsReplay                bool             `json:"isReplay"`
 	MinReliability          float64          `json:"minReliability"`
-	RequiredAccuracy        float64          `json:"requiredAccuracy"`     // New: triggers consensus
-	RequireDelegation       bool             `json:"requireDelegation"`    // New: require federated execution
-	RequiredCapabilities    []string         `json:"requiredCapabilities"` // New: required node capabilities
+	RequiredAccuracy        float64          `json:"requiredAccuracy"`     // Triggers consensus
+	RequireDelegation       bool             `json:"requireDelegation"`    // Require federated execution
+	RequiredCapabilities    []string         `json:"requiredCapabilities"` // Required node capabilities
+	TenantID                string           `json:"tenantId"`             // For cost attribution
 }
 
 // ReplayEvent represents a simplified event for time-travel simulation.
