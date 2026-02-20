@@ -62,15 +62,16 @@ func runEval() {
 
 	// 1. Setup execution environment
 	registry := pack.NewPackRegistry()
-	// Register demo pack for smoke testing
-	// In production, this would load all installed packs
-	demoPath := "./data/packs/arcadeSafe.demo"
-	lintRes, _ := pack.Lint(demoPath)
-	if lintRes != nil && lintRes.Valid {
-		registry.Register(lintRes)
+	demoPath := filepath.Join(dataRoot, "packs", "arcadeSafe.demo.json")
+	lintRes, err := pack.Lint(demoPath)
+	if err != nil || lintRes == nil || !lintRes.Valid {
+		fmt.Printf("⚠️ Warning: Failed to load demo pack at %s: %v\n", demoPath, err)
 	}
 
-	mcpSrv := mcpserver.NewMockServer("./")
+	cid := registry.Register(lintRes)
+	fmt.Printf("📦 Registered pack: %s (CID: %s)\n", lintRes.Metadata.Name, cid)
+
+	mcpSrv := mcpserver.NewMockServer("../../")
 	client := &mcpserver.LocalMCPClient{Server: mcpSrv}
 	executor := jobs.NewDAGExecutor(registry, client)
 	eval := evaluation.NewEvaluator()
@@ -109,8 +110,7 @@ func runEval() {
 		fmt.Printf("Running Test: %s [%s]\n", test.ID, test.Input)
 
 		runID := fmt.Sprintf("eval-%s-%d", test.ID, time.Now().Unix())
-		// Map test to arcadeSafe.demo for this MVP
-		cid := "99d545de6734c5c4e21e1344543b95b3f7fed4bf33a061f4172a42b7479c1344"
+		// Map test to the registered pack
 		inputs := map[string]any{"mode": "safe"}
 
 		results, state, err := executor.ExecuteGraph(ctx, cid, inputs)

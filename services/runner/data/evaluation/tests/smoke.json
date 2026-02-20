@@ -1,0 +1,12 @@
+{
+  "id": "smoke-1",
+  "input": "Summarize the VERSION file.",
+  "expected_behavior": "",
+  "policy_constraints": null,
+  "rag_expectations": null,
+  "tool_expectations": [
+    "read_file",
+    "summarize"
+  ],
+  "difficulty": ""
+}
