@@ -80,8 +80,6 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         runs_per_month: limits.runs_per_month,
         pack_limit: limits.pack_limit,
         retention_days: limits.retention_days,
-        period_start: sub.current_period_start ? new Date(sub.current_period_start * 1000).toISOString() : undefined,
-        period_end: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : undefined,
       } as Parameters<typeof upsertEntitlement>[1]);
       logger.info(`Subscription ${event.type} processed`, { tenantId, plan });
       break;
