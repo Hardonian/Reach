@@ -87,6 +87,18 @@ case "$cmd" in
     shift
     (cd services/runner && go run ./cmd/reachctl verify-proof "$@")
     ;;
+  cost)
+    shift
+    # Ensure dependencies are installed for the tool
+    (cd tools/economics && npm install --silent && npm start --silent -- report "$@")
+    ;;
+  metrics)
+    shift
+    case "${1:-}" in
+      gtm) shift; (cd tools/economics && npm install --silent && npm start --silent -- metrics "$@") ;;
+      *) (cd tools/economics && npm install --silent && npm start --silent -- metrics "$@") ;;
+    esac
+    ;;
   help|--help|-h)
     echo "Reach - Deterministic Execution Fabric"
     echo ""
@@ -101,11 +113,13 @@ case "$cmd" in
     echo "  capsule          - Create/verify capsules"
     echo "  proof            - Verify execution proofs"
     echo "  packs            - Search/install packs"
+    echo "  cost             - View cost analysis and unit economics"
+    echo "  metrics          - View GTM and usage metrics"
     echo ""
     echo "For mobile/Termux: Install with scripts/install-termux.sh"
     ;;
   *)
-    echo "usage: reach doctor|audit|eval|release-check|serve|federation|support|arcade|capsule|proof|graph|packs|init|explain|operator|pack|wizard|run|share|delegate|verify-proof" >&2
+    echo "usage: reach doctor|audit|eval|release-check|serve|federation|support|arcade|capsule|proof|graph|packs|init|explain|operator|pack|wizard|run|share|delegate|verify-proof|cost|metrics" >&2
     echo "       reach help for more info" >&2
     exit 1
     ;;

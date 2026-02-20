@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "currency": "USD",
+  "compute": {
+    "cost_per_ms": 0.0000000167,
+    "description": "Based on AWS Lambda ARM64 pricing (~$0.06/GB-hour)"
+  },
+  "storage": {
+    "cost_per_byte_month": 0.000000000023,
+    "description": "Based on S3 Standard pricing (~$0.023/GB-month)"
+  },
+  "models": {
+    "gpt-4": { "input_1k": 0.03, "output_1k": 0.06 },
+    "gpt-3.5-turbo": { "input_1k": 0.0005, "output_1k": 0.0015 },
+    "claude-3-opus": { "input_1k": 0.015, "output_1k": 0.075 },
+    "local-llama": { "input_1k": 0.0, "output_1k": 0.0 }
+  }
+}
