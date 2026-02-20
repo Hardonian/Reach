@@ -29,7 +29,16 @@ export async function auditSpelling(fix: boolean = false) {
   console.log('--- Smart Spelling & Markdown Hygiene ---');
   
   const files = await glob('**/*.{md,tsx}', { 
-    ignore: ['node_modules/**', '.next/**', 'dist/**', 'target/**', 'crates/**', 'services/**'] 
+    ignore: [
+      '**/node_modules/**', 
+      '**/.next/**', 
+      '**/dist/**', 
+      '**/target/**', 
+      '**/crates/**', 
+      '**/services/**',
+      '**/build/**',
+      '**/ARTIFACTS/**'
+    ] 
   });
 
   let issueCount = 0;
@@ -45,7 +54,15 @@ export async function auditSpelling(fix: boolean = false) {
           if (rule.name === 'Trailing whitespace') {
             content = content.replace(/[ \t]+$/gm, '');
           } else if (rule.name === 'No double spaces in titles') {
-            content = content.replace(/^(#+\s+.*)\s{2,}(.*)$/gm, '$1 $2');
+            // Fix double spaces within headings more robustly
+            const lines = content.split(/\r?\n/);
+            const fixedLines = lines.map(line => {
+              if (line.startsWith('#')) {
+                return line.replace(/([^\s])\s{2,}([^\s])/g, '$1 $2');
+              }
+              return line;
+            });
+            content = fixedLines.join('\n');
           }
           if (content !== original) {
             modified = true;

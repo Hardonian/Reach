@@ -23,9 +23,9 @@ reach pack doctor my-pack
 # Generate publishing bundle reach pack publish my-pack --registry https://github.com/reach/registry
 
 # Output: # {
-#   "pack": "my-pack", #   "version": "1.0.0",
-#   "bundle_path": "my-pack/publish-bundle", #   "branch_name": "add-pack-my-pack-1.0.0",
-#   "instructions": "my-pack/publish-bundle/PR_INSTRUCTIONS.md" # }
+# "pack": "my-pack", # "version": "1.0.0",
+# "bundle_path": "my-pack/publish-bundle", # "branch_name": "add-pack-my-pack-1.0.0",
+# "instructions": "my-pack/publish-bundle/PR_INSTRUCTIONS.md" # }
 ```
 
 ### 4. Submit PR The bundle contains:
