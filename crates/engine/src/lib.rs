@@ -17,6 +17,12 @@ use crate::state::{RunEvent, RunStatus, StateTransitionError};
 use crate::tools::{ToolCall, ToolResult};
 use crate::workflow::{StepKind, Workflow};
 
+/// Maximum number of pending events before we reject further actions.
+const MAX_PENDING_EVENTS: usize = 10_000;
+
+/// Maximum workflow JSON payload size (16 MiB).
+const MAX_WORKFLOW_SIZE: usize = 16 * 1024 * 1024;
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct EngineConfig {
     pub strict_schema: bool,
@@ -94,10 +100,16 @@ impl BudgetTracker {
     }
 
     pub fn reserve(&mut self, amount: f64) {
+        if amount.is_nan() || amount.is_infinite() || amount < 0.0 {
+            return; // Reject invalid amounts silently
+        }
         self.reserved_usd += amount;
     }
 
     pub fn commit(&mut self, step_id: String, actual_cost: f64) {
+        if actual_cost.is_nan() || actual_cost.is_infinite() || actual_cost < 0.0 {
+            return; // Reject invalid costs silently
+        }
         self.reserved_usd = (self.reserved_usd - actual_cost).max(0.0);
         self.spent_usd += actual_cost;
         self.step_costs.push(StepCost {
@@ -137,6 +149,12 @@ impl Engine {
     }
 
     pub fn compile(&self, workflow_dsl_or_json: &str) -> Result<Workflow, EngineError> {
+        if workflow_dsl_or_json.len() > MAX_WORKFLOW_SIZE {
+            return Err(EngineError::Parse(format!(
+                "workflow exceeds maximum size of {} bytes",
+                MAX_WORKFLOW_SIZE
+            )));
+        }
         serde_json::from_str::<Workflow>(workflow_dsl_or_json)
             .with_context(|| {
                 if self.config.strict_schema {
@@ -288,7 +306,7 @@ impl RunHandle {
                 }];
                 if let Some(reason) = self.first_denied_reason(&required_capabilities) {
                     let message = format!("policy denied tool call {}: {reason}", tool.name);
-                    self.pending_events.push_back(RunEvent::PolicyDenied {
+                    self.push_event(RunEvent::PolicyDenied {
                         step_id: step.id.clone(),
                         call: ToolCall {
                             step_id: step.id.clone(),
@@ -304,7 +322,7 @@ impl RunHandle {
                     return Action::Error { message };
                 }
 
-                self.pending_events.push_back(RunEvent::ToolCallRequested {
+                self.push_event(RunEvent::ToolCallRequested {
                     step_id: step.id.clone(),
                     call: ToolCall {
                         step_id: step.id.clone(),
@@ -321,7 +339,7 @@ impl RunHandle {
                 })
             }
             StepKind::EmitArtifact { patch } => {
-                self.pending_events.push_back(RunEvent::ArtifactEmitted {
+                self.push_event(RunEvent::ArtifactEmitted {
                     step_id: step.id.clone(),
                     patch: patch.clone(),
                 });
@@ -340,7 +358,7 @@ impl RunHandle {
             }));
         }
 
-        self.pending_events.push_back(RunEvent::ToolCallCompleted {
+        self.push_event(RunEvent::ToolCallCompleted {
             step_id: tool_result.step_id.clone(),
             result: tool_result,
         });
@@ -363,10 +381,18 @@ impl RunHandle {
         None
     }
 
+    fn push_event(&mut self, event: RunEvent) {
+        if self.pending_events.len() >= MAX_PENDING_EVENTS {
+            // Drop oldest events to stay within bounds — consumers should drain regularly.
+            self.pending_events.pop_front();
+        }
+        self.pending_events.push_back(event);
+    }
+
     fn transition(&mut self, target: RunStatus) -> Result<(), StateTransitionError> {
         let event = self.status.transition(&target)?;
         self.status = target;
-        self.pending_events.push_back(event);
+        self.push_event(event);
         Ok(())
     }
 }

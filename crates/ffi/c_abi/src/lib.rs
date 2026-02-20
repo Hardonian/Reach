@@ -17,34 +17,66 @@ static ENGINES: Lazy<Mutex<HashMap<u64, Engine>>> = Lazy::new(|| Mutex::new(Hash
 static RUNS: Lazy<Mutex<HashMap<u64, RunHandle>>> = Lazy::new(|| Mutex::new(HashMap::new()));
 static NEXT_ID: AtomicU64 = AtomicU64::new(1);
 
+/// Maximum allowed C string length (16 MiB) to prevent unbounded allocations.
+const MAX_C_STRING_LEN: usize = 16 * 1024 * 1024;
+
+/// Converts a Rust String to a C-compatible string, returning an error JSON string
+/// if the input contains embedded null bytes.
 fn into_c_string(value: String) -> *mut c_char {
-    CString::new(value)
-        .expect("CString conversion must succeed")
-        .into_raw()
+    match CString::new(value) {
+        Ok(cs) => cs.into_raw(),
+        Err(_) => {
+            // Input contained embedded null bytes — return a safe error string.
+            // This static string is guaranteed to be valid (no embedded nulls).
+            CString::new("{\"error\":\"string contains null byte\"}")
+                .unwrap_or_else(|_| CString::default())
+                .into_raw()
+        }
+    }
 }
 
+/// # Safety
+/// `ptr` must be a valid, NUL-terminated C string or null.
+/// The string must not exceed `MAX_C_STRING_LEN` bytes.
 unsafe fn from_c_str(ptr: *const c_char) -> Option<String> {
     if ptr.is_null() {
         return None;
     }
-    CStr::from_ptr(ptr).to_str().ok().map(ToOwned::to_owned)
+    let cstr = CStr::from_ptr(ptr);
+    let bytes = cstr.to_bytes();
+    if bytes.len() > MAX_C_STRING_LEN {
+        return None;
+    }
+    cstr.to_str().ok().map(ToOwned::to_owned)
 }
 
 #[no_mangle]
 pub extern "C" fn reach_engine_create() -> u64 {
     let id = NEXT_ID.fetch_add(1, Ordering::SeqCst);
-    if let Ok(mut engines) = ENGINES.lock() {
-        engines.insert(id, Engine::new(EngineConfig::default()));
-        id
-    } else {
-        0
+    match ENGINES.lock() {
+        Ok(mut engines) => {
+            engines.insert(id, Engine::new(EngineConfig::default()));
+            id
+        }
+        Err(poisoned) => {
+            // Recover from poisoned mutex — the data may still be valid.
+            let mut engines = poisoned.into_inner();
+            engines.insert(id, Engine::new(EngineConfig::default()));
+            id
+        }
     }
 }
 
 #[no_mangle]
 pub extern "C" fn reach_engine_free(engine_id: u64) {
-    if let Ok(mut engines) = ENGINES.lock() {
-        engines.remove(&engine_id);
+    match ENGINES.lock() {
+        Ok(mut engines) => {
+            engines.remove(&engine_id);
+        }
+        Err(poisoned) => {
+            let mut engines = poisoned.into_inner();
+            engines.remove(&engine_id);
+        }
     }
 }
 
@@ -59,8 +91,9 @@ pub unsafe extern "C" fn reach_compile_workflow(
         return into_c_string("{\"error\":\"invalid workflow json\"}".to_owned());
     };
 
-    let Ok(engines) = ENGINES.lock() else {
-        return into_c_string("{\"error\":\"engine lock failed\"}".to_owned());
+    let engines = match ENGINES.lock() {
+        Ok(guard) => guard,
+        Err(poisoned) => poisoned.into_inner(),
     };
     let Some(engine) = engines.get(&engine_id) else {
         return into_c_string("{\"error\":\"unknown engine\"}".to_owned());
@@ -97,8 +130,9 @@ pub unsafe extern "C" fn reach_start_run(
         return 0;
     };
 
-    let Ok(engines) = ENGINES.lock() else {
-        return 0;
+    let engines = match ENGINES.lock() {
+        Ok(guard) => guard,
+        Err(poisoned) => poisoned.into_inner(),
     };
     let Some(engine) = engines.get(&engine_id) else {
         return 0;
@@ -109,25 +143,37 @@ pub unsafe extern "C" fn reach_start_run(
     drop(engines);
 
     let run_id = NEXT_ID.fetch_add(1, Ordering::SeqCst);
-    if let Ok(mut runs) = RUNS.lock() {
-        runs.insert(run_id, run);
-        run_id
-    } else {
-        0
+    match RUNS.lock() {
+        Ok(mut runs) => {
+            runs.insert(run_id, run);
+            run_id
+        }
+        Err(poisoned) => {
+            let mut runs = poisoned.into_inner();
+            runs.insert(run_id, run);
+            run_id
+        }
     }
 }
 
 #[no_mangle]
 pub extern "C" fn reach_run_free(run_id: u64) {
-    if let Ok(mut runs) = RUNS.lock() {
-        runs.remove(&run_id);
+    match RUNS.lock() {
+        Ok(mut runs) => {
+            runs.remove(&run_id);
+        }
+        Err(poisoned) => {
+            let mut runs = poisoned.into_inner();
+            runs.remove(&run_id);
+        }
     }
 }
 
 #[no_mangle]
 pub extern "C" fn reach_next_action(run_id: u64) -> *mut c_char {
-    let Ok(mut runs) = RUNS.lock() else {
-        return into_c_string("{\"error\":\"run lock failed\"}".to_owned());
+    let mut runs = match RUNS.lock() {
+        Ok(guard) => guard,
+        Err(poisoned) => poisoned.into_inner(),
     };
     let Some(run) = runs.get_mut(&run_id) else {
         return into_c_string("{\"error\":\"unknown run\"}".to_owned());
@@ -152,8 +198,9 @@ pub unsafe extern "C" fn reach_apply_tool_result(
         return into_c_string("{\"error\":\"invalid tool result\"}".to_owned());
     };
 
-    let Ok(mut runs) = RUNS.lock() else {
-        return into_c_string("{\"error\":\"run lock failed\"}".to_owned());
+    let mut runs = match RUNS.lock() {
+        Ok(guard) => guard,
+        Err(poisoned) => poisoned.into_inner(),
     };
     let Some(run) = runs.get_mut(&run_id) else {
         return into_c_string("{\"error\":\"unknown run\"}".to_owned());
@@ -171,7 +218,9 @@ pub unsafe extern "C" fn reach_apply_tool_result(
 
 #[no_mangle]
 /// # Safety
-/// The caller must pass valid NUL-terminated pointers owned according to the C ABI and uphold lifetime guarantees.
+/// The caller must pass a pointer that was previously returned by one of the
+/// `reach_*` functions (via `into_c_string`), or null. Passing any other pointer
+/// is undefined behaviour.
 pub unsafe extern "C" fn reach_string_free(ptr: *mut c_char) {
     if !ptr.is_null() {
         let _ = CString::from_raw(ptr);

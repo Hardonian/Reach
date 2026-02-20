@@ -104,8 +104,6 @@ type preparedOps struct {
 	enqueueJob     *sql.Stmt
 	getJobByKey    *sql.Stmt
 	getJobsByLease *sql.Stmt
-	completeJob    *sql.Stmt
-	failJob        *sql.Stmt
 	upsertNode     *sql.Stmt
 	listNodes      *sql.Stmt
 	putSession     *sql.Stmt
@@ -171,14 +169,6 @@ func (s *SQLiteStore) prepareStmts() error {
 	if err != nil {
 		return err
 	}
-	s.ops.completeJob, err = s.db.Prepare("UPDATE jobs SET status='completed', lease_token='', leased_until=NULL, updated_at=? WHERE id=? AND lease_token=?")
-	if err != nil {
-		return err
-	}
-	s.ops.failJob, err = s.db.Prepare("UPDATE jobs SET attempts=attempts+1,status=?,next_run_at=?,lease_token='',leased_until=NULL,last_error=?,updated_at=? WHERE id=? AND lease_token=?")
-	if err != nil {
-		return err
-	}
 	s.ops.upsertNode, err = s.db.Prepare("INSERT INTO nodes(id,tenant_id,type,capabilities,status,last_heartbeat_at,latency_ms,load_score,tags,tpm_pub_key,hardware_fingerprint,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET tenant_id=excluded.tenant_id,type=excluded.type,capabilities=excluded.capabilities,status=excluded.status,last_heartbeat_at=excluded.last_heartbeat_at,latency_ms=excluded.latency_ms,load_score=excluded.load_score,tags=excluded.tags,tpm_pub_key=excluded.tpm_pub_key,hardware_fingerprint=excluded.hardware_fingerprint,updated_at=excluded.updated_at")
 	if err != nil {
 		return err
@@ -230,12 +220,6 @@ func (s *SQLiteStore) Close() error {
 	if s.ops.getJobsByLease != nil {
 		s.ops.getJobsByLease.Close()
 	}
-	if s.ops.completeJob != nil {
-		s.ops.completeJob.Close()
-	}
-	if s.ops.failJob != nil {
-		s.ops.failJob.Close()
-	}
 	if s.ops.upsertNode != nil {
 		s.ops.upsertNode.Close()
 	}
@@ -267,8 +251,6 @@ func (s *SQLiteStore) queryRow(ctx context.Context, query string, args ...any) *
 func (s *SQLiteStore) Ping(ctx context.Context) error {
 	return s.db.PingContext(ctx)
 }
-func esc(v string) string { return strings.ReplaceAll(v, "'", "''") }
-
 func (s *SQLiteStore) Migrate(ctx context.Context) error {
 	if _, err := s.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS schema_migrations(version TEXT PRIMARY KEY);`); err != nil {
 		return err
@@ -439,11 +421,16 @@ func (s *SQLiteStore) LeaseReadyJobs(ctx context.Context, now time.Time, limit i
 	var ids []string
 	for rows.Next() {
 		var id string
-		if err := rows.Scan(&id); err == nil {
-			ids = append(ids, id)
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return nil, err
 		}
+		ids = append(ids, id)
 	}
 	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
 	if len(ids) == 0 {
 		return []JobRecord{}, nil
@@ -501,7 +488,7 @@ func (s *SQLiteStore) CompleteJob(ctx context.Context, jobID, leaseToken, result
 	defer tx.Rollback()
 
 	nowTime := finishedAt.UTC()
-	if _, err := s.ops.completeJob.ExecContext(ctx, nowTime, jobID, leaseToken); err != nil {
+	if _, err := tx.ExecContext(ctx, "UPDATE jobs SET status='completed', lease_token='', leased_until=NULL, updated_at=? WHERE id=? AND lease_token=?", nowTime, jobID, leaseToken); err != nil {
 		return err
 	}
 	if _, err := tx.ExecContext(ctx, "INSERT OR REPLACE INTO job_results(job_id,result_json,created_at) VALUES(?,?,?)", jobID, resultJSON, nowTime); err != nil {
@@ -530,7 +517,7 @@ func (s *SQLiteStore) FailJob(ctx context.Context, jobID, leaseToken, errMsg str
 	}
 	defer tx.Rollback()
 
-	if _, err := s.ops.failJob.ExecContext(ctx, status, retryTime, errMsg, nowTime, jobID, leaseToken); err != nil {
+	if _, err := tx.ExecContext(ctx, "UPDATE jobs SET attempts=attempts+1,status=?,next_run_at=?,lease_token='',leased_until=NULL,last_error=?,updated_at=? WHERE id=? AND lease_token=?", status, retryTime, errMsg, nowTime, jobID, leaseToken); err != nil {
 		return err
 	}
 	if _, err := tx.ExecContext(ctx, "INSERT INTO job_attempts(job_id,attempt,status,error,created_at) SELECT id,attempts,?,?,? FROM jobs WHERE id=?", status, errMsg, nowTime, jobID); err != nil {

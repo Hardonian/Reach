@@ -31,41 +31,42 @@ func (c *Coordinator) Load() error { return c.store.Load() }
 func (c *Coordinator) Save() error { return c.store.Save() }
 
 func (c *Coordinator) RecordDelegation(nodeID, specVersion, registryHash string, success bool, reason string, latencyMS int, replayMismatch bool) {
-	node := c.store.Get(nodeID)
-	if strings.TrimSpace(specVersion) != "" {
-		node.SpecVersion = specVersion
-	}
-	if strings.TrimSpace(registryHash) != "" {
-		node.RegistrySnapshotHash = registryHash
-	}
-	if success {
-		node.Snapshot.DelegationsSucceeded++
-	} else {
-		node.Snapshot.DelegationsFailedByReason[reason]++
-	}
-	reasonLower := strings.ToLower(reason)
-	if strings.Contains(reasonLower, "policy") {
-		node.Snapshot.PolicyDenials++
-	}
-	if strings.Contains(reasonLower, "spec") {
-		node.Snapshot.SpecMismatchIncidents++
-	}
-	if strings.Contains(reasonLower, "registry") {
-		node.Snapshot.RegistryMismatchIncidents++
-	}
-	if replayMismatch {
-		node.Snapshot.ReplayMismatchIncidents++
-	}
-	if latencyMS > 0 {
-		if node.Snapshot.Latency.P50MS == 0 || latencyMS < node.Snapshot.Latency.P50MS {
-			node.Snapshot.Latency.P50MS = latencyMS
+	// Use atomic Update to prevent race condition between Get() and Upsert()
+	c.store.Update(nodeID, func(node *NodeStats) {
+		if strings.TrimSpace(specVersion) != "" {
+			node.SpecVersion = specVersion
 		}
-		if latencyMS > node.Snapshot.Latency.P95MS {
-			node.Snapshot.Latency.P95MS = latencyMS
+		if strings.TrimSpace(registryHash) != "" {
+			node.RegistrySnapshotHash = registryHash
 		}
-	}
-	node.Quarantined = ShouldQuarantine(TrustScore(node.Snapshot), replayMismatch, 35)
-	c.store.Upsert(node)
+		if success {
+			node.Snapshot.DelegationsSucceeded++
+		} else {
+			node.Snapshot.DelegationsFailedByReason[reason]++
+		}
+		reasonLower := strings.ToLower(reason)
+		if strings.Contains(reasonLower, "policy") {
+			node.Snapshot.PolicyDenials++
+		}
+		if strings.Contains(reasonLower, "spec") {
+			node.Snapshot.SpecMismatchIncidents++
+		}
+		if strings.Contains(reasonLower, "registry") {
+			node.Snapshot.RegistryMismatchIncidents++
+		}
+		if replayMismatch {
+			node.Snapshot.ReplayMismatchIncidents++
+		}
+		if latencyMS > 0 {
+			if node.Snapshot.Latency.P50MS == 0 || latencyMS < node.Snapshot.Latency.P50MS {
+				node.Snapshot.Latency.P50MS = latencyMS
+			}
+			if latencyMS > node.Snapshot.Latency.P95MS {
+				node.Snapshot.Latency.P95MS = latencyMS
+			}
+		}
+		node.Quarantined = ShouldQuarantine(TrustScore(node.Snapshot), replayMismatch, 35)
+	})
 }
 
 func (c *Coordinator) Status() []StatusNode {
