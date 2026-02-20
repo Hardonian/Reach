@@ -7,6 +7,10 @@ case "$cmd" in
     shift
     (cd tools/doctor && go run . "$@")
     ;;
+  audit)
+    shift
+    (cd tools/reach-audit && go run . "$@")
+    ;;
   eval)
     shift
     (cd tools/reach-eval && go run . "$@")
