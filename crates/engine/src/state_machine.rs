@@ -6,6 +6,8 @@ use crate::policy::{ExecutionPolicy, PolicyError};
 pub enum MachineState {
     Idle,
     Running { current: String, transitions: usize },
+    Paused { current: String, transitions: usize },
+    Cancelled,
     Completed,
 }
 
@@ -15,6 +17,7 @@ pub enum MachineError {
     NodeMissing(String),
     PolicyViolation(PolicyError),
     NoSuccessor(String),
+    InvalidStateTransition(String),
 }
 
 impl From<PolicyError> for MachineError {
@@ -56,6 +59,60 @@ impl WorkflowMachine {
         self.next_event(EventKind::Entered)
     }
 
+    /// Pause the machine. Only valid when running.
+    pub fn pause(&mut self) -> Result<EngineEvent, MachineError> {
+        match &self.state {
+            MachineState::Running {
+                current,
+                transitions,
+            } => {
+                self.state = MachineState::Paused {
+                    current: current.clone(),
+                    transitions: *transitions,
+                };
+                self.next_event(EventKind::Paused)
+            }
+            _ => Err(MachineError::InvalidStateTransition(format!(
+                "cannot pause from {:?}",
+                self.state
+            ))),
+        }
+    }
+
+    /// Resume the machine. Only valid when paused.
+    pub fn resume(&mut self) -> Result<EngineEvent, MachineError> {
+        match &self.state {
+            MachineState::Paused {
+                current,
+                transitions,
+            } => {
+                self.state = MachineState::Running {
+                    current: current.clone(),
+                    transitions: *transitions,
+                };
+                self.next_event(EventKind::Resumed)
+            }
+            _ => Err(MachineError::InvalidStateTransition(format!(
+                "cannot resume from {:?}",
+                self.state
+            ))),
+        }
+    }
+
+    /// Cancel the machine. Valid from Running or Paused states.
+    pub fn cancel(&mut self) -> Result<EngineEvent, MachineError> {
+        match &self.state {
+            MachineState::Running { .. } | MachineState::Paused { .. } => {
+                self.state = MachineState::Cancelled;
+                self.next_event(EventKind::Cancelled)
+            }
+            _ => Err(MachineError::InvalidStateTransition(format!(
+                "cannot cancel from {:?}",
+                self.state
+            ))),
+        }
+    }
+
     pub fn step(&mut self) -> Result<EngineEvent, MachineError> {
         let (current, transitions) = match &self.state {
             MachineState::Running {
@@ -64,6 +121,16 @@ impl WorkflowMachine {
             } => (current.clone(), *transitions),
             MachineState::Idle => return self.start(),
             MachineState::Completed => return self.next_event(EventKind::Completed),
+            MachineState::Paused { .. } => {
+                return Err(MachineError::InvalidStateTransition(
+                    "cannot step while paused".to_string(),
+                ));
+            }
+            MachineState::Cancelled => {
+                return Err(MachineError::InvalidStateTransition(
+                    "cannot step after cancellation".to_string(),
+                ));
+            }
         };
 
         self.policy.evaluate_transition(transitions)?;
@@ -103,8 +170,11 @@ impl WorkflowMachine {
         self.sequence += 1;
         let node_id = match &self.state {
             MachineState::Idle => self.workflow.start.clone(),
-            MachineState::Running { current, .. } => current.clone(),
+            MachineState::Running { current, .. } | MachineState::Paused { current, .. } => {
+                current.clone()
+            }
             MachineState::Completed => "completed".to_string(),
+            MachineState::Cancelled => "cancelled".to_string(),
         };
 
         if node_id.is_empty() {
@@ -201,5 +271,86 @@ mod tests {
                 PolicyError::TransitionLimitReached
             ))
         );
+    }
+
+    #[test]
+    fn pause_and_resume() {
+        let mut machine = WorkflowMachine::new(sample_workflow(), ExecutionPolicy::default())
+            .expect("construct");
+
+        let _ = machine.start().expect("start ok");
+
+        let pause_event = machine.pause().expect("pause should succeed");
+        assert_eq!(pause_event.kind, crate::events::EventKind::Paused);
+        assert!(matches!(machine.state(), MachineState::Paused { .. }));
+
+        // Cannot step while paused
+        assert!(matches!(
+            machine.step(),
+            Err(MachineError::InvalidStateTransition(_))
+        ));
+
+        let resume_event = machine.resume().expect("resume should succeed");
+        assert_eq!(resume_event.kind, crate::events::EventKind::Resumed);
+        assert!(matches!(machine.state(), MachineState::Running { .. }));
+
+        // Can step after resume
+        let _ = machine.step().expect("step after resume should work");
+    }
+
+    #[test]
+    fn cancel_from_running() {
+        let mut machine = WorkflowMachine::new(sample_workflow(), ExecutionPolicy::default())
+            .expect("construct");
+
+        let _ = machine.start().expect("start ok");
+
+        let cancel_event = machine.cancel().expect("cancel should succeed");
+        assert_eq!(cancel_event.kind, crate::events::EventKind::Cancelled);
+        assert_eq!(cancel_event.node_id, "cancelled");
+        assert!(matches!(machine.state(), MachineState::Cancelled));
+
+        // Cannot step after cancel
+        assert!(matches!(
+            machine.step(),
+            Err(MachineError::InvalidStateTransition(_))
+        ));
+    }
+
+    #[test]
+    fn cancel_from_paused() {
+        let mut machine = WorkflowMachine::new(sample_workflow(), ExecutionPolicy::default())
+            .expect("construct");
+
+        let _ = machine.start().expect("start ok");
+        let _ = machine.pause().expect("pause ok");
+
+        let cancel_event = machine.cancel().expect("cancel from paused should work");
+        assert_eq!(cancel_event.kind, crate::events::EventKind::Cancelled);
+        assert!(matches!(machine.state(), MachineState::Cancelled));
+    }
+
+    #[test]
+    fn cannot_pause_when_idle() {
+        let mut machine = WorkflowMachine::new(sample_workflow(), ExecutionPolicy::default())
+            .expect("construct");
+
+        assert!(matches!(
+            machine.pause(),
+            Err(MachineError::InvalidStateTransition(_))
+        ));
+    }
+
+    #[test]
+    fn cannot_resume_when_running() {
+        let mut machine = WorkflowMachine::new(sample_workflow(), ExecutionPolicy::default())
+            .expect("construct");
+
+        let _ = machine.start().expect("start ok");
+
+        assert!(matches!(
+            machine.resume(),
+            Err(MachineError::InvalidStateTransition(_))
+        ));
     }
 }

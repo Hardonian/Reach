@@ -1,7 +1,8 @@
 use std::io::{self, Read};
 
 use engine::{
-    policy::Policy, state::RunEvent, tools::ToolResult, Action, Engine, EngineConfig, RunHandle,
+    policy::Policy, state::RunEvent, tools::ToolResult, Action, Engine, EngineConfig,
+    ExecutionControls, RunHandle,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -19,6 +20,8 @@ enum EngineRequest {
         run_id: String,
         #[serde(default = "default_initiator")]
         initiator: String,
+        #[serde(default)]
+        controls: Option<ExecutionControls>,
     },
     NextAction {
         run_id: String,
@@ -28,6 +31,26 @@ enum EngineRequest {
         run_id: String,
         run_handle: RunHandle,
         tool_result: ToolResult,
+    },
+    PauseRun {
+        run_id: String,
+        run_handle: RunHandle,
+        reason: String,
+    },
+    ResumeRun {
+        run_id: String,
+        run_handle: RunHandle,
+    },
+    CancelRun {
+        run_id: String,
+        run_handle: RunHandle,
+        reason: String,
+    },
+    RecordCost {
+        run_id: String,
+        run_handle: RunHandle,
+        step_id: String,
+        cost_usd: f64,
     },
 }
 
@@ -99,20 +122,28 @@ fn main() {
             workflow,
             run_id,
             initiator,
-        } => match engine.start_run(workflow, Policy::default()) {
-            Ok(mut run_handle) => {
-                let events = drain_wrapped_events(&mut run_handle, &run_id, Some(initiator));
-                EngineResponse {
-                    ok: true,
-                    workflow: None,
-                    run_handle: Some(run_handle),
-                    events,
-                    action: None,
-                    error: None,
+            controls,
+        } => {
+            let result = match controls {
+                Some(ctrl) => engine.start_run_with_controls(workflow, Policy::default(), ctrl),
+                None => engine.start_run(workflow, Policy::default()),
+            };
+            match result {
+                Ok(mut run_handle) => {
+                    let events =
+                        drain_wrapped_events(&mut run_handle, &run_id, Some(initiator));
+                    EngineResponse {
+                        ok: true,
+                        workflow: None,
+                        run_handle: Some(run_handle),
+                        events,
+                        action: None,
+                        error: None,
+                    }
                 }
+                Err(err) => error_response(err.to_string()),
             }
-            Err(err) => error_response(err.to_string()),
-        },
+        }
         EngineRequest::NextAction {
             run_id,
             mut run_handle,
@@ -145,6 +176,88 @@ fn main() {
                 }
             }
             Err(err) => error_response(err.to_string()),
+        },
+        EngineRequest::PauseRun {
+            run_id,
+            mut run_handle,
+            reason,
+        } => match run_handle.pause(&reason) {
+            Ok(()) => {
+                let events = drain_wrapped_events(&mut run_handle, &run_id, None);
+                EngineResponse {
+                    ok: true,
+                    workflow: None,
+                    run_handle: Some(run_handle),
+                    events,
+                    action: None,
+                    error: None,
+                }
+            }
+            Err(err) => error_response(err.to_string()),
+        },
+        EngineRequest::ResumeRun {
+            run_id,
+            mut run_handle,
+        } => match run_handle.resume() {
+            Ok(()) => {
+                let events = drain_wrapped_events(&mut run_handle, &run_id, None);
+                EngineResponse {
+                    ok: true,
+                    workflow: None,
+                    run_handle: Some(run_handle),
+                    events,
+                    action: None,
+                    error: None,
+                }
+            }
+            Err(err) => error_response(err.to_string()),
+        },
+        EngineRequest::CancelRun {
+            run_id,
+            mut run_handle,
+            reason,
+        } => match run_handle.cancel(&reason) {
+            Ok(()) => {
+                let events = drain_wrapped_events(&mut run_handle, &run_id, None);
+                EngineResponse {
+                    ok: true,
+                    workflow: None,
+                    run_handle: Some(run_handle),
+                    events,
+                    action: None,
+                    error: None,
+                }
+            }
+            Err(err) => error_response(err.to_string()),
+        },
+        EngineRequest::RecordCost {
+            run_id,
+            mut run_handle,
+            step_id,
+            cost_usd,
+        } => match run_handle.record_cost(step_id, cost_usd) {
+            Ok(()) => {
+                let events = drain_wrapped_events(&mut run_handle, &run_id, None);
+                EngineResponse {
+                    ok: true,
+                    workflow: None,
+                    run_handle: Some(run_handle),
+                    events,
+                    action: None,
+                    error: None,
+                }
+            }
+            Err(err) => {
+                // Budget exceeded still returns the handle so the caller can inspect it
+                EngineResponse {
+                    ok: false,
+                    workflow: None,
+                    run_handle: None,
+                    events: vec![],
+                    action: None,
+                    error: Some(err.to_string()),
+                }
+            }
         },
     };
 
@@ -246,6 +359,30 @@ fn wrap_event(
             event_type: "run.completed".to_owned(),
             timestamp,
             payload: serde_json::json!({"schemaVersion": SCHEMA_VERSION, "status": "succeeded"}),
+        },
+        RunEvent::RunPaused { reason } => EventEnvelope {
+            schema_version: SCHEMA_VERSION,
+            event_id,
+            run_id: run_id.to_owned(),
+            event_type: "run.paused".to_owned(),
+            timestamp,
+            payload: serde_json::json!({"schemaVersion": SCHEMA_VERSION, "reason": reason}),
+        },
+        RunEvent::RunResumed => EventEnvelope {
+            schema_version: SCHEMA_VERSION,
+            event_id,
+            run_id: run_id.to_owned(),
+            event_type: "run.resumed".to_owned(),
+            timestamp,
+            payload: serde_json::json!({"schemaVersion": SCHEMA_VERSION}),
+        },
+        RunEvent::RunCancelled { reason } => EventEnvelope {
+            schema_version: SCHEMA_VERSION,
+            event_id,
+            run_id: run_id.to_owned(),
+            event_type: "run.cancelled".to_owned(),
+            timestamp,
+            payload: serde_json::json!({"schemaVersion": SCHEMA_VERSION, "reason": reason}),
         },
         RunEvent::RunFailed { reason } => EventEnvelope {
             schema_version: SCHEMA_VERSION,

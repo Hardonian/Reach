@@ -12,7 +12,9 @@ use crate::{
 pub enum RunStatus {
     Created,
     Running,
+    Paused { reason: String },
     Completed,
+    Cancelled { reason: String },
     Failed { reason: String },
 }
 
@@ -44,6 +46,13 @@ pub enum RunEvent {
         step_id: StepId,
         patch: Patch,
     },
+    RunPaused {
+        reason: String,
+    },
+    RunResumed,
+    RunCancelled {
+        reason: String,
+    },
     RunCompleted,
     RunFailed {
         reason: String,
@@ -58,10 +67,33 @@ impl RunStatus {
             (Self::Running, Self::Failed { reason }) => Ok(RunEvent::RunFailed {
                 reason: reason.clone(),
             }),
+            (Self::Running, Self::Paused { reason }) => Ok(RunEvent::RunPaused {
+                reason: reason.clone(),
+            }),
+            (Self::Paused { .. }, Self::Running) => Ok(RunEvent::RunResumed),
+            (Self::Running, Self::Cancelled { reason }) => Ok(RunEvent::RunCancelled {
+                reason: reason.clone(),
+            }),
+            (Self::Paused { .. }, Self::Cancelled { reason }) => Ok(RunEvent::RunCancelled {
+                reason: reason.clone(),
+            }),
             (from, to) => Err(StateTransitionError::Invalid {
                 from: from.clone(),
                 to: to.clone(),
             }),
         }
+    }
+
+    #[must_use]
+    pub fn is_terminal(&self) -> bool {
+        matches!(
+            self,
+            Self::Completed | Self::Cancelled { .. } | Self::Failed { .. }
+        )
+    }
+
+    #[must_use]
+    pub fn is_active(&self) -> bool {
+        matches!(self, Self::Running | Self::Paused { .. })
     }
 }
