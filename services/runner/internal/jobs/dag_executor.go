@@ -38,14 +38,14 @@ func NewDAGExecutor(registry *pack.PackRegistry, client ToolClient) *DAGExecutor
 }
 
 // ExecuteGraph traverses the pack's execution graph and runs nodes.
-func (e *DAGExecutor) ExecuteGraph(ctx context.Context, packCID string, inputs map[string]interface{}) (map[string]interface{}, error) {
+func (e *DAGExecutor) ExecuteGraph(ctx context.Context, packCID string, inputs map[string]interface{}) (map[string]interface{}, *ExecutionState, error) {
 	entry, ok := e.Registry.Get(packCID)
 	if !ok {
-		return nil, fmt.Errorf("pack not found: %s", packCID)
+		return nil, nil, fmt.Errorf("pack not found: %s", packCID)
 	}
 
 	if entry.Result.Graph == nil {
-		return nil, fmt.Errorf("pack graph is missing")
+		return nil, nil, fmt.Errorf("pack graph is missing")
 	}
 
 	state := &ExecutionState{
@@ -58,13 +58,13 @@ func (e *DAGExecutor) ExecuteGraph(ctx context.Context, packCID string, inputs m
 	// Step-by-step sequential execution for simplicity (MVP)
 	for _, node := range entry.Result.Graph.Nodes {
 		if ctx.Err() != nil {
-			return nil, ctx.Err()
+			return nil, nil, ctx.Err()
 		}
 
 		fmt.Printf("Running node: %s (Type: %s)\n", node.ID, node.Type)
 		res, err := e.ExecuteNode(ctx, node, inputs, state)
 		if err != nil {
-			return nil, fmt.Errorf("node %s failed: %w", node.ID, err)
+			return nil, nil, fmt.Errorf("node %s failed: %w", node.ID, err)
 		}
 
 		state.mu.Lock()
@@ -74,7 +74,7 @@ func (e *DAGExecutor) ExecuteGraph(ctx context.Context, packCID string, inputs m
 	}
 
 	state.Latency = float64(time.Since(start).Milliseconds())
-	return state.Results, nil
+	return state.Results, state, nil
 }
 
 // ExecuteNode performs the action associated with a graph node.

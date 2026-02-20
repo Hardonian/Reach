@@ -35,6 +35,8 @@ type runRecord struct {
 	Policy               map[string]any     `json:"policy"`
 	RegistrySnapshotHash string             `json:"registry_snapshot_hash"`
 	EventLog             []map[string]any   `json:"event_log"`
+	Latency              float64            `json:"latency_ms"`
+	TokenUsage           int                `json:"token_usage"`
 	FederationPath       []string           `json:"federation_path"`
 	TrustScores          map[string]float64 `json:"trust_scores"`
 	AuditChain           []string           `json:"audit_chain"`
