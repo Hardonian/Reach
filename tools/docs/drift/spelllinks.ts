@@ -71,3 +71,9 @@ export async function auditSpelling(fix: boolean = false) {
 
   return issueCount === 0;
 }
+
+if (process.argv[1].endsWith('spelllinks.ts')) {
+  auditSpelling(process.argv.includes('--fix')).then(ok => {
+    if (!ok) process.exit(1);
+  });
+}
