@@ -17,7 +17,7 @@ const SENSITIVE_VALUE_REGEX = [
   /eyJ[a-zA-Z0-9_-]{10,}/, // JWT-like prefix
 ];
 
-export function sanitize(data: any): any {
+export function sanitize(data: unknown): unknown {
   if (data === null || data === undefined) {
     return data;
   }
@@ -33,12 +33,12 @@ export function sanitize(data: any): any {
   }
 
   if (Array.isArray(data)) {
-    return data.map(item => sanitize(item));
+    return data.map((item: unknown) => sanitize(item));
   }
 
   if (typeof data === 'object') {
-    const sanitized: Record<string, any> = {};
-    for (const [key, value] of Object.entries(data)) {
+    const sanitized: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
       if (SENSITIVE_KEYS.some(regex => regex.test(key))) {
         sanitized[key] = '[REDACTED]';
       } else {
@@ -51,7 +51,7 @@ export function sanitize(data: any): any {
   return data;
 }
 
-export function sanitizeEvent(event: any): any {
+export function sanitizeEvent(event: unknown): unknown {
   // Specific event type handling can be added here
   // For now, deep sanitize the entire payload
   return sanitize(event);

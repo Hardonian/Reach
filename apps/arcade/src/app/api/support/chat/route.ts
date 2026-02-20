@@ -51,7 +51,12 @@ export async function POST(request: Request) {
       citations: [],
     });
   }
-  const kb = await loadKB();
+  let kb: KBEntry[];
+  try {
+    kb = await loadKB();
+  } catch {
+    return NextResponse.json({ error: 'Support service unavailable' }, { status: 503 });
+  }
   const ranked = kb
     .map((entry) => ({ entry, score: score(entry, question.toLowerCase()) }))
     .filter((r) => r.score > 0)

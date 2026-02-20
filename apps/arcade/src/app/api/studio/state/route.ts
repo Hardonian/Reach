@@ -38,11 +38,15 @@ async function readState(): Promise<StudioState> {
   if (!data) {
     return DEFAULT_STATE;
   }
-  const parsed = JSON.parse(data) as StudioState;
-  return {
-    packDraft: parsed.packDraft || DEFAULT_STATE.packDraft,
-    runHistory: parsed.runHistory || [],
-  };
+  try {
+    const parsed = JSON.parse(data) as StudioState;
+    return {
+      packDraft: parsed.packDraft || DEFAULT_STATE.packDraft,
+      runHistory: parsed.runHistory || [],
+    };
+  } catch {
+    return DEFAULT_STATE;
+  }
 }
 
 async function writeState(state: StudioState) {
