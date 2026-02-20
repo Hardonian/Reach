@@ -3,15 +3,16 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import { ROUTES } from '@/lib/routes';
 
 const navItems = [
-  { href: '/', label: 'Home' },
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/marketplace', label: 'Marketplace' },
-  { href: '/governance', label: 'Governance' },
-  { href: '/docs', label: 'Docs' },
-  { href: '/faq', label: 'FAQ' },
-  { href: '/support', label: 'Support' },
+  { href: ROUTES.HOME, label: 'Home' },
+  { href: ROUTES.DASHBOARD, label: 'Dashboard' },
+  { href: ROUTES.MARKETPLACE, label: 'Marketplace' },
+  { href: ROUTES.GOVERNANCE, label: 'Governance' },
+  { href: ROUTES.DOCS, label: 'Docs' },
+  { href: ROUTES.FAQ, label: 'FAQ' },
+  { href: ROUTES.SUPPORT, label: 'Support' },
 ];
 
 export function NavBar() {
@@ -23,7 +24,7 @@ export function NavBar() {
       <nav className="section-container">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
+          <Link href={ROUTES.HOME} className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center logo-gradient">
               <span className="text-white font-bold text-lg">R</span>
             </div>
@@ -50,13 +51,13 @@ export function NavBar() {
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
             <Link
-              href="/contact"
+              href={ROUTES.CONTACT}
               className="btn-secondary text-sm py-2 px-4"
             >
               Contact
             </Link>
             <Link
-              href="/studio"
+              href={ROUTES.STUDIO}
               className="btn-primary text-sm py-2 px-4"
             >
               Launch Studio
@@ -98,10 +99,10 @@ export function NavBar() {
                 </Link>
               ))}
               <div className="mt-4 pt-4 border-t border-border flex flex-col gap-2">
-                <Link href="/contact" className="btn-secondary text-center text-sm py-2">
+                <Link href={ROUTES.CONTACT} className="btn-secondary text-center text-sm py-2">
                   Contact
                 </Link>
-                <Link href="/studio" className="btn-primary text-center text-sm py-2">
+                <Link href={ROUTES.STUDIO} className="btn-primary text-center text-sm py-2">
                   Launch Studio
                 </Link>
               </div>
