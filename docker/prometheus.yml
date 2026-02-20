@@ -12,8 +12,8 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'reach-runner'
+  - job_name: 'reach-server'
     static_configs:
-      - targets: ['runner:8080']
+      - targets: ['reach-server:8787']
     metrics_path: /metrics
     scrape_interval: 5s

@@ -1,0 +1,42 @@
+# Development Dockerfile for Reach
+# This Dockerfile is optimized for development with hot-reload support
+
+FROM golang:1.23-alpine
+
+# Install development dependencies
+RUN apk add --no-cache \
+    git \
+    curl \
+    make \
+    bash \
+    ca-certificates \
+    tzdata
+
+# Set timezone
+ENV TZ=UTC
+
+# Create app directory
+WORKDIR /app
+
+# Install air for hot reload (optional)
+RUN go install github.com/air-verse/air@latest
+
+# Copy go.mod and go.sum files first for better caching
+COPY services/runner/go.mod services/runner/go.sum ./services/runner/
+COPY pack-devkit/go.mod pack-devkit/go.sum ./pack-devkit/
+COPY go.work go.work.sum ./
+
+# Download dependencies
+RUN cd services/runner && go mod download
+
+# Copy the rest of the source code
+COPY . .
+
+# Set working directory to the runner service
+WORKDIR /app/services/runner
+
+# Expose the default port
+EXPOSE 8787
+
+# Default command (can be overridden in docker-compose)
+CMD ["go", "run", "./cmd/reach-serve", "--bind", "0.0.0.0", "--port", "8787"]
