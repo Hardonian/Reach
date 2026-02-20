@@ -55,11 +55,13 @@ export async function auditSpelling(fix: boolean = false) {
           if (rule.name === 'Trailing whitespace') {
             content = content.replace(/[ \t]+$/gm, '');
           } else if (rule.name === 'No double spaces in titles') {
-            // Fix double spaces within headings more robustly
+            // Fix double spaces within headings only if they are on the same line
+            // and don't look like they were merging two structural elements.
             const lines = content.split(/\r?\n/);
             const fixedLines = lines.map(line => {
               if (line.startsWith('#')) {
-                return line.replace(/([^\s])\s{2,}([^\s])/g, '$1 $2');
+                // Only replace multiple spaces that aren't leading or trailing
+                return line.trimEnd().replace(/([^\s])[ \t]{2,}([^\s])/g, '$1 $2');
               }
               return line;
             });
