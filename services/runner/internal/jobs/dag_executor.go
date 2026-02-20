@@ -7,9 +7,15 @@ import (
 	"sync"
 )
 
+// ToolResult wraps the action output with metadata like token usage.
+type ToolResult struct {
+	Output     any
+	TokenUsage int
+}
+
 // ToolClient defines the interface for executing actions via MCP or other connectors.
 type ToolClient interface {
-	Call(ctx context.Context, runID string, action string, inputs map[string]any) (any, error)
+	Call(ctx context.Context, runID string, action string, inputs map[string]any) (ToolResult, error)
 }
 
 // DAGExecutor handles the parallel/sequential execution of pack nodes.
@@ -20,8 +26,10 @@ type DAGExecutor struct {
 
 // ExecutionState tracks the progress of a DAG run.
 type ExecutionState struct {
-	Results map[string]interface{}
-	mu      sync.Mutex
+	Results    map[string]interface{}
+	Latency    float64 // total milliseconds
+	TokenUsage int
+	mu         sync.Mutex
 }
 
 func NewDAGExecutor(registry *pack.PackRegistry, client ToolClient) *DAGExecutor {
@@ -82,19 +90,18 @@ func (e *DAGExecutor) ExecuteNode(ctx context.Context, node pack.Node, inputs ma
 	}
 }
 
-func (e *DAGExecutor) handleAction(ctx context.Context, node pack.Node, _ map[string]interface{}) (interface{}, error) {
+func (e *DAGExecutor) handleAction(ctx context.Context, node pack.Node, _ map[string]interface{}) (ToolResult, error) {
 	if e.Client == nil {
-		return nil, fmt.Errorf("no tool client configured")
+		return ToolResult{}, fmt.Errorf("no tool client configured")
 	}
 
-	// We use the node ID or a generic run context for the runID in this simple implementation.
 	runID := "todo-run-id"
 
-	// Map generic node actions to tool names if necessary
 	toolName := node.Tool
 	if toolName == "" {
 		toolName = node.Action
 	}
 
-	return e.Client.Call(ctx, runID, toolName, node.Inputs)
+	out, err := e.Client.Call(ctx, runID, toolName, node.Inputs)
+	return out, err
 }
