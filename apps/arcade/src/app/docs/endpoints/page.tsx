@@ -44,9 +44,9 @@ export default function Endpoints() {
                 </div>
                 <p className="text-gray-400 text-sm mb-2">Create a new agent</p>
                 <div className="bg-black/50 p-3 rounded-lg font-mono text-xs text-gray-300">
-                  <p>curl -X POST https://api.reach.dev/v1/agents \</p>
-                  <p>{`  -H "Authorization: Bearer $API_KEY" \`}</p>
-                  <p>{`  -H "Content-Type: application/json" \`}</p>
+                  <p>curl -X POST https://api.reach.dev/v1/agents</p>
+                  <p>{`  -H "Authorization: Bearer $API_KEY"`}</p>
+                  <p>{`  -H "Content-Type: application/json"`}</p>
                   <p>{`  -d '{"name": "my-agent", "runtime": "nodejs18"}'`}</p>
                 </div>
               </div>
