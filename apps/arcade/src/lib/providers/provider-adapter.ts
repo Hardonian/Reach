@@ -667,14 +667,14 @@ export const ProviderRequestSchema = z.object({
     function: z.object({
       name: z.string(),
       description: z.string(),
-      parameters: z.record(z.unknown()),
+      parameters: z.record(z.string(), z.unknown()),
     }),
   })).optional(),
   tool_choice: z.union([
     z.enum(['auto', 'none', 'required']),
     z.object({ type: z.literal('function'), name: z.string() }),
   ]).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   stream: z.boolean().optional(),
 });
 
@@ -699,5 +699,5 @@ export const ProviderResponseSchema = z.object({
   cost_usd: z.number(),
   finish_reason: z.enum(['stop', 'length', 'tool_calls', 'content_filter', 'error']),
   created_at: z.string().datetime(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });

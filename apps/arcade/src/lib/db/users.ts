@@ -33,3 +33,11 @@ export function getMembership(tenantId: string, userId: string): { role: Role } 
   const db = getDB();
   return db.prepare('SELECT role FROM memberships WHERE tenant_id=? AND user_id=?').get(tenantId, userId) as { role: Role } | undefined;
 }
+export function trackFirstSuccess(userId: string): void {
+  const db = getDB();
+  db.prepare(`
+    UPDATE users 
+    SET first_success_at = COALESCE(first_success_at, ?) 
+    WHERE id = ?
+  `).run(new Date().toISOString(), userId);
+}

@@ -104,7 +104,7 @@ export default async function FounderDashboardPage() {
                       {dec.strategic_align ? (
                         <span className="text-emerald-400 text-xs">✓ Aligned</span>
                       ) : (
-                        <span className="text-red-400 text-xs text-red-500/50">⚠ Drift Potential</span>
+                        <span className="text-red-500/50 text-xs italic">⚠ Drift Potential</span>
                       )}
                     </td>
                     <td className="px-4 py-4 text-xs font-bold uppercase">
@@ -150,7 +150,7 @@ function DriftSignal({ label, value, limit, status }: any) {
       <div className="h-1.5 bg-arcade-surface-hover rounded-full overflow-hidden border border-arcade-border">
         <div 
           className={`h-full rounded-full transition-all duration-1000 ${status === 'warning' ? 'bg-arcade-accent' : 'bg-emerald-500'}`}
-          style={{ width: `${percent}%` }}
+          style={{ width: `${percent}%` } as React.CSSProperties}
         />
       </div>
     </div>
