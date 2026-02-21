@@ -103,7 +103,7 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     }
 
     case 'invoice.paid': {
-      const invoice = data as Stripe.Invoice;
+      const invoice = data as Stripe.Invoice & { subscription_details?: { metadata?: Record<string, string> | null } | null };
       const tenantId = (invoice.subscription_details?.metadata?.['tenant_id'] as string) ?? '';
       if (tenantId) {
         // Reset monthly usage on successful invoice payment (new billing period)
@@ -115,7 +115,7 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     }
 
     case 'invoice.payment_failed': {
-      const invoice = data as Stripe.Invoice;
+      const invoice = data as Stripe.Invoice & { subscription_details?: { metadata?: Record<string, string> | null } | null };
       const tenantId = (invoice.subscription_details?.metadata?.['tenant_id'] as string) ?? '';
       if (tenantId) {
         upsertEntitlement(tenantId, { status: 'past_due' } as Parameters<typeof upsertEntitlement>[1]);
