@@ -14,6 +14,9 @@ export const ROUTES = {
   SKILLS: '/skills',
   TOOLS: '/tools',
   STUDIO: '/studio',
+  LAB: '/studio',
+  LIBRARY: '/library',
+  MARKETPLACE: '/marketplace',
   TEMPLATES: '/templates',
   DOCS: '/docs',
   PRICING: '/pricing',
@@ -61,9 +64,6 @@ export const ROUTES = {
     DISCLOSURE: '/responsible-disclosure',
   },
 
-  // ── Console aliases (backward-compatible with SUITE) ──
-  // Required by ConsoleLayout, MasterNavigation, traceUrl
-  STUDIO: '/studio',
   CONSOLE: {
     HOME: '/console',
     NAV: '/console/nav',

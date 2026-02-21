@@ -242,8 +242,8 @@ interface DriftComponent {
 
 function calculateSemanticDrift(baseline: unknown[], current: unknown[]): number {
   // Simple hash-based distribution comparison
-  const baselineHashes = new Set(baseline.map(JSON.stringify));
-  const currentHashes = new Set(current.map(JSON.stringify));
+  const baselineHashes = new Set(baseline.map((v) => JSON.stringify(v)));
+  const currentHashes = new Set(current.map((v) => JSON.stringify(v)));
   
   const intersection = [...baselineHashes].filter(h => currentHashes.has(h)).length;
   const union = new Set([...baselineHashes, ...currentHashes]).size;
@@ -368,6 +368,13 @@ interface PolicyViolationDetails {
   error: number;
   warning: number;
   info: number;
+}
+
+interface ToolReliabilityDetails {
+  total: number;
+  success: number;
+  failed: number;
+  timeout: number;
 }
 
 // ── Tool Reliability Score ─────────────────────────────────────────────────
