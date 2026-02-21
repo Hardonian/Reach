@@ -219,3 +219,24 @@ jobs:
       - name: verify full
         run: npm run verify:full
 
+  route-smoke:
+    name: route smoke tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: install
+        run: npm install
+      - name: build arcade
+        run: npm run build -w arcade
+      - name: start server and smoke test
+        run: |
+          cd apps/arcade && npx next start -p 3000 &
+          sleep 5
+          BASE_URL=http://localhost:3000 node ../../tests/smoke/routes.test.mjs
+        env:
+          NODE_ENV: test
+
