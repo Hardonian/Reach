@@ -2,7 +2,7 @@ import { IntegrationsHub } from '@/components/stitch/console/pages/IntegrationsH
 import { ConsoleLayout } from '@/components/stitch/console/ConsoleLayout';
 
 export const metadata = {
-  title: 'Integrations | Reach Console',
+  title: 'Integrations | ReadyLayer Console',
 };
 
 export default function IntegrationsPage() {

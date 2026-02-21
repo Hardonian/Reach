@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Reach',
-  description: 'Learn how Reach handles your data with transparency and security.',
+  title: 'Privacy Policy | ReadyLayer',
+  description: 'Learn how ReadyLayer handles your data with transparency and security.',
 };
 
 export default function PrivacyPage() {
@@ -15,7 +15,7 @@ export default function PrivacyPage() {
         <section>
           <h2>1. Data Sovereignty</h2>
           <p>
-            Reach is designed with "Data Sovereignty First" principles. By default, Reach operates
+            ReadyLayer is designed with "Data Sovereignty First" principles. By default, ReadyLayer operates
             in your infrastructure. We only collect the minimal metadata required to orchestrate
             determinstic execution packs across your distributed nodes.
           </p>
@@ -42,7 +42,7 @@ export default function PrivacyPage() {
           <h2>4. Your Rights</h2>
           <p>
             You have the right to access, export, or delete your tenant data at any time via the
-            Reach Dashboard or the <code>reach account purge</code> CLI command.
+            ReadyLayer Dashboard or the <code>reach account purge</code> CLI command.
           </p>
         </section>
 

@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Security Model | Reach Documentation',
-  description: 'Understand the multi-layered security model of Reach, from sandboxing to signed execution packs.',
+  title: 'Security Model | ReadyLayer Documentation',
+  description: 'Understand the multi-layered security model of ReadyLayer, from sandboxing to signed execution packs.',
 };
 
 export default function SecurityPage() {
@@ -11,7 +11,7 @@ export default function SecurityPage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">Security Model</h1>
         <p className="text-xl text-gray-400">
-          Reach implements a multi-layered security architecture designed to contain agent execution
+          ReadyLayer implements a multi-layered security architecture designed to contain agent execution
           and prevent unauthorized data access or system mutation.
         </p>
       </header>
@@ -19,7 +19,7 @@ export default function SecurityPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">Layer 1: Signed Execution Packs</h2>
         <p className="text-gray-400">
-          All agentic workloads in Reach are bundled into <strong>Execution Packs</strong>. These
+          All agentic workloads in ReadyLayer are bundled into <strong>Execution Packs</strong>. These
           packs are immutable and cryptographically signed.
         </p>
         <div className="bg-white/5 p-6 rounded-xl border border-white/10">
@@ -45,14 +45,14 @@ export default function SecurityPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">Layer 2: Capability-Based Security</h2>
         <p className="text-gray-400">
-          Reach follows the principle of <strong>Least Privilege</strong>. Agents have zero implicit permissions.
+          ReadyLayer follows the principle of <strong>Least Privilege</strong>. Agents have zero implicit permissions.
           All access to tools, network, or file system must be explicitly declared as a capability.
         </p>
         <div className="bg-black/40 border border-border rounded-xl p-8">
           <h3 className="text-white font-bold mb-4">The Enforcement Flow</h3>
           <ol className="list-decimal list-inside space-y-4 text-gray-400 marker:text-accent font-medium">
             <li>Planning: The agent requests a set of capabilities needed for the task.</li>
-            <li>Policy Check: The Reach Policy Engine validates these against organizational rules.</li>
+            <li>Policy Check: The ReadyLayer Policy Engine validates these against organizational rules.</li>
             <li>Pack Generation: A signed pack is created containing only the approved capabilities.</li>
             <li>Execution: The Runner monitors every tool call. If an agent attempts an undeclared action, the process is killed.</li>
           </ol>
@@ -62,7 +62,7 @@ export default function SecurityPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">Layer 3: Redaction & Privacy</h2>
         <p className="text-gray-400">
-          To prevent PII and secret leakage, Reach implements automatic redaction at the service boundary.
+          To prevent PII and secret leakage, ReadyLayer implements automatic redaction at the service boundary.
         </p>
         <div className="grid md:grid-cols-2 gap-6">
           <div className="card border border-white/5 p-6 rounded-xl">
@@ -75,7 +75,7 @@ export default function SecurityPage() {
           <div className="card border border-white/5 p-6 rounded-xl">
             <h4 className="font-bold mb-2">Data Sovereignty</h4>
             <p className="text-xs text-gray-500">
-              Reach can operate in "Offline-First" mode. In this state, all data, audit logs, and
+              ReadyLayer can operate in "Offline-First" mode. In this state, all data, audit logs, and
               vector embeddings remain strictly local to the device.
             </p>
           </div>

@@ -4,7 +4,7 @@ import { MissionControlOverview } from '@/components/stitch/console/pages/Missio
 import { ConsoleLayout } from '@/components/stitch/console/ConsoleLayout';
 
 export const metadata = {
-  title: 'ControlPlane Mission Control Overview | Reach',
+  title: 'ControlPlane Mission Control Overview | ReadyLayer',
 };
 
 export default async function ConsolePage() {

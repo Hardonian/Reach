@@ -32,7 +32,7 @@ export function BillingChargeback() {
         <div className="flex flex-wrap justify-between items-end gap-6">
           <div className="flex flex-col gap-2">
             <h1 className="text-white text-4xl font-black tracking-tighter uppercase">Internal Billing & Chargeback</h1>
-            <p className="text-[#9dabb9] text-base font-medium max-w-2xl">Manage usage-based monetization, cost recovery, and department budgets across the Reach ecosystem.</p>
+            <p className="text-[#9dabb9] text-base font-medium max-w-2xl">Manage usage-based monetization, cost recovery, and department budgets across the ReadyLayer ecosystem.</p>
           </div>
           <div className="flex gap-4">
             <button type="button" className="flex items-center gap-2 px-6 py-3 rounded-xl border border-[#3b4754] bg-[#1a212a] text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#283039] transition-all">

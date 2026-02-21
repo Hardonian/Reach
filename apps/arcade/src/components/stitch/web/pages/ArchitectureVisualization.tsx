@@ -11,7 +11,7 @@ export function ArchitectureVisualization() {
         {/* Header Text */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
           <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
-            The Reach <span className="text-[#135bec]">Architecture</span>
+            The ReadyLayer <span className="text-[#135bec]">Architecture</span>
           </h1>
           <p className="text-lg text-slate-500 dark:text-slate-400 font-light">
             Transparency in Agentic Orchestration. Explore the primitives that power our safe, scalable control plane.
@@ -143,7 +143,7 @@ export function ArchitectureVisualization() {
               <h3 className="text-slate-900 dark:text-white font-bold text-lg">Traceability Spine</h3>
             </div>
             <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-4">
-              The central nervous system of Reach. Every action, decision, and output is logged to an immutable ledger, providing 100% auditability for enterprise compliance.
+              The central nervous system of ReadyLayer. Every action, decision, and output is logged to an immutable ledger, providing 100% auditability for enterprise compliance.
             </p>
           </div>
           <div className="p-6 rounded-xl bg-white dark:bg-[#1c212c] border border-slate-200 dark:border-[#2d3545] hover:border-[#135bec]/50 transition-colors group">
@@ -165,7 +165,7 @@ export function ArchitectureVisualization() {
               <h3 className="text-slate-900 dark:text-white font-bold text-lg">Developer SDK</h3>
             </div>
             <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-4">
-              Integrate Reach into your existing stack with our type-safe SDKs. Built for TypeScript and Python, designed for instant productivity.
+              Integrate ReadyLayer into your existing stack with our type-safe SDKs. Built for TypeScript and Python, designed for instant productivity.
             </p>
           </div>
         </div>

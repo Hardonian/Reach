@@ -10,14 +10,14 @@ export default function Configuration() {
 
         <h1 className="text-4xl font-bold mb-4">Configuration</h1>
         <p className="text-gray-400 mb-8">
-          Configure your Reach environment, agents, and deployment settings.
+          Configure your ReadyLayer environment, agents, and deployment settings.
         </p>
 
         <div className="space-y-8">
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Global Configuration</h2>
             <p className="text-gray-400 mb-4">
-              Reach uses a global configuration file located at ~/.reach/config.yaml. This file stores your default settings and credentials.
+              ReadyLayer uses a global configuration file located at ~/.reach/config.yaml. This file stores your default settings and credentials.
             </p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>{`# ~/.reach/config.yaml`}</p>
@@ -31,7 +31,7 @@ export default function Configuration() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Environment Variables</h2>
             <p className="text-gray-400 mb-4">
-              You can also configure Reach using environment variables:
+              You can also configure ReadyLayer using environment variables:
             </p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>REACH_API_KEY=your_api_key</p>

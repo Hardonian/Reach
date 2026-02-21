@@ -147,7 +147,7 @@ export function StudioShell() {
   return (
     <main style={{ maxWidth: 1100, margin: '0 auto', padding: 16, display: 'grid', gridTemplateColumns: '220px 1fr', gap: 16 }}>
       <aside aria-label="Studio sections">
-        <h1 style={{ marginBottom: 12 }}>Reach Studio</h1>
+        <h1 style={{ marginBottom: 12 }}>ReadyLayer Studio</h1>
         <p style={{ marginBottom: 12, fontSize: 13, opacity: 0.8 }}>Local-first control surface for deterministic build, run, replay, trust, and support workflows.</p>
         <nav style={{ display: 'grid', gap: 8 }}>
           {sections.map((section) => (

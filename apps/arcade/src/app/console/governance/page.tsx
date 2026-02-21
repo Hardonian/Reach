@@ -2,7 +2,7 @@ import { GovernanceCompliance } from '@/components/stitch/console/pages/Governan
 import { ConsoleLayout } from '@/components/stitch/console/ConsoleLayout';
 
 export const metadata = {
-  title: 'Governance & Compliance | Reach Console',
+  title: 'Governance & Compliance | ReadyLayer Console',
 };
 
 export default function GovernancePage() {

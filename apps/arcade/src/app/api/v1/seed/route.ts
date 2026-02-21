@@ -36,7 +36,7 @@ export async function POST(_req: NextRequest): Promise<NextResponse> {
         category: 'research' as const, visibility: 'public' as const,
         tools: ['http.get', 'browser.navigate', 'search.query'],
         tags: ['web', 'research', 'citations'], permissions: ['network:external', 'browser:read'],
-        dataHandling: 'minimal' as const, authorName: 'Reach Team',
+        dataHandling: 'minimal' as const, authorName: 'ReadyLayer Team',
         version: '2.1.0', readme: '# Web Research Agent\n\nAutomated web research with intelligent citations.\n\n## Features\n- Multi-source research\n- Citation generation',
         changelog: 'Initial release', reputationScore: 98, downloads: 15420,
       },

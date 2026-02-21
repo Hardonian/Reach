@@ -6,7 +6,7 @@ import { NavBar } from '@/components/NavBar';
 import { Footer } from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Reach - Orchestration Platform',
+  title: `${process.env.NEXT_PUBLIC_BRAND_NAME ?? 'ReadyLayer'} - Orchestration Platform`,
   description: 'Global orchestration platform for distributed agents, marketplace, and governance.',
 };
 

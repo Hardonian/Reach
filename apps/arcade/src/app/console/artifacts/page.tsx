@@ -2,7 +2,7 @@ import { ArtifactRegistry } from '@/components/stitch/console/pages/ArtifactRegi
 import { ConsoleLayout } from '@/components/stitch/console/ConsoleLayout';
 
 export const metadata = {
-  title: 'Artifact Registry | Reach Console',
+  title: 'Artifact Registry | ReadyLayer Console',
 };
 
 export default function ArtifactsPage() {

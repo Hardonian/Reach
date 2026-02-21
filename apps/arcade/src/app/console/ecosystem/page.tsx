@@ -2,7 +2,7 @@ import { EcosystemCoordination } from '@/components/stitch/console/pages/Ecosyst
 import { ConsoleLayout } from '@/components/stitch/console/ConsoleLayout';
 
 export const metadata = {
-  title: 'Ecosystem Coordination | Reach Console',
+  title: 'Ecosystem Coordination | ReadyLayer Console',
 };
 
 export default function EcosystemPage() {

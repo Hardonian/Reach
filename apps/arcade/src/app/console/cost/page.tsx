@@ -2,7 +2,7 @@ import { CostOptimization } from '@/components/stitch/console/pages/CostOptimiza
 import { ConsoleLayout } from '@/components/stitch/console/ConsoleLayout';
 
 export const metadata = {
-  title: 'Cost & Optimization | Reach Console',
+  title: 'Cost & Optimization | ReadyLayer Console',
 };
 
 export default function CostPage() {

@@ -1,14 +1,14 @@
-# Reach
+# ReadyLayer
 
-**Reach is a deterministic execution fabric for AI systems.**
+**ReadyLayer is a deterministic execution fabric for AI systems.**
 
-Reach helps teams run agentic and tool-driven workloads with deterministic replay, policy controls, and signed execution packs so production behavior can be trusted, audited, and reproduced.
+ReadyLayer helps teams run agentic and tool-driven workloads with deterministic replay, policy controls, and signed execution packs so production behavior can be trusted, audited, and reproduced.
 
 **[Documentation](https://reach.dev/docs)** | **[FAQ](https://reach.dev/faq)** | **[Support](https://reach.dev/support)**
 
-## The problem Reach solves
+## The problem ReadyLayer solves
 
-Most AI systems fail in production because runtime behavior drifts: tools change, policies are bypassed, and replay is unreliable. Reach provides a stable execution plane so operators can enforce capability boundaries, verify integrity, and reproduce outcomes across nodes and environments.
+Most AI systems fail in production because runtime behavior drifts: tools change, policies are bypassed, and replay is unreliable. ReadyLayer provides a stable execution plane so operators can enforce capability boundaries, verify integrity, and reproduce outcomes across nodes and environments.
 
 ## Core principles
 
@@ -117,7 +117,7 @@ REACH_MOBILE=1 reach doctor
 
 ## Hosted vs OSS
 
-- **OSS Reach (this repo)**: self-hosted services, protocol schemas, deterministic core, and extension integrations.
+- **OSS ReadyLayer (this repo)**: self-hosted services, protocol schemas, deterministic core, and extension integrations.
 - **Hosted deployments**: managed operations, uptime/SLO ownership, and centralized observability run by your platform team or managed provider.
 
 ## Roadmap preview
@@ -263,7 +263,7 @@ go test ./internal/storage -v
 
 ## Documentation Integrity
 
-Reach uses a **Docs Drift Guard** to ensure that documentation, environment variables, and CLI commands remain synchronized with the codebase.
+ReadyLayer uses a **Docs Drift Guard** to ensure that documentation, environment variables, and CLI commands remain synchronized with the codebase.
 
 - **Run Audit**: `npm run docs:doctor`
 - **Autofix Casing**: `npm run docs:doctor:fix`
@@ -279,4 +279,4 @@ See [DOCS_DRIFT_GUARD.md](DOCS_DRIFT_GUARD.md) for detailed architecture.
 
 ## License
 
-Reach is licensed under the Apache License 2.0. See `LICENSE`.
+ReadyLayer is licensed under the Apache License 2.0. See `LICENSE`.

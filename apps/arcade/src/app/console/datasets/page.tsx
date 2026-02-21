@@ -2,7 +2,7 @@ import { DatasetManagement } from '@/components/stitch/console/pages/DatasetMana
 import { ConsoleLayout } from '@/components/stitch/console/ConsoleLayout';
 
 export const metadata = {
-  title: 'Dataset & RAG Management | Reach Console',
+  title: 'Dataset & RAG Management | ReadyLayer Console',
 };
 
 export default function DatasetsPage() {

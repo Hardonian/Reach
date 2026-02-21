@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Error Codes | Reach Documentation',
-  description: 'Reference guide for common Reach execution and policy errors.',
+  title: 'Error Codes | ReadyLayer Documentation',
+  description: 'Reference guide for common ReadyLayer execution and policy errors.',
 };
 
 export default function ErrorsPage() {
@@ -18,7 +18,7 @@ export default function ErrorsPage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">Error Codes</h1>
         <p className="text-xl text-gray-400">
-          Reach uses structured error codes to help debug policy and execution issues.
+          ReadyLayer uses structured error codes to help debug policy and execution issues.
         </p>
       </header>
 

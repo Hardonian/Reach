@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { BRAND_NAME } from '@/lib/brand';
 export function Footer() {
   return (
     <footer className="border-t border-border mt-auto">
@@ -10,7 +11,7 @@ export function Footer() {
               <div className="w-8 h-8 rounded-lg flex items-center justify-center logo-gradient">
                 <span className="text-white font-bold text-lg">R</span>
               </div>
-              <span className="font-bold text-xl text-gradient">Reach</span>
+              <span className="font-bold text-xl text-gradient">{BRAND_NAME}</span>
             </div>
             <p className="text-gray-400 text-sm max-w-sm">
               Global orchestration platform for distributed agents. Build, deploy, and govern AI systems at scale.
@@ -41,7 +42,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-          <p suppressHydrationWarning>&copy; {new Date().getFullYear()} Reach Protocol. All rights reserved.</p>
+          <p suppressHydrationWarning>&copy; {new Date().getFullYear()} {BRAND_NAME} Protocol. All rights reserved.</p>
           <div className="flex gap-6">
             <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
             <a href="/terms" className="hover:text-white transition-colors">Terms</a>

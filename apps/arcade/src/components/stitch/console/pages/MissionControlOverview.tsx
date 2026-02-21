@@ -202,7 +202,7 @@ export function MissionControlOverview({ health, agents }: MissionControlOvervie
             </div>
             <div className="flex flex-col gap-3">
               {[
-                { name: 'Reach', status: 'Online', color: 'emerald' },
+                { name: 'ReadyLayer', status: 'Online', color: 'emerald' },
                 { name: 'Settler', status: 'Online', color: 'emerald' },
                 { name: 'Zeo', status: 'Latency Warning', color: 'amber', animate: true },
                 { name: 'AIAS', status: 'Offline', color: 'red' },

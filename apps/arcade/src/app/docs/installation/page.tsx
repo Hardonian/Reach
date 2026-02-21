@@ -10,7 +10,7 @@ export default function Installation() {
 
         <h1 className="text-4xl font-bold mb-4">Installation</h1>
         <p className="text-gray-400 mb-8">
-          Install Reach on your local machine or deploy to your infrastructure.
+          Install ReadyLayer on your local machine or deploy to your infrastructure.
         </p>
 
         <div className="space-y-8">
@@ -27,7 +27,7 @@ export default function Installation() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Install via npm</h2>
             <p className="text-gray-400 mb-4">
-              The recommended way to install Reach is through npm:
+              The recommended way to install ReadyLayer is through npm:
             </p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300 mb-4">
               <p>npm install -g @reach/cli</p>
@@ -49,7 +49,7 @@ export default function Installation() {
               <p>docker pull reach/cli:latest</p>
             </div>
             <p className="text-gray-400">
-              Run Reach commands through Docker:
+              Run ReadyLayer commands through Docker:
             </p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>docker run -it -v $(pwd):/workspace reach/cli reach create my-agent</p>
@@ -62,8 +62,8 @@ export default function Installation() {
               For development or to build from source:
             </p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
-              <p>git clone https://github.com/Hardonian/Reach.git</p>
-              <p>cd Reach</p>
+              <p>git clone https://github.com/XHARDONIANXSLASHXReadyLayer.git</p>
+              <p>XCDXReadyLayer</p>
               <p>npm install</p>
               <p>npm run build</p>
               <p>npm link</p>

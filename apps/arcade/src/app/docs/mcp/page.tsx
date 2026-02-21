@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Model Context Protocol (MCP) | Reach Documentation',
-  description: 'Learn how Reach integrates with MCP to provide standardized tool and resource access.',
+  title: 'Model Context Protocol (MCP) | ReadyLayer Documentation',
+  description: 'Learn how ReadyLayer integrates with MCP to provide standardized tool and resource access.',
 };
 
 export default function MCPPage() {
@@ -11,7 +11,7 @@ export default function MCPPage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">Model Context Protocol (MCP)</h1>
         <p className="text-xl text-gray-400">
-          Reach uses the Model Context Protocol (MCP) as the standard interface between LLMs and
+          ReadyLayer uses the Model Context Protocol (MCP) as the standard interface between LLMs and
           external data/tools.
         </p>
       </header>
@@ -20,7 +20,7 @@ export default function MCPPage() {
         <h2 className="text-2xl font-bold border-b border-border pb-2">Why MCP?</h2>
         <p className="text-gray-400">
           Before MCP, every AI integration required custom "glue code" for authentication, data formatting,
-          and error handling. Reach adopts MCP to provide:
+          and error handling. ReadyLayer adopts MCP to provide:
         </p>
         <div className="grid md:grid-cols-3 gap-6">
           <div className="card bg-white/5 p-6 rounded-xl border border-white/10">
@@ -38,7 +38,7 @@ export default function MCPPage() {
           <div className="card bg-white/5 p-6 rounded-xl border border-white/10">
             <h3 className="font-bold mb-2 text-accent">Security</h3>
             <p className="text-xs text-gray-500">
-              Reach wraps MCP calls in policy gates, ensuring signed execution regardless of the tool source.
+              ReadyLayer wraps MCP calls in policy gates, ensuring signed execution regardless of the tool source.
             </p>
           </div>
         </div>
@@ -47,7 +47,7 @@ export default function MCPPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">Configuring MCP Servers</h2>
         <p className="text-gray-400">
-          MCP servers are registered in the Reach <code>config.yaml</code> or via the CLI.
+          MCP servers are registered in the ReadyLayer <code>config.yaml</code> or via the CLI.
         </p>
         <div className="bg-black/40 border border-border rounded-xl p-6 font-mono text-sm">
           <div className="text-gray-500 mb-2"># Example MCP Configuration</div>
@@ -68,10 +68,10 @@ export default function MCPPage() {
       </section>
 
       <section className="space-y-6">
-        <h2 className="text-2xl font-bold border-b border-border pb-2">Architecture within Reach</h2>
+        <h2 className="text-2xl font-bold border-b border-border pb-2">Architecture within ReadyLayer</h2>
         <div className="bg-white/5 p-8 rounded-xl border border-white/10 font-mono text-sm overflow-x-auto whitespace-pre">
 {`+----------------+       +-------------------+       +-------------------+
-|   Reach Runner | <--->  |   MCP Client SDK  | <---> |   MCP Server      |
+|   ReadyLayer Runner | <--->  |   MCP Client SDK  | <---> |   MCP Server      |
 | (Policy Gate)  |       | (Standard Wire)   |       | (GitHub/DB/etc)   |
 +----------------+       +-------------------+       +-------------------+
        ^                                                    |
@@ -83,7 +83,7 @@ export default function MCPPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">Governance & Permissions</h2>
         <p className="text-gray-400">
-          Unlike raw MCP usage, Reach requires every tool call to be authorized by a <strong>Capability Profile</strong>.
+          Unlike raw MCP usage, ReadyLayer requires every tool call to be authorized by a <strong>Capability Profile</strong>.
         </p>
         <div className="grid md:grid-cols-2 gap-8">
           <div>
@@ -98,7 +98,7 @@ export default function MCPPage() {
             <h3 className="font-bold mb-2">Enforcement</h3>
             <p className="text-sm text-gray-400">
               If an agent attempts to call an MCP tool not present in its signed capability pack,
-              the Reach Runner terminates the process immediately with a <code>CAPABILITY_VIOLATION</code>.
+              the ReadyLayer Runner terminates the process immediately with a <code>CAPABILITY_VIOLATION</code>.
             </p>
           </div>
         </div>

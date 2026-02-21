@@ -53,7 +53,7 @@ export default function CloudOverviewPage() {
     return (
       <div className="p-8 text-center">
         <h2 className="text-xl text-white mb-4">Not signed in</h2>
-        <Link href="/cloud/login" className="text-accent hover:underline">Sign in to Reach Cloud</Link>
+        <Link href="/cloud/login" className="text-accent hover:underline">Sign in to ReadyLayer Cloud</Link>
       </div>
     );
   }

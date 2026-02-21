@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Contact Support | Reach',
-  description: 'Reach out to our support and engineering teams for assistance.',
+  title: 'Contact Support | ReadyLayer',
+  description: 'ReadyLayer out to our support and engineering teams for assistance.',
 };
 
 export default function ContactSupportPage() {

@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'System Status | Reach',
-  description: 'Live status and uptime reporting for Reach core services and orchestration platform.',
+  title: 'System Status | ReadyLayer',
+  description: 'Live status and uptime reporting for ReadyLayer core services and orchestration platform.',
 };
 
 export default function SystemStatusPage() {
@@ -11,7 +11,7 @@ export default function SystemStatusPage() {
     { name: 'Marketplace Registry', status: 'Operational', uptime: '99.98%', region: 'Global' },
     { name: 'Policy Orchestrator', status: 'Operational', uptime: '100%', region: 'Global' },
     { name: 'Session Hub', status: 'Operational', uptime: '99.95%', region: 'Multi-Region' },
-    { name: 'Reach Arcade UI', status: 'Operational', uptime: '99.99%', region: 'Edge' },
+    { name: 'ReadyLayer Arcade UI', status: 'Operational', uptime: '99.99%', region: 'Edge' },
   ];
 
   const incidents = [
@@ -25,7 +25,7 @@ export default function SystemStatusPage() {
         <header className="mb-16 flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div>
             <h1 className="text-4xl font-bold mb-4">System Status</h1>
-            <p className="text-gray-400">Live reporting for all Reach core services.</p>
+            <p className="text-gray-400">Live reporting for all ReadyLayer core services.</p>
           </div>
           <div className="px-6 py-4 bg-green-500/10 border border-green-500/30 rounded-2xl flex items-center gap-4">
             <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
@@ -88,7 +88,7 @@ export default function SystemStatusPage() {
 
         <footer className="mt-16 text-center">
           <p className="text-xs text-gray-600">
-            Reach status data is updated every 60 seconds. <br/>
+            ReadyLayer status data is updated every 60 seconds. <br/>
             For personalized status reports, please visit your organization dashboard.
           </p>
           <div className="mt-8 pt-8 border-t border-white/5 grid md:grid-cols-2 gap-8 text-left max-w-2xl mx-auto">
@@ -96,7 +96,7 @@ export default function SystemStatusPage() {
               <h4 className="text-sm font-bold text-white mb-2 uppercase tracking-widest">Communication</h4>
               <p className="text-xs text-gray-400">
                 Major outages are broadcast via our official 𝕏 feed and the
-                Reach status Discord channel. Critical security patches are
+                ReadyLayer status Discord channel. Critical security patches are
                 coordinated via the security mailing list.
               </p>
             </div>

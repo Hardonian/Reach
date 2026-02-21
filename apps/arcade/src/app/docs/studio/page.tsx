@@ -17,7 +17,7 @@ export default function Studio() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">What is Studio?</h2>
             <p className="text-gray-400">
-              Reach Studio is an integrated development environment (IDE) for agents. It provides visual tools for designing pipelines, testing agents interactively, and debugging executions.
+              ReadyLayer Studio is an integrated development environment (IDE) for agents. It provides visual tools for designing pipelines, testing agents interactively, and debugging executions.
             </p>
           </section>
 

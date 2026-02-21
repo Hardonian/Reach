@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Agents & Roles | Reach Documentation',
-  description: 'Learn about the autonomous agent roles and responsibilities within the Reach ecosystem.',
+  title: 'Agents & Roles | ReadyLayer Documentation',
+  description: 'Learn about the autonomous agent roles and responsibilities within the ReadyLayer ecosystem.',
 };
 
 export default function AgentsPage() {
@@ -11,7 +11,7 @@ export default function AgentsPage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">Agents & Roles</h1>
         <p className="text-xl text-gray-400">
-          Reach uses a specialized multi-agent system where roles are strictly defined
+          ReadyLayer uses a specialized multi-agent system where roles are strictly defined
           by capabilities and governance boundaries.
         </p>
       </header>
@@ -19,7 +19,7 @@ export default function AgentsPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">Autonomous Roles</h2>
         <p className="text-gray-400">
-          Every agent operating within Reach is assigned a specific role. This role determines
+          Every agent operating within ReadyLayer is assigned a specific role. This role determines
           the default capability set and the policy gates applied during execution.
         </p>
         <div className="grid md:grid-cols-2 gap-6">

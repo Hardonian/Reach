@@ -46,7 +46,7 @@ export default function CloudRegisterPage() {
       <div className="w-full max-w-md p-8 rounded-2xl border border-border bg-surface shadow-lg">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-white">Create Account</h1>
-          <p className="text-gray-400 mt-2">Start with Reach Cloud</p>
+          <p className="text-gray-400 mt-2">Start with ReadyLayer Cloud</p>
         </div>
         {error && (
           <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>

@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Security | Reach Trust Center',
-  description: 'Security architecture, reporting, and compliance posture for Reach.',
+  title: 'Security | ReadyLayer Trust Center',
+  description: 'Security architecture, reporting, and compliance posture for ReadyLayer.',
 };
 
 export default function SecurityPage() {
@@ -14,7 +14,7 @@ export default function SecurityPage() {
           <h2 className="text-accent font-bold uppercase tracking-widest text-sm mb-4">Trust Center</h2>
           <h1 className="text-5xl font-bold mb-6">Built for High-Stakes Autonomy</h1>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Security isn&apos;t a feature in Reach—it&apos;s the foundational constraint.
+            Security isn&apos;t a feature in ReadyLayer—it&apos;s the foundational constraint.
             We enforce deterministic execution atEvery layer.
           </p>
         </header>
@@ -24,7 +24,7 @@ export default function SecurityPage() {
             <h3 className="text-xl font-bold mb-4">Capability Firewalls</h3>
             <p className="text-gray-400 text-sm leading-relaxed">
               Every tool an agent uses must be pre-declared in a signed pack manifest.
-              The Reach Runner blocks any syscall, network request, or file access not
+              The ReadyLayer Runner blocks any syscall, network request, or file access not
               explicitly authorized.
             </p>
           </div>
