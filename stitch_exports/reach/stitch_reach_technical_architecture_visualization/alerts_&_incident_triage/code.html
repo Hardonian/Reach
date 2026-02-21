@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Reach Control Plane - Alerts &amp; Incident Triage</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "primary-hover": "#0e4bce",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#0f172a", // Deep slate for better contrast
+                        "surface-dark": "#1e293b",    // Slightly lighter for cards/panels
+                        "border-dark": "#334155",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.375rem", // rounded-md
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for dark mode technical feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569; 
+        }
+        .code-editor-lines {
+            counter-reset: line;
+        }
+        .code-editor-lines > div::before {
+            counter-increment: line;
+            content: counter(line);
+            display: inline-block;
+            width: 2rem;
+            margin-right: 1rem;
+            text-align: right;
+            color: #64748b;
+            font-size: 0.75rem;
+            user-select: none;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display overflow-hidden h-screen flex">
+<!-- Sidebar Navigation -->
+<div class="w-64 flex-shrink-0 h-full bg-[#111318] border-r border-border-dark flex flex-col justify-between p-4 overflow-y-auto z-10">
+<div class="flex flex-col gap-6">
+<!-- User Profile -->
+<div class="flex gap-3 items-center">
+<div class="bg-center bg-no-repeat bg-cover rounded-full h-10 w-10 shrink-0" data-alt="User profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD9i0vfm4IPSmZ3k53K8wt4-78OQpISOKPiIJyLWEMhlG2-K1RI1kYPgkAAxTawayn9jLzcwnp-LMsc7n29dznI3t3nukSAr8r0UOw1kqDxhSDZ8TicbUhHPI5vGSIfF-UYPMDl_kWf8dN6kVc8luEJ1g1sDflkIVotLHeI43TwUYHZu7RMTzbUXA-3nikgg7VQW12LUPAK3m7hoOnV2NA1UzaPmNHWB1P76NYiyJgjif2M7jKWlYu2dawyWHysWDfAM5xZQ9A1PmoF");'></div>
+<div class="flex flex-col min-w-0">
+<h1 class="text-white text-sm font-semibold truncate">Reach Control Plane</h1>
+<p class="text-slate-400 text-xs truncate">Ops Team</p>
+</div>
+</div>
+<!-- Main Nav -->
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-surface-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary border border-primary/30" href="#">
+<span class="material-symbols-outlined text-[20px] fill-1">notifications</span>
+<span class="text-sm font-medium">Alerts</span>
+<span class="ml-auto bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">3</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-surface-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">ssid_chart</span>
+<span class="text-sm font-medium">Traces</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-surface-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">menu_book</span>
+<span class="text-sm font-medium">Runbooks</span>
+</a>
+</nav>
+</div>
+<!-- Bottom Nav -->
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-surface-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<div class="mt-2 pt-4 border-t border-border-dark">
+<div class="px-3">
+<p class="text-xs text-slate-500 uppercase font-semibold mb-2">Systems Status</p>
+<div class="flex items-center gap-2 mb-1">
+<div class="w-2 h-2 rounded-full bg-green-500"></div>
+<span class="text-xs text-slate-400">API Gateway: Healthy</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+<span class="text-xs text-slate-400">Payment SVC: Degraded</span>
+</div>
+</div>
+</div>
+</nav>
+</div>
+<!-- Main Content Area: Split View -->
+<main class="flex-1 flex overflow-hidden">
+<!-- Left Panel: Alerts Inbox -->
+<div class="w-[400px] flex flex-col border-r border-border-dark bg-[#111318]">
+<!-- Header & Filter -->
+<div class="p-4 border-b border-border-dark flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<h2 class="text-lg font-semibold text-white">Inbox</h2>
+<div class="flex gap-2">
+<button class="p-1.5 hover:bg-surface-dark rounded text-slate-400 hover:text-white transition">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+</button>
+<button class="p-1.5 hover:bg-surface-dark rounded text-slate-400 hover:text-white transition">
+<span class="material-symbols-outlined text-[20px]">sort</span>
+</button>
+</div>
+</div>
+<!-- Search Input -->
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-500 text-[18px]">search</span>
+<input class="w-full bg-surface-dark border-none rounded-lg py-2 pl-9 pr-3 text-sm text-slate-200 placeholder-slate-500 focus:ring-1 focus:ring-primary" placeholder="Filter by Service, ID..." type="text"/>
+</div>
+<!-- Filter Chips -->
+<div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+<button class="shrink-0 text-xs font-medium px-2.5 py-1 rounded bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition">Critical (2)</button>
+<button class="shrink-0 text-xs font-medium px-2.5 py-1 rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 hover:bg-yellow-500/20 transition">Warning (5)</button>
+<button class="shrink-0 text-xs font-medium px-2.5 py-1 rounded bg-surface-dark text-slate-400 border border-border-dark hover:text-white transition">Ack'd</button>
+</div>
+</div>
+<!-- Alerts List -->
+<div class="flex-1 overflow-y-auto">
+<!-- Active Alert Item -->
+<div class="p-4 border-b border-border-dark bg-primary/10 border-l-4 border-l-primary cursor-pointer hover:bg-surface-dark transition group">
+<div class="flex justify-between items-start mb-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-red-500 text-[18px]">error</span>
+<span class="text-xs font-mono text-slate-400">#TRACE-9281</span>
+</div>
+<span class="text-xs text-slate-400">2m ago</span>
+</div>
+<h3 class="text-sm font-semibold text-white mb-1 group-hover:text-primary-300 transition-colors">High Latency on Payment-Service</h3>
+<p class="text-xs text-slate-400 line-clamp-2">P99 Latency &gt; 2000ms. Error rate spiking on /checkout endpoint.</p>
+<div class="flex gap-2 mt-3">
+<span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-surface-dark text-slate-300 border border-border-dark">PROD</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-500/20 text-red-400 border border-red-500/20">CRITICAL</span>
+</div>
+</div>
+<!-- Alert Item -->
+<div class="p-4 border-b border-border-dark hover:bg-surface-dark/50 cursor-pointer transition">
+<div class="flex justify-between items-start mb-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-red-500 text-[18px]">error</span>
+<span class="text-xs font-mono text-slate-500">#TRACE-8812</span>
+</div>
+<span class="text-xs text-slate-500">15m ago</span>
+</div>
+<h3 class="text-sm font-medium text-slate-200 mb-1">Database Connection Timeout</h3>
+<p class="text-xs text-slate-500 line-clamp-2">Postgres pool exhausted on read-replica-02.</p>
+<div class="flex gap-2 mt-3">
+<span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-surface-dark text-slate-400 border border-border-dark">PROD</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-500/10 text-red-500/70 border border-red-500/10">CRITICAL</span>
+</div>
+</div>
+<!-- Alert Item (Ack) -->
+<div class="p-4 border-b border-border-dark bg-surface-dark/30 cursor-pointer hover:bg-surface-dark/50 transition">
+<div class="flex justify-between items-start mb-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-yellow-500 text-[18px]">warning</span>
+<span class="text-xs font-mono text-slate-500">#TRACE-7731</span>
+</div>
+<span class="text-xs text-slate-500">1h ago</span>
+</div>
+<h3 class="text-sm font-medium text-slate-300 mb-1">Memory Usage High - Worker Node</h3>
+<p class="text-xs text-slate-500 line-clamp-2">Node k8s-worker-4 at 85% memory capacity.</p>
+<div class="flex gap-2 mt-3">
+<span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-surface-dark text-slate-400 border border-border-dark">STAGING</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-500/10 text-yellow-500/70 border border-yellow-500/10">WARNING</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/10 ml-auto">ACKNOWLEDGED</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Panel: Incident Detail Workspace -->
+<div class="flex-1 flex flex-col bg-background-dark min-w-0">
+<!-- Detail Header -->
+<div class="px-6 py-4 border-b border-border-dark flex flex-col gap-4 bg-surface-dark/20">
+<div class="flex items-start justify-between">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<h1 class="text-xl font-bold text-white">High Latency on Payment-Service</h1>
+<span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500 text-white">CRITICAL</span>
+<span class="px-2 py-0.5 rounded text-xs font-mono bg-slate-800 text-slate-400 border border-slate-700">ID: 8a9b-2c3d</span>
+</div>
+<p class="text-sm text-slate-400 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">domain</span> payment-gateway-v2
+                            <span class="w-1 h-1 rounded-full bg-slate-600"></span>
+<span class="material-symbols-outlined text-[16px]">dns</span> us-east-1
+                        </p>
+</div>
+<!-- Action Toolbar -->
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-dark border border-border-dark text-slate-300 hover:text-white hover:bg-slate-700 transition text-sm">
+<span class="material-symbols-outlined text-[18px]">notifications_off</span>
+                            Mute
+                        </button>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-dark border border-border-dark text-slate-300 hover:text-white hover:bg-slate-700 transition text-sm">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+                            Escalate
+                        </button>
+<button class="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20 transition text-sm font-medium">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+                            Acknowledge
+                        </button>
+</div>
+</div>
+<!-- Assignee / Meta Row -->
+<div class="flex items-center gap-6 text-sm">
+<div class="flex items-center gap-2">
+<span class="text-slate-500">Assignee:</span>
+<div class="flex items-center gap-1.5 bg-slate-800/50 pr-2 rounded-full">
+<div class="bg-indigo-500 rounded-full h-5 w-5 flex items-center justify-center text-[10px] font-bold text-white">JD</div>
+<span class="text-slate-300 text-xs">Unassigned</span>
+</div>
+<button class="text-primary text-xs hover:underline">Assign to me</button>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-slate-500">Duration:</span>
+<span class="text-slate-300 font-mono">00:05:23</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-slate-500">Impact:</span>
+<span class="text-slate-300">~1,200 Users</span>
+</div>
+</div>
+</div>
+<!-- Detail Content Scroll Area -->
+<div class="flex-1 overflow-y-auto p-6">
+<div class="grid grid-cols-12 gap-6 max-w-7xl mx-auto">
+<!-- Left Column: Timeline & Context -->
+<div class="col-span-12 lg:col-span-7 flex flex-col gap-6">
+<!-- Timeline Card -->
+<div class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden">
+<div class="px-4 py-3 border-b border-border-dark flex justify-between items-center bg-[#18202f]">
+<h3 class="text-sm font-semibold text-slate-200">Incident Timeline</h3>
+<button class="text-xs text-primary hover:text-primary-hover flex items-center gap-1">
+                                    View Logs <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+</button>
+</div>
+<div class="p-4 relative">
+<!-- Vertical Line -->
+<div class="absolute left-[31px] top-6 bottom-6 w-[2px] bg-slate-700"></div>
+<!-- Timeline Item 1 -->
+<div class="relative flex gap-4 mb-6">
+<div class="flex-shrink-0 z-10 w-8 h-8 rounded-full bg-red-500/20 border border-red-500 flex items-center justify-center">
+<span class="material-symbols-outlined text-red-500 text-[16px]">notifications_active</span>
+</div>
+<div class="flex-1 pt-1">
+<div class="flex justify-between items-start">
+<p class="text-sm font-medium text-slate-200">Alert Triggered</p>
+<span class="text-xs text-slate-500 font-mono">10:42:01 AM</span>
+</div>
+<p class="text-xs text-slate-400 mt-1">Metric <code>p99_latency</code> exceeded threshold <code>2000ms</code> for 5m.</p>
+</div>
+</div>
+<!-- Timeline Item 2 -->
+<div class="relative flex gap-4 mb-6">
+<div class="flex-shrink-0 z-10 w-8 h-8 rounded-full bg-blue-500/20 border border-blue-500 flex items-center justify-center">
+<span class="material-symbols-outlined text-blue-500 text-[16px]">smart_toy</span>
+</div>
+<div class="flex-1 pt-1">
+<div class="flex justify-between items-start">
+<p class="text-sm font-medium text-slate-200">Auto-Remediation Attempt</p>
+<span class="text-xs text-slate-500 font-mono">10:42:05 AM</span>
+</div>
+<p class="text-xs text-slate-400 mt-1">Reach Agent initiated "Scale Up Replicas".</p>
+<div class="mt-2 p-2 bg-black/30 rounded border border-red-500/20 text-xs text-red-400 font-mono">
+                                            Error: Quota limit reached for instance type t3.large
+                                        </div>
+</div>
+</div>
+<!-- Timeline Item 3 -->
+<div class="relative flex gap-4">
+<div class="flex-shrink-0 z-10 w-8 h-8 rounded-full bg-slate-700 border border-slate-500 flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-400 text-[16px]">person</span>
+</div>
+<div class="flex-1 pt-1">
+<div class="flex justify-between items-start">
+<p class="text-sm font-medium text-slate-200">Escalated to On-Call</p>
+<span class="text-xs text-slate-500 font-mono">10:43:00 AM</span>
+</div>
+<p class="text-xs text-slate-400 mt-1">Paged user: <span class="text-primary">@sarah.jenkins</span> via PagerDuty.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Graph / Trace Context -->
+<div class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden flex flex-col h-64">
+<div class="px-4 py-3 border-b border-border-dark flex justify-between items-center bg-[#18202f]">
+<h3 class="text-sm font-semibold text-slate-200">Related Metrics</h3>
+<div class="flex gap-2 text-xs">
+<span class="text-slate-400">Time Range: Last 1h</span>
+</div>
+</div>
+<div class="flex-1 relative bg-gradient-to-b from-slate-900 to-slate-900/50 p-4">
+<!-- Simulated Graph lines using SVG -->
+<svg class="w-full h-full" preserveaspectratio="none">
+<defs>
+<lineargradient id="gradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:rgba(239, 68, 68, 0.2);stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:rgba(239, 68, 68, 0);stop-opacity:0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,80 Q20,75 40,78 T80,70 T120,75 T160,50 T200,40 T240,20 T280,10 T320,15 T360,10 V150 H0 Z" fill="url(#gradient)" stroke="none"></path>
+<path d="M0,80 Q20,75 40,78 T80,70 T120,75 T160,50 T200,40 T240,20 T280,10 T320,15 T360,10" fill="none" stroke="#ef4444" stroke-width="2"></path>
+<!-- Dashed Threshold Line -->
+<line stroke="#fbbf24" stroke-dasharray="4" stroke-width="1" x1="0" x2="100%" y1="30" y2="30"></line>
+<text fill="#fbbf24" font-family="monospace" font-size="10" x="10" y="25">Threshold (2000ms)</text>
+</svg>
+</div>
+</div>
+</div>
+<!-- Right Column: Resources & Config -->
+<div class="col-span-12 lg:col-span-5 flex flex-col gap-6">
+<!-- Runbooks & Resources -->
+<div class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden">
+<div class="px-4 py-3 border-b border-border-dark bg-[#18202f]">
+<h3 class="text-sm font-semibold text-slate-200">Suggested Remediation</h3>
+</div>
+<div class="p-2">
+<a class="flex items-start gap-3 p-3 hover:bg-slate-800/50 rounded-lg transition group" href="#">
+<div class="bg-primary/20 p-2 rounded text-primary group-hover:bg-primary group-hover:text-white transition">
+<span class="material-symbols-outlined text-[20px]">menu_book</span>
+</div>
+<div>
+<h4 class="text-sm font-medium text-slate-200 group-hover:text-primary transition">Scale Up Database Replicas</h4>
+<p class="text-xs text-slate-500 mt-0.5">Automated runbook for horizontal scaling.</p>
+</div>
+<span class="ml-auto material-symbols-outlined text-slate-600 text-[18px]">chevron_right</span>
+</a>
+<div class="w-full h-px bg-slate-800 my-1"></div>
+<a class="flex items-start gap-3 p-3 hover:bg-slate-800/50 rounded-lg transition group" href="#">
+<div class="bg-primary/20 p-2 rounded text-primary group-hover:bg-primary group-hover:text-white transition">
+<span class="material-symbols-outlined text-[20px]">restart_alt</span>
+</div>
+<div>
+<h4 class="text-sm font-medium text-slate-200 group-hover:text-primary transition">Rolling Restart Service</h4>
+<p class="text-xs text-slate-500 mt-0.5">Graceful restart of pods.</p>
+</div>
+<span class="ml-auto material-symbols-outlined text-slate-600 text-[18px]">chevron_right</span>
+</a>
+</div>
+</div>
+<!-- Alert Config Editor (Audited) -->
+<div class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden flex-1 flex flex-col min-h-[300px]">
+<div class="px-4 py-3 border-b border-border-dark bg-[#18202f] flex justify-between items-center">
+<h3 class="text-sm font-semibold text-slate-200">Rule Configuration</h3>
+<div class="flex items-center gap-2">
+<span class="text-[10px] text-green-400 bg-green-900/30 px-2 py-0.5 rounded border border-green-900/50">Active</span>
+<button class="text-slate-400 hover:text-white"><span class="material-symbols-outlined text-[16px]">edit</span></button>
+</div>
+</div>
+<div class="bg-[#0b0e14] p-4 font-mono text-xs overflow-auto flex-1 custom-scrollbar">
+<div class="code-editor-lines">
+<div class="text-slate-400"><span class="text-purple-400">apiVersion:</span> reach.io/v1alpha1</div>
+<div class="text-slate-400"><span class="text-purple-400">kind:</span> AlertRule</div>
+<div class="text-slate-400"><span class="text-purple-400">metadata:</span></div>
+<div class="text-slate-400 pl-4"><span class="text-blue-400">name:</span> high-latency-payment</div>
+<div class="text-slate-400"><span class="text-purple-400">spec:</span></div>
+<div class="text-slate-400 pl-4"><span class="text-blue-400">severity:</span> critical</div>
+<div class="text-slate-400 pl-4"><span class="text-blue-400">condition:</span></div>
+<div class="text-slate-400 pl-8"><span class="text-blue-400">metric:</span> http_request_duration_seconds</div>
+<div class="text-slate-400 pl-8"><span class="text-blue-400">operator:</span> gt</div>
+<div class="text-slate-400 pl-8"><span class="text-blue-400">threshold:</span> <span class="text-yellow-400">2.0</span></div>
+<div class="text-slate-400 pl-8"><span class="text-blue-400">window:</span> 5m</div>
+<div class="text-slate-400 pl-4"><span class="text-blue-400">actions:</span></div>
+<div class="text-slate-400 pl-8">- <span class="text-green-400">scale_replicas</span></div>
+<div class="text-slate-400 pl-8">- <span class="text-green-400">pagerduty_incident</span></div>
+</div>
+</div>
+<div class="bg-[#18202f] px-3 py-2 border-t border-border-dark flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-500 text-[14px]">history</span>
+<span class="text-[10px] text-slate-500">Last edited by <strong>admin</strong> 2 days ago</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

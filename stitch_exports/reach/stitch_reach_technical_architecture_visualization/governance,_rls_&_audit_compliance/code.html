@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Reach Control Plane - Governance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111318",
+                        "surface-dark": "#1c1f27",
+                        "surface-highlight": "#282e39",
+                        "border-dark": "#2d3442",
+                        "text-primary": "#f8fafc",
+                        "text-secondary": "#9da6b9",
+                        "accent-danger": "#ef4444",
+                        "accent-warning": "#f59e0b",
+                        "accent-success": "#10b981",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom Scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111318;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #282e39;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b4354;
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-text-primary antialiased h-screen overflow-hidden flex">
+<!-- Side Navigation -->
+<div class="relative flex h-full w-72 flex-col border-r border-border-dark bg-background-dark shrink-0">
+<div class="flex h-full flex-col justify-between p-4">
+<div class="flex flex-col gap-6">
+<!-- Branding -->
+<div class="flex gap-3 px-2">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-10 bg-surface-highlight flex items-center justify-center text-primary" data-alt="Reach Logo Abstract">
+<span class="material-symbols-outlined text-2xl">hub</span>
+</div>
+<div class="flex flex-col justify-center">
+<h1 class="text-text-primary text-base font-semibold leading-tight">Reach Control</h1>
+<p class="text-text-secondary text-xs font-normal">Admin Console</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-highlight hover:text-text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-highlight hover:text-text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">cloud</span>
+<span class="text-sm font-medium">Deployments</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface-highlight text-primary" href="#">
+<span class="material-symbols-outlined fill-1">verified_user</span>
+<span class="text-sm font-bold">Governance</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-highlight hover:text-text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">visibility</span>
+<span class="text-sm font-medium">Observability</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-highlight hover:text-text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-highlight hover:text-text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="text-sm font-medium">Documentation</span>
+</a>
+</div>
+</div>
+<!-- User Profile -->
+<div class="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-surface-highlight cursor-pointer transition-colors border-t border-border-dark mt-auto">
+<div class="size-9 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-bold text-xs" data-alt="User Avatar Gradient">JD</div>
+<div class="flex flex-col">
+<p class="text-text-primary text-sm font-medium">Jane Doe</p>
+<p class="text-text-secondary text-xs">Security Admin</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-background-dark">
+<!-- Header -->
+<header class="flex items-center justify-between border-b border-border-dark bg-background-dark px-8 py-4 shrink-0 z-10">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2 text-text-secondary text-sm">
+<span>Console</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-text-primary font-medium">Governance &amp; Policy</span>
+</div>
+<h2 class="text-text-primary text-xl font-bold tracking-tight">Security &amp; Compliance</h2>
+</div>
+<div class="flex items-center gap-4">
+<!-- Tenant Scope -->
+<div class="flex items-center gap-3 bg-surface-dark px-3 py-1.5 rounded-lg border border-border-dark">
+<span class="material-symbols-outlined text-text-secondary">apartment</span>
+<div class="flex flex-col">
+<span class="text-[10px] text-text-secondary font-medium uppercase tracking-wider">Tenant Scope</span>
+<select class="bg-transparent text-sm font-medium text-text-primary border-none p-0 focus:ring-0 cursor-pointer">
+<option>Production (US-East)</option>
+<option>Staging (EU-West)</option>
+<option>Development</option>
+</select>
+</div>
+</div>
+<div class="h-8 w-px bg-border-dark mx-2"></div>
+<!-- Emergency Freeze -->
+<button class="group flex items-center gap-2 px-4 py-2 bg-accent-danger/10 hover:bg-accent-danger text-accent-danger hover:text-white border border-accent-danger/30 rounded-lg transition-all duration-200">
+<span class="material-symbols-outlined group-hover:animate-pulse">lock</span>
+<span class="font-bold text-sm">Emergency Freeze</span>
+</button>
+</div>
+</header>
+<!-- Scrollable Content -->
+<main class="flex-1 overflow-y-auto p-8 scroll-smooth">
+<div class="max-w-[1600px] mx-auto flex flex-col gap-8">
+<!-- Top Grid: RBAC and Build Gates -->
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+<!-- Role-Permission Matrix -->
+<div class="xl:col-span-2 bg-surface-dark border border-border-dark rounded-xl overflow-hidden flex flex-col h-full">
+<div class="px-6 py-4 border-b border-border-dark flex justify-between items-center bg-surface-highlight/30">
+<div>
+<h3 class="text-text-primary font-semibold text-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">admin_panel_settings</span>
+                                    Role-Based Access Control (RBAC)
+                                </h3>
+<p class="text-text-secondary text-xs mt-1">Permission matrix for the current tenant scope.</p>
+</div>
+<button class="text-primary text-sm font-medium hover:text-primary/80 flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">edit</span> Edit Roles
+                            </button>
+</div>
+<div class="overflow-x-auto flex-1">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-border-dark text-xs uppercase text-text-secondary font-medium bg-surface-highlight/20">
+<th class="px-6 py-3 min-w-[150px]">Resource / Role</th>
+<th class="px-4 py-3 text-center">Admin</th>
+<th class="px-4 py-3 text-center">DevOps</th>
+<th class="px-4 py-3 text-center">Viewer</th>
+<th class="px-4 py-3 text-center">Auditor</th>
+<th class="px-4 py-3 text-center">Service Acct</th>
+</tr>
+</thead>
+<tbody class="text-sm divide-y divide-border-dark">
+<tr class="hover:bg-surface-highlight/20 transition-colors">
+<td class="px-6 py-3 font-medium text-text-primary">Deployments</td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-accent-success text-[20px]">check_circle</span></td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-accent-success text-[20px]">check_circle</span></td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-text-secondary text-[20px]">visibility</span></td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-text-secondary text-[20px]">visibility</span></td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-border-dark text-[20px]">remove</span></td>
+</tr>
+<tr class="hover:bg-surface-highlight/20 transition-colors">
+<td class="px-6 py-3 font-medium text-text-primary">Secrets Manager</td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-accent-success text-[20px]">check_circle</span></td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-accent-warning text-[20px]">edit</span></td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-border-dark text-[20px]">remove</span></td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-border-dark text-[20px]">remove</span></td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-text-secondary text-[20px]">visibility</span></td>
+</tr>
+<tr class="hover:bg-surface-highlight/20 transition-colors">
+<td class="px-6 py-3 font-medium text-text-primary">Audit Logs</td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-accent-success text-[20px]">check_circle</span></td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-text-secondary text-[20px]">visibility</span></td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-border-dark text-[20px]">remove</span></td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-text-secondary text-[20px]">visibility</span></td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-border-dark text-[20px]">remove</span></td>
+</tr>
+<tr class="hover:bg-surface-highlight/20 transition-colors">
+<td class="px-6 py-3 font-medium text-text-primary">Billing</td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-accent-success text-[20px]">check_circle</span></td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-border-dark text-[20px]">remove</span></td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-border-dark text-[20px]">remove</span></td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-border-dark text-[20px]">remove</span></td>
+<td class="px-4 py-3 text-center"><span class="material-symbols-outlined text-border-dark text-[20px]">remove</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Build Gate Violations -->
+<div class="xl:col-span-1 bg-surface-dark border border-border-dark rounded-xl overflow-hidden flex flex-col h-full">
+<div class="px-6 py-4 border-b border-border-dark flex justify-between items-center bg-surface-highlight/30">
+<h3 class="text-text-primary font-semibold text-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-danger">gpp_bad</span>
+                                Build Gate Violations
+                            </h3>
+<span class="bg-accent-danger/20 text-accent-danger text-xs font-bold px-2 py-0.5 rounded">3 Active</span>
+</div>
+<div class="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+<!-- Violation Item -->
+<div class="p-3 bg-surface-highlight/40 border border-accent-danger/30 rounded-lg flex flex-col gap-2 hover:bg-surface-highlight/60 transition-colors cursor-pointer group">
+<div class="flex justify-between items-start">
+<span class="text-accent-danger font-semibold text-sm">Critical: Unencrypted Storage</span>
+<span class="text-xs text-text-secondary">2m ago</span>
+</div>
+<p class="text-text-secondary text-xs">Deployment <span class="text-white font-mono">deploy-883a</span> violates encryption policy defined in <span class="text-primary underline">StorageV2</span>.</p>
+<div class="flex gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-xs bg-accent-danger/20 text-accent-danger px-2 py-1 rounded hover:bg-accent-danger/30">Block Build</button>
+<button class="text-xs bg-surface-highlight text-text-primary px-2 py-1 rounded hover:bg-surface-highlight/80">View Audit</button>
+</div>
+</div>
+<!-- Violation Item -->
+<div class="p-3 bg-surface-highlight/40 border border-accent-warning/30 rounded-lg flex flex-col gap-2 hover:bg-surface-highlight/60 transition-colors cursor-pointer">
+<div class="flex justify-between items-start">
+<span class="text-accent-warning font-semibold text-sm">Warning: Open Port 22</span>
+<span class="text-xs text-text-secondary">15m ago</span>
+</div>
+<p class="text-text-secondary text-xs">Service <span class="text-white font-mono">bastion-host</span> exposes SSH to public internet.</p>
+</div>
+<!-- Violation Item -->
+<div class="p-3 bg-surface-highlight/40 border border-accent-danger/30 rounded-lg flex flex-col gap-2 hover:bg-surface-highlight/60 transition-colors cursor-pointer">
+<div class="flex justify-between items-start">
+<span class="text-accent-danger font-semibold text-sm">Critical: Root Access</span>
+<span class="text-xs text-text-secondary">1h ago</span>
+</div>
+<p class="text-text-secondary text-xs">Container <span class="text-white font-mono">worker-node-04</span> running as root user.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Middle Section: RLS Policies -->
+<div class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden">
+<div class="px-6 py-4 border-b border-border-dark flex justify-between items-center bg-surface-highlight/30">
+<div>
+<h3 class="text-text-primary font-semibold text-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">security</span>
+                                RLS Policy Viewer
+                            </h3>
+<p class="text-text-secondary text-xs mt-1">Row Level Security logic applied to database queries.</p>
+</div>
+<div class="flex gap-2">
+<div class="relative">
+<span class="absolute left-2.5 top-1.5 text-text-secondary material-symbols-outlined text-[18px]">search</span>
+<input class="pl-9 pr-3 py-1.5 bg-background-dark border border-border-dark rounded-lg text-sm text-text-primary focus:ring-1 focus:ring-primary focus:border-primary placeholder-text-secondary w-64" placeholder="Filter policies..." type="text"/>
+</div>
+<button class="px-3 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                                New Policy
+                            </button>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-border-dark">
+<!-- Policy Block 1 -->
+<div class="p-6">
+<div class="flex justify-between items-center mb-4">
+<div class="flex items-center gap-3">
+<span class="bg-primary/20 text-primary p-1.5 rounded-lg material-symbols-outlined text-[20px]">database</span>
+<h4 class="text-text-primary font-medium">Tenant Isolation</h4>
+</div>
+<span class="text-xs bg-accent-success/20 text-accent-success px-2 py-0.5 rounded-full border border-accent-success/20">Active</span>
+</div>
+<div class="bg-[#0d1117] rounded-lg p-4 font-mono text-xs text-gray-300 border border-border-dark overflow-x-auto">
+<pre><code><span class="text-purple-400">CREATE POLICY</span> tenant_isolation_policy <span class="text-purple-400">ON</span> public.orders
+<span class="text-purple-400">FOR ALL</span>
+<span class="text-purple-400">USING</span> (
+    tenant_id <span class="text-accent-warning">=</span> current_setting(<span class="text-green-400">'app.current_tenant'</span>)::uuid
+);</code></pre>
+</div>
+<div class="mt-3 flex justify-end gap-3 text-xs">
+<a class="text-text-secondary hover:text-text-primary flex items-center gap-1" href="#"><span class="material-symbols-outlined text-[14px]">history</span> History</a>
+<a class="text-primary hover:text-primary/80 flex items-center gap-1" href="#"><span class="material-symbols-outlined text-[14px]">edit_note</span> Edit Logic</a>
+</div>
+</div>
+<!-- Policy Block 2 -->
+<div class="p-6">
+<div class="flex justify-between items-center mb-4">
+<div class="flex items-center gap-3">
+<span class="bg-primary/20 text-primary p-1.5 rounded-lg material-symbols-outlined text-[20px]">person</span>
+<h4 class="text-text-primary font-medium">PII Access Control</h4>
+</div>
+<span class="text-xs bg-accent-success/20 text-accent-success px-2 py-0.5 rounded-full border border-accent-success/20">Active</span>
+</div>
+<div class="bg-[#0d1117] rounded-lg p-4 font-mono text-xs text-gray-300 border border-border-dark overflow-x-auto">
+<pre><code><span class="text-purple-400">CREATE POLICY</span> pii_access_policy <span class="text-purple-400">ON</span> public.users
+<span class="text-purple-400">FOR SELECT</span>
+<span class="text-purple-400">USING</span> (
+    (auth.role() <span class="text-accent-warning">=</span> <span class="text-green-400">'admin'</span>) <span class="text-purple-400">OR</span> (id <span class="text-accent-warning">=</span> auth.uid())
+);</code></pre>
+</div>
+<div class="mt-3 flex justify-end gap-3 text-xs">
+<a class="text-text-secondary hover:text-text-primary flex items-center gap-1" href="#"><span class="material-symbols-outlined text-[14px]">history</span> History</a>
+<a class="text-primary hover:text-primary/80 flex items-center gap-1" href="#"><span class="material-symbols-outlined text-[14px]">edit_note</span> Edit Logic</a>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Section: Live Audit Timeline -->
+<div class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden flex flex-col mb-8">
+<div class="px-6 py-4 border-b border-border-dark flex flex-wrap justify-between items-center gap-4 bg-surface-highlight/30">
+<div>
+<h3 class="text-text-primary font-semibold text-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">history_edu</span>
+                                Live Audit Timeline
+                            </h3>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex bg-background-dark rounded-lg border border-border-dark p-0.5">
+<button class="px-3 py-1 rounded-md bg-surface-highlight text-text-primary text-xs font-medium shadow-sm">Real-time</button>
+<button class="px-3 py-1 rounded-md text-text-secondary hover:text-text-primary text-xs font-medium">Past 24h</button>
+</div>
+<div class="h-4 w-px bg-border-dark"></div>
+<button class="text-text-secondary hover:text-text-primary">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+<button class="text-text-secondary hover:text-text-primary">
+<span class="material-symbols-outlined">download</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="text-xs text-text-secondary bg-surface-highlight/20 border-b border-border-dark">
+<th class="px-6 py-3 font-medium">Timestamp</th>
+<th class="px-6 py-3 font-medium">Actor</th>
+<th class="px-6 py-3 font-medium">Action</th>
+<th class="px-6 py-3 font-medium">Resource</th>
+<th class="px-6 py-3 font-medium">Status</th>
+<th class="px-6 py-3 font-medium text-right">Details</th>
+</tr>
+</thead>
+<tbody class="text-sm divide-y divide-border-dark">
+<tr class="hover:bg-surface-highlight/20 transition-colors group">
+<td class="px-6 py-3.5 text-text-secondary font-mono text-xs whitespace-nowrap">2023-10-24 14:32:01</td>
+<td class="px-6 py-3.5 text-text-primary flex items-center gap-2">
+<div class="size-6 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-[10px] font-bold">MK</div>
+<span>m.keaton@reach.ai</span>
+</td>
+<td class="px-6 py-3.5 text-text-primary font-medium">Update Policy</td>
+<td class="px-6 py-3.5 text-text-secondary font-mono text-xs">rls_policy_v2</td>
+<td class="px-6 py-3.5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent-success/10 text-accent-success border border-accent-success/20">
+                                            Success
+                                        </span>
+</td>
+<td class="px-6 py-3.5 text-right">
+<a class="text-primary hover:underline text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity" href="#">View Diff</a>
+</td>
+</tr>
+<tr class="hover:bg-surface-highlight/20 transition-colors group">
+<td class="px-6 py-3.5 text-text-secondary font-mono text-xs whitespace-nowrap">2023-10-24 14:30:15</td>
+<td class="px-6 py-3.5 text-text-primary flex items-center gap-2">
+<div class="size-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-[10px] font-bold">SY</div>
+<span>system-bot</span>
+</td>
+<td class="px-6 py-3.5 text-text-primary font-medium">Auto-Scale Trigger</td>
+<td class="px-6 py-3.5 text-text-secondary font-mono text-xs">cluster-prod-01</td>
+<td class="px-6 py-3.5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent-success/10 text-accent-success border border-accent-success/20">
+                                            Success
+                                        </span>
+</td>
+<td class="px-6 py-3.5 text-right">
+<a class="text-primary hover:underline text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity" href="#">View Logs</a>
+</td>
+</tr>
+<tr class="hover:bg-surface-highlight/20 transition-colors group">
+<td class="px-6 py-3.5 text-text-secondary font-mono text-xs whitespace-nowrap">2023-10-24 14:15:42</td>
+<td class="px-6 py-3.5 text-text-primary flex items-center gap-2">
+<div class="size-6 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center text-[10px] font-bold">JD</div>
+<span>j.doe@reach.ai</span>
+</td>
+<td class="px-6 py-3.5 text-text-primary font-medium">Delete Secret</td>
+<td class="px-6 py-3.5 text-text-secondary font-mono text-xs">api_key_stripe_live</td>
+<td class="px-6 py-3.5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent-danger/10 text-accent-danger border border-accent-danger/20">
+                                            Denied (403)
+                                        </span>
+</td>
+<td class="px-6 py-3.5 text-right">
+<a class="text-primary hover:underline text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity" href="#">Trace Request</a>
+</td>
+</tr>
+<tr class="hover:bg-surface-highlight/20 transition-colors group">
+<td class="px-6 py-3.5 text-text-secondary font-mono text-xs whitespace-nowrap">2023-10-24 13:58:11</td>
+<td class="px-6 py-3.5 text-text-primary flex items-center gap-2">
+<div class="size-6 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-[10px] font-bold">MK</div>
+<span>m.keaton@reach.ai</span>
+</td>
+<td class="px-6 py-3.5 text-text-primary font-medium">Deploy Config</td>
+<td class="px-6 py-3.5 text-text-secondary font-mono text-xs">gateway-routes.yaml</td>
+<td class="px-6 py-3.5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent-success/10 text-accent-success border border-accent-success/20">
+                                            Success
+                                        </span>
+</td>
+<td class="px-6 py-3.5 text-right">
+<a class="text-primary hover:underline text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity" href="#">View Diff</a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-6 py-3 border-t border-border-dark flex justify-center">
+<button class="text-text-secondary hover:text-text-primary text-sm font-medium flex items-center gap-2 transition-colors">
+                            Load More Events <span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

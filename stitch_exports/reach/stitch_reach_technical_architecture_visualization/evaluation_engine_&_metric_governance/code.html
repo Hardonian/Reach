@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Reach - Evaluation Engine</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                        "surface-dark": "#1a202c",
+                        "surface-light": "#ffffff",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display antialiased overflow-hidden">
+<div class="flex h-screen w-full">
+<!-- Main Sidebar (Navigation) -->
+<div class="hidden lg:flex w-64 flex-col bg-[#111318] border-r border-slate-800 flex-shrink-0">
+<div class="flex h-full flex-col justify-between p-4">
+<div class="flex flex-col gap-4">
+<div class="flex gap-3 px-2 py-2">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 bg-slate-700" data-alt="Reach Control Logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBmXHexEqVKNaOaB86iMUG8G7Mt34XzbfJc9pBhHYo748iZX1DZ74zmPH_dtukGQ9Na1QvCStRw5zGX1K3W0ovIwdQLZzHY7vi8lW7xb3__6tVLp8GmF583TwctT7HOo4ifz7hh3nQ8ufGYvHrGrZTpc2w3p-jotVOmAyxaSCNn8AGrFaEkpvXy5zX_V56o0z2nmnXSK3FrOZl5vZyt-ONNxR1P01_39i04jLSi34rTQBxgslRiTKLMmLWYnLRaSDNJGiEo8IHrRV9z");'></div>
+<div class="flex flex-col justify-center">
+<h1 class="text-white text-base font-medium leading-tight">Reach Control</h1>
+<p class="text-[#9da6b9] text-xs font-normal leading-tight">Orchestration Plane</p>
+</div>
+</div>
+<div class="flex flex-col gap-1 mt-4">
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-[#9da6b9] group-hover:text-white transition-colors">dashboard</span>
+<p class="text-[#9da6b9] group-hover:text-white text-sm font-medium transition-colors">Dashboard</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-[#9da6b9] group-hover:text-white transition-colors">smart_toy</span>
+<p class="text-[#9da6b9] group-hover:text-white text-sm font-medium transition-colors">Agent Studio</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#282e39] cursor-default">
+<span class="material-symbols-outlined text-white">balance</span>
+<p class="text-white text-sm font-medium">Evaluation</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-[#9da6b9] group-hover:text-white transition-colors">description</span>
+<p class="text-[#9da6b9] group-hover:text-white text-sm font-medium transition-colors">Prompt Registry</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-[#9da6b9] group-hover:text-white transition-colors">settings</span>
+<p class="text-[#9da6b9] group-hover:text-white text-sm font-medium transition-colors">Settings</p>
+</div>
+</div>
+</div>
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-900/20">
+<span class="material-symbols-outlined text-sm mr-2">add</span>
+<span class="truncate">New Project</span>
+</button>
+</div>
+</div>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col h-screen overflow-hidden relative">
+<!-- Top Header -->
+<header class="h-16 border-b border-slate-800 bg-[#111318]/95 backdrop-blur flex items-center justify-between px-6 flex-shrink-0 z-20">
+<div class="flex items-center gap-2">
+<a class="text-[#9da6b9] text-sm font-medium hover:text-white transition-colors" href="#">Reach</a>
+<span class="text-[#9da6b9] text-sm font-medium">/</span>
+<a class="text-[#9da6b9] text-sm font-medium hover:text-white transition-colors" href="#">Control Plane</a>
+<span class="text-[#9da6b9] text-sm font-medium">/</span>
+<span class="text-white text-sm font-medium">Evaluation Engine</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 rounded-full border border-green-500/20">
+<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+<span class="text-green-500 text-xs font-semibold">System Healthy</span>
+</div>
+<button class="p-2 text-[#9da6b9] hover:text-white transition-colors rounded-full hover:bg-slate-800">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-purple-500 border border-slate-700" data-alt="User Avatar"></div>
+</div>
+</header>
+<main class="flex flex-1 overflow-hidden">
+<!-- Inner Sidebar: Config History -->
+<aside class="w-72 bg-[#0d1117] border-r border-slate-800 flex flex-col overflow-y-auto custom-scrollbar flex-shrink-0">
+<div class="p-4 border-b border-slate-800 sticky top-0 bg-[#0d1117] z-10">
+<div class="flex items-center justify-between mb-2">
+<h2 class="text-white text-sm font-bold uppercase tracking-wider">Config History</h2>
+<button class="text-primary hover:text-blue-400 text-xs font-medium">View All</button>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2 top-2 text-slate-500 text-sm">search</span>
+<input class="w-full bg-[#1c2333] border border-slate-700 rounded text-xs text-white pl-8 pr-2 py-1.5 focus:outline-none focus:border-primary" placeholder="Filter versions..." type="text"/>
+</div>
+</div>
+<div class="flex flex-col gap-0">
+<!-- History Item: Active -->
+<div class="p-4 border-l-2 border-primary bg-primary/5 cursor-pointer hover:bg-[#1c2333] transition-colors">
+<div class="flex items-center justify-between mb-1">
+<span class="text-primary text-xs font-bold">v2.4.0 (Current)</span>
+<span class="text-slate-500 text-[10px]">Just now</span>
+</div>
+<p class="text-white text-sm font-medium mb-1">Drift correction on Q3</p>
+<div class="flex items-center gap-2">
+<div class="w-4 h-4 rounded-full bg-slate-600" data-alt="User avatar small"></div>
+<span class="text-slate-400 text-xs">Sarah J.</span>
+</div>
+</div>
+<!-- History Item -->
+<div class="p-4 border-l-2 border-transparent border-b border-slate-800/50 cursor-pointer hover:bg-[#1c2333] transition-colors">
+<div class="flex items-center justify-between mb-1">
+<span class="text-slate-400 text-xs font-medium">v2.3.9</span>
+<span class="text-slate-500 text-[10px]">2h ago</span>
+</div>
+<p class="text-slate-300 text-sm mb-1">Increased Latency tolerance</p>
+<div class="flex items-center gap-2">
+<div class="w-4 h-4 rounded-full bg-slate-600" data-alt="User avatar small"></div>
+<span class="text-slate-500 text-xs">Mike R.</span>
+</div>
+</div>
+<!-- History Item -->
+<div class="p-4 border-l-2 border-transparent border-b border-slate-800/50 cursor-pointer hover:bg-[#1c2333] transition-colors">
+<div class="flex items-center justify-between mb-1">
+<span class="text-slate-400 text-xs font-medium">v2.3.8</span>
+<span class="text-slate-500 text-[10px]">Yesterday</span>
+</div>
+<p class="text-slate-300 text-sm mb-1">Baseline grounding adjustment</p>
+<div class="flex items-center gap-2">
+<div class="w-4 h-4 rounded-full bg-slate-600" data-alt="User avatar small"></div>
+<span class="text-slate-500 text-xs">Sarah J.</span>
+</div>
+</div>
+<!-- History Item -->
+<div class="p-4 border-l-2 border-transparent border-b border-slate-800/50 cursor-pointer hover:bg-[#1c2333] transition-colors">
+<div class="flex items-center justify-between mb-1">
+<span class="text-slate-400 text-xs font-medium">v2.3.7</span>
+<span class="text-slate-500 text-[10px]">2 days ago</span>
+</div>
+<p class="text-slate-300 text-sm mb-1">Rollback: Cost optimization</p>
+<div class="flex items-center gap-2">
+<div class="w-4 h-4 rounded-full bg-slate-600" data-alt="User avatar small"></div>
+<span class="text-slate-500 text-xs">System</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Dashboard Content -->
+<div class="flex-1 overflow-y-auto p-6 lg:p-8 custom-scrollbar">
+<div class="flex justify-between items-end mb-6">
+<div>
+<h2 class="text-white text-2xl font-bold tracking-tight mb-1">Metric Governance</h2>
+<p class="text-[#9da6b9] text-sm">Manage scoring governance and drift control for your agentic workflows.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center justify-center rounded-lg h-9 px-4 bg-slate-800 border border-slate-700 text-white text-xs font-semibold hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-sm mr-2">history</span>
+                                Compare Versions
+                            </button>
+<button class="flex items-center justify-center rounded-lg h-9 px-4 bg-white text-slate-900 text-xs font-bold hover:bg-slate-200 transition-colors shadow-lg">
+<span class="material-symbols-outlined text-sm mr-2">play_arrow</span>
+                                Run Synthetic Eval
+                            </button>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-6">
+<!-- Metric Weight Editor -->
+<div class="col-span-12 lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
+<div class="bg-[#1c2333] rounded-lg border border-slate-700 overflow-hidden">
+<div class="p-4 border-b border-slate-700 bg-[#161b28] flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">tune</span>
+<h3 class="text-white font-semibold text-sm">Metric Weight Editor</h3>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[#9da6b9] text-xs font-medium">Lock Weights</span>
+<button class="relative inline-flex h-5 w-9 items-center rounded-full bg-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-[#161b28]">
+<span class="sr-only">Lock weights</span>
+<span class="inline-block h-3 w-3 transform rounded-full bg-white transition duration-200 ease-in-out translate-x-1"></span>
+</button>
+</div>
+</div>
+<div class="p-6 grid gap-6">
+<!-- Slider Item -->
+<div class="flex items-center gap-4">
+<div class="w-32 flex-shrink-0">
+<p class="text-white text-sm font-medium">Grounding</p>
+<p class="text-slate-500 text-xs">RAG Fidelity</p>
+</div>
+<div class="flex-1">
+<input class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="75"/>
+</div>
+<div class="w-16 flex-shrink-0 text-right">
+<div class="bg-[#0f1218] border border-slate-700 rounded px-2 py-1 text-right text-white text-xs font-mono">0.75</div>
+</div>
+</div>
+<!-- Slider Item -->
+<div class="flex items-center gap-4">
+<div class="w-32 flex-shrink-0">
+<p class="text-white text-sm font-medium">Accuracy</p>
+<p class="text-slate-500 text-xs">Factuality</p>
+</div>
+<div class="flex-1">
+<input class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="90"/>
+</div>
+<div class="w-16 flex-shrink-0 text-right">
+<div class="bg-[#0f1218] border border-slate-700 rounded px-2 py-1 text-right text-white text-xs font-mono">0.90</div>
+</div>
+</div>
+<!-- Slider Item -->
+<div class="flex items-center gap-4">
+<div class="w-32 flex-shrink-0">
+<p class="text-white text-sm font-medium">Structure</p>
+<p class="text-slate-500 text-xs">JSON Validity</p>
+</div>
+<div class="flex-1">
+<input class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="40"/>
+</div>
+<div class="w-16 flex-shrink-0 text-right">
+<div class="bg-[#0f1218] border border-slate-700 rounded px-2 py-1 text-right text-white text-xs font-mono">0.40</div>
+</div>
+</div>
+<!-- Slider Item -->
+<div class="flex items-center gap-4">
+<div class="w-32 flex-shrink-0">
+<p class="text-white text-sm font-medium">Latency</p>
+<p class="text-slate-500 text-xs">&lt;200ms target</p>
+</div>
+<div class="flex-1">
+<input class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="30"/>
+</div>
+<div class="w-16 flex-shrink-0 text-right">
+<div class="bg-[#0f1218] border border-slate-700 rounded px-2 py-1 text-right text-white text-xs font-mono">0.30</div>
+</div>
+</div>
+<!-- Slider Item -->
+<div class="flex items-center gap-4">
+<div class="w-32 flex-shrink-0">
+<p class="text-white text-sm font-medium">Cost</p>
+<p class="text-slate-500 text-xs">$/1k tokens</p>
+</div>
+<div class="flex-1">
+<input class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="60"/>
+</div>
+<div class="w-16 flex-shrink-0 text-right">
+<div class="bg-[#0f1218] border border-slate-700 rounded px-2 py-1 text-right text-white text-xs font-mono">0.60</div>
+</div>
+</div>
+</div>
+<div class="px-6 py-4 bg-[#161b28] border-t border-slate-700 flex justify-end gap-3">
+<button class="text-slate-400 hover:text-white text-xs font-medium px-3 py-2">Reset to Defaults</button>
+<button class="bg-primary hover:bg-blue-600 text-white text-xs font-bold rounded px-4 py-2 transition-colors">Apply Changes</button>
+</div>
+</div>
+<!-- Historical Graph -->
+<div class="bg-[#1c2333] rounded-lg border border-slate-700 p-6">
+<div class="flex justify-between items-center mb-6">
+<div>
+<h3 class="text-white font-semibold text-sm">Historical Scores</h3>
+<p class="text-slate-500 text-xs mt-1">Weighted performance over the last 30 days</p>
+</div>
+<div class="flex gap-2">
+<span class="flex items-center gap-1 text-[10px] text-slate-400"><span class="w-2 h-2 rounded-full bg-primary"></span> Production</span>
+<span class="flex items-center gap-1 text-[10px] text-slate-400"><span class="w-2 h-2 rounded-full bg-purple-500"></span> Synthetic</span>
+</div>
+</div>
+<div class="w-full h-48 bg-gradient-to-b from-primary/5 to-transparent rounded border border-slate-700/50 relative overflow-hidden flex items-end px-2" data-alt="Line chart showing performance scores">
+<!-- Mock Graph Lines -->
+<svg class="w-full h-full absolute top-0 left-0" preserveaspectratio="none">
+<path d="M0 150 C 50 140, 100 80, 150 90 S 250 100, 300 60 S 400 50, 500 40 S 600 70, 700 30" fill="none" stroke="#135bec" stroke-width="2"></path>
+<path d="M0 120 C 50 110, 100 130, 150 120 S 250 80, 300 90 S 400 100, 500 80 S 600 60, 700 50" fill="none" stroke="#a855f7" stroke-dasharray="4" stroke-width="2"></path>
+</svg>
+<!-- Change Markers -->
+<div class="absolute top-0 bottom-0 left-[30%] border-l border-dashed border-slate-500/50 group cursor-help">
+<div class="absolute top-2 -left-3 w-6 h-6 rounded bg-slate-800 border border-slate-600 flex items-center justify-center text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity z-10">v2.1</div>
+</div>
+<div class="absolute top-0 bottom-0 left-[70%] border-l border-dashed border-slate-500/50 group cursor-help">
+<div class="absolute top-2 -left-3 w-6 h-6 rounded bg-slate-800 border border-slate-600 flex items-center justify-center text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity z-10">v2.3</div>
+</div>
+</div>
+<div class="flex justify-between mt-2 text-[10px] text-slate-500 font-mono">
+<span>Aug 01</span>
+<span>Aug 08</span>
+<span>Aug 15</span>
+<span>Aug 22</span>
+<span>Today</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Simulator & Table -->
+<div class="col-span-12 lg:col-span-5 xl:col-span-4 flex flex-col gap-6">
+<!-- Weighted Score Simulator -->
+<div class="bg-[#1c2333] rounded-lg border border-slate-700 flex flex-col h-fit">
+<div class="p-4 border-b border-slate-700 flex justify-between items-center">
+<h3 class="text-white font-semibold text-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-purple-400 text-lg">science</span>
+                                        Simulator
+                                    </h3>
+<span class="bg-green-500/10 text-green-500 border border-green-500/20 text-xs font-bold px-2 py-0.5 rounded">PASSED</span>
+</div>
+<div class="p-4 flex flex-col gap-4">
+<div class="flex flex-col gap-2">
+<label class="text-xs text-slate-400 uppercase font-bold tracking-wider">Input Prompt</label>
+<div class="bg-[#0f1218] rounded border border-slate-700 p-3 text-sm text-slate-300 font-mono">
+                                            Summarize the Q3 earnings for the retail sector...
+                                        </div>
+</div>
+<div class="flex flex-col gap-2 relative">
+<label class="text-xs text-slate-400 uppercase font-bold tracking-wider">Agent Output</label>
+<div class="bg-[#0f1218] rounded border border-slate-700 p-3 text-sm text-slate-300 font-mono min-h-[100px]">
+                                            The retail sector saw a 4.5% increase in revenue year-over-year, driven primarily by e-commerce growth...
+                                        </div>
+<!-- Score Badge Overlay -->
+<div class="absolute top-8 right-3 bg-slate-800/90 backdrop-blur border border-slate-600 rounded-lg p-2 flex flex-col items-center shadow-lg">
+<span class="text-[10px] text-slate-400 uppercase">Score</span>
+<span class="text-xl font-bold text-white">92</span>
+<span class="text-[10px] text-green-400">High</span>
+</div>
+</div>
+<!-- Mini Breakdown -->
+<div class="grid grid-cols-2 gap-2 mt-2">
+<div class="bg-slate-800/50 rounded p-2 flex justify-between items-center">
+<span class="text-[10px] text-slate-400">Grounding</span>
+<span class="text-xs font-mono text-white">0.98</span>
+</div>
+<div class="bg-slate-800/50 rounded p-2 flex justify-between items-center">
+<span class="text-[10px] text-slate-400">Latency</span>
+<span class="text-xs font-mono text-white">145ms</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Model Comparison Table -->
+<div class="bg-[#1c2333] rounded-lg border border-slate-700 flex flex-col flex-1">
+<div class="p-4 border-b border-slate-700">
+<h3 class="text-white font-semibold text-sm">Model Comparison</h3>
+<p class="text-slate-500 text-xs mt-1">Drift detection against current weights</p>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm text-slate-400">
+<thead class="bg-[#161b28] text-xs uppercase font-medium text-slate-500">
+<tr>
+<th class="px-4 py-3">Model</th>
+<th class="px-4 py-3 text-right">Score</th>
+<th class="px-4 py-3 text-right">Drift</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-700/50">
+<tr class="hover:bg-slate-800/30 transition-colors">
+<td class="px-4 py-3 font-medium text-white">GPT-4 Judge</td>
+<td class="px-4 py-3 text-right font-mono">94.2</td>
+<td class="px-4 py-3 text-right text-green-500 text-xs font-mono">0.2%</td>
+</tr>
+<tr class="hover:bg-slate-800/30 transition-colors bg-yellow-500/5">
+<td class="px-4 py-3 font-medium text-white flex items-center gap-2">
+                                                    Claude 3
+                                                    <span class="material-symbols-outlined text-yellow-500 text-[14px]" title="Drift Detected">warning</span>
+</td>
+<td class="px-4 py-3 text-right font-mono text-yellow-200">88.1</td>
+<td class="px-4 py-3 text-right text-yellow-500 text-xs font-mono">5.4%</td>
+</tr>
+<tr class="hover:bg-slate-800/30 transition-colors">
+<td class="px-4 py-3 font-medium text-white">Llama 3 70B</td>
+<td class="px-4 py-3 text-right font-mono">91.0</td>
+<td class="px-4 py-3 text-right text-green-500 text-xs font-mono">1.1%</td>
+</tr>
+<tr class="hover:bg-slate-800/30 transition-colors">
+<td class="px-4 py-3 font-medium text-white">GPT-3.5</td>
+<td class="px-4 py-3 text-right font-mono">82.5</td>
+<td class="px-4 py-3 text-right text-green-500 text-xs font-mono">0.8%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-3 border-t border-slate-700 text-center">
+<button class="text-primary text-xs font-medium hover:underline">View Full Benchmark Report</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Reason for Change Modal (Hidden by default, shown here as if triggered for visual completeness or bottom action area) -->
+<!-- In a real app this would be a modal. Here I'll put a placeholder for the "Save Config" action at the bottom of the main content -->
+<div class="mt-8 mb-4 bg-primary/10 border border-primary/30 rounded-lg p-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="p-2 bg-primary/20 rounded-full text-primary">
+<span class="material-symbols-outlined">save</span>
+</div>
+<div>
+<p class="text-white text-sm font-semibold">Unsaved Configuration Changes</p>
+<p class="text-primary/80 text-xs">You have modified the "Grounding" and "Cost" weights.</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="text-slate-400 hover:text-white text-sm font-medium px-3">Discard</button>
+<button class="bg-primary hover:bg-blue-600 text-white text-sm font-bold rounded px-4 py-2 shadow-lg shadow-blue-900/20">Save &amp; Document Reason</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+<style>
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0d1117; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2d3748; 
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #4a5568; 
+        }
+        
+        /* Range Slider Customization */
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            margin-top: -4px; 
+            box-shadow: 0 0 0 2px #135bec; 
+        }
+        
+        input[type=range]::-moz-range-thumb {
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 0 2px #135bec;
+        }
+        
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #334155;
+            border-radius: 4px;
+        }
+    </style>
+</body></html>

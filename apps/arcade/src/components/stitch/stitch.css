@@ -1,0 +1,37 @@
+/* Stitch Shared Styles */
+
+.glass-panel {
+  background: rgba(16, 22, 34, 0.7);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.node-connector {
+  position: absolute;
+  z-index: 0;
+  background: linear-gradient(90deg, #2d3545 0%, #135bec 50%, #2d3545 100%);
+  background-size: 200% 100%;
+  animation: flow 3s linear infinite;
+}
+
+@keyframes flow {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.glow-hover:hover {
+  box-shadow: 0 0 20px rgba(19, 91, 236, 0.3);
+  border-color: #135bec;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

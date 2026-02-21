@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Reach | Monthly Operational Summary - October 2026</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#0f0f0f",
+                        "surface-dark": "#1a1a1a",
+                        "border-dark": "#2a2a2a",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .glass-card { background: rgba(26, 26, 26, 0.8); backdrop-filter: blur(8px); }
+        .gradient-border { border: 1px solid transparent; background: linear-gradient(#1a1a1a, #1a1a1a) padding-box, linear-gradient(to bottom right, #ec5b13, #2a2a2a) border-box; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen font-display">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-border-dark bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-6 lg:px-20 py-4">
+<div class="max-w-7xl mx-auto flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="bg-primary p-1.5 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-xl">deployed_code</span>
+</div>
+<h1 class="text-xl font-black tracking-tight text-slate-900 dark:text-white uppercase">Reach</h1>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-semibold text-primary" href="#">Dashboard</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors" href="#">Reports</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors" href="#">Agents</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors" href="#">Governance</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-sm">picture_as_pdf</span>
+                    Export Report
+                </button>
+<div class="w-10 h-10 rounded-full border border-border-dark overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Professional user avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUDE102Yau2V6KgaQf6coDAAtu43xwZw8yFKG2K2KhIt9NGN6fI4Ltots3XuIQ8-ovA9nq5WiM3RE1A_W2_8yIZOdy9uFFbd78x2B5X7q2XbSvJW6V6yyJPJYoknDQs6qIzluu_aZOOhiExr0fJ7iOKmpLkjuK-AE6nklh_dS9gpXckKiK8k7b-24ioE86BPQ-Kri2KHBpx2AO8gh-69ZgZlXTCPQhK2unOII5u7d5JgLjKhxQWqb_7syauOrZf0iUupTP--ELNFF1"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 lg:px-20 py-10 space-y-10">
+<!-- Report Title & Summary Section -->
+<section class="space-y-6">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-border-dark pb-8">
+<div>
+<h2 class="text-4xl lg:text-5xl font-black tracking-tighter text-slate-900 dark:text-white">Monthly Operational Summary</h2>
+<div class="flex items-center gap-3 mt-2">
+<span class="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full uppercase tracking-widest">October 2026</span>
+<span class="text-slate-500 text-sm">Platform Orchestration &amp; Autonomous Agent Insights</span>
+</div>
+</div>
+<div class="flex gap-2 text-xs font-medium text-slate-400">
+<span class="material-symbols-outlined text-sm">history</span>
+                    Last Updated: Nov 01, 2026 08:00 AM UTC
+                </div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="lg:col-span-2 space-y-4">
+<h3 class="text-lg font-bold text-primary flex items-center gap-2">
+<span class="material-symbols-outlined">auto_awesome</span>
+                        Executive Summary
+                    </h3>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed text-lg">
+                        October 2026 marked a pivotal shift in ecosystem efficiency with the general availability of the <span class="text-slate-900 dark:text-white font-semibold">Nexus-7</span> orchestration model. We observed a <span class="text-primary font-bold">15% surge</span> in autonomous task completion, primarily driven by improved cross-agent resource sharing. Orchestration latency dropped by 120ms on average, while token-to-output ratios hit an all-time high of 0.94. Operational costs stabilized despite increased request volume, confirming the efficacy of the new dynamic routing protocols.
+                    </p>
+</div>
+<div class="bg-primary/5 border border-primary/20 rounded-xl p-6 flex flex-col justify-center">
+<span class="text-xs font-bold uppercase tracking-widest text-primary mb-2">Month-over-Month</span>
+<div class="text-3xl font-black text-slate-900 dark:text-white">+24.2%</div>
+<p class="text-sm text-slate-500">Increase in total autonomous orchestration volume compared to September.</p>
+</div>
+</div>
+</section>
+<!-- Key Performance Metrics -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-surface-dark border border-border-dark p-8 rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl">payments</span>
+</div>
+<p class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-2">Total Value Created</p>
+<div class="text-4xl font-black text-white">$1,240,000</div>
+<div class="mt-4 flex items-center gap-2 text-emerald-500 font-bold text-sm">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                    +12.4% vs last month
+                </div>
+</div>
+<div class="bg-surface-dark border border-border-dark p-8 rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl">verified</span>
+</div>
+<p class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-2">Aggregated Accuracy</p>
+<div class="text-4xl font-black text-white">94.8%</div>
+<div class="mt-4 flex items-center gap-2 text-emerald-500 font-bold text-sm">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                    +2.1% grounding score
+                </div>
+</div>
+<div class="bg-surface-dark border border-border-dark p-8 rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl">savings</span>
+</div>
+<p class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-2">Ecosystem Savings</p>
+<div class="text-4xl font-black text-white">$340,500</div>
+<div class="mt-4 flex items-center gap-2 text-emerald-500 font-bold text-sm">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                    +8.7% API offset
+                </div>
+</div>
+</section>
+<!-- Charts & Governance -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Cost & Token Efficiency Chart -->
+<div class="lg:col-span-2 bg-surface-dark border border-border-dark rounded-xl p-8 flex flex-col">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h4 class="text-xl font-bold text-white">Cost &amp; Token Efficiency</h4>
+<p class="text-sm text-slate-500">Daily token usage relative to monthly budget</p>
+</div>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<span class="text-xs text-slate-400 uppercase">Usage</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-slate-600"></div>
+<span class="text-xs text-slate-400 uppercase">Budget</span>
+</div>
+</div>
+</div>
+<!-- Mock Chart Visualization -->
+<div class="relative h-64 w-full flex items-end gap-1">
+<!-- Usage bars/lines simulation -->
+<div class="flex-1 bg-slate-800/50 rounded-t h-[60%] relative group">
+<div class="absolute bottom-0 w-full bg-primary/40 rounded-t h-[80%] group-hover:bg-primary transition-colors"></div>
+</div>
+<div class="flex-1 bg-slate-800/50 rounded-t h-[60%] relative group">
+<div class="absolute bottom-0 w-full bg-primary/40 rounded-t h-[75%] group-hover:bg-primary transition-colors"></div>
+</div>
+<div class="flex-1 bg-slate-800/50 rounded-t h-[60%] relative group">
+<div class="absolute bottom-0 w-full bg-primary/40 rounded-t h-[90%] group-hover:bg-primary transition-colors"></div>
+</div>
+<div class="flex-1 bg-slate-800/50 rounded-t h-[60%] relative group">
+<div class="absolute bottom-0 w-full bg-primary/40 rounded-t h-[110%] bg-red-500/50 group-hover:bg-red-500 transition-colors"></div>
+</div>
+<div class="flex-1 bg-slate-800/50 rounded-t h-[60%] relative group">
+<div class="absolute bottom-0 w-full bg-primary/40 rounded-t h-[85%] group-hover:bg-primary transition-colors"></div>
+</div>
+<div class="flex-1 bg-slate-800/50 rounded-t h-[60%] relative group">
+<div class="absolute bottom-0 w-full bg-primary/40 rounded-t h-[70%] group-hover:bg-primary transition-colors"></div>
+</div>
+<div class="flex-1 bg-slate-800/50 rounded-t h-[60%] relative group">
+<div class="absolute bottom-0 w-full bg-primary/40 rounded-t h-[60%] group-hover:bg-primary transition-colors"></div>
+</div>
+<!-- Budget line overlay -->
+<div class="absolute w-full h-[1px] bg-slate-600 top-[40%] border-t border-dashed border-slate-500"></div>
+</div>
+<div class="mt-6 flex justify-between text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+<span>Oct 01</span>
+<span>Oct 08</span>
+<span>Oct 15</span>
+<span>Oct 22</span>
+<span>Oct 31</span>
+</div>
+</div>
+<!-- Governance & Compliance Board -->
+<div class="bg-surface-dark border border-border-dark rounded-xl p-8 space-y-8">
+<div>
+<h4 class="text-xl font-bold text-white mb-1">Compliance Board</h4>
+<p class="text-sm text-slate-500">Governance &amp; framework status</p>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 rounded-lg bg-background-dark border border-border-dark">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-emerald-500">verified_user</span>
+<span class="font-semibold text-slate-300">SOC2 Type II</span>
+</div>
+<span class="px-2 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black rounded uppercase">Compliant</span>
+</div>
+<div class="flex items-center justify-between p-4 rounded-lg bg-background-dark border border-border-dark">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-emerald-500">policy</span>
+<span class="font-semibold text-slate-300">GDPR Compliance</span>
+</div>
+<span class="px-2 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black rounded uppercase">Compliant</span>
+</div>
+<div class="flex items-center justify-between p-4 rounded-lg bg-background-dark border border-border-dark">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-emerald-500">health_and_safety</span>
+<span class="font-semibold text-slate-300">HIPAA Security</span>
+</div>
+<span class="px-2 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black rounded uppercase">Compliant</span>
+</div>
+</div>
+<div class="pt-4 border-t border-border-dark">
+<div class="flex items-center gap-2 text-xs text-slate-500">
+<span class="material-symbols-outlined text-sm">event_available</span>
+                        Last Audit: Oct 28, 2026
+                    </div>
+</div>
+</div>
+</section>
+<!-- Agent Leaderboard -->
+<section class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden">
+<div class="p-8 border-b border-border-dark flex justify-between items-center">
+<div>
+<h4 class="text-xl font-bold text-white">Top Performing Agents</h4>
+<p class="text-sm text-slate-500">Ranked by operational ROI and grounding accuracy</p>
+</div>
+<button class="text-primary text-sm font-bold hover:underline">View All Agents</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-background-dark/50 text-[10px] font-black uppercase tracking-widest text-slate-500">
+<tr>
+<th class="px-8 py-4">Agent Name</th>
+<th class="px-8 py-4">Model Class</th>
+<th class="px-8 py-4">ROI Efficiency</th>
+<th class="px-8 py-4">Grounding Score</th>
+<th class="px-8 py-4 text-right">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-dark">
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-sm">smart_toy</span>
+</div>
+<span class="font-bold text-white">Nexus-7</span>
+</div>
+</td>
+<td class="px-8 py-5 text-slate-400 text-sm">Orchestration</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<span class="text-emerald-500 font-bold">14.2x</span>
+<div class="w-16 h-1 bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-emerald-500 w-[90%]"></div>
+</div>
+</div>
+</td>
+<td class="px-8 py-5 text-slate-300 font-medium">98.2%</td>
+<td class="px-8 py-5 text-right">
+<span class="inline-block w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-blue-500/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-blue-500 text-sm">shopping_cart</span>
+</div>
+<span class="font-bold text-white">Orbit-Procure</span>
+</div>
+</td>
+<td class="px-8 py-5 text-slate-400 text-sm">Logistics</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<span class="text-emerald-500 font-bold">8.4x</span>
+<div class="w-16 h-1 bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-emerald-500 w-[70%]"></div>
+</div>
+</div>
+</td>
+<td class="px-8 py-5 text-slate-300 font-medium">94.1%</td>
+<td class="px-8 py-5 text-right">
+<span class="inline-block w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-purple-500/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-purple-500 text-sm">query_stats</span>
+</div>
+<span class="font-bold text-white">Vision-Analyst</span>
+</div>
+</td>
+<td class="px-8 py-5 text-slate-400 text-sm">Analytics</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<span class="text-emerald-500 font-bold">11.8x</span>
+<div class="w-16 h-1 bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-emerald-500 w-[85%]"></div>
+</div>
+</div>
+</td>
+<td class="px-8 py-5 text-slate-300 font-medium">96.7%</td>
+<td class="px-8 py-5 text-right">
+<span class="inline-block w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Safe Ops & Recommendations -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Safe Ops Summary -->
+<div class="space-y-6">
+<h4 class="text-2xl font-bold text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">security</span>
+                    Safe Ops Summary
+                </h4>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<div class="bg-surface-dark border border-border-dark p-6 rounded-xl text-center">
+<div class="text-xs font-black text-slate-500 uppercase tracking-tighter mb-2">Circuit Breakers</div>
+<div class="text-3xl font-black text-white">2</div>
+<div class="text-[10px] text-slate-400 mt-2">Active Trips</div>
+</div>
+<div class="bg-surface-dark border border-border-dark p-6 rounded-xl text-center">
+<div class="text-xs font-black text-slate-500 uppercase tracking-tighter mb-2">Avg Resp Time</div>
+<div class="text-3xl font-black text-white">4m</div>
+<div class="text-[10px] text-slate-400 mt-2">Target &lt; 5m</div>
+</div>
+<div class="bg-surface-dark border border-border-dark p-6 rounded-xl text-center">
+<div class="text-xs font-black text-slate-500 uppercase tracking-tighter mb-2">System Uptime</div>
+<div class="text-3xl font-black text-emerald-500">99.98%</div>
+<div class="text-[10px] text-slate-400 mt-2">Critical SLA Met</div>
+</div>
+</div>
+<div class="p-4 bg-primary/5 border border-primary/20 rounded-lg flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-xl">info</span>
+<p class="text-sm text-slate-400 leading-snug">
+                        System stability remains high. Two circuit breakers were triggered during the Oct 14 peak load to protect agent inference latency. Manual resolution was completed in 120s.
+                    </p>
+</div>
+</div>
+<!-- Strategic Recommendations -->
+<div class="space-y-6">
+<h4 class="text-2xl font-bold text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">lightbulb</span>
+                    Strategic Recommendations
+                </h4>
+<div class="space-y-4">
+<div class="bg-surface-dark border-l-4 border-primary p-6 rounded-r-xl rounded-l-none">
+<div class="flex justify-between items-start mb-2">
+<span class="font-bold text-white">Optimize Token Consumption</span>
+<span class="px-2 py-0.5 bg-primary/20 text-primary text-[10px] font-black rounded uppercase">High Priority</span>
+</div>
+<p class="text-sm text-slate-400">Implement dynamic context pruning for 'Nexus-7' agents to reduce redundant token usage in long-running threads.</p>
+</div>
+<div class="bg-surface-dark border-l-4 border-slate-600 p-6 rounded-r-xl rounded-l-none">
+<div class="flex justify-between items-start mb-2">
+<span class="font-bold text-white">Agent Grounding Expansion</span>
+<span class="px-2 py-0.5 bg-slate-800 text-slate-400 text-[10px] font-black rounded uppercase">Medium</span>
+</div>
+<p class="text-sm text-slate-400">Expand local RAG datasets for 'Orbit-Procure' to improve accuracy in regional logistics compliance reporting.</p>
+</div>
+<div class="bg-surface-dark border-l-4 border-slate-600 p-6 rounded-r-xl rounded-l-none">
+<div class="flex justify-between items-start mb-2">
+<span class="font-bold text-white">Latency Mitigation</span>
+<span class="px-2 py-0.5 bg-slate-800 text-slate-400 text-[10px] font-black rounded uppercase">Medium</span>
+</div>
+<p class="text-sm text-slate-400">Deploy edge-caching for frequently accessed embedding vectors to further reduce orchestration time.</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="max-w-7xl mx-auto px-6 lg:px-20 py-12 border-t border-border-dark mt-20">
+<div class="flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-2 text-slate-500">
+<span class="material-symbols-outlined text-lg">deployed_code</span>
+<span class="text-sm font-bold tracking-widest uppercase">Reach Orchestration Platform</span>
+</div>
+<div class="flex gap-8 text-sm text-slate-500">
+<a class="hover:text-primary transition-colors" href="#">Documentation</a>
+<a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-primary transition-colors" href="#">Security Overview</a>
+</div>
+<div class="text-slate-600 text-xs">
+                © 2026 Reach Systems Inc. All rights reserved.
+            </div>
+</div>
+</footer>
+</body></html>
