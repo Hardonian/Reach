@@ -1,0 +1,53 @@
+{
+  "tenant": {
+    "id": "t_demo_01",
+    "name": "Acme Agentic Labs",
+    "slug": "acme-labs"
+  },
+  "users": [
+    { "id": "u_demo_01", "name": "Alice Architect", "email": "alice@acme.example" },
+    { "id": "u_demo_02", "name": "Bob Builder", "email": "bob@acme.example" }
+  ],
+  "packs": [
+    {
+      "id": "pck_financial_01",
+      "name": "Financial Integrity Pack",
+      "category": "safety",
+      "tools": ["ledger_read", "ledger_write", "currency_convert"],
+      "shortDescription": "Ensures double-entry integrity for all agent transactions."
+    },
+    {
+      "id": "pck_security_01",
+      "name": "Jailbreak Defense Pack",
+      "category": "safety",
+      "tools": ["input_sanitize", "threat_eval"],
+      "shortDescription": "Hardens agents against prompt injection and unauthorized escalation."
+    }
+  ],
+  "runs": [
+    {
+      "id": "run_001",
+      "timestamp": "2026-02-21T10:00:00Z",
+      "status": "pass",
+      "score": 100,
+      "agent": "SupportBot-V2",
+      "summary": "Full regression suite passed. All tool calls within budget."
+    },
+    {
+      "id": "run_002",
+      "timestamp": "2026-02-21T10:30:00Z",
+      "status": "fail",
+      "score": 45,
+      "agent": "SupportBot-V2",
+      "summary": "Critical policy breach detected: attempted write to root directory.",
+      "findings": [
+        {
+          "severity": "high",
+          "title": "Unauthorized Write Attempt",
+          "detail": "Agent attempted to call `fs_write` on `/etc/shadow`.",
+          "fix": "Update policy gate `p_fs_01` to restrict paths to `./storage/*`."
+        }
+      ]
+    }
+  ]
+}

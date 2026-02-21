@@ -237,3 +237,38 @@ export function clearSessionCookie(res: NextResponse): NextResponse {
   res.cookies.set(cookieName, '', { maxAge: 0, path: '/' });
   return res;
 }
+
+/**
+ * Require a CI token (API key) with a specific scope.
+ * Used by /api/ci/ingest and /api/monitor/ingest endpoints.
+ * Scope values: 'ingest_runs', 'read_reports', 'manage_gates'
+ */
+export async function requireCiAuth(req: NextRequest, scope: string): Promise<AuthContext | NextResponse> {
+  const corrId = correlationId();
+  try {
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer rk_')) {
+      return cloudErrorResponse('CI token required. Set Authorization: Bearer <rk_...>', 401, corrId);
+    }
+    const rawKey = authHeader.slice(7);
+    const result = lookupApiKey(rawKey);
+    if (!result) return cloudErrorResponse('Invalid or revoked CI token', 401, corrId);
+
+    const { key, tenant } = result;
+    // Check scope: key must have the required scope or wildcard '*'
+    if (!key.scopes.includes('*') && !key.scopes.includes(scope)) {
+      return cloudErrorResponse(`Token missing required scope: ${scope}`, 403, corrId);
+    }
+
+    const user = getUserById(key.user_id);
+    if (!user) return cloudErrorResponse('User not found', 401, corrId);
+    const membership = getMembership(tenant.id, key.user_id);
+    return { userId: key.user_id, tenantId: tenant.id, role: membership?.role ?? 'member', user, tenant, correlationId: corrId };
+  } catch (err) {
+    if (err instanceof CloudDisabledError) {
+      return cloudErrorResponse('Cloud features are disabled', 503, corrId);
+    }
+    logger.error('CI auth error', err);
+    return cloudErrorResponse('Authentication error', 500, corrId);
+  }
+}

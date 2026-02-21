@@ -27,6 +27,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/studio',
     '/dashboard',
     '/governance',
+    '/legal',
+    '/legal/privacy',
+    '/legal/terms',
+    '/legal/cookies',
+    '/security',
+    '/transparency',
+    '/responsible-disclosure',
+    '/pricing',
   ];
 
   return routes.map((route) => ({

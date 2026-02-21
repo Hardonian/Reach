@@ -262,7 +262,7 @@ export default function PlaygroundPage() {
                   return (
                     <div key={f.id} className="card p-4">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${sev.dot}`} />
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${sev.dot}`} />
                         <span className={`text-xs font-medium ${sev.color}`}>{sev.label}</span>
                         <span className="text-xs text-gray-600">·</span>
                         <span className="text-xs text-gray-500">{f.category}</span>

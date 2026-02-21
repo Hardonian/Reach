@@ -37,8 +37,8 @@ export function HeroMedia({ videoSrc, fallbackSrc, className = '' }: HeroMediaPr
           priority
         />
         {/* Overlay for safe text space */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-background via-background/50 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-background/80 via-transparent to-transparent" />
       </div>
     );
   }
@@ -50,14 +50,15 @@ export function HeroMedia({ videoSrc, fallbackSrc, className = '' }: HeroMediaPr
         muted
         loop
         playsInline
+        preload="auto"
         className="absolute inset-0 w-full h-full object-cover"
         onError={() => setVideoError(true)}
       >
         <source src={videoSrc} type="video/mp4" />
       </video>
       {/* Overlay for safe text space */}
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-t from-background via-background/50 to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-r from-background/80 via-transparent to-transparent" />
     </div>
   );
 }

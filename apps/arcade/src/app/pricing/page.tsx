@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ROUTES } from '@/lib/routes';
 
 const tiers = [
   {
@@ -9,49 +10,48 @@ const tiers = [
     price: 'Free',
     period: '',
     features: [
-      '3 active agents',
-      '1,000 requests/month',
-      'Community support',
+      'Unlimited local runs',
+      '5 Cloud Reports / mo',
+      'Public Library access',
       'Basic analytics',
-      'Shared infrastructure',
+      'Community support',
     ],
-    cta: 'Get Started',
-    href: '/studio',
+    cta: 'Run demo (free)',
+    href: ROUTES.PLAYGROUND,
     highlighted: false,
   },
   {
-    name: 'Professional',
-    description: 'For growing teams',
+    name: 'Pro',
+    description: 'For teams bridging build and run',
     price: 'Usage-based',
-    period: 'per request',
+    period: 'with $29 base',
     features: [
-      'Unlimited agents',
-      'Pay per request',
-      'Priority support',
-      'Advanced analytics',
-      'Custom domains',
+      'Unlimited Cloud Reports',
+      'Private Skill Packs',
+      'Advanced Simulation compute',
+      'Drift Guard alerts',
       'Team collaboration',
+      'Priority support',
     ],
-    cta: 'Start Free Trial',
-    href: '/studio',
+    cta: 'Get started — free',
+    href: ROUTES.REGISTER,
     highlighted: true,
   },
   {
     name: 'Enterprise',
-    description: 'For organizations at scale',
+    description: 'For mission-critical reliability',
     price: 'Custom',
-    period: 'contact us',
+    period: 'contact sales',
     features: [
       'Everything in Pro',
-      'Dedicated infrastructure',
-      'SLA guarantees',
-      'SSO & SAML',
-      'Audit logs',
-      'Custom contracts',
-      'Dedicated support',
+      'Agent Contracts & SLAs',
+      'SOC2 Audit Artifacts',
+      'Dedicated Infrastructure',
+      'Single-tenant data isolation',
+      '24/7 Premium support',
     ],
-    cta: 'Contact Sales',
-    href: '/contact',
+    cta: 'Talk to us',
+    href: ROUTES.CONTACT,
     highlighted: false,
   },
 ];
@@ -101,7 +101,7 @@ export default function Pricing() {
             <ul className="space-y-3 mb-8 flex-1">
               {tier.features.map((feature) => (
                 <li key={feature} className="flex items-start gap-3 text-sm">
-                  <svg className="w-5 h-5 text-emerald-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5 text-emerald-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                   <span className="text-gray-300">{feature}</span>

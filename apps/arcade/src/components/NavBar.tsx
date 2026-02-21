@@ -13,9 +13,12 @@ const primaryNav = [
   { href: ROUTES.TOOLS, label: 'Tools' },
   { href: ROUTES.STUDIO, label: 'Studio' },
   { href: ROUTES.TEMPLATES, label: 'Templates' },
+  { href: ROUTES.LIBRARY, label: 'Build (Library)' },
+  { href: ROUTES.REPORTS, label: 'Run (Reports)' },
+  { href: ROUTES.SIMULATE, label: 'Simulation' },
   { href: ROUTES.DOCS, label: 'Docs' },
   { href: ROUTES.PRICING, label: 'Pricing' },
-  { href: ROUTES.MARKETPLACE, label: 'Marketplace' },
+  { href: ROUTES.SETTINGS.HOME, label: 'Manage' },
 ];
 
 export function NavBar() {
@@ -64,7 +67,7 @@ export function NavBar() {
               className="btn-primary text-sm py-2 px-4"
               onClick={() => track('cta_clicked', { source: 'navbar', cta: 'run_demo' })}
             >
-              Run a demo (free)
+              Run demo (free)
             </Link>
           </div>
 
@@ -107,7 +110,7 @@ export function NavBar() {
                   Sign in
                 </Link>
                 <Link href={ROUTES.PLAYGROUND} className="btn-primary text-center text-sm py-2">
-                  Run a demo (free)
+                  Run demo (free)
                 </Link>
               </div>
             </div>

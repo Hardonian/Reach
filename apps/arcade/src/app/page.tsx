@@ -16,8 +16,25 @@ export default async function Home({ searchParams }: HomePageProps) {
   const primaryCaps = CAPABILITIES.filter((c) => c.primary);
   const extraCaps = CAPABILITIES.filter((c) => !c.primary);
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'ReadyLayer',
+    url: 'https://reach.dev',
+    description: 'Global orchestration platform for distributed AI agents.',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: 'https://reach.dev/marketplace?q={search_term_string}',
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero Section */}
       <section className="relative min-h-[85vh] flex items-center">
         <HeroMedia
@@ -34,17 +51,11 @@ export default async function Home({ searchParams }: HomePageProps) {
             </div>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 leading-tight">
-              {variant === 'A' ? (
-                <>
-                  Ship reliable{' '}
-                  <span className="text-gradient">AI agents.</span>
-                </>
-              ) : (
-                <>
-                  Your agent is smart.{' '}
-                  <span className="text-gradient">Is it shippable?</span>
-                </>
-              )}
+              {hero.headline.split('.').map((part, i, arr) => (
+                <span key={i} className={i === arr.length - 1 ? 'text-gradient' : ''}>
+                  {part}{i < arr.length - 1 ? '.' : ''}{' '}
+                </span>
+              ))}
             </h1>
 
             <p className="text-xl text-gray-400 mb-3 max-w-2xl">
@@ -180,7 +191,7 @@ export default async function Home({ searchParams }: HomePageProps) {
 
       {/* Final CTA */}
       <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-accent/5 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-b from-accent/5 to-transparent" />
         <div className="section-container relative z-10">
           <div className="card max-w-3xl mx-auto text-center p-12 gradient-border">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">

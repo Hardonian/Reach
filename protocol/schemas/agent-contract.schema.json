@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AgentContract",
+  "type": "object",
+  "properties": {
+    "contractId": { "type": "string", "pattern": "^act_" },
+    "version": { "type": "string" },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "author": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "behavioralGuarantees": {
+      "type": "object",
+      "properties": {
+        "determinism": { "type": "string", "enum": ["none", "loose", "strict"] },
+        "maxDriftScore": { "type": "number", "minimum": 0, "maximum": 1 },
+        "retryPolicy": {
+          "type": "object",
+          "properties": {
+            "maxAttempts": { "type": "integer" },
+            "backoffMs": { "type": "integer" }
+          }
+        }
+      }
+    },
+    "toolConstraints": {
+      "type": "object",
+      "properties": {
+        "allowedTools": { "type": "array", "items": { "type": "string" } },
+        "deniedTools": { "type": "array", "items": { "type": "string" } },
+        "requiredPermissions": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "economicMoats": {
+      "type": "object",
+      "properties": {
+        "maxBudgetPerRun": { "type": "number" },
+        "currency": { "type": "string", "default": "USD" },
+        "autoHaltOnBreach": { "type": "boolean", "default": true }
+      }
+    },
+    "sla": {
+      "type": "object",
+      "properties": {
+        "latencyMaxMs": { "type": "integer" },
+        "availabilityMin": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  },
+  "required": ["contractId", "version", "toolConstraints"]
+}

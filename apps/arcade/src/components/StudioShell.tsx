@@ -12,16 +12,20 @@ import {
 } from '@/lib/studio-utils';
 
 const sections = [
+  // --- BUILD ---
   'Dashboard',
-  'Packs',
-  'Runs',
-  'Graph',
-  'Replay/Time Travel',
-  'Federation',
-  'Marketplace',
-  'Arena',
+  'Packs (Build)',
   'Playground',
+  'Library',
+  // --- RUN ---
+  'Reports (Recent)',
+  'Lineage (Traces)',
+  'Arena (Simulate)',
+  'Graph (Map)',
+  // --- MANAGE ---
+  'Federation',
   'Support',
+  'Settings',
 ] as const;
 
 type Section = (typeof sections)[number];
@@ -138,7 +142,7 @@ export function StudioShell() {
       data.stderr ? `stderr:\n${data.stderr}` : '',
     ].filter(Boolean).join('\n\n'));
     await persistState(manifest, nextHistory);
-    if (command === 'capsule.create') {
+    if (command === 'report.create') {
       await refreshRunInventory();
     }
     setBusy(false);
@@ -192,9 +196,9 @@ export function StudioShell() {
           </>
         )}
 
-        {active === 'Packs' && (
+        {active === 'Packs (Build)' && (
           <>
-            <h2>Packs</h2>
+            <h2>Packs (Build)</h2>
             <p>Create, validate, and sign governed packs using existing CLI semantics.</p>
             <div style={{ display: 'grid', gap: 8, margin: '12px 0' }}>
               <label>
@@ -225,19 +229,31 @@ export function StudioShell() {
           </>
         )}
 
-        {active === 'Runs' && (
+        {active === 'Library' && (
           <>
-            <h2>Runs</h2>
-            <p>Selected run: {selectedRun || 'none'}. Capsule and proof actions bind to this run selection.</p>
+            <h2>Library</h2>
+            <p>Git-backed registry browser with verification-first install path.</p>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button disabled={busy} onClick={() => runCommand('runs.list')}>Operator summary</button>
-              <button disabled={busy || !selectedRun} onClick={() => runCommand('runs.explain')}>Explain this run</button>
-              <button disabled={busy || !selectedRun} onClick={() => runCommand('capsule.create')}>Create capsule</button>
+              <button disabled={busy} onClick={() => runCommand('marketplace.search')}>Search</button>
+              <button disabled={busy} onClick={() => runCommand('marketplace.install')}>Install</button>
+              <button disabled={busy} onClick={() => runCommand('packs.verify')}>Verify</button>
             </div>
           </>
         )}
 
-        {active === 'Graph' && (
+        {active === 'Reports (Recent)' && (
+          <>
+            <h2>Reports (Recent)</h2>
+            <p>Selected run: {selectedRun || 'none'}. Report and proof actions bind to this run selection.</p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button disabled={busy} onClick={() => runCommand('runs.list')}>Operator summary</button>
+              <button disabled={busy || !selectedRun} onClick={() => runCommand('runs.explain')}>Explain this run</button>
+              <button disabled={busy || !selectedRun} onClick={() => runCommand('report.create')}>Create report</button>
+            </div>
+          </>
+        )}
+
+        {active === 'Graph (Map)' && (
           <>
             <h2>Graph</h2>
             <p>Workflow overlay markers:</p>
@@ -251,17 +267,20 @@ export function StudioShell() {
           </>
         )}
 
-        {active === 'Replay/Time Travel' && (
+        {active === 'Lineage (Traces)' && (
           <>
-            <h2>Replay / Time Travel</h2>
+            <h2>Lineage (Traces)</h2>
+            <p>Combined audit log and execution trace view for side-by-side verification.</p>
             <label>
               Step
               <input type="range" min={0} max={sampleRunA.length - 1} value={stepIndex} onChange={(e) => setStepIndex(Number(e.target.value))} />
             </label>
-            <pre>{JSON.stringify(sampleRunA[stepIndex], null, 2)}</pre>
-            <p>Compare run A vs B: {eventDiff.length} mismatch(es).</p>
-            <button disabled={busy} onClick={() => runCommand('replay.verify')}>Verify replay</button>
-            <button disabled={busy} onClick={() => runCommand('capsule.replay')}>Replay capsule</button>
+            <pre style={{ fontSize: 11, background: '#050505', padding: 8 }}>{JSON.stringify(sampleRunA[stepIndex], null, 2)}</pre>
+            <p>Reviewing run A vs B: {eventDiff.length} mismatch(es).</p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button disabled={busy} onClick={() => runCommand('replay.verify')}>Verify lineage</button>
+              <button disabled={busy} onClick={() => runCommand('report.replay')}>Replay report</button>
+            </div>
           </>
         )}
 
@@ -283,21 +302,11 @@ export function StudioShell() {
           </>
         )}
 
-        {active === 'Marketplace' && (
-          <>
-            <h2>Marketplace</h2>
-            <p>Git-backed registry browser with verification-first install path.</p>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button disabled={busy} onClick={() => runCommand('marketplace.search')}>Search</button>
-              <button disabled={busy} onClick={() => runCommand('marketplace.install')}>Install</button>
-              <button disabled={busy} onClick={() => runCommand('packs.verify')}>Verify</button>
-            </div>
-          </>
-        )}
 
-        {active === 'Arena' && (
+
+        {active === 'Arena (Simulate)' && (
           <>
-            <h2>Arena</h2>
+            <h2>Arena (Simulation)</h2>
             <p>Scenario: arcadeSafe baseline</p>
             <p>Deterministic score: {arenaScore.toFixed(2)}</p>
             <button disabled={busy} onClick={() => runCommand('arena.run')}>Run comparison</button>
@@ -319,6 +328,17 @@ export function StudioShell() {
             <div style={{ display: 'flex', gap: 8 }}>
               <a href="/support">Open support chat</a>
               <button disabled={busy || !selectedRun} onClick={() => runCommand('proof.verify')}>Generate verification report</button>
+            </div>
+          </>
+        )}
+
+        {active === 'Settings' && (
+          <>
+            <h2>Settings</h2>
+            <p>Manage infrastructure keys, tenant policies, and release gate thresholds.</p>
+            <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
+              <button disabled={busy} onClick={() => runCommand('config.view')}>View current config</button>
+              <button disabled={busy} onClick={() => runCommand('config.validate')}>Validate local environment</button>
             </div>
           </>
         )}

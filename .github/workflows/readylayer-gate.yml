@@ -1,0 +1,156 @@
+# ReadyLayer Gate — CI/CD workflow for agent readiness checks.
+#
+# PURPOSE: Block merges when agent readiness checks fail.
+# SETUP:
+#   1. Create a Gate at https://app.readylayer.com/settings/release-gates
+#   2. Add these secrets to your repository:
+#      - READYLAYER_API_KEY: your ReadyLayer API key (Settings > API Keys)
+#      - READYLAYER_GATE_ID: the Gate ID from your release gate
+#      - READYLAYER_BASE_URL: your ReadyLayer instance URL (default: https://app.readylayer.com)
+#
+# This workflow:
+#   - Ingests CI run metadata + artifacts into ReadyLayer
+#   - Triggers your configured gate
+#   - Polls until complete and fails the job if NEEDS ATTENTION
+
+name: ReadyLayer Gate
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  readylayer-gate:
+    name: Agent readiness check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Optional: run your own eval suite and collect artifacts
+      # - name: Run eval suite
+      #   run: npm run eval
+      #   env:
+      #     OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+      - name: Ingest CI artifacts
+        id: ingest
+        env:
+          READYLAYER_API_KEY: ${{ secrets.READYLAYER_API_KEY }}
+          READYLAYER_BASE_URL: ${{ secrets.READYLAYER_BASE_URL || 'https://app.readylayer.com' }}
+          READYLAYER_GATE_ID: ${{ secrets.READYLAYER_GATE_ID }}
+        run: |
+          # Determine commit SHA and branch
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            COMMIT_SHA="${{ github.event.pull_request.head.sha }}"
+            BRANCH="${{ github.head_ref }}"
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+          else
+            COMMIT_SHA="${{ github.sha }}"
+            BRANCH="${{ github.ref_name }}"
+            PR_NUMBER=""
+          fi
+
+          # Ingest CI run
+          INGEST_PAYLOAD=$(jq -n \
+            --arg sha "$COMMIT_SHA" \
+            --arg branch "$BRANCH" \
+            --arg actor "${{ github.actor }}" \
+            --arg gate_id "${READYLAYER_GATE_ID:-}" \
+            --argjson pr_number "${PR_NUMBER:-null}" \
+            '{
+              commit_sha: $sha,
+              branch: $branch,
+              actor: $actor,
+              ci_provider: "github",
+              gate_id: (if $gate_id == "" then null else $gate_id end),
+              pr_number: $pr_number,
+              run_metadata: {
+                workflow: "${{ github.workflow }}",
+                run_id: "${{ github.run_id }}",
+                repository: "${{ github.repository }}"
+              }
+            }')
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST "${READYLAYER_BASE_URL}/api/ci/ingest" \
+            -H "Authorization: Bearer ${READYLAYER_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "$INGEST_PAYLOAD")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+
+          if [ "$HTTP_CODE" != "202" ]; then
+            echo "::warning::ReadyLayer ingest failed (HTTP $HTTP_CODE). Continuing..."
+            echo "gate_run_id=" >> "$GITHUB_OUTPUT"
+          else
+            GATE_RUN_ID=$(echo "$BODY" | jq -r '.gate_run_id // empty')
+            echo "gate_run_id=${GATE_RUN_ID}" >> "$GITHUB_OUTPUT"
+            echo "ingest_run_id=$(echo $BODY | jq -r '.ingest_run_id')" >> "$GITHUB_OUTPUT"
+            echo "::notice::ReadyLayer ingest accepted. Gate run: ${GATE_RUN_ID:-none}"
+          fi
+
+      - name: Wait for gate result
+        if: steps.ingest.outputs.gate_run_id != ''
+        id: gate_result
+        env:
+          READYLAYER_API_KEY: ${{ secrets.READYLAYER_API_KEY }}
+          READYLAYER_BASE_URL: ${{ secrets.READYLAYER_BASE_URL || 'https://app.readylayer.com' }}
+        run: |
+          GATE_RUN_ID="${{ steps.ingest.outputs.gate_run_id }}"
+          MAX_ATTEMPTS=30
+          ATTEMPT=0
+          VERDICT="running"
+
+          while [ "$VERDICT" = "running" ] && [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            sleep 5
+            ATTEMPT=$((ATTEMPT + 1))
+
+            RESPONSE=$(curl -s \
+              "${READYLAYER_BASE_URL}/api/v1/reports/${GATE_RUN_ID}" \
+              -H "Authorization: Bearer ${READYLAYER_API_KEY}")
+
+            VERDICT=$(echo "$RESPONSE" | jq -r '.status // "running"')
+            echo "Attempt $ATTEMPT/$MAX_ATTEMPTS: status=$VERDICT"
+          done
+
+          REPORT_VERDICT=$(echo "$RESPONSE" | jq -r '.report.verdict // .status')
+          SUMMARY=$(echo "$RESPONSE" | jq -r '.report.summary // "Gate check complete."')
+          REPORT_URL=$(echo "$RESPONSE" | jq -r '.report.report_url // ""')
+
+          echo "verdict=$REPORT_VERDICT" >> "$GITHUB_OUTPUT"
+          echo "summary=$SUMMARY" >> "$GITHUB_OUTPUT"
+          echo "report_url=$REPORT_URL" >> "$GITHUB_OUTPUT"
+
+          # Print findings
+          echo "$RESPONSE" | jq -r '.report.findings[]? | "::warning::\(.rule): \(.message) — Fix: \(.fix)"'
+
+          if [ "$REPORT_VERDICT" = "passed" ]; then
+            echo "::notice::ReadyLayer gate PASSED: $SUMMARY"
+          else
+            echo "::error::ReadyLayer gate NEEDS ATTENTION: $SUMMARY"
+            if [ -n "$REPORT_URL" ]; then
+              echo "::error::Full report: $REPORT_URL"
+            fi
+            exit 1
+          fi
+
+      - name: Gate skipped notice
+        if: steps.ingest.outputs.gate_run_id == ''
+        run: |
+          echo "::notice::ReadyLayer gate skipped (no gate_run_id). Configure READYLAYER_GATE_ID to enable blocking."

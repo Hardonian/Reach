@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   trailingSlash: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  experimental: {
+    optimizePackageImports: ['@heroicons/react', 'lucide-react', 'framer-motion'],
+  },
 };
 
 export default nextConfig;

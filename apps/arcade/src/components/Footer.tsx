@@ -28,11 +28,10 @@ export function Footer() {
             <h4 className="font-semibold mb-4">Product</h4>
             <ul className="space-y-2 text-sm text-gray-400">
               <li><Link href={ROUTES.PLAYGROUND} className="hover:text-white transition-colors">Playground</Link></li>
-              <li><Link href={ROUTES.STUDIO} className="hover:text-white transition-colors">Studio</Link></li>
+              <li><Link href={ROUTES.LAB} className="hover:text-white transition-colors">Lab</Link></li>
               <li><Link href={ROUTES.TEMPLATES} className="hover:text-white transition-colors">Templates</Link></li>
               <li><Link href={ROUTES.DOCS} className="hover:text-white transition-colors">Docs</Link></li>
               <li><Link href={ROUTES.PRICING} className="hover:text-white transition-colors">Pricing</Link></li>
-              <li><Link href={ROUTES.MARKETPLACE} className="hover:text-white transition-colors">Marketplace</Link></li>
             </ul>
           </div>
 
@@ -53,9 +52,9 @@ export function Footer() {
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
           <p suppressHydrationWarning>&copy; {new Date().getFullYear()} {BRAND_NAME}. All rights reserved.</p>
           <div className="flex gap-6">
-            <Link href={ROUTES.LEGAL.PRIVACY} className="hover:text-white transition-colors">Privacy</Link>
-            <Link href={ROUTES.LEGAL.TERMS} className="hover:text-white transition-colors">Terms</Link>
-            <Link href={ROUTES.LEGAL.COOKIES} className="hover:text-white transition-colors">Cookies</Link>
+            <Link href={ROUTES.TRUST.HOME} className="hover:text-white transition-colors">Trust Center</Link>
+            <Link href={ROUTES.TRUST.PRIVACY} className="hover:text-white transition-colors">Privacy</Link>
+            <Link href={ROUTES.TRUST.TERMS} className="hover:text-white transition-colors">Terms</Link>
           </div>
         </div>
       </div>
