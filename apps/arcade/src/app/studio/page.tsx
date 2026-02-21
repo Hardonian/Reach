@@ -74,7 +74,7 @@ function PipelineView({
 }) {
   return (
     <div className="relative min-h-[400px] p-8 bg-surface/30 rounded-xl border border-border overflow-x-auto">
-      <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ minWidth: '600px' }}>
+      <svg className="absolute inset-0 w-full h-full pointer-events-none min-w-[600px]">
         {connections.map((conn, i) => {
           const fromIndex = stages.findIndex((s) => s.id === conn.from);
           const toIndex = stages.findIndex((s) => s.id === conn.to);
