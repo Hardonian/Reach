@@ -19,11 +19,13 @@ export function ConsoleLayout({ children }: ConsoleLayoutProps) {
     { href: ROUTES.CONSOLE.RUNNERS, label: 'Runners', icon: 'executor' },
     { href: ROUTES.CONSOLE.TRACES, label: 'Traces', icon: 'analytics' },
     { href: ROUTES.CONSOLE.EVALUATION.HOME, label: 'Evaluation', icon: 'rule' },
+    { href: ROUTES.CONSOLE.SAFETY, label: 'Safety', icon: 'security' },
     { href: ROUTES.CONSOLE.GOVERNANCE.HOME, label: 'Governance', icon: 'gavel' },
     { href: ROUTES.CONSOLE.DATASETS, label: 'Datasets', icon: 'database' },
     { href: ROUTES.CONSOLE.COST.HOME, label: 'Cost', icon: 'payments' },
-    { href: ROUTES.CONSOLE.ALERTS, label: 'Alerts', icon: 'notifications' },
+    { href: ROUTES.CONSOLE.BILLING, label: 'Billing', icon: 'receipt_long' },
     { href: ROUTES.CONSOLE.ECOSYSTEM.HOME, label: 'Ecosystem', icon: 'hub' },
+    { href: ROUTES.CONSOLE.NAV, label: 'Master Nav', icon: 'map' },
   ];
 
   return (

@@ -11,6 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies, headers } from 'next/headers';
 import { env } from './env';
 import { logger } from './logger';
 import {
@@ -141,6 +142,55 @@ export async function resolveAuth(req: NextRequest, tenantIdOverride?: string): 
     }
     logger.error('Authentication error', err, { url: req.url }, corrId);
     return cloudErrorResponse('Internal authentication error', 500, corrId);
+  }
+}
+
+/**
+ * RSC-compatible auth resolver.
+ * Uses next/headers to pull cookies/headers automatically.
+ */
+export async function getServerAuth(): Promise<AuthContext | null> {
+  const cookieStore = await cookies();
+  const headerStore = await headers();
+  const corrId = correlationId();
+
+  try {
+    // 1. API Key Check
+    const authHeader = headerStore.get('authorization');
+    if (authHeader?.startsWith('Bearer rk_')) {
+      const rawKey = authHeader.slice(7);
+      const result = lookupApiKey(rawKey);
+      if (result) {
+        const { key, tenant } = result;
+        const user = getUserById(key.user_id);
+        if (user) {
+          const membership = getMembership(tenant.id, key.user_id);
+          return { userId: key.user_id, tenantId: tenant.id, role: membership?.role ?? 'member', user, tenant, correlationId: corrId };
+        }
+      }
+    }
+
+    // 2. Session Check
+    const sessionId = cookieStore.get(env.REACH_SESSION_COOKIE_NAME)?.value;
+    if (sessionId) {
+      const session = getSession(sessionId);
+      if (session) {
+        const user = getUserById(session.user_id);
+        const tenantId = session.tenant_id ?? headerStore.get('x-tenant-id') ?? '';
+        const tenant = tenantId ? getTenant(tenantId) : undefined;
+        if (user && tenant) {
+          const membership = getMembership(tenant.id, user.id);
+          if (membership) {
+            return { userId: user.id, tenantId: tenant.id, role: membership.role, user, tenant, correlationId: corrId };
+          }
+        }
+      }
+    }
+
+    return null;
+  } catch (err) {
+    logger.error('getServerAuth error', err);
+    return null;
   }
 }
 
