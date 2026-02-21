@@ -34,9 +34,9 @@ const NodeSchema = z.object({
   id: z.string().min(1),
   type: z.enum(['trigger', 'agent', 'rag_query', 'tool_call', 'validation', 'branch', 'planner', 'output']),
   name: z.string().min(1),
-  inputs: z.record(z.unknown()).default({}),
-  config: z.record(z.unknown()).default({}),
-  outputs: z.record(z.unknown()).default({}),
+  inputs: z.record(z.string(), z.unknown()).default({}),
+  config: z.record(z.string(), z.unknown()).default({}),
+  outputs: z.record(z.string(), z.unknown()).default({}),
   position: z.object({ x: z.number(), y: z.number() }).optional(),
 });
 
@@ -44,12 +44,12 @@ const EdgeSchema = z.object({
   id: z.string().optional(),
   from: z.string().min(1),
   to: z.string().min(1),
-  mapping: z.record(z.string()).optional(),
+  mapping: z.record(z.string(), z.string()).optional(),
 });
 
 const TriggerSchema = z.object({
   type: z.enum(['manual', 'webhook', 'schedule']),
-  config: z.record(z.unknown()).optional(),
+  config: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const GraphSchema = z.object({
@@ -75,7 +75,7 @@ export const UpdateWorkflowSchema = z.object({
 });
 
 export const RunWorkflowSchema = z.object({
-  inputs: z.record(z.unknown()).default({}),
+  inputs: z.record(z.string(), z.unknown()).default({}),
 });
 
 // ── API Keys ──────────────────────────────────────────────────────────────

@@ -34,7 +34,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(RunWorkflowSchema, body);
-  if ('errors' in parsed) return cloudErrorResponse(parsed.errors.errors[0]?.message ?? 'Invalid input', 400);
+  if ('errors' in parsed) return cloudErrorResponse(parsed.errors.issues[0]?.message ?? 'Invalid input', 400);
 
   const run = createWorkflowRun(ctx.tenantId, id, parsed.data.inputs);
   incrementRunUsage(ctx.tenantId);

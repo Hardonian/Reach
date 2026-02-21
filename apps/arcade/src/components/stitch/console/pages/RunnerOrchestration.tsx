@@ -7,7 +7,7 @@ export function RunnerOrchestration() {
     <div className="flex-1 flex flex-col h-full overflow-y-auto bg-[#0d1117] font-sans scrollbar-hide">
       <header className="sticky top-0 z-50 flex items-center justify-between border-b border-[#30363d] bg-[#0d1117]/80 backdrop-blur px-8 py-5">
         <div className="flex flex-col">
-          <h2 className="text-white text-lg font-black uppercase tracking-widest text-[#135bec]">Runner Orchestration</h2>
+          <h2 className="text-lg font-black uppercase tracking-widest text-[#135bec]">Runner Orchestration</h2>
           <p className="text-[#9da6b9] text-[10px] font-bold uppercase tracking-wide">Job scheduling & worker node management</p>
         </div>
         <div className="flex items-center gap-4">
@@ -94,11 +94,17 @@ export function RunnerOrchestration() {
                     <p className="text-[#9da6b9] text-[10px] uppercase font-bold tracking-wide mt-1">Directly invoke an orchestrated worker node</p>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <input className="bg-[#0d1117] border border-[#30363d] rounded-xl px-4 py-3 text-xs text-white outline-none focus:ring-1 focus:ring-[#135bec]" placeholder="Runner Name / Alias"/>
-                    <select className="bg-[#0d1117] border border-[#30363d] rounded-xl px-4 py-3 text-xs text-white outline-none appearance-none">
-                       <option>Target Pool: High-Perf (AWS-1)</option>
-                       <option>Target Pool: Standard (GCP-1)</option>
-                    </select>
+                    <div className="flex flex-col gap-1.5">
+                      <label htmlFor="runner-alias" className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Alias</label>
+                      <input id="runner-alias" className="bg-[#0d1117] border border-[#30363d] rounded-xl px-4 py-3 text-xs text-white outline-none focus:ring-1 focus:ring-[#135bec]" placeholder="Runner Name / Alias"/>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label htmlFor="target-pool" className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Target Pool</label>
+                      <select id="target-pool" className="bg-[#0d1117] border border-[#30363d] rounded-xl px-4 py-3 text-xs text-white outline-none appearance-none">
+                         <option>Target Pool: High-Perf (AWS-1)</option>
+                         <option>Target Pool: Standard (GCP-1)</option>
+                      </select>
+                    </div>
                  </div>
                  <button className="w-fit px-8 py-3 bg-[#135bec] hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-xl shadow-blue-500/20">Trigger Execution</button>
               </div>

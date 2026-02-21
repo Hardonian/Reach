@@ -69,6 +69,7 @@ export async function POST(_req: NextRequest): Promise<NextResponse> {
         const pack = createPack(tenant.id, user.id, p);
         publishPackVersion(pack.id, p.version, JSON.stringify({ name: p.name, version: p.version, tools: p.tools }), p.readme, p.changelog);
         // Manually set reputation/downloads
+        // @ts-ignore
         const { default: Database } = await import('better-sqlite3');
         const path = await import('path');
         const dbPath = process.env.CLOUD_DB_PATH ?? path.join(process.cwd(), 'reach-cloud.db');

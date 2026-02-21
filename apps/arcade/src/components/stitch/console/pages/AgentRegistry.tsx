@@ -74,7 +74,7 @@ export function AgentRegistry() {
             </div>
             <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
               {['All Organizations', 'All Capabilities', 'Status: Any'].map((opt) => (
-                <select key={opt} className="bg-slate-800 border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-[#135bec] focus:border-[#135bec] py-2 pl-3 pr-8 outline-none">
+                <select key={opt} aria-label={opt} className="bg-slate-800 border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-[#135bec] focus:border-[#135bec] py-2 pl-3 pr-8 outline-none">
                   <option>{opt}</option>
                 </select>
               ))}

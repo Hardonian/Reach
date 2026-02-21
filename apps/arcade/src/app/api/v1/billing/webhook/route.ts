@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { constructWebhookEvent, getPlanForPriceId, BillingDisabledError } from '@/lib/stripe';
 import { upsertWebhookEvent, markWebhookProcessed, upsertEntitlement, PLAN_LIMITS } from '@/lib/cloud-db';
+// @ts-ignore
 import type Stripe from 'stripe';
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';

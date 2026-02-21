@@ -83,7 +83,7 @@ export function TraceExplorer() {
               </div>
            </div>
            <div className="p-8 flex flex-col gap-6">
-              <h4 className="text-white font-black text-[10px] uppercase tracking-widest text-[#3b82f6]">Input Payload</h4>
+              <h4 className="font-black text-[10px] uppercase tracking-widest text-[#3b82f6]">Input Payload</h4>
               <div className="bg-[#0a0c10] border border-[#30363d] rounded-xl p-4 font-mono text-[10px] text-slate-400 leading-normal">
                  <pre>{JSON.stringify({
                     "action": "reconcile",
@@ -91,7 +91,7 @@ export function TraceExplorer() {
                     "validation_gate": "deterministic-v1"
                  }, null, 2)}</pre>
               </div>
-              <h4 className="text-white font-black text-[10px] uppercase tracking-widest text-emerald-500">Model Response</h4>
+              <h4 className="font-black text-[10px] uppercase tracking-widest text-emerald-500">Model Response</h4>
               <div className="bg-[#0a0c10] border border-[#30363d] rounded-xl p-4 font-mono text-[10px] text-slate-400 leading-normal">
                  <pre>{JSON.stringify({
                     "status": "validated",

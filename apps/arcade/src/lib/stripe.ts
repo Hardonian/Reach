@@ -4,6 +4,7 @@
  * Only active when BILLING_ENABLED=true and STRIPE_SECRET_KEY is set.
  * Falls back gracefully when disabled.
  */
+// @ts-ignore
 import Stripe from 'stripe';
 import { env } from './env';
 

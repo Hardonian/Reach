@@ -289,7 +289,7 @@ export async function browsePacks(filters: BrowseFilters = {}): Promise<Paginate
       (pack) =>
         pack.name.toLowerCase().includes(search) ||
         pack.description.toLowerCase().includes(search) ||
-        pack.tags.some((tag) => tag.toLowerCase().includes(search))
+        pack.tags.some((tag: string) => tag.toLowerCase().includes(search))
     );
   }
 
@@ -301,7 +301,7 @@ export async function browsePacks(filters: BrowseFilters = {}): Promise<Paginate
   // Apply tools filter
   if (filters.tools && filters.tools.length > 0) {
     filtered = filtered.filter((pack) =>
-      filters.tools!.some((tool) => pack.tools.includes(tool))
+      filters.tools!.some((tool: string) => pack.tools.includes(tool))
     );
   }
 
