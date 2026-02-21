@@ -124,10 +124,10 @@ export function AgentTable({ agents }: AgentTableProps) {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="text-slate-400 hover:text-white p-1" title="View Audit Trail">
+                    <button type="button" className="text-slate-400 hover:text-white p-1" title="View Audit Trail">
                       <span className="material-symbols-outlined text-[18px]">history</span>
                     </button>
-                    <button className="text-slate-400 hover:text-white p-1" title="More Actions">
+                    <button type="button" className="text-slate-400 hover:text-white p-1" title="More Actions">
                       <span className="material-symbols-outlined text-[18px]">more_vert</span>
                     </button>
                   </div>

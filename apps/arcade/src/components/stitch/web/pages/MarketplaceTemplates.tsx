@@ -61,7 +61,7 @@ export function MarketplaceTemplates() {
               </div>
               <h4 className="text-sm font-semibold text-white mb-1">Enterprise Runner</h4>
               <p className="text-xs text-[#9da6b9] mb-3">Dedicated instances with SOC2 compliance built-in.</p>
-              <button className="w-full py-1.5 rounded-lg bg-[#1a2230] border border-[#283040] hover:bg-[#283040] text-xs font-medium text-white transition-colors">Learn More</button>
+              <button type="button" className="w-full py-1.5 rounded-lg bg-[#1a2230] border border-[#283040] hover:bg-[#283040] text-xs font-medium text-white transition-colors">Learn More</button>
             </div>
           </div>
         </div>
@@ -88,7 +88,7 @@ export function MarketplaceTemplates() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <button className="flex items-center gap-2 px-4 py-3 rounded-lg bg-[#1a2230] border border-[#283040] text-[#9da6b9] hover:text-white hover:border-[#135bec]/50 transition-colors">
+                <button type="button" className="flex items-center gap-2 px-4 py-3 rounded-lg bg-[#1a2230] border border-[#283040] text-[#9da6b9] hover:text-white hover:border-[#135bec]/50 transition-colors">
                   <span className="material-symbols-outlined text-[18px]">tune</span>
                   <span className="text-sm font-medium">Filters</span>
                 </button>
@@ -136,7 +136,7 @@ export function MarketplaceTemplates() {
                       <span className="material-symbols-outlined text-[16px]">download</span>
                       <span>{card.deploys}</span>
                     </div>
-                    <button className="px-3 py-1.5 rounded-lg bg-white text-[#101622] text-xs font-bold hover:bg-[#135bec] hover:text-white transition-colors">Deploy</button>
+                    <button type="button" className="px-3 py-1.5 rounded-lg bg-white text-[#101622] text-xs font-bold hover:bg-[#135bec] hover:text-white transition-colors">Deploy</button>
                   </div>
                 </div>
               ))}
@@ -177,8 +177,8 @@ export function MarketplaceTemplates() {
                 <p className="text-[#9da6b9]">Build your own custom agent from scratch using our SDK or request a specific template from our engineering team.</p>
               </div>
               <div className="relative z-10 flex gap-4">
-                <button className="px-5 py-2.5 rounded-lg border border-[#283040] bg-[#101622] text-white text-sm font-medium hover:bg-[#283040] transition-colors">Request Template</button>
-                <button className="px-5 py-2.5 rounded-lg bg-[#135bec] text-white text-sm font-bold hover:bg-[#135bec]/90 transition-colors shadow-lg shadow-[#135bec]/20">Build Custom Agent</button>
+                <button type="button" className="px-5 py-2.5 rounded-lg border border-[#283040] bg-[#101622] text-white text-sm font-medium hover:bg-[#283040] transition-colors">Request Template</button>
+                <button type="button" className="px-5 py-2.5 rounded-lg bg-[#135bec] text-white text-sm font-bold hover:bg-[#135bec]/90 transition-colors shadow-lg shadow-[#135bec]/20">Build Custom Agent</button>
               </div>
             </div>
           </footer>

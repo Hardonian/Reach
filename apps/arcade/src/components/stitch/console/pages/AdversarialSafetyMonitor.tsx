@@ -23,11 +23,11 @@ export function AdversarialSafetyMonitor() {
           </h2>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#1c2632] border border-[#283442] text-[#9dabb9] hover:text-white transition-all text-sm font-medium">
+          <button type="button" className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#1c2632] border border-[#283442] text-[#9dabb9] hover:text-white transition-all text-sm font-medium">
             <span className="material-symbols-outlined text-[18px]">calendar_today</span>
             Last 24 Hours
           </button>
-          <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#137fec] text-white text-sm font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20">
+          <button type="button" className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#137fec] text-white text-sm font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20">
             <span className="material-symbols-outlined text-[18px]">download</span>
             Export Report
           </button>
@@ -166,7 +166,7 @@ export function AdversarialSafetyMonitor() {
                    </div>
                  ))}
               </div>
-              <button className="mt-2 w-full py-2.5 text-[10px] font-black uppercase tracking-widest text-[#9dabb9] hover:text-white border border-[#283442] rounded-xl hover:bg-[#283442] transition-colors">Run Resilience Audit</button>
+              <button type="button" className="mt-2 w-full py-2.5 text-[10px] font-black uppercase tracking-widest text-[#9dabb9] hover:text-white border border-[#283442] rounded-xl hover:bg-[#283442] transition-colors">Run Resilience Audit</button>
            </div>
         </div>
       </div>

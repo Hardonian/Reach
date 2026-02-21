@@ -11,7 +11,7 @@ export function EcosystemCoordination() {
           <p className="text-[#9da6b9] text-[10px] font-bold uppercase tracking-wide">Multi-repo health & global synchronization</p>
         </div>
         <div className="flex items-center gap-4">
-          <button className="flex items-center gap-2 bg-[#135bec] hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20">
+          <button type="button" className="flex items-center gap-2 bg-[#135bec] hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20">
             <span className="material-symbols-outlined text-[18px]">sync</span>
             Sync Agents
           </button>
@@ -59,7 +59,7 @@ export function EcosystemCoordination() {
               <div className="p-6 border-b border-slate-700/50 flex justify-between items-center bg-[#111318]/30">
                  <h3 className="text-white font-black text-xs uppercase tracking-widest">Cross-Repo Dependency Graph</h3>
                  <div className="flex gap-2">
-                    <button className="p-2 rounded bg-slate-800 text-slate-400 hover:text-white"><span className="material-symbols-outlined text-sm">fit_screen</span></button>
+                    <button type="button" aria-label="Fit to screen" className="p-2 rounded bg-slate-800 text-slate-400 hover:text-white"><span className="material-symbols-outlined text-sm">fit_screen</span></button>
                  </div>
               </div>
               <div className="relative flex-1 bg-[#151b26] flex items-center justify-center min-h-[400px]">
@@ -131,7 +131,7 @@ export function EcosystemCoordination() {
                  </div>
               </div>
               <div className="p-6 bg-[#111318]/30 border-t border-slate-700/50">
-                 <button className="w-full py-3 bg-[#1c2333] border border-slate-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all">View Full Parity Report</button>
+                 <button type="button" className="w-full py-3 bg-[#1c2333] border border-slate-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all">View Full Parity Report</button>
               </div>
            </div>
         </div>

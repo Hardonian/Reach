@@ -1,8 +1,17 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { ReasonForChangeModal } from '@/components/stitch/shared/ReasonForChangeModal';
 
 export function GovernanceCompliance() {
+  const [freezeModalOpen, setFreezeModalOpen] = useState(false);
+
+  function handleFreezeConfirm(reason: string) {
+    // Backend not wired: log reason to console and close modal
+    console.info('[Audit] Emergency Freeze requested. Reason:', reason);
+    setFreezeModalOpen(false);
+  }
+
   return (
     <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#111318]">
       {/* Header */}
@@ -28,7 +37,11 @@ export function GovernanceCompliance() {
             </div>
           </div>
           <div className="h-8 w-px bg-[#2d3442] mx-2"></div>
-          <button className="group flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 rounded-lg transition-all duration-200">
+          <button
+            type="button"
+            onClick={() => setFreezeModalOpen(true)}
+            className="group flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 rounded-lg transition-all duration-200"
+          >
             <span className="material-symbols-outlined group-hover:animate-pulse text-[20px]">lock</span>
             <span className="font-bold text-sm">Emergency Freeze</span>
           </button>
@@ -49,7 +62,7 @@ export function GovernanceCompliance() {
                   </h3>
                   <p className="text-[#9da6b9] text-xs mt-1">Permission matrix for the current tenant scope.</p>
                 </div>
-                <button className="text-[#135bec] text-sm font-medium hover:underline flex items-center gap-1">
+                <button type="button" className="text-[#135bec] text-sm font-medium hover:underline flex items-center gap-1">
                   <span className="material-symbols-outlined text-[18px]">edit</span> Edit Roles
                 </button>
               </div>
@@ -101,7 +114,7 @@ export function GovernanceCompliance() {
                  {[
                    { title: 'Critical: Unencrypted Storage', time: '2m ago', desc: 'Deployment deploy-883a violates encryption policy.', color: 'red' },
                    { title: 'Warning: Open Port 22', time: '15m ago', desc: 'Service bastion-host exposes SSH to public internet.', color: 'amber' },
-                   { title: 'Critical: Root Access', time: '1h ago', desc: 'Container worker-node-04 running as root user.', color: 'red' },
+                   { title: 'Critical: Root Access', time: '1h ago', desc: 'Container runner-04 running as root user.', color: 'red' },
                  ].map((v) => (
                    <div key={v.title} className={`p-4 bg-[#282e39]/40 border rounded-lg flex flex-col gap-1 hover:bg-[#282e39]/60 transition-colors cursor-pointer border-${v.color}-500/30`}>
                       <div className="flex justify-between items-start">
@@ -156,8 +169,8 @@ export function GovernanceCompliance() {
               </h3>
               <div className="flex items-center gap-3">
                 <div className="flex bg-[#111318] rounded-lg border border-[#2d3442] p-0.5">
-                  <button className="px-3 py-1 rounded-md bg-[#282e39] text-white text-xs font-bold">Real-time</button>
-                  <button className="px-3 py-1 rounded-md text-[#9da6b9] hover:text-white text-xs font-medium">Past 24h</button>
+                  <button type="button" className="px-3 py-1 rounded-md bg-[#282e39] text-white text-xs font-bold">Real-time</button>
+                  <button type="button" className="px-3 py-1 rounded-md text-[#9da6b9] hover:text-white text-xs font-medium">Past 24h</button>
                 </div>
               </div>
             </div>
@@ -197,6 +210,13 @@ export function GovernanceCompliance() {
           </div>
         </div>
       </main>
+
+      <ReasonForChangeModal
+        isOpen={freezeModalOpen}
+        onClose={() => setFreezeModalOpen(false)}
+        onConfirm={handleFreezeConfirm}
+        actionName="Emergency System Freeze"
+      />
     </div>
   );
 }
