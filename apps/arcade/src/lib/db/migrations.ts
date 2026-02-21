@@ -1,3 +1,4 @@
+// @ts-ignore
 import Database from 'better-sqlite3';
 
 export const MIGRATIONS: string[] = [
