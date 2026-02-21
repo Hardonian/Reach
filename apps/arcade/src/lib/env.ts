@@ -25,11 +25,22 @@ const envSchema = z.object({
   STRIPE_PRICE_TEAM: z.string().optional(),
   STRIPE_PRICE_ENTERPRISE: z.string().optional(),
   
-  // GitHub (optional for runner)
+  // GitHub (optional for runner + gates)
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
   GITHUB_REDIRECT_URL: z.string().optional(),
-  
+  GITHUB_WEBHOOK_SECRET: z.string().optional(),
+  GITHUB_APP_ID: z.string().optional(),
+  GITHUB_APP_PRIVATE_KEY: z.string().optional(),
+
+  // ReadyLayer suite
+  READYLAYER_BASE_URL: z.string().url().optional(),
+  READYLAYER_ALERT_EMAIL_FROM: z.string().email().optional(),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().default(587),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+
   // Policy
   REACH_ENTERPRISE_MAX_SPAWN_DEPTH: z.coerce.number().default(4),
 });
@@ -52,5 +63,14 @@ export const env = envSchema.parse({
   GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
   GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
   GITHUB_REDIRECT_URL: process.env.GITHUB_REDIRECT_URL,
+  GITHUB_WEBHOOK_SECRET: process.env.GITHUB_WEBHOOK_SECRET,
+  GITHUB_APP_ID: process.env.GITHUB_APP_ID,
+  GITHUB_APP_PRIVATE_KEY: process.env.GITHUB_APP_PRIVATE_KEY,
+  READYLAYER_BASE_URL: process.env.READYLAYER_BASE_URL,
+  READYLAYER_ALERT_EMAIL_FROM: process.env.READYLAYER_ALERT_EMAIL_FROM,
+  SMTP_HOST: process.env.SMTP_HOST,
+  SMTP_PORT: process.env.SMTP_PORT,
+  SMTP_USER: process.env.SMTP_USER,
+  SMTP_PASS: process.env.SMTP_PASS,
   REACH_ENTERPRISE_MAX_SPAWN_DEPTH: process.env.REACH_ENTERPRISE_MAX_SPAWN_DEPTH,
 });

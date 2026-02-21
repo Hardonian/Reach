@@ -128,6 +128,131 @@ export const CheckoutSchema = z.object({
   cancelUrl: z.string().url(),
 });
 
+// ── Gates ─────────────────────────────────────────────────────────────────
+const GateCheckSchema = z.object({
+  type: z.enum(['template', 'rule', 'scenario']),
+  ref_id: z.string().min(1),
+  name: z.string().min(1),
+});
+
+const GateThresholdsSchema = z.object({
+  pass_rate: z.number().min(0).max(1).default(1.0),
+  max_violations: z.number().int().min(0).default(0),
+});
+
+export const CreateGateSchema = z.object({
+  name: z.string().min(1).max(200),
+  repo_owner: z.string().min(1).max(100),
+  repo_name: z.string().min(1).max(100),
+  default_branch: z.string().min(1).max(100).default('main'),
+  trigger_types: z.array(z.enum(['pr', 'push', 'schedule'])).default(['pr', 'push']),
+  required_checks: z.array(GateCheckSchema).default([]),
+  thresholds: GateThresholdsSchema.default({ pass_rate: 1.0, max_violations: 0 }),
+});
+
+export const UpdateGateSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  default_branch: z.string().min(1).max(100).optional(),
+  trigger_types: z.array(z.enum(['pr', 'push', 'schedule'])).optional(),
+  required_checks: z.array(GateCheckSchema).optional(),
+  thresholds: GateThresholdsSchema.optional(),
+  status: z.enum(['enabled', 'disabled']).optional(),
+});
+
+export const TriggerGateRunSchema = z.object({
+  trigger_type: z.enum(['manual', 'pr', 'push', 'schedule']).default('manual'),
+  commit_sha: z.string().optional(),
+  pr_number: z.number().int().optional(),
+  branch: z.string().optional(),
+});
+
+// ── CI Ingest ─────────────────────────────────────────────────────────────
+export const CiIngestSchema = z.object({
+  workspace_key: z.string().optional(),
+  commit_sha: z.string().optional(),
+  branch: z.string().optional(),
+  pr_number: z.number().int().optional(),
+  actor: z.string().optional(),
+  ci_provider: z.enum(['github', 'gitlab', 'circleci', 'jenkins', 'other']).default('github'),
+  artifacts: z.object({
+    prompt_diffs: z.array(z.record(z.string(), z.unknown())).optional(),
+    eval_outputs: z.array(z.record(z.string(), z.unknown())).optional(),
+    traces: z.array(z.record(z.string(), z.unknown())).optional(),
+    policy_violations: z.array(z.record(z.string(), z.unknown())).optional(),
+    tool_call_logs: z.array(z.record(z.string(), z.unknown())).optional(),
+  }).default({}),
+  run_metadata: z.record(z.string(), z.unknown()).default({}),
+  gate_id: z.string().optional(),
+});
+
+// ── Signals ───────────────────────────────────────────────────────────────
+export const CreateSignalSchema = z.object({
+  name: z.string().min(1).max(200),
+  type: z.enum(['drift', 'latency', 'policy_violation', 'tool_failure', 'regression_rate']),
+  source: z.enum(['webhook', 'poller']).default('webhook'),
+  threshold: z.record(z.string(), z.unknown()).default({}),
+});
+
+export const UpdateSignalSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  threshold: z.record(z.string(), z.unknown()).optional(),
+  status: z.enum(['enabled', 'disabled']).optional(),
+});
+
+// ── Monitor Ingest ────────────────────────────────────────────────────────
+export const MonitorIngestSchema = z.object({
+  signal_id: z.string().min(1),
+  value: z.number(),
+  metadata: z.record(z.string(), z.unknown()).default({}),
+});
+
+// ── Alert Rules ───────────────────────────────────────────────────────────
+export const CreateAlertRuleSchema = z.object({
+  name: z.string().min(1).max(200),
+  signal_id: z.string().optional(),
+  channel: z.enum(['email', 'webhook']),
+  destination: z.string().min(1).max(500),
+});
+
+export const UpdateAlertRuleSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  destination: z.string().min(1).max(500).optional(),
+  status: z.enum(['enabled', 'disabled']).optional(),
+});
+
+// ── Scenarios ─────────────────────────────────────────────────────────────
+const ScenarioVariantSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1).max(200),
+  prompt_override: z.string().optional(),
+  model: z.string().optional(),
+  provider: z.string().optional(),
+  temperature: z.number().min(0).max(2).optional(),
+  top_p: z.number().min(0).max(1).optional(),
+  disable_tools: z.array(z.string()).optional(),
+  inject_latency_ms: z.number().int().min(0).optional(),
+});
+
+export const CreateScenarioSchema = z.object({
+  name: z.string().min(1).max(200),
+  base_run_id: z.string().optional(),
+  variants: z.array(ScenarioVariantSchema).min(1).max(10),
+  compare_metrics: z.array(z.enum(['pass_rate', 'latency', 'cost', 'drift'])).default(['pass_rate', 'latency', 'cost']),
+});
+
+export const UpdateScenarioSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  variants: z.array(ScenarioVariantSchema).optional(),
+  compare_metrics: z.array(z.string()).optional(),
+});
+
+// ── Report Shares ─────────────────────────────────────────────────────────
+export const CreateReportShareSchema = z.object({
+  resource_type: z.enum(['gate_run', 'scenario_run', 'monitor_run']),
+  resource_id: z.string().min(1),
+  expires_in_seconds: z.number().int().min(3600).max(2592000).optional(), // 1h to 30d
+});
+
 // ── Response helpers ──────────────────────────────────────────────────────
 export function parseBody<T>(schema: z.ZodSchema<T>, data: unknown): { data: T } | { errors: z.ZodError } {
   const result = schema.safeParse(data);

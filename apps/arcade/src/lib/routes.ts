@@ -18,6 +18,9 @@ export const ROUTES = {
 
   // ── User Menu ──
   DASHBOARD: '/dashboard',
+  MONITORING: '/monitoring',
+  SIMULATE: '/simulate',
+  REPORTS: '/reports',
   SETTINGS: {
     HOME: '/settings',
     API_KEYS: '/settings/api-keys',
@@ -26,6 +29,8 @@ export const ROUTES = {
     ADVANCED: {
       WEBHOOKS: '/settings/advanced/webhooks',
       SECURITY: '/settings/advanced/security',
+      RELEASE_GATES: '/settings/release-gates',
+      ALERTS: '/settings/alerts',
     },
   },
 
@@ -117,6 +122,9 @@ export const ROUTES = {
   // ── API ──
   API: {
     RUN: '/api/run',
+    GITHUB_WEBHOOK: '/api/github/webhook',
+    CI_INGEST: '/api/ci/ingest',
+    MONITOR_INGEST: '/api/monitor/ingest',
     V1: {
       PROJECTS: '/api/v1/projects',
       WORKFLOWS: '/api/v1/workflows',
@@ -124,6 +132,11 @@ export const ROUTES = {
       EVENTS: '/api/v1/events',
       PLAYGROUND: '/api/v1/playground',
       API_KEYS: '/api/v1/api-keys',
+      GATES: '/api/v1/gates',
+      SIGNALS: '/api/v1/signals',
+      SCENARIOS: '/api/v1/scenarios',
+      ALERTS: '/api/v1/alerts',
+      REPORTS: '/api/v1/reports',
       AUTH: {
         LOGIN: '/api/v1/auth/login',
         LOGOUT: '/api/v1/auth/logout',

@@ -13,6 +13,8 @@ const sidebarItems = [
   ]},
   { section: 'Advanced', items: [
     { href: ROUTES.SETTINGS.ADVANCED.WEBHOOKS, label: 'Webhooks', icon: 'webhook' },
+    { href: ROUTES.SETTINGS.ADVANCED.RELEASE_GATES, label: 'Release Gates', icon: 'verified' },
+    { href: ROUTES.SETTINGS.ADVANCED.ALERTS, label: 'Alerts', icon: 'notifications_active' },
   ]},
 ];
 

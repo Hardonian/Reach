@@ -292,6 +292,161 @@ const MIGRATIONS: string[] = [
     PRIMARY KEY (user_id, step_id)
   );
   `,
+
+  /* 007 — release gates + github installations */
+  `
+  CREATE TABLE IF NOT EXISTS gates (
+    id               TEXT PRIMARY KEY,
+    tenant_id        TEXT NOT NULL REFERENCES tenants(id),
+    name             TEXT NOT NULL,
+    repo_provider    TEXT NOT NULL DEFAULT 'github',
+    repo_owner       TEXT NOT NULL,
+    repo_name        TEXT NOT NULL,
+    default_branch   TEXT NOT NULL DEFAULT 'main',
+    trigger_types    TEXT NOT NULL DEFAULT '["pr","push"]',
+    required_checks  TEXT NOT NULL DEFAULT '[]',
+    thresholds       TEXT NOT NULL DEFAULT '{"pass_rate":1.0,"max_violations":0}',
+    status           TEXT NOT NULL DEFAULT 'enabled',
+    created_at       TEXT NOT NULL,
+    updated_at       TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS gate_runs (
+    id                   TEXT PRIMARY KEY,
+    tenant_id            TEXT NOT NULL REFERENCES tenants(id),
+    gate_id              TEXT NOT NULL REFERENCES gates(id),
+    workflow_run_id      TEXT REFERENCES workflow_runs(id),
+    status               TEXT NOT NULL DEFAULT 'running',
+    trigger_type         TEXT NOT NULL DEFAULT 'manual',
+    commit_sha           TEXT,
+    pr_number            INTEGER,
+    branch               TEXT,
+    report_json          TEXT NOT NULL DEFAULT '{}',
+    github_check_run_id  INTEGER,
+    created_at           TEXT NOT NULL,
+    finished_at          TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS github_installations (
+    id              TEXT PRIMARY KEY,
+    tenant_id       TEXT NOT NULL REFERENCES tenants(id),
+    installation_id INTEGER,
+    access_token    TEXT,
+    token_expires_at TEXT,
+    repo_owner      TEXT NOT NULL,
+    repo_name       TEXT NOT NULL,
+    created_at      TEXT NOT NULL,
+    updated_at      TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_gates_tenant ON gates(tenant_id);
+  CREATE INDEX IF NOT EXISTS idx_gate_runs_gate ON gate_runs(gate_id);
+  CREATE INDEX IF NOT EXISTS idx_gate_runs_tenant ON gate_runs(tenant_id);
+  CREATE INDEX IF NOT EXISTS idx_github_installs_tenant ON github_installations(tenant_id);
+  `,
+
+  /* 008 — CI ingest runs */
+  `
+  CREATE TABLE IF NOT EXISTS ci_ingest_runs (
+    id              TEXT PRIMARY KEY,
+    tenant_id       TEXT NOT NULL REFERENCES tenants(id),
+    workspace_key   TEXT,
+    commit_sha      TEXT,
+    branch          TEXT,
+    pr_number       INTEGER,
+    actor           TEXT,
+    ci_provider     TEXT NOT NULL DEFAULT 'github',
+    artifacts_json  TEXT NOT NULL DEFAULT '{}',
+    run_metadata    TEXT NOT NULL DEFAULT '{}',
+    gate_run_id     TEXT REFERENCES gate_runs(id),
+    status          TEXT NOT NULL DEFAULT 'pending',
+    created_at      TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_ci_ingest_tenant ON ci_ingest_runs(tenant_id);
+  CREATE INDEX IF NOT EXISTS idx_ci_ingest_gate ON ci_ingest_runs(gate_run_id);
+  `,
+
+  /* 009 — signals + monitor runs + alert rules */
+  `
+  CREATE TABLE IF NOT EXISTS signals (
+    id              TEXT PRIMARY KEY,
+    tenant_id       TEXT NOT NULL REFERENCES tenants(id),
+    name            TEXT NOT NULL,
+    type            TEXT NOT NULL DEFAULT 'drift',
+    source          TEXT NOT NULL DEFAULT 'webhook',
+    threshold_json  TEXT NOT NULL DEFAULT '{}',
+    status          TEXT NOT NULL DEFAULT 'enabled',
+    created_at      TEXT NOT NULL,
+    updated_at      TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS monitor_runs (
+    id               TEXT PRIMARY KEY,
+    tenant_id        TEXT NOT NULL REFERENCES tenants(id),
+    signal_id        TEXT NOT NULL REFERENCES signals(id),
+    value            REAL NOT NULL DEFAULT 0,
+    metadata_json    TEXT NOT NULL DEFAULT '{}',
+    alert_triggered  INTEGER NOT NULL DEFAULT 0,
+    created_at       TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS alert_rules (
+    id           TEXT PRIMARY KEY,
+    tenant_id    TEXT NOT NULL REFERENCES tenants(id),
+    signal_id    TEXT REFERENCES signals(id),
+    name         TEXT NOT NULL,
+    channel      TEXT NOT NULL DEFAULT 'email',
+    destination  TEXT NOT NULL,
+    status       TEXT NOT NULL DEFAULT 'enabled',
+    created_at   TEXT NOT NULL,
+    updated_at   TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_signals_tenant ON signals(tenant_id);
+  CREATE INDEX IF NOT EXISTS idx_monitor_runs_signal ON monitor_runs(signal_id);
+  CREATE INDEX IF NOT EXISTS idx_monitor_runs_tenant ON monitor_runs(tenant_id, created_at);
+  CREATE INDEX IF NOT EXISTS idx_alert_rules_tenant ON alert_rules(tenant_id);
+  `,
+
+  /* 010 — scenarios + scenario runs + report shares */
+  `
+  CREATE TABLE IF NOT EXISTS scenarios (
+    id                   TEXT PRIMARY KEY,
+    tenant_id            TEXT NOT NULL REFERENCES tenants(id),
+    name                 TEXT NOT NULL,
+    base_run_id          TEXT REFERENCES workflow_runs(id),
+    variants_json        TEXT NOT NULL DEFAULT '[]',
+    compare_metrics_json TEXT NOT NULL DEFAULT '["pass_rate","latency","cost"]',
+    created_at           TEXT NOT NULL,
+    updated_at           TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS scenario_runs (
+    id           TEXT PRIMARY KEY,
+    tenant_id    TEXT NOT NULL REFERENCES tenants(id),
+    scenario_id  TEXT NOT NULL REFERENCES scenarios(id),
+    status       TEXT NOT NULL DEFAULT 'running',
+    results_json TEXT NOT NULL DEFAULT '[]',
+    recommendation TEXT,
+    created_at   TEXT NOT NULL,
+    finished_at  TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS report_shares (
+    id            TEXT PRIMARY KEY,
+    tenant_id     TEXT NOT NULL REFERENCES tenants(id),
+    resource_type TEXT NOT NULL,
+    resource_id   TEXT NOT NULL,
+    slug          TEXT NOT NULL UNIQUE,
+    expires_at    TEXT,
+    created_at    TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_scenarios_tenant ON scenarios(tenant_id);
+  CREATE INDEX IF NOT EXISTS idx_scenario_runs_scenario ON scenario_runs(scenario_id);
+  CREATE INDEX IF NOT EXISTS idx_report_shares_slug ON report_shares(slug);
+  `,
 ];
 
 function applyMigrations(db: Database.Database): void {
@@ -900,6 +1055,496 @@ export function getOnboardingProgress(userId: string): string[] {
     'SELECT step_id FROM onboarding_progress WHERE user_id = ?'
   ).all(userId) as { step_id: string }[];
   return rows.map((r) => r.step_id);
+}
+
+// ── Gate operations ───────────────────────────────────────────────────────
+export interface Gate {
+  id: string; tenant_id: string; name: string; repo_provider: string;
+  repo_owner: string; repo_name: string; default_branch: string;
+  trigger_types: string[]; required_checks: GateCheck[]; thresholds: GateThresholds;
+  status: 'enabled' | 'disabled'; created_at: string; updated_at: string;
+}
+export interface GateCheck { type: 'template' | 'rule' | 'scenario'; ref_id: string; name: string }
+export interface GateThresholds { pass_rate: number; max_violations: number }
+
+function parseGate(row: Record<string, unknown>): Gate {
+  return {
+    ...row,
+    trigger_types: JSON.parse(row.trigger_types as string),
+    required_checks: JSON.parse(row.required_checks as string),
+    thresholds: JSON.parse(row.thresholds as string),
+  } as Gate;
+}
+
+export function createGate(tenantId: string, input: {
+  name: string; repo_owner: string; repo_name: string; default_branch?: string;
+  trigger_types?: string[]; required_checks?: GateCheck[]; thresholds?: GateThresholds;
+}): Gate {
+  const db = getDB();
+  const id = newId('gat');
+  const now = new Date().toISOString();
+  const triggerTypes = input.trigger_types ?? ['pr', 'push'];
+  const requiredChecks = input.required_checks ?? [];
+  const thresholds = input.thresholds ?? { pass_rate: 1.0, max_violations: 0 };
+  db.prepare(`INSERT INTO gates (id, tenant_id, name, repo_owner, repo_name, default_branch, trigger_types, required_checks, thresholds, status, created_at, updated_at)
+    VALUES (?,?,?,?,?,?,?,?,?,'enabled',?,?)`)
+    .run(id, tenantId, input.name, input.repo_owner, input.repo_name,
+      input.default_branch ?? 'main', JSON.stringify(triggerTypes),
+      JSON.stringify(requiredChecks), JSON.stringify(thresholds), now, now);
+  return getGate(id, tenantId)!;
+}
+
+export function getGate(id: string, tenantId: string): Gate | undefined {
+  const db = getDB();
+  const row = db.prepare('SELECT * FROM gates WHERE id=? AND tenant_id=?').get(id, tenantId) as Record<string, unknown> | undefined;
+  return row ? parseGate(row) : undefined;
+}
+
+export function listGates(tenantId: string): Gate[] {
+  const db = getDB();
+  const rows = db.prepare('SELECT * FROM gates WHERE tenant_id=? ORDER BY created_at DESC').all(tenantId) as Record<string, unknown>[];
+  return rows.map(parseGate);
+}
+
+export function updateGate(id: string, tenantId: string, patch: {
+  name?: string; trigger_types?: string[]; required_checks?: GateCheck[];
+  thresholds?: GateThresholds; status?: 'enabled' | 'disabled'; default_branch?: string;
+}): boolean {
+  const db = getDB();
+  const existing = getGate(id, tenantId);
+  if (!existing) return false;
+  const now = new Date().toISOString();
+  const next = {
+    name: patch.name ?? existing.name,
+    default_branch: patch.default_branch ?? existing.default_branch,
+    trigger_types: JSON.stringify(patch.trigger_types ?? existing.trigger_types),
+    required_checks: JSON.stringify(patch.required_checks ?? existing.required_checks),
+    thresholds: JSON.stringify(patch.thresholds ?? existing.thresholds),
+    status: patch.status ?? existing.status,
+  };
+  db.prepare(`UPDATE gates SET name=?,default_branch=?,trigger_types=?,required_checks=?,thresholds=?,status=?,updated_at=? WHERE id=? AND tenant_id=?`)
+    .run(next.name, next.default_branch, next.trigger_types, next.required_checks, next.thresholds, next.status, now, id, tenantId);
+  return true;
+}
+
+export function deleteGate(id: string, tenantId: string): boolean {
+  const db = getDB();
+  const res = db.prepare('DELETE FROM gates WHERE id=? AND tenant_id=?').run(id, tenantId);
+  return res.changes > 0;
+}
+
+export function findGatesByRepo(repoOwner: string, repoName: string): Array<{ gateId: string; tenantId: string }> {
+  const db = getDB();
+  const rows = db.prepare(`SELECT id, tenant_id FROM gates WHERE repo_owner=? AND repo_name=? AND status='enabled'`)
+    .all(repoOwner, repoName) as Array<{ id: string; tenant_id: string }>;
+  return rows.map((r) => ({ gateId: r.id, tenantId: r.tenant_id }));
+}
+
+// ── Gate Run operations ───────────────────────────────────────────────────
+export interface GateRun {
+  id: string; tenant_id: string; gate_id: string; workflow_run_id: string | null;
+  status: 'running' | 'passed' | 'failed'; trigger_type: string;
+  commit_sha: string | null; pr_number: number | null; branch: string | null;
+  report: GateReport; github_check_run_id: number | null;
+  created_at: string; finished_at: string | null;
+}
+export interface GateFinding { rule: string; severity: 'error' | 'warning' | 'info'; message: string; fix: string }
+export interface GateReport {
+  verdict: 'passed' | 'failed'; pass_rate: number; violations: number;
+  findings: GateFinding[]; summary: string; report_url?: string;
+}
+
+function parseGateRun(row: Record<string, unknown>): GateRun {
+  return { ...row, report: JSON.parse(row.report_json as string) } as GateRun;
+}
+
+export function createGateRun(tenantId: string, gateId: string, input: {
+  trigger_type?: string; commit_sha?: string; pr_number?: number; branch?: string;
+}): GateRun {
+  const db = getDB();
+  const id = newId('gtr');
+  const now = new Date().toISOString();
+  const emptyReport: GateReport = { verdict: 'failed', pass_rate: 0, violations: 0, findings: [], summary: 'Running…' };
+  db.prepare(`INSERT INTO gate_runs (id, tenant_id, gate_id, status, trigger_type, commit_sha, pr_number, branch, report_json, created_at)
+    VALUES (?,?,?,'running',?,?,?,?,?,?)`)
+    .run(id, tenantId, gateId, input.trigger_type ?? 'manual',
+      input.commit_sha ?? null, input.pr_number ?? null, input.branch ?? null,
+      JSON.stringify(emptyReport), now);
+  return getGateRun(id, tenantId)!;
+}
+
+export function getGateRun(id: string, tenantId: string): GateRun | undefined {
+  const db = getDB();
+  const row = db.prepare('SELECT * FROM gate_runs WHERE id=? AND tenant_id=?').get(id, tenantId) as Record<string, unknown> | undefined;
+  return row ? parseGateRun(row) : undefined;
+}
+
+export function updateGateRun(id: string, tenantId: string, patch: {
+  status?: GateRun['status']; report?: GateReport; github_check_run_id?: number; workflow_run_id?: string; finished_at?: string;
+}): void {
+  const db = getDB();
+  const now = new Date().toISOString();
+  const existing = getGateRun(id, tenantId);
+  if (!existing) return;
+  db.prepare(`UPDATE gate_runs SET status=COALESCE(?,status), report_json=COALESCE(?,report_json),
+    github_check_run_id=COALESCE(?,github_check_run_id), workflow_run_id=COALESCE(?,workflow_run_id),
+    finished_at=COALESCE(?,finished_at)
+    WHERE id=? AND tenant_id=?`)
+    .run(patch.status ?? null, patch.report ? JSON.stringify(patch.report) : null,
+      patch.github_check_run_id ?? null, patch.workflow_run_id ?? null,
+      patch.finished_at ?? (patch.status && patch.status !== 'running' ? now : null),
+      id, tenantId);
+}
+
+export function listGateRuns(tenantId: string, gateId?: string, limit = 50): GateRun[] {
+  const db = getDB();
+  const rows = gateId
+    ? db.prepare('SELECT * FROM gate_runs WHERE tenant_id=? AND gate_id=? ORDER BY created_at DESC LIMIT ?').all(tenantId, gateId, limit) as Record<string, unknown>[]
+    : db.prepare('SELECT * FROM gate_runs WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?').all(tenantId, limit) as Record<string, unknown>[];
+  return rows.map(parseGateRun);
+}
+
+// ── GitHub Installation operations ────────────────────────────────────────
+export interface GithubInstallation {
+  id: string; tenant_id: string; installation_id: number | null;
+  access_token: string | null; token_expires_at: string | null;
+  repo_owner: string; repo_name: string; created_at: string; updated_at: string;
+}
+
+export function upsertGithubInstallation(tenantId: string, input: {
+  repo_owner: string; repo_name: string; installation_id?: number; access_token?: string; token_expires_at?: string;
+}): GithubInstallation {
+  const db = getDB();
+  const now = new Date().toISOString();
+  const existing = db.prepare('SELECT id FROM github_installations WHERE tenant_id=? AND repo_owner=? AND repo_name=?')
+    .get(tenantId, input.repo_owner, input.repo_name) as { id: string } | undefined;
+  if (existing) {
+    db.prepare(`UPDATE github_installations SET installation_id=COALESCE(?,installation_id),
+      access_token=COALESCE(?,access_token), token_expires_at=COALESCE(?,token_expires_at), updated_at=?
+      WHERE id=?`)
+      .run(input.installation_id ?? null, input.access_token ?? null, input.token_expires_at ?? null, now, existing.id);
+    return db.prepare('SELECT * FROM github_installations WHERE id=?').get(existing.id) as GithubInstallation;
+  }
+  const id = newId('ghi');
+  db.prepare(`INSERT INTO github_installations (id, tenant_id, installation_id, access_token, token_expires_at, repo_owner, repo_name, created_at, updated_at)
+    VALUES (?,?,?,?,?,?,?,?,?)`)
+    .run(id, tenantId, input.installation_id ?? null, input.access_token ?? null,
+      input.token_expires_at ?? null, input.repo_owner, input.repo_name, now, now);
+  return db.prepare('SELECT * FROM github_installations WHERE id=?').get(id) as GithubInstallation;
+}
+
+export function getGithubInstallation(tenantId: string, repoOwner: string, repoName: string): GithubInstallation | undefined {
+  const db = getDB();
+  return db.prepare('SELECT * FROM github_installations WHERE tenant_id=? AND repo_owner=? AND repo_name=?')
+    .get(tenantId, repoOwner, repoName) as GithubInstallation | undefined;
+}
+
+// ── CI Ingest Run operations ──────────────────────────────────────────────
+export interface CiIngestRun {
+  id: string; tenant_id: string; workspace_key: string | null;
+  commit_sha: string | null; branch: string | null; pr_number: number | null;
+  actor: string | null; ci_provider: string;
+  artifacts: Record<string, unknown>; run_metadata: Record<string, unknown>;
+  gate_run_id: string | null; status: string; created_at: string;
+}
+
+export function createCiIngestRun(tenantId: string, input: {
+  workspace_key?: string; commit_sha?: string; branch?: string; pr_number?: number;
+  actor?: string; ci_provider?: string; artifacts?: Record<string, unknown>; run_metadata?: Record<string, unknown>;
+}): CiIngestRun {
+  const db = getDB();
+  const id = newId('cir');
+  const now = new Date().toISOString();
+  db.prepare(`INSERT INTO ci_ingest_runs (id, tenant_id, workspace_key, commit_sha, branch, pr_number, actor, ci_provider, artifacts_json, run_metadata, created_at)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?)`)
+    .run(id, tenantId, input.workspace_key ?? null, input.commit_sha ?? null,
+      input.branch ?? null, input.pr_number ?? null, input.actor ?? null,
+      input.ci_provider ?? 'github', JSON.stringify(input.artifacts ?? {}),
+      JSON.stringify(input.run_metadata ?? {}), now);
+  const row = db.prepare('SELECT * FROM ci_ingest_runs WHERE id=?').get(id) as Record<string, unknown>;
+  return { ...row, artifacts: JSON.parse(row.artifacts_json as string), run_metadata: JSON.parse(row.run_metadata as string) } as CiIngestRun;
+}
+
+export function associateCiIngestToGateRun(ciRunId: string, gateRunId: string): void {
+  const db = getDB();
+  db.prepare('UPDATE ci_ingest_runs SET gate_run_id=?, status=? WHERE id=?').run(gateRunId, 'processed', ciRunId);
+}
+
+export function listCiIngestRuns(tenantId: string, limit = 50): CiIngestRun[] {
+  const db = getDB();
+  const rows = db.prepare('SELECT * FROM ci_ingest_runs WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?').all(tenantId, limit) as Record<string, unknown>[];
+  return rows.map((r) => ({ ...r, artifacts: JSON.parse(r.artifacts_json as string), run_metadata: JSON.parse(r.run_metadata as string) } as CiIngestRun));
+}
+
+// ── Signal operations ─────────────────────────────────────────────────────
+export type SignalType = 'drift' | 'latency' | 'policy_violation' | 'tool_failure' | 'regression_rate';
+export interface Signal {
+  id: string; tenant_id: string; name: string; type: SignalType;
+  source: 'webhook' | 'poller'; threshold: Record<string, unknown>;
+  status: 'enabled' | 'disabled'; created_at: string; updated_at: string;
+}
+
+function parseSignal(row: Record<string, unknown>): Signal {
+  return { ...row, threshold: JSON.parse(row.threshold_json as string) } as Signal;
+}
+
+export function createSignal(tenantId: string, input: {
+  name: string; type: SignalType; source?: 'webhook' | 'poller'; threshold?: Record<string, unknown>;
+}): Signal {
+  const db = getDB();
+  const id = newId('sig');
+  const now = new Date().toISOString();
+  db.prepare(`INSERT INTO signals (id, tenant_id, name, type, source, threshold_json, status, created_at, updated_at)
+    VALUES (?,?,?,?,?,?,'enabled',?,?)`)
+    .run(id, tenantId, input.name, input.type, input.source ?? 'webhook',
+      JSON.stringify(input.threshold ?? {}), now, now);
+  return getSignal(id, tenantId)!;
+}
+
+export function getSignal(id: string, tenantId: string): Signal | undefined {
+  const db = getDB();
+  const row = db.prepare('SELECT * FROM signals WHERE id=? AND tenant_id=?').get(id, tenantId) as Record<string, unknown> | undefined;
+  return row ? parseSignal(row) : undefined;
+}
+
+export function listSignals(tenantId: string): Signal[] {
+  const db = getDB();
+  const rows = db.prepare('SELECT * FROM signals WHERE tenant_id=? ORDER BY created_at DESC').all(tenantId) as Record<string, unknown>[];
+  return rows.map(parseSignal);
+}
+
+export function updateSignal(id: string, tenantId: string, patch: { name?: string; threshold?: Record<string, unknown>; status?: 'enabled' | 'disabled' }): boolean {
+  const db = getDB();
+  const existing = getSignal(id, tenantId);
+  if (!existing) return false;
+  const now = new Date().toISOString();
+  db.prepare(`UPDATE signals SET name=COALESCE(?,name), threshold_json=COALESCE(?,threshold_json), status=COALESCE(?,status), updated_at=? WHERE id=? AND tenant_id=?`)
+    .run(patch.name ?? null, patch.threshold ? JSON.stringify(patch.threshold) : null, patch.status ?? null, now, id, tenantId);
+  return true;
+}
+
+export function deleteSignal(id: string, tenantId: string): boolean {
+  const db = getDB();
+  const res = db.prepare('DELETE FROM signals WHERE id=? AND tenant_id=?').run(id, tenantId);
+  return res.changes > 0;
+}
+
+// ── Monitor Run operations ────────────────────────────────────────────────
+export interface MonitorRun {
+  id: string; tenant_id: string; signal_id: string;
+  value: number; metadata: Record<string, unknown>; alert_triggered: boolean; created_at: string;
+}
+
+export function createMonitorRun(tenantId: string, signalId: string, value: number, metadata: Record<string, unknown>, alertTriggered: boolean): MonitorRun {
+  const db = getDB();
+  const id = newId('mnr');
+  const now = new Date().toISOString();
+  db.prepare(`INSERT INTO monitor_runs (id, tenant_id, signal_id, value, metadata_json, alert_triggered, created_at)
+    VALUES (?,?,?,?,?,?,?)`)
+    .run(id, tenantId, signalId, value, JSON.stringify(metadata), alertTriggered ? 1 : 0, now);
+  return { id, tenant_id: tenantId, signal_id: signalId, value, metadata, alert_triggered: alertTriggered, created_at: now };
+}
+
+export function listMonitorRuns(tenantId: string, signalId?: string, limit = 100): MonitorRun[] {
+  const db = getDB();
+  const rows = signalId
+    ? db.prepare('SELECT * FROM monitor_runs WHERE tenant_id=? AND signal_id=? ORDER BY created_at DESC LIMIT ?').all(tenantId, signalId, limit) as Record<string, unknown>[]
+    : db.prepare('SELECT * FROM monitor_runs WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?').all(tenantId, limit) as Record<string, unknown>[];
+  return rows.map((r) => ({ ...r, metadata: JSON.parse(r.metadata_json as string), alert_triggered: r.alert_triggered === 1 } as MonitorRun));
+}
+
+export function getMonitorHealth(tenantId: string): { total: number; alerts_today: number; latest_drift: number } {
+  const db = getDB();
+  const since = new Date(Date.now() - 86400000).toISOString();
+  const total = (db.prepare('SELECT COUNT(*) as c FROM monitor_runs WHERE tenant_id=?').get(tenantId) as { c: number }).c;
+  const alerts_today = (db.prepare('SELECT COUNT(*) as c FROM monitor_runs WHERE tenant_id=? AND alert_triggered=1 AND created_at>?').get(tenantId, since) as { c: number }).c;
+  const driftRow = db.prepare("SELECT value FROM monitor_runs WHERE tenant_id=? AND signal_id IN (SELECT id FROM signals WHERE tenant_id=? AND type='drift') ORDER BY created_at DESC LIMIT 1").get(tenantId, tenantId) as { value: number } | undefined;
+  return { total, alerts_today, latest_drift: driftRow?.value ?? 0 };
+}
+
+// ── Alert Rule operations ─────────────────────────────────────────────────
+export interface AlertRule {
+  id: string; tenant_id: string; signal_id: string | null;
+  name: string; channel: 'email' | 'webhook'; destination: string;
+  status: 'enabled' | 'disabled'; created_at: string; updated_at: string;
+}
+
+export function createAlertRule(tenantId: string, input: {
+  signal_id?: string; name: string; channel: 'email' | 'webhook'; destination: string;
+}): AlertRule {
+  const db = getDB();
+  const id = newId('alr');
+  const now = new Date().toISOString();
+  db.prepare(`INSERT INTO alert_rules (id, tenant_id, signal_id, name, channel, destination, status, created_at, updated_at)
+    VALUES (?,?,?,?,?,?,'enabled',?,?)`)
+    .run(id, tenantId, input.signal_id ?? null, input.name, input.channel, input.destination, now, now);
+  return db.prepare('SELECT * FROM alert_rules WHERE id=?').get(id) as AlertRule;
+}
+
+export function listAlertRules(tenantId: string): AlertRule[] {
+  const db = getDB();
+  return db.prepare('SELECT * FROM alert_rules WHERE tenant_id=? ORDER BY created_at DESC').all(tenantId) as AlertRule[];
+}
+
+export function updateAlertRule(id: string, tenantId: string, patch: { name?: string; destination?: string; status?: 'enabled' | 'disabled' }): boolean {
+  const db = getDB();
+  const now = new Date().toISOString();
+  const res = db.prepare(`UPDATE alert_rules SET name=COALESCE(?,name), destination=COALESCE(?,destination), status=COALESCE(?,status), updated_at=? WHERE id=? AND tenant_id=?`)
+    .run(patch.name ?? null, patch.destination ?? null, patch.status ?? null, now, id, tenantId);
+  return res.changes > 0;
+}
+
+export function deleteAlertRule(id: string, tenantId: string): boolean {
+  const db = getDB();
+  const res = db.prepare('DELETE FROM alert_rules WHERE id=? AND tenant_id=?').run(id, tenantId);
+  return res.changes > 0;
+}
+
+// ── Scenario operations ───────────────────────────────────────────────────
+export interface ScenarioVariant {
+  id: string; label: string;
+  prompt_override?: string; model?: string; provider?: string;
+  temperature?: number; top_p?: number;
+  disable_tools?: string[]; inject_latency_ms?: number;
+}
+
+export interface Scenario {
+  id: string; tenant_id: string; name: string; base_run_id: string | null;
+  variants: ScenarioVariant[]; compare_metrics: string[];
+  created_at: string; updated_at: string;
+}
+
+function parseScenario(row: Record<string, unknown>): Scenario {
+  return {
+    ...row,
+    variants: JSON.parse(row.variants_json as string),
+    compare_metrics: JSON.parse(row.compare_metrics_json as string),
+  } as Scenario;
+}
+
+export function createScenario(tenantId: string, input: {
+  name: string; base_run_id?: string; variants?: ScenarioVariant[]; compare_metrics?: string[];
+}): Scenario {
+  const db = getDB();
+  const id = newId('scn');
+  const now = new Date().toISOString();
+  db.prepare(`INSERT INTO scenarios (id, tenant_id, name, base_run_id, variants_json, compare_metrics_json, created_at, updated_at)
+    VALUES (?,?,?,?,?,?,?,?)`)
+    .run(id, tenantId, input.name, input.base_run_id ?? null,
+      JSON.stringify(input.variants ?? []),
+      JSON.stringify(input.compare_metrics ?? ['pass_rate', 'latency', 'cost']),
+      now, now);
+  return getScenario(id, tenantId)!;
+}
+
+export function getScenario(id: string, tenantId: string): Scenario | undefined {
+  const db = getDB();
+  const row = db.prepare('SELECT * FROM scenarios WHERE id=? AND tenant_id=?').get(id, tenantId) as Record<string, unknown> | undefined;
+  return row ? parseScenario(row) : undefined;
+}
+
+export function listScenarios(tenantId: string): Scenario[] {
+  const db = getDB();
+  const rows = db.prepare('SELECT * FROM scenarios WHERE tenant_id=? ORDER BY updated_at DESC').all(tenantId) as Record<string, unknown>[];
+  return rows.map(parseScenario);
+}
+
+export function updateScenario(id: string, tenantId: string, patch: {
+  name?: string; variants?: ScenarioVariant[]; compare_metrics?: string[];
+}): boolean {
+  const db = getDB();
+  const existing = getScenario(id, tenantId);
+  if (!existing) return false;
+  const now = new Date().toISOString();
+  db.prepare(`UPDATE scenarios SET name=COALESCE(?,name), variants_json=COALESCE(?,variants_json), compare_metrics_json=COALESCE(?,compare_metrics_json), updated_at=? WHERE id=? AND tenant_id=?`)
+    .run(patch.name ?? null, patch.variants ? JSON.stringify(patch.variants) : null,
+      patch.compare_metrics ? JSON.stringify(patch.compare_metrics) : null, now, id, tenantId);
+  return true;
+}
+
+export function deleteScenario(id: string, tenantId: string): boolean {
+  const db = getDB();
+  const res = db.prepare('DELETE FROM scenarios WHERE id=? AND tenant_id=?').run(id, tenantId);
+  return res.changes > 0;
+}
+
+// ── Scenario Run operations ───────────────────────────────────────────────
+export interface ScenarioVariantResult {
+  variant_id: string; variant_label: string; status: 'passed' | 'failed' | 'error';
+  latency_ms: number; pass_rate: number; cost_usd: number; error?: string;
+  outputs?: unknown;
+}
+export interface ScenarioRun {
+  id: string; tenant_id: string; scenario_id: string;
+  status: 'running' | 'completed' | 'failed';
+  results: ScenarioVariantResult[]; recommendation: string | null;
+  created_at: string; finished_at: string | null;
+}
+
+function parseScenarioRun(row: Record<string, unknown>): ScenarioRun {
+  return { ...row, results: JSON.parse(row.results_json as string) } as ScenarioRun;
+}
+
+export function createScenarioRun(tenantId: string, scenarioId: string): ScenarioRun {
+  const db = getDB();
+  const id = newId('scr');
+  const now = new Date().toISOString();
+  db.prepare(`INSERT INTO scenario_runs (id, tenant_id, scenario_id, status, results_json, created_at)
+    VALUES (?,?,?,'running','[]',?)`)
+    .run(id, tenantId, scenarioId, now);
+  return getScenarioRun(id, tenantId)!;
+}
+
+export function getScenarioRun(id: string, tenantId: string): ScenarioRun | undefined {
+  const db = getDB();
+  const row = db.prepare('SELECT * FROM scenario_runs WHERE id=? AND tenant_id=?').get(id, tenantId) as Record<string, unknown> | undefined;
+  return row ? parseScenarioRun(row) : undefined;
+}
+
+export function updateScenarioRun(id: string, tenantId: string, patch: {
+  status?: ScenarioRun['status']; results?: ScenarioVariantResult[]; recommendation?: string;
+}): void {
+  const db = getDB();
+  const now = new Date().toISOString();
+  db.prepare(`UPDATE scenario_runs SET status=COALESCE(?,status), results_json=COALESCE(?,results_json),
+    recommendation=COALESCE(?,recommendation), finished_at=COALESCE(?,finished_at)
+    WHERE id=? AND tenant_id=?`)
+    .run(patch.status ?? null, patch.results ? JSON.stringify(patch.results) : null,
+      patch.recommendation ?? null,
+      patch.status && patch.status !== 'running' ? now : null,
+      id, tenantId);
+}
+
+export function listScenarioRuns(tenantId: string, scenarioId?: string, limit = 50): ScenarioRun[] {
+  const db = getDB();
+  const rows = scenarioId
+    ? db.prepare('SELECT * FROM scenario_runs WHERE tenant_id=? AND scenario_id=? ORDER BY created_at DESC LIMIT ?').all(tenantId, scenarioId, limit) as Record<string, unknown>[]
+    : db.prepare('SELECT * FROM scenario_runs WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?').all(tenantId, limit) as Record<string, unknown>[];
+  return rows.map(parseScenarioRun);
+}
+
+// ── Report Share operations ───────────────────────────────────────────────
+export interface ReportShare {
+  id: string; tenant_id: string; resource_type: string; resource_id: string;
+  slug: string; expires_at: string | null; created_at: string;
+}
+
+export function createReportShare(tenantId: string, resourceType: string, resourceId: string, expiresIn?: number): ReportShare {
+  const db = getDB();
+  const id = newId('rsh');
+  const slug = crypto.randomBytes(16).toString('base64url');
+  const now = new Date().toISOString();
+  const expiresAt = expiresIn ? new Date(Date.now() + expiresIn * 1000).toISOString() : null;
+  db.prepare(`INSERT INTO report_shares (id, tenant_id, resource_type, resource_id, slug, expires_at, created_at)
+    VALUES (?,?,?,?,?,?,?)`)
+    .run(id, tenantId, resourceType, resourceId, slug, expiresAt, now);
+  return { id, tenant_id: tenantId, resource_type: resourceType, resource_id: resourceId, slug, expires_at: expiresAt, created_at: now };
+}
+
+export function getReportShareBySlug(slug: string): ReportShare | undefined {
+  const db = getDB();
+  const row = db.prepare('SELECT * FROM report_shares WHERE slug=? AND (expires_at IS NULL OR expires_at > ?)').get(slug, new Date().toISOString()) as ReportShare | undefined;
+  return row;
 }
 
 // ── Cloud seed (dev only) ─────────────────────────────────────────────────
