@@ -373,7 +373,7 @@ export function comparePolicyViolations(
         path: `violation/${v.id}`,
         current_value: v.message,
         change_type: 'added',
-        severity: v.severity === 'critical' ? 'error' : v.severity === 'error' ? 'error' : 'warning',
+        severity: v.severity === 'error' ? 'error' : 'warning',
       });
     }
   }

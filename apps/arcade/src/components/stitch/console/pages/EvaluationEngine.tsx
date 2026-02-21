@@ -126,7 +126,7 @@ export function EvaluationEngine() {
                     <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400"><span className="w-2 h-2 rounded-full bg-purple-500"></span> Synthetic</span>
                   </div>
                 </div>
-                <div className="w-full h-48 bg-gradient-to-b from-[#135bec]/5 to-transparent rounded border border-slate-700 relative overflow-hidden flex items-end px-2">
+                <div className="w-full h-48 bg-linear-to-b from-[#135bec]/5 to-transparent rounded border border-slate-700 relative overflow-hidden flex items-end px-2">
                    {/* Simplified Graph Visual */}
                    <div className="absolute inset-0 flex items-end">
                       <svg className="w-full h-full" viewBox="0 0 1000 200" preserveAspectRatio="none">
