@@ -139,6 +139,31 @@ export function listScenarios(tenantId: string): Scenario[] {
   return rows.map(parseScenario);
 }
 
+export function updateScenario(id: string, tenantId: string, patch: { name?: string; variants?: unknown[]; compare_metrics?: string[] }): boolean {
+  const db = getDB();
+  const existing = getScenario(id, tenantId);
+  if (!existing) return false;
+  const now = new Date().toISOString();
+  db.prepare(`UPDATE scenarios SET name=COALESCE(?,name), variants_json=COALESCE(?,variants_json), compare_metrics_json=COALESCE(?,compare_metrics_json), updated_at=? WHERE id=? AND tenant_id=?`)
+    .run(patch.name ?? null, patch.variants ? JSON.stringify(patch.variants) : null,
+      patch.compare_metrics ? JSON.stringify(patch.compare_metrics) : null, now, id, tenantId);
+  return true;
+}
+
+export function deleteScenario(id: string, tenantId: string): boolean {
+  const db = getDB();
+  const res = db.prepare('DELETE FROM scenarios WHERE id=? AND tenant_id=?').run(id, tenantId);
+  return res.changes > 0;
+}
+
+export function listScenarioRuns(tenantId: string, scenarioId?: string, limit = 50): ScenarioRun[] {
+  const db = getDB();
+  const rows = scenarioId
+    ? db.prepare('SELECT * FROM scenario_runs WHERE tenant_id=? AND scenario_id=? ORDER BY created_at DESC LIMIT ?').all(tenantId, scenarioId, limit) as Record<string, unknown>[]
+    : db.prepare('SELECT * FROM scenario_runs WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?').all(tenantId, limit) as Record<string, unknown>[];
+  return rows.map(parseScenarioRun);
+}
+
 // Scenario Runs
 function parseScenarioRun(row: Record<string, unknown>): ScenarioRun {
   return { ...row, results: JSON.parse(row.results_json as string) } as ScenarioRun;
