@@ -405,6 +405,173 @@ export const MIGRATIONS: string[] = [
   CREATE INDEX IF NOT EXISTS idx_scenario_runs_scenario ON scenario_runs(scenario_id);
   CREATE INDEX IF NOT EXISTS idx_report_shares_slug ON report_shares(slug);
   `,
+
+  /* 011 — schema hardening: versioning, audit trails, integrity */
+  `
+  -- Versioned skills table
+  CREATE TABLE IF NOT EXISTS skills (
+    id              TEXT PRIMARY KEY,
+    tenant_id       TEXT NOT NULL REFERENCES tenants(id),
+    name            TEXT NOT NULL,
+    description     TEXT NOT NULL DEFAULT '',
+    version         TEXT NOT NULL DEFAULT '1.0.0',
+    version_history TEXT NOT NULL DEFAULT '[]',
+    config_json     TEXT NOT NULL DEFAULT '{}',
+    config_hash     TEXT NOT NULL DEFAULT '{}',
+    status          TEXT NOT NULL DEFAULT 'draft',
+    created_at      TEXT NOT NULL,
+    created_by      TEXT NOT NULL REFERENCES users(id),
+    updated_at      TEXT NOT NULL,
+    updated_by      TEXT NOT NULL REFERENCES users(id),
+    deleted_at      TEXT,
+    deleted_by      TEXT
+  );
+
+  -- Versioned templates table
+  CREATE TABLE IF NOT EXISTS templates (
+    id              TEXT PRIMARY KEY,
+    tenant_id       TEXT NOT NULL REFERENCES tenants(id),
+    name            TEXT NOT NULL,
+    description     TEXT NOT NULL DEFAULT '',
+    version         TEXT NOT NULL DEFAULT '1.0.0',
+    version_history TEXT NOT NULL DEFAULT '[]',
+    prompt_template TEXT NOT NULL,
+    prompt_hash     TEXT NOT NULL DEFAULT '{}',
+    variables_json  TEXT NOT NULL DEFAULT '{}',
+    status          TEXT NOT NULL DEFAULT 'draft',
+    created_at      TEXT NOT NULL,
+    created_by      TEXT NOT NULL REFERENCES users(id),
+    updated_at      TEXT NOT NULL,
+    updated_by      TEXT NOT NULL REFERENCES users(id),
+    deleted_at      TEXT,
+    deleted_by      TEXT
+  );
+
+  -- Run output snapshots (immutable)
+  CREATE TABLE IF NOT EXISTS run_output_snapshots (
+    id                TEXT PRIMARY KEY,
+    run_id            TEXT NOT NULL REFERENCES workflow_runs(id),
+    snapshot_version  TEXT NOT NULL DEFAULT '1.0.0',
+    outputs_json      TEXT NOT NULL,
+    outputs_hash      TEXT NOT NULL,
+    metrics_json      TEXT NOT NULL,
+    metrics_hash      TEXT NOT NULL,
+    tool_calls_json   TEXT NOT NULL DEFAULT '[]',
+    tool_calls_hash   TEXT NOT NULL,
+    created_at        TEXT NOT NULL,
+    immutable         INTEGER NOT NULL DEFAULT 1
+  );
+
+  -- Tool execution audit trail
+  CREATE TABLE IF NOT EXISTS tool_audit_trail (
+    id                    TEXT PRIMARY KEY,
+    tenant_id             TEXT NOT NULL REFERENCES tenants(id),
+    run_id                TEXT NOT NULL REFERENCES workflow_runs(id),
+    tool_name             TEXT NOT NULL,
+    tool_version          TEXT,
+    invocation_id         TEXT NOT NULL,
+    input_hash            TEXT NOT NULL,
+    output_hash           TEXT,
+    execution_time_ms     INTEGER NOT NULL DEFAULT 0,
+    status                TEXT NOT NULL DEFAULT 'pending',
+    error_message         TEXT,
+    permission_scope_json TEXT NOT NULL DEFAULT '[]',
+    rate_limit_key        TEXT,
+    circuit_breaker_state TEXT,
+    created_at            TEXT NOT NULL
+  );
+
+  -- Provider health tracking
+  CREATE TABLE IF NOT EXISTS provider_health (
+    id              TEXT PRIMARY KEY,
+    provider_name   TEXT NOT NULL UNIQUE,
+    health_score    REAL NOT NULL DEFAULT 1.0,
+    latency_p50_ms  INTEGER NOT NULL DEFAULT 0,
+    latency_p95_ms  INTEGER NOT NULL DEFAULT 0,
+    latency_p99_ms  INTEGER NOT NULL DEFAULT 0,
+    error_rate      REAL NOT NULL DEFAULT 0,
+    last_success_at TEXT,
+    last_failure_at TEXT,
+    consecutive_failures INTEGER NOT NULL DEFAULT 0,
+    status          TEXT NOT NULL DEFAULT 'healthy',
+    updated_at      TEXT NOT NULL
+  );
+
+  -- Score history for drift/regression tracking
+  CREATE TABLE IF NOT EXISTS score_history (
+    id              TEXT PRIMARY KEY,
+    tenant_id       TEXT NOT NULL REFERENCES tenants(id),
+    run_id          TEXT REFERENCES workflow_runs(id),
+    score_type      TEXT NOT NULL,
+    score_value     REAL NOT NULL,
+    baseline_value  REAL,
+    delta           REAL,
+    metadata_json   TEXT NOT NULL DEFAULT '{}',
+    created_at      TEXT NOT NULL
+  );
+
+  -- Internal telemetry events
+  CREATE TABLE IF NOT EXISTS internal_telemetry (
+    id              TEXT PRIMARY KEY,
+    event_type      TEXT NOT NULL,
+    tenant_id       TEXT REFERENCES tenants(id),
+    properties_json TEXT NOT NULL DEFAULT '{}',
+    session_id      TEXT,
+    created_at      TEXT NOT NULL
+  );
+
+  -- Plugin registry (scaffold)
+  CREATE TABLE IF NOT EXISTS plugins (
+    id              TEXT PRIMARY KEY,
+    name            TEXT NOT NULL,
+    version         TEXT NOT NULL,
+    plugin_type     TEXT NOT NULL,
+    manifest_json   TEXT NOT NULL DEFAULT '{}',
+    manifest_hash   TEXT NOT NULL,
+    status          TEXT NOT NULL DEFAULT 'inactive',
+    compatibility_json TEXT NOT NULL DEFAULT '{}',
+    created_at      TEXT NOT NULL,
+    updated_at      TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_skills_tenant ON skills(tenant_id);
+  CREATE INDEX IF NOT EXISTS idx_templates_tenant ON templates(tenant_id);
+  CREATE INDEX IF NOT EXISTS idx_run_snapshots_run ON run_output_snapshots(run_id);
+  CREATE INDEX IF NOT EXISTS idx_tool_audit_run ON tool_audit_trail(run_id);
+  CREATE INDEX IF NOT EXISTS idx_tool_audit_tenant ON tool_audit_trail(tenant_id);
+  CREATE INDEX IF NOT EXISTS idx_score_history_tenant ON score_history(tenant_id);
+  CREATE INDEX IF NOT EXISTS idx_score_history_type ON score_history(score_type, created_at);
+  CREATE INDEX IF NOT EXISTS idx_internal_telemetry_type ON internal_telemetry(event_type, created_at);
+  `,
+
+  /* 012 — add audit columns to existing tables (backward compatible) */
+  `
+  -- Add audit columns to gates if missing
+  ALTER TABLE gates ADD COLUMN created_by TEXT REFERENCES users(id);
+  ALTER TABLE gates ADD COLUMN updated_by TEXT REFERENCES users(id);
+  ALTER TABLE gates ADD COLUMN version TEXT DEFAULT '1.0.0';
+  ALTER TABLE gates ADD COLUMN version_history TEXT DEFAULT '[]';
+  ALTER TABLE gates ADD COLUMN config_hash TEXT DEFAULT '{}';
+  ALTER TABLE gates ADD COLUMN deleted_at TEXT;
+  ALTER TABLE gates ADD COLUMN deleted_by TEXT;
+
+  -- Add audit columns to signals if missing
+  ALTER TABLE signals ADD COLUMN created_by TEXT REFERENCES users(id);
+  ALTER TABLE signals ADD COLUMN updated_by TEXT REFERENCES users(id);
+  ALTER TABLE signals ADD COLUMN deleted_at TEXT;
+  ALTER TABLE signals ADD COLUMN deleted_by TEXT;
+
+  -- Add audit columns to scenarios if missing
+  ALTER TABLE scenarios ADD COLUMN created_by TEXT REFERENCES users(id);
+  ALTER TABLE scenarios ADD COLUMN updated_by TEXT REFERENCES users(id);
+  ALTER TABLE scenarios ADD COLUMN deleted_at TEXT;
+  ALTER TABLE scenarios ADD COLUMN deleted_by TEXT;
+
+  -- Add integrity columns to workflow_runs
+  ALTER TABLE workflow_runs ADD COLUMN outputs_hash TEXT;
+  ALTER TABLE workflow_runs ADD COLUMN inputs_hash TEXT;
+  ALTER TABLE workflow_runs ADD COLUMN snapshot_id TEXT REFERENCES run_output_snapshots(id);
+  `,
 ];
 
 export function applyMigrations(db: Database.Database): void {
