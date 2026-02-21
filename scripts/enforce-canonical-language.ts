@@ -141,6 +141,54 @@ const FORBIDDEN_TERMS: ForbiddenTerm[] = [
   },
 ];
 
+// ── Allowlist File ────────────────────────────────────────────────────
+
+interface AllowlistEntry {
+  filePath: string; // relative to repo root
+  lineNumber?: number; // optional — if omitted, whole file is allowed for that term
+  term: string;
+}
+
+function loadAllowlist(repoRoot: string): AllowlistEntry[] {
+  const allowlistPath = path.join(repoRoot, "scripts", "canonical-language.allowlist.txt");
+  if (!fs.existsSync(allowlistPath)) return [];
+
+  const entries: AllowlistEntry[] = [];
+  const lines = fs.readFileSync(allowlistPath, "utf-8").split("\n");
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line || line.startsWith("#")) continue;
+
+    // Format: <path>:<line> <term>  OR  <path> <term>
+    const colonMatch = line.match(/^(.+?):(\d+)\s+(.+)$/);
+    if (colonMatch) {
+      entries.push({ filePath: colonMatch[1], lineNumber: parseInt(colonMatch[2], 10), term: colonMatch[3] });
+      continue;
+    }
+    const spaceMatch = line.match(/^(\S+)\s+(.+)$/);
+    if (spaceMatch) {
+      entries.push({ filePath: spaceMatch[1], term: spaceMatch[2] });
+    }
+  }
+  return entries;
+}
+
+function isAllowlisted(
+  allowlist: AllowlistEntry[],
+  filePath: string,
+  lineNumber: number,
+  term: string,
+  repoRoot: string,
+): boolean {
+  const rel = path.relative(repoRoot, filePath);
+  return allowlist.some((entry) => {
+    if (entry.term !== term) return false;
+    if (!rel.startsWith(entry.filePath)) return false;
+    if (entry.lineNumber !== undefined && entry.lineNumber !== lineNumber) return false;
+    return true;
+  });
+}
+
 // ── Scanning Logic ─────────────────────────────────────────────────────
 
 interface Violation {
@@ -155,8 +203,10 @@ function shouldSkip(filePath: string): boolean {
   return SKIP_PATTERNS.some((pat) => filePath.includes(pat));
 }
 
-function isLineExempt(line: string): boolean {
+function isLineExempt(line: string, prevLine?: string): boolean {
   const trimmed = line.trim();
+  // Inline escape hatch: previous line has `// canonical-language: allow`
+  if (prevLine && prevLine.trim() === "// canonical-language: allow") return true;
   // Skip import/require statements
   if (/^import\s/.test(trimmed) || /require\(/.test(trimmed)) return true;
   // Skip type-only lines (interfaces, type aliases)
@@ -192,17 +242,19 @@ function isTermExempt(term: string, filePath: string, repoRoot: string): boolean
   return exemptions.some((ex) => rel.startsWith(ex));
 }
 
-function scanFile(filePath: string, repoRoot: string): Violation[] {
+function scanFile(filePath: string, repoRoot: string, allowlist: AllowlistEntry[]): Violation[] {
   const violations: Violation[] = [];
   const content = fs.readFileSync(filePath, "utf-8");
   const lines = content.split("\n");
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (isLineExempt(line)) continue;
+    const prevLine = i > 0 ? lines[i - 1] : undefined;
+    if (isLineExempt(line, prevLine)) continue;
 
     for (const forbidden of FORBIDDEN_TERMS) {
       if (isTermExempt(forbidden.term, filePath, repoRoot)) continue;
+      if (isAllowlisted(allowlist, filePath, i + 1, forbidden.term, repoRoot)) continue;
       if (forbidden.pattern.test(line)) {
         violations.push({
           file: filePath,
@@ -222,13 +274,14 @@ function scanFile(filePath: string, repoRoot: string): Violation[] {
 
 function main(): void {
   const repoRoot = path.resolve(__dirname, "..");
+  const allowlist = loadAllowlist(repoRoot);
   const allViolations: Violation[] = [];
 
   for (const glob of UI_LAYER_GLOBS) {
     const dir = path.join(repoRoot, glob);
     const files = collectFiles(dir);
     for (const file of files) {
-      allViolations.push(...scanFile(file, repoRoot));
+      allViolations.push(...scanFile(file, repoRoot, allowlist));
     }
   }
 
