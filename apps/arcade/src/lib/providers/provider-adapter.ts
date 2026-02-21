@@ -638,7 +638,7 @@ export const ProviderRequestSchema = z.object({
         tool_use: z.object({
           id: z.string(),
           name: z.string(),
-          input: z.record(z.unknown()),
+          input: z.record(z.string(), z.unknown()),
         }).optional(),
         tool_result: z.object({
           tool_use_id: z.string(),

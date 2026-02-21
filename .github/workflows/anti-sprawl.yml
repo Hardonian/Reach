@@ -1,0 +1,20 @@
+name: Anti-Sprawl Enforcement
+
+on:
+  pull_request:
+    paths:
+      - 'apps/arcade/src/app/**'
+      - 'apps/arcade/src/components/**'
+  push:
+    branches: [main]
+
+jobs:
+  enforce-discipline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run Anti-Sprawl Audit
+        run: node scripts/anti-sprawl.mjs
