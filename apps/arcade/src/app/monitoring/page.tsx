@@ -48,8 +48,7 @@ function Sparkline({ values }: { values: number[] }) {
 
 export default function MonitoringPage() {
   const [signals, setSignals] = useState<Signal[]>([]);
-  const [recentRuns, setRecentRuns] = useState<MonitorRun[]>([]);
-  const [health, setHealth] = useState<Health>({ total: 0, alerts_today: 0, latest_drift: 0 });
+  const [health] = useState<Health>({ total: 0, alerts_today: 0, latest_drift: 0 });
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ name: '', type: 'drift', source: 'webhook' });

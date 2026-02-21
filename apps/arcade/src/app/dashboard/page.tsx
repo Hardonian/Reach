@@ -58,11 +58,11 @@ export default function DashboardPage() {
       case 'demo_run':
         router.push(ROUTES.PLAYGROUND);
         break;
-      case 'connect_input':
+      case 'connect_repo':
         router.push(ROUTES.DOCS);
         break;
-      case 'see_failure':
-        router.push(ROUTES.PLAYGROUND);
+      case 'active_gate':
+        router.push(ROUTES.SETTINGS.ADVANCED.RELEASE_GATES);
         break;
       case 'save_baseline':
         markDone('save_baseline');
@@ -135,7 +135,7 @@ export default function DashboardPage() {
               >
                 <div className="flex items-start gap-4">
                   {/* Step indicator */}
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mt-0.5 ${
+                  <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mt-0.5 ${
                     isDone
                       ? 'bg-emerald-500/20 text-emerald-400'
                       : 'bg-surface border border-border text-gray-500'
@@ -155,7 +155,7 @@ export default function DashboardPage() {
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-2 shrink-0">
                         {isDone ? (
                           <span className="text-xs text-emerald-500">Done</span>
                         ) : (
@@ -207,6 +207,16 @@ export default function DashboardPage() {
               <div className="text-xl mb-1">💡</div>
               <div className="font-medium text-sm group-hover:text-accent transition-colors">Pricing</div>
               <div className="text-xs text-gray-500">Free forever plan</div>
+            </Link>
+            <Link href={ROUTES.MONITORING} className="card p-4 hover:border-accent/50 transition-all group">
+              <div className="text-xl mb-1">📡</div>
+              <div className="font-medium text-sm group-hover:text-accent transition-colors">Monitoring</div>
+              <div className="text-xs text-gray-500">Agent health & drift</div>
+            </Link>
+            <Link href={ROUTES.SIMULATE} className="card p-4 hover:border-accent/50 transition-all group">
+              <div className="text-xl mb-1">🧪</div>
+              <div className="font-medium text-sm group-hover:text-accent transition-colors">Simulate</div>
+              <div className="text-xs text-gray-500">What-if experiments</div>
             </Link>
           </div>
         </div>

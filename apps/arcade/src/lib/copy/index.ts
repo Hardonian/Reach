@@ -23,57 +23,46 @@ export interface CopyEntry {
 export const TERMS: Record<string, CopyEntry> = {
   policy: {
     display: 'Rules',
-    tooltip: 'Rules define what your agent is and isn\'t allowed to do.',
+    tooltip: 'Rules: Rules your agent must obey.',
+  },
+  drift: {
+    display: 'Drift',
+    tooltip: 'Drift: When behavior changes over time.',
+  },
+  gate: {
+    display: 'Gate',
+    tooltip: 'Gate: Automated block for bad builds.',
+  },
+  trace: {
+    display: 'Trace',
+    tooltip: 'Trace: Step-by-step history of actions.',
+  },
+  signal: {
+    display: 'Signal',
+    tooltip: 'Signal: Real-time health data points.',
   },
   run_artifacts: {
     display: 'Reports',
-    tooltip: 'Reports are saved snapshots of a check run — what passed, what failed, and why.',
-  },
-  deterministic_pipeline: {
-    display: 'Repeatable checks',
-    tooltip: 'Same input always produces the same result — no surprises in CI.',
-  },
-  observability: {
-    display: 'See what happened',
-    tooltip: 'Full trace of every step your agent took, visible in one click.',
-  },
-  orchestration: {
-    display: 'Run coordination',
-    tooltip: 'Runs multiple checks in order and combines their results.',
-  },
-  evaluation: {
-    display: 'Checks',
-    tooltip: 'Tests that verify your agent behaves correctly before you ship.',
-  },
-  governance: {
-    display: 'Controls',
-    tooltip: 'Who can do what, and what gets logged — for teams and compliance.',
-  },
-  regression: {
-    display: 'Change detection',
-    tooltip: 'Alerts you when a new build behaves differently than a previous one.',
-  },
-  sandbox: {
-    display: 'Safe test zone',
-    tooltip: 'Your agent runs here in isolation — no real side-effects.',
-  },
-  trace: {
-    display: 'Step-by-step log',
-    tooltip: 'Every action your agent took, in order, with timestamps.',
+    tooltip: 'Reports are saved snapshots of a check run.',
   },
 };
 
 /** Hero copy variants for A/B testing */
 export const HERO_VARIANTS = {
   A: {
-    headline: 'Ship reliable AI agents.',
-    subhead: 'Run a readiness check in minutes. Catch regressions, unsafe behavior, and tool failures before prod.',
+    headline: 'Your agent is smart. Is it shippable?',
+    subhead: 'ReadyLayer turns "it works on my prompt" into repeatable, safe releases.',
     badge: 'Now in open beta',
   },
   B: {
-    headline: 'Your agent is smart. Is it shippable?',
-    subhead: 'ReadyLayer turns "works on my prompt" into repeatable releases.',
+    headline: 'Ship AI agents without the "maybe".',
+    subhead: 'Automated readiness checks for tool calls, policy gates, and regressions.',
     badge: 'Free to start',
+  },
+  C: {
+    headline: 'Zero to CI readiness in 30 seconds.',
+    subhead: 'Stop guessing if your latest prompt broke your agent. Verify it instantly.',
+    badge: 'Demo-first',
   },
 } as const;
 
@@ -81,10 +70,10 @@ export type HeroVariant = keyof typeof HERO_VARIANTS;
 
 /** CTA copy variants */
 export const CTA = {
-  primary: 'Run a demo (free)',
+  primary: 'Run demo (free)',
   primaryAlt: 'Try instantly',
-  secondary: 'Start free',
-  sales: 'Talk to an engineer',
+  secondary: 'Get started for free',
+  sales: 'Talk to us',
   saveRun: 'Save this run',
   signupCta: 'Start free — no card required',
   reassurance: 'No credit card. Works locally. OSS-friendly.',
@@ -94,38 +83,38 @@ export const CTA = {
 export const CHECKLIST = [
   {
     id: 'demo_run',
-    title: 'Run a demo check',
-    description: 'See a real result in under 30 seconds.',
+    title: 'Run Demo',
+    description: 'See a real report in 30 seconds.',
     cta: 'Run now',
     completedLabel: 'Demo check done',
   },
   {
-    id: 'connect_input',
-    title: 'Connect your first input',
-    description: 'Paste a prompt, config, or import from your repo.',
+    id: 'connect_repo',
+    title: 'Connect Repo',
+    description: 'Link your logic for automated checks.',
     cta: 'Connect',
-    completedLabel: 'Input connected',
-  },
-  {
-    id: 'see_failure',
-    title: 'See one failure class',
-    description: 'We\'ll show you a prebuilt example of what can go wrong.',
-    cta: 'Show example',
-    completedLabel: 'Failure class viewed',
+    completedLabel: 'Repo connected',
   },
   {
     id: 'save_baseline',
-    title: 'Save & compare runs',
-    description: 'Create a baseline so future changes show diffs.',
+    title: 'Set Baseline',
+    description: 'Save a "Pass" run to catch future drifts.',
     cta: 'Save baseline',
     completedLabel: 'Baseline saved',
   },
   {
+    id: 'active_gate',
+    title: 'Active Gate',
+    description: 'Connect to GitHub to block broken PRs.',
+    cta: 'Connect GitHub',
+    completedLabel: 'Gate active',
+  },
+  {
     id: 'invite',
-    title: 'Invite a teammate',
-    description: 'Share a link or add them to your workspace.',
+    title: 'Invite Team',
+    description: 'Share results with your engineers.',
     cta: 'Invite',
-    completedLabel: 'Teammate invited',
+    completedLabel: 'Teammates invited',
   },
 ] as const;
 
@@ -136,19 +125,19 @@ export const HOW_IT_WORKS = [
   {
     step: '01',
     title: 'Run a check',
-    description: 'Point ReadyLayer at your agent. It runs a suite of readiness checks — tool calls, policy gates, regression diffs.',
+    description: 'Point ReadyLayer at your agent. It runs a suite of readiness checks instantly.',
     icon: '▶',
   },
   {
     step: '02',
     title: 'Fix what breaks',
-    description: 'Each finding comes with a plain-English explanation and a specific fix suggestion.',
+    description: 'Get plain-English explanations and specific fix suggestions for every finding.',
     icon: '⚡',
   },
   {
     step: '03',
     title: 'Ship with confidence',
-    description: 'Gate your CI/CD on a green readiness score. Never merge a broken agent again.',
+    description: 'Gate your CI/CD on a green score. Never merge a broken agent again.',
     icon: '✓',
   },
 ] as const;
@@ -156,38 +145,38 @@ export const HOW_IT_WORKS = [
 /** Core capabilities (show first 3 above fold, rest behind "Show more") */
 export const CAPABILITIES = [
   {
-    title: 'Readiness checks',
-    description: 'Automated suite: tool calls, timeouts, policy gates, and behavior regressions.',
+    title: 'Release Gates',
+    description: 'Automated PR checks to stop shipping broken agents.',
     href: '/docs/quick-start',
     primary: true,
   },
   {
-    title: 'Change detection',
-    description: 'Compare runs side-by-side. See exactly what changed between builds.',
+    title: 'CI Ingestion',
+    description: 'Local test integration for your terminal workflows.',
     href: '/docs/quick-start',
     primary: true,
   },
   {
-    title: 'Rules engine',
-    description: 'Define what your agent can and can\'t do. Enforce at every run.',
+    title: 'Monitoring',
+    description: 'Post-ship health tracking to catch failures early.',
     href: '/docs/quick-start',
     primary: true,
   },
   {
-    title: 'Step-by-step logs',
-    description: 'Full execution trace for every check — every tool call, every decision.',
+    title: 'Simulation',
+    description: 'Side-by-side experiments to find the best variants.',
     href: '/docs/quick-start',
     primary: false,
   },
   {
-    title: 'CI/CD gate',
-    description: 'Block merges that regress agent behavior. Works with GitHub Actions.',
+    title: 'Rules Engine',
+    description: 'Define agent boundaries and enforce them at every run.',
     href: '/docs/quick-start',
     primary: false,
   },
   {
-    title: 'Team controls',
-    description: 'Role-based access and audit logs for compliance-conscious teams.',
+    title: 'Traceability',
+    description: 'Step-by-step logs for every decision your agent makes.',
     href: '/docs/quick-start',
     primary: false,
   },
