@@ -201,3 +201,147 @@ export class PluginLoader {
    * Gets plugins by capability.
    */
   getByCapability(capabilityName: string): Plugin[] {
+    const pluginIds = this.capabilities.get(capabilityName);
+    if (!pluginIds) return [];
+    
+    return Array.from(pluginIds)
+      .map(id => this.plugins.get(id))
+      .filter((p): p is Plugin => p !== undefined);
+  }
+  
+  /**
+   * Checks if a plugin is loaded.
+   */
+  isLoaded(pluginId: string): boolean {
+    return this.plugins.has(pluginId);
+  }
+  
+  /**
+   * Activates a plugin.
+   */
+  activate(pluginId: string): void {
+    const plugin = this.plugins.get(pluginId);
+    if (!plugin) {
+      throw new PluginLoadError(`Plugin ${pluginId} not found`);
+    }
+    
+    plugin.status = 'active';
+    plugin.loaded_at = new Date().toISOString();
+  }
+  
+  /**
+   * Deactivates a plugin.
+   */
+  deactivate(pluginId: string): void {
+    const plugin = this.plugins.get(pluginId);
+    if (!plugin) return;
+    
+    plugin.status = 'inactive';
+  }
+  
+  /**
+   * Gets capability registry.
+   */
+  getCapabilityRegistry(): Record<string, string[]> {
+    const registry: Record<string, string[]> = {};
+    for (const [capability, pluginIds] of this.capabilities) {
+      registry[capability] = Array.from(pluginIds);
+    }
+    return registry;
+  }
+}
+
+export interface PluginConfig {
+  runtimeVersion?: string;
+  minVersion?: string;
+  maxVersion?: string;
+  supportedRuntimes?: string[];
+  installSource?: string;
+  signature?: string;
+  checksum?: string;
+}
+
+// ── Version Compatibility ────────────────────────────────────────────────────
+
+/**
+ * Checks if a plugin is compatible with the runtime.
+ */
+export function checkVersionCompatibility(
+  manifest: PluginManifest,
+  runtimeVersion?: string,
+  minVersion?: string,
+  maxVersion?: string
+): { compatible: boolean; reason?: string; minVersion?: string; maxVersion?: string } {
+  const pluginVersion = manifest.version;
+  
+  // Check min version
+  const min = minVersion || manifest.peer_dependencies?.['@reach/api'];
+  const max = maxVersion;
+  
+  if (min && compareVersions(pluginVersion, min) < 0) {
+    return {
+      compatible: false,
+      reason: `Plugin requires API version ${min}, current is ${pluginVersion}`,
+      minVersion: min,
+      maxVersion: max,
+    };
+  }
+  
+  if (max && compareVersions(pluginVersion, max) > 0) {
+    return {
+      compatible: false,
+      reason: `Plugin is not compatible with API version ${max}`,
+      minVersion: min,
+      maxVersion: max,
+    };
+  }
+  
+  return {
+    compatible: true,
+    minVersion: min,
+    maxVersion: max,
+  };
+}
+
+/**
+ * Compares two semantic versions.
+ * Returns: -1 if a < b, 0 if a == b, 1 if a > b
+ */
+function compareVersions(a: string, b: string): number {
+  const aParts = a.replace(/^v/, '').split('.').map(Number);
+  const bParts = b.replace(/^v/, '').split('.').map(Number);
+  
+  for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+    const aPart = aParts[i] || 0;
+    const bPart = bParts[i] || 0;
+    
+    if (aPart < bPart) return -1;
+    if (aPart > bPart) return 1;
+  }
+  
+  return 0;
+}
+
+// ── Plugin Validation ────────────────────────────────────────────────────────
+
+/**
+ * Validates a plugin manifest.
+ */
+export function validatePluginManifest(
+  manifest: unknown
+): { valid: boolean; errors?: string[] } {
+  const result = PluginManifestSchema.safeParse(manifest);
+  
+  if (!result.success) {
+    return {
+      valid: false,
+      errors: result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`),
+    };
+  }
+  
+  return { valid: true };
+}
+
+/**
+ * Plugin validation contract.
+ */
