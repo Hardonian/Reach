@@ -66,12 +66,13 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
   switch (event.type) {
     case 'customer.subscription.created':
     case 'customer.subscription.updated': {
-      const sub = data as Stripe.Subscription;
+      const sub = data as unknown as Stripe.Subscription;
       const tenantId = (sub.metadata?.['tenant_id'] as string) ?? '';
       if (!tenantId) { logger.warn('no tenant_id in subscription metadata'); return; }
       const priceId = (sub.items?.data?.[0]?.price?.id as string) ?? '';
       const plan = getPlanForPriceId(priceId);
       const limits = PLAN_LIMITS[plan] ?? PLAN_LIMITS['pro'];
+      const firstItem = sub.items?.data?.[0];
       upsertEntitlement(tenantId, {
         plan,
         stripe_customer_id: sub.customer as string,
@@ -81,15 +82,15 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         runs_per_month: limits.runs_per_month,
         pack_limit: limits.pack_limit,
         retention_days: limits.retention_days,
-        period_start: sub.current_period_start ? new Date(sub.current_period_start * 1000).toISOString() : undefined,
-        period_end: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : undefined,
+        period_start: firstItem?.current_period_start ? new Date(firstItem.current_period_start * 1000).toISOString() : undefined,
+        period_end: firstItem?.current_period_end ? new Date(firstItem.current_period_end * 1000).toISOString() : undefined,
       } as Parameters<typeof upsertEntitlement>[1]);
       logger.info(`Subscription ${event.type} processed`, { tenantId, plan });
       break;
     }
 
     case 'customer.subscription.deleted': {
-      const sub = data as Stripe.Subscription;
+      const sub = data as unknown as Stripe.Subscription;
       const tenantId = (sub.metadata?.['tenant_id'] as string) ?? '';
       if (!tenantId) return;
       upsertEntitlement(tenantId, {
@@ -106,8 +107,8 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     }
 
     case 'invoice.paid': {
-      const invoice = data as Stripe.Invoice;
-      const tenantId = (invoice.subscription_details?.metadata?.['tenant_id'] as string) ?? '';
+      const invoice = data as unknown as Stripe.Invoice;
+      const tenantId = (invoice.parent?.subscription_details?.metadata?.['tenant_id'] as string) ?? '';
       if (tenantId) {
         // Reset monthly usage on successful invoice payment (new billing period)
         const { resetMonthlyUsage } = await import('@/lib/cloud-db');
@@ -118,8 +119,8 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     }
 
     case 'invoice.payment_failed': {
-      const invoice = data as Stripe.Invoice;
-      const tenantId = (invoice.subscription_details?.metadata?.['tenant_id'] as string) ?? '';
+      const invoice = data as unknown as Stripe.Invoice;
+      const tenantId = (invoice.parent?.subscription_details?.metadata?.['tenant_id'] as string) ?? '';
       if (tenantId) {
         upsertEntitlement(tenantId, { status: 'past_due' } as Parameters<typeof upsertEntitlement>[1]);
         logger.warn('Invoice payment failed', { tenantId });

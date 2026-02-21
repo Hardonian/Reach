@@ -12,7 +12,7 @@ export function DatasetManagement() {
           <span className="text-white text-sm font-medium">Datasets & RAG</span>
         </div>
         <div className="flex items-center gap-4">
-          <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#3b4354] bg-[#1c1f27] text-white text-sm font-medium hover:bg-[#282e39] transition-colors">
+          <button type="button" className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#3b4354] bg-[#1c1f27] text-white text-sm font-medium hover:bg-[#282e39] transition-colors">
             <span className="material-symbols-outlined text-[18px]">refresh</span>
             <span>Sync All</span>
           </button>
@@ -26,7 +26,7 @@ export function DatasetManagement() {
               <h1 className="text-3xl font-black text-white tracking-tight mb-2 uppercase">Dataset & RAG Management</h1>
               <p className="text-[#9da6b9] text-base max-w-2xl">Manage vector stores, configure ingestion pipelines, and test retrieval accuracy for your agentic workflows.</p>
             </div>
-            <button className="flex items-center gap-2 px-6 py-3 bg-[#135bec] hover:bg-blue-600 text-white rounded-lg font-black uppercase tracking-widest text-xs shadow-lg shadow-blue-500/20 transition-all">
+            <button type="button" className="flex items-center gap-2 px-6 py-3 bg-[#135bec] hover:bg-blue-600 text-white rounded-lg font-black uppercase tracking-widest text-xs shadow-lg shadow-blue-500/20 transition-all">
               <span className="material-symbols-outlined text-[20px]">add</span>
               Add Data Source
             </button>
@@ -101,7 +101,7 @@ export function DatasetManagement() {
                                  <span className="px-2 py-0.5 rounded border border-[#3b4354] bg-[#282e39] text-[10px] text-slate-400 font-bold">{row.model}</span>
                               </td>
                               <td className="px-6 py-4 text-right">
-                                 <button className="text-slate-500 hover:text-white transition-colors"><span className="material-symbols-outlined">more_vert</span></button>
+                                 <button type="button" aria-label="More actions" className="text-slate-500 hover:text-white transition-colors"><span className="material-symbols-outlined">more_vert</span></button>
                               </td>
                            </tr>
                         ))}
@@ -118,7 +118,7 @@ export function DatasetManagement() {
                         <p className="text-[#9da6b9] text-xs">Supports Stax, S3, Google Drive, or CSV uploads.</p>
                      </div>
                   </div>
-                  <button className="px-6 py-2.5 bg-[#282e39] hover:bg-[#323945] text-white text-[10px] font-black uppercase tracking-widest border border-[#3b4354] rounded-lg transition-all">Configure Connector</button>
+                  <button type="button" className="px-6 py-2.5 bg-[#282e39] hover:bg-[#323945] text-white text-[10px] font-black uppercase tracking-widest border border-[#3b4354] rounded-lg transition-all">Configure Connector</button>
                </div>
             </div>
 
@@ -136,7 +136,7 @@ export function DatasetManagement() {
                         <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Test Query</span>
                         <div className="relative group">
                            <textarea className="w-full bg-[#0d1117] border border-[#3b4354] rounded-lg p-4 text-xs text-white focus:ring-1 focus:ring-[#135bec] outline-none h-24 resize-none transition-all" placeholder="Enter a user question..."></textarea>
-                           <button className="absolute bottom-3 right-3 p-1.5 bg-[#135bec] text-white rounded-lg hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">
+                           <button type="button" aria-label="Run test query" className="absolute bottom-3 right-3 p-1.5 bg-[#135bec] text-white rounded-lg hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">
                               <span className="material-symbols-outlined text-sm">play_arrow</span>
                            </button>
                         </div>

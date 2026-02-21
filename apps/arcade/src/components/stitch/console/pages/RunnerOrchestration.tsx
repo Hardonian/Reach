@@ -8,10 +8,10 @@ export function RunnerOrchestration() {
       <header className="sticky top-0 z-50 flex items-center justify-between border-b border-[#30363d] bg-[#0d1117]/80 backdrop-blur px-8 py-5">
         <div className="flex flex-col">
           <h2 className="text-lg font-black uppercase tracking-widest text-[#135bec]">Runner Orchestration</h2>
-          <p className="text-[#9da6b9] text-[10px] font-bold uppercase tracking-wide">Job scheduling & worker node management</p>
+          <p className="text-[#9da6b9] text-[10px] font-bold uppercase tracking-wide">Job scheduling & worker management</p>
         </div>
         <div className="flex items-center gap-4">
-          <button className="flex items-center gap-2 bg-[#135bec] hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20">
+          <button type="button" className="flex items-center gap-2 bg-[#135bec] hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20">
             <span className="material-symbols-outlined text-[18px]">add</span>
             New Runner
           </button>
@@ -46,7 +46,7 @@ export function RunnerOrchestration() {
                  <div className="p-8 border-b border-[#30363d] flex justify-between items-center bg-[#0d1117]/30">
                     <h3 className="text-white font-black text-xs uppercase tracking-widest">Active Executions</h3>
                     <div className="flex gap-2">
-                       <span className="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-emerald-500/20">All Nodes Healthy</span>
+                       <span className="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-emerald-500/20">All Workers Healthy</span>
                     </div>
                  </div>
                  <div className="overflow-x-auto">
@@ -91,7 +91,7 @@ export function RunnerOrchestration() {
               <div className="p-10 rounded-3xl border border-dashed border-[#30363d] bg-[#161b22]/30 flex flex-col gap-6">
                  <div>
                     <h4 className="text-white font-black text-sm uppercase tracking-widest">Trigger Manual Runner</h4>
-                    <p className="text-[#9da6b9] text-[10px] uppercase font-bold tracking-wide mt-1">Directly invoke an orchestrated worker node</p>
+                    <p className="text-[#9da6b9] text-[10px] uppercase font-bold tracking-wide mt-1">Directly invoke an orchestrated worker</p>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex flex-col gap-1.5">
@@ -106,7 +106,7 @@ export function RunnerOrchestration() {
                       </select>
                     </div>
                  </div>
-                 <button className="w-fit px-8 py-3 bg-[#135bec] hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-xl shadow-blue-500/20">Trigger Execution</button>
+                 <button type="button" className="w-fit px-8 py-3 bg-[#135bec] hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-xl shadow-blue-500/20">Trigger Execution</button>
               </div>
            </div>
 
@@ -140,8 +140,8 @@ export function RunnerOrchestration() {
                  </div>
                  <div className="space-y-4">
                     {[
-                      { id: 'JOB-992', err: 'Worker Timeout', node: 'node-alpha-4' },
-                      { id: 'JOB-881', err: 'OOM Exception', node: 'node-beta-2' },
+                      { id: 'JOB-992', err: 'Worker Timeout', runner: 'runner-alpha-4' },
+                      { id: 'JOB-881', err: 'OOM Exception', runner: 'runner-beta-2' },
                     ].map((err) => (
                       <div key={err.id} className="text-[10px] font-bold uppercase tracking-widest">
                          <div className="flex justify-between text-red-400 mb-1">
@@ -149,7 +149,7 @@ export function RunnerOrchestration() {
                             <span>{err.err}</span>
                          </div>
                          <div className="text-slate-500 flex justify-between">
-                            <span>{err.node}</span>
+                            <span>{err.runner}</span>
                             <span>2m ago</span>
                          </div>
                       </div>

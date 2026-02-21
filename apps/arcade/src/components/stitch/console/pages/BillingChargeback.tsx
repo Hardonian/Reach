@@ -1,8 +1,17 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { ReasonForChangeModal } from '@/components/stitch/shared/ReasonForChangeModal';
 
 export function BillingChargeback() {
+  const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
+
+  function handleInvoiceConfirm(reason: string) {
+    // Backend not wired: log reason to console and close modal
+    console.info('[Audit] Generate Invoices requested. Reason:', reason);
+    setInvoiceModalOpen(false);
+  }
+
   return (
     <div className="flex-1 flex flex-col h-full overflow-y-auto bg-[#111418] font-sans scrollbar-hide">
       <div className="h-16 border-b border-[#3b4754] bg-[#111418]/95 backdrop-blur flex items-center justify-between px-8 sticky top-0 z-20">
@@ -13,8 +22,8 @@ export function BillingChargeback() {
         </div>
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-2 bg-[#1a212a] rounded-lg p-1 border border-[#3b4754]">
-            <button className="px-4 py-1.5 rounded text-[10px] font-black uppercase tracking-widest bg-[#3b4754] text-white">This Month</button>
-            <button className="px-4 py-1.5 rounded text-[10px] font-black uppercase tracking-widest text-[#9dabb9] hover:text-white transition-all">Last Month</button>
+            <button type="button" className="px-4 py-1.5 rounded text-[10px] font-black uppercase tracking-widest bg-[#3b4754] text-white">This Month</button>
+            <button type="button" className="px-4 py-1.5 rounded text-[10px] font-black uppercase tracking-widest text-[#9dabb9] hover:text-white transition-all">Last Month</button>
           </div>
         </div>
       </div>
@@ -26,11 +35,15 @@ export function BillingChargeback() {
             <p className="text-[#9dabb9] text-base font-medium max-w-2xl">Manage usage-based monetization, cost recovery, and department budgets across the Reach ecosystem.</p>
           </div>
           <div className="flex gap-4">
-            <button className="flex items-center gap-2 px-6 py-3 rounded-xl border border-[#3b4754] bg-[#1a212a] text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#283039] transition-all">
+            <button type="button" className="flex items-center gap-2 px-6 py-3 rounded-xl border border-[#3b4754] bg-[#1a212a] text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#283039] transition-all">
               <span className="material-symbols-outlined text-[18px]">download</span>
               Export CSV
             </button>
-            <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#137fec] text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl shadow-blue-500/20">
+            <button
+              type="button"
+              onClick={() => setInvoiceModalOpen(true)}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#137fec] text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl shadow-blue-500/20"
+            >
               <span className="material-symbols-outlined text-[18px]">receipt_long</span>
               Generate Invoices
             </button>
@@ -173,6 +186,13 @@ export function BillingChargeback() {
            </div>
         </div>
       </div>
+
+      <ReasonForChangeModal
+        isOpen={invoiceModalOpen}
+        onClose={() => setInvoiceModalOpen(false)}
+        onConfirm={handleInvoiceConfirm}
+        actionName="Generate Invoices"
+      />
     </div>
   );
 }

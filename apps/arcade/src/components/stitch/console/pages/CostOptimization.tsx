@@ -11,7 +11,7 @@ export function CostOptimization() {
           <p className="text-[#9da6b9] text-[10px] font-bold uppercase tracking-wide">Financial governance and model switching</p>
         </div>
         <div className="flex items-center gap-4">
-          <button className="flex items-center gap-2 bg-[#135bec] hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20">
+          <button type="button" className="flex items-center gap-2 bg-[#135bec] hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20">
             <span className="material-symbols-outlined text-[18px]">save</span>
             Save Configuration
           </button>
@@ -51,8 +51,8 @@ export function CostOptimization() {
                       <p className="text-[#9da6b9] text-xs font-medium uppercase tracking-wide mt-1">Forecasted spend based on active model config.</p>
                     </div>
                     <div className="flex bg-[#111318] p-1 rounded-lg border border-white/5 text-[10px] font-bold uppercase tracking-widest">
-                      <button className="px-4 py-2 rounded-md bg-[#135bec] text-white">Daily</button>
-                      <button className="px-4 py-2 rounded-md text-[#9da6b9] hover:text-white transition-colors">Monthly</button>
+                      <button type="button" className="px-4 py-2 rounded-md bg-[#135bec] text-white">Daily</button>
+                      <button type="button" className="px-4 py-2 rounded-md text-[#9da6b9] hover:text-white transition-colors">Monthly</button>
                     </div>
                   </div>
                   <div className="h-64 flex items-end gap-3 px-4 border-b border-[#2e3646] pb-4">
@@ -109,7 +109,7 @@ export function CostOptimization() {
                         <span className="text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-2">Projected Monthly Savings</span>
                         <span className="text-4xl font-black text-white mb-2">$1,245.00</span>
                         <p className="text-emerald-400/80 text-[10px] font-bold uppercase tracking-wide">~32% Reduction in OPEX</p>
-                        <button className="mt-6 w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-500/20">Apply Optimized Config</button>
+                        <button type="button" className="mt-6 w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-500/20">Apply Optimized Config</button>
                      </div>
                   </div>
                </div>

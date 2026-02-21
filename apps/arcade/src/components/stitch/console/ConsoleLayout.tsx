@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ROUTES } from '@/lib/routes';
@@ -11,8 +11,6 @@ interface ConsoleLayoutProps {
 
 export function ConsoleLayout({ children }: ConsoleLayoutProps) {
   const pathname = usePathname();
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-
   const navItems = [
     { href: ROUTES.CONSOLE.HOME, label: 'Dashboard', icon: 'dashboard' },
     { href: ROUTES.CONSOLE.AGENTS.HOME, label: 'Agents', icon: 'smart_toy' },
@@ -25,7 +23,9 @@ export function ConsoleLayout({ children }: ConsoleLayoutProps) {
     { href: ROUTES.CONSOLE.COST.HOME, label: 'Cost', icon: 'payments' },
     { href: ROUTES.CONSOLE.BILLING, label: 'Billing', icon: 'receipt_long' },
     { href: ROUTES.CONSOLE.ECOSYSTEM.HOME, label: 'Ecosystem', icon: 'hub' },
-    { href: ROUTES.CONSOLE.NAV, label: 'Master Nav', icon: 'map' },
+    { href: ROUTES.CONSOLE.INTEGRATIONS, label: 'Integrations', icon: 'cable' },
+    { href: ROUTES.CONSOLE.ARTIFACTS, label: 'Artifacts', icon: 'inventory_2' },
+    { href: ROUTES.CONSOLE.ALERTS, label: 'Alerts', icon: 'notifications_active' },
   ];
 
   return (
@@ -88,15 +88,15 @@ export function ConsoleLayout({ children }: ConsoleLayoutProps) {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors relative">
+            <button type="button" aria-label="Notifications" className="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors relative">
               <span className="material-symbols-outlined text-[22px]">notifications</span>
               <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-[#111318]"></span>
             </button>
-            <button className="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
+            <button type="button" aria-label="Help" className="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
               <span className="material-symbols-outlined text-[22px]">help</span>
             </button>
             <div className="h-6 w-px bg-slate-200 dark:border-[#2e3545]"></div>
-            <button className="bg-[#135bec] text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-[#135bec]/90 transition-colors">
+            <button type="button" className="bg-[#135bec] text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-[#135bec]/90 transition-colors">
               Support
             </button>
           </div>

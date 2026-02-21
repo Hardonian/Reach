@@ -29,11 +29,11 @@ export function AgentRegistry() {
               <p className="text-slate-400 text-sm mt-1">Manage lifecycle, capabilities, and health status across your organization.</p>
             </div>
             <div className="flex gap-3">
-              <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-200 text-sm font-medium hover:bg-slate-700 hover:border-slate-600 transition-all">
+              <button type="button" className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-200 text-sm font-medium hover:bg-slate-700 hover:border-slate-600 transition-all">
                 <span className="material-symbols-outlined text-[20px]">file_upload</span>
                 Import Config
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#135bec] hover:bg-blue-600 text-white text-sm font-bold shadow-lg shadow-blue-900/20 transition-all">
+              <button type="button" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#135bec] hover:bg-blue-600 text-white text-sm font-bold shadow-lg shadow-blue-900/20 transition-all">
                 <span className="material-symbols-outlined text-[20px]">add</span>
                 Register New Agent
               </button>
@@ -79,10 +79,10 @@ export function AgentRegistry() {
                 </select>
               ))}
               <div className="h-6 w-px bg-slate-700 mx-1 hidden lg:block"></div>
-              <button className="text-slate-400 hover:text-white p-2 rounded hover:bg-slate-800 transition-colors">
+              <button type="button" className="text-slate-400 hover:text-white p-2 rounded hover:bg-slate-800 transition-colors">
                 <span className="material-symbols-outlined text-[20px]">grid_view</span>
               </button>
-              <button className="text-[#135bec] bg-[#135bec]/10 p-2 rounded transition-colors">
+              <button type="button" className="text-[#135bec] bg-[#135bec]/10 p-2 rounded transition-colors">
                 <span className="material-symbols-outlined text-[20px]">view_list</span>
               </button>
             </div>
@@ -96,15 +96,15 @@ export function AgentRegistry() {
              Showing <span className="font-medium text-white">1</span> to <span className="font-medium text-white">5</span> of <span className="font-medium text-white">124</span> results
            </p>
            <nav className="inline-flex rounded-md shadow-sm -space-x-px">
-             <button className="px-2 py-2 rounded-l-md border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 transition-colors">
+             <button type="button" className="px-2 py-2 rounded-l-md border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 transition-colors">
                <span className="material-symbols-outlined text-[20px]">chevron_left</span>
              </button>
-             <button className="px-4 py-2 bg-[#135bec]/20 border border-[#135bec] text-[#135bec] text-sm font-medium">1</button>
-             <button className="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-400 hover:bg-slate-700 text-sm font-medium transition-colors">2</button>
-             <button className="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-400 hover:bg-slate-700 text-sm font-medium transition-colors">3</button>
+             <button type="button" className="px-4 py-2 bg-[#135bec]/20 border border-[#135bec] text-[#135bec] text-sm font-medium">1</button>
+             <button type="button" className="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-400 hover:bg-slate-700 text-sm font-medium transition-colors">2</button>
+             <button type="button" className="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-400 hover:bg-slate-700 text-sm font-medium transition-colors">3</button>
              <span className="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-400 text-sm">...</span>
-             <button className="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-400 hover:bg-slate-700 text-sm font-medium transition-colors">8</button>
-             <button className="px-2 py-2 rounded-r-md border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 transition-colors">
+             <button type="button" className="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-400 hover:bg-slate-700 text-sm font-medium transition-colors">8</button>
+             <button type="button" className="px-2 py-2 rounded-r-md border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 transition-colors">
                <span className="material-symbols-outlined text-[20px]">chevron_right</span>
              </button>
            </nav>

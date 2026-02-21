@@ -19,7 +19,7 @@ export function ReasonForChangeModal({ isOpen, onClose, onConfirm, actionName }:
       <div className="bg-white dark:bg-[#1a1f2e] border border-slate-200 dark:border-[#2e3545] rounded-xl shadow-2xl max-w-md w-full overflow-hidden animate-slide-up">
         <div className="p-6 border-b border-slate-200 dark:border-[#2e3545] flex items-center justify-between">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">Audit Gate: Reason for Change</h3>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
+          <button type="button" onClick={onClose} aria-label="Close dialog" className="text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
@@ -51,13 +51,15 @@ export function ReasonForChangeModal({ isOpen, onClose, onConfirm, actionName }:
         </div>
 
         <div className="p-6 bg-slate-50 dark:bg-[#111318] border-t border-slate-200 dark:border-[#2e3545] flex gap-3">
-          <button 
+          <button
+            type="button"
             onClick={onClose}
             className="flex-1 px-4 py-2 rounded-lg border border-slate-200 dark:border-[#2e3545] text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1a1f2e] transition-colors"
           >
             Cancel
           </button>
-          <button 
+          <button
+            type="button"
             onClick={() => onConfirm(reason)}
             disabled={!reason.trim()}
             className="flex-1 px-4 py-2 rounded-lg bg-[#135bec] text-white text-sm font-semibold hover:bg-[#135bec]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"

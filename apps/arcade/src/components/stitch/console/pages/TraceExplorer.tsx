@@ -16,7 +16,7 @@ export function TraceExplorer() {
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#3b82f6] text-[18px]">search</span>
               <input className="bg-[#161b22] border border-[#30363d] rounded-lg pl-10 pr-4 py-2 text-xs text-white w-64 outline-none focus:ring-1 focus:ring-[#3b82f6]" placeholder="Trace ID or Agent..."/>
            </div>
-           <button className="flex items-center gap-2 px-4 py-2 bg-[#161b22] border border-[#30363d] rounded-lg text-[10px] font-black uppercase tracking-widest text-[#9da6b9] hover:text-white transition-all">
+           <button type="button" className="flex items-center gap-2 px-4 py-2 bg-[#161b22] border border-[#30363d] rounded-lg text-[10px] font-black uppercase tracking-widest text-[#9da6b9] hover:text-white transition-all">
               <span className="material-symbols-outlined text-[18px]">filter_list</span>
               Filters
            </button>

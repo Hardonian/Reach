@@ -26,7 +26,7 @@ export function EvaluationEngine() {
           <div className="p-4 border-b border-slate-800 sticky top-0 bg-[#0d1117] z-10">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white text-xs font-bold uppercase tracking-wider">Config History</h2>
-              <button className="text-[#135bec] hover:text-blue-400 text-xs font-semibold">View All</button>
+              <button type="button" className="text-[#135bec] hover:text-blue-400 text-xs font-semibold">View All</button>
             </div>
             <div className="relative group">
               <span className="material-symbols-outlined absolute left-2 top-2 text-slate-500 text-sm group-focus-within:text-[#135bec]">search</span>
@@ -58,11 +58,11 @@ export function EvaluationEngine() {
               <p className="text-[#9da6b9] text-base">Manage scoring governance and drift control for your agentic workflows.</p>
             </div>
             <div className="flex gap-3">
-              <button className="flex items-center justify-center rounded-lg h-10 px-4 bg-slate-800 border border-slate-700 text-white text-xs font-bold hover:bg-slate-700 transition-all">
+              <button type="button" className="flex items-center justify-center rounded-lg h-10 px-4 bg-slate-800 border border-slate-700 text-white text-xs font-bold hover:bg-slate-700 transition-all">
                 <span className="material-symbols-outlined text-sm mr-2">history</span>
                 Compare Versions
               </button>
-              <button className="flex items-center justify-center rounded-lg h-10 px-4 bg-white text-slate-900 text-xs font-black hover:bg-slate-200 transition-all shadow-xl shadow-white/5 uppercase tracking-widest">
+              <button type="button" className="flex items-center justify-center rounded-lg h-10 px-4 bg-white text-slate-900 text-xs font-black hover:bg-slate-200 transition-all shadow-xl shadow-white/5 uppercase tracking-widest">
                 <span className="material-symbols-outlined text-sm mr-2">play_arrow</span>
                 Run Synthetic Eval
               </button>
@@ -80,7 +80,7 @@ export function EvaluationEngine() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-[#9da6b9] text-[10px] font-bold uppercase tracking-widest">Lock Weights</span>
-                    <button className="relative inline-flex h-5 w-9 items-center rounded-full bg-slate-700"><span className="inline-block h-3 w-3 transform rounded-full bg-white translate-x-1 transition"></span></button>
+                    <button type="button" className="relative inline-flex h-5 w-9 items-center rounded-full bg-slate-700"><span className="inline-block h-3 w-3 transform rounded-full bg-white translate-x-1 transition"></span></button>
                   </div>
                 </div>
                 <div className="p-8 grid gap-8">
@@ -109,8 +109,8 @@ export function EvaluationEngine() {
                   ))}
                 </div>
                 <div className="px-8 py-4 bg-[#161b28] border-t border-slate-700 flex justify-end gap-3 text-xs font-bold uppercase tracking-widest">
-                  <button className="text-slate-400 hover:text-white px-3 py-2">Reset</button>
-                  <button className="bg-[#135bec] hover:bg-blue-600 text-white rounded px-6 py-2.5 shadow-lg shadow-blue-500/20">Apply Changes</button>
+                  <button type="button" className="text-slate-400 hover:text-white px-3 py-2">Reset</button>
+                  <button type="button" className="bg-[#135bec] hover:bg-blue-600 text-white rounded px-6 py-2.5 shadow-lg shadow-blue-500/20">Apply Changes</button>
                 </div>
               </div>
 

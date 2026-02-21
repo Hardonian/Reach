@@ -1,10 +1,6 @@
-import { MarketplaceTemplates } from '@/components/stitch/web/pages/MarketplaceTemplates';
+import { redirect } from 'next/navigation';
 
-export const metadata = {
-  title: 'Reach Marketplace & Templates',
-  description: 'Accelerate your AI workforce with pre-built agent templates, secure runner configurations, and community-driven workflows.',
-};
-
+// Canonical marketplace is /marketplace. This route is kept for backwards-compatibility.
 export default function MarketplaceAltPage() {
-  return <MarketplaceTemplates />;
+  redirect('/marketplace');
 }

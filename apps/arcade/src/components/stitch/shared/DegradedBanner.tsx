@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface DegradedBannerProps {
   title: string;
   message: string;
@@ -20,7 +18,7 @@ export function DegradedBanner({ title, message }: DegradedBannerProps) {
         <button type="button" className="px-4 py-1.5 rounded-md bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 text-sm font-semibold transition-colors w-full sm:w-auto border border-yellow-500/20">
           Investigate
         </button>
-        <button type="button" className="p-1.5 rounded-md hover:bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 transition-colors">
+        <button type="button" aria-label="Dismiss banner" className="p-1.5 rounded-md hover:bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 transition-colors">
           <span className="material-symbols-outlined text-xl">close</span>
         </button>
       </div>

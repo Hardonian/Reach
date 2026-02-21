@@ -22,7 +22,7 @@ export function getStripe(): Stripe {
   if (!isBillingEnabled()) throw new BillingDisabledError();
   if (_stripe) return _stripe;
   _stripe = new Stripe(env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-01-27.acacia',
+    apiVersion: '2026-01-28.clover',
   });
   return _stripe;
 }

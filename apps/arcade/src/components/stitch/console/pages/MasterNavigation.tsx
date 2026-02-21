@@ -79,7 +79,7 @@ export function MasterNavigation() {
               Master Navigation Map <span className="text-[#283039] mx-4">//</span> System Architecture
             </h1>
             <p className="text-[#9dabb9] text-lg font-medium max-w-3xl leading-relaxed">
-              Unified topological interface for the Reach ecosystem. Access control planes, governance modules, and data artifacts with cross-repo deterministic routing.
+              Unified interface for the Reach ecosystem. Access control planes, governance modules, and data artifacts across the platform.
             </p>
           </div>
 
@@ -91,7 +91,7 @@ export function MasterNavigation() {
                        <span className="material-symbols-outlined text-[#137fec] text-lg">{pillar.icon}</span>
                        {pillar.id}. {pillar.title}
                     </h2>
-                    <span className="text-[10px] font-mono text-slate-600 font-bold uppercase">{pillar.nodes.length} Nodes</span>
+                    <span className="text-[10px] font-mono text-slate-600 font-bold uppercase">{pillar.nodes.length} Modules</span>
                  </div>
                  
                  <div className="flex flex-col gap-4">
@@ -110,7 +110,7 @@ export function MasterNavigation() {
                          <h3 className="text-white font-black text-sm uppercase tracking-widest group-hover:text-[#137fec] transition-colors">{node.name}</h3>
                          <p className="text-[#9dabb9] text-xs font-medium leading-relaxed mt-2 mb-6 group-hover:text-slate-300 transition-colors">{node.desc}</p>
                          <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-[#9dabb9] group-hover:text-white pt-4 border-t border-[#283039]/50">
-                            <span>Launch Node</span>
+                            <span>Open</span>
                             <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
                          </div>
                       </Link>
