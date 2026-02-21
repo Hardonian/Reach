@@ -25,7 +25,7 @@ export default function CloudLayout({ children }: { children: React.ReactNode })
       <aside className={`${sidebarOpen ? 'w-56' : 'w-14'} transition-all duration-200 border-r border-border flex flex-col shrink-0`}>
         <div className="flex items-center justify-between p-4 border-b border-border">
           {sidebarOpen && (
-            <span className="text-sm font-semibold text-accent">Reach Cloud</span>
+            <span className="text-sm font-semibold text-accent">ReadyLayer Cloud</span>
           )}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}

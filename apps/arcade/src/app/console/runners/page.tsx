@@ -2,7 +2,7 @@ import { RunnerOrchestration } from '@/components/stitch/console/pages/RunnerOrc
 import { ConsoleLayout } from '@/components/stitch/console/ConsoleLayout';
 
 export const metadata = {
-  title: 'Runner Orchestration | Reach Console',
+  title: 'Runner Orchestration | ReadyLayer Console',
 };
 
 export default function RunnersPage() {

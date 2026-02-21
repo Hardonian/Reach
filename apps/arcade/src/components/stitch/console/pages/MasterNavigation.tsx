@@ -79,7 +79,7 @@ export function MasterNavigation() {
               Master Navigation Map <span className="text-[#283039] mx-4">//</span> System Architecture
             </h1>
             <p className="text-[#9dabb9] text-lg font-medium max-w-3xl leading-relaxed">
-              Unified interface for the Reach ecosystem. Access control planes, governance modules, and data artifacts across the platform.
+              Unified interface for the ReadyLayer ecosystem. Access control planes, governance modules, and data artifacts across the platform.
             </p>
           </div>
 

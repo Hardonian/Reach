@@ -2,8 +2,8 @@ import React from 'react';
 
 export function MarketplaceTemplates() {
   const templates = [
-    { title: 'Financial Analyst', version: 'v2.4.0', org: 'Reach Official', rating: 4.9, desc: 'Autonomous agent designed for anomaly detection in financial reports. Integrates with Quickbooks and Xero APIs.', deploys: '12k deploys', icon: 'query_stats', color: 'blue' },
-    { title: 'Support Triager', version: 'v1.1.0', org: 'Reach Official', rating: 4.7, desc: 'First-line support agent that classifies tickets, drafts responses, and escalates complex issues to human agents.', deploys: '8.5k deploys', icon: 'support_agent', color: 'purple' },
+    { title: 'Financial Analyst', version: 'v2.4.0', org: 'ReadyLayer Official', rating: 4.9, desc: 'Autonomous agent designed for anomaly detection in financial reports. Integrates with Quickbooks and Xero APIs.', deploys: '12k deploys', icon: 'query_stats', color: 'blue' },
+    { title: 'Support Triager', version: 'v1.1.0', org: 'ReadyLayer Official', rating: 4.7, desc: 'First-line support agent that classifies tickets, drafts responses, and escalates complex issues to human agents.', deploys: '8.5k deploys', icon: 'support_agent', color: 'purple' },
     { title: 'Code Reviewer', version: 'v3.0.1', org: 'Community', rating: 4.8, desc: 'Automatically reviews PRs for style violations, security vulnerabilities, and test coverage.', deploys: '5.2k deploys', icon: 'code', color: 'green' },
   ];
 
@@ -72,7 +72,7 @@ export function MarketplaceTemplates() {
         <div className="max-w-[1400px] mx-auto p-6 md:p-8 lg:p-12 space-y-10">
           <section className="space-y-6">
             <div className="max-w-3xl">
-              <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight mb-4">Reach Marketplace</h1>
+              <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight mb-4">ReadyLayer Marketplace</h1>
               <p className="text-lg text-[#9da6b9] leading-relaxed">
                 Accelerate your AI workforce. Discover pre-built agent templates, secure runner configurations, and community-driven workflows ready to deploy.
               </p>
@@ -106,7 +106,7 @@ export function MarketplaceTemplates() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-bold text-white mb-1">Featured Agent Templates</h2>
-                <p className="text-sm text-[#9da6b9]">High-performance agents curated by the Reach team.</p>
+                <p className="text-sm text-[#9da6b9]">High-performance agents curated by the ReadyLayer team.</p>
               </div>
               <a className="text-sm font-medium text-[#135bec] hover:underline flex items-center gap-1" href="#">
                 View All <span className="material-symbols-outlined text-[16px]">arrow_forward</span>

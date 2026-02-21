@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Cookie Policy | Reach',
-  description: 'Information about how Reach uses cookies and browser storage.',
+  title: 'Cookie Policy | ReadyLayer',
+  description: 'Information about how ReadyLayer uses cookies and browser storage.',
 };
 
 export default function CookiesPage() {
@@ -15,7 +15,7 @@ export default function CookiesPage() {
         <section>
           <h2>1. Minimalist Approach</h2>
           <p>
-            Reach uses a strictly minimalist approach to browser storage. We do not use advertising
+            ReadyLayer uses a strictly minimalist approach to browser storage. We do not use advertising
             trackers or third-party marketing cookies.
           </p>
         </section>
@@ -23,7 +23,7 @@ export default function CookiesPage() {
         <section>
           <h2>2. Essential Cookies</h2>
           <p>
-            We only use cookies that are technically necessary for the operation of the Reach Arcade:
+            We only use cookies that are technically necessary for the operation of the ReadyLayer Arcade:
           </p>
           <ul>
             <li><strong>__session:</strong> Encrypted session token for authentication.</li>
@@ -35,7 +35,7 @@ export default function CookiesPage() {
         <section>
           <h2>3. Managing Cookies</h2>
           <p>
-            You can disable cookies in your browser settings, but please note that the Reach Arcade
+            You can disable cookies in your browser settings, but please note that the ReadyLayer Arcade
             dashboard will not function without the essential session cookies.
           </p>
         </section>

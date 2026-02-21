@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { ROUTES } from '@/lib/routes';
+import { BRAND_NAME } from '@/lib/brand';
 
 const navItems = [
   { href: ROUTES.HOME, label: 'Home' },
@@ -28,7 +29,7 @@ export function NavBar() {
             <div className="w-8 h-8 rounded-lg flex items-center justify-center logo-gradient">
               <span className="text-white font-bold text-lg">R</span>
             </div>
-            <span className="font-bold text-xl text-gradient">Reach</span>
+            <span className="font-bold text-xl text-gradient">{BRAND_NAME}</span>
           </Link>
 
           {/* Desktop Navigation */}

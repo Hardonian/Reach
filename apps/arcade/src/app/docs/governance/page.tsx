@@ -17,7 +17,7 @@ export default function Governance() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">What is Agent Governance?</h2>
             <p className="text-gray-400">
-              Governance in Reach provides frameworks for controlling agent behavior, ensuring compliance with policies, and maintaining accountability. It encompasses access control, audit logging, policy enforcement, and human oversight.
+              Governance in ReadyLayer provides frameworks for controlling agent behavior, ensuring compliance with policies, and maintaining accountability. It encompasses access control, audit logging, policy enforcement, and human oversight.
             </p>
           </section>
 

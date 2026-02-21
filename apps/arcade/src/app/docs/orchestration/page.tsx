@@ -17,7 +17,7 @@ export default function Orchestration() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">What is Orchestration?</h2>
             <p className="text-gray-400">
-              Orchestration in Reach manages the coordination of multiple agents working together to achieve complex goals. It handles scheduling, state management, error recovery, and scaling across distributed infrastructure.
+              Orchestration in ReadyLayer manages the coordination of multiple agents working together to achieve complex goals. It handles scheduling, state management, error recovery, and scaling across distributed infrastructure.
             </p>
           </section>
 

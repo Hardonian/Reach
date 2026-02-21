@@ -10,14 +10,14 @@ export default function Webhooks() {
 
         <h1 className="text-4xl font-bold mb-4">Webhooks</h1>
         <p className="text-gray-400 mb-8">
-          Receive real-time notifications when events occur in your Reach environment.
+          Receive real-time notifications when events occur in your ReadyLayer environment.
         </p>
 
         <div className="space-y-8">
           <section className="card">
             <h2 className="text-xl font-bold mb-4">What are Webhooks?</h2>
             <p className="text-gray-400">
-              Webhooks allow you to receive HTTP callbacks when specific events happen in Reach. Instead of polling for changes, webhooks push event data to your endpoint in real-time.
+              Webhooks allow you to receive HTTP callbacks when specific events happen in ReadyLayer. Instead of polling for changes, webhooks push event data to your endpoint in real-time.
             </p>
           </section>
 
@@ -122,7 +122,7 @@ export default function Webhooks() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Retry Policy</h2>
             <p className="text-gray-400 mb-4">
-              If your endpoint returns a non-2xx status code, Reach will retry with exponential backoff:
+              If your endpoint returns a non-2xx status code, ReadyLayer will retry with exponential backoff:
             </p>
             <div className="bg-black/50 p-4 rounded-lg text-gray-400">
               <div className="flex justify-between py-2 border-b border-gray-700">

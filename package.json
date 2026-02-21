@@ -53,7 +53,8 @@
     "validate:language": "npx tsx scripts/enforce-canonical-language.ts",
     "check:routes": "node scripts/check-route-duplication.mjs",
     "docs:doctor": "npx tsx tools/docs/drift/run.ts",
-    "docs:doctor:fix": "npx tsx tools/docs/drift/run.ts --fix"
+    "docs:doctor:fix": "npx tsx tools/docs/drift/run.ts --fix",
+    "validate:brand": "npx tsx scripts/validate-brand.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

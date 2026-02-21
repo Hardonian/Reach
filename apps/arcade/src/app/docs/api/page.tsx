@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'API Reference | Reach Documentation',
-  description: 'Comprehensive API reference for the Reach orchestration platform services.',
+  title: 'API Reference | ReadyLayer Documentation',
+  description: 'Comprehensive API reference for the ReadyLayer orchestration platform services.',
 };
 
 export default function APIPage() {
@@ -11,7 +11,7 @@ export default function APIPage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">API Reference</h1>
         <p className="text-xl text-gray-400">
-          The Reach platform exposes a series of gRPC and REST APIs via its core services
+          The ReadyLayer platform exposes a series of gRPC and REST APIs via its core services
           to enable orchestration, registry management, and session control.
         </p>
       </header>
@@ -46,7 +46,7 @@ export default function APIPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">Authentication</h2>
         <p className="text-gray-400 text-sm">
-          All requests to the Reach API require a <strong>Reach-Token</strong> or Bearer authentication header.
+          All requests to the ReadyLayer API require a <strong>Reach-Token</strong> or Bearer authentication header.
         </p>
         <div className="bg-black/40 p-4 rounded-lg font-mono text-xs">
           <span className="text-accent">GET</span> /v1/runner/status <br/>
@@ -93,7 +93,7 @@ event: step_start
 data: {"step": "read_readme", "capability": "io.fs.read"}
 
 event: tool_output
-data: {"content": "Reach: A deterministic execution fabric..."}
+data: {"content": "ReadyLayer: A deterministic execution fabric..."}
 
 event: run_complete
 data: {"result": "success"}`}

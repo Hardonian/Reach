@@ -17,7 +17,7 @@ export default function Dashboard() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Overview</h2>
             <p className="text-gray-400">
-              The Reach Dashboard provides a unified view of your agents, pipelines, and platform metrics. Access real-time monitoring, logs, and management controls from any browser.
+              The ReadyLayer Dashboard provides a unified view of your agents, pipelines, and platform metrics. Access real-time monitoring, logs, and management controls from any browser.
             </p>
           </section>
 

@@ -17,7 +17,7 @@ export default function Authentication() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">API Keys</h2>
             <p className="text-gray-400 mb-4">
-              API keys are the simplest way to authenticate with Reach. Include your key in the Authorization header:
+              API keys are the simplest way to authenticate with ReadyLayer. Include your key in the Authorization header:
             </p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>Authorization: Bearer YOUR_API_KEY</p>

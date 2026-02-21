@@ -10,14 +10,14 @@ export default function QuickStart() {
 
         <h1 className="text-4xl font-bold mb-4">Quick Start</h1>
         <p className="text-gray-400 mb-8">
-          Get up and running with Reach in under 5 minutes. Build and deploy your first agent.
+          Get up and running with ReadyLayer in under 5 minutes. Build and deploy your first agent.
         </p>
 
         <div className="space-y-8">
           <section className="card">
             <h2 className="text-xl font-bold mb-4">1. Install the CLI</h2>
             <p className="text-gray-400 mb-4">
-              The Reach CLI is the fastest way to create, test, and deploy agents.
+              The ReadyLayer CLI is the fastest way to create, test, and deploy agents.
             </p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>npm install -g @reach/cli</p>
@@ -63,7 +63,7 @@ export default function QuickStart() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">5. Deploy</h2>
             <p className="text-gray-400 mb-4">
-              Deploy your agent to the Reach network with a single command.
+              Deploy your agent to the ReadyLayer network with a single command.
             </p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>reach deploy</p>

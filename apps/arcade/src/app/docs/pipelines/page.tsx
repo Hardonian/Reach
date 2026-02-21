@@ -17,7 +17,7 @@ export default function Pipelines() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">What are Pipelines?</h2>
             <p className="text-gray-400">
-              Pipelines in Reach are declarative workflows that define how data flows between agents and services. They enable you to compose complex operations from simple, reusable components.
+              Pipelines in ReadyLayer are declarative workflows that define how data flows between agents and services. They enable you to compose complex operations from simple, reusable components.
             </p>
           </section>
 

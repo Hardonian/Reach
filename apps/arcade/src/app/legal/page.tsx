@@ -2,14 +2,14 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Legal | Reach Protocol',
-  description: 'Legal information, terms of service, and privacy policy for Reach.',
+  title: 'Legal | ReadyLayer Protocol',
+  description: 'Legal information, terms of service, and privacy policy for ReadyLayer.',
 };
 
 export default function LegalIndexPage() {
   const sections = [
     { title: 'Privacy Policy', href: '/legal/privacy', desc: 'How we handle your data and yours.' },
-    { title: 'Terms of Service', href: '/legal/terms', desc: 'The rules for using the Reach fabric.' },
+    { title: 'Terms of Service', href: '/legal/terms', desc: 'The rules for using the ReadyLayer fabric.' },
     { title: 'Cookie Policy', href: '/legal/cookies', desc: 'Information about browser data storage.' },
     { title: 'Security Reporting', href: '/security', desc: 'How to report vulnerabilities safely.' },
   ];
@@ -19,7 +19,7 @@ export default function LegalIndexPage() {
       <div className="max-w-3xl mx-auto">
         <header className="mb-12 text-center">
           <h1 className="text-4xl font-bold mb-4">Legal Center</h1>
-          <p className="text-gray-400">Governance and compliance information for the Reach ecosystem.</p>
+          <p className="text-gray-400">Governance and compliance information for the ReadyLayer ecosystem.</p>
         </header>
 
         <div className="grid gap-6">

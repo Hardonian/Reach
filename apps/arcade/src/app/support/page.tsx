@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Support Center | Reach',
-  description: 'Get help with Reach. Explore self-service docs, contact support, or check system status.',
+  title: 'Support Center | ReadyLayer',
+  description: 'Get help with ReadyLayer. Explore self-service docs, contact support, or check system status.',
 };
 
 export default function SupportPage() {

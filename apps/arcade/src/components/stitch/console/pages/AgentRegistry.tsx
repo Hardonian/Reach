@@ -17,7 +17,7 @@ export function AgentRegistry() {
       <header className="flex-shrink-0 border-b border-slate-800 bg-[#111318]/50 backdrop-blur-md z-10">
         <div className="px-6 py-4 flex flex-col gap-4">
           <div className="flex items-center gap-2 text-sm">
-            <a className="text-slate-400 hover:text-slate-200" href="#">Reach</a>
+            <a className="text-slate-400 hover:text-slate-200" href="#">ReadyLayer</a>
             <span className="text-slate-600">/</span>
             <a className="text-slate-400 hover:text-slate-200" href="#">Console</a>
             <span className="text-slate-600">/</span>

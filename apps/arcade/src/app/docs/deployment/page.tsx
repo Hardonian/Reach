@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Deployment Guide | Reach Documentation',
-  description: 'How to deploy Reach across various environments from Desktop to Mobile and Cloud.',
+  title: 'Deployment Guide | ReadyLayer Documentation',
+  description: 'How to deploy ReadyLayer across various environments from Desktop to Mobile and Cloud.',
 };
 
 export default function DeploymentPage() {
@@ -11,7 +11,7 @@ export default function DeploymentPage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">Deployment Guide</h1>
         <p className="text-xl text-gray-400">
-          Reach is designed for portability. Deploy it on servers, dev machines, edge devices, or mobile terminals.
+          ReadyLayer is designed for portability. Deploy it on servers, dev machines, edge devices, or mobile terminals.
         </p>
       </header>
 
@@ -44,7 +44,7 @@ export default function DeploymentPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">Docker Deployment</h2>
         <p className="text-gray-400">
-          The recommended way to run Reach in production is via Docker Compose.
+          The recommended way to run ReadyLayer in production is via Docker Compose.
         </p>
         <div className="bg-black/40 border border-border rounded-xl p-6 font-mono text-sm overflow-x-auto">
 {`# docker-compose.yml
@@ -103,11 +103,11 @@ services:
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">Static Asset Preparation</h2>
         <p className="text-gray-400">
-          When deploying the <strong>Reach Arcade</strong>, ensure static params are generated for
+          When deploying the <strong>ReadyLayer Arcade</strong>, ensure static params are generated for
           all documentation routes to prevent runtime lookups.
         </p>
         <div className="bg-white/5 p-6 rounded-xl border border-white/10 italic text-sm text-gray-400">
-          "Reach builds are strictly validated. If a route defined in the navigation map is missing
+          "ReadyLayer builds are strictly validated. If a route defined in the navigation map is missing
           during the build phase, the CI pipeline will terminate with a <code>ROUTE_INTEGRITY_FAILURE</code>."
         </div>
       </section>

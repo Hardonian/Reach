@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Architecture Overview | Reach Documentation',
-  description: 'Deep dive into the Reach deterministic execution fabric architecture and boundaries.',
+  title: 'Architecture Overview | ReadyLayer Documentation',
+  description: 'Deep dive into the ReadyLayer deterministic execution fabric architecture and boundaries.',
 };
 
 export default function ArchitecturePage() {
@@ -11,7 +11,7 @@ export default function ArchitecturePage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">Architecture Overview</h1>
         <p className="text-xl text-gray-400">
-          Reach is designed as a deterministic execution fabric, ensuring that agentic workloads
+          ReadyLayer is designed as a deterministic execution fabric, ensuring that agentic workloads
           are replayable, auditable, and secure.
         </p>
       </header>
@@ -22,14 +22,14 @@ export default function ArchitecturePage() {
           <div className="card bg-white/5 p-6 rounded-xl border border-white/10 text-pretty">
             <h3 className="font-bold mb-2 text-accent">Determinism</h3>
             <p className="text-sm text-gray-400">
-              Every execution in Reach is captured in a signed execution pack. By stabilizing event sequencing
-              and external entropy, Reach ensures that any run can be replayed with bit-perfect accuracy.
+              Every execution in ReadyLayer is captured in a signed execution pack. By stabilizing event sequencing
+              and external entropy, ReadyLayer ensures that any run can be replayed with bit-perfect accuracy.
             </p>
           </div>
           <div className="card bg-white/5 p-6 rounded-xl border border-white/10 text-pretty">
             <h3 className="font-bold mb-2 text-accent">Policy Isolation</h3>
             <p className="text-sm text-gray-400">
-              Capabilities are not just permissions; they are physical boundaries. Reach enforces policy
+              Capabilities are not just permissions; they are physical boundaries. ReadyLayer enforces policy
               at the runner level, ensuring that agents cannot bypass gates or access unauthorized tools.
             </p>
           </div>
@@ -39,7 +39,7 @@ export default function ArchitecturePage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">System Boundaries</h2>
         <p className="text-gray-400">
-          Reach maintains strict logical and physical boundaries to prevent configuration drift and security leaks.
+          ReadyLayer maintains strict logical and physical boundaries to prevent configuration drift and security leaks.
         </p>
         <ul className="space-y-4">
           <li className="flex gap-4">
@@ -76,7 +76,7 @@ export default function ArchitecturePage() {
         <h2 className="text-2xl font-bold border-b border-border pb-2">Trust Invariants</h2>
         <div className="bg-black/40 border border-accent/20 rounded-xl p-8">
           <p className="mb-4">
-            The Reach protocol enforces several non-negotiable trust rules to ensure system integrity:
+            The ReadyLayer protocol enforces several non-negotiable trust rules to ensure system integrity:
           </p>
           <ul className="list-disc list-inside space-y-2 text-gray-400 marker:text-accent">
             <li>Signature and SHA verification are mandatory for all external modules.</li>

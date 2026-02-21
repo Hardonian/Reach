@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Documentation | Reach',
-  description: 'Master the Reach deterministic execution fabric with our comprehensive documentation and guides.',
+  title: 'Documentation | ReadyLayer',
+  description: 'Master the ReadyLayer deterministic execution fabric with our comprehensive documentation and guides.',
 };
 
 export default function DocsPage() {
@@ -28,7 +28,7 @@ export default function DocsPage() {
     },
     {
       title: 'API Reference',
-      description: 'Explore the gRPC and REST interfaces for Reach services.',
+      description: 'Explore the gRPC and REST interfaces for ReadyLayer services.',
       href: '/docs/api',
       icon: '📚',
     },
@@ -40,7 +40,7 @@ export default function DocsPage() {
     },
     {
       title: 'Deployment',
-      description: 'How to deploy Reach across Cloud, Edge, and Mobile.',
+      description: 'How to deploy ReadyLayer across Cloud, Edge, and Mobile.',
       href: '/docs/deployment',
       icon: '🚢',
     },
@@ -51,7 +51,7 @@ export default function DocsPage() {
       <div className="max-w-5xl mx-auto">
         <header className="mb-16 text-center">
           <h1 className="text-5xl font-extrabold mb-6 tracking-tight text-white">
-            Reach <span className="text-gradient">Documentation</span>
+            ReadyLayer <span className="text-gradient">Documentation</span>
           </h1>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
             Everything you need to build, deploy, and govern deterministic agentic

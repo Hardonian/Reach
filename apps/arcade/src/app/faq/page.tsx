@@ -6,43 +6,43 @@ import { Metadata } from 'next';
 const faqs = [
   {
     category: 'General',
-    question: 'What is Reach?',
-    answer: 'Reach is a deterministic execution fabric designed for agentic workloads. It ensures that any agent execution can be replayed, audited, and secured through signed execution packs and capability-based firewalls.'
+    question: 'What is ReadyLayer?',
+    answer: 'ReadyLayer is a deterministic execution fabric designed for agentic workloads. It ensures that any agent execution can be replayed, audited, and secured through signed execution packs and capability-based firewalls.'
   },
   {
     category: 'Architecture',
-    question: 'Is Reach multi-tenant?',
-    answer: 'Yes, Reach is built for multi-tenancy. It supports isolated execution environments, organization-specific policy profiles, and granular access controls for distributed nodes.'
+    question: 'Is ReadyLayer multi-tenant?',
+    answer: 'Yes, ReadyLayer is built for multi-tenancy. It supports isolated execution environments, organization-specific policy profiles, and granular access controls for distributed nodes.'
   },
   {
     category: 'Security',
-    question: 'How does Row-Level Security (RLS) work in Reach?',
-    answer: 'Reach enforces RLS at the database and API layer. Every data access request is validated against the active session context and signed security tokens to ensure data isolation between tenants.'
+    question: 'How does Row-Level Security (RLS) work in ReadyLayer?',
+    answer: 'ReadyLayer enforces RLS at the database and API layer. Every data access request is validated against the active session context and signed security tokens to ensure data isolation between tenants.'
   },
   {
     category: 'Data Privacy',
-    question: 'Is my data stored by Reach?',
-    answer: 'Reach follows a "Your Data, Your Control" policy. By default, Reach can operate in an offline-first or self-hosted mode where all execution logs, capsules, and vector data remain within your infrastructure.'
+    question: 'Is my data stored by ReadyLayer?',
+    answer: 'ReadyLayer follows a "Your Data, Your Control" policy. By default, ReadyLayer can operate in an offline-first or self-hosted mode where all execution logs, capsules, and vector data remain within your infrastructure.'
   },
   {
     category: 'Integration',
-    question: 'How does MCP integrate with Reach?',
-    answer: 'Reach implements the Model Context Protocol (MCP) as its primary tool interface. Any MCP-compliant server can be registered as a capability within a Reach execution pack.'
+    question: 'How does MCP integrate with ReadyLayer?',
+    answer: 'ReadyLayer implements the Model Context Protocol (MCP) as its primary tool interface. Any MCP-compliant server can be registered as a capability within a ReadyLayer execution pack.'
   },
   {
     category: 'Licensing',
-    question: 'Is Reach Open Source?',
-    answer: 'The core Reach protocol, deterministic engine, and CLI are open-source under the Apache License 2.0. Enterprise orchestration and management features are available as a hosted or managed service.'
+    question: 'Is ReadyLayer Open Source?',
+    answer: 'The core ReadyLayer protocol, deterministic engine, and CLI are open-source under the Apache License 2.0. Enterprise orchestration and management features are available as a hosted or managed service.'
   },
   {
     category: 'Pricing',
     question: 'What are the pricing tiers?',
-    answer: 'Reach offers Free (Developer), Pro (Scaling Teams), and Enterprise tiers. Pricing is based on concurrent execution limits, audit log retention, and advanced governance features.'
+    answer: 'ReadyLayer offers Free (Developer), Pro (Scaling Teams), and Enterprise tiers. Pricing is based on concurrent execution limits, audit log retention, and advanced governance features.'
   },
   {
     category: 'Orchestration',
     question: 'How does orchestration work?',
-    answer: 'Reach uses a Planner-Executor model. The Planner generates a signed execution envelope (Phase 1), which is then validated and run by the Executor (Phase 2) under strict policy constraints.'
+    answer: 'ReadyLayer uses a Planner-Executor model. The Planner generates a signed execution envelope (Phase 1), which is then validated and run by the Executor (Phase 2) under strict policy constraints.'
   },
   {
     category: 'Governance',
@@ -52,7 +52,7 @@ const faqs = [
   {
     category: 'Security',
     question: 'What is the security model?',
-    answer: 'Reach uses a 3-layer model: 1. Immutable Signed Packs, 2. Capability Firewalls, and 3. Automatic Boundary Redaction of secrets and PII.'
+    answer: 'ReadyLayer uses a 3-layer model: 1. Immutable Signed Packs, 2. Capability Firewalls, and 3. Automatic Boundary Redaction of secrets and PII.'
   },
   {
     category: 'CLI',
@@ -62,37 +62,37 @@ const faqs = [
   {
     category: 'Data',
     question: 'How are vector stores used?',
-    answer: 'Reach uses vector stores for context retrieval and semantic policy matching. It supports pluggable vector backends including Pinecone, Milvus, and local SQLite-VSS.'
+    answer: 'ReadyLayer uses vector stores for context retrieval and semantic policy matching. It supports pluggable vector backends including Pinecone, Milvus, and local SQLite-VSS.'
   },
   {
     category: 'Operations',
     question: 'What is the scaling strategy?',
-    answer: 'Reach scales horizontally via federated nodes. The Session-Hub coordinates state across nodes, while the Runner handles local execution, allowing for infinite scaling across geographic regions.'
+    answer: 'ReadyLayer scales horizontally via federated nodes. The Session-Hub coordinates state across nodes, while the Runner handles local execution, allowing for infinite scaling across geographic regions.'
   },
   {
     category: 'Deployment',
     question: 'What are the deployment options?',
-    answer: 'Reach can be deployed as a Docker container, a managed gRPC service, or a standalone binary on Linux, MacOS, Windows, and Android (via Termux).'
+    answer: 'ReadyLayer can be deployed as a Docker container, a managed gRPC service, or a standalone binary on Linux, MacOS, Windows, and Android (via Termux).'
   },
   {
     category: 'LLM Support',
     question: 'Can I Bring Your Own LLM (BYOLLM)?',
-    answer: 'Absolutely. Reach is model-agnostic. You can route tasks to any provider (Gemini, OpenAI, Anthropic) or local models (Ollama, vLLM) via standard MCP adapters.'
+    answer: 'Absolutely. ReadyLayer is model-agnostic. You can route tasks to any provider (Gemini, OpenAI, Anthropic) or local models (Ollama, vLLM) via standard MCP adapters.'
   },
   {
     category: 'Observability',
     question: 'How is observability handled?',
-    answer: 'Reach generates structured OpenTelemetry-compatible event streams. These can be pushed to Prometheous, Grafana, or viewed live through the Reach Arcade Dashboard.'
+    answer: 'ReadyLayer generates structured OpenTelemetry-compatible event streams. These can be pushed to Prometheous, Grafana, or viewed live through the ReadyLayer Arcade Dashboard.'
   },
   {
     category: 'Resilience',
-    question: 'How does Reach handle execution failures?',
-    answer: 'Reach uses Bounded Retry Strategies and Deterministic Fallbacks. If a primary model fails, the engine can automatically retry with a safer model or escalate according to policy.'
+    question: 'How does ReadyLayer handle execution failures?',
+    answer: 'ReadyLayer uses Bounded Retry Strategies and Deterministic Fallbacks. If a primary model fails, the engine can automatically retry with a safer model or escalate according to policy.'
   },
   {
     category: 'Enterprise',
     question: 'What rate limiting controls are available?',
-    answer: 'Reach supports distributed rate limiting via Redis, allowing operators to set per-user, per-org, and per-model token or request quotas.'
+    answer: 'ReadyLayer supports distributed rate limiting via Redis, allowing operators to set per-user, per-org, and per-model token or request quotas.'
   },
   {
     category: 'Enterprise',
@@ -102,12 +102,12 @@ const faqs = [
   {
     category: 'SLA',
     question: 'What is the SLA policy?',
-    answer: 'Reach Enterprise offers a 99.99% uptime SLA for managed services and 4-hour critical response times for self-hosted instances with support contracts.'
+    answer: 'ReadyLayer Enterprise offers a 99.99% uptime SLA for managed services and 4-hour critical response times for self-hosted instances with support contracts.'
   },
   {
     category: 'Compliance',
     question: 'What is the compliance posture?',
-    answer: 'Reach is designed for high-compliance environments. It features tamper-evident audit logs, zero-trust execution, and localized data processing options.'
+    answer: 'ReadyLayer is designed for high-compliance environments. It features tamper-evident audit logs, zero-trust execution, and localized data processing options.'
   },
   {
     category: 'Security',
@@ -116,13 +116,13 @@ const faqs = [
   },
   {
     category: 'General',
-    question: 'Does Reach support offline execution?',
-    answer: 'Yes. Reach supports "Air-Gapped" mode where all capabilities and models are resolved locally, making it ideal for high-security or remote environment operations.'
+    question: 'Does ReadyLayer support offline execution?',
+    answer: 'Yes. ReadyLayer supports "Air-Gapped" mode where all capabilities and models are resolved locally, making it ideal for high-security or remote environment operations.'
   },
   {
     category: 'Community',
-    question: 'Is there a marketplace for Reach packs?',
-    answer: 'The Reach Marketplace allows developers to share signed connectors and execution packs. Every submission undergoes an automated security and determinism audit.'
+    question: 'Is there a marketplace for ReadyLayer packs?',
+    answer: 'The ReadyLayer Marketplace allows developers to share signed connectors and execution packs. Every submission undergoes an automated security and determinism audit.'
   },
   {
     category: 'Future',
@@ -166,7 +166,7 @@ export default function FAQPage() {
       <div className="max-w-3xl mx-auto">
         <header className="mb-12 text-center">
           <h1 className="text-4xl font-bold mb-4">Frequently Asked Questions</h1>
-          <p className="text-gray-400">Everything you need to know about Reach architecture, security, and deployment.</p>
+          <p className="text-gray-400">Everything you need to know about ReadyLayer architecture, security, and deployment.</p>
         </header>
 
         {/* Search Bar */}
@@ -226,7 +226,7 @@ export default function FAQPage() {
         {/* Support CTA */}
         <div className="mt-16 card gradient-border p-8 text-center">
           <h2 className="text-2xl font-bold mb-2">Still have questions?</h2>
-          <p className="text-gray-400 mb-6">Can&apos;t find the answer you&apos;re looking for? Reach out to our team.</p>
+          <p className="text-gray-400 mb-6">Can&apos;t find the answer you&apos;re looking for? ReadyLayer out to our team.</p>
           <div className="flex gap-4 justify-center">
             <a href="/support" className="btn-primary py-2 px-8">Get Support</a>
             <a href="/contact" className="btn-secondary py-2 px-8">Contact Sales</a>

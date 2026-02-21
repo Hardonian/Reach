@@ -2,7 +2,7 @@ import { BillingChargeback } from '@/components/stitch/console/pages/BillingChar
 import { ConsoleLayout } from '@/components/stitch/console/ConsoleLayout';
 
 export const metadata = {
-  title: 'Billing & Chargeback | Reach Console',
+  title: 'Billing & Chargeback | ReadyLayer Console',
 };
 
 export default function BillingPage() {

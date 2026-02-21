@@ -21,7 +21,7 @@ export function EcosystemCoordination() {
       <main className="flex-1 p-8 md:p-12 max-w-[1600px] mx-auto w-full flex flex-col gap-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
            {[
-             { name: 'Reach Core', ver: 'v2.4.0', status: 'Online', uptime: '99.99%', lat: '12ms', color: 'emerald' },
+             { name: 'ReadyLayer Core', ver: 'v2.4.0', status: 'Online', uptime: '99.99%', lat: '12ms', color: 'emerald' },
              { name: 'Settler Engine', ver: 'v1.8.2', status: 'Online', uptime: '99.95%', lat: '24ms', color: 'emerald' },
              { name: 'Zeo Interface', ver: 'v0.9.1-rc', status: 'Syncing', uptime: '45%', lat: '45ms', color: 'blue', sync: true },
              { name: 'AIAS Network', ver: 'v3.0.0', status: 'Maintenance', uptime: '99.00%', lat: '2m rem', color: 'amber' },
@@ -70,7 +70,7 @@ export function EcosystemCoordination() {
                        <div className="w-16 h-16 rounded-full border-2 border-emerald-500 bg-slate-900 flex items-center justify-center text-emerald-500 shadow-2xl">
                           <span className="material-symbols-outlined text-3xl">hub</span>
                        </div>
-                       <span className="mt-2 text-[10px] font-black uppercase tracking-widest text-white bg-slate-800 px-3 py-1 rounded-full border border-white/10">Reach Core</span>
+                       <span className="mt-2 text-[10px] font-black uppercase tracking-widest text-white bg-slate-800 px-3 py-1 rounded-full border border-white/10">ReadyLayer Core</span>
                     </div>
                     <div className="absolute top-[60%] left-[10%] flex flex-col items-center">
                        <div className="w-12 h-12 rounded-full border-2 border-emerald-500 bg-slate-900 flex items-center justify-center text-emerald-500 shadow-xl">
@@ -152,7 +152,7 @@ export function EcosystemCoordination() {
                      {[
                        { a: 'Manual Sync', t: 'Zeo Interface', s: 'Completed', c: 'emerald' },
                        { a: 'Schema Rollback', t: 'AIAS Network', s: 'Pending', c: 'amber' },
-                       { a: 'Config Update', t: 'Reach Core', s: 'Completed', c: 'emerald' },
+                       { a: 'Config Update', t: 'ReadyLayer Core', s: 'Completed', c: 'emerald' },
                      ].map((log, i) => (
                        <tr key={i} className="hover:bg-white/5 transition-colors">
                           <td className="px-8 py-5 font-bold text-white uppercase tracking-wide">{log.a}</td>

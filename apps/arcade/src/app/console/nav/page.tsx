@@ -2,7 +2,7 @@ import { MasterNavigation } from '@/components/stitch/console/pages/MasterNaviga
 import { ConsoleLayout } from '@/components/stitch/console/ConsoleLayout';
 
 export const metadata = {
-  title: 'Master Navigation | Reach Console',
+  title: 'Master Navigation | ReadyLayer Console',
 };
 
 export default function NavPage() {

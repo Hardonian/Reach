@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Observability | Reach Documentation',
-  description: 'Monitoring and debugging agentic workloads with Reach.',
+  title: 'Observability | ReadyLayer Documentation',
+  description: 'Monitoring and debugging agentic workloads with ReadyLayer.',
 };
 
 export default function ObservabilityPage() {
@@ -19,7 +19,7 @@ export default function ObservabilityPage() {
         <div className="card p-6 bg-white/5 border border-white/10 rounded-xl">
           <h3 className="font-bold mb-2">Event Streams</h3>
           <p className="text-sm text-gray-400">
-            Every Reach node emits a high-fidelity OpenTelemetry event stream containing execution logs and metric labels.
+            Every ReadyLayer node emits a high-fidelity OpenTelemetry event stream containing execution logs and metric labels.
           </p>
         </div>
         <div className="card p-6 bg-white/5 border border-white/10 rounded-xl">

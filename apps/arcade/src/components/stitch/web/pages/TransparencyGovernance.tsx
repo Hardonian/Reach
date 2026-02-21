@@ -17,7 +17,7 @@ export function TransparencyGovernance() {
               <span className="text-transparent bg-clip-text bg-linear-to-r from-[#135bec] to-blue-400">Governance Posture</span>
             </h1>
             <p className="text-slate-600 dark:text-[#9da6b9] text-lg max-w-2xl leading-relaxed">
-              Public verification for Reach Agentic Orchestration Control Plane. Our security architecture is built on three immutable pillars ensuring zero-trust compliance for enterprise workloads.
+              Public verification for ReadyLayer Agentic Orchestration Control Plane. Our security architecture is built on three immutable pillars ensuring zero-trust compliance for enterprise workloads.
             </p>
           </div>
           <div className="flex flex-col gap-2">

@@ -17,7 +17,7 @@ export default function Marketplace() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">What is the Marketplace?</h2>
             <p className="text-gray-400">
-              The Reach Marketplace is a community-driven repository of agents, connectors, and templates. Find solutions for common use cases or share your own creations with the world.
+              The ReadyLayer Marketplace is a community-driven repository of agents, connectors, and templates. Find solutions for common use cases or share your own creations with the world.
             </p>
           </section>
 

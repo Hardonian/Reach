@@ -10,7 +10,7 @@ export default function Endpoints() {
 
         <h1 className="text-4xl font-bold mb-4">Endpoints</h1>
         <p className="text-gray-400 mb-8">
-          Complete reference for the Reach REST API.
+          Complete reference for the ReadyLayer REST API.
         </p>
 
         <div className="space-y-8">
