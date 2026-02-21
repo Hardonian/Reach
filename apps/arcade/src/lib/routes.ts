@@ -58,6 +58,66 @@ export const ROUTES = {
     DISCLOSURE: '/responsible-disclosure',
   },
 
+  // ── Console aliases (backward-compatible with SUITE) ──
+  // Required by ConsoleLayout, MasterNavigation, traceUrl
+  STUDIO: '/studio',
+  CONSOLE: {
+    HOME: '/console',
+    NAV: '/console/nav',
+    AGENTS: {
+      HOME: '/console/agents',
+      DETAIL: '/console/agents/detail',
+      COLLISIONS: '/console/agents/collisions',
+      IMPACT: '/console/agents/impact',
+    },
+    RUNNERS: '/console/runners',
+    OPS: {
+      HOME: '/console/ops',
+      SANDBOX: '/console/ops/sandbox',
+    },
+    EVALUATION: {
+      HOME: '/console/evaluation',
+      REGRESSION: '/console/evaluation/regression',
+    },
+    SAFETY: '/console/safety',
+    GOVERNANCE: {
+      HOME: '/console/governance',
+      GLOSSARY: '/console/governance/glossary',
+      HISTORY: '/console/governance/history',
+      CONFIG: '/console/governance/config-as-code',
+      AUDIT: '/console/governance/audit-gate',
+    },
+    DATASETS: '/console/datasets',
+    COST: {
+      HOME: '/console/cost',
+      ROI: '/console/cost/roi',
+      HEATMAP: '/console/cost/heatmap',
+    },
+    BILLING: '/console/billing',
+    ECOSYSTEM: {
+      HOME: '/console/ecosystem',
+      REPO_SYNC: '/console/ecosystem/repo-sync',
+    },
+    INTEGRATIONS: '/console/integrations',
+    DEPLOY: {
+      CD: '/console/deploy/cd',
+    },
+    ARTIFACTS: '/console/artifacts',
+    ALERTS: '/console/alerts',
+    TRACES: '/console/traces',
+    SEARCH: '/console/search',
+    WORKSPACES: '/console/workspaces',
+    PROFILE: '/console/profile',
+    REPORTS: {
+      STATUS: '/console/reports/status',
+      MONTHLY: '/console/reports/monthly',
+      PDF: '/console/reports/pdf-export',
+    },
+    SCREENS: {
+      GENERATED: '/console/screens/generated',
+    }
+  },
+
   // ── Suite (enterprise, behind auth) ──
   SUITE: {
     HOME: '/console',
