@@ -47,25 +47,25 @@ export interface Plugin {
   compatibility: PluginCompatibility;
   capabilities: PluginCapability[];
   metadata: PluginMetadata;
-  loaded_at?:export interface PluginManifest {
+  loaded_at?: string;
+}
+
+export interface PluginManifest {
   id: string;
   name: string;
   version: string;
   description: string;
   author: string;
   license?: string;
-  homepage string;
-}
-
-?: string;
+  homepage?: string;
   repository?: string;
   dependencies?: Record<string, string>;
   peer_dependencies?: Record<string, string>;
   entry_point?: string;
   permissions?: string[];
   tags?: string[];
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface PluginCompatibility {
@@ -105,7 +105,7 @@ export class PluginLoader {
     // Validate manifest
     const validation = validatePluginManifest(manifest);
     if (!validation.valid) {
-      throw new PluginLoadError(`Invalid manifest: ${validation.errors.join(', ')}`);
+      throw new PluginLoadError(`Invalid manifest: ${(validation.errors ?? []).join(', ')}`);
     }
     
     // Check version compatibility
@@ -116,8 +116,8 @@ export class PluginLoader {
       config?.maxVersion
     );
     
-    if (!compatibleCheck.compatible) {
-      throw new PluginLoadError(`Version incompatibility: ${compatibleCheck.reason}`);
+    if (!compatibilityCheck.compatible) {
+      throw new PluginLoadError(`Version incompatibility: ${compatibilityCheck.reason}`);
     }
     
     // Create plugin instance
@@ -335,7 +335,7 @@ export function validatePluginManifest(
   if (!result.success) {
     return {
       valid: false,
-      errors: result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`),
+      errors: result.error.issues.map((e) => `${String(e.path.join('.'))}: ${e.message}`),
     };
   }
   
@@ -385,17 +385,17 @@ export function createValidationContract(): PluginValidationContract {
       
       // Check manifest
       const manifestResult = this.validateManifest(plugin.manifest);
-      errors.push(...manifestResult.errors || []);
-      warnings.push(...manifestResult.warnings || []);
-      
+      errors.push(...(manifestResult.errors ?? []));
+      warnings.push(...(manifestResult.warnings ?? []));
+
       // Check capabilities
       if (plugin.capabilities.length === 0) {
         warnings.push({ code: 'NO_CAPABILITIES', message: 'Plugin has no capabilities declared' });
       }
-      
+
       const capsResult = this.validateCapabilities(plugin.capabilities);
-      errors.push(...capsResult.errors || []);
-      warnings.push(...capsResult.warnings || []);
+      errors.push(...(capsResult.errors ?? []));
+      warnings.push(...(capsResult.warnings ?? []));
       
       return { valid: errors.length === 0, errors, warnings };
     },
@@ -537,8 +537,8 @@ export const PluginManifestSchema = z.object({
   license: z.string().optional(),
   homepage: z.string().url().optional(),
   repository: z.string().url().optional(),
-  dependencies: z.record(z.string()).optional(),
-  peer_dependencies: z.record(z.string()).optional(),
+  dependencies: z.record(z.string(), z.string()).optional(),
+  peer_dependencies: z.record(z.string(), z.string()).optional(),
   entry_point: z.string().optional(),
   permissions: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
@@ -563,7 +563,7 @@ export const PluginSchema = z.object({
     name: z.string(),
     type: z.string(),
     description: z.string().optional(),
-    config_schema: z.record(z.unknown()).optional(),
+    config_schema: z.record(z.string(), z.unknown()).optional(),
   })),
   metadata: z.object({
     installed_by: z.string().optional(),

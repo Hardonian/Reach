@@ -11,8 +11,13 @@ export const ROUTES = {
   // ── Primary Nav ──
   HOME: '/',
   PLAYGROUND: '/playground',
+  SKILLS: '/skills',
+  TOOLS: '/tools',
+  STUDIO: '/studio',
   LAB: '/studio',
   LIBRARY: '/library',
+  MARKETPLACE: '/marketplace',
+  TEMPLATES: '/templates',
   DOCS: '/docs',
   PRICING: '/pricing',
 
@@ -59,9 +64,6 @@ export const ROUTES = {
     DISCLOSURE: '/responsible-disclosure',
   },
 
-  // ── Console aliases (backward-compatible with SUITE) ──
-  // Required by ConsoleLayout, MasterNavigation, traceUrl
-  STUDIO: '/studio',
   CONSOLE: {
     HOME: '/console',
     NAV: '/console/nav',
@@ -197,6 +199,10 @@ export const ROUTES = {
       TENANTS: '/api/v1/tenants',
       EVENTS: '/api/v1/events',
       PLAYGROUND: '/api/v1/playground',
+      SKILLS: '/api/v1/skills',
+      TOOLS: '/api/v1/tools',
+      PROVIDERS: '/api/v1/providers',
+      EXECUTE: '/api/v1/execute',
       API_KEYS: '/api/v1/api-keys',
       GATES: '/api/v1/gates',
       SIGNALS: '/api/v1/signals',

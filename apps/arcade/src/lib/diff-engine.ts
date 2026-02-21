@@ -728,7 +728,7 @@ export const DiffResultSchema = z.object({
     current_id: z.string().optional(),
     compared_at: z.string().datetime(),
     deterministic: z.boolean(),
-    runtime_context: z.record(z.unknown()).optional(),
+    runtime_context: z.record(z.string(), z.unknown()).optional(),
   }),
 });
 
