@@ -36,7 +36,8 @@ export const ROUTES = {
 
   // ── Footer / Misc ──
   CHANGELOG: '/changelog',
-  MARKETPLACE: '/marketplace',
+  LIBRARY_LEGACY: '/templates', // Use LIBRARY instead
+  MARKETPLACE_LEGACY: '/marketplace', // Use LIBRARY instead
   GOVERNANCE: '/governance',
   FAQ: '/faq',
   SUPPORT: '/support',
