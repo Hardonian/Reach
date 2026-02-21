@@ -39,7 +39,7 @@ export default function SecurityPage() {
             <h3 className="text-xl font-bold mb-4">Tamper-Evident Logs</h3>
             <p className="text-gray-400 text-sm leading-relaxed">
               Every state transition is cryptographically hashed. We provide immutable
-              Audit Capsules as mathematical proof of how a decision was reached.
+              Audit Reports as mathematical proof of how a decision was reached.
             </p>
           </div>
           <div className="p-8 rounded-3xl bg-white/5 border border-white/10">

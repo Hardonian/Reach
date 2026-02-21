@@ -15,6 +15,7 @@ export * from './db/api-keys';
 export * from './db/workflows';
 export * from './db/packs';
 export * from './db/entitlements';
+export * from './db/webhooks';
 export * from './db/audit';
 export * from './db/analytics';
 export * from './db/gates';

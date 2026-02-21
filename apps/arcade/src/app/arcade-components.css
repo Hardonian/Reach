@@ -715,6 +715,13 @@ input:focus-visible {
   }
 }
 
+
 .animate-pulse {
   animation: pulse 2s infinite;
 }
+
+/* Node Colors */
+.bg-node-input { background-color: rgba(16, 185, 129, 0.2); }
+.bg-node-processor { background-color: rgba(124, 58, 237, 0.2); }
+.bg-node-retrieval { background-color: rgba(59, 130, 246, 0.2); }
+.bg-node-output { background-color: rgba(245, 158, 11, 0.2); }

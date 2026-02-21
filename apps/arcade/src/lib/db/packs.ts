@@ -97,3 +97,18 @@ export function listPackVersions(packId: string): PackVersion[] {
   const db = getDB();
   return db.prepare('SELECT * FROM pack_versions WHERE pack_id=? ORDER BY published_at DESC').all(packId) as PackVersion[];
 }
+
+export function addReview(packId: string, userId: string, rating: number, body: string): void {
+  const db = getDB();
+  db.prepare(`INSERT OR REPLACE INTO marketplace_reviews (id, pack_id, user_id, rating, body, created_at)
+    VALUES (?,?,?,?,?,?)`)
+    .run(newId('rev'), packId, userId, rating, body, new Date().toISOString());
+  const agg = db.prepare('SELECT SUM(rating) as s, COUNT(*) as c FROM marketplace_reviews WHERE pack_id=?').get(packId) as { s: number; c: number };
+  db.prepare('UPDATE packs SET rating_sum=?, rating_count=? WHERE id=?').run(agg.s, agg.c, packId);
+}
+
+export function flagPack(id: string): void {
+  const db = getDB();
+  db.prepare("UPDATE packs SET flagged=1, security_status=? WHERE id=?").run('concern', id);
+}
+

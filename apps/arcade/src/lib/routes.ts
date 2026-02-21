@@ -12,7 +12,7 @@ export const ROUTES = {
   HOME: '/',
   PLAYGROUND: '/playground',
   LAB: '/studio',
-  TEMPLATES: '/templates',
+  LIBRARY: '/library',
   DOCS: '/docs',
   PRICING: '/pricing',
 

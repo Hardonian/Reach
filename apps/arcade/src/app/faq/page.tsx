@@ -112,7 +112,7 @@ const faqs = [
   {
     category: 'Security',
     question: 'How is audit logging performed?',
-    answer: 'Every state transition and tool call is logged with a cryptographic hash. These logs are aggregated into "Capsules" that can be verified for absolute proof of execution.'
+    answer: 'Every state transition and tool call is logged with a cryptographic hash. These logs are aggregated into "Execution Reports" that can be verified for absolute proof of execution.'
   },
   {
     category: 'General',

@@ -47,22 +47,22 @@ export const TERMS: Record<string, CopyEntry> = {
   },
 };
 
-/** Hero copy variants for A/B testing */
+/** Hero copy variants with Category Lock */
 export const HERO_VARIANTS = {
   A: {
-    headline: 'Your agent is smart. Is it shippable?',
-    subhead: 'ReadyLayer turns "it works on my prompt" into repeatable, safe releases.',
-    badge: 'Now in open beta',
+    headline: 'Agent Reliability. Guaranteed.',
+    subhead: 'ReadyLayer is the category-defining suite for shipping agents that actually work.',
+    badge: 'Category: Agent Reliability',
   },
   B: {
-    headline: 'Ship AI agents without the "maybe".',
-    subhead: 'Automated readiness checks for tool calls, policy gates, and regressions.',
-    badge: 'Free to start',
+    headline: 'Stop guessing. Start shipping.',
+    subhead: 'The infrastructure for safe, predictable, and auditable AI agents.',
+    badge: 'Reliability Suite',
   },
   C: {
-    headline: 'Zero to CI readiness in 30 seconds.',
-    subhead: 'Stop guessing if your latest prompt broke your agent. Verify it instantly.',
-    badge: 'Demo-first',
+    headline: 'Zero drift. Zero doubt.',
+    subhead: 'Automated gates and side-by-side simulation for production agents.',
+    badge: 'Pro Grade',
   },
 } as const;
 

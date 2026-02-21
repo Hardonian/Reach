@@ -98,7 +98,7 @@ function PipelineView({
         })}
       </svg>
 
-      <div className="relative space-y-6" style={{ minWidth: '600px' }}>
+      <div className="relative space-y-6 min-w-[600px]">
         {stages.map((stage) => (
           <PipelineStage
             key={stage.id}
@@ -170,10 +170,7 @@ export default function StudioPage() {
               <div className="card">
                 <div className="flex items-center gap-3 mb-4">
                   <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
-                    style={{
-                      backgroundColor: `${nodeTypes[selectedStageData.type].color}20`,
-                    }}
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl bg-node-${selectedStageData.type}`}
                   >
                     {nodeTypes[selectedStageData.type].icon}
                   </div>
@@ -227,8 +224,7 @@ export default function StudioPage() {
                     className="w-full flex items-center gap-3 p-3 rounded-lg bg-surface hover:bg-surface-hover transition-colors text-left"
                   >
                     <div
-                      className="w-8 h-8 rounded flex items-center justify-center"
-                      style={{ backgroundColor: `${config.color}20` }}
+                      className={`w-8 h-8 rounded flex items-center justify-center bg-node-${type}`}
                     >
                       {config.icon}
                     </div>

@@ -8,11 +8,12 @@ import { BRAND_NAME } from '@/lib/brand';
 import { track } from '@/lib/analytics';
 
 const primaryNav = [
-  { href: ROUTES.PLAYGROUND, label: 'Playground' },
-  { href: ROUTES.LAB, label: 'Lab' },
-  { href: ROUTES.TEMPLATES, label: 'Templates' },
+  { href: ROUTES.LIBRARY, label: 'Build (Library)' },
+  { href: ROUTES.REPORTS, label: 'Run (Reports)' },
+  { href: ROUTES.SIMULATE, label: 'Simulation' },
   { href: ROUTES.DOCS, label: 'Docs' },
   { href: ROUTES.PRICING, label: 'Pricing' },
+  { href: ROUTES.SETTINGS.HOME, label: 'Manage' },
 ];
 
 export function NavBar() {
