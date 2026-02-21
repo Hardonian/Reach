@@ -1,0 +1,54 @@
+name: simplicity-dna
+
+on:
+  pull_request:
+  schedule:
+    # Weekly on Monday 09:00 UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      enforce:
+        description: 'Enforce mode (fail on violations)'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  validate-simplicity:
+    name: Simplicity DNA check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run simplicity validator (advisory)
+        if: ${{ github.event.inputs.enforce != 'true' }}
+        run: npm run validate:simplicity
+
+      - name: Run simplicity validator (enforce)
+        if: ${{ github.event.inputs.enforce == 'true' }}
+        run: AGENTS_ENFORCE=1 npm run validate:simplicity
+
+  validate-brand:
+    name: Brand name guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run brand validator
+        run: npm run validate:brand
