@@ -345,3 +345,235 @@ export function validatePluginManifest(
 /**
  * Plugin validation contract.
  */
+export interface PluginValidationContract {
+  validate: (plugin: Plugin) => ValidationResult;
+  validateManifest: (manifest: PluginManifest) => ValidationResult;
+  validateCapabilities: (capabilities: PluginCapability[]) => ValidationResult;
+}
+
+export interface ValidationResult {
+  valid: boolean;
+  errors?: ValidationError[];
+  warnings?: ValidationWarning[];
+}
+
+export interface ValidationError {
+  code: string;
+  message: string;
+  field?: string;
+}
+
+export interface ValidationWarning {
+  code: string;
+  message: string;
+  field?: string;
+}
+
+/**
+ * Creates a validation contract for plugins.
+ */
+export function createValidationContract(): PluginValidationContract {
+  return {
+    validate(plugin: Plugin): ValidationResult {
+      const errors: ValidationError[] = [];
+      const warnings: ValidationWarning[] = [];
+      
+      // Check required fields
+      if (!plugin.id) errors.push({ code: 'MISSING_ID', message: 'Plugin ID is required' });
+      if (!plugin.name) errors.push({ code: 'MISSING_NAME', message: 'Plugin name is required' });
+      if (!plugin.version) errors.push({ code: 'MISSING_VERSION', message: 'Plugin version is required' });
+      
+      // Check manifest
+      const manifestResult = this.validateManifest(plugin.manifest);
+      errors.push(...manifestResult.errors || []);
+      warnings.push(...manifestResult.warnings || []);
+      
+      // Check capabilities
+      if (plugin.capabilities.length === 0) {
+        warnings.push({ code: 'NO_CAPABILITIES', message: 'Plugin has no capabilities declared' });
+      }
+      
+      const capsResult = this.validateCapabilities(plugin.capabilities);
+      errors.push(...capsResult.errors || []);
+      warnings.push(...capsResult.warnings || []);
+      
+      return { valid: errors.length === 0, errors, warnings };
+    },
+    
+    validateManifest(manifest: PluginManifest): ValidationResult {
+      const errors: ValidationError[] = [];
+      const warnings: ValidationWarning[] = [];
+      
+      // Check version format
+      if (!/^\d+\.\d+\.\d+/.test(manifest.version)) {
+        errors.push({ 
+          code: 'INVALID_VERSION', 
+          message: 'Version must be a valid semantic version (x.y.z)',
+          field: 'version',
+        });
+      }
+      
+      // Check required fields
+      if (!manifest.id) errors.push({ code: 'MISSING_ID', message: 'Manifest ID is required' });
+      if (!manifest.name) errors.push({ code: 'MISSING_NAME', message: 'Manifest name is required' });
+      if (!manifest.description) errors.push({ code: 'MISSING_DESC', message: 'Description is required' });
+      
+      // Check dependencies don't have conflicts
+      if (manifest.dependencies && manifest.peer_dependencies) {
+        for (const [dep, version] of Object.entries(manifest.peer_dependencies)) {
+          if (manifest.dependencies[dep]) {
+            const depVersion = manifest.dependencies[dep];
+            if (!versionsCompatible(depVersion, version)) {
+              warnings.push({
+                code: 'DEP_CONFLICT',
+                message: `Dependency ${dep} version mismatch: ${depVersion} vs peer ${version}`,
+              });
+            }
+          }
+        }
+      }
+      
+      return { valid: errors.length === 0, errors, warnings };
+    },
+    
+    validateCapabilities(capabilities: PluginCapability[]): ValidationResult {
+      const errors: ValidationError[] = [];
+      const warnings: ValidationWarning[] = [];
+      
+      for (const cap of capabilities) {
+        if (!cap.name) {
+          errors.push({ code: 'CAP_NO_NAME', message: 'Capability must have a name' });
+        }
+        if (!cap.type) {
+          errors.push({ code: 'CAP_NO_TYPE', message: 'Capability must have a type' });
+        }
+      }
+      
+      return { valid: errors.length === 0, errors, warnings };
+    },
+  };
+}
+
+// ── Helper Functions ─────────────────────────────────────────────────────────
+
+function inferPluginType(manifest: PluginManifest): PluginType {
+  const name = manifest.name.toLowerCase();
+  const tags = manifest.tags || [];
+  
+  if (tags.includes('skill_pack')) return 'skill_pack';
+  if (tags.includes('tool')) return 'tool';
+  if (tags.includes('provider')) return 'provider';
+  if (tags.includes('integration')) return 'integration';
+  if (tags.includes('policy')) return 'policy';
+  
+  if (name.includes('skill')) return 'skill_pack';
+  if (name.includes('tool')) return 'tool';
+  if (name.includes('provider')) return 'provider';
+  if (name.includes('integration')) return 'integration';
+  if (name.includes('policy')) return 'policy';
+  
+  return 'tool'; // Default to tool
+}
+
+function extractCapabilities(manifest: PluginManifest): PluginCapability[] {
+  const capabilities: PluginCapability[] = [];
+  
+  // Extract from tags or create default
+  const types = ['skill_pack', 'tool', 'provider', 'integration', 'policy'];
+  for (const type of types) {
+    if (manifest.tags?.includes(type)) {
+      capabilities.push({
+        name: type,
+        type,
+        description: `Provides ${type} functionality`,
+      });
+    }
+  }
+  
+  // If no capabilities, add a default one
+  if (capabilities.length === 0) {
+    capabilities.push({
+      name: 'tool',
+      type: 'tool',
+      description: 'Default tool capability',
+    });
+  }
+  
+  return capabilities;
+}
+
+function versionsCompatible(a: string, b: string): boolean {
+  // Simple check - if versions are the same or one is wildcard
+  if (a === b) return true;
+  if (a === '*' || b === '^' || b === 'latest') return true;
+  
+  // Try to parse as semver ranges
+  try {
+    const aBase = a.replace(/[\^~>=<]/g, '').split('.')[0];
+    const bBase = b.replace(/[\^~>=<]/g, '').split('.')[0];
+    return aBase === bBase;
+  } catch {
+    return false;
+  }
+}
+
+// ── Custom Error ────────────────────────────────────────────────────────────
+
+export class PluginLoadError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'PluginLoadError';
+  }
+}
+
+// ── Zod Schemas ────────────────────────────────────────────────────────────
+
+export const PluginManifestSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1),
+  version: z.string(),
+  description: z.string().min(1),
+  author: z.string(),
+  license: z.string().optional(),
+  homepage: z.string().url().optional(),
+  repository: z.string().url().optional(),
+  dependencies: z.record(z.string()).optional(),
+  peer_dependencies: z.record(z.string()).optional(),
+  entry_point: z.string().optional(),
+  permissions: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
+  created_at: z.string().datetime().optional(),
+  updated_at: z.string().datetime().optional(),
+});
+
+export const PluginSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  version: z.string(),
+  plugin_type: z.enum(['skill_pack', 'tool', 'provider', 'integration', 'policy']),
+  manifest: PluginManifestSchema,
+  status: z.enum(['inactive', 'active', 'error', 'deprecated']),
+  compatibility: z.object({
+    min_api_version: z.string().optional(),
+    max_api_version: z.string().optional(),
+    compatible_runtimes: z.array(z.string()).optional(),
+    platform_requirements: z.array(z.string()).optional(),
+  }),
+  capabilities: z.array(z.object({
+    name: z.string(),
+    type: z.string(),
+    description: z.string().optional(),
+    config_schema: z.record(z.unknown()).optional(),
+  })),
+  metadata: z.object({
+    installed_by: z.string().optional(),
+    install_source: z.string().optional(),
+    signature: z.string().optional(),
+    checksum: z.string().optional(),
+  }),
+  loaded_at: z.string().datetime().optional(),
+});
+
+// ── Singleton Instance ────────────────────────────────────────────────────────
+
+export const pluginLoader = new PluginLoader();
