@@ -17,7 +17,7 @@ const RUN_SCOPED_COMMANDS = new Set([
   'runs.explain',
   'graph.export',
   'proof.verify',
-  'capsule.create',
+  'report.create',
 ]);
 
 const COMMAND_BUILDERS: Record<string, (runId?: string) => string[]> = {
@@ -37,8 +37,8 @@ const COMMAND_BUILDERS: Record<string, (runId?: string) => string[]> = {
   'arena.run': () => ['arena', 'run', 'baseline'],
   'playground.export': () => ['playground', 'export'],
   'proof.verify': (runId) => ['proof', 'verify', runId || ''],
-  'capsule.create': (runId) => ['capsule', 'create', runId || ''],
-  'capsule.replay': () => ['capsule', 'replay'],
+  'report.create': (runId) => ['capsule', 'create', runId || ''],
+  'report.replay': () => ['capsule', 'replay'],
 };
 
 export async function listRunInventory(repoRoot: string): Promise<string[]> {

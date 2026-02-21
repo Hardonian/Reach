@@ -15,13 +15,10 @@ export * from './db/api-keys';
 export * from './db/workflows';
 export * from './db/packs';
 export * from './db/entitlements';
-export * from './db/webhooks';
-export * from './db/audit';
-export * from './db/analytics';
+export * from './db/ops';
 export * from './db/gates';
 export * from './db/scenarios';
 export * from './db/seed';
-export * from './db/onboarding';
 
 import { getDB } from './db/connection';
 import { applyMigrations } from './db/migrations';

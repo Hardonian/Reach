@@ -18,10 +18,10 @@ const sections = [
   'Playground',
   'Library',
   // --- RUN ---
-  'Reports (Runs)',
+  'Reports (Recent)',
   'Lineage (Traces)',
-  'Arena (Simulation)',
-  'Graph',
+  'Arena (Simulate)',
+  'Graph (Map)',
   // --- MANAGE ---
   'Federation',
   'Support',
@@ -142,7 +142,7 @@ export function StudioShell() {
       data.stderr ? `stderr:\n${data.stderr}` : '',
     ].filter(Boolean).join('\n\n'));
     await persistState(manifest, nextHistory);
-    if (command === 'capsule.create') {
+    if (command === 'report.create') {
       await refreshRunInventory();
     }
     setBusy(false);
@@ -241,19 +241,19 @@ export function StudioShell() {
           </>
         )}
 
-        {active === 'Reports (Runs)' && (
+        {active === 'Reports (Recent)' && (
           <>
-            <h2>Reports (Runs)</h2>
+            <h2>Reports (Recent)</h2>
             <p>Selected run: {selectedRun || 'none'}. Report and proof actions bind to this run selection.</p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button disabled={busy} onClick={() => runCommand('runs.list')}>Operator summary</button>
               <button disabled={busy || !selectedRun} onClick={() => runCommand('runs.explain')}>Explain this run</button>
-              <button disabled={busy || !selectedRun} onClick={() => runCommand('capsule.create')}>Create report</button>
+              <button disabled={busy || !selectedRun} onClick={() => runCommand('report.create')}>Create report</button>
             </div>
           </>
         )}
 
-        {active === 'Graph' && (
+        {active === 'Graph (Map)' && (
           <>
             <h2>Graph</h2>
             <p>Workflow overlay markers:</p>
@@ -279,7 +279,7 @@ export function StudioShell() {
             <p>Reviewing run A vs B: {eventDiff.length} mismatch(es).</p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button disabled={busy} onClick={() => runCommand('replay.verify')}>Verify lineage</button>
-              <button disabled={busy} onClick={() => runCommand('capsule.replay')}>Replay report</button>
+              <button disabled={busy} onClick={() => runCommand('report.replay')}>Replay report</button>
             </div>
           </>
         )}
@@ -304,7 +304,7 @@ export function StudioShell() {
 
 
 
-        {active === 'Arena (Simulation)' && (
+        {active === 'Arena (Simulate)' && (
           <>
             <h2>Arena (Simulation)</h2>
             <p>Scenario: arcadeSafe baseline</p>
