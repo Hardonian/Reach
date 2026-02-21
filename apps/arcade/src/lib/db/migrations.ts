@@ -572,6 +572,44 @@ export const MIGRATIONS: string[] = [
   ALTER TABLE workflow_runs ADD COLUMN inputs_hash TEXT;
   ALTER TABLE workflow_runs ADD COLUMN snapshot_id TEXT REFERENCES run_output_snapshots(id);
   `,
+  /* 013 — founder metrics + decision scoring */
+  `
+  -- Track the "AHA" moment (first success) directly on the user
+  ALTER TABLE users ADD COLUMN first_success_at TEXT;
+
+  -- Cache gate counts on tenants for faster dashboard rendering
+  ALTER TABLE tenants ADD COLUMN active_gates_count INTEGER DEFAULT 0;
+
+  -- Founder Decision Framework Ledger
+  CREATE TABLE IF NOT EXISTS founder_decisions (
+    id                TEXT PRIMARY KEY,
+    title             TEXT NOT NULL,
+    description       TEXT NOT NULL,
+    status            TEXT NOT NULL DEFAULT 'draft', -- draft, go, defer, kill
+    score_total       REAL NOT NULL DEFAULT 0,
+    scores_json       TEXT NOT NULL DEFAULT '{}', -- activation, gate_leverage, monitoring, simulation, ecosystem, monetization, complexity, ui_expansion, engineering_load
+    strategic_align   INTEGER NOT NULL DEFAULT 0,
+    created_by        TEXT NOT NULL REFERENCES users(id),
+    created_at        TEXT NOT NULL,
+    updated_at        TEXT NOT NULL,
+    deleted_at        TEXT
+  );
+
+  -- Track entropy signals per sprint/week
+  CREATE TABLE IF NOT EXISTS entropy_snapshots (
+    id                TEXT PRIMARY KEY,
+    timestamp         TEXT NOT NULL,
+    route_count       INTEGER NOT NULL,
+    orphan_routes     INTEGER NOT NULL,
+    avg_actions_per_screen REAL NOT NULL,
+    paragraph_violations INTEGER NOT NULL,
+    technical_debt_score REAL NOT NULL,
+    created_at        TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_founder_decisions_status ON founder_decisions(status);
+  CREATE INDEX IF NOT EXISTS idx_entropy_snapshots_ts ON entropy_snapshots(timestamp);
+  `,
 ];
 
 export function applyMigrations(db: Database.Database): void {

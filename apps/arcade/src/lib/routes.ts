@@ -116,7 +116,8 @@ export const ROUTES = {
     },
     SCREENS: {
       GENERATED: '/console/screens/generated',
-    }
+    },
+    FOUNDER: '/console/founder',
   },
 
   // ── Suite (enterprise, behind auth) ──
@@ -174,7 +175,8 @@ export const ROUTES = {
     },
     SCREENS: {
       GENERATED: '/console/screens/generated',
-    }
+    },
+    FOUNDER: '/console/founder',
   },
 
   // ── Public web pages ──
