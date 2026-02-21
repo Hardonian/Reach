@@ -15,8 +15,14 @@
  */
 
 import { z } from 'zod';
-import { logger } from '../logger';
 import crypto from 'crypto';
+
+// Simple logger placeholder - replace with actual logger in production
+const logger = {
+  info: (msg: string, meta?: Record<string, unknown>) => console.log(`[INFO] ${msg}`, meta || ''),
+  warn: (msg: string, meta?: Record<string, unknown>) => console.warn(`[WARN] ${msg}`, meta || ''),
+  error: (msg: string, meta?: Record<string, unknown>) => console.error(`[ERROR] ${msg}`, meta || ''),
+};
 
 // ── Tool Definition ───────────────────────────────────────────────────────────
 
@@ -327,7 +333,7 @@ export class ToolSandbox {
     this.circuitBreakers.set(tool.id, new CircuitBreaker(
       tool.max_retries * 2,
       tool.max_retries,
-      tool.timeoutMs * 2
+      tool.timeout_ms * 2
     ));
     logger.info('Tool registered in sandbox', { 
       tool_id: tool.id, 

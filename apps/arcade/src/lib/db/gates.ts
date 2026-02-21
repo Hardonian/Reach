@@ -11,7 +11,7 @@ function parseGate(row: Record<string, unknown>): Gate {
   } as Gate;
 }
 
-export function createGate(tenantId: string, input: any): Gate {
+export function createGate(tenantId: string, input: Partial<Gate>): Gate {
   const db = getDB();
   const id = newId('gat');
   const now = new Date().toISOString();
@@ -35,7 +35,7 @@ export function listGates(tenantId: string): Gate[] {
   return rows.map(parseGate);
 }
 
-export function updateGate(id: string, tenantId: string, patch: any): boolean {
+export function updateGate(id: string, tenantId: string, patch: Partial<Gate>): boolean {
   const db = getDB();
   const existing = getGate(id, tenantId);
   if (!existing) return false;
@@ -66,7 +66,7 @@ function parseGateRun(row: Record<string, unknown>): GateRun {
   return { ...row, report: JSON.parse(row.report_json as string) } as GateRun;
 }
 
-export function createGateRun(tenantId: string, gateId: string, input: any): GateRun {
+export function createGateRun(tenantId: string, gateId: string, input: Partial<GateRun>): GateRun {
   const db = getDB();
   const id = newId('gtr');
   const now = new Date().toISOString();
@@ -85,7 +85,7 @@ export function getGateRun(id: string, tenantId: string): GateRun | undefined {
   return row ? parseGateRun(row) : undefined;
 }
 
-export function updateGateRun(id: string, tenantId: string, patch: any): void {
+export function updateGateRun(id: string, tenantId: string, patch: Partial<GateRun & { report: GateReport }>): void {
   const db = getDB();
   const now = new Date().toISOString();
   db.prepare(`UPDATE gate_runs SET status=COALESCE(?,status), report_json=COALESCE(?,report_json),

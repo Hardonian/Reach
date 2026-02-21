@@ -22,6 +22,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/marketplace',
     '/dashboard',
     '/governance',
+    '/legal',
+    '/legal/privacy',
+    '/legal/terms',
+    '/legal/cookies',
+    '/security',
+    '/transparency',
+    '/responsible-disclosure',
+    '/pricing',
   ];
 
   return routes.map((route) => ({

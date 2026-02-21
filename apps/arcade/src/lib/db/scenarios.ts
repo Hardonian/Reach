@@ -8,7 +8,7 @@ function parseSignal(row: Record<string, unknown>): Signal {
   return { ...row, threshold: JSON.parse(row.threshold_json as string) } as Signal;
 }
 
-export function createSignal(tenantId: string, input: any): Signal {
+export function createSignal(tenantId: string, input: Partial<Signal>): Signal {
   const db = getDB();
   const id = newId('sig');
   const now = new Date().toISOString();
@@ -31,7 +31,7 @@ export function listSignals(tenantId: string): Signal[] {
   return rows.map(parseSignal);
 }
 
-export function updateSignal(id: string, tenantId: string, patch: any): boolean {
+export function updateSignal(id: string, tenantId: string, patch: Partial<Signal>): boolean {
   const db = getDB();
   const existing = getSignal(id, tenantId);
   if (!existing) return false;
@@ -76,7 +76,7 @@ export function getMonitorHealth(tenantId: string): { total: number; alerts_toda
 }
 
 // Alert Rules
-export function createAlertRule(tenantId: string, input: any): AlertRule {
+export function createAlertRule(tenantId: string, input: Partial<AlertRule>): AlertRule {
   const db = getDB();
   const id = newId('alr');
   const now = new Date().toISOString();
@@ -114,7 +114,7 @@ function parseScenario(row: Record<string, unknown>): Scenario {
   } as Scenario;
 }
 
-export function createScenario(tenantId: string, input: any): Scenario {
+export function createScenario(tenantId: string, input: Partial<Scenario>): Scenario {
   const db = getDB();
   const id = newId('scn');
   const now = new Date().toISOString();
@@ -185,7 +185,7 @@ export function getScenarioRun(id: string, tenantId: string): ScenarioRun | unde
   return row ? parseScenarioRun(row) : undefined;
 }
 
-export function updateScenarioRun(id: string, tenantId: string, patch: any): void {
+export function updateScenarioRun(id: string, tenantId: string, patch: Partial<ScenarioRun>): void {
   const db = getDB();
   const now = new Date().toISOString();
   db.prepare(`UPDATE scenario_runs SET status=COALESCE(?,status), results_json=COALESCE(?,results_json),
