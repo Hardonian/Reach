@@ -213,15 +213,25 @@ export default function SimulatePage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {activeRun.results.map((r) => (
-                        <tr key={r.variant_id} className="border-b border-border/50 last:border-0">
-                          <td className="py-2 pr-4 text-white font-medium">{r.variant_label}</td>
-                          <td className="py-2 px-4 text-right"><VerdictBadge status={r.status} /></td>
-                          <td className="py-2 px-4 text-right text-gray-300">{(r.pass_rate * 100).toFixed(0)}%</td>
-                          <td className="py-2 px-4 text-right text-gray-300">{r.latency_ms}ms</td>
-                          <td className="py-2 pl-4 text-right text-gray-300">${r.cost_usd.toFixed(4)}</td>
-                        </tr>
-                      ))}
+                      {activeRun.results.map((r, idx) => {
+                        const isBest = idx === 0 && r.status === 'passed'; // Assumption: sorted by ROI/best
+                        return (
+                          <tr key={r.variant_id} className="border-b border-border/50 last:border-0 relative">
+                            <td className="py-2 pr-4 text-white font-medium flex items-center gap-2">
+                              {r.variant_label}
+                              {isBest && (
+                                <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider border border-emerald-500/30">
+                                  Best Variant
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-2 px-4 text-right"><VerdictBadge status={r.status} /></td>
+                            <td className="py-2 px-4 text-right text-gray-300">{(r.pass_rate * 100).toFixed(0)}%</td>
+                            <td className="py-2 px-4 text-right text-gray-300">{r.latency_ms}ms</td>
+                            <td className="py-2 pl-4 text-right text-gray-300">${r.cost_usd.toFixed(4)}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

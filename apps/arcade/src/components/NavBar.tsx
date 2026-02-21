@@ -9,11 +9,10 @@ import { track } from '@/lib/analytics';
 
 const primaryNav = [
   { href: ROUTES.PLAYGROUND, label: 'Playground' },
-  { href: ROUTES.STUDIO, label: 'Studio' },
+  { href: ROUTES.LAB, label: 'Lab' },
   { href: ROUTES.TEMPLATES, label: 'Templates' },
   { href: ROUTES.DOCS, label: 'Docs' },
   { href: ROUTES.PRICING, label: 'Pricing' },
-  { href: ROUTES.MARKETPLACE, label: 'Marketplace' },
 ];
 
 export function NavBar() {
@@ -62,7 +61,7 @@ export function NavBar() {
               className="btn-primary text-sm py-2 px-4"
               onClick={() => track('cta_clicked', { source: 'navbar', cta: 'run_demo' })}
             >
-              Run a demo (free)
+              Run demo (free)
             </Link>
           </div>
 
@@ -105,7 +104,7 @@ export function NavBar() {
                   Sign in
                 </Link>
                 <Link href={ROUTES.PLAYGROUND} className="btn-primary text-center text-sm py-2">
-                  Run a demo (free)
+                  Run demo (free)
                 </Link>
               </div>
             </div>

@@ -168,13 +168,13 @@ export default function MonitoringPage() {
         {loading ? (
           <div className="text-gray-400 text-sm py-12 text-center">Loading monitors…</div>
         ) : signals.length === 0 ? (
-          <div className="text-center py-20">
+          <div className="text-center py-20 bg-surface/30 rounded-2xl border border-dashed border-border">
             <span className="material-symbols-outlined text-5xl text-gray-600 block mb-3">monitor_heart</span>
-            <h3 className="text-base font-medium text-white mb-1">No monitors yet</h3>
-            <p className="text-sm text-gray-400 mb-4">Get alerted when your agent drifts.</p>
+            <h3 className="text-base font-medium text-white mb-1">Start monitoring</h3>
+            <p className="text-sm text-gray-400 mb-6 max-w-xs mx-auto">Get alerted when your agent drifts, spikes in latency, or violates policy.</p>
             <button onClick={() => setShowCreate(true)}
               className="px-4 py-2 bg-accent text-white rounded-lg text-sm font-medium">
-              Create monitor
+              Create your first monitor
             </button>
           </div>
         ) : (

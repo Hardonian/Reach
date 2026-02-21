@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ROUTES } from '@/lib/routes';
 
 const tiers = [
   {
@@ -15,8 +16,8 @@ const tiers = [
       'Basic analytics',
       'Shared infrastructure',
     ],
-    cta: 'Get Started',
-    href: '/studio',
+    cta: 'Run demo (free)',
+    href: ROUTES.PLAYGROUND,
     highlighted: false,
   },
   {
@@ -32,8 +33,8 @@ const tiers = [
       'Custom domains',
       'Team collaboration',
     ],
-    cta: 'Start Free Trial',
-    href: '/studio',
+    cta: 'Get started for free',
+    href: ROUTES.REGISTER,
     highlighted: true,
   },
   {
@@ -50,8 +51,8 @@ const tiers = [
       'Custom contracts',
       'Dedicated support',
     ],
-    cta: 'Contact Sales',
-    href: '/contact',
+    cta: 'Talk to us',
+    href: ROUTES.CONTACT,
     highlighted: false,
   },
 ];
@@ -101,7 +102,7 @@ export default function Pricing() {
             <ul className="space-y-3 mb-8 flex-1">
               {tier.features.map((feature) => (
                 <li key={feature} className="flex items-start gap-3 text-sm">
-                  <svg className="w-5 h-5 text-emerald-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5 text-emerald-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                   <span className="text-gray-300">{feature}</span>

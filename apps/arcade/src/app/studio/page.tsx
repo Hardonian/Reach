@@ -123,8 +123,8 @@ export default function StudioPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Orchestration Studio</h1>
-          <p className="text-gray-400">Design and deploy agent workflows</p>
+          <h1 className="text-3xl font-bold mb-2">Agent Lab</h1>
+          <p className="text-gray-400">Design and verify agent workflows</p>
         </div>
         <div className="flex gap-2">
           <button className="btn-secondary text-sm py-2">Import</button>
@@ -265,7 +265,7 @@ export default function StudioPage() {
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm text-gray-500 block mb-2">Target Region</label>
-                <select className="w-full px-4 py-2 rounded-lg bg-surface border border-border text-white focus:outline-none focus:border-accent">
+                <select title="Select Target Region" className="w-full px-4 py-2 rounded-lg bg-surface border border-border text-white focus:outline-none focus:border-accent">
                   <option>Auto (Global)</option>
                   <option>US East</option>
                   <option>US West</option>
@@ -275,7 +275,7 @@ export default function StudioPage() {
               </div>
               <div>
                 <label className="text-sm text-gray-500 block mb-2">Environment</label>
-                <select className="w-full px-4 py-2 rounded-lg bg-surface border border-border text-white focus:outline-none focus:border-accent">
+                <select title="Select Environment" className="w-full px-4 py-2 rounded-lg bg-surface border border-border text-white focus:outline-none focus:border-accent">
                   <option>Production</option>
                   <option>Staging</option>
                   <option>Development</option>

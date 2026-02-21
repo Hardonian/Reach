@@ -34,17 +34,11 @@ export default async function Home({ searchParams }: HomePageProps) {
             </div>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 leading-tight">
-              {variant === 'A' ? (
-                <>
-                  Ship reliable{' '}
-                  <span className="text-gradient">AI agents.</span>
-                </>
-              ) : (
-                <>
-                  Your agent is smart.{' '}
-                  <span className="text-gradient">Is it shippable?</span>
-                </>
-              )}
+              {hero.headline.split('.').map((part, i, arr) => (
+                <span key={i} className={i === arr.length - 1 ? 'text-gradient' : ''}>
+                  {part}{i < arr.length - 1 ? '.' : ''}{' '}
+                </span>
+              ))}
             </h1>
 
             <p className="text-xl text-gray-400 mb-3 max-w-2xl">
