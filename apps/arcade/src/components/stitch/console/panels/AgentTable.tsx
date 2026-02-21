@@ -47,7 +47,7 @@ export function AgentTable({ agents }: AgentTableProps) {
               <tr key={agent.id} className={`hover:bg-slate-800/50 transition-colors group ${!agent.isEnabled ? 'opacity-70' : ''}`}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    <div className={`flex-shrink-0 h-9 w-9 bg-${agent.iconColor}-500/20 rounded-lg flex items-center justify-center text-${agent.iconColor}-400 border border-${agent.iconColor}-500/30`}>
+                    <div className={`shrink-0 h-9 w-9 bg-${agent.iconColor}-500/20 rounded-lg flex items-center justify-center text-${agent.iconColor}-400 border border-${agent.iconColor}-500/30`}>
                       <span className="material-symbols-outlined text-[20px]">{agent.icon}</span>
                     </div>
                     <div className="ml-4">

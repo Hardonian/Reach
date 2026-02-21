@@ -77,11 +77,11 @@ export function AlertsCenter() {
                   key={alert.id}
                   className={`bg-[#1e293b] rounded-2xl border border-slate-700/50 px-6 py-5 flex items-start gap-5 hover:border-[#135bec]/30 transition-all ${alert.status === 'Firing' ? 'border-l-4 border-l-red-500' : ''}`}
                 >
-                  <div className={`mt-0.5 w-2.5 h-2.5 rounded-full bg-${sColor}-500 flex-shrink-0 ${alert.status === 'Firing' ? 'animate-pulse' : ''}`} />
+                  <div className={`mt-0.5 w-2.5 h-2.5 rounded-full bg-${sColor}-500 shrink-0 ${alert.status === 'Firing' ? 'animate-pulse' : ''}`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-4 mb-1.5">
                       <p className="text-white font-bold text-sm truncate">{alert.title}</p>
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-2 shrink-0">
                         <span className={`px-2 py-0.5 rounded-full font-black uppercase tracking-widest text-[9px] bg-${sColor}-500/10 text-${sColor}-400 border border-${sColor}-500/20`}>
                           {alert.severity}
                         </span>
@@ -96,7 +96,7 @@ export function AlertsCenter() {
                       <span>{alert.time}</span>
                     </div>
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
+                  <div className="flex gap-2 shrink-0">
                     {alert.status === 'Firing' && (
                       <button
                         type="button"

@@ -14,7 +14,7 @@ interface LogEntry {
 
 const isServer = typeof window === 'undefined';
 
-function formatLog(entry: LogEntry): { msg: string; args: any[] } {
+function formatLog(entry: LogEntry): { msg: string; args: unknown[] } {
   const sanitizedContext = entry.context ? sanitize(entry.context) as Record<string, unknown> : undefined;
   
   if (isServer && env.NODE_ENV === 'production') {
@@ -45,7 +45,7 @@ function formatLog(entry: LogEntry): { msg: string; args: any[] } {
   }
 
   // Browser pretty print
-  const args: any[] = [];
+  const args: unknown[] = [];
   const color = {
     debug: 'color: #00bcd4',
     info: 'color: #4caf50',

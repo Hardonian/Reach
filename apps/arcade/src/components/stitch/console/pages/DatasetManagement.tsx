@@ -5,7 +5,7 @@ import React from 'react';
 export function DatasetManagement() {
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden relative bg-[#101622] font-sans">
-      <header className="h-16 border-b border-[#3b4354] bg-[#111318] flex items-center justify-between px-6 flex-shrink-0 z-10">
+      <header className="h-16 border-b border-[#3b4354] bg-[#111318] flex items-center justify-between px-6 shrink-0 z-10">
         <div className="flex items-center gap-2">
           <span className="text-[#9da6b9] text-sm font-medium">Console</span>
           <span className="material-symbols-outlined text-[#9da6b9] text-[16px]">chevron_right</span>

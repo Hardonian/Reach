@@ -20,7 +20,7 @@ export default function ProfilePage() {
         <h2 className="text-lg font-semibold mb-4">Personal Information</h2>
 
         <div className="flex items-center gap-6 mb-6">
-          <div className="h-20 w-20 rounded-full bg-accent/30 flex items-center justify-center text-2xl font-bold text-white flex-shrink-0">
+          <div className="h-20 w-20 rounded-full bg-accent/30 flex items-center justify-center text-2xl font-bold text-white shrink-0">
             JD
           </div>
           <div>

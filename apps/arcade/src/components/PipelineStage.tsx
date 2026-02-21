@@ -45,7 +45,7 @@ export function PipelineStage({
       }`}
     >
       <div
-        className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0"
+        className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl shrink-0"
         style={{ backgroundColor: `${typeInfo.color}20` }}
       >
         {typeInfo.icon}
@@ -57,7 +57,7 @@ export function PipelineStage({
         </div>
         <p className="text-sm text-gray-500 truncate">{description}</p>
       </div>
-      <div className="text-xs text-gray-500 uppercase tracking-wider flex-shrink-0 hidden sm:block">
+      <div className="text-xs text-gray-500 uppercase tracking-wider shrink-0 hidden sm:block">
         {typeInfo.label}
       </div>
     </div>
@@ -80,7 +80,7 @@ export function PipelineStageCompact({
   return (
     <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-surface/50">
       <div
-        className="w-8 h-8 rounded flex items-center justify-center text-lg flex-shrink-0"
+        className="w-8 h-8 rounded flex items-center justify-center text-lg shrink-0"
         style={{ backgroundColor: `${typeInfo.color}20` }}
       >
         {typeInfo.icon}

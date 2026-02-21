@@ -91,6 +91,20 @@ export function listAlertRules(tenantId: string): AlertRule[] {
   return db.prepare('SELECT * FROM alert_rules WHERE tenant_id=? ORDER BY created_at DESC').all(tenantId) as AlertRule[];
 }
 
+export function updateAlertRule(id: string, tenantId: string, patch: { name?: string; destination?: string; status?: 'enabled' | 'disabled' }): boolean {
+  const db = getDB();
+  const now = new Date().toISOString();
+  const res = db.prepare(`UPDATE alert_rules SET name=COALESCE(?,name), destination=COALESCE(?,destination), status=COALESCE(?,status), updated_at=? WHERE id=? AND tenant_id=?`)
+    .run(patch.name ?? null, patch.destination ?? null, patch.status ?? null, now, id, tenantId);
+  return res.changes > 0;
+}
+
+export function deleteAlertRule(id: string, tenantId: string): boolean {
+  const db = getDB();
+  const res = db.prepare('DELETE FROM alert_rules WHERE id=? AND tenant_id=?').run(id, tenantId);
+  return res.changes > 0;
+}
+
 // Scenarios
 function parseScenario(row: Record<string, unknown>): Scenario {
   return {
