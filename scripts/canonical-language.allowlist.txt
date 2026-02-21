@@ -1,0 +1,12 @@
+# Canonical Language Allowlist
+# Lines starting with # are comments.
+# Format: <relative-path-from-repo-root>:<line-number> <term>
+# OR: <relative-path-from-repo-root> <term>
+#
+# Use this file to suppress specific terminology violations when
+# the term is intentionally used (e.g., in admin-only glossary UI,
+# developer documentation, or technical config pages).
+#
+# Examples:
+#   apps/arcade/src/app/console/governance/glossary/page.tsx DAG
+#   apps/arcade/src/app/docs/engine/page.tsx:42 topological sort

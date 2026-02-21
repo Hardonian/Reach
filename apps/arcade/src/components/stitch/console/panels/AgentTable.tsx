@@ -1,4 +1,5 @@
 import React from 'react';
+import { TracePill } from '@/components/trace/TracePill';
 
 export interface AgentEntry {
   id: string;
@@ -113,7 +114,7 @@ export function AgentTable({ agents }: AgentTableProps) {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex flex-col">
                     <span className="text-xs text-slate-300">{agent.lastRun}</span>
-                    <a className="text-[10px] font-mono text-[#135bec] hover:text-blue-400 transition-colors" href="#">{agent.lastRunId}</a>
+                    <TracePill traceId={agent.lastRunId} />
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center">
