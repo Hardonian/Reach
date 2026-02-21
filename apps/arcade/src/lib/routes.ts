@@ -2,7 +2,7 @@
  * ReadyLayer — Central route registry
  *
  * Canonical route tree:
- *   PRIMARY NAV: Home, Playground, Studio, Templates, Docs, Pricing
+ *   PRIMARY NAV: Home, Playground, Skills, Tools, Studio, Templates, Docs, Pricing
  *   USER MENU:   Dashboard, Settings, Billing, Logout
  *   FOOTER:      Status, Changelog, Security, Privacy, Terms, Support
  */
@@ -11,6 +11,8 @@ export const ROUTES = {
   // ── Primary Nav ──
   HOME: '/',
   PLAYGROUND: '/playground',
+  SKILLS: '/skills',
+  TOOLS: '/tools',
   STUDIO: '/studio',
   TEMPLATES: '/templates',
   DOCS: '/docs',
@@ -123,6 +125,10 @@ export const ROUTES = {
       TENANTS: '/api/v1/tenants',
       EVENTS: '/api/v1/events',
       PLAYGROUND: '/api/v1/playground',
+      SKILLS: '/api/v1/skills',
+      TOOLS: '/api/v1/tools',
+      PROVIDERS: '/api/v1/providers',
+      EXECUTE: '/api/v1/execute',
       API_KEYS: '/api/v1/api-keys',
       AUTH: {
         LOGIN: '/api/v1/auth/login',

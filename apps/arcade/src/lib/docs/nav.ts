@@ -29,6 +29,15 @@ export const sidebarItems: NavSection[] = [
     ],
   },
   {
+    title: 'Runtime',
+    items: [
+      { title: 'Skills System', href: '/docs/skills' },
+      { title: 'Tool Registry', href: '/docs/tools' },
+      { title: 'Provider Routing', href: '/docs/providers' },
+      { title: 'Execution Graph', href: '/docs/execution' },
+    ],
+  },
+  {
     title: 'Tooling & Interface',
     items: [
       { title: 'CLI Reference', href: '/docs/cli' },

@@ -9,6 +9,8 @@ import { track } from '@/lib/analytics';
 
 const primaryNav = [
   { href: ROUTES.PLAYGROUND, label: 'Playground' },
+  { href: ROUTES.SKILLS, label: 'Skills' },
+  { href: ROUTES.TOOLS, label: 'Tools' },
   { href: ROUTES.STUDIO, label: 'Studio' },
   { href: ROUTES.TEMPLATES, label: 'Templates' },
   { href: ROUTES.DOCS, label: 'Docs' },
