@@ -54,7 +54,10 @@
     "check:routes": "node scripts/check-route-duplication.mjs",
     "docs:doctor": "npx tsx tools/docs/drift/run.ts",
     "docs:doctor:fix": "npx tsx tools/docs/drift/run.ts --fix",
-    "validate:brand": "npx tsx scripts/validate-brand.ts"
+    "validate:brand": "npx tsx scripts/validate-brand.ts",
+    "validate:simplicity": "npx tsx scripts/validate-simplicity.ts",
+    "validate:simplicity:enforce": "AGENTS_ENFORCE=1 npx tsx scripts/validate-simplicity.ts",
+    "validate:all": "npm run validate:brand && npm run validate:simplicity && npm run validate:language"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

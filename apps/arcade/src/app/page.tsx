@@ -1,11 +1,25 @@
 import { HeroMedia } from '@/components/HeroMedia';
 import Link from 'next/link';
+import { ROUTES } from '@/lib/routes';
+import { HERO_VARIANTS, CTA, HOW_IT_WORKS, CAPABILITIES, BEFORE_AFTER } from '@/lib/copy';
+import { resolveVariant } from '@/lib/ab';
+import { HomepageClient, HomepageExtraCapabilities } from '@/components/HomepageClient';
 
-export default function Home() {
+interface HomePageProps {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function Home({ searchParams }: HomePageProps) {
+  const params = searchParams ? await searchParams : {};
+  const variant = resolveVariant(params);
+  const hero = HERO_VARIANTS[variant];
+  const primaryCaps = CAPABILITIES.filter((c) => c.primary);
+  const extraCaps = CAPABILITIES.filter((c) => !c.primary);
+
   return (
     <>
       {/* Hero Section */}
-      <section className="relative min-h-[80vh] flex items-center">
+      <section className="relative min-h-[85vh] flex items-center">
         <HeroMedia
           videoSrc="/hero/reach-hero.mp4"
           fallbackSrc="/hero/reach-hero-fallback.png"
@@ -16,83 +30,77 @@ export default function Home() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 mb-6">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-sm text-gray-300">Global Orchestration Network Online</span>
+              <span className="text-sm text-gray-300">{hero.badge}</span>
             </div>
 
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-              Orchestrate{' '}
-              <span className="text-gradient">Intelligence</span>
-              <br />
-              At Global Scale
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 leading-tight">
+              {variant === 'A' ? (
+                <>
+                  Ship reliable{' '}
+                  <span className="text-gradient">AI agents.</span>
+                </>
+              ) : (
+                <>
+                  Your agent is smart.{' '}
+                  <span className="text-gradient">Is it shippable?</span>
+                </>
+              )}
             </h1>
 
-            <p className="text-xl text-gray-400 mb-8 max-w-2xl">
-              Build, deploy, and govern distributed AI agents across the world's most reliable
-              orchestration infrastructure. From edge to cloud, one platform.
+            <p className="text-xl text-gray-400 mb-3 max-w-2xl">
+              {hero.subhead}
             </p>
 
-            <div className="flex flex-wrap gap-4">
-              <Link href="/studio" className="btn-primary text-lg">
-                Launch Studio
+            <p className="text-base text-emerald-400 font-medium mb-8">
+              First check runs in under 30 seconds. No configuration required.
+            </p>
+
+            <div className="flex flex-wrap gap-4 mb-4">
+              <Link href={ROUTES.PLAYGROUND} className="btn-primary text-lg">
+                {CTA.primary}
               </Link>
-              <Link href="/marketplace" className="btn-secondary text-lg">
-                Explore Marketplace
+              <Link href={ROUTES.REGISTER} className="btn-secondary text-lg">
+                {CTA.secondary}
+              </Link>
+              <Link
+                href={ROUTES.CONTACT}
+                className="text-gray-400 hover:text-white transition-colors text-base self-center"
+              >
+                {CTA.sales} →
               </Link>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-8 mt-16 pt-8 border-t border-white/10">
-              <div>
-                <div className="text-3xl font-bold text-gradient">99.99%</div>
-                <div className="text-sm text-gray-500">Uptime SLA</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-gradient">150+</div>
-                <div className="text-sm text-gray-500">Global Nodes</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-gradient">&lt;50ms</div>
-                <div className="text-sm text-gray-500">Latency</div>
-              </div>
-            </div>
+            <p className="text-sm text-gray-500">{CTA.reassurance}</p>
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
+      {/* See it work — inline demo */}
+      <section className="py-16 bg-surface/40 border-y border-border">
+        <div className="section-container">
+          <div className="max-w-2xl mx-auto text-center mb-8">
+            <h2 className="text-2xl font-bold mb-2">See it work — right now</h2>
+            <p className="text-gray-400">No account. No setup. Just click.</p>
+          </div>
+          <HomepageClient variant={variant} />
+        </div>
+      </section>
+
+      {/* How it works */}
       <section className="py-24 bg-surface/30">
         <div className="section-container">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">
-              From concept to global deployment in three simple steps
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">How it works</h2>
+            <p className="text-gray-400 max-w-xl mx-auto">
+              From first run to shipping — in three steps.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                step: '01',
-                title: 'Design',
-                description: 'Compose agent workflows in our visual studio. Connect pre-built components or create custom agents.',
-                icon: '🎨',
-              },
-              {
-                step: '02',
-                title: 'Deploy',
-                description: 'Push to our global edge network. Automatic scaling, load balancing, and health monitoring included.',
-                icon: '🚀',
-              },
-              {
-                step: '03',
-                title: 'Govern',
-                description: 'Manage permissions, audit trails, and compliance policies across your entire agent ecosystem.',
-                icon: '🛡️',
-              },
-            ].map((item) => (
+            {HOW_IT_WORKS.map((item) => (
               <div key={item.step} className="card gradient-border">
-                <div className="text-4xl mb-4">{item.icon}</div>
-                <div className="text-sm font-mono text-accent mb-2">{item.step}</div>
+                <div className="text-3xl mb-4 text-accent">{item.icon}</div>
+                <div className="text-xs font-mono text-accent mb-2">{item.step}</div>
                 <h3 className="text-xl font-bold mb-3">{item.title}</h3>
                 <p className="text-gray-400 text-sm">{item.description}</p>
               </div>
@@ -101,58 +109,25 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Grid */}
+      {/* Capabilities */}
       <section className="py-24">
         <div className="section-container">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Platform Capabilities</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">
-              Everything you need to build production-grade agent systems
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">What ReadyLayer checks</h2>
+            <p className="text-gray-400 max-w-xl mx-auto">
+              Every run covers the things that break in production.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                title: 'Global Orchestration',
-                description: 'Distribute workloads across 150+ edge locations with intelligent routing.',
-                href: '/dashboard',
-              },
-              {
-                title: 'Agent Marketplace',
-                description: 'Discover and deploy pre-built agents from the community and verified publishers.',
-                href: '/marketplace',
-              },
-              {
-                title: 'Visual Studio',
-                description: 'Design complex workflows with our drag-and-drop orchestration builder.',
-                href: '/studio',
-              },
-              {
-                title: 'Enterprise Governance',
-                description: 'Role-based access, audit logs, and compliance policies at every layer.',
-                href: '/governance',
-              },
-              {
-                title: 'Real-time Monitoring',
-                description: 'Track performance, costs, and agent behavior across your deployment.',
-                href: '/dashboard',
-              },
-              {
-                title: 'Secure Execution',
-                description: 'Sandboxed environments with policy enforcement and encrypted channels.',
-                href: '/governance',
-              },
-            ].map((feature) => (
+          <div className="grid md:grid-cols-3 gap-6 mb-4">
+            {primaryCaps.map((cap) => (
               <Link
-                key={feature.title}
-                href={feature.href}
+                key={cap.title}
+                href={cap.href}
                 className="card group hover:border-accent/50 transition-all"
               >
-                <h3 className="font-bold mb-2 group-hover:text-accent transition-colors">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-400 text-sm">{feature.description}</p>
+                <h3 className="font-bold mb-2 group-hover:text-accent transition-colors">{cap.title}</h3>
+                <p className="text-gray-400 text-sm">{cap.description}</p>
                 <div className="mt-4 flex items-center text-accent text-sm font-medium">
                   Learn more
                   <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -162,27 +137,68 @@ export default function Home() {
               </Link>
             ))}
           </div>
+
+          <HomepageExtraCapabilities caps={extraCaps} />
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Before vs After */}
+      <section className="py-24 bg-surface/30">
+        <div className="section-container">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Before vs After</h2>
+          </div>
+
+          <div className="max-w-3xl mx-auto">
+            <div className="grid grid-cols-2 gap-0 rounded-xl overflow-hidden border border-border">
+              <div className="bg-red-950/30 border-b border-border px-6 py-3 text-sm font-semibold text-red-400">
+                Before
+              </div>
+              <div className="bg-emerald-950/30 border-b border-border px-6 py-3 text-sm font-semibold text-emerald-400 border-l border-border">
+                After
+              </div>
+              {BEFORE_AFTER.map((row, i) => (
+                <>
+                  <div
+                    key={`b-${i}`}
+                    className="px-6 py-4 text-sm text-gray-400 border-b border-border bg-red-950/10"
+                  >
+                    {row.before}
+                  </div>
+                  <div
+                    key={`a-${i}`}
+                    className="px-6 py-4 text-sm text-gray-200 border-b border-border border-l bg-emerald-950/10"
+                  >
+                    {'✓ '}{row.after}
+                  </div>
+                </>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
       <section className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-accent/5 to-transparent" />
         <div className="section-container relative z-10">
           <div className="card max-w-3xl mx-auto text-center p-12 gradient-border">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Ready to orchestrate?
+              Start free. Ship with confidence.
             </h2>
-            <p className="text-gray-400 mb-8 max-w-lg mx-auto">
-              Join thousands of developers building the future of distributed intelligence.
-              Start free, scale as you grow.
+            <p className="text-gray-400 mb-2 max-w-lg mx-auto">
+              No credit card. No configuration. One click to your first check.
             </p>
+            <p className="text-sm text-gray-500 mb-8">OSS-friendly · Works locally · Team plans available</p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/studio" className="btn-primary">
-                Get Started Free
+              <Link href={ROUTES.PLAYGROUND} className="btn-primary">
+                {CTA.primary}
               </Link>
-              <Link href="/contact" className="btn-secondary">
-                Talk to Sales
+              <Link href={ROUTES.REGISTER} className="btn-secondary">
+                {CTA.secondary}
+              </Link>
+              <Link href={ROUTES.CONTACT} className="btn-secondary">
+                {CTA.sales}
               </Link>
             </div>
           </div>

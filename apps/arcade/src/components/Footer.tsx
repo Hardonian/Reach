@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { BRAND_NAME } from '@/lib/brand';
+
 export function Footer() {
   return (
     <footer className="border-t border-border mt-auto">
@@ -14,38 +15,43 @@ export function Footer() {
               <span className="font-bold text-xl text-gradient">{BRAND_NAME}</span>
             </div>
             <p className="text-gray-400 text-sm max-w-sm">
-              Global orchestration platform for distributed agents. Build, deploy, and govern AI systems at scale.
+              Ship reliable AI agents. Run a readiness check in minutes.
+            </p>
+            <p className="text-gray-500 text-xs mt-2">
+              Free to start · No credit card · OSS-friendly
             </p>
           </div>
 
-          {/* Links */}
+          {/* Product */}
           <div>
-            <h4 className="font-semibold mb-4">Platform</h4>
+            <h4 className="font-semibold mb-4">Product</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><a href="/dashboard" className="hover:text-white transition-colors">Dashboard</a></li>
-              <li><a href="/marketplace" className="hover:text-white transition-colors">Marketplace</a></li>
-              <li><a href="/studio" className="hover:text-white transition-colors">Studio</a></li>
-              <li><a href="/governance" className="hover:text-white transition-colors">Governance</a></li>
+              <li><Link href="/playground" className="hover:text-white transition-colors">Playground</Link></li>
+              <li><Link href="/templates" className="hover:text-white transition-colors">Templates</Link></li>
+              <li><Link href="/docs" className="hover:text-white transition-colors">Docs</Link></li>
+              <li><Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
+              <li><Link href="/marketplace" className="hover:text-white transition-colors">Marketplace</Link></li>
             </ul>
           </div>
 
+          {/* Company */}
           <div>
-            <h4 className="font-semibold mb-4">Resources</h4>
+            <h4 className="font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
-              <li><Link href="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
               <li><Link href="/support" className="hover:text-white transition-colors">Support</Link></li>
               <li><Link href="/support/status" className="hover:text-white transition-colors">System Status</Link></li>
-              <li><Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
+              <li><Link href="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
+              <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-          <p suppressHydrationWarning>&copy; {new Date().getFullYear()} {BRAND_NAME} Protocol. All rights reserved.</p>
+          <p suppressHydrationWarning>&copy; {new Date().getFullYear()} {BRAND_NAME}. All rights reserved.</p>
           <div className="flex gap-6">
-            <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
-            <a href="/terms" className="hover:text-white transition-colors">Terms</a>
+            <Link href="/legal/privacy" className="hover:text-white transition-colors">Privacy</Link>
+            <Link href="/legal/terms" className="hover:text-white transition-colors">Terms</Link>
+            <Link href="/legal/cookies" className="hover:text-white transition-colors">Cookies</Link>
           </div>
         </div>
       </div>

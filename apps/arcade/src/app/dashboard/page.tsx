@@ -1,142 +1,213 @@
 'use client';
 
-import { useState, Suspense, lazy } from 'react';
-import { StatusIndicator } from '@/components/StatusIndicator';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { CHECKLIST, type ChecklistItemId } from '@/lib/copy';
+import { track } from '@/lib/analytics';
+import { ROUTES } from '@/lib/routes';
 
-// Lazy load the heavy visualization component
-const GlobalActivityMap = lazy(() =>
-  import('@/components/GlobalActivityMap').then(mod => ({ default: mod.GlobalActivityMap }))
-);
+const STORAGE_KEY = 'rl_onboarding_progress';
 
-// Loading fallback for the map
-function MapLoadingFallback() {
-  return (
-    <div className="w-full h-64 md:h-80 bg-surface/50 rounded-xl border border-border flex items-center justify-center">
-      <div className="text-gray-500">Loading visualization...</div>
-    </div>
-  );
+function loadProgress(): Set<ChecklistItemId> {
+  if (typeof window === 'undefined') return new Set();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw) as ChecklistItemId[]);
+  } catch {
+    return new Set();
+  }
 }
 
-// Mock data for the dashboard
-const mockNodes = [
-  { id: 'us-east-1', region: 'US East', location: 'N. Virginia', status: 'online' as const, latency: 12, load: 45 },
-  { id: 'us-west-2', region: 'US West', location: 'Oregon', status: 'online' as const, latency: 28, load: 62 },
-  { id: 'eu-west-1', region: 'Europe', location: 'Ireland', status: 'online' as const, latency: 45, load: 38 },
-  { id: 'eu-central-1', region: 'Europe', location: 'Frankfurt', status: 'warning' as const, latency: 52, load: 78 },
-  { id: 'ap-southeast-1', region: 'Asia Pacific', location: 'Singapore', status: 'online' as const, latency: 89, load: 55 },
-  { id: 'ap-northeast-1', region: 'Asia Pacific', location: 'Tokyo', status: 'online' as const, latency: 95, load: 41 },
-  { id: 'sa-east-1', region: 'South America', location: 'São Paulo', status: 'offline' as const, latency: 0, load: 0 },
-];
+function saveProgress(done: Set<ChecklistItemId>): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...done]));
+  } catch { /* ignore */ }
+}
 
-const mockDeployments = [
-  { id: 'dep-1', name: 'customer-support-bot', version: 'v2.3.1', status: 'running' as const, region: 'us-east-1', updated: '2 min ago' },
-  { id: 'dep-2', name: 'data-pipeline-agent', version: 'v1.0.4', status: 'running' as const, region: 'eu-west-1', updated: '15 min ago' },
-  { id: 'dep-3', name: 'analytics-aggregator', version: 'v3.1.0', status: 'pending' as const, region: 'us-west-2', updated: '1 hour ago' },
-  { id: 'dep-4', name: 'notification-router', version: 'v1.2.0', status: 'error' as const, region: 'eu-central-1', updated: '3 hours ago' },
-];
+export default function DashboardPage() {
+  const router = useRouter();
+  const [completed, setCompleted] = useState<Set<ChecklistItemId>>(new Set());
+  const [activeItem, setActiveItem] = useState<ChecklistItemId | null>(null);
+  const [allDone, setAllDone] = useState(false);
 
-export default function Dashboard() {
-  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  useEffect(() => {
+    const saved = loadProgress();
+    setCompleted(saved);
+    if (saved.size === CHECKLIST.length) setAllDone(true);
+  }, []);
+
+  async function markDone(id: ChecklistItemId) {
+    const next = new Set(completed);
+    next.add(id);
+    setCompleted(next);
+    saveProgress(next);
+
+    await track('onboarding_step_completed', { step_id: id });
+
+    if (next.size === CHECKLIST.length) {
+      setAllDone(true);
+      await track('onboarding_checklist_completed', { steps_completed: next.size });
+    }
+  }
+
+  function handleCta(item: typeof CHECKLIST[number]) {
+    setActiveItem(item.id);
+    switch (item.id) {
+      case 'demo_run':
+        router.push(ROUTES.PLAYGROUND);
+        break;
+      case 'connect_input':
+        router.push(ROUTES.DOCS);
+        break;
+      case 'see_failure':
+        router.push(ROUTES.PLAYGROUND);
+        break;
+      case 'save_baseline':
+        markDone('save_baseline');
+        break;
+      case 'invite':
+        markDone('invite');
+        break;
+    }
+  }
+
+  const doneCount = completed.size;
+  const totalCount = CHECKLIST.length;
+  const pct = Math.round((doneCount / totalCount) * 100);
 
   return (
-    <div className="section-container py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Global Network Dashboard</h1>
-        <p className="text-gray-400">Real-time overview of orchestration infrastructure</p>
-      </div>
+    <div className="section-container py-12">
+      <div className="max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Get started with ReadyLayer</h1>
+          <p className="text-gray-400">
+            5 steps to your first successful agent check.
+          </p>
+        </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="card">
-          <div className="text-sm text-gray-500 mb-1">Active Nodes</div>
-          <div className="text-2xl font-bold text-emerald-400">148/150</div>
-        </div>
-        <div className="card">
-          <div className="text-sm text-gray-500 mb-1">Running Agents</div>
-          <div className="text-2xl font-bold">2,847</div>
-        </div>
-        <div className="card">
-          <div className="text-sm text-gray-500 mb-1">Avg Latency</div>
-          <div className="text-2xl font-bold">42ms</div>
-        </div>
-        <div className="card">
-          <div className="text-sm text-gray-500 mb-1">Network Load</div>
-          <div className="text-2xl font-bold text-accent">67%</div>
-        </div>
-      </div>
-
-      {/* Global Activity Map - Lazy Loaded */}
-      <div className="mb-8">
-        <h2 className="text-xl font-bold mb-4">Global Activity</h2>
-        <Suspense fallback={<MapLoadingFallback />}>
-          <GlobalActivityMap />
-        </Suspense>
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Node Health List */}
-        <div>
-          <h2 className="text-xl font-bold mb-4">Node Health</h2>
-          <div className="space-y-2">
-            {mockNodes.map((node) => (
-              <div
-                key={node.id}
-                className={`card py-4 cursor-pointer transition-colors ${
-                  selectedRegion === node.id ? 'border-accent' : ''
-                }`}
-                onClick={() => setSelectedRegion(node.id === selectedRegion ? null : node.id)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <StatusIndicator
-                      status={node.status}
-                      pulse={node.status === 'online'}
-                    />
-                    <div>
-                      <div className="font-medium">{node.location}</div>
-                      <div className="text-sm text-gray-500">{node.region}</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-mono">
-                      {node.status === 'offline' ? '--' : `${node.latency}ms`}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {node.status === 'offline' ? 'Offline' : `${node.load}% load`}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+        {/* Progress bar */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between text-sm mb-2">
+            <span className="text-gray-400">{doneCount} of {totalCount} complete</span>
+            <span className="text-accent font-medium">{pct}%</span>
+          </div>
+          <div className="h-2 bg-surface rounded-full overflow-hidden">
+            <div
+              className="h-full bg-accent rounded-full transition-all duration-500"
+              style={{ width: `${pct}%` }}
+            />
           </div>
         </div>
 
-        {/* Deployment Status */}
-        <div>
-          <h2 className="text-xl font-bold mb-4">Recent Deployments</h2>
-          <div className="space-y-2">
-            {mockDeployments.map((dep) => (
-              <div key={dep.id} className="card py-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium flex items-center gap-2">
-                      {dep.name}
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-surface-hover text-gray-400">
-                        {dep.version}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-500">{dep.region} • {dep.updated}</div>
+        {/* All done banner */}
+        {allDone && (
+          <div className="card border-emerald-500/40 bg-emerald-950/20 p-6 mb-6 text-center animate-slide-up">
+            <div className="text-3xl mb-2">✅</div>
+            <h2 className="text-xl font-bold text-emerald-400 mb-1">You&apos;re all set!</h2>
+            <p className="text-gray-400 text-sm mb-4">
+              You&apos;ve completed onboarding. Your agent is ready to be shipped with confidence.
+            </p>
+            <Link href={ROUTES.DOCS} className="btn-primary">
+              Explore the docs
+            </Link>
+          </div>
+        )}
+
+        {/* Checklist */}
+        <div className="space-y-3">
+          {CHECKLIST.map((item, index) => {
+            const isDone = completed.has(item.id);
+            const isActive = activeItem === item.id;
+
+            return (
+              <div
+                key={item.id}
+                className={`card transition-all ${
+                  isDone
+                    ? 'border-emerald-500/30 bg-emerald-950/10 opacity-80'
+                    : isActive
+                    ? 'border-accent/50 bg-accent/5'
+                    : 'hover:border-gray-600'
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  {/* Step indicator */}
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mt-0.5 ${
+                    isDone
+                      ? 'bg-emerald-500/20 text-emerald-400'
+                      : 'bg-surface border border-border text-gray-500'
+                  }`}>
+                    {isDone ? '✓' : index + 1}
                   </div>
-                  <StatusIndicator
-                    status={dep.status}
-                    showLabel
-                    size="sm"
-                    pulse={dep.status === 'running'}
-                  />
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h3 className={`font-semibold ${isDone ? 'text-emerald-400' : 'text-white'}`}>
+                          {isDone ? item.completedLabel : item.title}
+                        </h3>
+                        {!isDone && (
+                          <p className="text-sm text-gray-400 mt-0.5">{item.description}</p>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {isDone ? (
+                          <span className="text-xs text-emerald-500">Done</span>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleCta(item)}
+                              className="btn-primary text-sm py-1.5 px-4"
+                            >
+                              {item.cta}
+                            </button>
+                            <button
+                              onClick={() => markDone(item.id)}
+                              className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
+                              title="Mark as done"
+                            >
+                              Skip
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            ))}
+            );
+          })}
+        </div>
+
+        {/* Quick links */}
+        <div className="mt-12 pt-8 border-t border-border">
+          <h2 className="text-lg font-semibold mb-4">Jump to</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <Link href={ROUTES.PLAYGROUND} className="card p-4 hover:border-accent/50 transition-all group">
+              <div className="text-xl mb-1">▶</div>
+              <div className="font-medium text-sm group-hover:text-accent transition-colors">Playground</div>
+              <div className="text-xs text-gray-500">Run a demo check</div>
+            </Link>
+            <Link href={ROUTES.TEMPLATES} className="card p-4 hover:border-accent/50 transition-all group">
+              <div className="text-xl mb-1">📋</div>
+              <div className="font-medium text-sm group-hover:text-accent transition-colors">Templates</div>
+              <div className="text-xs text-gray-500">Start from a baseline</div>
+            </Link>
+            <Link href={ROUTES.DOCS} className="card p-4 hover:border-accent/50 transition-all group">
+              <div className="text-xl mb-1">📖</div>
+              <div className="font-medium text-sm group-hover:text-accent transition-colors">Docs</div>
+              <div className="text-xs text-gray-500">Quickstart guide</div>
+            </Link>
+            <Link href={ROUTES.PRICING} className="card p-4 hover:border-accent/50 transition-all group">
+              <div className="text-xl mb-1">💡</div>
+              <div className="font-medium text-sm group-hover:text-accent transition-colors">Pricing</div>
+              <div className="text-xs text-gray-500">Free forever plan</div>
+            </Link>
           </div>
         </div>
       </div>

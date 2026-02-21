@@ -1,10 +1,28 @@
 # ReadyLayer
 
-**ReadyLayer is a deterministic execution fabric for AI systems.**
+**Ship reliable AI agents.**
 
-ReadyLayer helps teams run agentic and tool-driven workloads with deterministic replay, policy controls, and signed execution packs so production behavior can be trusted, audited, and reproduced.
+ReadyLayer runs readiness checks on your AI agents before they hit production. Catch regressions, unsafe tool calls, and policy violations in under 30 seconds — in CI or locally.
 
-**[Documentation](https://reach.dev/docs)** | **[FAQ](https://reach.dev/faq)** | **[Support](https://reach.dev/support)**
+**[Try the demo (no signup)](https://reach-lime-eight.vercel.app/playground)** | **[Documentation](https://reach.dev/docs)** | **[Quickstart](https://reach.dev/docs/quick-start)**
+
+---
+
+## 60-second local demo
+
+```bash
+# Clone and start with demo data — no config required
+git clone https://github.com/Hardonian/Reach.git
+cd Reach
+npm install
+cd apps/arcade && npm run dev
+# Open http://localhost:3000/playground
+# Click "Run Demo Check" — see results instantly
+```
+
+Or try it without installing: **[playground](https://reach-lime-eight.vercel.app/playground)**
+
+---
 
 ## The problem ReadyLayer solves
 

@@ -5,15 +5,13 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { ROUTES } from '@/lib/routes';
 import { BRAND_NAME } from '@/lib/brand';
+import { track } from '@/lib/analytics';
 
 const navItems = [
-  { href: ROUTES.HOME, label: 'Home' },
-  { href: ROUTES.DASHBOARD, label: 'Dashboard' },
-  { href: ROUTES.MARKETPLACE, label: 'Marketplace' },
-  { href: ROUTES.GOVERNANCE, label: 'Governance' },
+  { href: ROUTES.PLAYGROUND, label: 'Try it free', highlight: true },
   { href: ROUTES.DOCS, label: 'Docs' },
-  { href: ROUTES.FAQ, label: 'FAQ' },
-  { href: ROUTES.SUPPORT, label: 'Support' },
+  { href: ROUTES.TEMPLATES, label: 'Templates' },
+  { href: ROUTES.PRICING, label: 'Pricing' },
 ];
 
 export function NavBar() {
@@ -41,6 +39,8 @@ export function NavBar() {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   pathname === item.href
                     ? 'text-white bg-accent/20'
+                    : item.highlight
+                    ? 'text-accent hover:text-white hover:bg-accent/10'
                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -52,16 +52,17 @@ export function NavBar() {
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
             <Link
-              href={ROUTES.CONTACT}
-              className="btn-secondary text-sm py-2 px-4"
+              href={ROUTES.LOGIN}
+              className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
             >
-              Contact
+              Sign in
             </Link>
             <Link
-              href={ROUTES.STUDIO}
+              href={ROUTES.PLAYGROUND}
               className="btn-primary text-sm py-2 px-4"
+              onClick={() => track('cta_clicked', { source: 'navbar', cta: 'run_demo' })}
             >
-              Launch Studio
+              Run a demo (free)
             </Link>
           </div>
 
@@ -93,6 +94,8 @@ export function NavBar() {
                   className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                     pathname === item.href
                       ? 'text-white bg-accent/20'
+                      : item.highlight
+                      ? 'text-accent'
                       : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
@@ -100,11 +103,11 @@ export function NavBar() {
                 </Link>
               ))}
               <div className="mt-4 pt-4 border-t border-border flex flex-col gap-2">
-                <Link href={ROUTES.CONTACT} className="btn-secondary text-center text-sm py-2">
-                  Contact
+                <Link href={ROUTES.LOGIN} className="btn-secondary text-center text-sm py-2">
+                  Sign in
                 </Link>
-                <Link href={ROUTES.STUDIO} className="btn-primary text-center text-sm py-2">
-                  Launch Studio
+                <Link href={ROUTES.PLAYGROUND} className="btn-primary text-center text-sm py-2">
+                  Run a demo (free)
                 </Link>
               </div>
             </div>
