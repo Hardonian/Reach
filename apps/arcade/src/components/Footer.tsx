@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ROUTES } from '@/lib/routes';
 import { BRAND_NAME } from '@/lib/brand';
 
 export function Footer() {
@@ -26,11 +27,12 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Product</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href="/playground" className="hover:text-white transition-colors">Playground</Link></li>
-              <li><Link href="/templates" className="hover:text-white transition-colors">Templates</Link></li>
-              <li><Link href="/docs" className="hover:text-white transition-colors">Docs</Link></li>
-              <li><Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
-              <li><Link href="/marketplace" className="hover:text-white transition-colors">Marketplace</Link></li>
+              <li><Link href={ROUTES.PLAYGROUND} className="hover:text-white transition-colors">Playground</Link></li>
+              <li><Link href={ROUTES.STUDIO} className="hover:text-white transition-colors">Studio</Link></li>
+              <li><Link href={ROUTES.TEMPLATES} className="hover:text-white transition-colors">Templates</Link></li>
+              <li><Link href={ROUTES.DOCS} className="hover:text-white transition-colors">Docs</Link></li>
+              <li><Link href={ROUTES.PRICING} className="hover:text-white transition-colors">Pricing</Link></li>
+              <li><Link href={ROUTES.MARKETPLACE} className="hover:text-white transition-colors">Marketplace</Link></li>
             </ul>
           </div>
 
@@ -38,10 +40,12 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href="/support" className="hover:text-white transition-colors">Support</Link></li>
-              <li><Link href="/support/status" className="hover:text-white transition-colors">System Status</Link></li>
-              <li><Link href="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
-              <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
+              <li><Link href={ROUTES.SUPPORT} className="hover:text-white transition-colors">Support</Link></li>
+              <li><Link href="/support/status" className="hover:text-white transition-colors">Status</Link></li>
+              <li><Link href={ROUTES.CHANGELOG} className="hover:text-white transition-colors">Changelog</Link></li>
+              <li><Link href={ROUTES.SECURITY} className="hover:text-white transition-colors">Security</Link></li>
+              <li><Link href={ROUTES.FAQ} className="hover:text-white transition-colors">FAQ</Link></li>
+              <li><Link href={ROUTES.CONTACT} className="hover:text-white transition-colors">Contact</Link></li>
             </ul>
           </div>
         </div>
@@ -49,9 +53,9 @@ export function Footer() {
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
           <p suppressHydrationWarning>&copy; {new Date().getFullYear()} {BRAND_NAME}. All rights reserved.</p>
           <div className="flex gap-6">
-            <Link href="/legal/privacy" className="hover:text-white transition-colors">Privacy</Link>
-            <Link href="/legal/terms" className="hover:text-white transition-colors">Terms</Link>
-            <Link href="/legal/cookies" className="hover:text-white transition-colors">Cookies</Link>
+            <Link href={ROUTES.LEGAL.PRIVACY} className="hover:text-white transition-colors">Privacy</Link>
+            <Link href={ROUTES.LEGAL.TERMS} className="hover:text-white transition-colors">Terms</Link>
+            <Link href={ROUTES.LEGAL.COOKIES} className="hover:text-white transition-colors">Cookies</Link>
           </div>
         </div>
       </div>

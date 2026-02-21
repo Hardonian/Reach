@@ -1,28 +1,56 @@
 /**
- * Reach Arcade — Central route registry
+ * ReadyLayer — Central route registry
+ *
+ * Canonical route tree:
+ *   PRIMARY NAV: Home, Playground, Studio, Templates, Docs, Pricing
+ *   USER MENU:   Dashboard, Settings, Billing, Logout
+ *   FOOTER:      Status, Changelog, Security, Privacy, Terms, Support
  */
 
 export const ROUTES = {
+  // ── Primary Nav ──
   HOME: '/',
-  DASHBOARD: '/dashboard',
   PLAYGROUND: '/playground',
+  STUDIO: '/studio',
   TEMPLATES: '/templates',
+  DOCS: '/docs',
+  PRICING: '/pricing',
+
+  // ── User Menu ──
+  DASHBOARD: '/dashboard',
+  SETTINGS: {
+    HOME: '/settings',
+    API_KEYS: '/settings/api-keys',
+    PROFILE: '/settings/profile',
+    BILLING: '/settings/billing',
+    ADVANCED: {
+      WEBHOOKS: '/settings/advanced/webhooks',
+      SECURITY: '/settings/advanced/security',
+    },
+  },
+
+  // ── Footer / Misc ──
+  CHANGELOG: '/changelog',
   MARKETPLACE: '/marketplace',
   GOVERNANCE: '/governance',
-  DOCS: '/docs',
   FAQ: '/faq',
   SUPPORT: '/support',
   CONTACT: '/contact',
-  STUDIO: '/studio',
-  PRICING: '/pricing',
+  SECURITY: '/security',
+
+  // ── Auth ──
   CLOUD: '/cloud',
   LOGIN: '/cloud/login',
   REGISTER: '/cloud/register',
+
+  // ── Legal ──
   LEGAL: {
     TERMS: '/legal/terms',
     PRIVACY: '/legal/privacy',
     COOKIES: '/legal/cookies',
   },
+
+  // ── Console (enterprise, behind auth) ──
   CONSOLE: {
     HOME: '/console',
     NAV: '/console/nav',
@@ -79,11 +107,14 @@ export const ROUTES = {
       GENERATED: '/console/screens/generated',
     }
   },
+
+  // ── Public web pages ──
   WEB: {
     ARCHITECTURE: '/architecture',
     TRANSPARENCY: '/transparency',
-    MARKETPLACE_STITCH: '/marketplace-alt', // Avoid collision if /marketplace is standard
   },
+
+  // ── API ──
   API: {
     RUN: '/api/run',
     V1: {
@@ -92,6 +123,7 @@ export const ROUTES = {
       TENANTS: '/api/v1/tenants',
       EVENTS: '/api/v1/events',
       PLAYGROUND: '/api/v1/playground',
+      API_KEYS: '/api/v1/api-keys',
       AUTH: {
         LOGIN: '/api/v1/auth/login',
         LOGOUT: '/api/v1/auth/logout',

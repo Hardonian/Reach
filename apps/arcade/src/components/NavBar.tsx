@@ -7,11 +7,13 @@ import { ROUTES } from '@/lib/routes';
 import { BRAND_NAME } from '@/lib/brand';
 import { track } from '@/lib/analytics';
 
-const navItems = [
-  { href: ROUTES.PLAYGROUND, label: 'Try it free', highlight: true },
-  { href: ROUTES.DOCS, label: 'Docs' },
+const primaryNav = [
+  { href: ROUTES.PLAYGROUND, label: 'Playground' },
+  { href: ROUTES.STUDIO, label: 'Studio' },
   { href: ROUTES.TEMPLATES, label: 'Templates' },
+  { href: ROUTES.DOCS, label: 'Docs' },
   { href: ROUTES.PRICING, label: 'Pricing' },
+  { href: ROUTES.MARKETPLACE, label: 'Marketplace' },
 ];
 
 export function NavBar() {
@@ -32,15 +34,13 @@ export function NavBar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => (
+            {primaryNav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  pathname === item.href
+                  pathname === item.href || pathname?.startsWith(item.href + '/')
                     ? 'text-white bg-accent/20'
-                    : item.highlight
-                    ? 'text-accent hover:text-white hover:bg-accent/10'
                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -86,16 +86,14 @@ export function NavBar() {
         {isOpen && (
           <div className="md:hidden py-4 border-t border-border animate-fade-in">
             <div className="flex flex-col gap-1">
-              {navItems.map((item) => (
+              {primaryNav.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsOpen(false)}
                   className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                    pathname === item.href
+                    pathname === item.href || pathname?.startsWith(item.href + '/')
                       ? 'text-white bg-accent/20'
-                      : item.highlight
-                      ? 'text-accent'
                       : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
