@@ -51,6 +51,20 @@ const fixtures = [
             },
             algorithm: "minimax_regret"
         }
+    },
+    {
+        name: "Weighted Sum",
+        input: {
+            actions: ["a1", "a2"],
+            states: ["s1", "s2"],
+            outcomes: {
+                "a1": { "s1": 10, "s2": 5 }, // 10*0.6 + 5*0.4 = 6+2=8
+                "a2": { "s1": 0, "s2": 20 }  // 0*0.6 + 20*0.4 = 8
+            },
+            weights: { "s1": 0.6, "s2": 0.4 },
+            // Tie-break: a1 vs a2 -> a1 (lexicographic)
+            algorithm: "weighted_sum"
+        }
     }
 ];
 

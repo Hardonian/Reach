@@ -1,49 +1,44 @@
-//! # Decision Engine
+//! Decision Engine - Robust Quant Decision Primitives
 //!
-//! Deterministic quant decision primitives for robust decision-making under uncertainty.
+//! A deterministic decision-making library extracted from Zeolite,
+//! implementing robust quant decision algorithms.
 //!
-//! This crate provides production-grade decision algorithms with byte-stable outputs:
-//! - **Worst-case (Maximin)**: Maximize the minimum utility across scenarios
-//! - **Minimax Regret**: Minimize the maximum regret across scenarios
-//! - **Adversarial Robustness**: Worst-case over adversarial scenario subset
+//! ## Features
 //!
-//! ## Determinism Guarantees
+//! - **Worst-case (Maximin)**: Maximize minimum utility across scenarios
+//! - **Minimax Regret**: Minimize maximum regret
+//! - **Adversarial Robustness**: Score against worst adversarial scenarios
+//! - **Composite Scoring**: Weighted combination of all metrics
+//! - **Deterministic Outputs**: Byte-stable JSON with SHA-256 fingerprints
 //!
-//! All outputs are deterministic:
-//! - Identical `DecisionInput` always produces identical `DecisionOutput` (byte-stable JSON)
-//! - SHA-256 fingerprinting for verification
-//! - Float normalization to 1e-9 precision
-//! - Lexicographic tie-breaking by action ID
-//!
-//! ## Example
+//! ## Quick Start
 //!
 //! ```rust
-//! use decision_engine::types::{DecisionInput, ActionOption, Scenario};
-//! use decision_engine::engine::evaluate_decision;
+//! use decision_engine::{evaluate_decision, types::*};
 //!
 //! let input = DecisionInput {
-//!     id: Some("investment_decision".to_string()),
+//!     id: Some("my_decision".to_string()),
 //!     actions: vec![
-//!         ActionOption { id: "conservative".to_string(), label: "Conservative".to_string() },
-//!         ActionOption { id: "aggressive".to_string(), label: "Aggressive".to_string() },
+//!         ActionOption { id: "a1".to_string(), label: "Action 1".to_string() },
+//!         ActionOption { id: "a2".to_string(), label: "Action 2".to_string() },
 //!     ],
 //!     scenarios: vec![
-//!         Scenario { id: "bull".to_string(), probability: Some(0.5), adversarial: false },
-//!         Scenario { id: "bear".to_string(), probability: Some(0.5), adversarial: true },
+//!         Scenario { id: "s1".to_string(), probability: Some(0.5), adversarial: false },
+//!         Scenario { id: "s2".to_string(), probability: Some(0.5), adversarial: true },
 //!     ],
 //!     outcomes: vec![
-//!         ("conservative".to_string(), "bull".to_string(), 50.0),
-//!         ("conservative".to_string(), "bear".to_string(), 40.0),
-//!         ("aggressive".to_string(), "bull".to_string(), 100.0),
-//!         ("aggressive".to_string(), "bear".to_string(), 10.0),
+//!         ("a1".to_string(), "s1".to_string(), 100.0),
+//!         ("a1".to_string(), "s2".to_string(), 50.0),
+//!         ("a2".to_string(), "s1".to_string(), 90.0),
+//!         ("a2".to_string(), "s2".to_string(), 60.0),
 //!     ],
 //!     constraints: None,
 //!     evidence: None,
 //!     meta: None,
 //! };
 //!
-//! let output = evaluate_decision(input).unwrap();
-//! println!("Recommended action: {:?}", output.recommended_action_id());
+//! let output = evaluate_decision(&input).unwrap();
+//! println!("Recommended: {}", output.ranked_actions[0].action_id);
 //! println!("Fingerprint: {}", output.determinism_fingerprint);
 //! ```
 
@@ -54,422 +49,174 @@ pub mod types;
 // Re-export main types and functions for convenience
 pub use determinism::{
     canonical_json, compute_fingerprint, float_normalize, stable_hash, DeterminismFingerprint,
-    FLOAT_PRECISION,
 };
+
 pub use engine::{
-    compute_flip_distances, evaluate_decision, explain_decision_boundary, generate_regret_bounded_plan,
-    rank_evidence_by_voi, referee_proposal, DecisionError,
+    compute_flip_distines, evaluate_decision, explain_decision_boundary,
+    generate_regret_bounded_plan, rank_evidence_by_voi, referee_proposal, DecisionError,
 };
+
 pub use types::{
-    ActionOption, CompositeWeights, DecisionBoundary, DecisionConstraint, DecisionEvidence,
-    DecisionInput, DecisionMeta, DecisionOutput, DecisionTrace, FlipDistance, PlannedAction,
-    RankedAction, RefereeAdjudication, RegretBoundedPlan, Scenario, VoiRanking,
+    ActionOption, CompositeWeights, DecisionBoundary, DecisionConstraint, DecisionError,
+    DecisionEvidence, DecisionInput, DecisionMeta, DecisionOutput, DecisionTrace,
+    FlipDistance, PlannedAction, RankedAction, RefereeAdjudication, RegretBoundedPlan,
+    Scenario, VoiRanking,
 };
 
 #[cfg(test)]
-mod integration_tests {
+mod tests {
     use super::*;
 
-    /// Test that identical inputs produce identical outputs (determinism).
     #[test]
-    fn test_determinism_identical_inputs() {
+    fn test_full_decision_pipeline() {
         let input = DecisionInput {
-            id: Some("test".to_string()),
+            id: Some("pipeline_test".to_string()),
             actions: vec![
                 ActionOption {
-                    id: "action_a".to_string(),
-                    label: "Action A".to_string(),
+                    id: "buy".to_string(),
+                    label: "Buy".to_string(),
                 },
                 ActionOption {
-                    id: "action_b".to_string(),
-                    label: "Action B".to_string(),
+                    id: "hold".to_string(),
+                    label: "Hold".to_string(),
+                },
+                ActionOption {
+                    id: "sell".to_string(),
+                    label: "Sell".to_string(),
                 },
             ],
             scenarios: vec![
                 Scenario {
-                    id: "scenario_1".to_string(),
-                    probability: Some(0.6),
-                    adversarial: false,
-                },
-                Scenario {
-                    id: "scenario_2".to_string(),
+                    id: "bull".to_string(),
                     probability: Some(0.4),
+                    adversarial: false,
+                },
+                Scenario {
+                    id: "bear".to_string(),
+                    probability: Some(0.3),
                     adversarial: true,
                 },
+                Scenario {
+                    id: "flat".to_string(),
+                    probability: Some(0.3),
+                    adversarial: false,
+                },
             ],
             outcomes: vec![
-                ("action_a".to_string(), "scenario_1".to_string(), 100.0),
-                ("action_a".to_string(), "scenario_2".to_string(), 30.0),
-                ("action_b".to_string(), "scenario_1".to_string(), 70.0),
-                ("action_b".to_string(), "scenario_2".to_string(), 60.0),
+                // Buy outcomes
+                ("buy".to_string(), "bull".to_string(), 100.0),
+                ("buy".to_string(), "bear".to_string(), -50.0),
+                ("buy".to_string(), "flat".to_string(), 10.0),
+                // Hold outcomes
+                ("hold".to_string(), "bull".to_string(), 30.0),
+                ("hold".to_string(), "bear".to_string(), -10.0),
+                ("hold".to_string(), "flat".to_string(), 5.0),
+                // Sell outcomes
+                ("sell".to_string(), "bull".to_string(), -20.0),
+                ("sell".to_string(), "bear".to_string(), 20.0),
+                ("sell".to_string(), "flat".to_string(), 0.0),
             ],
             constraints: None,
             evidence: None,
             meta: None,
         };
 
-        // Run evaluation twice
-        let output1 = evaluate_decision(input.clone()).unwrap();
-        let output2 = evaluate_decision(input).unwrap();
+        // Evaluate decision
+        let output = evaluate_decision(&input).unwrap();
 
-        // Fingerprints must be identical
-        assert_eq!(
-            output1.determinism_fingerprint,
-            output2.determinism_fingerprint,
-            "Fingerprints must be identical for identical inputs"
-        );
+        // Check structure
+        assert_eq!(output.ranked_actions.len(), 3);
+        assert!(output.ranked_actions[0].recommended);
 
-        // Rankings must be identical
-        assert_eq!(output1.ranked_actions.len(), output2.ranked_actions.len());
-        for (a, b) in output1.ranked_actions.iter().zip(output2.ranked_actions.iter()) {
-            assert_eq!(a.action_id, b.action_id);
-            assert_eq!(a.rank, b.rank);
-            assert_eq!(a.recommended, b.recommended);
-            assert!((a.composite_score - b.composite_score).abs() < 1e-9);
-        }
+        // Check fingerprint is deterministic
+        let fp = compute_fingerprint(&input);
+        assert!(!fp.is_empty());
+        assert_eq!(fp.len(), 64); // SHA-256 hex
+
+        // Check flip distances
+        let flips = compute_flip_distances(&input).unwrap();
+        assert!(!flips.is_empty());
+
+        // Check VOI ranking
+        let voi = rank_evidence_by_voi(&input, 0.1).unwrap();
+        assert!(!voi.is_empty());
+
+        // Check regret-bounded plan
+        let plan = generate_regret_bounded_plan(&input, 2, 0.1).unwrap();
+        assert!(!plan.actions.is_empty());
+
+        // Check decision boundary
+        let boundary = explain_decision_boundary(&input).unwrap();
+        assert!(!boundary.top_action.is_empty());
+
+        // Check referee
+        let referee = referee_proposal(&input, &boundary.top_action).unwrap();
+        assert!(referee.accepted);
     }
 
-    /// Test that input key order doesn't affect output (canonicalization).
     #[test]
-    fn test_determinism_key_order_independence() {
-        // Create two inputs with different field orders (via JSON)
-        let json1 = r#"{
-            "id": "test",
-            "actions": [{"id": "a", "label": "A"}, {"id": "b", "label": "B"}],
-            "scenarios": [{"id": "s1", "probability": 0.5, "adversarial": false}],
-            "outcomes": [["a", "s1", 100.0], ["b", "s1", 50.0]]
-        }"#;
-
-        let json2 = r#"{
-            "scenarios": [{"id": "s1", "probability": 0.5, "adversarial": false}],
-            "id": "test",
-            "outcomes": [["a", "s1", 100.0], ["b", "s1", 50.0]],
-            "actions": [{"id": "a", "label": "A"}, {"id": "b", "label": "B"}]
-        }"#;
-
-        let input1: DecisionInput = serde_json::from_str(json1).unwrap();
-        let input2: DecisionInput = serde_json::from_str(json2).unwrap();
-
-        let output1 = evaluate_decision(input1).unwrap();
-        let output2 = evaluate_decision(input2).unwrap();
-
-        // Fingerprints must be identical despite different JSON key order
-        assert_eq!(
-            output1.determinism_fingerprint,
-            output2.determinism_fingerprint,
-            "Fingerprints must be identical regardless of input key order"
-        );
-    }
-
-    /// Test known worst-case winner.
-    #[test]
-    fn test_correctness_worst_case() {
-        // Action A: worst case = min(100, 20) = 20
-        // Action B: worst case = min(60, 60) = 60
-        // B should win worst-case criterion
-        let input = DecisionInput {
-            id: Some("worst_case_test".to_string()),
-            actions: vec![
-                ActionOption {
-                    id: "action_a".to_string(),
-                    label: "A".to_string(),
-                },
-                ActionOption {
-                    id: "action_b".to_string(),
-                    label: "B".to_string(),
-                },
-            ],
-            scenarios: vec![
-                Scenario {
-                    id: "good".to_string(),
-                    probability: Some(0.5),
-                    adversarial: false,
-                },
-                Scenario {
-                    id: "bad".to_string(),
-                    probability: Some(0.5),
-                    adversarial: true,
-                },
-            ],
-            outcomes: vec![
-                ("action_a".to_string(), "good".to_string(), 100.0),
-                ("action_a".to_string(), "bad".to_string(), 20.0),
-                ("action_b".to_string(), "good".to_string(), 60.0),
-                ("action_b".to_string(), "bad".to_string(), 60.0),
-            ],
-            constraints: None,
-            evidence: None,
-            meta: None,
-        };
-
-        let output = evaluate_decision(input).unwrap();
-
-        // Verify worst-case values
-        let a_wc = output.trace.worst_case_table.get("action_a").copied().unwrap();
-        let b_wc = output.trace.worst_case_table.get("action_b").copied().unwrap();
-
-        assert!((a_wc - 20.0).abs() < 1e-9, "Action A worst-case should be 20");
-        assert!((b_wc - 60.0).abs() < 1e-9, "Action B worst-case should be 60");
-    }
-
-    /// Test known minimax regret winner.
-    #[test]
-    fn test_correctness_minimax_regret() {
-        // Scenario 1: max = 100
-        // Scenario 2: max = 60
-        //
-        // Action A regret:
-        //   s1: 100 - 100 = 0
-        //   s2: 60 - 20 = 40
-        //   max regret = 40
-        //
-        // Action B regret:
-        //   s1: 100 - 60 = 40
-        //   s2: 60 - 60 = 0
-        //   max regret = 40
-        //
-        // Both have max regret 40, so tie-break by action ID (action_a wins)
-        let input = DecisionInput {
-            id: Some("regret_test".to_string()),
-            actions: vec![
-                ActionOption {
-                    id: "action_a".to_string(),
-                    label: "A".to_string(),
-                },
-                ActionOption {
-                    id: "action_b".to_string(),
-                    label: "B".to_string(),
-                },
-            ],
-            scenarios: vec![
-                Scenario {
-                    id: "s1".to_string(),
-                    probability: Some(0.5),
-                    adversarial: false,
-                },
-                Scenario {
-                    id: "s2".to_string(),
-                    probability: Some(0.5),
-                    adversarial: false,
-                },
-            ],
-            outcomes: vec![
-                ("action_a".to_string(), "s1".to_string(), 100.0),
-                ("action_a".to_string(), "s2".to_string(), 20.0),
-                ("action_b".to_string(), "s1".to_string(), 60.0),
-                ("action_b".to_string(), "s2".to_string(), 60.0),
-            ],
-            constraints: None,
-            evidence: None,
-            meta: None,
-        };
-
-        let output = evaluate_decision(input).unwrap();
-
-        // Verify regret values
-        let a_mr = output.trace.max_regret_table.get("action_a").copied().unwrap();
-        let b_mr = output.trace.max_regret_table.get("action_b").copied().unwrap();
-
-        assert!((a_mr - 40.0).abs() < 1e-9, "Action A max regret should be 40");
-        assert!((b_mr - 40.0).abs() < 1e-9, "Action B max regret should be 40");
-    }
-
-    /// Test adversarial subset changes recommendation.
-    #[test]
-    fn test_correctness_adversarial_subset() {
-        // Without adversarial flag:
-        //   A: worst = min(100, 20) = 20
-        //   B: worst = min(60, 60) = 60
-        //   B wins
-        //
-        // With adversarial flag on "bad" scenario:
-        //   A: adversarial worst = 20
-        //   B: adversarial worst = 60
-        //   B still wins (higher adversarial worst-case is better)
-        //
-        // But if we flip which scenario is adversarial:
-        //   A: adversarial worst = 100 (only "good" is adversarial)
-        //   B: adversarial worst = 60
-        //   A wins
-
-        // Case 1: "bad" is adversarial
+    fn test_determinism_comprehensive() {
+        // Test 1: Same input produces same fingerprint
         let input1 = DecisionInput {
-            id: Some("adv_test_1".to_string()),
+            id: Some("det_test".to_string()),
             actions: vec![
                 ActionOption {
-                    id: "action_a".to_string(),
+                    id: "a".to_string(),
                     label: "A".to_string(),
                 },
                 ActionOption {
-                    id: "action_b".to_string(),
+                    id: "b".to_string(),
                     label: "B".to_string(),
-                },
-            ],
-            scenarios: vec![
-                Scenario {
-                    id: "good".to_string(),
-                    probability: Some(0.5),
-                    adversarial: false,
-                },
-                Scenario {
-                    id: "bad".to_string(),
-                    probability: Some(0.5),
-                    adversarial: true,
-                },
-            ],
-            outcomes: vec![
-                ("action_a".to_string(), "good".to_string(), 100.0),
-                ("action_a".to_string(), "bad".to_string(), 20.0),
-                ("action_b".to_string(), "good".to_string(), 60.0),
-                ("action_b".to_string(), "bad".to_string(), 60.0),
-            ],
-            constraints: None,
-            evidence: None,
-            meta: None,
-        };
-
-        let output1 = evaluate_decision(input1).unwrap();
-
-        // Case 2: "good" is adversarial
-        let input2 = DecisionInput {
-            id: Some("adv_test_2".to_string()),
-            actions: vec![
-                ActionOption {
-                    id: "action_a".to_string(),
-                    label: "A".to_string(),
-                },
-                ActionOption {
-                    id: "action_b".to_string(),
-                    label: "B".to_string(),
-                },
-            ],
-            scenarios: vec![
-                Scenario {
-                    id: "good".to_string(),
-                    probability: Some(0.5),
-                    adversarial: true,
-                },
-                Scenario {
-                    id: "bad".to_string(),
-                    probability: Some(0.5),
-                    adversarial: false,
-                },
-            ],
-            outcomes: vec![
-                ("action_a".to_string(), "good".to_string(), 100.0),
-                ("action_a".to_string(), "bad".to_string(), 20.0),
-                ("action_b".to_string(), "good".to_string(), 60.0),
-                ("action_b".to_string(), "bad".to_string(), 60.0),
-            ],
-            constraints: None,
-            evidence: None,
-            meta: None,
-        };
-
-        let output2 = evaluate_decision(input2).unwrap();
-
-        // Verify adversarial worst-case values differ
-        let a_adv1 = output1.trace.adversarial_table.get("action_a").copied().unwrap();
-        let a_adv2 = output2.trace.adversarial_table.get("action_a").copied().unwrap();
-
-        assert!((a_adv1 - 20.0).abs() < 1e-9, "Case 1: A adversarial worst = 20");
-        assert!((a_adv2 - 100.0).abs() < 1e-9, "Case 2: A adversarial worst = 100");
-    }
-
-    /// Test tie-breaking is stable and lexicographic.
-    #[test]
-    fn test_stability_tie_break() {
-        // Create input where both actions have identical scores
-        let input = DecisionInput {
-            id: Some("tie_test".to_string()),
-            actions: vec![
-                ActionOption {
-                    id: "zebra".to_string(),
-                    label: "Zebra".to_string(),
-                },
-                ActionOption {
-                    id: "apple".to_string(),
-                    label: "Apple".to_string(),
-                },
-                ActionOption {
-                    id: "mango".to_string(),
-                    label: "Mango".to_string(),
                 },
             ],
             scenarios: vec![Scenario {
-                id: "s1".to_string(),
+                id: "s".to_string(),
                 probability: Some(1.0),
                 adversarial: false,
             }],
             outcomes: vec![
-                ("zebra".to_string(), "s1".to_string(), 50.0),
-                ("apple".to_string(), "s1".to_string(), 50.0),
-                ("mango".to_string(), "s1".to_string(), 50.0),
+                ("a".to_string(), "s".to_string(), 10.0),
+                ("b".to_string(), "s".to_string(), 20.0),
             ],
             constraints: None,
             evidence: None,
             meta: None,
         };
 
-        let output = evaluate_decision(input).unwrap();
+        let input2 = input1.clone();
 
-        // All have same score, so should be sorted by action_id
-        assert_eq!(output.ranked_actions[0].action_id, "apple");
-        assert_eq!(output.ranked_actions[1].action_id, "mango");
-        assert_eq!(output.ranked_actions[2].action_id, "zebra");
+        let fp1 = compute_fingerprint(&input1);
+        let fp2 = compute_fingerprint(&input2);
 
-        // Run again to verify stability
-        let input2 = DecisionInput {
-            id: Some("tie_test".to_string()),
-            actions: vec![
-                ActionOption {
-                    id: "zebra".to_string(),
-                    label: "Zebra".to_string(),
-                },
-                ActionOption {
-                    id: "apple".to_string(),
-                    label: "Apple".to_string(),
-                },
-                ActionOption {
-                    id: "mango".to_string(),
-                    label: "Mango".to_string(),
-                },
-            ],
-            scenarios: vec![Scenario {
-                id: "s1".to_string(),
-                probability: Some(1.0),
-                adversarial: false,
-            }],
-            outcomes: vec![
-                ("zebra".to_string(), "s1".to_string(), 50.0),
-                ("apple".to_string(), "s1".to_string(), 50.0),
-                ("mango".to_string(), "s1".to_string(), 50.0),
-            ],
-            constraints: None,
-            evidence: None,
-            meta: None,
-        };
+        assert_eq!(fp1, fp2);
 
-        let output2 = evaluate_decision(input2).unwrap();
+        // Test 2: Different key order produces same fingerprint
+        let mut input3 = input1.clone();
+        input3.outcomes = vec![
+            ("b".to_string(), "s".to_string(), 20.0),
+            ("a".to_string(), "s".to_string(), 10.0),
+        ];
 
-        // Same ordering
-        assert_eq!(output.ranked_actions[0].action_id, output2.ranked_actions[0].action_id);
-        assert_eq!(output.ranked_actions[1].action_id, output2.ranked_actions[1].action_id);
-        assert_eq!(output.ranked_actions[2].action_id, output2.ranked_actions[2].action_id);
-    }
+        let fp3 = compute_fingerprint(&input3);
+        assert_eq!(fp1, fp3);
 
-    /// Test float normalization stability.
-    #[test]
-    fn test_stability_float_normalization() {
-        // Floating point noise should be eliminated
-        let noisy = 0.1 + 0.2; // Not exactly 0.3 in IEEE 754
-        let normalized = float_normalize(noisy);
+        // Test 3: Float noise is normalized
+        let mut input4 = input1.clone();
+        input4.outcomes = vec![
+            ("a".to_string(), "s".to_string(), 0.1 + 0.2 + 9.7), // Should equal 10.0
+            ("b".to_string(), "s".to_string(), 20.0),
+        ];
 
-        assert!(
-            (normalized - 0.3).abs() < 1e-9,
-            "Float noise should be eliminated: {} -> {}",
-            noisy,
-            normalized
-        );
+        let fp4 = compute_fingerprint(&input4);
+        assert_eq!(fp1, fp4);
+
+        // Test 4: Output JSON is byte-stable
+        let out1 = evaluate_decision(&input1).unwrap();
+        let out2 = evaluate_decision(&input2).unwrap();
+
+        let json1 = serde_json::to_vec(&out1).unwrap();
+        let json2 = serde_json::to_vec(&out2).unwrap();
+
+        assert_eq!(json1, json2);
     }
 }

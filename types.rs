@@ -11,6 +11,8 @@ pub struct DecisionInput {
     pub outcomes: BTreeMap<String, BTreeMap<String, OrderedFloat<f64>>>,
     #[serde(default)]
     pub algorithm: Option<String>,
+    #[serde(default)]
+    pub weights: Option<BTreeMap<String, OrderedFloat<f64>>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -32,6 +34,9 @@ pub struct DecisionTrace {
     // Map<ActionId, MinUtility>
     #[serde(skip_serializing_if = "Option::is_none")]
     pub min_utility: Option<BTreeMap<String, OrderedFloat<f64>>>,
+    // Map<ActionId, WeightedScore>
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub weighted_scores: Option<BTreeMap<String, OrderedFloat<f64>>>,
     
     pub fingerprint: Option<String>,
 }

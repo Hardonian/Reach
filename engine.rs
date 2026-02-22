@@ -107,3 +107,51 @@ pub fn maximin(input: &DecisionInput) -> Result<DecisionOutput> {
         },
     })
 }
+
+pub fn weighted_sum(input: &DecisionInput) -> Result<DecisionOutput> {
+    // 1. Validate Weights
+    let weights = input.weights.as_ref()
+        .ok_or_else(|| anyhow::anyhow!("Weights required for weighted_sum algorithm"))?;
+
+    // 2. Calculate Weighted Scores: S(a) = Sum(U(a, s) * W(s))
+    let mut weighted_scores = BTreeMap::new();
+
+    for action in &input.actions {
+        let mut score = 0.0;
+        for state in &input.states {
+            // Safe due to validation
+            let util = input.outcomes.get(action).unwrap().get(state).unwrap();
+            // Default to 0.0 weight if state missing from weights map (or error? treating as 0 for robustness)
+            let weight = weights.get(state).unwrap_or(&OrderedFloat(0.0));
+            score += util.0 * weight.0;
+        }
+        weighted_scores.insert(action.clone(), OrderedFloat(score));
+    }
+
+    // 3. Rank Actions (Maximize Score)
+    let mut ranked_actions = input.actions.clone();
+    ranked_actions.sort_by(|a, b| {
+        let score_a = weighted_scores.get(a).unwrap();
+        let score_b = weighted_scores.get(b).unwrap();
+        // Descending order
+        match score_b.cmp(score_a) {
+            std::cmp::Ordering::Equal => a.cmp(b), // Tie-break: Lexicographic
+            other => other,
+        }
+    });
+
+    let recommended = ranked_actions.first().ok_or_else(|| anyhow::anyhow!("No actions provided"))?.clone();
+
+    Ok(DecisionOutput {
+        recommended_action: recommended,
+        ranking: ranked_actions,
+        trace: DecisionTrace {
+            algorithm: "weighted_sum".to_string(),
+            regret_table: None,
+            max_regret: None,
+            min_utility: None,
+            weighted_scores: Some(weighted_scores),
+            fingerprint: None,
+        },
+    })
+}

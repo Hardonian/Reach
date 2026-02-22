@@ -7,7 +7,8 @@ export interface DecisionInput {
   actions: string[];
   states: string[];
   outcomes: Record<string, Record<string, number>>;
-  algorithm?: "minimax_regret" | "maximin";
+  algorithm?: "minimax_regret" | "maximin" | "weighted_sum";
+  weights?: Record<string, number>;
 }
 
 export interface DecisionOutput {
@@ -19,6 +20,9 @@ export interface DecisionOutput {
 export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
   if (input.algorithm === "maximin") {
     return maximinFallback(input);
+  }
+  if (input.algorithm === "weighted_sum") {
+    return weightedSumFallback(input);
   }
 
   // 1. Max Utility per State
@@ -63,6 +67,43 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
     trace: {
       algorithm: "minimax_regret_fallback",
       max_regret: maxRegret
+    }
+  };
+}
+
+function weightedSumFallback(input: DecisionInput): DecisionOutput {
+  const weights = input.weights || {};
+  
+  // 1. Calculate Scores
+  const scores: Record<string, number> = {};
+
+  for (const action of input.actions) {
+    let score = 0;
+    for (const state of input.states) {
+      const util = input.outcomes[action]?.[state] ?? 0;
+      const weight = weights[state] ?? 0;
+      score += util * weight;
+    }
+    scores[action] = score;
+  }
+
+  // 2. Ranking
+  const ranking = [...input.actions].sort((a, b) => {
+    const sA = scores[a];
+    const sB = scores[b];
+    // Descending sort
+    if (Math.abs(sA - sB) < 1e-9) {
+      return a.localeCompare(b);
+    }
+    return sB - sA;
+  });
+
+  return {
+    recommended_action: ranking[0],
+    ranking,
+    trace: {
+      algorithm: "weighted_sum",
+      weighted_scores: scores
     }
   };
 }
