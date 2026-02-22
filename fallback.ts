@@ -108,6 +108,25 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
   };
 }
 
+export function validateOutcomesFallback(input: DecisionInput): boolean {
+  for (const action of input.actions) {
+    const stateMap = input.outcomes[action];
+    if (!stateMap) {
+      throw new Error(`Missing outcome for action '${action}' in state 'ALL'`);
+    }
+    for (const state of input.states) {
+      const val = stateMap[state];
+      if (val === undefined) {
+        throw new Error(`Missing outcome for action '${action}' in state '${state}'`);
+      }
+      if (!Number.isFinite(val)) {
+        throw new Error("Utility value cannot be NaN or Infinity");
+      }
+    }
+  }
+  return true;
+}
+
 function softmaxFallback(input: DecisionInput): DecisionOutput {
   const weights = input.weights || {};
   const temp = input.temperature ?? 1.0;
