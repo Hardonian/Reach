@@ -127,6 +127,21 @@ export function validateOutcomesFallback(input: DecisionInput): boolean {
   return true;
 }
 
+export function validateStructureFallback(input: DecisionInput): boolean {
+  for (const action of input.actions) {
+    const stateMap = input.outcomes[action];
+    if (!stateMap) {
+      throw new Error(`Missing outcome for action '${action}' in state 'ALL'`);
+    }
+    for (const state of input.states) {
+      if (stateMap[state] === undefined) {
+        throw new Error(`Missing outcome for action '${action}' in state '${state}'`);
+      }
+    }
+  }
+  return true;
+}
+
 function softmaxFallback(input: DecisionInput): DecisionOutput {
   const weights = input.weights || {};
   const temp = input.temperature ?? 1.0;

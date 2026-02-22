@@ -102,6 +102,20 @@ impl DecisionInput {
         Ok(())
     }
 
+    pub fn validate_structure(&self) -> Result<(), ValidationError> {
+        for action in &self.actions {
+            let state_map = self.outcomes.get(action)
+                .ok_or_else(|| ValidationError::MissingOutcome(action.clone(), "ALL".to_string()))?;
+            
+            for state in &self.states {
+                if !state_map.contains_key(state) {
+                    return Err(ValidationError::MissingOutcome(action.clone(), state.clone()));
+                }
+            }
+        }
+        Ok(())
+    }
+
     pub fn validate_weights(&self) -> Result<(), ValidationError> {
         if let Some(weights) = &self.weights {
             let sum: f64 = weights.values().map(|v| v.0).sum();

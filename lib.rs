@@ -57,6 +57,17 @@ pub fn validate_outcomes(input_json: &str) -> Result<bool, JsError> {
     }
 }
 
+#[wasm_bindgen]
+pub fn validate_structure(input_json: &str) -> Result<bool, JsError> {
+    let input: DecisionInput = serde_json::from_str(input_json)
+        .map_err(|e| JsError::new(&format!("E_SCHEMA: Invalid input JSON: {}", e)))?;
+    
+    match input.validate_structure() {
+        Ok(_) => Ok(true),
+        Err(e) => Err(JsError::new(&format!("E_INVALID_STRUCTURE: {}", e))),
+    }
+}
+
 #[wasm_bindgen(start)]
 pub fn init() {
     // Optional initialization hook

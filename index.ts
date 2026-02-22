@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { evaluateDecisionFallback, validateOutcomesFallback, DecisionInput, DecisionOutput } from './fallback';
+import { evaluateDecisionFallback, validateOutcomesFallback, validateStructureFallback, DecisionInput, DecisionOutput } from './fallback';
 
 let wasmModule: any = null;
 
@@ -44,6 +44,23 @@ export function validateOutcomes(input: DecisionInput): boolean {
     }
   }
   return validateOutcomesFallback(input);
+}
+
+/**
+ * Validates that the decision input structure is complete (no orphaned actions or states).
+ * Does not check for finite values.
+ */
+export function validateStructure(input: DecisionInput): boolean {
+  if (wasmModule) {
+    try {
+      const inputJson = JSON.stringify(input);
+      return wasmModule.validate_structure(inputJson);
+    } catch (e) {
+      console.error("ERROR: WASM validation failed.", e);
+      return validateStructureFallback(input);
+    }
+  }
+  return validateStructureFallback(input);
 }
 
 // Re-export types

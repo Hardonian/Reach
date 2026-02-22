@@ -1,4 +1,4 @@
-const { evaluateDecision, evaluateDecisionFallback } = require('../dist/index');
+const { evaluateDecision, evaluateDecisionFallback, validateOutcomes, validateStructure } = require('../dist/index');
 const assert = require('assert');
 
 console.log("Running Parity Tests (WASM vs TS)...");
@@ -132,3 +132,44 @@ for (const fixture of fixtures) {
 
 console.log(`\nSummary: ${passed} passed, ${failed} failed.`);
 if (failed > 0) process.exit(1);
+
+// --- API Validation Tests ---
+console.log("\nRunning API Validation Tests...");
+const validationFixtures = [
+    {
+        name: "Validate Outcomes - Infinity",
+        input: {
+            actions: ["a1"],
+            states: ["s1"],
+            outcomes: { "a1": { "s1": Infinity } }
+        },
+        check: validateOutcomes,
+        expectedError: "Utility value cannot be NaN or Infinity"
+    },
+    {
+        name: "Validate Structure - Missing State",
+        input: {
+            actions: ["a1"],
+            states: ["s1", "s2"],
+            outcomes: { "a1": { "s1": 10 } } // s2 missing
+        },
+        check: validateStructure,
+        expectedError: "Missing outcome for action 'a1' in state 's2'"
+    }
+];
+
+for (const fixture of validationFixtures) {
+    try {
+        console.log(`Testing Validation: ${fixture.name}`);
+        fixture.check(fixture.input);
+        console.error("  FAIL: Expected error but succeeded");
+        process.exit(1);
+    } catch (e) {
+        if (e.message.includes(fixture.expectedError)) {
+            console.log("  PASS");
+        } else {
+            console.error(`  FAIL: Error message mismatch.\n  Expected: ${fixture.expectedError}\n  Got: ${e.message}`);
+            process.exit(1);
+        }
+    }
+}
