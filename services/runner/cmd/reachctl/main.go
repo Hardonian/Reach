@@ -1,4 +1,4 @@
-﻿package main
+package main
 
 import (
 	"context"
@@ -196,6 +196,20 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runCapsule(ctx, dataRoot, append([]string{"create"}, args[1:]...), out, errOut)
 	case "import":
 		return runCapsule(ctx, dataRoot, append([]string{"replay"}, args[1:]...), out, errOut)
+	case "historical":
+		return runHistorical(ctx, args[1:], out, errOut)
+	case "search":
+		// Alias for historical search
+		return runHistorical(ctx, append([]string{"search"}, args[1:]...), out, errOut)
+	case "drift":
+		// Alias for historical drift
+		return runHistorical(ctx, append([]string{"drift"}, args[1:]...), out, errOut)
+	case "baseline":
+		// Alias for historical baseline
+		return runHistorical(ctx, append([]string{"baseline"}, args[1:]...), out, errOut)
+	case "metrics":
+		// Alias for historical metrics
+		return runHistorical(ctx, append([]string{"metrics"}, args[1:]...), out, errOut)
 	default:
 		usage(out)
 		return 1
