@@ -4,7 +4,7 @@ pub mod types;
 
 use wasm_bindgen::prelude::*;
 use crate::types::{DecisionInput, DecisionOutput};
-use crate::engine::{minimax_regret, maximin, weighted_sum, softmax};
+use crate::engine::{minimax_regret, maximin, weighted_sum, softmax, hurwicz, laplace, starr, hodges_lehmann, brown_robinson, nash, pareto, epsilon_contamination};
 use crate::determinism::CanonicalJson;
 
 #[wasm_bindgen]
@@ -27,6 +27,17 @@ pub fn evaluate_decision(input_json: &str) -> Result<String, JsError> {
         Some("maximin") => maximin(&input),
         Some("weighted_sum") => weighted_sum(&input),
         Some("softmax") => softmax(&input),
+        Some("hurwicz") => hurwicz(&input),
+        Some("laplace") => laplace(&input),
+        Some("starr") => starr(&input),
+        Some("hodges_lehmann") => hodges_lehmann(&input),
+        Some("brown_robinson") => brown_robinson(&input),
+        Some("nash") => nash(&input),
+        Some("pareto") => pareto(&input),
+        Some("epsilon_contamination") => epsilon_contamination(&input),
+        Some("savage") => minimax_regret(&input),
+        Some("wald") => maximin(&input),
+        Some("minimax") => maximin(&input),
         _ => minimax_regret(&input),
     }
         .map_err(|e| JsError::new(&format!("E_INTERNAL: Engine failure: {}", e)))?;
@@ -65,6 +76,17 @@ pub fn validate_structure(input_json: &str) -> Result<bool, JsError> {
     match input.validate_structure() {
         Ok(_) => Ok(true),
         Err(e) => Err(JsError::new(&format!("E_INVALID_STRUCTURE: {}", e))),
+    }
+}
+
+#[wasm_bindgen]
+pub fn validate_probabilities(input_json: &str) -> Result<bool, JsError> {
+    let input: DecisionInput = serde_json::from_str(input_json)
+        .map_err(|e| JsError::new(&format!("E_SCHEMA: Invalid input JSON: {}", e)))?;
+    
+    match input.validate_probabilities() {
+        Ok(_) => Ok(true),
+        Err(e) => Err(JsError::new(&format!("E_INVALID_PROBABILITIES: {}", e))),
     }
 }
 

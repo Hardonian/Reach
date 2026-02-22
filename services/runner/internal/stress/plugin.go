@@ -2,7 +2,7 @@
 // - Plugin audit: detect undeclared nondeterminism, external calls, drift
 // - Plugin certify: generate certification with reproducibility score
 // - Isolation scoring: score plugin determinism compliance
-package plugin
+package stress
 
 import (
 	"crypto/sha256"
@@ -12,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strings"
 	"time"
 )
@@ -455,12 +454,6 @@ func GetAdversarialPlugins() []AdversarialPlugin {
 			Detectable:  false,
 		},
 	}
-}
-
-// WriteAuditReport writes an audit result to a file.
-func WriteAuditReport(result *AuditResult, outputPath string) error {
-	data, _ := json.MarshalIndent(result, "", "  ")
-	return os.WriteFile(outputPath, data, 0644)
 }
 
 // WriteAuditReport writes an audit result to a file.

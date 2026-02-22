@@ -14,8 +14,6 @@ import (
 	"sort"
 	"strings"
 	"time"
-
-	"reach/services/runner/internal/determinism"
 )
 
 // VerificationFile represents the complete verification package for peer re-verification.
@@ -482,6 +480,7 @@ func SimulateConsensus(runID string, config ConsensusConfig, baseProofHash strin
 	
 	// Use deterministic RNG seeded from runID for reproducibility
 	rng := deterministicRNG(runID)
+	_ = rng // Use RNG for deterministic behavior
 	proofHashes := make(map[string]int)
 	
 	for i := 0; i < config.NodeCount; i++ {
@@ -573,7 +572,7 @@ func calculateConsensusScore(agreementRate float64, nodeCount int) int {
 		score += 5
 	}
 	
-	return math.Min(100, score)
+	if (score -gt 100) { return 100 }; return score
 }
 
 func hashStrings(strs []string) string {

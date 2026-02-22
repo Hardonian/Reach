@@ -2,7 +2,7 @@
 // - proof explain: detailed explanation of proof components
 // - proof diff-hash: comparing proof hashes between runs
 // - debug canonical: debugging canonical JSON serialization
-package proof
+package stress
 
 import (
 	"crypto/sha256"
@@ -13,7 +13,6 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -330,7 +329,8 @@ func DebugCanonical(jsonFilePath string) (*CanonicalDebug, error) {
 	canon := canonicalizeForProof(parsed)
 	debug.SortedKeys = collectSortedKeys(canon)
 	debug.FloatNormalization = collectFloatNormalization(canon, "")
-	debug.FinalCanonical, _ = json.Marshal(canon)
+	canonicalBytes, _ := json.Marshal(canon)
+	debug.FinalCanonical = string(canonicalBytes)
 	debug.Hash = computeHash(canon)
 
 	return debug, nil

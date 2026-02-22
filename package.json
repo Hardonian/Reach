@@ -19,7 +19,8 @@
     "docs:index:check": "npx tsx scripts/validate-docs-index.ts",
     "health:check": "npx tsx scripts/repo-health.ts",
     "verify:fast": "npm run typecheck && npm run lint:structure && npm run format:check && npm run docs:index:check && npm run health:check && npm test",
-    "verify": "npm run verify:fast && npm run build"
+    "verify": "npm run verify:fast && npm run build",
+    "verify:full": "npm run verify"
   },
   "devDependencies": {
     "prettier": "^3.8.1",

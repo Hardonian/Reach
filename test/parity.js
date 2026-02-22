@@ -1,4 +1,4 @@
-const { evaluateDecision, evaluateDecisionFallback, validateOutcomes, validateStructure } = require('../dist/index');
+const { evaluateDecision, evaluateDecisionFallback, validateOutcomes, validateStructure, validateProbabilities } = require('../dist/index');
 const assert = require('assert');
 
 console.log("Running Parity Tests (WASM vs TS)...");
@@ -155,6 +155,17 @@ const validationFixtures = [
         },
         check: validateStructure,
         expectedError: "Missing outcome for action 'a1' in state 's2'"
+    },
+    {
+        name: "Validate Probabilities - Negative",
+        input: {
+            actions: ["a1"],
+            states: ["s1"],
+            outcomes: { "a1": { "s1": 10 } },
+            weights: { "s1": -0.5 }
+        },
+        check: validateProbabilities,
+        expectedError: "Probability value must be between 0.0 and 1.0"
     }
 ];
 

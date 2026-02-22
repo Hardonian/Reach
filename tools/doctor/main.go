@@ -10,14 +10,40 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
 type checkResult struct {
 	name        string
 	ok          bool
+	severity    string
 	remediation string
 	detail      string
+}
+
+func (c checkResult) MarshalJSON() ([]byte, error) {
+	status := "FAIL"
+	if c.severity != "" {
+		status = c.severity
+	} else if c.ok {
+		status = "OK"
+	}
+	return json.Marshal(struct {
+		Name        string `json:"name"`
+		Status      string `json:"status"`
+		Remediation string `json:"remediation,omitempty"`
+		Detail      string `json:"detail,omitempty"`
+	}{
+		Name:        c.name,
+		Status:      status,
+		Remediation: c.remediation,
+		Detail:      c.detail,
+	})
+}
+
+var fixers = map[string]func(string) error{
+	"configuration check": fixEnvConfiguration,
 }
 
 func main() {
@@ -27,15 +53,44 @@ func main() {
 		return
 	}
 
+	jsonOutput := false
+	fixMode := false
+	for _, arg := range os.Args {
+		if arg == "--json" {
+			jsonOutput = true
+		}
+		if arg == "--fix" {
+			fixMode = true
+		}
+	}
+
 	root, err := repoRoot()
 	if err != nil {
+		if jsonOutput {
+			fmt.Printf(`{"error": "repo root: %s"}`, err)
+			os.Exit(1)
+		}
 		fmt.Printf("reach doctor: fail: repo root: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("reach doctor (%s/%s)\n", runtime.GOOS, runtime.GOARCH)
+	if !jsonOutput {
+		fmt.Printf("reach doctor (%s/%s)\n", runtime.GOOS, runtime.GOARCH)
+	}
 
 	checks := []func(string) checkResult{
+		checkGitInstalled,
+		checkGoInstalled,
+		checkDockerRunning,
+		checkNodeVersion,
+		checkNpmInstalled,
+		checkMakeInstalled,
+		checkPython3Installed,
+		checkCargoInstalled,
+		checkProtocInstalled,
+		checkJqInstalled,
+		checkCurlInstalled,
+		checkEnvConfiguration,
 		checkRegistrySourceConfig,
 		checkIndexSchemaAndCache,
 		checkSignatureVerificationPath,
@@ -46,20 +101,69 @@ func main() {
 	}
 
 	failures := 0
+	var results []checkResult
 	for _, run := range checks {
 		result := run(root)
-		if result.ok {
-			fmt.Printf("[OK]   %s\n", result.name)
-			continue
+
+		// Auto-fix logic
+		if (!result.ok || result.severity == "WARN") && fixMode {
+			if fixer, exists := fixers[result.name]; exists {
+				if !jsonOutput {
+					fmt.Printf("       [FIX] Attempting auto-fix for '%s'...\n", result.name)
+				}
+				if err := fixer(root); err != nil {
+					if !jsonOutput {
+						fmt.Printf("       [FIX] Failed: %v\n", err)
+					}
+				} else {
+					// Re-run check to verify fix
+					result = run(root)
+				}
+			}
 		}
-		failures++
-		fmt.Printf("[FAIL] %s\n", result.name)
-		if result.detail != "" {
-			fmt.Printf("       %s\n", result.detail)
+
+		results = append(results, result)
+		if !result.ok {
+			failures++
 		}
-		if result.remediation != "" {
-			fmt.Printf("       remediation: %s\n", result.remediation)
+
+		if !jsonOutput {
+			if result.ok && result.severity != "WARN" {
+				fmt.Printf("[OK]   %s\n", result.name)
+				continue
+			}
+			label := "FAIL"
+			if result.severity != "" {
+				label = result.severity
+			}
+			fmt.Printf("[%s] %s\n", label, result.name)
+			if result.detail != "" {
+				fmt.Printf("       %s\n", result.detail)
+			}
+			if result.remediation != "" {
+				fmt.Printf("       remediation: %s\n", result.remediation)
+			}
 		}
+	}
+
+	if jsonOutput {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		enc.Encode(struct {
+			Brand    string        `json:"brand"`
+			Version  string        `json:"version"`
+			Checks   []checkResult `json:"checks"`
+			Failures int           `json:"failures"`
+		}{
+			Brand:    "Reach",
+			Version:  "0.3.1",
+			Checks:   results,
+			Failures: failures,
+		})
+		if failures > 0 {
+			os.Exit(1)
+		}
+		return
 	}
 
 	if failures > 0 {
@@ -89,6 +193,178 @@ func runMobileDoctor() {
 	if report.Summary.Overall == "needs_attention" {
 		os.Exit(1)
 	}
+}
+
+func checkGitInstalled(root string) checkResult {
+	name := "git installed and accessible"
+	path, err := exec.LookPath("git")
+	if err != nil {
+		return fail(name, err, "install git and ensure it is in PATH")
+	}
+	if err := exec.Command(path, "--version").Run(); err != nil {
+		return fail(name, err, "git found but not executable")
+	}
+	return pass(name)
+}
+
+func checkDockerRunning(root string) checkResult {
+	name := "docker installed and running"
+	path, err := exec.LookPath("docker")
+	if err != nil {
+		return fail(name, err, "install docker and ensure it is in PATH")
+	}
+	if err := exec.Command(path, "info").Run(); err != nil {
+		return fail(name, err, "docker found but daemon not reachable (is Docker Desktop running?)")
+	}
+	return pass(name)
+}
+
+func checkNodeVersion(root string) checkResult {
+	name := "node version >= 18"
+	path, err := exec.LookPath("node")
+	if err != nil {
+		return fail(name, err, "install nodejs >= 18")
+	}
+	out, err := exec.Command(path, "--version").Output()
+	if err != nil {
+		return fail(name, err, "node found but not executable")
+	}
+	versionStr := strings.TrimSpace(string(out))
+	v := strings.TrimPrefix(versionStr, "v")
+	parts := strings.Split(v, ".")
+	if len(parts) > 0 {
+		if major, err := strconv.Atoi(parts[0]); err == nil {
+			if major >= 18 {
+				return pass(name)
+			}
+			return checkResult{
+				name:        name,
+				detail:      fmt.Sprintf("found %s", versionStr),
+				remediation: "upgrade nodejs to >= 18",
+			}
+		}
+	}
+	return fail(name, fmt.Errorf("could not parse version: %s", versionStr), "ensure node --version returns standard version string")
+}
+
+func checkNpmInstalled(root string) checkResult {
+	name := "npm installed and accessible"
+	path, err := exec.LookPath("npm")
+	if err != nil {
+		return fail(name, err, "install npm (usually comes with nodejs)")
+	}
+	if err := exec.Command(path, "--version").Run(); err != nil {
+		return fail(name, err, "npm found but not executable")
+	}
+	return pass(name)
+}
+
+func checkMakeInstalled(root string) checkResult {
+	name := "make installed"
+	path, err := exec.LookPath("make")
+	if err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "make not found", remediation: "install make for building from source"}
+	}
+	if err := exec.Command(path, "--version").Run(); err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "make found but not executable"}
+	}
+	return pass(name)
+}
+
+func checkPython3Installed(root string) checkResult {
+	name := "python3 installed"
+	path, err := exec.LookPath("python3")
+	if err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "python3 not found", remediation: "install python3 for python-based agents"}
+	}
+	if err := exec.Command(path, "--version").Run(); err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "python3 found but not executable"}
+	}
+	return pass(name)
+}
+
+func checkCargoInstalled(root string) checkResult {
+	name := "cargo (rust) installed"
+	path, err := exec.LookPath("cargo")
+	if err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "cargo not found", remediation: "install rust toolchain for engine development"}
+	}
+	if err := exec.Command(path, "--version").Run(); err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "cargo found but not executable"}
+	}
+	return pass(name)
+}
+
+func checkGoInstalled(root string) checkResult {
+	name := "go installed"
+	path, err := exec.LookPath("go")
+	if err != nil {
+		return fail(name, err, "install go toolchain")
+	}
+	if err := exec.Command(path, "version").Run(); err != nil {
+		return fail(name, err, "go found but not executable")
+	}
+	return pass(name)
+}
+
+func checkProtocInstalled(root string) checkResult {
+	name := "protoc installed"
+	path, err := exec.LookPath("protoc")
+	if err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "protoc not found", remediation: "install protobuf compiler for gRPC generation"}
+	}
+	if err := exec.Command(path, "--version").Run(); err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "protoc found but not executable"}
+	}
+	return pass(name)
+}
+
+func checkJqInstalled(root string) checkResult {
+	name := "jq installed"
+	path, err := exec.LookPath("jq")
+	if err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "jq not found", remediation: "install jq for shell script JSON processing"}
+	}
+	if err := exec.Command(path, "--version").Run(); err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "jq found but not executable"}
+	}
+	return pass(name)
+}
+
+func checkCurlInstalled(root string) checkResult {
+	name := "curl installed"
+	path, err := exec.LookPath("curl")
+	if err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "curl not found", remediation: "install curl for network scripts"}
+	}
+	if err := exec.Command(path, "--version").Run(); err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "curl found but not executable"}
+	}
+	return pass(name)
+}
+
+func checkEnvConfiguration(root string) checkResult {
+	name := "configuration check"
+	envPath := filepath.Join(root, ".env")
+	if _, err := os.Stat(envPath); err == nil {
+		return pass(name)
+	}
+	return checkResult{
+		name:        name,
+		ok:          true,
+		severity:    "WARN",
+		detail:      ".env file missing in root",
+		remediation: "run 'reach doctor --fix' to create default .env",
+	}
+}
+
+func fixEnvConfiguration(root string) error {
+	envPath := filepath.Join(root, ".env")
+	// Minimal default config
+	content := `# Reach Configuration
+NEXT_PUBLIC_BRAND_NAME=ReadyLayer
+`
+	return os.WriteFile(envPath, []byte(content), 0644)
 }
 
 func checkRegistrySourceConfig(root string) checkResult {

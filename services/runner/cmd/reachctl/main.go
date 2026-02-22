@@ -27,7 +27,7 @@ import (
 	"reach/services/runner/internal/pack"
 	"reach/services/runner/internal/poee"
 	"reach/services/runner/internal/storage"
-	"reach/services/runner/internal/stress"
+	stress "reach/services/runner/internal/stress"
 	"reach/services/runner/internal/support"
 )
 
@@ -222,6 +222,17 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runConsensus(ctx, dataRoot, args[1:], out, errOut)
 	case "peer":
 		return runPeer(ctx, dataRoot, args[1:], out, errOut)
+	case "artifact":
+		return runArtifact(ctx, dataRoot, args[1:], out, errOut)
+	case "ingest":
+		// Alias for artifact ingest
+		return runArtifact(ctx, dataRoot, append([]string{"ingest"}, args[1:]...), out, errOut)
+	case "retention":
+		return runRetention(ctx, dataRoot, args[1:], out, errOut)
+	case "capability":
+		return runCapability(ctx, dataRoot, args[1:], out, errOut)
+	case "demo":
+		return runDemo(ctx, dataRoot, args[1:], out, errOut)
 	default:
 		usage(out)
 		return 1
@@ -1338,12 +1349,6 @@ Examples:
   reach plugins capability my-plugin
   reach plugins audit my-plugin
   reach plugins certify my-plugin
-`)
-
-Examples:
-  reach plugins list
-  reach plugins verify my-plugin
-  reach plugins capability my-plugin
 `)
 }
 

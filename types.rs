@@ -17,6 +17,14 @@ pub struct DecisionInput {
     pub strict: bool,
     #[serde(default)]
     pub temperature: Option<OrderedFloat<f64>>,
+    #[serde(default)]
+    pub optimism: Option<OrderedFloat<f64>>,
+    #[serde(default)]
+    pub confidence: Option<OrderedFloat<f64>>,
+    #[serde(default)]
+    pub iterations: Option<u32>,
+    #[serde(default)]
+    pub epsilon: Option<OrderedFloat<f64>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -44,6 +52,30 @@ pub struct DecisionTrace {
     // Map<ActionId, Probability>
     #[serde(skip_serializing_if = "Option::is_none")]
     pub probabilities: Option<BTreeMap<String, OrderedFloat<f64>>>,
+    // Map<ActionId, HurwiczScore>
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hurwicz_scores: Option<BTreeMap<String, OrderedFloat<f64>>>,
+    // Map<ActionId, LaplaceScore>
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub laplace_scores: Option<BTreeMap<String, OrderedFloat<f64>>>,
+    // Map<ActionId, StarrScore>
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub starr_scores: Option<BTreeMap<String, OrderedFloat<f64>>>,
+    // Map<ActionId, HodgesLehmannScore>
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hodges_lehmann_scores: Option<BTreeMap<String, OrderedFloat<f64>>>,
+    // Map<ActionId, BrownRobinsonScore>
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub brown_robinson_scores: Option<BTreeMap<String, OrderedFloat<f64>>>,
+    // List of (ActionId, StateId) representing pure Nash Equilibria
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nash_equilibria: Option<Vec<(String, String)>>,
+    // List of ActionIds in the Pareto frontier
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pareto_frontier: Option<Vec<String>>,
+    // Map<ActionId, EpsilonContaminationScore>
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub epsilon_contamination_scores: Option<BTreeMap<String, OrderedFloat<f64>>>,
     
     pub fingerprint: Option<String>,
 }
@@ -60,6 +92,8 @@ pub enum ValidationError {
     InvalidUtility,
     #[error("Weights must sum to 1.0 (got {0})")]
     InvalidWeightSum(f64),
+    #[error("Probability value must be between 0.0 and 1.0 (got {0})")]
+    InvalidProbability(f64),
 }
 
 impl DecisionInput {
@@ -80,6 +114,7 @@ impl DecisionInput {
 
         if self.strict {
             self.validate_weights()?;
+            self.validate_probabilities()?;
         }
 
         Ok(())
@@ -121,6 +156,17 @@ impl DecisionInput {
             let sum: f64 = weights.values().map(|v| v.0).sum();
             if (sum - 1.0).abs() > 1e-9 {
                 return Err(ValidationError::InvalidWeightSum(sum));
+            }
+        }
+        Ok(())
+    }
+
+    pub fn validate_probabilities(&self) -> Result<(), ValidationError> {
+        if let Some(weights) = &self.weights {
+            for v in weights.values() {
+                if v.0 < 0.0 || v.0 > 1.0 {
+                    return Err(ValidationError::InvalidProbability(v.0));
+                }
             }
         }
         Ok(())
