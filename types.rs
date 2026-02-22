@@ -21,6 +21,8 @@ pub struct DecisionInput {
     pub optimism: Option<OrderedFloat<f64>>,
     #[serde(default)]
     pub confidence: Option<OrderedFloat<f64>>,
+    #[serde(default)]
+    pub iterations: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -60,6 +62,12 @@ pub struct DecisionTrace {
     // Map<ActionId, HodgesLehmannScore>
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hodges_lehmann_scores: Option<BTreeMap<String, OrderedFloat<f64>>>,
+    // Map<ActionId, BrownRobinsonScore>
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub brown_robinson_scores: Option<BTreeMap<String, OrderedFloat<f64>>>,
+    // List of (ActionId, StateId) representing pure Nash Equilibria
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nash_equilibria: Option<Vec<(String, String)>>,
     
     pub fingerprint: Option<String>,
 }

@@ -2,7 +2,7 @@
 // - Plugin audit: detect undeclared nondeterminism, external calls, drift
 // - Plugin certify: generate certification with reproducibility score
 // - Isolation scoring: score plugin determinism compliance
-package plugin
+package stress
 
 import (
 	"crypto/sha256"

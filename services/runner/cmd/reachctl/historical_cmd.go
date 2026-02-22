@@ -600,6 +600,3 @@ Examples:
   reachctl historical seed --pipeline-id test-pipeline --runs 10
 `)
 }
-
-// writeJSON is imported from main
-var writeJSON func(io.Writer, interface{}) int

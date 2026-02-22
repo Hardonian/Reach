@@ -429,7 +429,7 @@ func (a *EntropyAnalysis) rankHotspots() {
 			Field:       allSensitivities[i].field,
 			Sensitivity: allSensitivities[i].sens,
 			Rank:        i + 1,
-		}
+		})
 	}
 }
 

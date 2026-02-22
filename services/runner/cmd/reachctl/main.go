@@ -27,7 +27,7 @@ import (
 	"reach/services/runner/internal/pack"
 	"reach/services/runner/internal/poee"
 	"reach/services/runner/internal/storage"
-	"reach/services/runner/internal/stress"
+	stress "reach/services/runner/internal/stress"
 	"reach/services/runner/internal/support"
 )
 

@@ -455,3 +455,162 @@ pub fn hodges_lehmann(input: &DecisionInput) -> Result<DecisionOutput> {
         },
     })
 }
+
+pub fn brown_robinson(input: &DecisionInput) -> Result<DecisionOutput> {
+    let iterations = input.iterations.unwrap_or(1000);
+    if iterations == 0 {
+        return Err(anyhow::anyhow!("Iterations must be greater than 0"));
+    }
+
+    let num_actions = input.actions.len();
+    let num_states = input.states.len();
+
+    // Build payoff matrix based on input vector order
+    let mut matrix = vec![vec![0.0; num_states]; num_actions];
+    for (i, action) in input.actions.iter().enumerate() {
+        let state_map = input.outcomes.get(action).unwrap();
+        for (j, state) in input.states.iter().enumerate() {
+            let util = state_map.get(state).unwrap();
+            matrix[i][j] = util.0;
+        }
+    }
+
+    let mut x_counts = vec![0; num_actions];
+    // let mut y_counts = vec![0; num_states]; // Not strictly needed for result, but part of algo
+
+    let mut agent_accum = vec![0.0; num_actions]; // Accumulated payoff for Agent if they played row i against Nature's history
+    let mut nature_accum = vec![0.0; num_states]; // Accumulated payoff for Agent if Nature played col j against Agent's history
+
+    for _ in 0..iterations {
+        // 1. Agent chooses action i to maximize expected utility (agent_accum)
+        let mut best_action_idx = 0;
+        let mut max_val = f64::NEG_INFINITY;
+        
+        for i in 0..num_actions {
+            let val = agent_accum[i];
+            if val > max_val {
+                max_val = val;
+                best_action_idx = i;
+            }
+        }
+
+        // 2. Nature chooses state j to minimize Agent's utility (nature_accum)
+        let mut best_state_idx = 0;
+        let mut min_val = f64::INFINITY;
+
+        for j in 0..num_states {
+            let val = nature_accum[j];
+            if val < min_val {
+                min_val = val;
+                best_state_idx = j;
+            }
+        }
+
+        // 3. Update counts
+        x_counts[best_action_idx] += 1;
+        // y_counts[best_state_idx] += 1;
+
+        // 4. Update accumulators
+        for i in 0..num_actions {
+            agent_accum[i] += matrix[i][best_state_idx];
+        }
+        for j in 0..num_states {
+            nature_accum[j] += matrix[best_action_idx][j];
+        }
+    }
+
+    // Calculate probabilities (frequencies)
+    let mut scores = BTreeMap::new();
+    let total = iterations as f64;
+    for (i, count) in x_counts.iter().enumerate() {
+        scores.insert(input.actions[i].clone(), OrderedFloat(*count as f64 / total));
+    }
+
+    // Rank Actions (Maximize Probability/Frequency)
+    let mut ranked_actions = input.actions.clone();
+    ranked_actions.sort_by(|a, b| {
+        let s_a = scores.get(a).unwrap();
+        let s_b = scores.get(b).unwrap();
+        match s_b.cmp(s_a) {
+            std::cmp::Ordering::Equal => a.cmp(b),
+            other => other,
+        }
+    });
+
+    let recommended = ranked_actions.first().ok_or_else(|| anyhow::anyhow!("No actions provided"))?.clone();
+
+    Ok(DecisionOutput {
+        recommended_action: recommended,
+        ranking: ranked_actions,
+        trace: DecisionTrace {
+            algorithm: "brown_robinson".to_string(),
+            regret_table: None,
+            max_regret: None,
+            min_utility: None,
+            weighted_scores: None,
+            probabilities: None,
+            hurwicz_scores: None,
+            laplace_scores: None,
+            starr_scores: None,
+            hodges_lehmann_scores: None,
+            brown_robinson_scores: Some(scores),
+            fingerprint: None,
+        },
+    })
+}
+
+pub fn nash(input: &DecisionInput) -> Result<DecisionOutput> {
+    // 1. Find Saddle Points
+    // A cell (a, s) is a saddle point if it is the minimum in its row and maximum in its column.
+    // Row Player (Agent) maximizes, Column Player (Nature) minimizes (Zero-Sum assumption).
+    
+    let mut row_mins = BTreeMap::new();
+    for action in &input.actions {
+        let mut min = OrderedFloat(f64::INFINITY);
+        for state in &input.states {
+             let val = input.outcomes.get(action).unwrap().get(state).unwrap();
+             if *val < min { min = *val; }
+        }
+        row_mins.insert(action, min);
+    }
+
+    let mut col_maxs = BTreeMap::new();
+    for state in &input.states {
+        let mut max = OrderedFloat(f64::NEG_INFINITY);
+        for action in &input.actions {
+             let val = input.outcomes.get(action).unwrap().get(state).unwrap();
+             if *val > max { max = *val; }
+        }
+        col_maxs.insert(state, max);
+    }
+
+    let mut equilibria = Vec::new();
+    for action in &input.actions {
+        for state in &input.states {
+            let val = input.outcomes.get(action).unwrap().get(state).unwrap();
+            let r_min = row_mins.get(action).unwrap();
+            let c_max = col_maxs.get(state).unwrap();
+            
+            if val == r_min && val == c_max {
+                equilibria.push((action.clone(), state.clone()));
+            }
+        }
+    }
+    
+    // Sort for determinism
+    equilibria.sort();
+
+    // Use Maximin for base ranking and fallback recommendation
+    let mut maximin_output = maximin(input)?;
+    
+    // If equilibria exist, recommend the action from the first one
+    if let Some(first_eq) = equilibria.first() {
+        maximin_output.recommended_action = first_eq.0.clone();
+    }
+
+    maximin_output.trace.algorithm = "nash".to_string();
+    maximin_output.trace.min_utility = None; // Clear maximin specific trace if desired, or keep it. Let's clear to be clean.
+    maximin_output.trace.nash_equilibria = Some(equilibria);
+
+    Ok(maximin_output)
+}
