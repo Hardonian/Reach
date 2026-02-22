@@ -1,24 +1,39 @@
-# Reach Documentation Hub
+# Reach Documentation Index
 
-Welcome to the Reach documentation. This documentation is focused on the open-source, local-first architecture of Reach.
+Welcome to the Reach Documentation. This repository follows the **Antigravity** philosophy: reducing entropy and maximizing determinism.
 
-## Core Concepts
+## 🚀 Getting Started
 
-- [Determinism Specification](DETERMINISM_SPEC.md) — How we ensure bit-for-bit identical execution.
-- [Replay Protocol](REPLAY_PROTOCOL.md) — Verifying execution validity via local replay.
-- [Storage Specification](STORAGE.md) — Local-first artifact and run storage layout.
+- [Quickstart (Technical)](QUICKSTART_TECH.md) - Get up and running in 5 minutes.
+- [Install Guide](INSTALL.md) - Detailed installation for all platforms.
+- [CLI Reference](CLI.md) - Mastery of `reachctl`.
 
-## Pivot to OSS-First
+## 🏗️ Architecture & Core Concepts
 
-- [OSS First Pivot Plan](OSS_FIRST_PIVOT_PLAN.md) — Our strategy for moving to an OSS-default architecture.
-- [Component Map](OSS_FIRST_COMPONENT_MAP.md) — Classification of OSS vs enterprise components.
-- [System Boundaries](BOUNDARIES.md) — Import and layering rules for local safety.
+- [Architecture Overview](ARCHITECTURE.md) - High-level system design.
+- [Deterministic Engine](DETERMINISM_SPEC.md) - How we guarantee bit-identical replay.
+- [Evidence Chain](EVIDENCE_CHAIN_MODEL.md) - Cryptographic provenance model.
+- [Policy Gate](POLICY_GATE.md) - Governance and safety constraints.
 
-## Roadmap
+## 🛡️ Governance & Quality
 
-- [Milestone Kilo](ROADMAP_KILO_DETERMINISTIC_CI_GOVERNANCE.md) — Focus on stability and determinism.
+- [Error Code Registry](ERROR_CODE_REGISTRY.md) - Standardized failure taxonomy.
+- [Import Boundaries](IMPORT_RULES.md) - Architectural guardrails.
+- [OSS Build Guarantee](OSS_BUILD_GUARANTEE.md) - Zero-cloud lock commitment.
+- [Stress Testing](STRESS_TESTING_MODEL.md) - Nondeterminism injection and verification.
 
-## CLI Reference
+## 🛠️ Development & Contribution
 
-- See `reachctl --help` for locally-available commands.
-- See [CLI.md](CLI.md) (Work in Progress) for detailed usage guides.
+- [Contributing Guide](../CONTRIBUTING.md) - How to help Reach.
+- [Agent Contribution Guide](../AGENTS.md) - Optimized for AI-assisted development.
+- [Complexity Reduction](COMPLEXITY_REDUCTION_REPORT.md) - Ongoing hotspots and cleanup.
+- [Benchmarking](BENCHMARKING.md) - Performance measurement.
+
+## 🌐 Networking & Federation
+
+- [Federated Execution](FEDERATION.md) - Multi-node execution protocols.
+- [Mesh Networking](TOPOLOGY.md) - P2P connectivity.
+- [PoEE (Proof of Execution Evidence)](../EXECUTION_PROTOCOL.md) - Formal proof specs.
+
+---
+*Reach: The Deterministic Spine for Agentic Intelligence.*
