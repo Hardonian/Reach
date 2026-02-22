@@ -90,3 +90,61 @@ These modules form the deterministic, offline-capable heart of Reach. They MUST 
 | `storage` | `services/runner/internal/storage/` | SQLite storage with migrations |
 | `support` | `services/runner/internal/support/` | Support bot |
 | `telemetry` | `services/runner/internal/telemetry/` | Logger, metrics, tracing, pack telemetry |
+| `workspace` | `services/runner/internal/workspace/` | Workspace and runner management |
+| `arcade/gamification` | `services/runner/internal/arcade/gamification/` | Gamification and achievement system |
+| `audit` | `services/runner/internal/audit/` | Receipt-based audit trail |
+
+### 1.4 Pack DevKit (`pack-devkit/`)
+
+| Module | Path | Description |
+|--------|------|-------------|
+| `harness` | `pack-devkit/harness/` | Test harness, linter, doctor, publisher, registry validator, scoring, docs generator |
+| `templates` | `pack-devkit/templates/` | Pack templates (governed-minimal, governed-with-policy, governed-with-replay-tests, federation-aware) |
+| `fixtures` | `pack-devkit/fixtures/` | Test fixtures (hello-deterministic, policy-denial, replay-verification) |
+
+### 1.5 Internal PackKit (`internal/packkit/`)
+
+| Module | Path | Description |
+|--------|------|-------------|
+| `config` | `internal/packkit/config/` | Pack configuration |
+| `lockfile` | `internal/packkit/lockfile/` | Lockfile parsing and validation |
+| `manifest` | `internal/packkit/manifest/` | Manifest parsing |
+| `registry` | `internal/packkit/registry/` | Registry index management with golden tests |
+| `resolver` | `internal/packkit/resolver/` | Dependency resolution |
+| `signing` | `internal/packkit/signing/` | Ed25519 manifest signature verification |
+
+### 1.6 Protocol Schemas (`protocol/`)
+
+| Module | Path | Description |
+|--------|------|-------------|
+| `v1` | `protocol/v1/` | V1 JSON schemas (capsule, connector, event, execution-contract, marketplace, session, spawn) |
+| `schemas` | `protocol/schemas/` | Core schemas (agent-contract, artifact, events, orchestration-plan, toolcall, etc.) |
+| `ide` | `protocol/ide/` | IDE bridge schemas (apply_patch, approval_request, context, notification) |
+| `integrations` | `protocol/integrations/` | Integration schemas (manifests, webhooks, OAuth) |
+| `plugins` | `protocol/plugins/` | Plugin manifest schema |
+| `examples` | `protocol/examples/` | Protocol examples (capsule_sync, guardrail_stop, marketplace, run events, bundles) |
+
+### 1.7 SDKs (`sdk/`)
+
+| Module | Path | Description |
+|--------|------|-------------|
+| `python` | `sdk/python/` | Python SDK — ReachClient, types, exceptions |
+| `ts` | `sdk/ts/` | TypeScript SDK — client library |
+
+### 1.8 Mobile SDKs
+
+| Module | Path | Description |
+|--------|------|-------------|
+| `ReachSDK (iOS)` | `mobile/ios/ReachSDK/` | Swift SDK — ReachClient |
+| `ReachSDK (Android)` | `mobile/android/reach-sdk/` | Kotlin SDK — ReachClient |
+| `ReachIOS` | `apps/mobile/ios/ReachIOS/` | iOS app — MarketplaceClient, MarketplaceModels, ReachShell |
+| `Android app` | `apps/mobile/android/` | Android app — MainActivity, ConnectorRegistryClient, MockRunnerGateway, RealRunnerGateway |
+
+### 1.9 Other OSS Core
+
+| Module | Path | Description |
+|--------|------|-------------|
+| `connector-registry` | `services/connector-registry/` | Connector registry service with marketplace |
+| `ide-bridge` | `services/ide-bridge/` | IDE bridge WebSocket server |
+| `session-hub` | `services/session-hub/` | Session hub WebSocket server |
+| `policy-engine` | `services/policy-engine/` | Policy engine service (stub) |
