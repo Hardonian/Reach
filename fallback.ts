@@ -8,10 +8,12 @@ export interface DecisionInput {
   states: string[];
   outcomes: Record<string, Record<string, number>>;
   algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz" | "laplace" | "starr" | "savage" | "wald";
+  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz" | "laplace" | "starr" | "savage" | "wald" | "hodges_lehmann";
   weights?: Record<string, number>;
   strict?: boolean;
   temperature?: number;
   optimism?: number;
+  confidence?: number;
 }
 
 export interface DecisionOutput {
@@ -75,6 +77,9 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
   }
   if (input.algorithm === "starr") {
     return starrFallback(effectiveInput);
+  }
+  if (input.algorithm === "hodges_lehmann") {
+    return hodgesLehmannFallback(effectiveInput);
   }
 
   // 1. Max Utility per State
@@ -216,6 +221,43 @@ function starrFallback(input: DecisionInput): DecisionOutput {
     trace: {
       algorithm: "starr",
       starr_scores: scores
+    }
+  };
+}
+
+function hodgesLehmannFallback(input: DecisionInput): DecisionOutput {
+  const alpha = input.confidence ?? 0.5;
+  if (alpha < 0 || alpha > 1) throw new Error("Confidence (alpha) must be between 0.0 and 1.0");
+  const numStates = input.states.length;
+  if (numStates === 0) throw new Error("Cannot apply Hodges-Lehmann criterion with no states");
+
+  const scores: Record<string, number> = {};
+
+  for (const action of input.actions) {
+    let min = Infinity;
+    let sum = 0;
+    for (const state of input.states) {
+      const val = input.outcomes[action]?.[state] ?? -Infinity;
+      if (val < min) min = val;
+      sum += val;
+    }
+    const avg = sum / numStates;
+    scores[action] = (alpha * min) + ((1.0 - alpha) * avg);
+  }
+
+  const ranking = [...input.actions].sort((a, b) => {
+    const sA = scores[a];
+    const sB = scores[b];
+    if (Math.abs(sA - sB) < 1e-9) return a.localeCompare(b);
+    return sB - sA;
+  });
+
+  return {
+    recommended_action: ranking[0],
+    ranking,
+    trace: {
+      algorithm: "hodges_lehmann",
+      hodges_lehmann_scores: scores
     }
   };
 }
