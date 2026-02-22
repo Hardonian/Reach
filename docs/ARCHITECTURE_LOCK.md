@@ -164,3 +164,77 @@ The arcade app contains BOTH OSS and cloud code. The following submodules are cl
 
 | Module | Path | Description |
 |--------|------|-------------|
+| UI components | `apps/arcade/src/components/` | React components (NavBar, PackCard, StudioShell, PipelineStage, etc.) |
+| Engine libraries | `apps/arcade/src/lib/gate-engine.ts` | Gate evaluation engine |
+| Scoring engine | `apps/arcade/src/lib/scoring-engine.ts` | Scoring pipeline |
+| Diff engine | `apps/arcade/src/lib/diff-engine.ts` | Diff computation |
+| Simulation runner | `apps/arcade/src/lib/simulation-runner.ts` | Simulation execution |
+| Tool sandbox | `apps/arcade/src/lib/tool-sandbox.ts` | Tool sandboxing |
+| Plugin system | `apps/arcade/src/lib/plugin-system.ts` | Plugin extension system |
+| Demo data | `apps/arcade/src/lib/demo-data.ts` | Demo/mock data |
+| Templates | `apps/arcade/src/lib/templates.ts` | Pack templates |
+| Packs | `apps/arcade/src/lib/packs.ts` | Pack management |
+| Runtime | `apps/arcade/src/lib/runtime/` | Runtime providers, skills, tools, types |
+
+---
+
+## 2. Adapter Interface Inventory
+
+These modules define pluggable interfaces that abstract backends.
+
+| Interface | Location | Consumers | Description |
+|-----------|----------|-----------|-------------|
+| `ProviderAdapter` | [`apps/arcade/src/lib/providers/provider-adapter.ts`](apps/arcade/src/lib/providers/provider-adapter.ts) | Arcade web app | Unified LLM provider abstraction (OpenAI, Anthropic, Google, Mistral, Cohere, Meta, Custom) with health scoring, retries, fallback cascades |
+| `ModelAdapter` (Go) | [`services/runner/internal/model/adapter.go`](services/runner/internal/model/adapter.go) | Runner service | LLM adapter abstraction for hosted, local, and deterministic fallback models |
+| `ModelFactory` | [`services/runner/internal/model/factory.go`](services/runner/internal/model/factory.go) | Runner service | Factory for creating model adapters |
+| `StorageDriver` | [`services/runner/internal/storage/storage.go`](services/runner/internal/storage/storage.go) | Runner service | SQLite-backed storage with migration support |
+| `BillingTier` | [`services/billing/tier/tier.go`](services/billing/tier/tier.go) | Capsule-sync (VIOLATION) | Feature gating by billing plan — DEPRECATED |
+| `HostedAdapter` | [`services/runner/internal/model/hosted.go`](services/runner/internal/model/hosted.go) | Runner | Hosted LLM adapter |
+| `LocalAdapter` | [`services/runner/internal/model/local.go`](services/runner/internal/model/local.go) | Runner | Local/offline LLM adapter |
+| `SmallAdapter` | [`services/runner/internal/model/small.go`](services/runner/internal/model/small.go) | Runner | Lightweight model adapter |
+| `AdapterRegistry` | [`services/runner/internal/model/adapter_registry.go`](services/runner/internal/model/adapter_registry.go) | Runner | Registry for model adapters |
+
+---
+
+## 3. Cloud Stub Inventory
+
+These modules contain cloud-specific functionality (auth, billing, tenant resolution, cloud storage).
+
+### 3.1 Arcade Cloud Layer
+
+| Module | Path | Feature Flag | Description |
+|--------|------|-------------|-------------|
+| Cloud Auth | [`apps/arcade/src/lib/cloud-auth.ts`](apps/arcade/src/lib/cloud-auth.ts) | `REACH_CLOUD_ENABLED` | Session auth, API key auth, RBAC, Redis-cached auth contexts |
+| Cloud DB | [`apps/arcade/src/lib/cloud-db.ts`](apps/arcade/src/lib/cloud-db.ts) | `REACH_CLOUD_ENABLED` | SQLite control plane — tenants, users, API keys, workflows, packs, entitlements, ops, gates, scenarios, seeds |
+| Cloud DB Connection | [`apps/arcade/src/lib/db/connection.ts`](apps/arcade/src/lib/db/connection.ts) | `REACH_CLOUD_ENABLED` | better-sqlite3 connection with `CloudDisabledError` guard |
+| Cloud Schemas | [`apps/arcade/src/lib/cloud-schemas.ts`](apps/arcade/src/lib/cloud-schemas.ts) | N/A (schemas only) | Zod validation schemas for all cloud API inputs |
+| Stripe Integration | [`apps/arcade/src/lib/stripe.ts`](apps/arcade/src/lib/stripe.ts) | `BILLING_ENABLED` + `STRIPE_SECRET_KEY` | Checkout sessions, customer portal, webhook verification |
+| Redis | [`apps/arcade/src/lib/redis.ts`](apps/arcade/src/lib/redis.ts) | `REDIS_URL` | ioredis connection for rate limiting and auth caching |
+| Rate Limiting | [`apps/arcade/src/lib/ratelimit.ts`](apps/arcade/src/lib/ratelimit.ts) | Falls back to memory | Redis-backed rate limiting with in-memory fallback |
+| Permissions (RBAC) | [`apps/arcade/src/lib/permissions.ts`](apps/arcade/src/lib/permissions.ts) | N/A | RBAC permission helpers for cloud UI gating |
+| Env Config | [`apps/arcade/src/lib/env.ts`](apps/arcade/src/lib/env.ts) | N/A | Environment variable schema with cloud-related vars |
+| DB Migrations | [`apps/arcade/src/lib/db/migrations.ts`](apps/arcade/src/lib/db/migrations.ts) | `REACH_CLOUD_ENABLED` | Database migration system |
+| DB Tenants | [`apps/arcade/src/lib/db/tenants.ts`](apps/arcade/src/lib/db/tenants.ts) | `REACH_CLOUD_ENABLED` | Multi-tenant management |
+| DB Users | [`apps/arcade/src/lib/db/users.ts`](apps/arcade/src/lib/db/users.ts) | `REACH_CLOUD_ENABLED` | User management |
+| DB Entitlements | [`apps/arcade/src/lib/db/entitlements.ts`](apps/arcade/src/lib/db/entitlements.ts) | `REACH_CLOUD_ENABLED` | Feature entitlements |
+| DB Webhooks | [`apps/arcade/src/lib/db/webhooks.ts`](apps/arcade/src/lib/db/webhooks.ts) | `REACH_CLOUD_ENABLED` | Webhook management |
+| DB Schema Hardening | [`apps/arcade/src/lib/db/schema-hardening.ts`](apps/arcade/src/lib/db/schema-hardening.ts) | `REACH_CLOUD_ENABLED` | Schema validation hardening |
+| Alert Service | [`apps/arcade/src/lib/alert-service.ts`](apps/arcade/src/lib/alert-service.ts) | SMTP vars | Email-based alerting |
+| Analytics Server | [`apps/arcade/src/lib/analytics-server.ts`](apps/arcade/src/lib/analytics-server.ts) | N/A | Server-side analytics |
+| Marketplace API | [`apps/arcade/src/lib/marketplace-api.ts`](apps/arcade/src/lib/marketplace-api.ts) | Partial | Marketplace API (has stubbed cloud paths) |
+| Founder page | [`apps/arcade/src/app/console/founder/page.tsx`](apps/arcade/src/app/console/founder/page.tsx) | Cloud console | Founder dashboard |
+| Billing settings | [`apps/arcade/src/app/settings/billing/page.tsx`](apps/arcade/src/app/settings/billing/page.tsx) | Cloud console | Billing management UI |
+| API Keys settings | [`apps/arcade/src/app/settings/api-keys/page.tsx`](apps/arcade/src/app/settings/api-keys/page.tsx) | Cloud console | API key management UI |
+
+### 3.2 Billing Service (DEPRECATED)
+
+| Module | Path | Status | Description |
+|--------|------|--------|-------------|
+| Billing Plans | [`services/billing/internal/billing/plan.go`](services/billing/internal/billing/plan.go) | **DEPRECATED** (frozen 2026-02-18) | Billing tier management — contains duplicated code blocks |
+| Billing Tiers | [`services/billing/tier/tier.go`](services/billing/tier/tier.go) | **DEPRECATED** | Feature gating by plan (Free/Pro/Enterprise) |
+
+### 3.3 Capsule Sync (Cloud Service)
+
+| Module | Path | Description |
+|--------|------|-------------|
+| Capsule Sync API | [`services/capsule-sync/internal/api/server.go`](services/capsule-sync/internal/api/server.go) | REST API for device registration, capsule sync, tier enforcement — imports `services/billing/tier` |
