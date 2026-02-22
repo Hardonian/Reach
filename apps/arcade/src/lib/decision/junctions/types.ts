@@ -22,7 +22,7 @@ export type JunctionStatus = 'triggered' | 'acknowledged' | 'resolved' | 'supers
 export const JunctionTriggerDataSchema = z.object({
   sourceRef: z.string(),
   severity: z.number().min(0).max(1),
-  details: z.record(z.unknown()).optional(),
+  details: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type JunctionTriggerData = z.infer<typeof JunctionTriggerDataSchema>;
@@ -30,7 +30,7 @@ export type JunctionTriggerData = z.infer<typeof JunctionTriggerDataSchema>;
 /**
  * Junction configuration
  */
-export const JunctionConfigSchema = z.object({
+export const JunctionSettingsSchema = z.object({
   type: z.string(),
   enabled: z.boolean().default(true),
   cooldownMinutes: z.number().default(60),
@@ -38,7 +38,7 @@ export const JunctionConfigSchema = z.object({
   dedupeWindowMinutes: z.number().default(60),
 });
 
-export type JunctionConfig = z.infer<typeof JunctionConfigSchema>;
+export type JunctionSettings = z.infer<typeof JunctionSettingsSchema>;
 
 /**
  * Junction template result

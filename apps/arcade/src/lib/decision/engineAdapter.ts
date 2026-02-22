@@ -30,7 +30,7 @@ export const DecisionInputSchema = z.object({
   projectId: z.string().optional(),
   
   // Evidence data
-  evidence: z.record(z.unknown()),
+  evidence: z.record(z.string(), z.unknown()),
   
   // Optional: severity from trigger
   triggerSeverity: z.number().min(0).max(1).optional(),
@@ -46,14 +46,14 @@ export const DecisionInputSchema = z.object({
   })).optional(),
   
   // Optional: drift data
-  driftData: z.record(z.unknown()).optional(),
+  driftData: z.record(z.string(), z.unknown()).optional(),
   
   // Candidate actions to evaluate
   candidateActions: z.array(z.object({
     id: z.string(),
     name: z.string(),
     description: z.string().optional(),
-    parameters: z.record(z.unknown()).optional(),
+    parameters: z.record(z.string(), z.unknown()).optional(),
   })).optional(),
 });
 
@@ -125,7 +125,7 @@ export const DecisionResultSchema = z.object({
   decisionTrace: z.array(z.string()),
   
   // Raw engine output (for debugging)
-  rawOutput: z.record(z.unknown()).optional(),
+  rawOutput: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type DecisionResult = z.infer<typeof DecisionResultSchema>;
@@ -147,7 +147,7 @@ export const ExplainResponseSchema = z.object({
   decisionId: z.string(),
   focusArea: z.string(),
   explanation: z.string(),
-  supportingEvidence: z.array(z.record(z.unknown())),
+  supportingEvidence: z.array(z.record(z.string(), z.unknown())),
   confidence: z.number().min(0).max(1),
 });
 

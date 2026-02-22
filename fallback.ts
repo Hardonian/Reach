@@ -42,6 +42,16 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
   // Create effective input with potentially normalized weights
   const effectiveInput = { ...input, weights: effectiveWeights };
 
+  // Validate outcomes
+  for (const action of effectiveInput.actions) {
+    for (const state of effectiveInput.states) {
+      const val = effectiveInput.outcomes[action]?.[state];
+      if (val !== undefined && !Number.isFinite(val)) {
+        throw new Error("Utility value cannot be NaN or Infinity");
+      }
+    }
+  }
+
   if (input.algorithm === "maximin") {
     return maximinFallback(effectiveInput);
   }
