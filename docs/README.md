@@ -6,11 +6,13 @@ Welcome to the Reach Documentation. This repository follows the **Antigravity** 
 
 - [Quickstart (Technical)](QUICKSTART_TECH.md) - Get up and running in 5 minutes.
 - [Install Guide](INSTALL.md) - Detailed installation for all platforms.
-- [CLI Reference](CLI.md) - Mastery of `reachctl`.
+- [CLI Reference](cli.md) - Mastery of `reachctl` and `./reach`.
+- [Troubleshooting](troubleshooting.md) - Resolve common issues.
 
 ## 🏗️ Architecture & Core Concepts
 
-- [Architecture Overview](ARCHITECTURE.md) - High-level system design.
+- [Architecture Overview](architecture.md) - High-level system design.
+- [Decision Pillar](decisions.md) - Lifecycle, health, and types.
 - [Deterministic Engine](DETERMINISM_SPEC.md) - How we guarantee bit-identical replay.
 - [Evidence Chain](EVIDENCE_CHAIN_MODEL.md) - Cryptographic provenance model.
 - [Policy Gate](POLICY_GATE.md) - Governance and safety constraints.
