@@ -1,0 +1,36 @@
+name: Doctor Output Validation
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'tools/doctor/**'
+      - 'services/runner/**'
+  pull_request:
+    paths:
+      - 'tools/doctor/**'
+      - 'services/runner/**'
+  workflow_dispatch:
+
+jobs:
+  validate-doctor:
+    name: Validate Doctor Output
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.7'
+          cache: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Validation Script
+        run: npx tsx tools/doctor/validate-cli.ts
