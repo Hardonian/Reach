@@ -230,3 +230,55 @@ pub fn softmax(input: &DecisionInput) -> Result<DecisionOutput> {
         },
     })
 }
+
+pub fn hurwicz(input: &DecisionInput) -> Result<DecisionOutput> {
+    let alpha = input.optimism.unwrap_or(OrderedFloat(0.5)).0;
+    if alpha < 0.0 || alpha > 1.0 {
+        return Err(anyhow::anyhow!("Optimism (alpha) must be between 0.0 and 1.0"));
+    }
+
+    let mut hurwicz_scores = BTreeMap::new();
+
+    for action in &input.actions {
+        let mut min_val = f64::INFINITY;
+        let mut max_val = f64::NEG_INFINITY;
+
+        for state in &input.states {
+            // Safe due to validation
+            let util = input.outcomes.get(action).unwrap().get(state).unwrap().0;
+            if util < min_val { min_val = util; }
+            if util > max_val { max_val = util; }
+        }
+        
+        let score = (alpha * max_val) + ((1.0 - alpha) * min_val);
+        hurwicz_scores.insert(action.clone(), OrderedFloat(score));
+    }
+
+    // Rank Actions (Maximize Score)
+    let mut ranked_actions = input.actions.clone();
+    ranked_actions.sort_by(|a, b| {
+        let score_a = hurwicz_scores.get(a).unwrap();
+        let score_b = hurwicz_scores.get(b).unwrap();
+        match score_b.cmp(score_a) {
+            std::cmp::Ordering::Equal => a.cmp(b),
+            other => other,
+        }
+    });
+
+    let recommended = ranked_actions.first().ok_or_else(|| anyhow::anyhow!("No actions provided"))?.clone();
+
+    Ok(DecisionOutput {
+        recommended_action: recommended,
+        ranking: ranked_actions,
+        trace: DecisionTrace {
+            algorithm: "hurwicz".to_string(),
+            regret_table: None,
+            max_regret: None,
+            min_utility: None,
+            weighted_scores: None,
+            probabilities: None,
+            hurwicz_scores: Some(hurwicz_scores),
+            fingerprint: None,
+        },
+    })
+}

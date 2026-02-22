@@ -7,7 +7,6 @@ export interface DecisionInput {
   actions: string[];
   states: string[];
   outcomes: Record<string, Record<string, number>>;
-  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax";
   algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz";
   weights?: Record<string, number>;
   strict?: boolean;
