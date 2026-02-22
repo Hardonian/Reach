@@ -1,0 +1,7 @@
+{
+  "provider": "openai",
+  "payload": {
+    "choices": []
+  },
+  "expectedError": "Malformed openai response: missing choices[0].message.content"
+}

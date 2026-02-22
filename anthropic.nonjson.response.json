@@ -1,0 +1,11 @@
+{
+  "provider": "anthropic",
+  "payload": {
+    "content": [
+      {
+        "text": "not-json"
+      }
+    ]
+  },
+  "expectedError": "Provider 'anthropic' returned non-JSON content"
+}

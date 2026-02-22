@@ -1,0 +1,13 @@
+{
+  "provider": "openai",
+  "payload": {
+    "choices": [
+      {
+        "message": {
+          "content": "[1,2,3]"
+        }
+      }
+    ]
+  },
+  "expectedSchemaError": "Schema validation failed at $: expected object, received array"
+}
