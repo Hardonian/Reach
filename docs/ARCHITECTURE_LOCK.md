@@ -238,3 +238,20 @@ These modules contain cloud-specific functionality (auth, billing, tenant resolu
 | Module | Path | Description |
 |--------|------|-------------|
 | Capsule Sync API | [`services/capsule-sync/internal/api/server.go`](services/capsule-sync/internal/api/server.go) | REST API for device registration, capsule sync, tier enforcement — imports `services/billing/tier` |
+| Capsule Sync Core | [`services/capsule-sync/internal/core/types.go`](services/capsule-sync/internal/core/types.go) | Core types (Device, SyncRequest, CapsuleMetadata, RepoSyncMode) |
+| Capsule Sync Store | [`services/capsule-sync/internal/store/store.go`](services/capsule-sync/internal/store/store.go) | In-memory capsule storage |
+
+### 3.4 Runner Cloud Error Types
+
+| Module | Path | Description |
+|--------|------|-------------|
+| Cloud Error | [`services/runner/internal/errors/cloud.go`](services/runner/internal/errors/cloud.go) | `CloudNotEnabledError` — graceful degradation for cloud-only features in OSS mode |
+
+---
+
+## 4. Dead Code Candidates
+
+### 4.1 High Confidence — Safe to Remove
+
+| Path | Justification |
+|------|---------------|
