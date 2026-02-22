@@ -255,3 +255,33 @@ These modules contain cloud-specific functionality (auth, billing, tenant resolu
 
 | Path | Justification |
 |------|---------------|
+| `services/billing/internal/billing/plan.go` (lines 62-98) | **Duplicated code**: The `FeatureSet` function body is repeated 3+ times after line 61. The file has severe copy-paste corruption. |
+| `services/runner/*.test.exe` (8 files) | Compiled test binaries checked into source. Should be in `.gitignore`: `adaptive.test.exe`, `engineclient.test.exe`, `pack.test.exe`, `performance.test.exe`, `plugins.test.exe`, `spec.test.exe`, `storage.test.exe` |
+| `services/runner/reach-eval.exe` | Compiled binary checked into source |
+| `services/runner/reach-serve.exe` | Compiled binary checked into source |
+| `services/runner/reachctl.exe` | Compiled binary checked into source |
+| `services/connector-registry/connector-registry.exe` | Compiled binary checked into source |
+| `services/session-hub/session-hub.exe` | Compiled binary checked into source |
+| `reachctl.exe` (root) | Compiled binary at repo root |
+| `services/runner/test_failures.txt` | Test output artifact |
+| `services/runner/test_output.txt` | Test output artifact |
+| `services/runner/test_res.txt` | Test output artifact |
+| `services/runner/test_results_final.txt` | Test output artifact |
+| `services/runner/coverage` | Coverage artifact |
+| `services/connector-registry/test_output.txt` | Test output artifact |
+| `services/connector-registry/internal/registry/test_out.txt` | Test output artifact |
+| `apps/arcade/ts_check_output.txt` | Empty TypeScript check artifact |
+| `apps/arcade/ts_errors_new.txt` | TypeScript error dump |
+| `apps/arcade/ts_final_check.txt` | Empty TypeScript check artifact |
+| `reach_stax_multiturn_200_rows.csv` (root) | Data file at repo root — 458KB CSV |
+| `Reach_MASTER_PACK.zip` (root) | Archive at repo root |
+| `reach.zip` (root) | Archive at repo root — 1.3MB |
+| `reach-to-readylayer.patch` (root) | Large patch file at repo root — 110KB |
+| `stitch_reach_technical_architecture_visualization.zip` (root) | Large archive — 14.8MB |
+| `stitch_readylayer_home_page_redesign (2).zip` (root) | Large archive — 24.5MB |
+| `inventory.txt` (root) | Stale inventory text file |
+
+### 4.2 Medium Confidence — Likely Dead but Needs Verification
+
+| Path | Justification |
+|------|---------------|
