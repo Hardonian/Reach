@@ -31,6 +31,7 @@ pub fn evaluate_decision(input_json: &str) -> Result<String, JsError> {
         Some("laplace") => laplace(&input),
         Some("starr") => starr(&input),
         Some("savage") => minimax_regret(&input),
+        Some("wald") => maximin(&input),
         _ => minimax_regret(&input),
     }
         .map_err(|e| JsError::new(&format!("E_INTERNAL: Engine failure: {}", e)))?;
