@@ -1,0 +1,22 @@
+{
+  "name": "Map Iteration Drift",
+  "description": "Ensures that maps with identical content but different key insertion orders produce the same hash.",
+  "expected_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "inputs": [
+    {
+      "a": 1,
+      "b": 2,
+      "c": 3
+    },
+    {
+      "c": 3,
+      "b": 2,
+      "a": 1
+    },
+    {
+      "b": 2,
+      "a": 1,
+      "c": 3
+    }
+  ]
+}

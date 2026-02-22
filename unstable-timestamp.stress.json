@@ -1,0 +1,15 @@
+{
+  "name": "Unstable Timestamp",
+  "description": "Ensures that fields marked as unstable (like timestamps) do not affect the hash if they are excluded or normalized.",
+  "expected_hash": "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e",
+  "inputs": [
+    {
+      "data": "hello",
+      "ts": "2024-01-01T00:00:00Z"
+    },
+    {
+      "data": "hello",
+      "ts": "2024-01-02T00:00:00Z"
+    }
+  ]
+}
