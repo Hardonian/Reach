@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "cooldownHours": 24,
+  "dedupeWindowSeconds": 3600,
+  "severityThresholds": {
+    "critical": 0.9,
+    "high": 0.7,
+    "medium": 0.4,
+    "low": 0.0
+  },
+  "rules": {
+    "diff_critical": {
+      "enabled": true,
+      "minSeverity": 0.7,
+      "description": "Triggers when significant changes are detected in run diffs",
+      "actionTemplate": "Review critical diff changes"
+    },
+    "drift_alert": {
+      "enabled": true,
+      "minSeverity": 0.4,
+      "description": "Triggers when behavioral drift is detected beyond acceptable thresholds",
+      "actionTemplate": "Investigate drift source and impact"
+    },
+    "trust_drop": {
+      "enabled": true,
+      "minSeverity": 0.3,
+      "description": "Triggers when trust score drops below acceptable levels",
+      "actionTemplate": "Review trust metrics and take corrective action"
+    },
+    "policy_violation": {
+      "enabled": true,
+      "minSeverity": 0.3,
+      "description": "Triggers when policy evaluation fails or thresholds are exceeded",
+      "actionTemplate": "Address policy violations or update policy"
+    }
+  }
+}

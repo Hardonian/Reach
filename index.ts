@@ -1,3 +1,4 @@
+import { evaluateDecision, DecisionInput, DecisionOutput, getDecisionEngine } from './src/decision/engineAdapter';
 import * as path from 'path';
 import { evaluateDecisionFallback, validateOutcomesFallback, validateStructureFallback, DecisionInput, DecisionOutput } from './fallback';
 
@@ -13,8 +14,9 @@ try {
 
 /**
  * Evaluates a decision using Minimax Regret.
- * Uses Rust/WASM if available, falls back to TS.
+ * Uses the configured engine (TS reference or WASM).
  */
+export { evaluateDecision, DecisionInput, DecisionOutput, getDecisionEngine };
 export function evaluateDecision(input: DecisionInput): DecisionOutput {
   if (wasmModule) {
     try {

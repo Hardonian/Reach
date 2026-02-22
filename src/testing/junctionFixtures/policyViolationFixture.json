@@ -1,0 +1,42 @@
+{
+  "junction_type": "policy_violation",
+  "source_type": "policy",
+  "source_ref": "run_test_004",
+  "severity_score": 0.72,
+  "trigger_data": {
+    "runId": "run_test_004",
+    "policyName": "security_policy_v2",
+    "policyVersion": "2.1.0",
+    "violationSeverity": "error",
+    "violationCount": 5,
+    "violationRules": [
+      "no_hardcoded_secrets",
+      "validate_input_types",
+      "escape_output",
+      "enforce_authz",
+      "log_sensitive_data"
+    ],
+    "affectedResources": ["auth", "api", "database"],
+    "remediationAvailable": true
+  },
+  "trigger_trace": {
+    "algorithm": "policy_violation_evaluation",
+    "thresholds": {
+      "severityThreshold": 0.3
+    },
+    "factors": {
+      "policyName": "security_policy_v2",
+      "violationSeverity": "error",
+      "violationCount": 5,
+      "violationRulesCount": 5,
+      "affectedResources": ["auth", "api", "database"],
+      "hasCriticalResources": true,
+      "remediationAvailable": true
+    },
+    "computedSeverity": 0.72,
+    "shouldTrigger": true
+  },
+  "fingerprint": "jkl789mno012",
+  "deduplication_key": "key_jkl789",
+  "created_at": "2024-01-15T12:30:00.000Z"
+}
