@@ -614,3 +614,71 @@ pub fn nash(input: &DecisionInput) -> Result<DecisionOutput> {
 
     Ok(maximin_output)
 }
+
+pub fn pareto(input: &DecisionInput) -> Result<DecisionOutput> {
+    let mut dominated = std::collections::HashSet::new();
+    
+    for a in &input.actions {
+        for b in &input.actions {
+            if a == b { continue; }
+            
+            // Check if b dominates a
+            // b dominates a if U(b, s) >= U(a, s) for all s, and > for at least one s.
+            let mut strictly_better = false;
+            let mut equal_or_better = true;
+            
+            for state in &input.states {
+                let u_a = input.outcomes.get(a).unwrap().get(state).unwrap();
+                let u_b = input.outcomes.get(b).unwrap().get(state).unwrap();
+                
+                if u_b < u_a {
+                    equal_or_better = false;
+                    break;
+                }
+                if u_b > u_a {
+                    strictly_better = true;
+                }
+            }
+            
+            if equal_or_better && strictly_better {
+                dominated.insert(a.clone());
+                break; // a is dominated, no need to check against other actions
+            }
+        }
+    }
+    
+    let mut frontier: Vec<String> = input.actions.iter()
+        .filter(|a| !dominated.contains(*a))
+        .cloned()
+        .collect();
+    frontier.sort(); // Deterministic order
+    
+    let mut dominated_list: Vec<String> = dominated.into_iter().collect();
+    dominated_list.sort();
+    
+    let mut ranking = frontier.clone();
+    ranking.extend(dominated_list);
+    
+    let recommended = frontier.first().ok_or_else(|| anyhow::anyhow!("No actions provided"))?.clone();
+    
+    Ok(DecisionOutput {
+        recommended_action: recommended,
+        ranking,
+        trace: DecisionTrace {
+            algorithm: "pareto".to_string(),
+            regret_table: None,
+            max_regret: None,
+            min_utility: None,
+            weighted_scores: None,
+            probabilities: None,
+            hurwicz_scores: None,
+            laplace_scores: None,
+            starr_scores: None,
+            hodges_lehmann_scores: None,
+            brown_robinson_scores: None,
+            nash_equilibria: None,
+            pareto_frontier: Some(frontier),
+            fingerprint: None,
+        },
+    })
+}

@@ -68,6 +68,9 @@ pub struct DecisionTrace {
     // List of (ActionId, StateId) representing pure Nash Equilibria
     #[serde(skip_serializing_if = "Option::is_none")]
     pub nash_equilibria: Option<Vec<(String, String)>>,
+    // List of ActionIds in the Pareto frontier
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pareto_frontier: Option<Vec<String>>,
     
     pub fingerprint: Option<String>,
 }

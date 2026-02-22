@@ -463,12 +463,6 @@ func WriteAuditReport(result *AuditResult, outputPath string) error {
 	return os.WriteFile(outputPath, data, 0644)
 }
 
-// WriteAuditReport writes an audit result to a file.
-func WriteAuditReport(result *AuditResult, outputPath string) error {
-	data, _ := json.MarshalIndent(result, "", "  ")
-	return os.WriteFile(outputPath, data, 0644)
-}
-
 // FormatAuditReport formats an audit result for human-readable output.
 func FormatAuditReport(result *AuditResult) string {
 	var sb strings.Builder

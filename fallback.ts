@@ -7,8 +7,7 @@ export interface DecisionInput {
   actions: string[];
   states: string[];
   outcomes: Record<string, Record<string, number>>;
-  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz" | "laplace" | "starr" | "savage" | "wald" | "hodges_lehmann" | "brown_robinson" | "nash";
-  weights?: Record<string, number>; | "nash";
+  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz" | "laplace" | "starr" | "savage" | "wald" | "hodges_lehmann" | "brown_robinson" | "nash" | "pareto";
   weights?: Record<string, number>;
   strict?: boolean;
   temperature?: number;
@@ -87,6 +86,9 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
   }
   if (input.algorithm === "nash") {
     return nashFallback(effectiveInput);
+  }
+  if (input.algorithm === "pareto") {
+    return paretoFallback(effectiveInput);
   }
 
   // 1. Max Utility per State
@@ -399,6 +401,50 @@ function nashFallback(input: DecisionInput): DecisionOutput {
     trace: {
       algorithm: "nash",
       nash_equilibria: equilibria
+    }
+  };
+}
+
+function paretoFallback(input: DecisionInput): DecisionOutput {
+  const dominated = new Set<string>();
+
+  for (const a of input.actions) {
+    for (const b of input.actions) {
+      if (a === b) continue;
+
+      let strictlyBetter = false;
+      let equalOrBetter = true;
+
+      for (const state of input.states) {
+        const uA = input.outcomes[a]?.[state] ?? -Infinity;
+        const uB = input.outcomes[b]?.[state] ?? -Infinity;
+
+        if (uB < uA) {
+          equalOrBetter = false;
+          break;
+        }
+        if (uB > uA) {
+          strictlyBetter = true;
+        }
+      }
+
+      if (equalOrBetter && strictlyBetter) {
+        dominated.add(a);
+        break;
+      }
+    }
+  }
+
+  const frontier = input.actions.filter(a => !dominated.has(a)).sort();
+  const dominatedList = Array.from(dominated).sort();
+  const ranking = [...frontier, ...dominatedList];
+
+  return {
+    recommended_action: frontier[0],
+    ranking,
+    trace: {
+      algorithm: "pareto",
+      pareto_frontier: frontier
     }
   };
 }
