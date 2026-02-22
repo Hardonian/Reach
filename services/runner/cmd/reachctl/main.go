@@ -97,7 +97,7 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 	dataRoot := getenv("REACH_DATA_DIR", "data")
 
 	// Initialize OSS Storage Driver
-	store, err := storage.NewSqliteDriver(dataRoot)
+	store, err := storage.NewSQLiteStore(filepath.Join(dataRoot, "reach.db"))
 	if err != nil {
 		// We don't exit here because some commands (like 'doctor' or 'help') might not need storage
 	} else {
@@ -167,6 +167,20 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runGate(ctx, dataRoot, args[1:], out, errOut)
 	case "plugins":
 		return runPlugins(dataRoot, args[1:], out, errOut)
+	case "checkpoint":
+		return runCheckpoint(ctx, dataRoot, args[1:], out, errOut)
+	case "rewind":
+		return runRewind(ctx, dataRoot, args[1:], out, errOut)
+	case "simulate":
+		return runSimulate(ctx, dataRoot, args[1:], out, errOut)
+	case "chaos":
+		return runChaos(ctx, dataRoot, args[1:], out, errOut)
+	case "trust":
+		return runTrust(ctx, dataRoot, args[1:], out, errOut)
+	case "export":
+		return runCapsule(ctx, dataRoot, append([]string{"create"}, args[1:]...), out, errOut)
+	case "import":
+		return runCapsule(ctx, dataRoot, append([]string{"replay"}, args[1:]...), out, errOut)
 	default:
 		usage(out)
 		return 1
