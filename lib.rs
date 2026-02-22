@@ -37,6 +37,7 @@ pub fn evaluate_decision(input_json: &str) -> Result<String, JsError> {
         Some("epsilon_contamination") => epsilon_contamination(&input),
         Some("savage") => minimax_regret(&input),
         Some("wald") => maximin(&input),
+        Some("minimax") => maximin(&input),
         _ => minimax_regret(&input),
     }
         .map_err(|e| JsError::new(&format!("E_INTERNAL: Engine failure: {}", e)))?;
