@@ -480,6 +480,7 @@ func SimulateConsensus(runID string, config ConsensusConfig, baseProofHash strin
 	
 	// Use deterministic RNG seeded from runID for reproducibility
 	rng := deterministicRNG(runID)
+	_ = rng // Use RNG for deterministic behavior
 	proofHashes := make(map[string]int)
 	
 	for i := 0; i < config.NodeCount; i++ {

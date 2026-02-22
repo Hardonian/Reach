@@ -8,6 +8,7 @@ export interface DecisionInput {
   states: string[];
   outcomes: Record<string, Record<string, number>>;
   algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz" | "laplace" | "starr" | "savage" | "wald" | "hodges_lehmann" | "brown_robinson" | "nash" | "pareto" | "epsilon_contamination";
+  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz" | "laplace" | "starr" | "savage" | "wald" | "hodges_lehmann" | "brown_robinson" | "nash" | "pareto" | "epsilon_contamination" | "minimax";
   weights?: Record<string, number>;
   strict?: boolean;
   temperature?: number;
@@ -62,6 +63,7 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
   }
 
   if (input.algorithm === "maximin" || input.algorithm === "wald") {
+  if (input.algorithm === "maximin" || input.algorithm === "wald" || input.algorithm === "minimax") {
     return maximinFallback(effectiveInput);
   }
   if (input.algorithm === "weighted_sum") {
