@@ -340,7 +340,7 @@ func (s *SQLiteStore) CreateRun(ctx context.Context, rec RunRecord) error
 - Update `README.md` for setup/usage changes
 - Update `CHANGELOG.md` for release notes
 
-### Architecture Documentation - Update `ARCHITECTURE.md` for structural changes
+### Architecture Documentation - Update `docs/architecture.md` for structural changes
 - Update relevant ADRs in `docs/architecture/`
 
 ## Submitting Changes ### Before Submitting

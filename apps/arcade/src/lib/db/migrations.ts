@@ -610,6 +610,71 @@ export const MIGRATIONS: string[] = [
   CREATE INDEX IF NOT EXISTS idx_founder_decisions_status ON founder_decisions(status);
   CREATE INDEX IF NOT EXISTS idx_entropy_snapshots_ts ON entropy_snapshots(timestamp);
   `,
+
+  /* 014 — Decision Pillar: Decision Reports, Junctions, Action Intents */
+  `;
+  -- Decision Reports: Core entity for decision tracking
+  CREATE TABLE IF NOT EXISTS decision_reports (
+    id                    TEXT PRIMARY KEY,
+    created_at            TEXT NOT NULL,
+    updated_at            TEXT NOT NULL,
+    workspace_id          TEXT,
+    project_id            TEXT,
+    source_type           TEXT NOT NULL DEFAULT 'manual',
+    source_ref            TEXT NOT NULL,
+    input_fingerprint     TEXT NOT NULL,
+    decision_input        TEXT NOT NULL,
+    decision_output       TEXT,
+    decision_trace        TEXT,
+    recommended_action_id TEXT,
+    status               TEXT NOT NULL DEFAULT 'draft',
+    outcome_status        TEXT NOT NULL DEFAULT 'unknown',
+    outcome_notes        TEXT,
+    outcome_timestamp    TEXT,
+    calibration_delta    REAL,
+    predicted_score      REAL,
+    actual_score         REAL,
+    governance_badges    TEXT,
+    deleted_at           TEXT
+  );
+  
+  CREATE TABLE IF NOT EXISTS junctions (
+    id                   TEXT PRIMARY KEY,
+    created_at           TEXT NOT NULL,
+    type                 TEXT NOT NULL,
+    severity_score       REAL NOT NULL DEFAULT 0,
+    fingerprint          TEXT NOT NULL,
+    trigger_source_ref   TEXT NOT NULL,
+    trigger_data         TEXT NOT NULL DEFAULT '{}',
+    trigger_trace        TEXT NOT NULL DEFAULT '[]',
+    status               TEXT NOT NULL DEFAULT 'triggered',
+    decision_id          TEXT,
+    cooldown_until       TEXT,
+    superseded_by        TEXT,
+    deleted_at           TEXT
+  );
+  
+  CREATE TABLE IF NOT EXISTS action_intents (
+    id                   TEXT PRIMARY KEY,
+    created_at           TEXT NOT NULL,
+    decision_id           TEXT NOT NULL,
+    action_id            TEXT NOT NULL,
+    status               TEXT NOT NULL DEFAULT 'pending',
+    notes                TEXT,
+    executed_at          TEXT
+  );
+  
+  CREATE INDEX IF NOT EXISTS idx_decision_reports_status ON decision_reports(status);
+  CREATE INDEX IF NOT EXISTS idx_decision_reports_source ON decision_reports(source_type, source_ref);
+  CREATE INDEX IF NOT EXISTS idx_decision_reports_fingerprint ON decision_reports(input_fingerprint);
+  CREATE INDEX IF NOT EXISTS idx_junctions_type ON junctions(type);
+  CREATE INDEX IF NOT EXISTS idx_junctions_fingerprint ON junctions(fingerprint);
+  CREATE INDEX IF NOT EXISTS idx_junctions_status ON junctions(status);
+  CREATE INDEX IF NOT EXISTS idx_action_intents_decision ON action_intents(decision_id);
+  `;
+
+  idx_entropy_snapshots_ts ON entropy_snapshots(timestamp);
+  `,
 ];
 
 export function applyMigrations(db: Database.Database): void {
