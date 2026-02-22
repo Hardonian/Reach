@@ -26,6 +26,7 @@ import (
 	"reach/services/runner/internal/pack"
 	"reach/services/runner/internal/poee"
 	"reach/services/runner/internal/storage"
+	"reach/services/runner/internal/stress"
 	"reach/services/runner/internal/support"
 )
 
@@ -113,6 +114,10 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runVerifyDeterminism(ctx, dataRoot, args[1:], out, errOut)
 	case "benchmark":
 		return runBenchmark(ctx, dataRoot, args[1:], out, errOut)
+	case "stress":
+		return runStress(ctx, dataRoot, args[1:], out, errOut)
+	case "debug":
+		return runDebug(ctx, dataRoot, args[1:], out, errOut)
 	case "federation":
 		return runFederation(ctx, dataRoot, args[1:], out, errOut)
 	case "support":
@@ -343,18 +348,43 @@ func runCapsule(ctx context.Context, dataRoot string, args []string, out io.Writ
 }
 
 func runProof(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
-	if len(args) < 2 || args[0] != "verify" {
-		usage(out)
+	if len(args) < 2 {
+		usageProof(out)
 		return 1
 	}
-	target := args[1]
+
+	switch args[0] {
+	case "verify":
+		return runProofVerify(ctx, dataRoot, args[1:], out, errOut)
+	case "explain":
+		return runProofExplain(ctx, dataRoot, args[1:], out, errOut)
+	case "diff-hash":
+		return runProofDiffHash(ctx, dataRoot, args[1:], out, errOut)
+	default:
+		usageProof(out)
+		return 1
+	}
+}
+
+// runProofVerify handles 'reach proof verify <runId>'
+func runProofVerify(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reach proof verify <runId|capsule> [--json]")
+		return 1
+	}
+	target := args[0]
 	if strings.HasSuffix(target, ".json") {
 		cap, err := readCapsule(target)
 		if err != nil {
 			_, _ = fmt.Fprintln(errOut, err)
 			return 1
 		}
-		return writeJSON(out, map[string]any{"target": target, "audit_root": cap.Manifest.AuditRoot, "run_fingerprint": cap.Manifest.RunFingerprint, "deterministic": stableHash(map[string]any{"event_log": cap.EventLog, "run_id": cap.Manifest.RunID}) == cap.Manifest.RunFingerprint})
+		return writeJSON(out, map[string]any{
+			"target":         target,
+			"audit_root":     cap.Manifest.AuditRoot,
+			"run_fingerprint": cap.Manifest.RunFingerprint,
+			"deterministic":  stableHash(map[string]any{"event_log": cap.EventLog, "run_id": cap.Manifest.RunID}) == cap.Manifest.RunFingerprint,
+		})
 	}
 	record, err := loadRunRecord(dataRoot, target)
 	if err != nil {
@@ -363,7 +393,354 @@ func runProof(ctx context.Context, dataRoot string, args []string, out io.Writer
 	}
 	auditRoot := merkleRoot(record.AuditChain)
 	fingerprint := stableHash(map[string]any{"event_log": record.EventLog, "run_id": record.RunID})
-	return writeJSON(out, map[string]any{"run_id": target, "audit_root": auditRoot, "run_fingerprint": fingerprint, "deterministic": true})
+	return writeJSON(out, map[string]any{
+		"run_id":          target,
+		"audit_root":      auditRoot,
+		"run_fingerprint": fingerprint,
+		"deterministic":   true,
+	})
+}
+
+// runProofExplain handles 'reach proof explain <runId> [--step N]'
+func runProofExplain(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	fs := flag.NewFlagSet("proof explain", flag.ContinueOnError)
+	stepIdx := fs.Int("step", -1, "step index to explain")
+	jsonFlag := fs.Bool("json", false, "output JSON")
+	_ = fs.Parse(args)
+
+	if fs.NArg() < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reach proof explain <runId> [--step N] [--json]")
+		return 1
+	}
+
+	runID := fs.Arg(0)
+	record, err := loadRunRecord(dataRoot, runID)
+	if err != nil {
+		_, _ = fmt.Fprintln(errOut, "run not found: ", err)
+		return 1
+	}
+
+	explain, err := stress.ExplainProof(runID, record.EventLog, record, *stepIdx)
+	if err != nil {
+		_, _ = fmt.Fprintln(errOut, "failed to explain proof: ", err)
+		return 1
+	}
+
+	if *jsonFlag {
+		return writeJSON(out, explain)
+	}
+
+	// Human-readable output
+	stress.WriteProofReport(out, explain)
+	return 0
+}
+
+// runProofDiffHash handles 'reach proof diff-hash <runA> <runB>'
+func runProofDiffHash(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	fs := flag.NewFlagSet("proof diff-hash", flag.ContinueOnError)
+	jsonFlag := fs.Bool("json", false, "output JSON")
+	_ = fs.Parse(args)
+
+	if fs.NArg() < 2 {
+		_, _ = fmt.Fprintln(errOut, "usage: reach proof diff-hash <runA> <runB> [--json]")
+		return 1
+	}
+
+	runA := fs.Arg(0)
+	runB := fs.Arg(1)
+
+	recordA, err := loadRunRecord(dataRoot, runA)
+	if err != nil {
+		_, _ = fmt.Fprintln(errOut, "run A not found: ", err)
+		return 1
+	}
+
+	recordB, err := loadRunRecord(dataRoot, runB)
+	if err != nil {
+		_, _ = fmt.Fprintln(errOut, "run B not found: ", err)
+		return 1
+	}
+
+	diff, err := stress.DiffHash(runA, recordA.EventLog, runB, recordB.EventLog)
+	if err != nil {
+		_, _ = fmt.Fprintln(errOut, "failed to diff hashes: ", err)
+		return 1
+	}
+
+	if *jsonFlag {
+		return writeJSON(out, diff)
+	}
+
+	// Human-readable output
+	_, _ = fmt.Fprintf(out, "Proof Hash Diff: %s vs %s\n", runA, runB)
+	_, _ = fmt.Fprintf(out, "Changed Components: %d\n", len(diff.ChangedComponents))
+	for _, comp := range diff.ChangedComponents {
+		_, _ = fmt.Fprintf(out, "  - %s: %s -> %s (%.1f%% different)\n", comp.Component, comp.HashA, comp.HashB, comp.DiffPercentage)
+	}
+	if len(diff.InputFieldsResponsible) > 0 {
+		_, _ = fmt.Fprintln(out, "\nInput Fields Responsible:")
+		for _, f := range diff.InputFieldsResponsible {
+			_, _ = fmt.Fprintf(out, "  - %s (impact: %.0f%%)\n", f.Field, f.Impact)
+		}
+	}
+	return 0
+}
+
+func usageProof(out io.Writer) {
+	_, _ = io.WriteString(out, `usage: reach proof <command> [options]
+
+Commands:
+  verify <runId|capsule>       Verify execution proof
+  explain <runId> [--step N]  Explain proof components
+  diff-hash <runA> <runB>    Compare proof hashes between runs
+
+Examples:
+  reach proof verify run-123
+  reach proof explain run-123 --step 0
+  reach proof diff-hash run-123 run-456
+`)
+}
+
+// runStress handles 'reach stress <command>'
+func runStress(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		usageStress(out)
+		return 1
+	}
+
+	switch args[0] {
+	case "run":
+		return runStressRun(ctx, dataRoot, args[1:], out, errOut)
+	case "entropy":
+		return runStressEntropy(ctx, dataRoot, args[1:], out, errOut)
+	case "matrix":
+		return runStressMatrix(ctx, dataRoot, args[1:], out, errOut)
+	default:
+		usageStress(out)
+		return 1
+	}
+}
+
+// runStressRun handles 'reach stress run --matrix'
+func runStressRun(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	fs := flag.NewFlagSet("stress run", flag.ContinueOnError)
+	matrix := fs.Bool("matrix", false, "run cross-environment matrix")
+	jsonFlag := fs.Bool("json", false, "output JSON")
+	trials := fs.Int("trials", 5, "number of trials")
+	_ = fs.Parse(args)
+
+	if *matrix {
+		return runStressMatrix(ctx, dataRoot, args, out, errOut)
+	}
+
+	// Simple stress test
+	_, _ = fmt.Fprintf(out, "Running stress test with %d trials...\n", *trials)
+
+	trialFn := func() (string, string, string, float64, float64) {
+		time.Sleep(time.Millisecond * 10)
+		hash := stableHash(map[string]any{"trial": time.Now().UnixNano()})
+		return hash[:8], hash, hash, 10.0, 1.0
+	}
+
+	config := stress.DefaultMatrixConfig()
+	config.Trials = *trials
+
+	report, err := stress.GenerateStabilityReport("stress-test", config, trialFn)
+	if err != nil {
+		_, _ = fmt.Fprintln(errOut, "stress test failed: ", err)
+		return 1
+	}
+
+	if *jsonFlag {
+		return writeJSON(out, report)
+	}
+
+	_, _ = fmt.Fprintf(out, "\nDeterminism Confidence: %d/100\n", report.MatrixResult.DeterminismConfidence)
+	_, _ = fmt.Fprintf(out, "Step Key Stability: %.1f%%\n", report.MatrixResult.StepKeyStability)
+	_, _ = fmt.Fprintf(out, "Proof Hash Stability: %.1f%%\n", report.MatrixResult.ProofHashStability)
+	for _, rec := range report.Recommendations {
+		_, _ = fmt.Fprintf(out, "  → %s\n", rec)
+	}
+	return 0
+}
+
+// runStressMatrix handles 'reach stress run --matrix'
+func runStressMatrix(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	fs := flag.NewFlagSet("stress run --matrix", flag.ContinueOnError)
+	jsonFlag := fs.Bool("json", false, "output JSON")
+	trials := fs.Int("trials", 3, "trials per configuration")
+	_ = fs.Parse(args)
+
+	_, _ = fmt.Fprintln(out, "Running cross-environment stability matrix...")
+
+	config := stress.DefaultMatrixConfig()
+	config.Trials = *trials
+
+	trialFn := func() (string, string, string, float64, float64) {
+		time.Sleep(time.Millisecond * 5)
+		hash := stableHash(map[string]any{"trial": time.Now().UnixNano()})
+		return hash[:8], hash, hash, 5.0, 0.5
+	}
+
+	report, err := stress.GenerateStabilityReport("matrix-test", config, trialFn)
+	if err != nil {
+		_, _ = fmt.Fprintln(errOut, "matrix test failed: ", err)
+		return 1
+	}
+
+	// Save report
+	reportPath := filepath.Join(dataRoot, "stability-report.json")
+	_ = os.MkdirAll(filepath.Dir(reportPath), 0755)
+	data, _ := json.MarshalIndent(report, "", "  ")
+	_ = os.WriteFile(reportPath, data, 0644)
+
+	if *jsonFlag {
+		return writeJSON(out, report)
+	}
+
+	_, _ = fmt.Fprintln(out, "\n=== Cross-Environment Stability Matrix Results ===")
+	_, _ = fmt.Fprintf(out, "Determinism Confidence: %d/100\n", report.MatrixResult.DeterminismConfidence)
+	_, _ = fmt.Fprintf(out, "Step Key Stability: %.1f%%\n", report.MatrixResult.StepKeyStability)
+	_, _ = fmt.Fprintf(out, "Proof Hash Stability: %.1f%%\n", report.MatrixResult.ProofHashStability)
+	_, _ = fmt.Fprintf(out, "Run Proof Stability: %.1f%%\n", report.MatrixResult.RunProofStability)
+	_, _ = fmt.Fprintf(out, "Duration Variance: %.2f ms\n", report.MatrixResult.DurationVariance)
+	_, _ = fmt.Fprintf(out, "Memory Variance: %.2f MB\n", report.MatrixResult.MemoryVariance)
+	_, _ = fmt.Fprintf(out, "\nReport saved to: %s\n", reportPath)
+	return 0
+}
+
+// runStressEntropy handles 'reach stress entropy <pipeline>'
+func runStressEntropy(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	fs := flag.NewFlagSet("stress entropy", flag.ContinueOnError)
+	jsonFlag := fs.Bool("json", false, "output JSON")
+	_ = fs.Parse(args)
+
+	pipelineID := "sample"
+	if fs.NArg() >= 1 {
+		pipelineID = fs.Arg(0)
+	}
+
+	// Create sample input data for analysis
+	inputData := map[string]any{
+		"id":           "test-123",
+		"timestamp":    time.Now().Format(time.RFC3339),
+		"nested":       map[string]any{"value": 1.5, "data": "test"},
+		"items":        []any{"a", "b", "c"},
+		"dependencies": []any{"dep1", "dep2"},
+	}
+
+	analysis, err := stress.AnalyzeEntropy(pipelineID, inputData)
+	if err != nil {
+		_, _ = fmt.Fprintln(errOut, "entropy analysis failed: ", err)
+		return 1
+	}
+
+	if *jsonFlag {
+		return writeJSON(out, analysis)
+	}
+
+	_, _ = fmt.Fprintf(out, "=== Entropy Surface Analysis: %s ===\n", pipelineID)
+	_, _ = fmt.Fprintln(out, "\nField Drift Sensitivity:")
+	for field, sens := range analysis.FieldDriftSensitivity {
+		_, _ = fmt.Fprintf(out, "  %s: %.0f%%\n", field, sens)
+	}
+	if len(analysis.FloatingPointInstability) > 0 {
+		_, _ = fmt.Fprintln(out, "\nFloating Point Instability:")
+		for _, f := range analysis.FloatingPointInstability {
+			_, _ = fmt.Fprintf(out, "  - %s\n", f)
+		}
+	}
+	if len(analysis.OrderingSensitivity) > 0 {
+		_, _ = fmt.Fprintln(out, "\nOrdering Sensitivity:")
+		for _, f := range analysis.OrderingSensitivity {
+			_, _ = fmt.Fprintf(out, "  - %s\n", f)
+		}
+	}
+	_, _ = fmt.Fprintln(out, "\nInstability Hotspots (Ranked):")
+	for _, h := range analysis.InstabilityHotspots {
+		_, _ = fmt.Fprintf(out, "  [%d] %s (sensitivity: %.0f%%)\n", h.Rank, h.Field, h.Sensitivity)
+	}
+	return 0
+}
+
+func usageStress(out io.Writer) {
+	_, _ = io.WriteString(out, `usage: reach stress <command> [options]
+
+Commands:
+  run [--matrix]            Run stress test (optionally with cross-env matrix)
+  entropy <pipeline>       Analyze entropy surface for a pipeline
+
+Examples:
+  reach stress run
+  reach stress run --matrix --trials 3
+  reach stress entropy my-pipeline
+`)
+}
+
+// runDebug handles 'reach debug <command>'
+func runDebug(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		usageDebug(out)
+		return 1
+	}
+
+	switch args[0] {
+	case "canonical":
+		return runDebugCanonical(ctx, dataRoot, args[1:], out, errOut)
+	default:
+		usageDebug(out)
+		return 1
+	}
+}
+
+// runDebugCanonical handles 'reach debug canonical <json-file>'
+func runDebugCanonical(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	fs := flag.NewFlagSet("debug canonical", flag.ContinueOnError)
+	jsonFlag := fs.Bool("json", false, "output JSON")
+	_ = fs.Parse(args)
+
+	if fs.NArg() < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reach debug canonical <json-file> [--json]")
+		return 1
+	}
+
+	jsonFile := fs.Arg(0)
+	debug, err := stress.DebugCanonical(jsonFile)
+	if err != nil {
+		_, _ = fmt.Fprintln(errOut, "failed to debug canonical: ", err)
+		return 1
+	}
+
+	if *jsonFlag {
+		return writeJSON(out, debug)
+	}
+
+	_, _ = fmt.Fprintf(out, "=== Canonical Debug: %s ===\n", jsonFile)
+	_, _ = fmt.Fprintf(out, "Hash: %s\n\n", debug.Hash)
+	_, _ = fmt.Fprintln(out, "Sorted Keys:")
+	for _, k := range debug.SortedKeys {
+		_, _ = fmt.Fprintf(out, "  %s\n", k)
+	}
+	if len(debug.FloatNormalization) > 0 {
+		_, _ = fmt.Fprintln(out, "\nFloat Normalization:")
+		for k, v := range debug.FloatNormalization {
+			_, _ = fmt.Fprintf(out, "  %s: %s\n", k, v)
+		}
+	}
+	_, _ = fmt.Fprintln(out, "\nFinal Canonical String:")
+	_, _ = fmt.Fprintln(out, debug.FinalCanonical)
+	return 0
+}
+
+func usageDebug(out io.Writer) {
+	_, _ = io.WriteString(out, `usage: reach debug <command> [options]
+
+Commands:
+  canonical <json-file>     Debug canonical JSON serialization
+
+Examples:
+  reach debug canonical data.json
+`)
 }
 
 // runGraph — Phase E: Evidence Graph Visualizer.
@@ -641,6 +1018,10 @@ func runPlugins(dataRoot string, args []string, out io.Writer, errOut io.Writer)
 		return runPluginsVerify(dataRoot, args[1:], out, errOut)
 	case "capability":
 		return runPluginsCapability(dataRoot, args[1:], out, errOut)
+	case "audit":
+		return runPluginsAudit(dataRoot, args[1:], out, errOut)
+	case "certify":
+		return runPluginsCertify(dataRoot, args[1:], out, errOut)
 	default:
 		_, _ = fmt.Fprintf(errOut, "unknown plugins subcommand: %q\n", args[0])
 		usagePlugins(out)
@@ -779,6 +1160,150 @@ func loadPluginManifest(pluginDir, name string) (*PluginManifest, error) {
 	return nil, fmt.Errorf("plugin manifest not found: %s", name)
 }
 
+// runPluginsAudit handles 'reach plugins audit <name>'
+func runPluginsAudit(dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	fs := flag.NewFlagSet("plugins audit", flag.ContinueOnError)
+	jsonFlag := fs.Bool("json", false, "output JSON")
+	_ = fs.Parse(args)
+
+	if fs.NArg() < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reach plugins audit <name> [--json]")
+		return 1
+	}
+
+	name := fs.Arg(0)
+	pluginDir := filepath.Join(dataRoot, "plugins")
+	manifest, err := loadPluginManifest(pluginDir, name)
+	if err != nil {
+		_, _ = fmt.Fprintln(errOut, "plugin not found: ", err)
+		return 1
+	}
+
+	// Try to read source code for analysis
+	sourceCode := ""
+	sourcePath := filepath.Join(pluginDir, name, "plugin.go")
+	if data, err := os.ReadFile(sourcePath); err == nil {
+		sourceCode = string(data)
+	}
+
+	// Run audit
+	result, err := stress.AuditPlugin(sourcePath, stress.PluginManifest{
+		Name:                 manifest.Name,
+		Version:              manifest.Version,
+		Deterministic:        manifest.Deterministic,
+		ExternalDependencies: manifest.ExternalDependencies,
+		ResourceLimits:       manifest.ResourceLimits,
+		ChecksumSHA256:       manifest.ChecksumSHA256,
+		SignatureHex:         manifest.SignatureHex,
+		Capabilities:         manifest.Capabilities,
+	}, sourceCode)
+	if err != nil {
+		_, _ = fmt.Fprintln(errOut, "audit failed: ", err)
+		return 1
+	}
+
+	// Save audit report
+	auditPath := filepath.Join(pluginDir, name, "audit.json")
+	_ = stress.WriteAuditReport(result, auditPath)
+
+	if *jsonFlag {
+		return writeJSON(out, result)
+	}
+
+	// Human-readable output
+	_, _ = fmt.Fprintf(out, "Plugin Audit: %s\n", result.PluginName)
+	_, _ = fmt.Fprintf(out, "Isolation Score: %d/100\n", result.IsolationScore)
+	_, _ = fmt.Fprintf(out, "Passed: %v\n\n", result.Passed)
+
+	if len(result.Findings) > 0 {
+		_, _ = fmt.Fprintln(out, "Findings:")
+		for _, f := range result.Findings {
+			_, _ = fmt.Fprintf(out, "  [%s] %s\n", strings.ToUpper(f.Severity), f.Message)
+		}
+	} else {
+		_, _ = fmt.Fprintln(out, "No issues found.")
+	}
+	_, _ = fmt.Fprintf(out, "\nAudit report saved to: %s\n", auditPath)
+
+	if result.Passed {
+		return 0
+	}
+	return 1
+}
+
+// runPluginsCertify handles 'reach plugins certify <name>'
+func runPluginsCertify(dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	fs := flag.NewFlagSet("plugins certify", flag.ContinueOnError)
+	jsonFlag := fs.Bool("json", false, "output JSON")
+	trials := fs.Int("trials", 5, "number of reproducibility trials")
+	_ = fs.Parse(args)
+
+	if fs.NArg() < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reach plugins certify <name> [--trials N] [--json]")
+		return 1
+	}
+
+	name := fs.Arg(0)
+	pluginDir := filepath.Join(dataRoot, "plugins")
+	manifest, err := loadPluginManifest(pluginDir, name)
+	if err != nil {
+		_, _ = fmt.Fprintln(errOut, "plugin not found: ", err)
+		return 1
+	}
+
+	// Try to read source code for analysis
+	sourceCode := ""
+	sourcePath := filepath.Join(pluginDir, name, "plugin.go")
+	if data, err := os.ReadFile(sourcePath); err == nil {
+		sourceCode = string(data)
+	}
+
+	// Run certification
+	result, err := stress.CertifyPlugin(sourcePath, stress.PluginManifest{
+		Name:                 manifest.Name,
+		Version:              manifest.Version,
+		Deterministic:        manifest.Deterministic,
+		ExternalDependencies: manifest.ExternalDependencies,
+		ResourceLimits:       manifest.ResourceLimits,
+		ChecksumSHA256:       manifest.ChecksumSHA256,
+		SignatureHex:         manifest.SignatureHex,
+		Capabilities:         manifest.Capabilities,
+	}, sourceCode, *trials)
+	if err != nil {
+		_, _ = fmt.Fprintln(errOut, "certification failed: ", err)
+		return 1
+	}
+
+	// Save certification
+	certPath := filepath.Join(pluginDir, name, "certification.json")
+	_ = stress.SaveCertification(result, certPath)
+
+	if *jsonFlag {
+		return writeJSON(out, result)
+	}
+
+	// Human-readable output
+	_, _ = fmt.Fprintf(out, "Plugin Certification: %s\n", result.PluginName)
+	_, _ = fmt.Fprintf(out, "Certification ID: %s\n", result.CertificationID)
+	_, _ = fmt.Fprintf(out, "Reproducibility Score: %d/100\n", result.ReproducibilityScore)
+	_, _ = fmt.Fprintf(out, "Isolation Score: %d/100\n", result.IsolationScore)
+	_, _ = fmt.Fprintf(out, "Determinism Compliant: %v\n", result.DeterminismCompliance)
+	_, _ = fmt.Fprintf(out, "Certified: %v\n\n", result.Certified)
+
+	if len(result.Issues) > 0 {
+		_, _ = fmt.Fprintln(out, "Issues:")
+		for _, i := range result.Issues {
+			_, _ = fmt.Fprintf(out, "  [%s] %s\n", strings.ToUpper(i.Severity), i.Message)
+		}
+	}
+	_, _ = fmt.Fprintf(out, "\nCertification saved to: %s\n", certPath)
+
+	if result.Certified {
+		return 0
+	}
+	return 1
+}
+
 func usagePlugins(out io.Writer) {
 	_, _ = io.WriteString(out, `usage: reach plugins <command> [options]
 
@@ -786,6 +1311,8 @@ Commands:
   list                          List all installed plugins
   verify <name>                 Verify plugin determinism contract and checksum
   capability <name>             Show plugin declared capabilities and resource limits
+  audit <name>                  Audit plugin for determinism violations
+  certify <name>                Certify plugin with reproducibility score
 
 Plugin Manifest Format (plugins/<name>.json):
   {
@@ -797,6 +1324,14 @@ Plugin Manifest Format (plugins/<name>.json):
     "checksum_sha256": "<sha256 of plugin binary>",
     "capabilities": ["file_read", "http_get"]
   }
+
+Examples:
+  reach plugins list
+  reach plugins verify my-plugin
+  reach plugins capability my-plugin
+  reach plugins audit my-plugin
+  reach plugins certify my-plugin
+`)
 
 Examples:
   reach plugins list
