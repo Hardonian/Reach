@@ -72,3 +72,28 @@ func FeatureSet(tier PlanTier, enterpriseDepth int) Features {
 	}
 }
 
+	case Pro:
+		return Features{HostedRunner: true, Collaboration: true, MaxSpawnDepth: 2}
+	case Enterprise:
+		depth := enterpriseDepth
+		if depth <= 0 {
+			depth = 32
+		}
+		return Features{HostedRunner: true, Collaboration: true, SSO: true, ComplianceLogs: true, NodeFederation: true, MaxSpawnDepth: depth, UnlimitedSpawns: true}
+	default:
+		return Features{LocalOnly: true, MaxSpawnDepth: 1}
+	}
+}
+
+
+	case Enterprise:
+		depth := enterpriseDepth
+		if depth <= 0 {
+			depth = 32
+		}
+		return Features{HostedRunner: true, Collaboration: true, SSO: true, ComplianceLogs: true, NodeFederation: true, MaxSpawnDepth: depth, UnlimitedSpawns: true}
+	default:
+		return Features{LocalOnly: true, MaxSpawnDepth: 1}
+	}
+}
+

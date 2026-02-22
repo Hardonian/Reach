@@ -102,8 +102,19 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runPackDevKit(args[1:], out, errOut)
 	case "wizard":
 		return runWizard(ctx, dataRoot, args[1:], out, errOut)
+	case "doctor":
+		return runDoctor(args[1:], out, errOut)
 	case "run":
 		return runQuick(args[1:], out, errOut)
+	case "replay":
+		// Alias for capsule replay
+		return runCapsule(ctx, dataRoot, append([]string{"replay"}, args[1:]...), out, errOut)
+	case "explain-failure":
+		// Alias for explain
+		return runExplain(ctx, dataRoot, args[1:], out, errOut)
+	case "data-dir":
+		_, _ = fmt.Fprintln(out, dataRoot)
+		return 0
 	case "share":
 		return runShare(ctx, dataRoot, args[1:], out, errOut)
 	case "mesh":
@@ -3132,7 +3143,31 @@ Examples:
 }
 
 func usage(out io.Writer) {
-	_, _ = io.WriteString(out, "usage: reachctl federation status|map --format=json|svg | support ask <question> | arcade profile | capsule create|verify|replay | proof verify <runId|capsule> | graph export <runId> --format=svg|dot|json | packs search|install|verify | init pack --governed | explain <runId> | operator | arena run <scenario> | playground export | pack test|lint|doctor|publish|init | wizard [--quick] | run <pack> | share run|capsule | mesh on|off|status|peers|pair|unpair|sync|config | delegate <peer> <pack> <input> | verify-proof <proof.json>\n")
+	_, _ = io.WriteString(out, `usage: reach <command> [options]
+
+Core Commands:
+  doctor                          Check local environment health
+  init pack --governed            Initialize a new governed pack
+  run <pack>                      Quick run a pack locally
+  replay <runId|capsule>          Replay a run for verification
+  explain <runId>                 Explain a run's failure or outcome
+  explain-failure <runId>         Alias for explain
+  operator                        View local operator dashboard
+  data-dir                        Show current data directory path
+
+Advanced Commands:
+  capsule <command>               Manage signed execution capsules
+  proof <command>                 Verify execution proofs
+  graph <command>                 Export or view execution graphs
+  packs <command>                 Search, install, and verify packs
+  mesh <command>                  Manage P2P mesh networking
+  federation <command>            Show federation status and topology
+  arcade <command>                View local gamification profile
+  arena <command>                 Run scenario simulations
+  playground <command>            Manage playground assets
+
+See 'reach <command> --help' for details on specific commands.
+`)
 }
 
 // PoEE CLI Handlers
@@ -3351,4 +3386,52 @@ Examples:
   reach mesh pair ABC123 --confirm
   reach mesh feature mdns_discovery on
 `)
+}
+
+func runDoctor(args []string, out, errOut io.Writer) int {
+	fmt.Fprintln(out, "Reach Doctor - Diagnosing local environment...")
+
+	checks := []struct {
+		Name string
+		Cmd  string
+		Args []string
+	}{
+		{"Go Version", "go", []string{"version"}},
+		{"Node.js Version", "node", []string{"--version"}},
+		{"npm Version", "npm", []string{"--version"}},
+		{"SQLite Version", "sqlite3", []string{"--version"}},
+	}
+
+	healthy := true
+	for _, check := range checks {
+		fmt.Fprintf(out, "[ ] %-20s ", check.Name)
+		execCmd := jobs.NewSafeCommand(check.Cmd, check.Args...)
+		output, err := execCmd.CombinedOutput()
+		if err != nil {
+			fmt.Fprintf(out, "FAIL (%v)\n", err)
+			healthy = false
+		} else {
+			fmt.Fprintf(out, "OK (%s)\n", strings.TrimSpace(string(output)))
+		}
+	}
+
+	dataRoot := getenv("REACH_DATA_DIR", "data")
+	fmt.Fprintf(out, "[ ] Data Directory (%s) ", dataRoot)
+	if info, err := os.Stat(dataRoot); err != nil {
+		fmt.Fprintf(out, "FAIL (not found or inaccessible)\n")
+		healthy = false
+	} else if !info.IsDir() {
+		fmt.Fprintf(out, "FAIL (not a directory)\n")
+		healthy = false
+	} else {
+		fmt.Fprintf(out, "OK\n")
+	}
+
+	if healthy {
+		fmt.Fprintln(out, "\n✨ System is healthy and ready for OSS mode.")
+		return 0
+	} else {
+		fmt.Fprintln(errOut, "\n⚠️ Some issues were detected. See above for details.")
+		return 1
+	}
 }
