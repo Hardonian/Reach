@@ -682,3 +682,70 @@ pub fn pareto(input: &DecisionInput) -> Result<DecisionOutput> {
         },
     })
 }
+
+pub fn epsilon_contamination(input: &DecisionInput) -> Result<DecisionOutput> {
+    let epsilon = input.epsilon.unwrap_or(OrderedFloat(0.1)).0;
+    if epsilon < 0.0 || epsilon > 1.0 {
+        return Err(anyhow::anyhow!("Epsilon must be between 0.0 and 1.0"));
+    }
+
+    let weights = input.weights.as_ref()
+        .ok_or_else(|| anyhow::anyhow!("Weights required for Epsilon-Contamination algorithm"))?;
+
+    let mut scores = BTreeMap::new();
+
+    for action in &input.actions {
+        let mut expected_util = 0.0;
+        let mut min_util = f64::INFINITY;
+
+        for state in &input.states {
+            // Safe due to validation
+            let util = input.outcomes.get(action).unwrap().get(state).unwrap().0;
+            let prob = weights.get(state).unwrap_or(&OrderedFloat(0.0)).0;
+            
+            expected_util += util * prob;
+            if util < min_util {
+                min_util = util;
+            }
+        }
+        
+        // Score = (1 - epsilon) * E[U] + epsilon * min(U)
+        let score = ((1.0 - epsilon) * expected_util) + (epsilon * min_util);
+        scores.insert(action.clone(), OrderedFloat(score));
+    }
+
+    // Rank Actions (Maximize Score)
+    let mut ranked_actions = input.actions.clone();
+    ranked_actions.sort_by(|a, b| {
+        let score_a = scores.get(a).unwrap();
+        let score_b = scores.get(b).unwrap();
+        match score_b.cmp(score_a) {
+            std::cmp::Ordering::Equal => a.cmp(b),
+            other => other,
+        }
+    });
+
+    let recommended = ranked_actions.first().ok_or_else(|| anyhow::anyhow!("No actions provided"))?.clone();
+
+    Ok(DecisionOutput {
+        recommended_action: recommended,
+        ranking: ranked_actions,
+        trace: DecisionTrace {
+            algorithm: "epsilon_contamination".to_string(),
+            regret_table: None,
+            max_regret: None,
+            min_utility: None,
+            weighted_scores: None,
+            probabilities: None,
+            hurwicz_scores: None,
+            laplace_scores: None,
+            starr_scores: None,
+            hodges_lehmann_scores: None,
+            brown_robinson_scores: None,
+            nash_equilibria: None,
+            pareto_frontier: None,
+            epsilon_contamination_scores: Some(scores),
+            fingerprint: None,
+        },
+    })
+}

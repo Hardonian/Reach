@@ -4,7 +4,7 @@ pub mod types;
 
 use wasm_bindgen::prelude::*;
 use crate::types::{DecisionInput, DecisionOutput};
-use crate::engine::{minimax_regret, maximin, weighted_sum, softmax, hurwicz, laplace, starr, hodges_lehmann, brown_robinson, nash, pareto};
+use crate::engine::{minimax_regret, maximin, weighted_sum, softmax, hurwicz, laplace, starr, hodges_lehmann, brown_robinson, nash, pareto, epsilon_contamination};
 use crate::determinism::CanonicalJson;
 
 #[wasm_bindgen]
@@ -34,6 +34,7 @@ pub fn evaluate_decision(input_json: &str) -> Result<String, JsError> {
         Some("brown_robinson") => brown_robinson(&input),
         Some("nash") => nash(&input),
         Some("pareto") => pareto(&input),
+        Some("epsilon_contamination") => epsilon_contamination(&input),
         Some("savage") => minimax_regret(&input),
         Some("wald") => maximin(&input),
         _ => minimax_regret(&input),

@@ -7,13 +7,14 @@ export interface DecisionInput {
   actions: string[];
   states: string[];
   outcomes: Record<string, Record<string, number>>;
-  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz" | "laplace" | "starr" | "savage" | "wald" | "hodges_lehmann" | "brown_robinson" | "nash" | "pareto";
+  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz" | "laplace" | "starr" | "savage" | "wald" | "hodges_lehmann" | "brown_robinson" | "nash" | "pareto" | "epsilon_contamination";
   weights?: Record<string, number>;
   strict?: boolean;
   temperature?: number;
   optimism?: number;
   confidence?: number;
   iterations?: number;
+  epsilon?: number;
 }
 
 export interface DecisionOutput {
@@ -89,6 +90,9 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
   }
   if (input.algorithm === "pareto") {
     return paretoFallback(effectiveInput);
+  }
+  if (input.algorithm === "epsilon_contamination") {
+    return epsilonContaminationFallback(effectiveInput);
   }
 
   // 1. Max Utility per State
@@ -445,6 +449,48 @@ function paretoFallback(input: DecisionInput): DecisionOutput {
     trace: {
       algorithm: "pareto",
       pareto_frontier: frontier
+    }
+  };
+}
+
+function epsilonContaminationFallback(input: DecisionInput): DecisionOutput {
+  const epsilon = input.epsilon ?? 0.1;
+  if (epsilon < 0 || epsilon > 1) throw new Error("Epsilon must be between 0.0 and 1.0");
+  const weights = input.weights || {};
+
+  const scores: Record<string, number> = {};
+
+  for (const action of input.actions) {
+    let expectedUtil = 0;
+    let minUtil = Infinity;
+
+    for (const state of input.states) {
+      const util = input.outcomes[action]?.[state] ?? 0;
+      const prob = weights[state] ?? 0;
+      expectedUtil += util * prob;
+
+      if (util < minUtil) {
+        minUtil = util;
+      }
+    }
+    
+    // Score = (1 - epsilon) * E[U] + epsilon * min(U)
+    scores[action] = ((1.0 - epsilon) * expectedUtil) + (epsilon * minUtil);
+  }
+
+  const ranking = [...input.actions].sort((a, b) => {
+    const sA = scores[a];
+    const sB = scores[b];
+    if (Math.abs(sA - sB) < 1e-9) return a.localeCompare(b);
+    return sB - sA;
+  });
+
+  return {
+    recommended_action: ranking[0],
+    ranking,
+    trace: {
+      algorithm: "epsilon_contamination",
+      epsilon_contamination_scores: scores
     }
   };
 }

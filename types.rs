@@ -23,6 +23,8 @@ pub struct DecisionInput {
     pub confidence: Option<OrderedFloat<f64>>,
     #[serde(default)]
     pub iterations: Option<u32>,
+    #[serde(default)]
+    pub epsilon: Option<OrderedFloat<f64>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -71,6 +73,9 @@ pub struct DecisionTrace {
     // List of ActionIds in the Pareto frontier
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pareto_frontier: Option<Vec<String>>,
+    // Map<ActionId, EpsilonContaminationScore>
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub epsilon_contamination_scores: Option<BTreeMap<String, OrderedFloat<f64>>>,
     
     pub fingerprint: Option<String>,
 }
