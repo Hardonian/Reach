@@ -9,6 +9,7 @@ export interface DecisionInput {
   outcomes: Record<string, Record<string, number>>;
   algorithm?: "minimax_regret" | "maximin" | "weighted_sum";
   weights?: Record<string, number>;
+  strict?: boolean;
 }
 
 export interface DecisionOutput {
@@ -18,6 +19,13 @@ export interface DecisionOutput {
 }
 
 export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
+  if (input.strict && input.weights) {
+    const sum = Object.values(input.weights).reduce((a, b) => a + b, 0);
+    if (Math.abs(sum - 1.0) > 1e-9) {
+      throw new Error(`Weights must sum to 1.0 (got ${sum})`);
+    }
+  }
+
   if (input.algorithm === "maximin") {
     return maximinFallback(input);
   }

@@ -65,6 +65,17 @@ const fixtures = [
             // Tie-break: a1 vs a2 -> a1 (lexicographic)
             algorithm: "weighted_sum"
         }
+    },
+    {
+        name: "Strict Mode (Valid Weights)",
+        input: {
+            actions: ["a1"],
+            states: ["s1", "s2"],
+            outcomes: { "a1": { "s1": 10, "s2": 10 } },
+            weights: { "s1": 0.5, "s2": 0.5 },
+            algorithm: "weighted_sum",
+            strict: true
+        }
     }
 ];
 

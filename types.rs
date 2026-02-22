@@ -13,6 +13,8 @@ pub struct DecisionInput {
     pub algorithm: Option<String>,
     #[serde(default)]
     pub weights: Option<BTreeMap<String, OrderedFloat<f64>>>,
+    #[serde(default)]
+    pub strict: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -51,6 +53,8 @@ pub enum ValidationError {
     MissingOutcome(String, String),
     #[error("Utility value cannot be NaN or Infinity")]
     InvalidUtility,
+    #[error("Weights must sum to 1.0 (got {0})")]
+    InvalidWeightSum(f64),
 }
 
 impl DecisionInput {
@@ -81,6 +85,20 @@ impl DecisionInput {
             }
         }
 
+        if self.strict {
+            self.validate_weights()?;
+        }
+
+        Ok(())
+    }
+
+    pub fn validate_weights(&self) -> Result<(), ValidationError> {
+        if let Some(weights) = &self.weights {
+            let sum: f64 = weights.values().map(|v| v.0).sum();
+            if (sum - 1.0).abs() > 1e-9 {
+                return Err(ValidationError::InvalidWeightSum(sum));
+            }
+        }
         Ok(())
     }
 }
