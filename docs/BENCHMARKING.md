@@ -14,11 +14,13 @@ Every benchmark run captures the following indicators:
 ## Usage
 
 Run a standard benchmark with 3 trials:
+
 ```bash
 reach benchmark --pack arcadeSafe.demo --trials 3
 ```
 
 For JSON output:
+
 ```bash
 reach benchmark --pack arcadeSafe.demo --json
 ```
