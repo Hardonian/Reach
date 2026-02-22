@@ -10,10 +10,15 @@ use crate::determinism::CanonicalJson;
 #[wasm_bindgen]
 pub fn evaluate_decision(input_json: &str) -> Result<String, JsError> {
     // 1. Parse Input (Strict)
-    let input: DecisionInput = serde_json::from_str(input_json)
+    let mut input: DecisionInput = serde_json::from_str(input_json)
         .map_err(|e| JsError::new(&format!("E_SCHEMA: Invalid input JSON: {}", e)))?;
 
-    // 2. Validate
+    // 2. Normalize (if not strict)
+    if !input.strict {
+        input.normalize_weights();
+    }
+
+    // 3. Validate
     input.validate()
         .map_err(|e| JsError::new(&format!("E_INVALID_INPUT: {}", e)))?;
 

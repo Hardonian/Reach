@@ -101,4 +101,15 @@ impl DecisionInput {
         }
         Ok(())
     }
+
+    pub fn normalize_weights(&mut self) {
+        if let Some(weights) = &mut self.weights {
+            let sum: f64 = weights.values().map(|v| v.0).sum();
+            if sum != 0.0 && (sum - 1.0).abs() > 1e-9 {
+                for val in weights.values_mut() {
+                    *val = OrderedFloat(val.0 / sum);
+                }
+            }
+        }
+    }
 }
