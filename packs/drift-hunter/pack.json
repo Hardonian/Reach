@@ -1,0 +1,8 @@
+{
+  "name": "drift-hunter",
+  "version": "1.0.0",
+  "description": "Hunt down configuration drift and unexpected changes in your workspace. Compare runs over time to find what changed and why.",
+  "recipes": ["drift-scan", "diff-runs"],
+  "rules": ["no-undeclared-changes", "version-lock"],
+  "learn_doc": "Learn to detect when your workspace has drifted from its expected state. Essential for maintaining reproducible builds."
+}
