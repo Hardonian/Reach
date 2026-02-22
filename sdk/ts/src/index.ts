@@ -47,11 +47,13 @@ export interface DashboardPersona {
 export interface DashboardViewModel {
   nodes: any[];
   edges: any[];
+  [key: string]: any;
 }
 
 export interface DashboardGraphNode {
   id: string;
   label: string;
+  [key: string]: any;
 }
 
 /**
