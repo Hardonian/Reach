@@ -1,8 +1,0 @@
-=== RUN   TestDiffRuns
-    diff_test.go:54: Did not find environment mismatch
---- FAIL: TestDiffRuns (0.00s)
-=== RUN   TestDiffRuns_LengthMismatch
---- PASS: TestDiffRuns_LengthMismatch (0.00s)
-FAIL
-FAIL	reach/services/runner/internal/determinism	0.429s
-FAIL
