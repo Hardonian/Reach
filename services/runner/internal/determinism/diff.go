@@ -99,6 +99,42 @@ func diffDeep(a, b any, path string, fields *[]DiffField) {
 			diffDeep(valA, valB, newPath, fields)
 		}
 
+	case map[string]string:
+		vb, ok := b.(map[string]string)
+		if !ok {
+			*fields = append(*fields, DiffField{Path: path, ValA: a, ValB: b, Reason: "type mismatch (expected map[string]string)"})
+			return
+		}
+		keys := make(map[string]struct{})
+		for k := range va {
+			keys[k] = struct{}{}
+		}
+		for k := range vb {
+			keys[k] = struct{}{}
+		}
+		sortedKeys := make([]string, 0, len(keys))
+		for k := range keys {
+			sortedKeys = append(sortedKeys, k)
+		}
+		sort.Strings(sortedKeys)
+		for _, k := range sortedKeys {
+			newPath := k
+			if path != "" {
+				newPath = path + "." + k
+			}
+			valA, okA := va[k]
+			valB, okB := vb[k]
+			if !okA {
+				*fields = append(*fields, DiffField{Path: newPath, ValA: nil, ValB: valB, Reason: "missing in A"})
+				continue
+			}
+			if !okB {
+				*fields = append(*fields, DiffField{Path: newPath, ValA: valA, ValB: nil, Reason: "missing in B"})
+				continue
+			}
+			diffDeep(valA, valB, newPath, fields)
+		}
+
 	case []any:
 		vb, ok := b.([]any)
 		if !ok {

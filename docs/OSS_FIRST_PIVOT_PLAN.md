@@ -123,10 +123,19 @@ If any phase introduces regressions:
 
 ---
 
-## Document the current baseline verification results here:
+## Verified Baseline (2026-02-22) — Kilo CI Governance Run
 
-Last verified: 2026-02-22
-- `npm run validate:language` → PASSED
-- `npm run validate:boundaries` → PASSED
-- `npm run validate:oss-purity` → PASSED
-- `npm run verify:oss` → PASSED
+| Check | Command | Result |
+| :--- | :--- | :--- |
+| Canonical Language | `npm run validate:language` | ✅ PASSED (0 violations) |
+| Import Boundaries | `npm run validate:boundaries` | ✅ PASSED |
+| OSS Purity | `npm run validate:oss-purity` | ✅ PASSED (zero-cloud lock verified) |
+| OSS Gate | `npm run verify:oss` | ✅ PASSED (exit 0) |
+
+**Known Pre-existing Issues Documented:**
+
+1. `sdk/ts` ESLint v9 config was missing; fixed by creating `sdk/ts/eslint.config.js`.
+2. `apps/arcade` `next lint` has a Windows path issue (works in Linux CI).
+
+**Action Required for Branch Protection:**
+- Add `verify:oss` as a required status check in GitHub Settings → Branches.

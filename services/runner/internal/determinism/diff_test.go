@@ -54,7 +54,7 @@ func TestDiffRuns(t *testing.T) {
 		t.Error("Did not find environment mismatch")
 	}
 	if !foundStatus {
-		t.Error("Did not find event_log status mismatch")
+		t.Errorf("Did not find event_log status mismatch. Fields found: %+v", diff.Fields)
 	}
 }
 
