@@ -1,0 +1,37 @@
+{
+  "_comment": "Golden fixture: policy denial run. Engine must produce RL-1001 error with stable fingerprint.",
+  "fixture_version": "1.0.0",
+  "description": "Run that is denied by the strict-default policy. Tests that policy evaluation is deterministic.",
+  "run": {
+    "run_id": "sha256:run-policy-denial-v1",
+    "engine_version": "0.2.0",
+    "policy_version": "sha256:policy-strict-default-v1",
+    "input_hash": "sha256:7d865e959b2466918c9863afca942d0fb89d7c9ac0c99bafc3749504ded97730",
+    "artifact_hashes": [],
+    "output_hash": null,
+    "event_log_hash": "sha256:c0535e4be2b79ffd93291305436bf889314e4a3faec05ecffcbb7df31ad9e51a",
+    "timestamp_epoch": 0,
+    "fingerprint": "sha256:f4321dcba9876543210edcba9876543210fedcba9876543210fedcba98765432"
+  },
+  "inputs": {
+    "tool": "disallowed-tool",
+    "action": "execute"
+  },
+  "expected_error": {
+    "code": "RL-1001",
+    "category": "PolicyFailure",
+    "message": "execution denied by policy: tool 'disallowed-tool' is not in the capability allowlist",
+    "deterministic": true
+  },
+  "expected_events": [
+    {"seq": 0, "type": "run.started",   "run_id": "sha256:run-policy-denial-v1"},
+    {"seq": 1, "type": "gate.evaluated","gate": "capability-check", "verdict": "DENY", "rule": "tool-not-allowed"},
+    {"seq": 2, "type": "run.failed",    "run_id": "sha256:run-policy-denial-v1", "error_code": "RL-1001"}
+  ],
+  "conformance_rules": [
+    "policy denial must produce RL-1001",
+    "error.deterministic must be true",
+    "fingerprint must match exactly even on failure",
+    "event log must record gate.evaluated before run.failed"
+  ]
+}

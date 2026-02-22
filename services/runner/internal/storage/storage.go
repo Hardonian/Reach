@@ -21,9 +21,9 @@ var ErrNotFound = errors.New("not found")
 var migrationFS embed.FS
 
 type RunRecord struct {
-	ID, TenantID, Status, PackCID string
-	Capabilities                  []string
-	CreatedAt                     time.Time
+	ID, TenantID, Status, PackCID, Fingerprint string
+	Capabilities                               []string
+	CreatedAt                                  time.Time
 }
 type EventRecord struct {
 	ID          int64
@@ -45,6 +45,7 @@ type SessionRecord struct {
 type RunsStore interface {
 	CreateRun(context.Context, RunRecord) error
 	GetRun(context.Context, string, string) (RunRecord, error)
+	SetFingerprint(context.Context, string, string) error
 }
 type EventsStore interface {
 	AppendEvent(context.Context, EventRecord) (int64, error)
@@ -109,6 +110,7 @@ type preparedOps struct {
 	putSession     *sql.Stmt
 	getSession     *sql.Stmt
 	deleteSession  *sql.Stmt
+	setFingerprint *sql.Stmt
 }
 
 func NewSQLiteStore(path string) (*SQLiteStore, error) {
@@ -133,11 +135,11 @@ func NewSQLiteStore(path string) (*SQLiteStore, error) {
 
 func (s *SQLiteStore) prepareStmts() error {
 	var err error
-	s.ops.createRun, err = s.db.Prepare("INSERT INTO runs(id,tenant_id,capabilities,created_at,status,pack_cid) VALUES(?,?,?,?,?,?)")
+	s.ops.createRun, err = s.db.Prepare("INSERT INTO runs(id,tenant_id,capabilities,created_at,status,pack_cid,fingerprint) VALUES(?,?,?,?,?,?,?)")
 	if err != nil {
 		return err
 	}
-	s.ops.getRun, err = s.db.Prepare("SELECT id,tenant_id,capabilities,created_at,status,pack_cid FROM runs WHERE id=? AND tenant_id=?")
+	s.ops.getRun, err = s.db.Prepare("SELECT id,tenant_id,capabilities,created_at,status,pack_cid,fingerprint FROM runs WHERE id=? AND tenant_id=?")
 	if err != nil {
 		return err
 	}
@@ -189,6 +191,10 @@ func (s *SQLiteStore) prepareStmts() error {
 	if err != nil {
 		return err
 	}
+	s.ops.setFingerprint, err = s.db.Prepare("UPDATE runs SET fingerprint=? WHERE id=?")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -234,6 +240,9 @@ func (s *SQLiteStore) Close() error {
 	}
 	if s.ops.deleteSession != nil {
 		s.ops.deleteSession.Close()
+	}
+	if s.ops.setFingerprint != nil {
+		s.ops.setFingerprint.Close()
 	}
 	return s.db.Close()
 }
@@ -286,7 +295,7 @@ func (s *SQLiteStore) CreateRun(ctx context.Context, rec RunRecord) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	caps, _ := json.Marshal(rec.Capabilities)
-	_, err := s.ops.createRun.ExecContext(ctx, rec.ID, rec.TenantID, string(caps), rec.CreatedAt.UTC(), rec.Status, rec.PackCID)
+	_, err := s.ops.createRun.ExecContext(ctx, rec.ID, rec.TenantID, string(caps), rec.CreatedAt.UTC(), rec.Status, rec.PackCID, rec.Fingerprint)
 	return err
 }
 
@@ -296,7 +305,7 @@ func (s *SQLiteStore) GetRun(ctx context.Context, tenantID, runID string) (RunRe
 	var r RunRecord
 	var caps string
 	var created time.Time
-	err := s.ops.getRun.QueryRowContext(ctx, runID, tenantID).Scan(&r.ID, &r.TenantID, &caps, &created, &r.Status, &r.PackCID)
+	err := s.ops.getRun.QueryRowContext(ctx, runID, tenantID).Scan(&r.ID, &r.TenantID, &caps, &created, &r.Status, &r.PackCID, &r.Fingerprint)
 	if err == sql.ErrNoRows {
 		return r, ErrNotFound
 	}
@@ -587,5 +596,12 @@ func (s *SQLiteStore) DeleteSession(ctx context.Context, id string) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	_, err := s.ops.deleteSession.ExecContext(ctx, id)
+	return err
+}
+
+func (s *SQLiteStore) SetFingerprint(ctx context.Context, runID, fingerprint string) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	_, err := s.ops.setFingerprint.ExecContext(ctx, fingerprint, runID)
 	return err
 }

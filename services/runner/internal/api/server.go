@@ -21,6 +21,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"reach/core/config/tenant"
 	"reach/services/runner/internal/adaptive"
 	"reach/services/runner/internal/arcade/gamification"
 	"reach/services/runner/internal/federation"
@@ -446,7 +447,12 @@ func (s *Server) requireAuth(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), tenantKey, sess.TenantID)))
 	})
 }
-func tenantIDFrom(ctx context.Context) string { v, _ := ctx.Value(tenantKey).(string); return v }
+func tenantIDFrom(ctx context.Context) string {
+	if v, ok := ctx.Value(tenantKey).(string); ok && v != "" {
+		return v
+	}
+	return tenant.DefaultTenantID
+}
 
 func (s *Server) handleDevLogin(w http.ResponseWriter, r *http.Request) {
 	s.setSession(w, r.Context(), "dev-user", "dev-user")

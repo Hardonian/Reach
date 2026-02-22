@@ -1,0 +1,13 @@
+{
+  "run_id": "demo-run-001",
+  "status": "success",
+  "timestamp": "2026-02-21T00:00:00Z",
+  "outputs": [
+    {
+      "name": "greeting",
+      "value": "Hello, Reach OSS!",
+      "hash": "sha256:56f3f..."
+    }
+  ],
+  "determinism_checksum": "sha256:d41d..."
+}

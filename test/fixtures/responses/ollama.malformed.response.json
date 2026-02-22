@@ -1,0 +1,7 @@
+{
+  "provider": "ollama",
+  "payload": {
+    "message": {}
+  },
+  "expectedError": "Malformed ollama response: missing message.content"
+}

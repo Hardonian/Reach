@@ -2,6 +2,7 @@ package backpressure
 
 import (
 	"context"
+	"crypto/sha256"
 	"math"
 	"math/rand"
 	"time"
@@ -95,6 +96,7 @@ func Retry(ctx context.Context, opts RetryOptions, fn func() error) error {
 }
 
 // calculateDelay calculates the delay for a given attempt.
+// Uses deterministic jitter derived from the attempt number for reproducibility.
 func calculateDelay(attempt int, opts RetryOptions) time.Duration {
 	// Exponential backoff: base * multiplier^attempt
 	delay := float64(opts.BaseDelay) * math.Pow(opts.Multiplier, float64(attempt))
@@ -104,13 +106,28 @@ func calculateDelay(attempt int, opts RetryOptions) time.Duration {
 		delay = float64(opts.MaxDelay)
 	}
 
-	// Add jitter
+	// Add deterministic jitter derived from attempt number
 	if opts.Jitter > 0 {
-		jitter := delay * opts.Jitter * (rand.Float64()*2 - 1) // +/- jitter
+		// Use deterministic jitter based on attempt number
+		jitterValue := deterministicJitter(attempt)
+		jitter := delay * opts.Jitter * (jitterValue*2 - 1) // +/- jitter
 		delay += jitter
 	}
 
 	return time.Duration(delay)
+}
+
+// deterministicJitter generates a deterministic jitter value (0.0 to 1.0) from an attempt number.
+func deterministicJitter(attempt int) float64 {
+	// Hash the attempt number to get deterministic bytes
+	h := sha256.Sum256([]byte{byte(attempt), byte(attempt >> 8), byte(attempt >> 16), byte(attempt >> 24)})
+	// Use first 8 bytes to create a deterministic float in [0, 1)
+	seed := int64(0)
+	for i := 0; i < 8; i++ {
+		seed = seed*256 + int64(h[i])
+	}
+	rng := rand.New(rand.NewSource(seed))
+	return rng.Float64()
 }
 
 // RetryWithCircuitBreaker combines retry with circuit breaker.

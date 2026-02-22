@@ -3,6 +3,7 @@ package router
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -97,8 +98,20 @@ func (d *TriggerDispatcher) Dispatch(ctx context.Context, e core.NormalizedEvent
 
 func backoff(attempt int) time.Duration {
 	base := []time.Duration{100 * time.Millisecond, 300 * time.Millisecond, 700 * time.Millisecond}
-	jitter := time.Duration(rand.Intn(50)) * time.Millisecond
+	// Use deterministic jitter derived from attempt number
+	jitter := time.Duration(deterministicJitterInt(attempt, 50)) * time.Millisecond
 	return base[attempt] + jitter
+}
+
+// deterministicJitterInt generates a deterministic jitter value in range [0, max) from an attempt number.
+func deterministicJitterInt(attempt, max int) int {
+	h := sha256.Sum256([]byte{byte(attempt), byte(attempt >> 8), byte(attempt >> 16), byte(attempt >> 24)})
+	seed := int64(0)
+	for i := 0; i < 8; i++ {
+		seed = seed*256 + int64(h[i])
+	}
+	rng := rand.New(rand.NewSource(seed))
+	return rng.Intn(max)
 }
 
 func (d *TriggerDispatcher) allow() error {

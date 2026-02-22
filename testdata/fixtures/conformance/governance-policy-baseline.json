@@ -1,0 +1,101 @@
+{
+  "spec_version": "1.0",
+  "fixture_name": "governance-policy-baseline",
+  "description": "Golden baseline for governance policy evaluation. Verifies that the DSL correctly enforces all six rule types.",
+  "policy": {
+    "version": 1,
+    "require_deterministic": true,
+    "require_signed": false,
+    "max_external_dependencies": 3,
+    "require_plugin_pinned": true,
+    "min_reproducibility_rate": 90,
+    "forbid_chaos_on_main": true
+  },
+  "test_cases": [
+    {
+      "name": "healthy_run_passes",
+      "input": {
+        "run_id": "run-golden-001",
+        "is_deterministic": true,
+        "is_signed": false,
+        "external_dependency_count": 2,
+        "all_plugins_pinned": true,
+        "reproducibility_score": 95,
+        "is_chaos_mode": false,
+        "branch": "feature/test"
+      },
+      "expected": {
+        "allowed": true,
+        "violations": []
+      }
+    },
+    {
+      "name": "not_deterministic_fails",
+      "input": {
+        "run_id": "run-golden-002",
+        "is_deterministic": false,
+        "is_signed": false,
+        "external_dependency_count": 0,
+        "all_plugins_pinned": true,
+        "reproducibility_score": 98,
+        "is_chaos_mode": false,
+        "branch": "main"
+      },
+      "expected": {
+        "allowed": false,
+        "violations": ["NOT_DETERMINISTIC"]
+      }
+    },
+    {
+      "name": "too_many_deps_fails",
+      "input": {
+        "run_id": "run-golden-003",
+        "is_deterministic": true,
+        "is_signed": false,
+        "external_dependency_count": 5,
+        "all_plugins_pinned": true,
+        "reproducibility_score": 95,
+        "is_chaos_mode": false,
+        "branch": "main"
+      },
+      "expected": {
+        "allowed": false,
+        "violations": ["TOO_MANY_EXTERNAL_DEPENDENCIES"]
+      }
+    },
+    {
+      "name": "chaos_on_main_fails",
+      "input": {
+        "run_id": "run-golden-004",
+        "is_deterministic": true,
+        "is_signed": false,
+        "external_dependency_count": 1,
+        "all_plugins_pinned": true,
+        "reproducibility_score": 95,
+        "is_chaos_mode": true,
+        "branch": "main"
+      },
+      "expected": {
+        "allowed": false,
+        "violations": ["CHAOS_ON_MAIN_BRANCH"]
+      }
+    },
+    {
+      "name": "low_reproducibility_fails",
+      "input": {
+        "run_id": "run-golden-005",
+        "is_deterministic": true,
+        "is_signed": false,
+        "external_dependency_count": 1,
+        "all_plugins_pinned": true,
+        "reproducibility_score": 75,
+        "is_chaos_mode": false,
+        "branch": "main"
+      },
+      "expected": {
+        "allowed": false,
+        "violations": ["REPRODUCIBILITY_BELOW_MINIMUM"]
+      }
+    }
+  ]
+}

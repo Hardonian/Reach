@@ -9,11 +9,17 @@ import (
 // ReachError is the canonical error type for Reach.
 // All errors thrown in core paths should be a ReachError.
 type ReachError struct {
-	// Code is the machine-readable error code.
+	// Code is the machine-readable error code (e.g., CodeUnknown).
 	Code Code `json:"code"`
 
 	// Message is a user-safe description (no secrets).
 	Message string `json:"message"`
+
+	// Suggestion is an actionable hint to resolve the error.
+	Suggestion string `json:"suggestion,omitempty"`
+
+	// Deterministic indicates if the error is deterministic (e.g., policy denial).
+	Deterministic bool `json:"deterministic"`
 
 	// Cause is the underlying error (optional, may contain internal details).
 	Cause error `json:"-"`
@@ -31,7 +37,7 @@ type ReachError struct {
 // Error implements the error interface.
 func (e *ReachError) Error() string {
 	if e.Cause != nil {
-		return fmt.Sprintf("[%s] %s: %v", e.Code, e.Message, e.Cause)
+		return fmt.Sprintf("[%s] %s (Suggestion: %s): %v", e.Code, e.Message, e.Suggestion, e.Cause)
 	}
 	return fmt.Sprintf("[%s] %s", e.Code, e.Message)
 }
@@ -44,6 +50,18 @@ func (e *ReachError) Unwrap() error {
 // WithCause adds a cause to the error.
 func (e *ReachError) WithCause(cause error) *ReachError {
 	e.Cause = cause
+	return e
+}
+
+// WithSuggestion adds an actionable suggestion to the error.
+func (e *ReachError) WithSuggestion(suggestion string) *ReachError {
+	e.Suggestion = suggestion
+	return e
+}
+
+// WithDeterminism marks the error as deterministic or not.
+func (e *ReachError) WithDeterminism(deterministic bool) *ReachError {
+	e.Deterministic = deterministic
 	return e
 }
 
@@ -81,18 +99,24 @@ func (e *ReachError) SafeError() string {
 // MarshalJSON implements custom JSON marshaling for safe serialization.
 func (e *ReachError) MarshalJSON() ([]byte, error) {
 	type safeErr struct {
-		Code      string            `json:"code"`
-		Message   string            `json:"message"`
-		Context   map[string]string `json:"context,omitempty"`
-		Timestamp time.Time         `json:"timestamp"`
-		Retryable bool              `json:"retryable"`
+		Code          string            `json:"code"`
+		Category      string            `json:"category"`
+		Message       string            `json:"message"`
+		Suggestion    string            `json:"suggestion,omitempty"`
+		Deterministic bool              `json:"deterministic"`
+		Context       map[string]string `json:"context,omitempty"`
+		Timestamp     time.Time         `json:"timestamp"`
+		Retryable     bool              `json:"retryable"`
 	}
 	return json.Marshal(safeErr{
-		Code:      string(e.Code),
-		Message:   e.Message,
-		Context:   e.Context,
-		Timestamp: e.Timestamp,
-		Retryable: e.Retryable,
+		Code:          string(e.Code),
+		Category:      e.Code.Category(),
+		Message:       e.Message,
+		Suggestion:    e.Suggestion,
+		Deterministic: e.Deterministic,
+		Context:       e.Context,
+		Timestamp:     e.Timestamp,
+		Retryable:     e.Retryable,
 	})
 }
 

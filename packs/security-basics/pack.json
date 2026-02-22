@@ -1,0 +1,8 @@
+{
+  "name": "security-basics",
+  "version": "1.0.0",
+  "description": "Essential security checks for your workspace. Verify integrity, check for common issues, and maintain a security baseline.",
+  "recipes": ["security-scan", "integrity-check"],
+  "rules": ["no-secrets-in-logs", "verified-artifacts-only"],
+  "learn_doc": "Learn the fundamentals of keeping your workspace secure. From integrity verification to artifact signing."
+}

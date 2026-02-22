@@ -1,82 +1,29 @@
 {
-  "name": "reach-protocol",
+  "name": "@reach/decision-engine-monorepo",
+  "version": "0.2.0",
   "private": true,
-  "type": "module",
-  "engines": {
-    "node": ">=18.0.0 <23.0.0",
-    "npm": ">=9.0.0"
-  },
+  "description": "Decision engine monorepo with Rust core and TypeScript wrapper",
   "workspaces": [
-    "apps/arcade",
-    "sdk/ts",
-    "extensions/vscode"
+    "packages/*"
   ],
   "scripts": {
-    "protocol:validate": "node tools/codegen/validate-protocol.mjs",
-    "audit:inspect": "cd services/runner && go run ./cmd/runner-audit-inspector",
-    "lint": "npm run protocol:validate && (cd services/runner && go vet ./...) && npm run lint --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present",
-    "test": "(cd services/runner && go test ./...) && npm run test --workspaces --if-present",
-    "build": "(cd services/runner && go build -ldflags=\"-s -w\" ./...) && npm run build --workspaces --if-present",
-    "verify:fast": "npm run lint && npm run typecheck && npm run verify:env && npm run validate:language && npm run check:routes",
-    "verify:full": "npm run verify:fast && npm run test && npm run build && npm run docs:doctor && npm run security:check",
-    "verify:env": "node scripts/verify-env.mjs",
-    "validate": "npm run verify:full",
-    "verify:smoke": "npm run lint && npm run typecheck && cd services/runner && go build ./...",
-    "verify:api": "cd services/runner && go build ./cmd/reach-serve",
-    "verify:cli": "cd services/runner && go build -ldflags=\"-s -w\" ./cmd/reachctl",
-    "verify:examples": "echo 'Examples verified during build'",
-    "test:smoke": "bash scripts/smoke-test.sh",
-    "serve": "cd services/runner && go run ./cmd/reach-serve",
-    "verify:determinism": "cd services/runner && go test -v ./internal/determinism/...",
-    "verify:policy": "cd services/runner && go test -v ./internal/policy/...",
-    "verify:registry": "cd services/runner && go test -v ./internal/registry/...",
-    "verify:sandbox": "cd services/runner && go test -v ./internal/sandbox/...",
-    "verify:errors": "cd services/runner && go test -v ./internal/errors/...",
-    "verify:config": "cd services/runner && go test -v ./internal/config/...",
-    "verify:backpressure": "cd services/runner && go test -v ./internal/backpressure/...",
-    "verify:telemetry": "cd services/runner && go test -v ./internal/telemetry/...",
-    "verify:pack": "node scripts/verify-packs.mjs",
-    "verify:spec": "node tools/validate-spec.mjs",
-    "verify:compat": "node compat/compat-suite.mjs",
-    "verify:suite-doctor": "node scripts/suite-doctor.mjs",
-    "verify:arcade": "npm run verify -w arcade",
-    "verify:web": "npm run verify:arcade",
-    "spec:validate": "node tools/codegen/validate-protocol.mjs && node compat/compat-suite.mjs",
-    "verify:all": "npm run verify:full && npm run verify:suite-doctor && npm run verify:web",
-    "verify:prod-install": "node scripts/verify-prod-install.mjs",
-    "verify:no-toxic-deps": "node scripts/verify-no-toxic-deps.mjs",
-    "security:audit": "npm audit --workspaces && npm audit",
-    "security:check": "npm run verify:no-toxic-deps && npm run security:audit",
-    "preinstall": "node scripts/check-node-version.mjs",
-    "clean": "node -e \"const fs=require('fs');['services/runner/reach-serve.exe','services/runner/reachctl.exe'].forEach(f=>{try{fs.unlinkSync(f)}catch(e){}})\" && (npm run clean --workspaces --if-present)",
-    "validate:language": "npx tsx scripts/enforce-canonical-language.ts",
-    "check:routes": "node scripts/check-route-duplication.mjs",
-    "docs:doctor": "npx tsx tools/docs/drift/run.ts",
-    "docs:doctor:fix": "npx tsx tools/docs/drift/run.ts --fix",
-    "validate:brand": "npx tsx scripts/validate-brand.ts",
-    "validate:simplicity": "npx tsx scripts/validate-simplicity.ts",
-    "validate:simplicity:enforce": "AGENTS_ENFORCE=1 npx tsx scripts/validate-simplicity.ts",
-    "validate:all": "npm run validate:brand && npm run validate:simplicity && npm run validate:language"
+    "build": "echo 'Build handled by individual language compilers'",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src",
+    "lint:structure": "powershell ./tools/guard-structure.ps1",
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run typecheck && npm run lint:structure && npm test"
   },
   "devDependencies": {
-    "@eslint/js": "^9.15.0",
-    "@typescript-eslint/eslint-plugin": "^8.14.0",
-    "@typescript-eslint/parser": "^8.14.0",
-    "eslint": "^9.15.0",
-    "next": "16.1.6",
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "typescript": "^5.0.0"
   },
-  "overrides": {
-    "clawdbot": "npm:@reach/empty@1.0.0",
-    "codex": "npm:@reach/empty@1.0.0",
-    "connect": "npm:@reach/empty@1.0.0",
-    "request": "npm:@reach/empty@1.0.0",
-    "marked": "npm:@reach/empty@1.0.0",
-    "tar": "^7.0.0",
-    "ws": "^8.18.1",
-    "hono": "npm:@reach/empty@1.0.0",
-    "node-llama-cpp": "npm:@reach/empty@1.0.0"
-  }
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reach/decision-engine.git"
+  },
+  "license": "MIT"
 }

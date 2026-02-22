@@ -19,7 +19,7 @@ export const TelemetryEventSchema = z.object({
   id: z.string(),
   type: z.string(),
   timestamp: z.string().datetime(),
-  data: z.record(z.unknown()),
+  data: z.record(z.string(), z.unknown()),
 });
 
 export class TelemetryEngine {

@@ -114,21 +114,23 @@ type Store struct {
 
 	// Budget controllers per run (sharded for concurrency)
 	// 256 shards to reduce lock contention
-	budgets      [256]*sync.Map // sharded map: runID -> *BudgetController
-	costRegistry *CostRegistry  // Global cost model registry
-	budgetMu     sync.RWMutex   // Protects budget initialization
-	packs        *pack.PackRegistry
+	budgets       [256]*sync.Map // sharded map: runID -> *BudgetController
+	costRegistry  *CostRegistry  // Global cost model registry
+	budgetMu      sync.RWMutex   // Protects budget initialization
+	packs         *pack.PackRegistry
+	engineVersion string
 }
 
 // NewStore creates a new Store with budget sharding
 func NewStore(db *storage.SQLiteStore) *Store {
 	s := &Store{
-		runs:         db,
-		events:       db,
-		audit:        db,
-		drift:        determinism.NewDriftMonitor(),
-		costRegistry: NewCostRegistry(),
-		packs:        pack.NewPackRegistry(),
+		runs:          db,
+		events:        db,
+		audit:         db,
+		drift:         determinism.NewDriftMonitor(),
+		costRegistry:  NewCostRegistry(),
+		packs:         pack.NewPackRegistry(),
+		engineVersion: "0.2.0", // Hardcoded for this version
 	}
 
 	// Initialize budget shards
@@ -255,9 +257,10 @@ func (s *Store) GetRun(ctx context.Context, tenantID, id string) (*Run, error) {
 		Gates:        map[string]Gate{},
 		Status:       rec.Status,
 		PackCID:      rec.PackCID,
+		Fingerprint:  rec.Fingerprint,
 		CreatedAt:    rec.CreatedAt,
-		IsCritical:   rec.Status == "finalized", // Simple heuristic for demo
-		BudgetUSD:    10.0,                      // Default $10 budget for demo
+		IsCritical:   rec.Fingerprint != "",
+		BudgetUSD:    10.0,
 	}, nil
 }
 

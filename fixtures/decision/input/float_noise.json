@@ -1,0 +1,21 @@
+{
+  "id": "fixture_003_float_noise",
+  "description": "Decision with float noise to test normalization (0.1 + 0.2 should equal 0.3)",
+  "input": {
+    "id": "float_noise_001",
+    "actions": [
+      {"id": "a", "label": "Action A"},
+      {"id": "b", "label": "Action B"}
+    ],
+    "scenarios": [
+      {"id": "s1", "probability": 0.5, "adversarial": false},
+      {"id": "s2", "probability": 0.5, "adversarial": false}
+    ],
+    "outcomes": [
+      ["a", "s1", 0.30000000000000004],
+      ["a", "s2", 0.3],
+      ["b", "s1", 0.1],
+      ["b", "s2", 0.2]
+    ]
+  }
+}

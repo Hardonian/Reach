@@ -18,7 +18,8 @@ export type EventName =
   | 'cta_clicked'
   | 'playground_opened'
   | 'template_applied'
-  | 'ab_variant_assigned';
+  | 'ab_variant_assigned'
+  | 'runtime_execution_completed';
 
 export interface AnalyticsEvent {
   event: EventName;
