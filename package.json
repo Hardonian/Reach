@@ -7,17 +7,13 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build -w @reach/decision-engine-wasm",
-    "build:wasm": "cd crates/decision-engine && wasm-pack build --target nodejs --out-dir ../../packages/decision-engine-wasm/wasm",
-    "test": "npm run test -w @reach/decision-engine-wasm",
-    "test:parity": "npm run test:parity -w @reach/decision-engine-wasm",
-    "test:rust": "cd crates && cargo test -p decision-engine",
-    "lint": "npm run lint -w @reach/decision-engine-wasm",
-    "typecheck": "npm run typecheck -w @reach/decision-engine-wasm",
-    "clean": "npm run clean -w @reach/decision-engine-wasm",
-    "verify:oss": "echo 'OSS verification placeholder - implement with actual CI checks'",
-    "verify:fast": "npm run typecheck && npm run lint",
-    "verify:full": "npm run verify:fast && npm run build && npm run test"
+    "build": "echo 'Build handled by individual language compilers'",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src",
+    "lint:structure": "powershell ./tools/guard-structure.ps1",
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run typecheck && npm run lint:structure && npm test"
   },
   "devDependencies": {
     "typescript": "^5.0.0"

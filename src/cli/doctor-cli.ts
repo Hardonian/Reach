@@ -177,6 +177,36 @@ export async function runDoctorCommand(args: { json: boolean; fix: boolean; perf
   const evidenceCheck = runEvidenceGraphCheck();
   checks.push(evidenceCheck);
 
+  // 15. Structural Integrity & Path Alias Checks
+  checks.push(runStructuralIntegrityCheck());
+  checks.push(runPathAliasCheck());
+
+  // 16. Env Variable Check
+  checks.push(runEnvCheck());
+
+  // 17. Pnpm Version Check
+  checks.push(runPnpmCheck());
+
+  // 18. DEK Journal Health Check
+  const { runDekJournalCheck } = await import("./doctor-dek-checks.js");
+  const journalCheck = runDekJournalCheck();
+  checks.push(journalCheck);
+
+  // 19. Model Adapter Integrity Check
+  const { runModelAdapterCheck } = await import("./doctor-dek-checks.js");
+  const adapterCheck = runModelAdapterCheck();
+  checks.push(adapterCheck);
+
+  // 20. Policy Schema Version Check
+  const { runPolicySchemaCheck } = await import("./doctor-dek-checks.js");
+  const policyCheck = runPolicySchemaCheck();
+  checks.push(policyCheck);
+
+  // 21. Enterprise Connectivity Check (Supabase)
+  const { runEnterpriseConnectivityCheck } = await import("./doctor-dek-checks.js");
+  const enterpriseCheck = await runEnterpriseConnectivityCheck();
+  checks.push(enterpriseCheck);
+
   // Compute overall status
   const overall = errorCodes.length > 0 ? "critical" : warnings.length > 0 ? "warning" : "healthy";
 
@@ -233,40 +263,13 @@ export async function runDoctorCommand(args: { json: boolean; fix: boolean; perf
     console.log(`Git: ${supportPayload.gitSha.slice(0, 8)}...`);
     console.log(`Warnings: ${supportPayload.topWarnings.length}`);
     console.log(`Errors: ${supportPayload.errorCodes.length}`);
-
-  // 15. Env Variable Check
-  checks.push(runEnvCheck());
-
-  // 16. Pnpm Version Check
-  checks.push(runPnpmCheck());
-
-  // 17. DEK Journal Health Check
-  const { runDekJournalCheck } = await import("./doctor-dek-checks.js");
-  const journalCheck = runDekJournalCheck();
-  checks.push(journalCheck);
-
-  // 18. Model Adapter Integrity Check
-  const { runModelAdapterCheck } = await import("./doctor-dek-checks.js");
-  const adapterCheck = runModelAdapterCheck();
-  checks.push(adapterCheck);
-
-  // 19. Policy Schema Version Check
-  const { runPolicySchemaCheck } = await import("./doctor-dek-checks.js");
-  const policyCheck = runPolicySchemaCheck();
-  checks.push(policyCheck);
-
-  // 20. Enterprise Connectivity Check (Supabase)
-  const { runEnterpriseConnectivityCheck } = await import("./doctor-dek-checks.js");
-  const enterpriseCheck = await runEnterpriseConnectivityCheck();
-  checks.push(enterpriseCheck);
+  }
 
   // Auto-fix if requested
   if (args.fix && overall !== "healthy") {
     console.log("\n=== Running Fixes ===");
     await runFixes(checks);
   }
-  }
-
 
   if (args.perf) {
     const perfArtifact = runPerfDiagnostics();
@@ -277,6 +280,7 @@ export async function runDoctorCommand(args: { json: boolean; fix: boolean; perf
 
   return overall === "healthy" ? 0 : 1;
 }
+
 
 function runPerfDiagnostics() {
   const t0 = performance.now();
@@ -894,3 +898,87 @@ function runPnpmCheck(): DoctorCheck {
   }
 }
 
+function runStructuralIntegrityCheck(): DoctorCheck {
+  const rootDir = resolve(__dirname, "../../");
+  const guardScript = join(rootDir, "tools/guard-structure.ps1");
+  
+  if (!existsSync(guardScript)) {
+    return {
+      id: "structural_guard",
+      name: "Structural Guard Check",
+      status: "warning",
+      message: "Structural guard script missing at tools/guard-structure.ps1",
+      remediation: "Re-run structural normalization to restore guards."
+    };
+  }
+
+  try {
+    execSync(`powershell ${guardScript}`, { stdio: "ignore", cwd: rootDir });
+    return {
+      id: "structural_guard",
+      name: "Structural Guard Check",
+      status: "pass",
+      message: "Root directory matches registered baseline. No entropy detected."
+    };
+  } catch {
+    return {
+      id: "structural_guard",
+      name: "Structural Guard Check",
+      status: "fail",
+      message: "Unexpected files detected in root directory.",
+      remediation: "Move root files to appropriate subdirectories or update the guard script baseline."
+    };
+  }
+}
+
+function runPathAliasCheck(): DoctorCheck {
+  const tsConfigPath = resolve(__dirname, "../../tsconfig.json");
+  if (!existsSync(tsConfigPath)) {
+    return {
+      id: "path_alias_health",
+      name: "Path Alias Check",
+      status: "fail",
+      message: "tsconfig.json missing.",
+    };
+  }
+
+  try {
+    const tsconfig = JSON.parse(readFileSync(tsConfigPath, "utf8"));
+    const paths = tsconfig.compilerOptions?.paths || {};
+    const missingPaths = [];
+
+    for (const [alias, targets] of Object.entries(paths)) {
+      for (const target of targets as string[]) {
+        const fullPath = resolve(__dirname, "../../", target.replace("/*", ""));
+        if (!existsSync(fullPath)) {
+          missingPaths.push(`${alias} -> ${target}`);
+        }
+      }
+    }
+
+    if (missingPaths.length > 0) {
+      return {
+        id: "path_alias_health",
+        name: "Path Alias Check",
+        status: "fail",
+        message: `Broken path aliases detected: ${missingPaths.join(", ")}`,
+        remediation: "Update tsconfig.json paths to match the new src/ layout."
+      };
+    }
+
+    return {
+      id: "path_alias_health",
+      name: "Path Alias Check",
+      status: "pass",
+      message: "All tsconfig path aliases correctly resolve to filesystem locations."
+    };
+  } catch (e) {
+    return {
+      id: "path_alias_health",
+      name: "Path Alias Check",
+      status: "warning",
+      message: "Could not parse tsconfig.json for path validation.",
+      details: { error: e.message }
+    };
+  }
+}
