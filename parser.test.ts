@@ -60,4 +60,18 @@ Configuration:
       label: '.env file found'
     });
   });
+
+  it('detects configuration failures', () => {
+    const output = `
+Reach v0.3.1
+Configuration:
+  [FAIL] .env file missing
+`;
+    const report = parseDoctorOutput(output);
+    expect(report.checks[0]).toEqual({
+      category: 'Configuration',
+      status: 'FAIL',
+      label: '.env file missing'
+    });
+  });
 });
