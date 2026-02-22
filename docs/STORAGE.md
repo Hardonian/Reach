@@ -1,9 +1,11 @@
 # Storage Specification
 
 ## Overview
+
 Reach uses a local-first storage model. By default, all data is stored in the user's home directory.
 
 ## Directory Structure
+
 Default path: `~/.reach/` (can be overridden via `REACH_HOME` or `REACH_DATA_DIR`)
 
 ```text
@@ -17,6 +19,7 @@ Default path: `~/.reach/` (can be overridden via `REACH_HOME` or `REACH_DATA_DIR
 ```
 
 ## Storage Driver Interface (Go)
+
 ```go
 type StorageDriver interface {
     Put(ctx context.Context, key string, data []byte) error
@@ -27,12 +30,15 @@ type StorageDriver interface {
 ```
 
 ## SQLite Schema
+
 The `reach.db` contains:
+
 - `runs`: Metadata for every execution.
 - `events`: Deterministic event log for each run.
 - `audit`: Immutable proof chain.
 - `registry_cache`: Local cache of plugin metadata.
 
 ## Governance & GC
+
 - `reachctl gc`: Removes old run data and unused packs.
 - `reachctl export <run-id>`: Creates a standalone `.reach.zip` containing everything needed for replay.

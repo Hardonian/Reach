@@ -133,17 +133,28 @@ reach operator
 REACH_MOBILE=1 reach doctor
 ```
 
-## Hosted vs OSS
+## OSS Mode vs Cloud
 
-- **OSS ReadyLayer (this repo)**: self-hosted services, protocol schemas, deterministic core, and extension integrations.
-- **Hosted deployments**: managed operations, uptime/SLO ownership, and centralized observability run by your platform team or managed provider.
+ReadyLayer is **OSS-first**. The core engine, deterministic runner, CLI, and local storage are all open-source and run entirely on your hardware.
 
-## Roadmap preview
+- **OSS Core (This Repo)**:
+  - Deterministic execution engine (`services/runner`)
+  - Local-first SQLite storage for runs and artifacts.
+  - `reachctl` CLI for orchestration and replay.
+  - Zero-config local playground.
+- **Enterprise Cloud (Future)**:
+  - Multi-tenant hosting and managed runners.
+  - Collaborative dashboards and fleet management.
+  - Enterprise SSO, billing, and team RBAC.
 
-- Deeper replay verification across orchestration boundaries
-- Expanded federation controls and node compatibility checks
-- Marketplace and signed connector distribution maturity
-- Stronger observability for policy and replay invariants
+## Roadmap: Milestone Kilo
+
+Focus: Rock-solid local execution and artifact management.
+
+- **K1: Deterministic Storage**: All run artifacts hashed and stored in stable structure.
+- **K2: Replay Protocol**: Bit-for-bit identical execution verification.
+- **K3: CLI Hardening**: Production-ready `reachctl` for local-first operations.
+- **K4: Local-First Docs**: Pure local documentation without cloud-specific noise.
 
 ## Troubleshooting
 
