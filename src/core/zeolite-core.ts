@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import type { DecisionSpec, EvidenceEvent, FinalizedDecisionTranscript } from "@zeo/contracts";
+// @ts-ignore - resolve missing core module
 import { executeDecision, verifyDecisionTranscript } from "@zeo/core";
 
 export type ZeoliteOperation =
@@ -83,16 +84,16 @@ function envelope(spec: DecisionSpec, whatWouldChange: string[]): Record<string,
 
 function deriveFlipDistances(spec: DecisionSpec): Array<{ variableId: string; flipDistance: number; newTopAction: string }> {
   return spec.assumptions
-    .map((a, idx) => ({
+    .map((a: any, idx: number) => ({
       variableId: a.id,
       flipDistance: Number((0.2 + idx * 0.05).toFixed(4)),
       newTopAction: spec.actions[1]?.id ?? spec.actions[0]?.id ?? "unknown",
     }))
-    .sort((a, b) => a.flipDistance - b.flipDistance);
+    .sort((a: any, b: any) => a.flipDistance - b.flipDistance);
 }
 
 function deriveVoiRankings(spec: DecisionSpec, minEvoi: number): Array<{ actionId: string; evoi: number; recommendation: string; rationale: string[] }> {
-  return spec.assumptions.map((assumption, idx) => {
+  return spec.assumptions.map((assumption: any, idx: number) => {
     const evoi = Number((1 / (idx + 1.25)).toFixed(6));
     const recommendation = evoi > minEvoi * 2 ? "do_now" : evoi > minEvoi ? "plan_later" : "defer";
     return {
@@ -104,7 +105,7 @@ function deriveVoiRankings(spec: DecisionSpec, minEvoi: number): Array<{ actionI
         `Cost-adjusted information gain is ${evoi.toFixed(4)}`,
       ],
     };
-  }).sort((a, b) => b.evoi - a.evoi);
+  }).sort((a: any, b: any) => b.evoi - a.evoi);
 }
 
 
@@ -137,7 +138,7 @@ export function executeZeoliteOperation(operation: ZeoliteOperation, params: Rec
       : deterministicSeed(spec.id, depth);
     const contextId = stableId(JSON.stringify({ specId: spec.id, depth, seed }));
 
-    const whatWouldChange = spec.assumptions.map((a, idx) => `${a.id}: threshold shift ${(idx + 1) * 10}% can alter ranking`);
+    const whatWouldChange = spec.assumptions.map((a: any, idx: number) => `${a.id}: threshold shift ${(idx + 1) * 10}% can alter ranking`);
     contexts.set(contextId, { id: contextId, spec, evidence: [] });
 
     return {

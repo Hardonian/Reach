@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { evaluateDecisionFallback, DecisionInput, DecisionOutput } from './lib/fallback';
+import { evaluateDecisionFallback, DecisionInput, DecisionOutput } from './lib/fallback.js';
 
 let wasmModule: any = null;
 
