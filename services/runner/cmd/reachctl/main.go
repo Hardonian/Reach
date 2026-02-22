@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -72,8 +73,34 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		usage(out)
 		return 1
 	}
+
+	// Global Flags (Simple approach)
+	filteredArgs := []string{}
+	traceDeterminism := false
+	for _, arg := range args {
+		if arg == "--trace-determinism" {
+			traceDeterminism = true
+			os.Setenv("REACH_TRACE_DETERMINISM", "1")
+		} else {
+			filteredArgs = append(filteredArgs, arg)
+		}
+	}
+	_ = traceDeterminism
+
+	if len(filteredArgs) < 1 {
+		usage(out)
+		return 1
+	}
+
+	args = filteredArgs
 	dataRoot := getenv("REACH_DATA_DIR", "data")
 	switch args[0] {
+	case "diff-run":
+		return runDiffRun(ctx, dataRoot, args[1:], out, errOut)
+	case "verify-determinism":
+		return runVerifyDeterminism(ctx, dataRoot, args[1:], out, errOut)
+	case "benchmark":
+		return runBenchmark(ctx, dataRoot, args[1:], out, errOut)
 	case "federation":
 		return runFederation(ctx, dataRoot, args[1:], out, errOut)
 	case "support":
@@ -1405,7 +1432,7 @@ func (d *Doctor) Diagnose(packPath string) *doctorReport {
 	if metadata, ok := pack["metadata"].(map[string]any); ok {
 		name, hasName := metadata["name"].(string)
 		version, hasVersion := metadata["version"].(string)
-		
+
 		if hasName && name != "" && hasVersion && version != "" {
 			report.Checks = append(report.Checks, doctorCheck{
 				Name:    "Metadata",
@@ -3405,7 +3432,7 @@ func runDoctor(args []string, out, errOut io.Writer) int {
 	healthy := true
 	for _, check := range checks {
 		fmt.Fprintf(out, "[ ] %-20s ", check.Name)
-		execCmd := jobs.NewSafeCommand(check.Cmd, check.Args...)
+		execCmd := exec.Command(check.Cmd, check.Args...)
 		output, err := execCmd.CombinedOutput()
 		if err != nil {
 			fmt.Fprintf(out, "FAIL (%v)\n", err)
