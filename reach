@@ -55,6 +55,10 @@ case "$cmd" in
     shift
     (cd services/runner && go run ./cmd/reachctl init "$@")
     ;;
+  config)
+    shift
+    (cd services/runner && go run ./cmd/reachctl config "$@")
+    ;;
   explain)
     shift
     (cd services/runner && go run ./cmd/reachctl explain "$@")

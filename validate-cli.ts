@@ -11,9 +11,9 @@ async function main() {
     
     let stdout = '';
     try {
-      // Execute the Go module in the current directory
-      stdout = execSync('go run . --json', { 
-        cwd: __dirname, 
+      // Execute the Go module in the tools/doctor directory where main.go lives
+      stdout = execSync('go run . --json', {
+        cwd: path.join(__dirname, 'tools', 'doctor'),
         encoding: 'utf-8',
         stdio: ['ignore', 'pipe', 'inherit'] // Capture stdout, let stderr flow
       });
