@@ -1,0 +1,32 @@
+{
+  "_comment": "Stress fixture: map iteration order injection. Shuffles JSON object keys before hashing and asserts fingerprint remains identical.",
+  "fixture_version": "1.0.0",
+  "stress_type": "map_key_permutation",
+  "description": "Inject shuffled key ordering on inputs and intermediate state. The engine must normalize to sorted keys before hashing.",
+  "base_run_id": "sha256:run-hello-deterministic-v1",
+  "base_fingerprint": "sha256:e1429c0ea0c3c2c8e7f61e15f4f8a6a1c7e1a2b3d4e5f6a7b8c9d0e1f2a3b4c5",
+  "mutations": [
+    {
+      "trial": 1,
+      "description": "Inputs with keys in original order",
+      "inputs": {"action": "greet", "message": "hello", "target": "world"},
+      "expected_fingerprint": "sha256:e1429c0ea0c3c2c8e7f61e15f4f8a6a1c7e1a2b3d4e5f6a7b8c9d0e1f2a3b4c5"
+    },
+    {
+      "trial": 2,
+      "description": "Inputs with keys shuffled (target first)",
+      "inputs": {"target": "world", "action": "greet", "message": "hello"},
+      "expected_fingerprint": "sha256:e1429c0ea0c3c2c8e7f61e15f4f8a6a1c7e1a2b3d4e5f6a7b8c9d0e1f2a3b4c5"
+    },
+    {
+      "trial": 3,
+      "description": "Inputs with keys shuffled (message first)",
+      "inputs": {"message": "hello", "target": "world", "action": "greet"},
+      "expected_fingerprint": "sha256:e1429c0ea0c3c2c8e7f61e15f4f8a6a1c7e1a2b3d4e5f6a7b8c9d0e1f2a3b4c5"
+    }
+  ],
+  "assertion": "All trials must produce identical fingerprint. Key order in JSON must not affect hash.",
+  "pass_condition": "all_fingerprints_match",
+  "failure_code": "RL-2002",
+  "notes": "This tests the CanonicalJSON serialization path. Go map iteration is randomized; the engine MUST sort keys before hashing."
+}

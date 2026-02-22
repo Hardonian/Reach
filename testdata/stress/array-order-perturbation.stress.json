@@ -1,0 +1,41 @@
+{
+  "_comment": "Stress fixture: input array order perturbation. Tests that order-sensitive arrays ARE detected, and order-agnostic arrays don't affect fingerprint.",
+  "fixture_version": "1.0.0",
+  "stress_type": "array_order_perturbation",
+  "description": "Tests two scenarios: (A) order-sensitive arrays where reordering SHOULD change the fingerprint, (B) order-agnostic sets where normalization ensures stability.",
+  "scenarios": [
+    {
+      "scenario": "A",
+      "name": "order_sensitive_array",
+      "description": "Ordered steps — reordering MUST change fingerprint",
+      "trial_1": {
+        "inputs": {"steps": ["validate", "transform", "output"]},
+        "expected_fingerprint": "sha256:aaaa1111a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+      },
+      "trial_2": {
+        "inputs": {"steps": ["output", "validate", "transform"]},
+        "expected_fingerprint": "sha256:bbbb2222b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+      },
+      "assertion": "Different orderings must produce DIFFERENT fingerprints",
+      "pass_condition": "fingerprints_differ"
+    },
+    {
+      "scenario": "B",
+      "name": "order_agnostic_set",
+      "description": "Capability set — order must NOT affect fingerprint (sorted before hash)",
+      "trial_1": {
+        "inputs": {"capabilities": ["read", "write", "exec"]},
+        "expected_fingerprint": "sha256:cccc3333c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+      },
+      "trial_2": {
+        "inputs": {"capabilities": ["exec", "read", "write"]},
+        "expected_fingerprint": "sha256:cccc3333c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+      },
+      "assertion": "Capability sets must be sorted before hashing — different orderings produce SAME fingerprint",
+      "pass_condition": "fingerprints_match",
+      "normalization": "sort_lexicographic_before_hash"
+    }
+  ],
+  "notes": "Pack manifests must declare which arrays are order-sensitive vs order-agnostic. Engine normalizes order-agnostic arrays (sets) before hashing.",
+  "stress_type_note": "In production code: NEVER pass unsorted sets to CanonicalJSON"
+}

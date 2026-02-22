@@ -975,9 +975,3 @@ func (s *Server) handleLeaseJobs(w http.ResponseWriter, r *http.Request) {
 }
 
 func mustJSON(v any) []byte { b, _ := json.Marshal(v); return b }
-
-	writeJSON(w, 200, map[string]any{"lease_token": token, "jobs": jobs})
-}
-
-func mustJSON(v any) []byte { b, _ := json.Marshal(v); return b }
-
