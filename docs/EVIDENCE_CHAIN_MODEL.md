@@ -1,6 +1,6 @@
 # Evidence Chain Model
 
-Last Updated: 2026-02-22
+Last Updated: 2026-02-22 (Extended for Governance + Cryptographic Signing)
 
 ## Purpose
 
