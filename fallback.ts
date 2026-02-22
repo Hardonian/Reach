@@ -8,9 +8,11 @@ export interface DecisionInput {
   states: string[];
   outcomes: Record<string, Record<string, number>>;
   algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax";
+  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz";
   weights?: Record<string, number>;
   strict?: boolean;
   temperature?: number;
+  optimism?: number;
 }
 
 export interface DecisionOutput {
@@ -65,6 +67,9 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
   }
   if (input.algorithm === "softmax") {
     return softmaxFallback(effectiveInput);
+  }
+  if (input.algorithm === "hurwicz") {
+    return hurwiczFallback(effectiveInput);
   }
 
   // 1. Max Utility per State
@@ -130,6 +135,40 @@ export function validateOutcomesFallback(input: DecisionInput): boolean {
     }
   }
   return true;
+}
+
+function hurwiczFallback(input: DecisionInput): DecisionOutput {
+  const alpha = input.optimism ?? 0.5;
+  if (alpha < 0 || alpha > 1) throw new Error("Optimism (alpha) must be between 0.0 and 1.0");
+
+  const scores: Record<string, number> = {};
+
+  for (const action of input.actions) {
+    let min = Infinity;
+    let max = -Infinity;
+    for (const state of input.states) {
+      const val = input.outcomes[action]?.[state] ?? -Infinity;
+      if (val < min) min = val;
+      if (val > max) max = val;
+    }
+    scores[action] = (alpha * max) + ((1.0 - alpha) * min);
+  }
+
+  const ranking = [...input.actions].sort((a, b) => {
+    const sA = scores[a];
+    const sB = scores[b];
+    if (Math.abs(sA - sB) < 1e-9) return a.localeCompare(b);
+    return sB - sA;
+  });
+
+  return {
+    recommended_action: ranking[0],
+    ranking,
+    trace: {
+      algorithm: "hurwicz",
+      hurwicz_scores: scores
+    }
+  };
 }
 
 export function validateProbabilitiesFallback(input: DecisionInput): boolean {
