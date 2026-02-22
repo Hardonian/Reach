@@ -24,7 +24,6 @@ type checkResult struct {
 
 func (c checkResult) MarshalJSON() ([]byte, error) {
 	status := "FAIL"
-	if c.ok {
 	if c.severity != "" {
 		status = c.severity
 	} else if c.ok {
@@ -97,12 +96,10 @@ func main() {
 		}
 
 		if !jsonOutput {
-			if result.ok {
 			if result.ok && result.severity != "WARN" {
 				fmt.Printf("[OK]   %s\n", result.name)
 				continue
 			}
-			fmt.Printf("[FAIL] %s\n", result.name)
 			label := "FAIL"
 			if result.severity != "" {
 				label = result.severity
