@@ -73,6 +73,19 @@ pub use types::{
     Scenario, VoiRanking,
 };
 
+// Re-export WASM functions for non-WASM builds
+#[cfg(not(target_arch = "wasm32"))]
+pub use wasm::{
+    compute_fingerprint_json, evaluate_decision_json, get_engine_version, ErrorDetail,
+    WasmError, WasmSuccess,
+};
+
+#[cfg(target_arch = "wasm32")]
+pub use wasm::{
+    compute_fingerprint_json, evaluate_decision_json, get_engine_version, ErrorDetail,
+    WasmError, WasmSuccess,
+};
+
 #[cfg(test)]
 mod tests {
     use super::*;
