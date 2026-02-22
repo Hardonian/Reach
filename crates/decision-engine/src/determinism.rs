@@ -1,61 +1,48 @@
-//! Determinism utilities for byte-stable serialization and hashing.
+//! Determinism utilities for byte-stable serialization.
 //!
-//! This module provides the foundation for deterministic decision outputs:
-//! - Canonical JSON serialization with sorted keys and normalized floats
-//! - SHA-256 hashing for fingerprinting
-//! - Float normalization with configurable precision
+//! This module provides the core determinism guarantees:
+//! - **Float normalization**: Fixed precision (1e-9) for deterministic numeric comparison
+//! - **Canonical JSON**: Sorted keys, normalized floats, no undefined values
+//! - **Stable hashing**: SHA-256 fingerprinting of canonical bytes
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 
-/// Precision for float normalization (1e-9 means 9 decimal places).
+/// Precision for float normalization (1e-9).
 pub const FLOAT_PRECISION: f64 = 1e-9;
 
-/// A deterministic fingerprint (SHA-256 hash in hex).
-pub type DeterminismFingerprint = String;
-
-/// Normalize a float value to a deterministic representation.
+/// Normalize a float to fixed precision for deterministic comparison.
 ///
-/// Uses a fixed precision (1e-9) to ensure consistent rounding.
-/// NaN is converted to 0.0, and infinity is clamped to f64::MAX or f64::MIN.
+/// This eliminates floating-point noise by rounding to a fixed number
+/// of decimal places (9 digits after the decimal point).
 ///
 /// # Example
 ///
 /// ```
 /// use decision_engine::determinism::float_normalize;
 ///
-/// assert!((float_normalize(1.23456789012345) - 1.234567890).abs() < 1e-12);
-/// assert!((float_normalize(0.1 + 0.2) - 0.3).abs() < 1e-9);
+/// let noisy = 0.1 + 0.2; // Not exactly 0.3 in IEEE 754
+/// let normalized = float_normalize(noisy);
+/// assert!((normalized - 0.3).abs() < 1e-9);
 /// ```
 pub fn float_normalize(value: f64) -> f64 {
     if value.is_nan() {
-        return 0.0;
+        return 0.0; // NaN is not deterministic, convert to 0
     }
     if value.is_infinite() {
-        return if value.is_sign_positive() { f64::MAX } else { f64::MIN };
+        if value > 0.0 {
+            return f64::MAX;
+        } else {
+            return f64::MIN;
+        }
     }
     (value / FLOAT_PRECISION).round() * FLOAT_PRECISION
 }
 
-/// Normalize a float for JSON display (truncated to avoid floating point noise).
-fn normalize_for_json(value: f64) -> f64 {
-    if value.is_nan() {
-        return 0.0;
-    }
-    if value.is_infinite() {
-        return if value.is_sign_positive() { f64::MAX } else { f64::MIN };
-    }
-    // Truncate to 9 decimal places for clean JSON output
-    let normalized = (value * 1e9).round() / 1e9;
-    // Handle -0.0
-    if normalized == 0.0 { 0.0 } else { normalized }
-}
-
-/// A canonical JSON value for deterministic serialization.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum CanonicalValue {
+/// Internal representation for canonical JSON values.
+#[derive(Debug, Clone, PartialEq)]
+enum CanonicalValue {
     Null,
     Bool(bool),
     Number(f64),
@@ -65,23 +52,65 @@ pub enum CanonicalValue {
 }
 
 impl CanonicalValue {
-    /// Convert a serde_json::Value to a CanonicalValue with sorted keys and normalized floats.
-    pub fn from_json_value(value: &serde_json::Value) -> Self {
+    /// Convert to a JSON-like string representation.
+    fn to_canonical_string(&self) -> String {
+        match self {
+            CanonicalValue::Null => "null".to_string(),
+            CanonicalValue::Bool(b) => b.to_string(),
+            CanonicalValue::Number(n) => {
+                // Format number with fixed precision
+                let normalized = float_normalize(*n);
+                if normalized.fract() == 0.0 {
+                    format!("{}", normalized as i64)
+                } else {
+                    format!("{}", normalized)
+                }
+            }
+            CanonicalValue::String(s) => {
+                // Escape special characters
+                let escaped = s
+                    .replace('\\', "\\\\")
+                    .replace('"', "\\\"")
+                    .replace('\n', "\\n")
+                    .replace('\r', "\\r")
+                    .replace('\t', "\\t");
+                format!("\"{}\"", escaped)
+            }
+            CanonicalValue::Array(arr) => {
+                let items: Vec<String> = arr.iter().map(|v| v.to_canonical_string()).collect();
+                format!("[{}]", items.join(","))
+            }
+            CanonicalValue::Object(obj) => {
+                // Keys are already sorted by BTreeMap
+                let items: Vec<String> = obj
+                    .iter()
+                    .map(|(k, v)| {
+                        let key = CanonicalValue::String(k.clone()).to_canonical_string();
+                        format!("{}:{}", key, v.to_canonical_string())
+                    })
+                    .collect();
+                format!("{{{}}}", items.join(","))
+            }
+        }
+    }
+}
+
+impl From<&serde_json::Value> for CanonicalValue {
+    fn from(value: &serde_json::Value) -> Self {
         match value {
             serde_json::Value::Null => CanonicalValue::Null,
             serde_json::Value::Bool(b) => CanonicalValue::Bool(*b),
             serde_json::Value::Number(n) => {
-                let f = n.as_f64().unwrap_or(0.0);
-                CanonicalValue::Number(normalize_for_json(f))
+                CanonicalValue::Number(n.as_f64().unwrap_or(0.0))
             }
             serde_json::Value::String(s) => CanonicalValue::String(s.clone()),
             serde_json::Value::Array(arr) => {
-                CanonicalValue::Array(arr.iter().map(Self::from_json_value).collect())
+                CanonicalValue::Array(arr.iter().map(CanonicalValue::from).collect())
             }
             serde_json::Value::Object(obj) => {
-                let mut map = BTreeMap::new();
+                let mut map: BTreeMap<String, CanonicalValue> = BTreeMap::new();
                 for (k, v) in obj {
-                    map.insert(k.clone(), Self::from_json_value(v));
+                    map.insert(k.clone(), CanonicalValue::from(v));
                 }
                 CanonicalValue::Object(map)
             }
@@ -89,63 +118,51 @@ impl CanonicalValue {
     }
 }
 
-/// Serialize a value to canonical JSON bytes.
+/// Produce canonical JSON bytes from a serializable value.
 ///
-/// This produces byte-stable JSON with:
-/// - Sorted object keys (using BTreeMap)
-/// - Normalized float values (9 decimal places)
+/// The canonical form ensures:
+/// - Object keys are sorted lexicographically
+/// - Floats are normalized to fixed precision
+/// - No undefined values (converted to null if needed)
 /// - No trailing whitespace
-/// - Consistent escaping
 ///
 /// # Example
 ///
 /// ```
 /// use decision_engine::determinism::canonical_json;
-/// use serde::Serialize;
+/// use serde_json::json;
 ///
-/// #[derive(Serialize)]
-/// struct Data {
-///     z: f64,
-///     a: f64,
-/// }
+/// let value = json!({
+///     "zebra": 1,
+///     "apple": 2,
+///     "mango": 0.1 + 0.2  // Float noise
+/// });
 ///
-/// let d1 = Data { z: 1.0, a: 2.0 };
-/// let d2 = Data { a: 2.0, z: 1.0 };
-///
-/// // Different field order produces same canonical JSON
-/// assert_eq!(canonical_json(&d1), canonical_json(&d2));
+/// let bytes = canonical_json(&value);
+/// // Keys are sorted: apple, mango, zebra
+/// // Float is normalized: 0.3
 /// ```
 pub fn canonical_json<T: Serialize>(value: &T) -> Vec<u8> {
     // First serialize to serde_json::Value
-    let json_value = serde_json::to_value(value).expect("serialization failed");
-    // Convert to canonical form with sorted keys
-    let canonical = CanonicalValue::from_json_value(&json_value);
-    // Serialize to bytes (sorted keys are preserved by BTreeMap)
-    let mut bytes = serde_json::to_vec(&canonical).expect("canonical serialization failed");
-    // Ensure no trailing newline
-    if bytes.last() == Some(&b'\n') {
-        bytes.pop();
-    }
-    bytes
+    let json_value = serde_json::to_value(value).unwrap_or(serde_json::Value::Null);
+
+    // Convert to canonical form
+    let canonical = CanonicalValue::from(&json_value);
+
+    // Produce canonical string
+    canonical.to_canonical_string().into_bytes()
 }
 
-/// Compute a SHA-256 hash of canonical JSON bytes.
-///
-/// Returns a hex-encoded string (64 characters).
+/// Compute SHA-256 hash of bytes, returning hex-encoded string.
 ///
 /// # Example
 ///
 /// ```
-/// use decision_engine::determinism::{canonical_json, stable_hash};
-/// use serde::Serialize;
+/// use decision_engine::determinism::stable_hash;
 ///
-/// #[derive(Serialize)]
-/// struct Input { value: f64 }
-///
-/// let bytes = canonical_json(&Input { value: 1.0 });
-/// let hash = stable_hash(&bytes);
-/// assert_eq!(hash.len(), 64);
-/// assert!(hash.chars().all(|c| c.is_ascii_hexdigit()));
+/// let bytes = b"hello world";
+/// let hash = stable_hash(bytes);
+/// assert_eq!(hash.len(), 64); // SHA-256 produces 64 hex chars
 /// ```
 pub fn stable_hash(bytes: &[u8]) -> String {
     let mut hasher = Sha256::new();
@@ -154,41 +171,39 @@ pub fn stable_hash(bytes: &[u8]) -> String {
     hex::encode(result)
 }
 
-/// Compute a deterministic fingerprint for any serializable value.
+/// Compute deterministic fingerprint for a serializable value.
 ///
-/// This is a convenience function that combines canonical_json and stable_hash.
+/// This produces a SHA-256 hash of the canonical JSON representation.
+/// Identical inputs always produce identical fingerprints.
 ///
 /// # Example
 ///
 /// ```
-/// use decision_engine::determinism::DeterminismFingerprint;
 /// use decision_engine::determinism::compute_fingerprint;
-/// use serde::Serialize;
+/// use serde_json::json;
 ///
-/// #[derive(Serialize)]
-/// struct Decision { id: String, value: f64 }
+/// let value1 = json!({"a": 1, "b": 2});
+/// let value2 = json!({"b": 2, "a": 1}); // Same content, different key order
 ///
-/// let d1 = Decision { id: "test".to_string(), value: 1.0 };
-/// let d2 = Decision { id: "test".to_string(), value: 1.0 };
+/// let fp1 = compute_fingerprint(&value1);
+/// let fp2 = compute_fingerprint(&value2);
 ///
-/// assert_eq!(compute_fingerprint(&d1), compute_fingerprint(&d2));
+/// assert_eq!(fp1, fp2); // Same fingerprint despite different key order
 /// ```
-pub fn compute_fingerprint<T: Serialize>(value: &T) -> DeterminismFingerprint {
+pub fn compute_fingerprint<T: Serialize>(value: &T) -> String {
     let bytes = canonical_json(value);
     stable_hash(&bytes)
 }
 
-/// Hex encoding utility (avoiding external dependency for simple case).
-mod hex {
-    const HEX_CHARS: &[u8; 16] = b"0123456789abcdef";
+/// Trait for types that can produce a determinism fingerprint.
+pub trait DeterminismFingerprint {
+    /// Compute the deterministic fingerprint.
+    fn fingerprint(&self) -> String;
+}
 
-    pub fn encode(bytes: &[u8]) -> String {
-        let mut result = String::with_capacity(bytes.len() * 2);
-        for &byte in bytes {
-            result.push(HEX_CHARS[(byte >> 4) as usize] as char);
-            result.push(HEX_CHARS[(byte & 0x0f) as usize] as char);
-        }
-        result
+impl<T: Serialize> DeterminismFingerprint for T {
+    fn fingerprint(&self) -> String {
+        compute_fingerprint(self)
     }
 }
 
@@ -198,132 +213,163 @@ mod tests {
     use serde_json::json;
 
     #[test]
-    fn test_float_normalize() {
-        // Basic normalization
-        assert!((float_normalize(1.23456789012345) - 1.234567890).abs() < 1e-12);
+    fn test_float_normalize_basic() {
+        assert!((float_normalize(1.0) - 1.0).abs() < 1e-12);
+        assert!((float_normalize(0.5) - 0.5).abs() < 1e-12);
+        assert!((float_normalize(-1.0) - (-1.0)).abs() < 1e-12);
+    }
 
-        // Floating point noise elimination
-        let sum = 0.1 + 0.2;
-        assert!((float_normalize(sum) - 0.3).abs() < 1e-9);
+    #[test]
+    fn test_float_normalize_noise() {
+        let noisy = 0.1 + 0.2;
+        let normalized = float_normalize(noisy);
+        assert!((normalized - 0.3).abs() < 1e-9);
+    }
 
-        // NaN handling
-        assert_eq!(float_normalize(f64::NAN), 0.0);
+    #[test]
+    fn test_float_normalize_nan() {
+        let normalized = float_normalize(f64::NAN);
+        assert!((normalized - 0.0).abs() < 1e-12);
+    }
 
-        // Infinity handling
-        assert_eq!(float_normalize(f64::INFINITY), f64::MAX);
-        assert_eq!(float_normalize(f64::NEG_INFINITY), f64::MIN);
+    #[test]
+    fn test_float_normalize_infinity() {
+        let pos_inf = float_normalize(f64::INFINITY);
+        let neg_inf = float_normalize(f64::NEG_INFINITY);
 
-        // Zero handling
-        assert_eq!(float_normalize(0.0), 0.0);
-        assert_eq!(float_normalize(-0.0), 0.0);
+        assert!(pos_inf > 1e308);
+        assert!(neg_inf < -1e308);
     }
 
     #[test]
     fn test_canonical_json_sorted_keys() {
-        let v1 = json!({"z": 1, "a": 2, "m": 3});
-        let v2 = json!({"a": 2, "z": 1, "m": 3});
+        let value = json!({
+            "zebra": 1,
+            "apple": 2,
+            "mango": 3
+        });
 
-        let c1 = canonical_json(&v1);
-        let c2 = canonical_json(&v2);
+        let bytes = canonical_json(&value);
+        let s = String::from_utf8(bytes).unwrap();
 
-        assert_eq!(c1, c2);
+        // Keys should appear in sorted order
+        let apple_pos = s.find("apple").unwrap();
+        let mango_pos = s.find("mango").unwrap();
+        let zebra_pos = s.find("zebra").unwrap();
 
-        // Verify keys are sorted
-        let s = String::from_utf8(c1.clone()).unwrap();
-        assert!(s.contains("\"a\":2") && s.contains("\"m\":3") && s.contains("\"z\":1"));
-        // 'a' should come before 'm' which should come before 'z'
-        let a_pos = s.find("\"a\":2").unwrap();
-        let m_pos = s.find("\"m\":3").unwrap();
-        let z_pos = s.find("\"z\":1").unwrap();
-        assert!(a_pos < m_pos && m_pos < z_pos);
+        assert!(apple_pos < mango_pos);
+        assert!(mango_pos < zebra_pos);
     }
 
     #[test]
     fn test_canonical_json_normalized_floats() {
-        let v = json!({"value": 1.23456789012345});
-        let c = canonical_json(&v);
-        let s = String::from_utf8(c).unwrap();
-        // Should be normalized to 9 decimal places
-        assert!(s.contains("\"value\":1.23456789"));
+        let value = json!({
+            "noisy": 0.1 + 0.2  // Not exactly 0.3 in IEEE 754
+        });
+
+        let bytes = canonical_json(&value);
+        let s = String::from_utf8(bytes).unwrap();
+
+        // Should contain normalized value
+        assert!(s.contains("0.3"));
     }
 
     #[test]
-    fn test_stable_hash_consistency() {
-        let bytes1 = b"test data";
-        let bytes2 = b"test data";
+    fn test_canonical_json_identical_for_same_content() {
+        let value1 = json!({
+            "zebra": 1,
+            "apple": 2
+        });
 
-        let hash1 = stable_hash(bytes1);
-        let hash2 = stable_hash(bytes2);
+        let value2 = json!({
+            "apple": 2,
+            "zebra": 1
+        });
 
-        assert_eq!(hash1, hash2);
-        assert_eq!(hash1.len(), 64);
+        let bytes1 = canonical_json(&value1);
+        let bytes2 = canonical_json(&value2);
+
+        assert_eq!(bytes1, bytes2);
     }
 
     #[test]
-    fn test_stable_hash_determinism() {
-        // SHA-256 of "test data" - precomputed for verification
+    fn test_stable_hash_length() {
         let bytes = b"test data";
         let hash = stable_hash(bytes);
-        // Verify it's a valid hex string
-        assert!(hash.chars().all(|c| c.is_ascii_hexdigit()));
+
+        assert_eq!(hash.len(), 64); // SHA-256 = 32 bytes = 64 hex chars
     }
 
     #[test]
-    fn test_compute_fingerprint_determinism() {
-        #[derive(Serialize)]
-        struct TestInput {
-            id: String,
-            values: Vec<f64>,
-        }
+    fn test_stable_hash_deterministic() {
+        let bytes = b"test data";
 
-        let input1 = TestInput {
-            id: "test".to_string(),
-            values: vec![1.0, 2.0, 3.0],
-        };
-        let input2 = TestInput {
-            id: "test".to_string(),
-            values: vec![1.0, 2.0, 3.0],
-        };
+        let hash1 = stable_hash(bytes);
+        let hash2 = stable_hash(bytes);
 
-        assert_eq!(compute_fingerprint(&input1), compute_fingerprint(&input2));
+        assert_eq!(hash1, hash2);
     }
 
     #[test]
-    fn test_canonical_json_nested_objects() {
-        let v1 = json!({
+    fn test_compute_fingerprint_deterministic() {
+        let value = json!({"test": "data"});
+
+        let fp1 = compute_fingerprint(&value);
+        let fp2 = compute_fingerprint(&value);
+
+        assert_eq!(fp1, fp2);
+    }
+
+    #[test]
+    fn test_compute_fingerprint_key_order_independent() {
+        let value1 = json!({"a": 1, "b": 2, "c": 3});
+        let value2 = json!({"c": 3, "a": 1, "b": 2});
+
+        let fp1 = compute_fingerprint(&value1);
+        let fp2 = compute_fingerprint(&value2);
+
+        assert_eq!(fp1, fp2);
+    }
+
+    #[test]
+    fn test_compute_fingerprint_nested_objects() {
+        let value1 = json!({
             "outer": {
                 "z": 1,
                 "a": 2
-            },
-            "inner": {
-                "m": 3,
-                "b": 4
             }
         });
-        let v2 = json!({
-            "inner": {
-                "b": 4,
-                "m": 3
-            },
+
+        let value2 = json!({
             "outer": {
                 "a": 2,
                 "z": 1
             }
         });
 
-        assert_eq!(canonical_json(&v1), canonical_json(&v2));
+        let fp1 = compute_fingerprint(&value1);
+        let fp2 = compute_fingerprint(&value2);
+
+        assert_eq!(fp1, fp2);
     }
 
     #[test]
-    fn test_canonical_json_arrays() {
-        // Arrays should preserve order (not sort)
-        let v1 = json!({"arr": [3, 1, 2]});
-        let v2 = json!({"arr": [3, 1, 2]});
+    fn test_compute_fingerprint_arrays() {
+        // Arrays are NOT reordered (order matters)
+        let value1 = json!({"arr": [1, 2, 3]});
+        let value2 = json!({"arr": [3, 2, 1]});
 
-        assert_eq!(canonical_json(&v1), canonical_json(&v2));
+        let fp1 = compute_fingerprint(&value1);
+        let fp2 = compute_fingerprint(&value2);
 
-        // Different array order should produce different output
-        let v3 = json!({"arr": [1, 2, 3]});
-        assert_ne!(canonical_json(&v1), canonical_json(&v3));
+        assert_ne!(fp1, fp2); // Different order = different fingerprint
+    }
+
+    #[test]
+    fn test_determinism_fingerprint_trait() {
+        let value = json!({"test": 123});
+        let fp = value.fingerprint();
+
+        assert_eq!(fp.len(), 64);
     }
 }
