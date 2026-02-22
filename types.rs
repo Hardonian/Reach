@@ -19,6 +19,8 @@ pub struct DecisionInput {
     pub temperature: Option<OrderedFloat<f64>>,
     #[serde(default)]
     pub optimism: Option<OrderedFloat<f64>>,
+    #[serde(default)]
+    pub confidence: Option<OrderedFloat<f64>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -55,6 +57,9 @@ pub struct DecisionTrace {
     // Map<ActionId, StarrScore>
     #[serde(skip_serializing_if = "Option::is_none")]
     pub starr_scores: Option<BTreeMap<String, OrderedFloat<f64>>>,
+    // Map<ActionId, HodgesLehmannScore>
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hodges_lehmann_scores: Option<BTreeMap<String, OrderedFloat<f64>>>,
     
     pub fingerprint: Option<String>,
 }
