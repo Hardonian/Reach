@@ -7,7 +7,7 @@ export interface DecisionInput {
   actions: string[];
   states: string[];
   outcomes: Record<string, Record<string, number>>;
-  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz" | "laplace" | "starr" | "savage" | "wald" | "hodges_lehmann" | "brown_robinson" | "nash" | "pareto" | "epsilon_contamination" | "minimax";
+  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz" | "laplace" | "starr" | "savage" | "wald" | "hodges_lehmann" | "brown_robinson" | "nash" | "pareto" | "epsilon_contamination" | "minimax" | "topsis";
   weights?: Record<string, number>;
   strict?: boolean;
   temperature?: number;
@@ -93,6 +93,9 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
   }
   if (input.algorithm === "epsilon_contamination") {
     return epsilonContaminationFallback(effectiveInput);
+  }
+  if (input.algorithm === "topsis") {
+    return topsisFallback(effectiveInput);
   }
 
   // 1. Max Utility per State
@@ -491,6 +494,79 @@ function epsilonContaminationFallback(input: DecisionInput): DecisionOutput {
     trace: {
       algorithm: "epsilon_contamination",
       epsilon_contamination_scores: scores
+    }
+  };
+}
+
+function topsisFallback(input: DecisionInput): DecisionOutput {
+  const weights = input.weights || {};
+  
+  // 1. Calculate Denominators (Vector Normalization)
+  const denominators: Record<string, number> = {};
+  for (const state of input.states) {
+    let sumSq = 0;
+    for (const action of input.actions) {
+      const val = input.outcomes[action]?.[state] ?? 0;
+      sumSq += val * val;
+    }
+    denominators[state] = Math.sqrt(sumSq);
+  }
+
+  // 2. Weighted Normalized Matrix & Ideal Solutions
+  const weightedNormalized: Record<string, Record<string, number>> = {};
+  const idealBest: Record<string, number> = {};
+  const idealWorst: Record<string, number> = {};
+
+  for (const state of input.states) {
+    const denom = denominators[state];
+    const weight = weights[state] ?? 0;
+    let maxV = -Infinity;
+    let minV = Infinity;
+
+    for (const action of input.actions) {
+      if (!weightedNormalized[action]) weightedNormalized[action] = {};
+      const val = input.outcomes[action]?.[state] ?? 0;
+      const normVal = denom === 0 ? 0 : val / denom;
+      const weightedVal = normVal * weight;
+      
+      weightedNormalized[action][state] = weightedVal;
+      if (weightedVal > maxV) maxV = weightedVal;
+      if (weightedVal < minV) minV = weightedVal;
+    }
+    
+    if (maxV === -Infinity) maxV = 0;
+    if (minV === Infinity) minV = 0;
+    idealBest[state] = maxV;
+    idealWorst[state] = minV;
+  }
+
+  // 3. Separation Measures & Scores
+  const scores: Record<string, number> = {};
+  for (const action of input.actions) {
+    let distBestSq = 0;
+    let distWorstSq = 0;
+    for (const state of input.states) {
+      const v = weightedNormalized[action][state];
+      const vBest = idealBest[state];
+      const vWorst = idealWorst[state];
+      distBestSq += Math.pow(v - vBest, 2);
+      distWorstSq += Math.pow(v - vWorst, 2);
+    }
+    const distBest = Math.sqrt(distBestSq);
+    const distWorst = Math.sqrt(distWorstSq);
+    scores[action] = (distBest + distWorst) === 0 ? 0 : distWorst / (distBest + distWorst);
+  }
+
+  const ranking = [...input.actions].sort((a, b) => {
+    return scores[b] - scores[a] || a.localeCompare(b);
+  });
+
+  return {
+    recommended_action: ranking[0],
+    ranking,
+    trace: {
+      algorithm: "topsis",
+      topsis_scores: scores
     }
   };
 }
