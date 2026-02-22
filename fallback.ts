@@ -7,7 +7,8 @@ export interface DecisionInput {
   actions: string[];
   states: string[];
   outcomes: Record<string, Record<string, number>>;
-  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz" | "laplace" | "starr";
+  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz" | "laplace" | "starr" | "savage";
+  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz" | "laplace" | "starr" | "savage" | "wald";
   weights?: Record<string, number>;
   strict?: boolean;
   temperature?: number;
@@ -59,6 +60,7 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
   }
 
   if (input.algorithm === "maximin") {
+  if (input.algorithm === "maximin" || input.algorithm === "wald") {
     return maximinFallback(effectiveInput);
   }
   if (input.algorithm === "weighted_sum") {
@@ -117,7 +119,7 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
     recommended_action: ranking[0],
     ranking,
     trace: {
-      algorithm: "minimax_regret_fallback",
+      algorithm: "minimax_regret",
       max_regret: maxRegret
     }
   };
@@ -398,6 +400,7 @@ function maximinFallback(input: DecisionInput): DecisionOutput {
     ranking,
     trace: {
       algorithm: "maximin_fallback",
+      algorithm: "maximin",
       min_utility: minUtility
     }
   };
