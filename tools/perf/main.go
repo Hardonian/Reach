@@ -15,6 +15,11 @@ import (
 	"time"
 )
 
+// Deterministic seed for reproducibility - satisfies AGENTS.md determinism requirement
+func init() {
+	rand.Seed(42)
+}
+
 type metricSet struct {
 	Name string  `json:"name"`
 	P50  float64 `json:"p50_ms"`
@@ -65,7 +70,7 @@ func runSyntheticReport(profile, out string) {
 	for i := 0; i < 3 && i < len(metrics); i++ {
 		chokes = append(chokes, fmt.Sprintf("%d. %s p95=%.1fms", i+1, metrics[i].Name, metrics[i].P95))
 	}
-	r := report{Profile: profile, GeneratedAt: time.Now().UTC(), Metrics: metrics, ChokePoints: chokes}
+	r := report{Profile: profile, GeneratedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), Metrics: metrics, ChokePoints: chokes}
 	if err := os.MkdirAll("tools/perf", 0o755); err != nil {
 		panic(err)
 	}

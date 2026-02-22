@@ -14,6 +14,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"reach/services/runner/internal/determinism"
 )
 
 // VerificationFile represents the complete verification package for peer re-verification.
@@ -242,10 +244,13 @@ func NewVerificationFile(runID, engineVersion string, plugins map[string]string,
 	canonicalInputs := make(map[string]string)
 	canonicalInputs["event_log_hash"] = HashEvents(eventLog)
 	
+	// Use deterministic timestamp derived from runID for reproducibility
+	deterministicTime := deterministicTimestamp(runID)
+	
 	return &VerificationFile{
 		Meta: VerificationMeta{
 			RunID:              runID,
-			CreatedAt:          time.Now().UTC(),
+			CreatedAt:          deterministicTime,
 			ExporterNodeID:     GetMachineID(),
 			FileVersion:        "1.0",
 			OriginalProofHash:  proofHash,
@@ -352,7 +357,7 @@ func RunPeerVerification(runID string, vf VerificationFile) (*PeerVerificationRe
 		RunID:                runID,
 		VerificationFilePath: "",
 		OriginalProofHash:    vf.Meta.OriginalProofHash,
-		Timestamp:            time.Now().UTC(),
+		Timestamp:            deterministicTimestamp(runID),
 		Status:               "error",
 	}
 	
@@ -472,11 +477,11 @@ func SimulateConsensus(runID string, config ConsensusConfig, baseProofHash strin
 		NodeCount:     config.NodeCount,
 		Nodes:         make([]NodeResult, 0),
 		AgreementRate: 0,
-		Timestamp:     time.Now().UTC(),
+		Timestamp:     deterministicTimestamp(runID),
 	}
 	
-	// Generate node results
-	rand.Seed(time.Now().UnixNano())
+	// Use deterministic RNG seeded from runID for reproducibility
+	rng := deterministicRNG(runID)
 	proofHashes := make(map[string]int)
 	
 	for i := 0; i < config.NodeCount; i++ {
@@ -586,11 +591,12 @@ func SimulateByzantine(runID string, config ByzantineConfig, baseProofHash strin
 		SimulationCount:  config.SimulationCount,
 		MutationsApplied: 0,
 		Detections:       make([]ByzantineDetection, 0),
-		Timestamp:        time.Now().UTC(),
+		Timestamp:        deterministicTimestamp(runID),
 		Status:           "detected",
 	}
 	
-	rand.Seed(time.Now().UnixNano())
+	// Use deterministic RNG seeded from runID for reproducibility
+	rng := deterministicRNG(runID)
 	
 	for i := 0; i < config.SimulationCount; i++ {
 		simID := i
@@ -601,7 +607,7 @@ func SimulateByzantine(runID string, config ByzantineConfig, baseProofHash strin
 		sigValid := true
 		
 		for _, mutType := range config.MutationTypes {
-			if rand.Float64() < config.MutationRate {
+			if rng.Float64() < config.MutationRate {
 				report.MutationsApplied++
 				
 				// Mutate based on type
@@ -627,7 +633,7 @@ func SimulateByzantine(runID string, config ByzantineConfig, baseProofHash strin
 			ProofMismatch:   proofHash != baseProofHash,
 			ChainInvalidated: !chainValid,
 			SignatureInvalid: !sigValid,
-			DetectionTime:    float64(rand.Intn(100) + 10), // Simulated detection time
+			DetectionTime:    float64(rng.Intn(100) + 10), // Simulated detection time
 		}
 		
 		report.Detections = append(report.Detections, detection)
@@ -667,7 +673,7 @@ func ComputePeerTrust(runID string, determinismConfidence, consensusScore, plugi
 		ConsensusScore:     consensusScore,
 		PluginCertificationScore: pluginCertScore,
 		PeerDetails:        make([]PeerDetail, 0),
-		Timestamp:          time.Now().UTC(),
+		Timestamp:          deterministicTimestamp(runID),
 	}
 	
 	// Calculate weighted trust score
@@ -682,11 +688,14 @@ func ComputePeerTrust(runID string, determinismConfidence, consensusScore, plugi
 	
 	report.PeerTrustScore = int(math.Round(weightedScore))
 	
+	// Use deterministic RNG for peer score variations
+	rng := deterministicRNG(runID + "-peers")
+	
 	// Generate peer details
 	for _, peerID := range peers {
-		// Simulate peer-specific scores (in production, these would be real metrics)
-		peerDetScore := determinismConfidence - rand.Intn(20)
-		peerConsScore := consensusScore - rand.Intn(15)
+		// Deterministic peer-specific scores derived from runID and peerID
+		peerDetScore := determinismConfidence - rng.Intn(20)
+		peerConsScore := consensusScore - rng.Intn(15)
 		
 		detail := PeerDetail{
 			PeerID:           peerID,
@@ -707,4 +716,33 @@ func GetMachineID() string {
 	// Use only deterministic, reproducible information
 	// No actual machine-specific identifiers
 	return "reach-deterministic-" + hashStrings([]string{"oss", "v1"})
+}
+
+// deterministicTimestamp generates a deterministic timestamp from a runID.
+// This ensures reproducible timestamps for fingerprinting purposes.
+func deterministicTimestamp(runID string) time.Time {
+	// Hash the runID to get deterministic bytes
+	h := sha256.Sum256([]byte(runID))
+	// Use first 8 bytes as nanoseconds offset from Unix epoch
+	// This creates a deterministic but varied timestamp per runID
+	offset := int64(0)
+	for i := 0; i < 8; i++ {
+		offset = offset*256 + int64(h[i])
+	}
+	// Normalize to a reasonable time range (2020-2030)
+	offset = offset % (10 * 365 * 24 * 60 * 60 * 1e9) // 10 years in nanoseconds
+	baseTime := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+	return baseTime.Add(time.Duration(offset))
+}
+
+// deterministicRNG creates a deterministic random number generator seeded from a runID.
+// This ensures reproducible random sequences for simulation purposes.
+func deterministicRNG(runID string) *rand.Rand {
+	// Hash the runID to get deterministic seed bytes
+	h := sha256.Sum256([]byte(runID))
+	seed := int64(0)
+	for i := 0; i < 8; i++ {
+		seed = seed*256 + int64(h[i])
+	}
+	return rand.New(rand.NewSource(seed))
 }
