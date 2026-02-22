@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * OSS mode banner showing that Reach is running in local-only mode.
+ * OSS mode banner showing that ReadyLayer is running in local-only mode.
  */
 export function OSSModeBanner() {
   // In a real app, this would check an environment variable or config

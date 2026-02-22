@@ -1,9 +1,0 @@
-
-> validate:brand
-> npx tsx scripts/validate-brand.ts
-
-validate:brand ΓÇö FAIL: found 1 residual "Reach" occurrence(s):
-
-  apps\arcade\src\components\OSSModeBanner.tsx:4  ΓåÆ  * OSS mode banner showing that Reach is running in local-only mode.
-
-Fix: replace visible "Reach" text with "ReadyLayer", or add an allowance in scripts/validate-brand.ts if it is an internal identifier.
