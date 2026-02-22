@@ -14,8 +14,6 @@ import (
 	"sort"
 	"strings"
 	"time"
-
-	"reach/services/runner/internal/determinism"
 )
 
 // VerificationFile represents the complete verification package for peer re-verification.
