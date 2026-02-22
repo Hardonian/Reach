@@ -98,6 +98,126 @@ export interface GithubInstallation {
   repo_owner: string; repo_name: string; created_at: string; updated_at: string;
 }
 
+// ============================================================================
+// Decision Pillar Types
+// ============================================================================
+
+/**
+ * Decision Report Status
+ */
+export type DecisionStatus = 'draft' | 'evaluated' | 'reviewed' | 'accepted' | 'rejected' | 'superseded';
+
+/**
+ * Decision Outcome Status
+ */
+export type DecisionOutcomeStatus = 'unknown' | 'success' | 'failure' | 'mixed';
+
+/**
+ * Source Type for Decision
+ */
+export type DecisionSourceType = 'diff' | 'drift' | 'policy' | 'trust' | 'manual';
+
+/**
+ * Decision Report - Core entity for the Decision Pillar
+ */
+export interface DecisionReport {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  
+  // Scope
+  workspace_id: string | null;
+  project_id: string | null;
+  
+  // Source
+  source_type: DecisionSourceType;
+  source_ref: string;
+  
+  // Fingerprint (deterministic hash of input)
+  input_fingerprint: string;
+  
+  // Decision data (JSON)
+  decision_input: string;   // JSON serialized DecisionInput
+  decision_output: string | null;  // JSON serialized DecisionResult
+  decision_trace: string | null;  // JSON array of trace strings
+  
+  // Recommendation
+  recommended_action_id: string | null;
+  
+  // Status lifecycle
+  status: DecisionStatus;
+  
+  // Outcome tracking
+  outcome_status: DecisionOutcomeStatus;
+  outcome_notes: string | null;
+  outcome_timestamp: string | null;
+  
+  // Calibration (for future weight tuning)
+  calibration_delta: number | null;
+  predicted_score: number | null;
+  actual_score: number | null;
+  
+  // Governance
+  governance_badges: string | null;  // JSON array
+  
+  // Soft delete
+  deleted_at: string | null;
+}
+
+/**
+ * Junction - Triggered decision events
+ */
+export interface Junction {
+  id: string;
+  created_at: string;
+  
+  // Junction type
+  type: 'diff_critical' | 'drift_alert' | 'trust_drop' | 'policy_violation';
+  
+  // Severity score 0..1
+  severity_score: number;
+  
+  // Fingerprint for deduplication (deterministic)
+  fingerprint: string;
+  
+  // Trigger data
+  trigger_source_ref: string;
+  trigger_data: string;  // JSON
+  trigger_trace: string;  // JSON array explaining why fired
+  
+  // Status
+  status: 'triggered' | 'acknowledged' | 'resolved' | 'superseded';
+  
+  // Reference to decision (if evaluated)
+  decision_id: string | null;
+  
+  // Deduplication
+  cooldown_until: string | null;
+  superseded_by: string | null;
+  
+  // Soft delete
+  deleted_at: string | null;
+}
+
+/**
+ * Action Intent - Logged when user accepts a decision
+ */
+export interface ActionIntent {
+  id: string;
+  created_at: string;
+  
+  // Reference
+  decision_id: string;
+  action_id: string;
+  
+  // Status
+  status: 'pending' | 'executed' | 'cancelled' | 'failed';
+  
+  // Details
+  notes: string | null;
+  executed_at: string | null;
+}
+
 export interface CiIngestRun {
   id: string; tenant_id: string; workspace_key: string | null;
   commit_sha: string | null; branch: string | null; pr_number: number | null;

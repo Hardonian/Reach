@@ -1,4 +1,59 @@
 {
-  "timestamp": "2026-02-20T17:57:32.127Z",
-  "issues": []
+  "timestamp": "2026-02-22T16:33:21.520Z",
+  "issues": [
+    {
+      "file": "AGENTS.md",
+      "reference": "`npm run validate:boundaries`",
+      "type": "command",
+      "message": "Command referenced but not found in package.json: validate:boundaries"
+    },
+    {
+      "file": "AGENTS.md",
+      "reference": "`npm run validate:oss-purity`",
+      "type": "command",
+      "message": "Command referenced but not found in package.json: validate:oss-purity"
+    },
+    {
+      "file": "AGENTS.md",
+      "reference": "`npm run verify:oss`",
+      "type": "command",
+      "message": "Command referenced but not found in package.json: verify:oss"
+    },
+    {
+      "file": "AGENTS.md",
+      "reference": "`npm run validate:language`",
+      "type": "command",
+      "message": "Command referenced but not found in package.json: validate:language"
+    },
+    {
+      "file": "AGENTS.md",
+      "reference": "`npm run verify:oss`",
+      "type": "command",
+      "message": "Command referenced but not found in package.json: verify:oss"
+    },
+    {
+      "file": "AGENTS.md",
+      "reference": "`npm run validate:language`",
+      "type": "command",
+      "message": "Command referenced but not found in package.json: validate:language"
+    },
+    {
+      "file": "AGENTS.md",
+      "reference": "`npm run validate:boundaries`",
+      "type": "command",
+      "message": "Command referenced but not found in package.json: validate:boundaries"
+    },
+    {
+      "file": "AGENTS.md",
+      "reference": "`npm run validate:oss-purity`",
+      "type": "command",
+      "message": "Command referenced but not found in package.json: validate:oss-purity"
+    },
+    {
+      "file": "CHANGELOG.md",
+      "reference": "`npm run docs:doctor`",
+      "type": "command",
+      "message": "Command referenced but not found in package.json: docs:doctor"
+    }
+  ]
 }

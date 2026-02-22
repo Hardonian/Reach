@@ -1,6 +1,6 @@
 {
   "name": "@reach/decision-engine-monorepo",
-  "version": "0.2.0",
+  "version": "0.3.1",
   "private": true,
   "description": "Decision engine monorepo with Rust core and TypeScript wrapper",
   "workspaces": [
@@ -13,9 +13,17 @@
     "lint": "eslint src",
     "lint:structure": "powershell ./tools/guard-structure.ps1",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run typecheck && npm run lint:structure && npm test"
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "docs:check": "npx tsx tools/docs/drift/run.ts",
+    "docs:index:check": "npx tsx scripts/validate-docs-index.ts",
+    "health:check": "npx tsx scripts/repo-health.ts",
+    "verify:fast": "npm run typecheck && npm run lint:structure && npm run format:check && npm run docs:index:check && npm run health:check && npm test",
+    "verify": "npm run verify:fast && npm run build"
   },
   "devDependencies": {
+    "prettier": "^3.8.1",
+    "tsx": "^4.21.0",
     "typescript": "^5.0.0"
   },
   "engines": {

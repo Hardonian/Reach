@@ -1,0 +1,33 @@
+
+> @reach/decision-engine-monorepo@0.3.1 typecheck
+> tsc --noEmit
+
+src/index.ts(11,38): error TS2307: Cannot find module '../pkg/decision_engine_rs.js' or its corresponding type declarations.
+src/lib/cta.ts(9,16): error TS2339: Property 'lists' does not exist on type 'DashboardViewModel'.
+src/lib/cta.ts(9,39): error TS7006: Parameter 'finding' implicitly has an 'any' type.
+src/lib/cta.ts(12,130): error TS2339: Property 'ctas' does not exist on type 'DashboardViewModel'.
+src/lib/cta.ts(13,35): error TS2339: Property 'ctas' does not exist on type 'DashboardViewModel'.
+src/lib/cta.ts(14,26): error TS2339: Property 'summary' does not exist on type 'DashboardViewModel'.
+src/lib/cta.ts(20,49): error TS2339: Property 'id' does not exist on type 'DashboardViewModel'.
+src/lib/cta.ts(28,52): error TS2339: Property 'id' does not exist on type 'DashboardViewModel'.
+src/lib/cta.ts(35,52): error TS2339: Property 'id' does not exist on type 'DashboardViewModel'.
+src/lib/cta.ts(43,45): error TS2339: Property 'id' does not exist on type 'DashboardViewModel'.
+src/lib/cta.ts(52,34): error TS2339: Property 'id' does not exist on type 'DashboardViewModel'.
+src/lib/cta.ts(60,12): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/lib/cta.ts(60,15): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/lib/dashboard-viewmodel.test.ts(5,61): error TS2307: Cannot find module './dashboard/generateViewModel.js' or its corresponding type declarations.
+src/lib/dashboard-viewmodel.test.ts(30,37): error TS7006: Parameter 'node' implicitly has an 'any' type.
+src/lib/dashboard-viewmodel.test.ts(31,28): error TS7006: Parameter 'cta' implicitly has an 'any' type.
+src/lib/dashboard-viewmodel.test.ts(31,75): error TS7006: Parameter 'cta' implicitly has an 'any' type.
+src/lib/generateViewModel.ts(50,14): error TS2339: Property 'type' does not exist on type 'DashboardGraphNode'.
+src/lib/generateViewModel.ts(51,19): error TS2339: Property 'type' does not exist on type 'DashboardGraphNode'.
+src/lib/generateViewModel.ts(52,19): error TS2339: Property 'type' does not exist on type 'DashboardGraphNode'.
+src/lib/generateViewModel.ts(53,19): error TS2339: Property 'type' does not exist on type 'DashboardGraphNode'.
+src/lib/generateViewModel.ts(54,19): error TS2339: Property 'type' does not exist on type 'DashboardGraphNode'.
+src/lib/generateViewModel.ts(181,5): error TS2353: Object literal may only specify known properties, and 'schemaVersion' does not exist in type 'DashboardViewModel'.
+src/lib/generateViewModel.ts(227,9): error TS2339: Property 'ctas' does not exist on type 'DashboardViewModel'.
+src/lib/generateViewModel.ts(233,9): error TS2322: Type 'DashboardPersona | "exec"' is not assignable to type 'DashboardPersona'.
+  Type 'string' is not assignable to type 'DashboardPersona'.
+src/lib/generateViewModel.ts(239,9): error TS2339: Property 'ctas' does not exist on type 'DashboardViewModel'.
+src/lib/llm-provider.test.ts(5,32): error TS2307: Cannot find module './llm-cli.js' or its corresponding type declarations.
+src/lib/llm-provider.ts(1,49): error TS2307: Cannot find module './llm-cli.js' or its corresponding type declarations.

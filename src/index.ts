@@ -8,6 +8,7 @@ export class DecisionEngine {
     if (this.initialized) return;
     try {
       // Use dynamic import for ESM compatibility and optional loading
+      // @ts-ignore - WASM module might not be built
       this.wasmModule = await import('../pkg/decision_engine_rs.js').catch(() => null);
       if (!this.wasmModule) {
         console.warn("WARN: WASM module not found at '../pkg/decision_engine_rs.js'. Using fallback.");

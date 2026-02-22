@@ -1,3 +1,61 @@
+export interface DecisionSpec {
+  id: string;
+  title: string;
+  context: string;
+  createdAt: string;
+  horizon: string;
+  agents: any[];
+  actions: any[];
+  constraints: any[];
+  assumptions: any[];
+  objectives: any[];
+}
+
+export interface EvidenceEvent {
+  id: string;
+  type: string;
+  sourceId: string;
+  capturedAt: string;
+  checksum: string;
+  observations: string[];
+  claims: any[];
+  constraints: any[];
+}
+
+export interface FinalizedDecisionTranscript {
+  transcript_id: string;
+  transcript_hash: string;
+  inputs: any;
+  timestamp: number;
+}
+
+export interface ReplayDataset {
+  id: string;
+  specs: DecisionSpec[];
+}
+
+export interface ReplayResult {
+  success: boolean;
+  message?: string;
+}
+
+export interface DashboardPersona {
+  id: string;
+  name: string;
+}
+
+export interface DashboardViewModel {
+  nodes: any[];
+  edges: any[];
+  [key: string]: any;
+}
+
+export interface DashboardGraphNode {
+  id: string;
+  label: string;
+  [key: string]: any;
+}
+
 /**
  * Reach SDK - TypeScript client for deterministic execution fabric
  * @module @reach/sdk
