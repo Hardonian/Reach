@@ -2,10 +2,10 @@ import { describe, it, expect } from "vitest";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { parseAgentsArgs, runAgentsCommand } from "./agents-cli.js";
-import { dispatchMcpRequest, getMcpToolDefinitions, validateMcpToolDefinitions } from "./mcp-cli.js";
-import { executeZeoliteOperation } from "./zeolite-core.js";
-import { parseTranscriptArgs, runTranscriptCommand } from "./transcript-cli.js";
+import { parseAgentsArgs, runAgentsCommand } from "../../src/cli/agents-cli.js";
+import { dispatchMcpRequest, getMcpToolDefinitions, validateMcpToolDefinitions } from "../../src/cli/mcp-cli.js";
+import { executeZeoliteOperation } from "../../src/core/zeolite-core.js";
+import { parseTranscriptArgs, runTranscriptCommand } from "../../src/cli/transcript-cli.js";
 
 async function withTempCwd<T>(fn: (cwd: string) => Promise<T> | T): Promise<T> {
   const prev = process.cwd();
