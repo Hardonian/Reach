@@ -331,3 +331,66 @@ pub fn laplace(input: &DecisionInput) -> Result<DecisionOutput> {
         },
     })
 }
+
+pub fn starr(input: &DecisionInput) -> Result<DecisionOutput> {
+    // 1. Validate Weights
+    let weights = input.weights.as_ref()
+        .ok_or_else(|| anyhow::anyhow!("Weights (probabilities) required for Starr algorithm"))?;
+
+    // 2. Calculate Max Utility per State
+    let mut max_state_utility: BTreeMap<&String, OrderedFloat<f64>> = BTreeMap::new();
+    for state in &input.states {
+        let max_util = input.actions.iter()
+            .map(|a| input.outcomes.get(a).unwrap().get(state).unwrap())
+            .max()
+            .unwrap();
+        max_state_utility.insert(state, *max_util);
+    }
+
+    // 3. Calculate Expected Regret per Action
+    let mut starr_scores = BTreeMap::new();
+
+    for action in &input.actions {
+        let mut expected_regret = 0.0;
+        for state in &input.states {
+            let util = input.outcomes.get(action).unwrap().get(state).unwrap();
+            let max_util = max_state_utility.get(state).unwrap();
+            let regret = *max_util - *util;
+            
+            let prob = weights.get(state).unwrap_or(&OrderedFloat(0.0));
+            expected_regret += regret.0 * prob.0;
+        }
+        starr_scores.insert(action.clone(), OrderedFloat(expected_regret));
+    }
+
+    // 4. Rank Actions (Minimize Expected Regret)
+    let mut ranked_actions = input.actions.clone();
+    ranked_actions.sort_by(|a, b| {
+        let score_a = starr_scores.get(a).unwrap();
+        let score_b = starr_scores.get(b).unwrap();
+        // Ascending order (lower regret is better)
+        match score_a.cmp(score_b) {
+            std::cmp::Ordering::Equal => a.cmp(b),
+            other => other,
+        }
+    });
+
+    let recommended = ranked_actions.first().ok_or_else(|| anyhow::anyhow!("No actions provided"))?.clone();
+
+    Ok(DecisionOutput {
+        recommended_action: recommended,
+        ranking: ranked_actions,
+        trace: DecisionTrace {
+            algorithm: "starr".to_string(),
+            regret_table: None,
+            max_regret: None,
+            min_utility: None,
+            weighted_scores: None,
+            probabilities: None,
+            hurwicz_scores: None,
+            laplace_scores: None,
+            starr_scores: Some(starr_scores),
+            fingerprint: None,
+        },
+    })
+}

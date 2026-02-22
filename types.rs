@@ -52,6 +52,9 @@ pub struct DecisionTrace {
     // Map<ActionId, LaplaceScore>
     #[serde(skip_serializing_if = "Option::is_none")]
     pub laplace_scores: Option<BTreeMap<String, OrderedFloat<f64>>>,
+    // Map<ActionId, StarrScore>
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub starr_scores: Option<BTreeMap<String, OrderedFloat<f64>>>,
     
     pub fingerprint: Option<String>,
 }

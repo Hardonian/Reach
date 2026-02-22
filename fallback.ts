@@ -7,7 +7,7 @@ export interface DecisionInput {
   actions: string[];
   states: string[];
   outcomes: Record<string, Record<string, number>>;
-  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz" | "laplace";
+  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz" | "laplace" | "starr";
   weights?: Record<string, number>;
   strict?: boolean;
   temperature?: number;
@@ -72,6 +72,9 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
   }
   if (input.algorithm === "laplace") {
     return laplaceFallback(effectiveInput);
+  }
+  if (input.algorithm === "starr") {
+    return starrFallback(effectiveInput);
   }
 
   // 1. Max Utility per State
@@ -167,6 +170,52 @@ function laplaceFallback(input: DecisionInput): DecisionOutput {
     trace: {
       algorithm: "laplace",
       laplace_scores: scores
+    }
+  };
+}
+
+function starrFallback(input: DecisionInput): DecisionOutput {
+  const weights = input.weights || {};
+  
+  // 1. Max Utility per State
+  const maxStateUtil: Record<string, number> = {};
+  for (const state of input.states) {
+    let max = -Infinity;
+    for (const action of input.actions) {
+      const val = input.outcomes[action]?.[state] ?? -Infinity;
+      if (val > max) max = val;
+    }
+    maxStateUtil[state] = max;
+  }
+
+  // 2. Expected Regret
+  const scores: Record<string, number> = {};
+
+  for (const action of input.actions) {
+    let expectedRegret = 0;
+    for (const state of input.states) {
+      const util = input.outcomes[action]?.[state] ?? 0;
+      const regret = maxStateUtil[state] - util;
+      const prob = weights[state] ?? 0;
+      expectedRegret += regret * prob;
+    }
+    scores[action] = expectedRegret;
+  }
+
+  // 3. Ranking (Ascending)
+  const ranking = [...input.actions].sort((a, b) => {
+    const sA = scores[a];
+    const sB = scores[b];
+    if (Math.abs(sA - sB) < 1e-9) return a.localeCompare(b);
+    return sA - sB; // Lower is better
+  });
+
+  return {
+    recommended_action: ranking[0],
+    ranking,
+    trace: {
+      algorithm: "starr",
+      starr_scores: scores
     }
   };
 }
