@@ -29,6 +29,7 @@ The stress harness passes identical inputs with keys in different orders and ass
 **Test**: Fixture at `testdata/stress/array-order-perturbation.stress.json`
 
 Two scenarios are tested:
+
 - **Order-sensitive arrays** (e.g., execution steps): reordering MUST produce different fingerprints.
 - **Order-agnostic sets** (e.g., capability lists): reordering MUST produce identical fingerprints after normalization.
 
@@ -52,7 +53,7 @@ The harness runs the same execution with three different injected wall-clock val
 
 ### Test Location (Go)
 
-```
+```text
 services/runner/internal/determinism/
 ├── stress_test.go          # Main stress test runner
 ├── harness.go              # Fixture loader and assertion helpers
@@ -61,7 +62,7 @@ services/runner/internal/determinism/
 
 ### Test Location (Rust)
 
-```
+```text
 crates/engine-core/tests/
 ├── chaos.rs                # Rust chaos/stress tests
 └── property_invariants.rs  # Property-based invariant tests

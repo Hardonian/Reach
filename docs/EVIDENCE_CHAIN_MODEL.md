@@ -12,7 +12,7 @@ The Evidence Chain is a cryptographically linked sequence of execution artifacts
 
 A run's Evidence Chain is a four-stage pipeline:
 
-```
+```text
 [Input]
   input_hash = SHA-256(canonical_JSON(inputs))
       │
@@ -86,7 +86,7 @@ This means: **changing any stage changes all downstream values**.
 
 The playground (`apps/arcade`) shows the Evidence Chain visualization for any completed run:
 
-```
+```text
 Input  ─────────────────────────────────── sha256:2c6242...
  │  Policy (strict-default)                sha256:aabb12...
  │   ALLOW ✓
@@ -121,6 +121,7 @@ Per the [AGENTS.md](../AGENTS.md) Evidence-First principle:
 > All new execution features must include a corresponding update to the Evidence Chain model.
 
 Specifically, any new feature that:
+
 1. Adds a new type of artifact → must add to `artifact_hashes`
 2. Adds a new event type → must add to the event schema in `protocol/schemas/events.schema.json`
 3. Changes state that feeds the fingerprint → must update this document and `docs/DETERMINISM_SPEC.md`

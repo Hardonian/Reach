@@ -25,7 +25,7 @@ reachctl export <run-id> --json
 
 A `.reach.zip` bundle contains:
 
-```
+```text
 <run-id>.reach.zip
 ├── meta.json           # Run manifest with fingerprint and all hashes
 ├── logs/
@@ -51,6 +51,7 @@ reachctl replay <run-id>
 ```
 
 On import:
+
 1. Bundle is extracted to `~/.reach/runs/<run_id>/`.
 2. Fingerprint is verified against `meta.json.fingerprint`.
 3. Event log hash is verified.

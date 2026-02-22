@@ -55,9 +55,17 @@ const TERM_EXEMPTIONS: Record<string, string[]> = {
     "apps/arcade/src/app/docs/architecture",
     "apps/arcade/src/app/docs/engine",
     "apps/arcade/src/app/docs/errors",
+    "apps/arcade/src/app/docs/execution",
     "apps/arcade/src/app/docs/getting-started",
     "apps/arcade/src/app/docs/page.tsx",
+    "apps/arcade/src/app/docs/skills",
     "apps/arcade/src/app/faq",
+    "apps/arcade/src/app/skills",
+  ],
+  "edge (graph)": [
+    "apps/arcade/src/app/docs/execution",
+    "apps/arcade/src/app/docs/architecture",
+    "apps/arcade/src/app/docs/engine",
   ],
 };
 

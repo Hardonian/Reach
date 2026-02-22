@@ -1,22 +1,116 @@
 # OSS Build Guarantee
 
-Reach is committed to maintaining a pure Open Source Software (OSS) core that can be built and run without any dependence on Reach Cloud, proprietary SDKs, or external billing systems.
+Last Updated: 2026-02-22
 
-## Zero-Cloud Lock
+## Commitment
 
-Our CI pipeline enforces a "Zero-Cloud" build lock. Every pull request is verified with the `REACH_CLOUD` environment variable unset to ensure:
+Reach is **OSS-first**. The core engine, deterministic runner, CLI, and local storage are fully open-source and run entirely on your hardware without any cloud credentials, proprietary SDKs, or external services.
 
-1.  **No Leaky Dependencies**: No proprietary SDKs (e.g., Stripe, AWS, Google Cloud) are imported in the OSS path.
-2.  **Environment Purity**: The system remains fully functional in local-only mode.
-3.  **Auditability**: Users can build Reach from source and verify that it does not contain hidden telemetry or cloud-dependent "phone home" logic.
+We formalize this as the **Zero-Cloud Lock Guarantee**:
 
-## Verification
+> Any user cloning this repository can build and run a fully functional Reach installation with only a working Go installation (and optionally Node.js for the web components). No API keys, no cloud account, no network connection required for core operations.
 
-The build purity is verified by `scripts/validate-oss-purity.ts`.
-To verify locally:
+---
+
+## What This Covers
+
+| Component | OSS | Needs Cloud |
+| :--- | :--- | :--- |
+| `reachctl` CLI | ✅ Full | None |
+| Deterministic execution engine | ✅ Full | None |
+| Local SQLite storage | ✅ Full | None |
+| Policy evaluation | ✅ Full | None |
+| Replay verification | ✅ Full | None |
+| Export/import capsules | ✅ Full | None |
+| Benchmarking | ✅ Full | None |
+| Web playground | ✅ Full (local) | Cloud features only |
+| Multi-tenant hosting | ❌ | Requires REACH_CLOUD=1 |
+| Enterprise SSO | ❌ | Requires REACH_CLOUD=1 |
+| Cloud artifact sync | ❌ | Requires REACH_CLOUD=1 |
+
+---
+
+## What's Never in the OSS Path
+
+The following packages/SDKs are actively blocked from the OSS Core paths and are verified absent by `validate:oss-purity`:
+
+- `stripe` or `@stripe/*` — Billing
+- `auth0` or `@auth0/*` — Authentication
+- `@google-cloud/*` — Google Cloud storage/services
+- `aws-sdk` or `@aws-sdk/*` — AWS services
+- `azure*` — Azure services
+
+---
+
+## How It's Enforced
+
+### 1. CI Gate: `validate:oss-purity`
+
+Runs on every PR and blocks merge if any cloud SDK is found in OSS Core paths.
+
 ```bash
 npm run validate:oss-purity
 ```
 
-## Exception Handling
-If a feature requires cloud capabilities (e.g., decentralized proof storage), it must be implemented via a stub/adapter pattern where the OSS version uses a local stub.
+### 2. CI Gate: `verify:oss`
+
+Runs the full OSS quality gate: lint + typecheck + language enforcement + boundary check + OSS purity.
+
+```bash
+npm run verify:oss
+```
+
+### 3. Import Boundary Check
+
+```bash
+npm run validate:boundaries
+```
+
+Verifies that no OSS Core component imports from cloud-specific packages.
+
+---
+
+## Cloud Adapter Pattern
+
+When enterprise cloud features are needed, they are implemented via adapter interfaces that live behind the `REACH_CLOUD=1` flag. In OSS mode, all adapters return `RL-4001 CloudNotEnabledError`.
+
+See [`docs/CLOUD_ADAPTER_MODEL.md`](CLOUD_ADAPTER_MODEL.md) for the adapter interface definitions.
+
+---
+
+## Exceptions Handling
+
+If a feature absolutely requires cloud capabilities in its implementation (e.g., decentralized proof storage), it must:
+
+1. Be implemented via a stub/adapter pattern.
+2. The OSS version uses a local stub (returns a structured error).
+3. The stub must be documented in [`docs/CLOUD_ADAPTER_MODEL.md`](CLOUD_ADAPTER_MODEL.md).
+4. The `validate:oss-purity` check must still pass.
+
+No exceptions to the zero-cloud lock without a documented adapter pattern.
+
+---
+
+## Verification
+
+To verify the OSS build guarantee locally:
+
+```bash
+# Verify no cloud SDK imports in OSS paths
+npm run validate:oss-purity
+
+# Full OSS quality gate
+npm run verify:oss
+
+# Build CLI without cloud (should succeed with zero env vars)
+cd services/runner && go build ./cmd/reachctl
+```
+
+---
+
+## Related Documents
+
+- [`docs/CLOUD_ADAPTER_MODEL.md`](CLOUD_ADAPTER_MODEL.md) — Adapter interfaces for cloud features
+- [`docs/IMPORT_RULES.md`](IMPORT_RULES.md) — Import boundary rules
+- [`docs/BOUNDARIES.md`](BOUNDARIES.md) — Layering diagram
+- [`docs/OSS_FIRST_COMPONENT_MAP.md`](OSS_FIRST_COMPONENT_MAP.md) — Component tier classification

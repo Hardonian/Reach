@@ -15,6 +15,7 @@ The demo works in both the web playground (`apps/arcade`) and via CLI (`reachctl
 ### Step 1 — Load Demo Pipeline (0–5 seconds)
 
 The demo pipeline `arcadeSafe.demo` is pre-loaded in the playground. It contains:
+
 - A 3-step execution pipeline
 - A policy that denies a specific unsafe tool call
 - Known-good and known-bad input scenarios
@@ -22,24 +23,25 @@ The demo pipeline `arcadeSafe.demo` is pre-loaded in the playground. It contains
 **Web**: Click "Load Demo" to load the pipeline.
 
 **CLI**:
+
 ```bash
 reachctl init --name demo-check --governed
 ```
 
 ---
 
-### Step 2 — Run the Failing Scenario (5–12 seconds)
-
 Trigger the run with the unsafe tool call scenario (pre-configured in the demo pack).
 
 **Web**: Click "Run Demo Check" on the failing scenario.
 
 **CLI**:
+
 ```bash
 reachctl run demo-check --input '{"tool":"disallowed-tool","action":"execute"}'
 ```
 
 **Expected result:**
+
 - Run fails with `RL-1001 PolicyDenied`
 - Policy gate `capability-check` fires
 - Suggestion is displayed: "Add the tool to the capability allowlist"
@@ -53,12 +55,14 @@ View the policy explanation and suggested fix.
 **Web**: Click "Explain Failure" on the failed run card.
 
 **CLI**:
+
 ```bash
 reachctl explain-failure <run-id>
 ```
 
 **Expected output:**
-```
+
+```text
 Run sha256:abc123 failed with: RL-1001 PolicyDenied
 
   Rule:       capability-check (order: 1)
@@ -75,12 +79,14 @@ Update the pack manifest to add the tool to the capability allowlist.
 **Web**: Click "Apply Suggested Fix" to automatically apply the fix to the demo manifest.
 
 **CLI**:
+
 ```bash
 # Edit pack manifest to add tool to allowlist
 reachctl run demo-check --input '{"tool":"allowed-tool","action":"execute"}'
 ```
 
 **Expected result:**
+
 - Run succeeds with `status: success`
 - Fingerprint is displayed
 
@@ -93,12 +99,14 @@ Verify the successful run is deterministic by replaying it.
 **Web**: Click "Verify Replay" on the successful run card.
 
 **CLI**:
+
 ```bash
 reachctl replay <run-id>
 ```
 
 **Expected output:**
-```
+
+```text
 ✓ REPLAY_VERIFIED
   Original fingerprint:  sha256:def456
   Replay fingerprint:    sha256:def456
@@ -111,7 +119,7 @@ reachctl replay <run-id>
 
 When `REACH_CLOUD` is unset or `=0`, the playground displays:
 
-```
+```text
 🛡 OSS Mode — Local Only
 All runs are stored on your machine. No data is sent to external servers.
 ```
@@ -122,7 +130,7 @@ All runs are stored on your machine. No data is sent to external servers.
 
 At the end of the demo, the Evidence Chain visualization shows:
 
-```
+```text
 [Input]       input_hash: sha256:2c6242...
      │
      ▼
@@ -148,12 +156,14 @@ Each hash is clickable and shows the raw artifact content for inspection.
 ## Requirements
 
 ### Web Demo
+
 - `apps/arcade` built and running (`npm run dev -w arcade`)
 - No cloud credentials required
 - SQLite available (bundled)
 - Demo pack at `data/demo_seed.json` pre-loaded
 
 ### CLI Demo
+
 - `reachctl` binary built (`npm run verify:cli`)
 - `~/.reach/` data directory writable
 - No cloud credentials required
@@ -175,6 +185,7 @@ Each hash is clickable and shows the raw artifact content for inspection.
 ## Screen Recording Notes
 
 For demos and screencasts:
+
 - Use `--no-color` for better video capture.
 - Use `reachctl run demo-check --json` for automated pipeline demos.
 - The fingerprint hash should always end in exactly the same characters between takes to visually confirm determinism.

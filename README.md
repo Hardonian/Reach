@@ -302,9 +302,30 @@ See [DOCS_DRIFT_GUARD.md](DOCS_DRIFT_GUARD.md) for detailed architecture.
 
 ## Contributing
 
-- Read `CONTRIBUTING.md` for setup, branch strategy, and PR expectations.
-- Use `npm run verify:full` before opening a PR.
-- See `docs/` for architecture and execution-model references.
+- Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup, branch strategy, and PR expectations.
+- Read [`AGENTS.md`](AGENTS.md) for deterministic CI governance rules (required for all contributors).
+- Before every PR, run the OSS quality gate:
+  ```bash
+  npm run verify:oss
+  ```
+- Use `npm run verify:full` for the full suite (includes Go tests + builds).
+- See [`docs/CLI_REFERENCE.md`](docs/CLI_REFERENCE.md) for all `reachctl` commands.
+- See [`docs/DETERMINISM_SPEC.md`](docs/DETERMINISM_SPEC.md) for execution invariants.
+
+## Deterministic CI Governance
+
+All contributions must pass these required CI checks before merge:
+
+| Check | Command |
+| :--- | :--- |
+| OSS Gate | `npm run verify:oss` |
+| Canonical Language | `npm run validate:language` |
+| Import Boundaries | `npm run validate:boundaries` |
+| OSS Purity | `npm run validate:oss-purity` |
+| Rust Engine | `cargo test -p engine-core` |
+| Go Vet + Tests | `cd services/runner && go test ./...` |
+
+See [`AGENTS.md`](AGENTS.md) for the full governance contract.
 
 ## License
 
