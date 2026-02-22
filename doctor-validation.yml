@@ -3,13 +3,9 @@ name: Doctor Output Validation
 on:
   push:
     branches: [main, master]
-    paths:
-      - 'tools/doctor/**'
-      - 'services/runner/**'
   pull_request:
-    paths:
-      - 'tools/doctor/**'
-      - 'services/runner/**'
+    # Runs on every PR to ensure CLI output contract is maintained
+    branches: ['**']
   workflow_dispatch:
 
 jobs:
@@ -33,4 +29,6 @@ jobs:
         run: npm install
 
       - name: Run Validation Script
+        # Executes the TypeScript validator which runs 'go run . --json'
+        # and asserts all required probes (git, docker, cargo, etc.) are present.
         run: npx tsx tools/doctor/validate-cli.ts
