@@ -29,7 +29,7 @@ func TestCheckResultJSON(t *testing.T) {
 			},
 			expected: `{"name":"failed check","status":"FAIL","remediation":"fix it","detail":"something went wrong"}`,
 		},
-		{
+		ll{
 			name: "warning case",
 			input: checkResult{
 				name:     "warning check",

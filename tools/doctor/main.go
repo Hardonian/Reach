@@ -77,6 +77,8 @@ func main() {
 		checkNodeVersion,
 		checkNpmInstalled,
 		checkMakeInstalled,
+		checkPython3Installed,
+		checkCargoInstalled,
 		checkRegistrySourceConfig,
 		checkIndexSchemaAndCache,
 		checkSignatureVerificationPath,
@@ -235,6 +237,30 @@ func checkMakeInstalled(root string) checkResult {
 	}
 	if err := exec.Command(path, "--version").Run(); err != nil {
 		return checkResult{name: name, ok: true, severity: "WARN", detail: "make found but not executable"}
+	}
+	return pass(name)
+}
+
+func checkPython3Installed(root string) checkResult {
+	name := "python3 installed"
+	path, err := exec.LookPath("python3")
+	if err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "python3 not found", remediation: "install python3 for python-based agents"}
+	}
+	if err := exec.Command(path, "--version").Run(); err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "python3 found but not executable"}
+	}
+	return pass(name)
+}
+
+func checkCargoInstalled(root string) checkResult {
+	name := "cargo (rust) installed"
+	path, err := exec.LookPath("cargo")
+	if err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "cargo not found", remediation: "install rust toolchain for engine development"}
+	}
+	if err := exec.Command(path, "--version").Run(); err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "cargo found but not executable"}
 	}
 	return pass(name)
 }
