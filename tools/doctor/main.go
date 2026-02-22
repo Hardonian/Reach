@@ -42,6 +42,10 @@ func (c checkResult) MarshalJSON() ([]byte, error) {
 	})
 }
 
+var fixers = map[string]func(string) error{
+	"configuration check": fixEnvConfiguration,
+}
+
 func main() {
 	// Check if running in mobile mode
 	if os.Getenv("REACH_MOBILE") == "1" || os.Getenv("TERMUX_VERSION") != "" {
@@ -50,10 +54,13 @@ func main() {
 	}
 
 	jsonOutput := false
+	fixMode := false
 	for _, arg := range os.Args {
 		if arg == "--json" {
 			jsonOutput = true
-			break
+		}
+		if arg == "--fix" {
+			fixMode = true
 		}
 	}
 
@@ -83,6 +90,7 @@ func main() {
 		checkProtocInstalled,
 		checkJqInstalled,
 		checkCurlInstalled,
+		checkEnvConfiguration,
 		checkRegistrySourceConfig,
 		checkIndexSchemaAndCache,
 		checkSignatureVerificationPath,
@@ -96,6 +104,24 @@ func main() {
 	var results []checkResult
 	for _, run := range checks {
 		result := run(root)
+
+		// Auto-fix logic
+		if (!result.ok || result.severity == "WARN") && fixMode {
+			if fixer, exists := fixers[result.name]; exists {
+				if !jsonOutput {
+					fmt.Printf("       [FIX] Attempting auto-fix for '%s'...\n", result.name)
+				}
+				if err := fixer(root); err != nil {
+					if !jsonOutput {
+						fmt.Printf("       [FIX] Failed: %v\n", err)
+					}
+				} else {
+					// Re-run check to verify fix
+					result = run(root)
+				}
+			}
+		}
+
 		results = append(results, result)
 		if !result.ok {
 			failures++
@@ -315,6 +341,30 @@ func checkCurlInstalled(root string) checkResult {
 		return checkResult{name: name, ok: true, severity: "WARN", detail: "curl found but not executable"}
 	}
 	return pass(name)
+}
+
+func checkEnvConfiguration(root string) checkResult {
+	name := "configuration check"
+	envPath := filepath.Join(root, ".env")
+	if _, err := os.Stat(envPath); err == nil {
+		return pass(name)
+	}
+	return checkResult{
+		name:        name,
+		ok:          true,
+		severity:    "WARN",
+		detail:      ".env file missing in root",
+		remediation: "run 'reach doctor --fix' to create default .env",
+	}
+}
+
+func fixEnvConfiguration(root string) error {
+	envPath := filepath.Join(root, ".env")
+	// Minimal default config
+	content := `# Reach Configuration
+NEXT_PUBLIC_BRAND_NAME=ReadyLayer
+`
+	return os.WriteFile(envPath, []byte(content), 0644)
 }
 
 func checkRegistrySourceConfig(root string) checkResult {
