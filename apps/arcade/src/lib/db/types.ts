@@ -154,3 +154,21 @@ export interface ReportShare {
   id: string; tenant_id: string; resource_type: string; resource_id: string;
   slug: string; expires_at: string | null; created_at: string;
 }
+
+export interface DecisionReport {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  scope_keys: string; // JSON string of scope keys (workspace/project etc.)
+  source_type: 'diff' | 'drift' | 'policy' | 'trust' | 'manual';
+  source_ref: string;
+  input_fingerprint: string;
+  decision_input: string; // JSON string
+  decision_output: string | null; // JSON string
+  decision_trace: string | null; // JSON string
+  recommended_action_id: string | null;
+  status: 'draft' | 'evaluated' | 'reviewed' | 'accepted' | 'rejected' | 'superseded';
+  outcome_status: 'unknown' | 'success' | 'failure' | 'mixed';
+  outcome_notes: string | null;
+  calibration_delta: number | null;
+}
