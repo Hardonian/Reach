@@ -177,6 +177,12 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runChaos(ctx, dataRoot, args[1:], out, errOut)
 	case "trust":
 		return runTrust(ctx, dataRoot, args[1:], out, errOut)
+	case "provenance":
+		return runProvenance(ctx, dataRoot, args[1:], out, errOut)
+	case "steps":
+		return runSteps(ctx, dataRoot, args[1:], out, errOut)
+	case "assistant":
+		return runAssistant(ctx, dataRoot, args[1:], out, errOut)
 	case "export":
 		return runCapsule(ctx, dataRoot, append([]string{"create"}, args[1:]...), out, errOut)
 	case "import":
