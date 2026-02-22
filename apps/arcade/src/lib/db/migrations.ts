@@ -671,9 +671,6 @@ export const MIGRATIONS: string[] = [
   CREATE INDEX IF NOT EXISTS idx_junctions_status ON junctions(status);
   CREATE INDEX IF NOT EXISTS idx_action_intents_decision ON action_intents(decision_id);
   `,
-
-  idx_entropy_snapshots_ts ON entropy_snapshots(timestamp);
-  `,
 ];
 
 export function applyMigrations(db: Database.Database): void {

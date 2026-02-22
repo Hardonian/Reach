@@ -41,6 +41,7 @@ Welcome to the Reach Documentation. This repository follows the **Antigravity** 
 *Reach: The Deterministic Spine for Agentic Intelligence.*
 
 ## 📂 Other Documentation
+
 - [Achievements](ACHIEVEMENTS.md)
 - [Adoption Playbook](ADOPTION_PLAYBOOK.md)
 - [Android Setup](ANDROID_SETUP.md)
