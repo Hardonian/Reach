@@ -69,6 +69,7 @@ func main() {
 
 	checks := []func(string) checkResult{
 		checkGitInstalled,
+		checkDockerRunning,
 		checkRegistrySourceConfig,
 		checkIndexSchemaAndCache,
 		checkSignatureVerificationPath,
@@ -159,6 +160,18 @@ func checkGitInstalled(root string) checkResult {
 	}
 	if err := exec.Command(path, "--version").Run(); err != nil {
 		return fail(name, err, "git found but not executable")
+	}
+	return pass(name)
+}
+
+func checkDockerRunning(root string) checkResult {
+	name := "docker installed and running"
+	path, err := exec.LookPath("docker")
+	if err != nil {
+		return fail(name, err, "install docker and ensure it is in PATH")
+	}
+	if err := exec.Command(path, "info").Run(); err != nil {
+		return fail(name, err, "docker found but daemon not reachable (is Docker Desktop running?)")
 	}
 	return pass(name)
 }
