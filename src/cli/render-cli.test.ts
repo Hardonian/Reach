@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { generateDashboardViewModel } from "./dashboard/generateViewModel.js";
+import { generateDashboardViewModel } from "../lib/generateViewModel.js";
 import { runRenderCommand, runShareCommand, runDemoCommand } from "./render-cli.js";
 
 function setupFixture(root: string, id: string) {

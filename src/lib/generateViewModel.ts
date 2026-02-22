@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import type { DashboardGraphNode, DashboardPersona, DashboardViewModel } from "@zeo/contracts";
-import { generateCtas } from "../cta.js";
+import { generateCtas } from "./cta.js";
 
 type AnyRecord = Record<string, unknown>;
 

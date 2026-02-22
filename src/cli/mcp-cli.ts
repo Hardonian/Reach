@@ -1,5 +1,5 @@
 import { createInterface } from "node:readline";
-import type { ZeoliteOperation } from "./zeolite-core.js";
+import type { ZeoliteOperation } from "../core/zeolite-core.js";
 
 type JsonRpcId = string | number | null;
 

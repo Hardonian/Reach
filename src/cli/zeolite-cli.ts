@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { executeZeoliteOperation, type ZeoliteOperation } from "./zeolite-core.js";
+import { executeZeoliteOperation, type ZeoliteOperation } from "../core/zeolite-core.js";
 
 export interface ZeoliteCliArgs {
   operation: ZeoliteOperation | null;

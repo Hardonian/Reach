@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { parseViewArgs, runViewCommand } from "./view-cli.js";
+import { parseViewArgs, runViewCommand } from "../../src/cli/view-cli.js";
 
 describe("view command", () => {
   it("writes static viewer and viewmodel", async () => {

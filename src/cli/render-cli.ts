@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { join, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import type { DashboardPersona, DashboardViewModel } from "@zeo/contracts";
-import { loadOrGenerateDashboardViewModel, stableStringify } from "./dashboard/generateViewModel.js";
+import { loadOrGenerateDashboardViewModel, stableStringify } from "../lib/generateViewModel.js";
 
 export type RenderTarget = "github-pr" | "slack" | "markdown" | "plain";
 

@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { execSync } from "node:child_process";
-import { loadOrGenerateDashboardViewModel, stableStringify } from "./dashboard/generateViewModel.js";
+import { loadOrGenerateDashboardViewModel, stableStringify } from "../lib/generateViewModel.js";
 import type { DashboardPersona } from "@zeo/contracts";
 
 export interface ViewCliArgs {
