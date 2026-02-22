@@ -75,7 +75,7 @@ function resolveSpec(example?: unknown): DecisionSpec {
 function envelope(spec: DecisionSpec, whatWouldChange: string[]): Record<string, unknown> {
   return {
     schemaVersion: "zeo.v1",
-    assumptions: spec.assumptions.map((a) => a.id),
+    assumptions: spec.assumptions.map((a: any) => a.id),
     limits: ["deterministic synthetic example", "not medical or legal advice", "llm proposals are untrusted inputs"],
     decisionBoundary: "Action ordering is stable while modeled assumption intervals remain unchanged.",
     whatWouldChange,

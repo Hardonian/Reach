@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseArgs } from "./args.js";
+import { parseArgs } from "./lib/args.js";
 
 describe("parseArgs", () => {
   it("returns defaults when no args given", () => {
