@@ -246,7 +246,8 @@ function collectFiles(dir: string): string[] {
 function isTermExempt(term: string, filePath: string, repoRoot: string): boolean {
   const exemptions = TERM_EXEMPTIONS[term];
   if (!exemptions) return false;
-  const rel = path.relative(repoRoot, filePath);
+  // Normalize to forward slashes for cross-platform comparison.
+  const rel = path.relative(repoRoot, filePath).replace(/\\/g, "/");
   return exemptions.some((ex) => rel.startsWith(ex));
 }
 

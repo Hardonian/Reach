@@ -305,9 +305,11 @@ See [DOCS_DRIFT_GUARD.md](DOCS_DRIFT_GUARD.md) for detailed architecture.
 - Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup, branch strategy, and PR expectations.
 - Read [`AGENTS.md`](AGENTS.md) for deterministic CI governance rules (required for all contributors).
 - Before every PR, run the OSS quality gate:
-  ```bash
-  npm run verify:oss
-  ```
+
+```bash
+npm run verify:oss
+```
+
 - Use `npm run verify:full` for the full suite (includes Go tests + builds).
 - See [`docs/CLI_REFERENCE.md`](docs/CLI_REFERENCE.md) for all `reachctl` commands.
 - See [`docs/DETERMINISM_SPEC.md`](docs/DETERMINISM_SPEC.md) for execution invariants.

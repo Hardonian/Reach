@@ -39,6 +39,7 @@ All agents contributing to Reach must adhere to the following guardrails. These 
 ### 1. Entropy Reduction
 
 Every change must either maintain or reduce the system's total entropy. Specifically:
+
 - Never introduce `time.Now()`, `rand.Int()`, or UUID v4 in fingerprint-contributing code paths.
 - Never iterate over Go maps without sorting keys first.
 - Never use unsorted arrays in hashing paths unless explicitly documented as order-sensitive.
@@ -75,6 +76,7 @@ Mismatched hashes are blocked by the `verify:oss` gate.
 ### 5. Evidence-First
 
 All new execution features must include:
+
 1. An update to [`docs/EVIDENCE_CHAIN_MODEL.md`](docs/EVIDENCE_CHAIN_MODEL.md).
 2. A new event type in [`protocol/schemas/events.schema.json`](protocol/schemas/events.schema.json) (if adding events).
 3. A golden fixture in `testdata/fixtures/conformance/`.
