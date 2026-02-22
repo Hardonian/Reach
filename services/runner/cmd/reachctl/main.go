@@ -1339,12 +1339,6 @@ Examples:
   reach plugins audit my-plugin
   reach plugins certify my-plugin
 `)
-
-Examples:
-  reach plugins list
-  reach plugins verify my-plugin
-  reach plugins capability my-plugin
-`)
 }
 
 func runInit(args []string, out io.Writer, errOut io.Writer) int {

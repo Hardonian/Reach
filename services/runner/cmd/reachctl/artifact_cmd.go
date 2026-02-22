@@ -14,46 +14,45 @@ import (
 	"time"
 
 	"reach/services/runner/internal/determinism"
-	"reach/services/runner/internal/reporting"
 )
 
 // Artifact types supported by ingest
 const (
-	ArtifactTypeRunBundle   = "run-bundle"
-	ArtifactTypeProof       = "proof"
-	ArtifactTypeDiff        = "diff"
-	ArtifactTypeDecision    = "decision"
-	ArtifactTypeLogs        = "logs"
-	ArtifactTypeCapsule     = "capsule"
+	ArtifactTypeRunBundle  = "run-bundle"
+	ArtifactTypeProof      = "proof"
+	ArtifactTypeDiff       = "diff"
+	ArtifactTypeDecision   = "decision"
+	ArtifactTypeLogs       = "logs"
+	ArtifactTypeCapsule    = "capsule"
 )
 
 // ArtifactRecord represents an ingested artifact
 type ArtifactRecord struct {
-	ArtifactID   string                 `json:"artifact_id"`
-	Type         string                 `json:"type"`
-	ContentHash  string                 `json:"content_hash"`
-	Size         int64                  `json:"size"`
-	Metadata     map[string]any         `json:"metadata"`
-	IndexedAt    string                 `json:"indexed_at"`
-	SourcePath   string                 `json:"source_path"`
+	ArtifactID  string         `json:"artifact_id"`
+	Type        string         `json:"type"`
+	ContentHash string         `json:"content_hash"`
+	Size        int64          `json:"size"`
+	Metadata    map[string]any `json:"metadata"`
+	IndexedAt   string         `json:"indexed_at"`
+	SourcePath  string         `json:"source_path"`
 }
 
 // ArtifactExportBundle represents an exportable bundle
 type ArtifactExportBundle struct {
-	Manifest   ExportManifest        `json:"manifest"`
-	Artifacts  []ArtifactFileRef      `json:"artifacts"`
-	ProofChain []string              `json:"proof_chain"`
+	Manifest   ExportManifest    `json:"manifest"`
+	Artifacts  []ArtifactFileRef `json:"artifacts"`
+	ProofChain []string          `json:"proof_chain"`
 }
 
 // ExportManifest is the manifest for exported bundles
 type ExportManifest struct {
-	BundleID       string    `json:"bundle_id"`
-	EntityID       string    `json:"entity_id"`
-	EntityType     string    `json:"entity_type"`
-	CreatedAt      string    `json:"created_at"`
-	ContentHash    string    `json:"content_hash"`
-	ArtifactCount  int       `json:"artifact_count"`
-	Version        string    `json:"version"`
+	BundleID      string `json:"bundle_id"`
+	EntityID      string `json:"entity_id"`
+	EntityType    string `json:"entity_type"`
+	CreatedAt     string `json:"created_at"`
+	ContentHash   string `json:"content_hash"`
+	ArtifactCount int    `json:"artifact_count"`
+	Version       string `json:"version"`
 }
 
 // ArtifactFileRef references an artifact file in the bundle
@@ -131,7 +130,7 @@ func runArtifactIngest(ctx context.Context, dataRoot string, args []string, out 
 
 	// Build metadata
 	metadata := map[string]any{
-		"source_path": sourcePath,
+		"source_path":   sourcePath,
 		"detected_type": detectArtifactType(sourcePath),
 	}
 
@@ -143,7 +142,7 @@ func runArtifactIngest(ctx context.Context, dataRoot string, args []string, out 
 		Size:         size,
 		Metadata:     metadata,
 		IndexedAt:    time.Now().UTC().Format(time.RFC3339),
-		SourcePath:  sourcePath,
+		SourcePath:   sourcePath,
 	}
 
 	// Save artifact index
@@ -208,17 +207,17 @@ func runArtifactExport(ctx context.Context, dataRoot string, args []string, out 
 	}
 
 	// Compute bundle hash
-	bundleHash := stableHash(map[string]any{
-		"manifest": bundle.Manifest,
+	bundleHash := determinism.Hash(map[string]any{
+		"manifest":  bundle.Manifest,
 		"artifacts": bundle.Artifacts,
 	})
 
 	if *jsonOutput {
 		return writeJSON(out, map[string]any{
-			"bundle":        *output,
-			"entity_id":     entityID,
-			"entity_type":   entityType,
-			"bundle_hash":   bundleHash,
+			"bundle":         *output,
+			"entity_id":      entityID,
+			"entity_type":    entityType,
+			"bundle_hash":    bundleHash,
 			"artifact_count": len(bundle.Artifacts),
 		})
 	}
@@ -263,8 +262,8 @@ func runArtifactVerify(ctx context.Context, dataRoot string, args []string, out 
 	}
 
 	// Verify manifest integrity
-	expectedHash := stableHash(map[string]any{
-		"manifest": bundle.Manifest,
+	expectedHash := determinism.Hash(map[string]any{
+		"manifest":  bundle.Manifest,
 		"artifacts": bundle.Artifacts,
 	})
 
@@ -275,14 +274,14 @@ func runArtifactVerify(ctx context.Context, dataRoot string, args []string, out 
 
 	if *jsonOutput {
 		return writeJSON(out, map[string]any{
-			"verified":           verified,
-			"bundle_path":        bundlePath,
-			"entity_id":          bundle.Manifest.EntityID,
-			"entity_type":        bundle.Manifest.EntityType,
-			"manifest_hash":      bundle.Manifest.ContentHash,
-			"expected_hash":      expectedHash,
-			"artifact_count":     len(bundle.Artifacts),
-			"errors":             verificationErrors,
+			"verified":       verified,
+			"bundle_path":    bundlePath,
+			"entity_id":      bundle.Manifest.EntityID,
+			"entity_type":    bundle.Manifest.EntityType,
+			"manifest_hash":  bundle.Manifest.ContentHash,
+			"expected_hash":  expectedHash,
+			"artifact_count": len(bundle.Artifacts),
+			"errors":         verificationErrors,
 		})
 	}
 
@@ -412,7 +411,19 @@ func computeZipHash(path string) (string, int64, error) {
 	sort.Strings(files)
 
 	for _, name := range files {
-		f, err := r.Open(name)
+		// Find the file in the zip
+		var targetFile *zip.File
+		for _, f := range r.File {
+			if f.Name == name {
+				targetFile = f
+				break
+			}
+		}
+		if targetFile == nil {
+			continue
+		}
+
+		f, err := targetFile.Open()
 		if err != nil {
 			return "", 0, err
 		}
@@ -506,7 +517,7 @@ func createExportBundle(entityID, entityType string, data map[string]any) *Artif
 		proofChain = append(proofChain, fp)
 	}
 	if len(eventLog) > 0 {
-		proofChain = append(proofChain, stableHash(eventLog))
+		proofChain = append(proofChain, determinism.Hash(eventLog))
 	}
 
 	// Create manifest
@@ -515,7 +526,7 @@ func createExportBundle(entityID, entityType string, data map[string]any) *Artif
 		EntityID:      entityID,
 		EntityType:    entityType,
 		CreatedAt:     time.Now().UTC().Format(time.RFC3339),
-		ContentHash:   stableHash(data),
+		ContentHash:   determinism.Hash(data),
 		ArtifactCount: 1,
 		Version:       "1.0",
 	}
@@ -524,7 +535,7 @@ func createExportBundle(entityID, entityType string, data map[string]any) *Artif
 	artifacts := []ArtifactFileRef{
 		{
 			Name:        entityType + ".json",
-			ContentHash: stableHash(data),
+			ContentHash: determinism.Hash(data),
 			Size:        int64(len(fmt.Sprint(data))),
 		},
 	}
@@ -580,7 +591,12 @@ func readExportBundle(path string) (*ArtifactExportBundle, error) {
 	// Read all files
 	files := make(map[string][]byte)
 	for _, f := range r.File {
-		data, err := io.ReadAll(f.Open())
+		rc, err := f.Open()
+		if err != nil {
+			return nil, err
+		}
+		data, err := io.ReadAll(rc)
+		rc.Close()
 		if err != nil {
 			return nil, err
 		}
@@ -603,7 +619,7 @@ func readExportBundle(path string) (*ArtifactExportBundle, error) {
 		if name != "manifest.json" {
 			bundle.Artifacts = append(bundle.Artifacts, ArtifactFileRef{
 				Name:        name,
-				ContentHash: stableHash(string(data)),
+				ContentHash: determinism.Hash(string(data)),
 				Size:        int64(len(data)),
 			})
 		}
