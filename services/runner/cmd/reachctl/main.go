@@ -24,6 +24,7 @@ import (
 	"reach/services/runner/internal/mesh"
 	"reach/services/runner/internal/pack"
 	"reach/services/runner/internal/poee"
+	"reach/services/runner/internal/storage"
 	"reach/services/runner/internal/support"
 )
 
@@ -94,6 +95,16 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 
 	args = filteredArgs
 	dataRoot := getenv("REACH_DATA_DIR", "data")
+
+	// Initialize OSS Storage Driver
+	store, err := storage.NewSqliteDriver(dataRoot)
+	if err != nil {
+		// We don't exit here because some commands (like 'doctor' or 'help') might not need storage
+	} else {
+		defer store.Close()
+	}
+	_ = store // Prevent unused variable error until wired into specific commands
+
 	switch args[0] {
 	case "diff-run":
 		return runDiffRun(ctx, dataRoot, args[1:], out, errOut)
