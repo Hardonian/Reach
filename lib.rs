@@ -4,7 +4,7 @@ pub mod types;
 
 use wasm_bindgen::prelude::*;
 use crate::types::{DecisionInput, DecisionOutput};
-use crate::engine::{minimax_regret, maximin, weighted_sum, softmax, hurwicz};
+use crate::engine::{minimax_regret, maximin, weighted_sum, softmax, hurwicz, laplace};
 use crate::determinism::CanonicalJson;
 
 #[wasm_bindgen]
@@ -28,6 +28,7 @@ pub fn evaluate_decision(input_json: &str) -> Result<String, JsError> {
         Some("weighted_sum") => weighted_sum(&input),
         Some("softmax") => softmax(&input),
         Some("hurwicz") => hurwicz(&input),
+        Some("laplace") => laplace(&input),
         _ => minimax_regret(&input),
     }
         .map_err(|e| JsError::new(&format!("E_INTERNAL: Engine failure: {}", e)))?;

@@ -7,7 +7,7 @@ export interface DecisionInput {
   actions: string[];
   states: string[];
   outcomes: Record<string, Record<string, number>>;
-  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz";
+  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax" | "hurwicz" | "laplace";
   weights?: Record<string, number>;
   strict?: boolean;
   temperature?: number;
@@ -69,6 +69,9 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
   }
   if (input.algorithm === "hurwicz") {
     return hurwiczFallback(effectiveInput);
+  }
+  if (input.algorithm === "laplace") {
+    return laplaceFallback(effectiveInput);
   }
 
   // 1. Max Utility per State
@@ -134,6 +137,38 @@ export function validateOutcomesFallback(input: DecisionInput): boolean {
     }
   }
   return true;
+}
+
+function laplaceFallback(input: DecisionInput): DecisionOutput {
+  const numStates = input.states.length;
+  if (numStates === 0) throw new Error("Cannot apply Laplace criterion with no states");
+
+  const scores: Record<string, number> = {};
+
+  for (const action of input.actions) {
+    let sum = 0;
+    for (const state of input.states) {
+      const val = input.outcomes[action]?.[state] ?? 0;
+      sum += val;
+    }
+    scores[action] = sum / numStates;
+  }
+
+  const ranking = [...input.actions].sort((a, b) => {
+    const sA = scores[a];
+    const sB = scores[b];
+    if (Math.abs(sA - sB) < 1e-9) return a.localeCompare(b);
+    return sB - sA;
+  });
+
+  return {
+    recommended_action: ranking[0],
+    ranking,
+    trace: {
+      algorithm: "laplace",
+      laplace_scores: scores
+    }
+  };
 }
 
 function hurwiczFallback(input: DecisionInput): DecisionOutput {

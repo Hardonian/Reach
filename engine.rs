@@ -282,3 +282,52 @@ pub fn hurwicz(input: &DecisionInput) -> Result<DecisionOutput> {
         },
     })
 }
+
+pub fn laplace(input: &DecisionInput) -> Result<DecisionOutput> {
+    let num_states = input.states.len() as f64;
+    if num_states == 0.0 {
+        return Err(anyhow::anyhow!("Cannot apply Laplace criterion with no states"));
+    }
+
+    let mut laplace_scores = BTreeMap::new();
+
+    for action in &input.actions {
+        let mut sum_util = 0.0;
+        for state in &input.states {
+            // Safe due to validation
+            let util = input.outcomes.get(action).unwrap().get(state).unwrap().0;
+            sum_util += util;
+        }
+        let score = sum_util / num_states;
+        laplace_scores.insert(action.clone(), OrderedFloat(score));
+    }
+
+    // Rank Actions (Maximize Score)
+    let mut ranked_actions = input.actions.clone();
+    ranked_actions.sort_by(|a, b| {
+        let score_a = laplace_scores.get(a).unwrap();
+        let score_b = laplace_scores.get(b).unwrap();
+        match score_b.cmp(score_a) {
+            std::cmp::Ordering::Equal => a.cmp(b),
+            other => other,
+        }
+    });
+
+    let recommended = ranked_actions.first().ok_or_else(|| anyhow::anyhow!("No actions provided"))?.clone();
+
+    Ok(DecisionOutput {
+        recommended_action: recommended,
+        ranking: ranked_actions,
+        trace: DecisionTrace {
+            algorithm: "laplace".to_string(),
+            regret_table: None,
+            max_regret: None,
+            min_utility: None,
+            weighted_scores: None,
+            probabilities: None,
+            hurwicz_scores: None,
+            laplace_scores: Some(laplace_scores),
+            fingerprint: None,
+        },
+    })
+}
