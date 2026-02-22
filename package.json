@@ -1,21 +1,33 @@
 {
-  "name": "@zeo/decision-engine-wasm",
-  "version": "0.1.0",
-  "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "name": "@reach/decision-engine-monorepo",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Decision engine monorepo with Rust core and TypeScript wrapper",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "build": "npm run build:wasm && tsc",
-    "build:wasm": "wasm-pack build ../decision-engine-rs --target nodejs --out-dir ../decision-engine-wasm/pkg",
-    "test": "node test/parity.js",
-    "benchmark": "node test/benchmark.js"
-  },
-  "dependencies": {
-    "fs-extra": "^11.1.0"
+    "build": "npm run build -w @reach/decision-engine-wasm",
+    "build:wasm": "cd crates/decision-engine && wasm-pack build --target nodejs --out-dir ../../packages/decision-engine-wasm/wasm",
+    "test": "npm run test -w @reach/decision-engine-wasm",
+    "test:parity": "npm run test:parity -w @reach/decision-engine-wasm",
+    "test:rust": "cd crates && cargo test -p decision-engine",
+    "lint": "npm run lint -w @reach/decision-engine-wasm",
+    "typecheck": "npm run typecheck -w @reach/decision-engine-wasm",
+    "clean": "npm run clean -w @reach/decision-engine-wasm",
+    "verify:oss": "echo 'OSS verification placeholder - implement with actual CI checks'",
+    "verify:fast": "npm run typecheck && npm run lint",
+    "verify:full": "npm run verify:fast && npm run build && npm run test"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "wasm-pack": "^0.12.0",
-    "@types/node": "^20.0.0"
-  }
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reach/decision-engine.git"
+  },
+  "license": "MIT"
 }
