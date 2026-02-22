@@ -5,7 +5,7 @@
  * No direct SQL in route handlers - all access goes through here.
  */
 
-import { getDatabase } from './connection';
+import { getDB } from './connection';
 import type { DecisionReport, Junction, ActionIntent, DecisionStatus, DecisionOutcomeStatus, DecisionSourceType } from './types';
 
 /**

@@ -1,4 +1,6 @@
 import type { LlmConfig, LlmProviderName } from "./llm-cli.js";
+// @ts-ignore
+import { LlmCli } from "./llm-cli.js";
 
 export interface LlmMessage {
   role: "system" | "user" | "assistant";
