@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-02-22
+
+### Added
+
+- **Documentation IA**: Normalized documentation information architecture with new index, architecture, and CLI guides.
+- **Start Here Experience**: Revamped root README with quickstart, concepts, and architectural diagrams.
+- **Decision Pillar**: formalized documentation for the Decision primitive and lifecycle.
+
+### Changed
+
+- **Repo Hygiene**: Normalized documentation file naming and internal linking.
+- **Configuration Alignment**: Fixed broken paths in Go workspace and aligned versioning across package manifests.
+
 ## [0.3.0] - 2026-02-20
 
 ### Added

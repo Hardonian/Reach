@@ -7,9 +7,10 @@ export interface DecisionInput {
   actions: string[];
   states: string[];
   outcomes: Record<string, Record<string, number>>;
-  algorithm?: "minimax_regret" | "maximin" | "weighted_sum";
+  algorithm?: "minimax_regret" | "maximin" | "weighted_sum" | "softmax";
   weights?: Record<string, number>;
   strict?: boolean;
+  temperature?: number;
 }
 
 export interface DecisionOutput {
@@ -41,11 +42,24 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
   // Create effective input with potentially normalized weights
   const effectiveInput = { ...input, weights: effectiveWeights };
 
+  // Validate outcomes
+  for (const action of effectiveInput.actions) {
+    for (const state of effectiveInput.states) {
+      const val = effectiveInput.outcomes[action]?.[state];
+      if (val !== undefined && !Number.isFinite(val)) {
+        throw new Error("Utility value cannot be NaN or Infinity");
+      }
+    }
+  }
+
   if (input.algorithm === "maximin") {
     return maximinFallback(effectiveInput);
   }
   if (input.algorithm === "weighted_sum") {
     return weightedSumFallback(effectiveInput);
+  }
+  if (input.algorithm === "softmax") {
+    return softmaxFallback(effectiveInput);
   }
 
   // 1. Max Utility per State
@@ -90,6 +104,92 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
     trace: {
       algorithm: "minimax_regret_fallback",
       max_regret: maxRegret
+    }
+  };
+}
+
+export function validateOutcomesFallback(input: DecisionInput): boolean {
+  for (const action of input.actions) {
+    const stateMap = input.outcomes[action];
+    if (!stateMap) {
+      throw new Error(`Missing outcome for action '${action}' in state 'ALL'`);
+    }
+    for (const state of input.states) {
+      const val = stateMap[state];
+      if (val === undefined) {
+        throw new Error(`Missing outcome for action '${action}' in state '${state}'`);
+      }
+      if (!Number.isFinite(val)) {
+        throw new Error("Utility value cannot be NaN or Infinity");
+      }
+    }
+  }
+  return true;
+}
+
+export function validateStructureFallback(input: DecisionInput): boolean {
+  for (const action of input.actions) {
+    const stateMap = input.outcomes[action];
+    if (!stateMap) {
+      throw new Error(`Missing outcome for action '${action}' in state 'ALL'`);
+    }
+    for (const state of input.states) {
+      if (stateMap[state] === undefined) {
+        throw new Error(`Missing outcome for action '${action}' in state '${state}'`);
+      }
+    }
+  }
+  return true;
+}
+
+function softmaxFallback(input: DecisionInput): DecisionOutput {
+  const weights = input.weights || {};
+  const temp = input.temperature ?? 1.0;
+
+  if (temp <= 0) throw new Error("Temperature must be positive");
+
+  // 1. Calculate Scores
+  const scores: Record<string, number> = {};
+  let maxScore = -Infinity;
+
+  for (const action of input.actions) {
+    let score = 0;
+    for (const state of input.states) {
+      const util = input.outcomes[action]?.[state] ?? 0;
+      const weight = weights[state] ?? 0;
+      score += util * weight;
+    }
+    scores[action] = score;
+    if (score > maxScore) maxScore = score;
+  }
+
+  // 2. Calculate Probabilities
+  const probabilities: Record<string, number> = {};
+  let sumExp = 0;
+  const exps: Record<string, number> = {};
+
+  for (const action of input.actions) {
+    const val = Math.exp((scores[action] - maxScore) / temp);
+    exps[action] = val;
+    sumExp += val;
+  }
+
+  for (const action of input.actions) {
+    probabilities[action] = exps[action] / sumExp;
+  }
+
+  // 3. Ranking
+  const ranking = [...input.actions].sort((a, b) => {
+    return probabilities[b] - probabilities[a] || a.localeCompare(b);
+  });
+
+  return {
+    recommended_action: ranking[0],
+    ranking,
+    trace: {
+      algorithm: "softmax",
+      weighted_scores: scores,
+      probabilities
     }
   };
 }

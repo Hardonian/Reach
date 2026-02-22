@@ -1,12 +1,19 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "CommonJS",
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "declaration": true
+    "declaration": true,
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@zeo/core": ["./src/core/shim.ts"],
+      "@zeo/contracts": ["./sdk/ts/src/index.ts"],
+      "@zeo/*": ["./src/*"]
+    }
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "test/**/*"]
 }

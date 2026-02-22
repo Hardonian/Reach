@@ -1,0 +1,21 @@
+{
+  "id": "fixture_001_simple",
+  "description": "Simple decision with 2 actions and 2 scenarios",
+  "input": {
+    "id": "simple_001",
+    "actions": [
+      {"id": "buy", "label": "Buy"},
+      {"id": "sell", "label": "Sell"}
+    ],
+    "scenarios": [
+      {"id": "bull", "probability": 0.6, "adversarial": false},
+      {"id": "bear", "probability": 0.4, "adversarial": true}
+    ],
+    "outcomes": [
+      ["buy", "bull", 100],
+      ["buy", "bear", -50],
+      ["sell", "bull", -20],
+      ["sell", "bear", 30]
+    ]
+  }
+}

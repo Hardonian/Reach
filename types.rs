@@ -15,6 +15,8 @@ pub struct DecisionInput {
     pub weights: Option<BTreeMap<String, OrderedFloat<f64>>>,
     #[serde(default)]
     pub strict: bool,
+    #[serde(default)]
+    pub temperature: Option<OrderedFloat<f64>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -39,6 +41,9 @@ pub struct DecisionTrace {
     // Map<ActionId, WeightedScore>
     #[serde(skip_serializing_if = "Option::is_none")]
     pub weighted_scores: Option<BTreeMap<String, OrderedFloat<f64>>>,
+    // Map<ActionId, Probability>
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub probabilities: Option<BTreeMap<String, OrderedFloat<f64>>>,
     
     pub fingerprint: Option<String>,
 }
@@ -71,6 +76,16 @@ impl DecisionInput {
         }
 
         // Check completeness and validity
+        self.validate_outcomes()?;
+
+        if self.strict {
+            self.validate_weights()?;
+        }
+
+        Ok(())
+    }
+
+    pub fn validate_outcomes(&self) -> Result<(), ValidationError> {
         for action in &self.actions {
             let state_map = self.outcomes.get(action)
                 .ok_or_else(|| ValidationError::MissingOutcome(action.clone(), "ALL".to_string()))?;
@@ -84,11 +99,20 @@ impl DecisionInput {
                 }
             }
         }
+        Ok(())
+    }
 
-        if self.strict {
-            self.validate_weights()?;
+    pub fn validate_structure(&self) -> Result<(), ValidationError> {
+        for action in &self.actions {
+            let state_map = self.outcomes.get(action)
+                .ok_or_else(|| ValidationError::MissingOutcome(action.clone(), "ALL".to_string()))?;
+            
+            for state in &self.states {
+                if !state_map.contains_key(state) {
+                    return Err(ValidationError::MissingOutcome(action.clone(), state.clone()));
+                }
+            }
         }
-
         Ok(())
     }
 

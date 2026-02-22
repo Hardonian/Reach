@@ -1,15 +1,42 @@
-# @zeo/core
+# Reach: The Deterministic Spine for Agentic Intelligence
 
-Core decision and transcript runtime for Zeo.
+[![CI Status](https://github.com/reach/reach/actions/workflows/ci.yml/badge.svg)](https://github.com/reach/reach/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.3.1-blue.svg)](VERSION)
 
-## API naming migration
+Reach is a high-performance, deterministic decision engine designed for autonomous agents and complex workflows. Built with a Rust core for precision and a TypeScript wrapper for flexibility, Reach provides the cryptographic provenance and bit-identical replayability required for production-grade agentic systems.
 
-### Background
-`@zeo/core` historically exposed a generic `computeTranscriptHash` symbol from the barrel. The core package now exposes explicit names to reduce ambiguity between decision-transcript hashing and canonical/envelope hashing.
+---
 
-### Preferred exports
-- `computeDecisionTranscriptHash` — hash for decision transcript payloads from `transcript.ts`.
-- `computeSecurityTranscriptHash` — canonical/envelope hash from `transcript-security.ts`.
+## 🚀 Start Here
 
-### Compatibility
-`computeTranscriptHash` remains available from the barrel for backward compatibility, but new integrations should migrate to explicit names to make intent and provenance boundaries clear.
+...
+
+## 🧠 Core Concepts
+
+...
+
+## 📖 Documentation
+
+- [Documentation Index](docs/README.md)
+- [Architecture & Design](docs/architecture.md)
+- [CLI Reference](docs/cli.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [API Versioning](docs/API_VERSIONING.md)
+- [API Versioning](docs/API_VERSIONING.md)
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and our [AGENTS.md](AGENTS.md) for guidelines on contributing AI-assisted code.
+
+---
+
+## 🛡️ Security
+
+Security is paramount. Please review our [SECURITY.md](SECURITY.md) for reporting vulnerabilities and our threat model. Reach includes a built-in dependency firewall to ensure the integrity of the ecosystem.
+
+---
+
+*Reach: Reducing entropy in autonomous systems.*

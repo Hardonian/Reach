@@ -10,6 +10,7 @@
 //! - **Adversarial Robustness**: Score against worst adversarial scenarios
 //! - **Composite Scoring**: Weighted combination of all metrics
 //! - **Deterministic Outputs**: Byte-stable JSON with SHA-256 fingerprints
+//! - **WASM Support**: Full WebAssembly bindings for JavaScript/TypeScript
 //!
 //! ## Quick Start
 //!
@@ -41,10 +42,19 @@
 //! println!("Recommended: {}", output.ranked_actions[0].action_id);
 //! println!("Fingerprint: {}", output.determinism_fingerprint);
 //! ```
+//!
+//! ## WASM Usage
+//!
+//! ```javascript
+//! const wasm = await import('./decision_engine.js');
+//! const result = wasm.evaluate_decision_json(JSON.stringify(input));
+//! const output = JSON.parse(result);
+//! ```
 
 pub mod determinism;
 pub mod engine;
 pub mod types;
+pub mod wasm;
 
 // Re-export main types and functions for convenience
 pub use determinism::{
@@ -61,6 +71,19 @@ pub use types::{
     DecisionEvidence, DecisionInput, DecisionMeta, DecisionOutput, DecisionTrace,
     FlipDistance, PlannedAction, RankedAction, RefereeAdjudication, RegretBoundedPlan,
     Scenario, VoiRanking,
+};
+
+// Re-export WASM functions for non-WASM builds
+#[cfg(not(target_arch = "wasm32"))]
+pub use wasm::{
+    compute_fingerprint_json, evaluate_decision_json, get_engine_version, ErrorDetail,
+    WasmError, WasmSuccess,
+};
+
+#[cfg(target_arch = "wasm32")]
+pub use wasm::{
+    compute_fingerprint_json, evaluate_decision_json, get_engine_version, ErrorDetail,
+    WasmError, WasmSuccess,
 };
 
 #[cfg(test)]

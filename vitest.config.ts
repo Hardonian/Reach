@@ -4,30 +4,31 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const tsconfigBasePath = path.resolve(__dirname, "../../tsconfig.base.json");
-const tsconfigBase = JSON.parse(fs.readFileSync(tsconfigBasePath, "utf-8")) as {
-  compilerOptions?: { paths?: Record<string, string[]> };
-};
+const tsconfigPath = path.resolve(__dirname, "./tsconfig.json");
 
-const aliases = [
-  // Force @zeo/* to resolve to src/index.ts for tests
-  {
-    find: /^@zeo\/(.*)$/,
-    replacement: path.resolve(__dirname, "../../packages/$1/src/index.ts")
-  },
-  // Map other paths from tsconfig (e.g. @prisma/client)
-  ...Object.entries(tsconfigBase.compilerOptions?.paths ?? {})
-    .filter(([key]) => !key.startsWith("@zeo"))
-    .map(([key, value]) => {
-      const paths = Array.isArray(value) ? value : [value];
-      const replacement = paths[0];
-      const find = new RegExp(`^${key.replace("*", "(.*)")}$`);
-      const resolved = replacement.replace("*", "$1");
-      const withEntry = path.extname(resolved) === "" ? `${resolved}/index.ts` : resolved;
-      const target = path.resolve(__dirname, "../../", withEntry);
-      return { find, replacement: target };
-    })
-];
+let tsconfig: any = {};
+if (fs.existsSync(tsconfigPath)) {
+  try {
+    const raw = fs.readFileSync(tsconfigPath, "utf-8");
+    // Strip comments if any
+    const clean = raw.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '$1');
+    tsconfig = JSON.parse(clean);
+  } catch (e) {
+    console.error("Failed to parse tsconfig.json for vitest aliases", e);
+  }
+}
+
+const paths = tsconfig.compilerOptions?.paths || {};
+
+const aliases = Object.entries(paths).map(([key, value]) => {
+  const replacement = (value as string[])[0];
+  const find = new RegExp(`^${key.replace("*", "(.*)")}$`);
+  const resolvedReplacement = replacement.replace("*", "$1");
+  return {
+    find,
+    replacement: path.resolve(__dirname, resolvedReplacement)
+  };
+});
 
 export default defineConfig({
   resolve: {
@@ -36,5 +37,6 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
+    exclude: ["node_modules", "dist", ".git", ".github"],
   },
 });

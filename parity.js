@@ -87,6 +87,18 @@ const fixtures = [
             weights: { "s1": 2, "s2": 8 }, 
             algorithm: "weighted_sum"
         }
+    },
+    {
+        name: "Softmax (Temperature 1.0)",
+        input: {
+            actions: ["a1", "a2"],
+            states: ["s1"],
+            outcomes: { "a1": { "s1": 2 }, "a2": { "s1": 1 } },
+            weights: { "s1": 1.0 },
+            algorithm: "softmax",
+            temperature: 1.0
+            // a1 score=2, a2 score=1. exp(1)/sum vs exp(0)/sum.
+        }
     }
 ];
 

@@ -155,3 +155,78 @@ pub fn weighted_sum(input: &DecisionInput) -> Result<DecisionOutput> {
         },
     })
 }
+
+pub fn softmax(input: &DecisionInput) -> Result<DecisionOutput> {
+    // 1. Validate Inputs
+    let weights = input.weights.as_ref()
+        .ok_or_else(|| anyhow::anyhow!("Weights required for softmax algorithm"))?;
+    
+    let temp = input.temperature.unwrap_or(OrderedFloat(1.0)).0;
+    if temp <= 0.0 {
+        return Err(anyhow::anyhow!("Temperature must be positive"));
+    }
+
+    // 2. Calculate Weighted Scores (Expected Utility)
+    let mut weighted_scores = BTreeMap::new();
+    let mut max_score = f64::NEG_INFINITY;
+
+    for action in &input.actions {
+        let mut score = 0.0;
+        for state in &input.states {
+            let util = input.outcomes.get(action).unwrap().get(state).unwrap();
+            let weight = weights.get(state).unwrap_or(&OrderedFloat(0.0));
+            score += util.0 * weight.0;
+        }
+        weighted_scores.insert(action.clone(), score);
+        if score > max_score {
+            max_score = score;
+        }
+    }
+
+    // 3. Calculate Probabilities: P(a) = exp((score - max) / temp) / sum
+    let mut probabilities = BTreeMap::new();
+    let mut sum_exp = 0.0;
+    let mut exps = BTreeMap::new();
+
+    for (action, score) in &weighted_scores {
+        let val = ((score - max_score) / temp).exp();
+        exps.insert(action.clone(), val);
+        sum_exp += val;
+    }
+
+    for (action, val) in exps {
+        probabilities.insert(action, OrderedFloat(val / sum_exp));
+    }
+
+    // 4. Rank Actions (by Probability, descending)
+    let mut ranked_actions = input.actions.clone();
+    ranked_actions.sort_by(|a, b| {
+        let prob_a = probabilities.get(a).unwrap();
+        let prob_b = probabilities.get(b).unwrap();
+        match prob_b.cmp(prob_a) {
+            std::cmp::Ordering::Equal => a.cmp(b),
+            other => other,
+        }
+    });
+
+    let recommended = ranked_actions.first().ok_or_else(|| anyhow::anyhow!("No actions provided"))?.clone();
+
+    // Convert scores to OrderedFloat for trace
+    let weighted_scores_trace: BTreeMap<String, OrderedFloat<f64>> = weighted_scores.into_iter()
+        .map(|(k, v)| (k, OrderedFloat(v)))
+        .collect();
+
+    Ok(DecisionOutput {
+        recommended_action: recommended,
+        ranking: ranked_actions,
+        trace: DecisionTrace {
+            algorithm: "softmax".to_string(),
+            regret_table: None,
+            max_regret: None,
+            min_utility: None,
+            weighted_scores: Some(weighted_scores_trace),
+            probabilities: Some(probabilities),
+            fingerprint: None,
+        },
+    })
+}

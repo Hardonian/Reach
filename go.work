@@ -1,9 +1,8 @@
 go 1.24.0
 
 use (
-	./core/config
-	./core/evaluation
 	./services/runner
+	./src/core/config
+	./src/core/evaluation
 	./tools/doctor
 )
-
