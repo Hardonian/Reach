@@ -76,6 +76,17 @@ const fixtures = [
             algorithm: "weighted_sum",
             strict: true
         }
+    },
+    {
+        name: "Weighted Sum (Unnormalized, Auto-Normalize)",
+        input: {
+            actions: ["a1", "a2"],
+            states: ["s1", "s2"],
+            outcomes: { "a1": { "s1": 10, "s2": 10 }, "a2": { "s1": 20, "s2": 0 } },
+            // Sum = 10. Normalized: s1=0.2, s2=0.8
+            weights: { "s1": 2, "s2": 8 }, 
+            algorithm: "weighted_sum"
+        }
     }
 ];
 
