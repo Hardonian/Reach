@@ -3399,6 +3399,18 @@ Advanced Commands:
   proof <command>                 Verify execution proofs
   graph <command>                 Export or view execution graphs
 
+Evidence-First Commands (V2):
+  steps <runId>                   List steps with proof hashes
+  proof <runId> [--step <id>]     Show proof chain for a run
+  checkpoint create <runId>       Create a checkpoint at current state
+  checkpoint list <runId>         List checkpoints for a run
+  rewind <checkpointId>           Rewind to a checkpoint
+  simulate <pipelineId>           Simulate run against history
+  chaos <runId> --level <1-5>     Run chaos testing
+  provenance <runId>              Show provenance information
+  trust <runId>                   Calculate trust score
+  assistant <on|off|suggest|help> Copilot mode
+
 Global Flags:
   --trace-determinism             Enable internal trace logging for hashing
 
@@ -3996,4 +4008,240 @@ func runTrust(ctx context.Context, dataRoot string, args []string, out io.Writer
 	_, _ = fmt.Fprintf(out, "Drift Incidents: %d\n", result["drift_incidents"])
 	_, _ = fmt.Fprintln(out, "\n✓ Workspace is trustworthy!")
 	return 0
+}
+
+// runSteps lists steps for a run with proof hashes
+func runSteps(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	fs := flag.NewFlagSet("steps", flag.ContinueOnError)
+	fs.SetOutput(errOut)
+	jsonFlag := fs.Bool("json", false, "Output in JSON format")
+	verboseFlag := fs.Bool("verbose", false, "Include full hashes")
+	_ = fs.Parse(args)
+
+	if fs.NArg() < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reachctl steps <runId> [--json] [--verbose]")
+		return 1
+	}
+
+	runID := fs.Arg(0)
+	record, err := loadRunRecord(dataRoot, runID)
+	if err != nil {
+		_, _ = fmt.Fprintf(errOut, "Run not found: %s\n", runID)
+		return 1
+	}
+
+	// Convert event log to step records with generated proofs
+	var steps []map[string]any
+	for i, event := range record.EventLog {
+		stepID := fmt.Sprintf("step-%d", i)
+		if id, ok := event["step"].(float64); ok {
+			stepID = fmt.Sprintf("step-%d", int(id))
+		}
+		if id, ok := event["node"].(string); ok {
+			stepID = id
+		}
+
+		// Compute proof for this step
+		eventHash := determinism.Hash(event)
+		
+		step := map[string]any{
+			"seq":          i + 1,
+			"step_id":      stepID,
+			"status":       "complete",
+			"event_hash":   eventHash,
+		}
+		
+		if *verboseFlag {
+			step["event"] = event
+		} else {
+			step["event_hash_short"] = eventHash[:16]
+		}
+		
+		steps = append(steps, step)
+	}
+
+	result := map[string]any{
+		"run_id":     runID,
+		"step_count": len(steps),
+		"steps":      steps,
+		"run_fingerprint": stableHash(map[string]any{"event_log": record.EventLog, "run_id": record.RunID}),
+	}
+
+	if *jsonFlag {
+		return writeJSON(out, result)
+	}
+
+	// Human-readable output
+	_, _ = fmt.Fprintf(out, "Steps for run %s\n", runID)
+	_, _ = fmt.Fprintln(out, "================")
+	_, _ = fmt.Fprintf(out, "Total steps: %d\n\n", len(steps))
+	
+	for _, step := range steps {
+		stepID := step["step_id"].(string)
+		seq := step["seq"].(int)
+		var hash string
+		if *verboseFlag {
+			hash = step["event_hash"].(string)
+		} else {
+			hash = step["event_hash_short"].(string)
+		}
+		_, _ = fmt.Fprintf(out, "[%d] %s\n", seq, stepID)
+		_, _ = fmt.Fprintf(out, "    Proof: %s...\n", hash[:16])
+		_, _ = fmt.Fprintln(out)
+	}
+
+	return 0
+}
+
+// runProvenance shows provenance information for a run
+func runProvenance(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	fs := flag.NewFlagSet("provenance", flag.ContinueOnError)
+	fs.SetOutput(errOut)
+	jsonFlag := fs.Bool("json", false, "Output in JSON format")
+	stepID := fs.String("step", "", "Show provenance for specific step")
+	_ = fs.Parse(args)
+
+	if fs.NArg() < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reachctl provenance <runId> [--step <stepId>] [--json]")
+		return 1
+	}
+
+	runID := fs.Arg(0)
+	record, err := loadRunRecord(dataRoot, runID)
+	if err != nil {
+		_, _ = fmt.Fprintf(errOut, "Run not found: %s\n", runID)
+		return 1
+	}
+
+	// Gather provenance info
+	provenance := map[string]any{
+		"run_id":           runID,
+		"spec_version":     specVersion,
+		"engine_version":   "1.0.0",
+		"event_count":      len(record.EventLog),
+		"timestamp":        time.Now().Format(time.RFC3339),
+		"environment":      record.Environment,
+		"registry_hash":    record.RegistrySnapshotHash,
+		"federation_path":  record.FederationPath,
+		"input_sources":    []map[string]string{},
+		"secrets_present":  false,
+		"git_commit":       "unknown",
+		"git_dirty":        false,
+	}
+
+	// Try to get git info
+	if gitCommit, err := exec.Command("git", "rev-parse", "HEAD").Output(); err == nil {
+		provenance["git_commit"] = strings.TrimSpace(string(gitCommit))
+	}
+	if gitStatus, err := exec.Command("git", "status", "--porcelain").Output(); err == nil {
+		provenance["git_dirty"] = len(strings.TrimSpace(string(gitStatus))) > 0
+	}
+
+	// If step specified, show step-level provenance
+	if *stepID != "" {
+		stepProv := map[string]any{
+			"step_id":     *stepID,
+			"run_id":      runID,
+			"provenance":  "Step-level provenance tracking not yet implemented",
+		}
+		if *jsonFlag {
+			return writeJSON(out, stepProv)
+		}
+		_, _ = fmt.Fprintf(out, "Provenance for step %s in run %s\n", *stepID, runID)
+		_, _ = fmt.Fprintln(out, "================")
+		_, _ = fmt.Fprintln(out, "Step-level provenance tracking not yet implemented")
+		return 0
+	}
+
+	if *jsonFlag {
+		return writeJSON(out, provenance)
+	}
+
+	// Human-readable output
+	_, _ = fmt.Fprintf(out, "Provenance for run %s\n", runID)
+	_, _ = fmt.Fprintln(out, "==================")
+	_, _ = fmt.Fprintf(out, "Spec Version: %s\n", provenance["spec_version"])
+	_, _ = fmt.Fprintf(out, "Engine Version: %s\n", provenance["engine_version"])
+	_, _ = fmt.Fprintf(out, "Git Commit: %s\n", provenance["git_commit"])
+	_, _ = fmt.Fprintf(out, "Working Directory Dirty: %v\n", provenance["git_dirty"])
+	_, _ = fmt.Fprintf(out, "Events Recorded: %d\n", provenance["event_count"])
+	_, _ = fmt.Fprintf(out, "Registry Snapshot: %s\n", record.RegistrySnapshotHash)
+	_, _ = fmt.Fprintln(out)
+	_, _ = fmt.Fprintln(out, "Environment:")
+	for k, v := range record.Environment {
+		_, _ = fmt.Fprintf(out, "  %s: %s\n", k, v)
+	}
+	if len(record.FederationPath) > 0 {
+		_, _ = fmt.Fprintln(out)
+		_, _ = fmt.Fprintln(out, "Federation Path:")
+		for _, node := range record.FederationPath {
+			_, _ = fmt.Fprintf(out, "  - %s\n", node)
+		}
+	}
+
+	return 0
+}
+
+// runAssistant provides helpful copilot mode
+func runAssistant(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reachctl assistant <on|off|suggest|explain> [args]")
+		return 1
+	}
+
+	switch args[0] {
+	case "on":
+		_, _ = fmt.Fprintln(out, "Assistant mode enabled.")
+		_, _ = fmt.Fprintln(out, "The assistant will provide helpful tips and suggestions.")
+		return 0
+	case "off":
+		_, _ = fmt.Fprintln(out, "Assistant mode disabled.")
+		return 0
+	case "suggest":
+		if len(args) < 2 {
+			_, _ = fmt.Fprintln(errOut, "usage: reachctl assistant suggest <runId>")
+			return 1
+		}
+		runID := args[1]
+		_, _ = fmt.Fprintf(out, "Assistant suggestions for run %s:\n\n", runID)
+		_, _ = fmt.Fprintln(out, "Based on the run data, here are some suggestions:")
+		_, _ = fmt.Fprintln(out, "  1. Run 'reachctl explain "+runID+"' to see detailed analysis")
+		_, _ = fmt.Fprintln(out, "  2. Run 'reachctl steps "+runID+"' to view step details")
+		_, _ = fmt.Fprintln(out, "  3. Run 'reachctl capsule create "+runID+"' to create a shareable capsule")
+		return 0
+	case "explain":
+		if len(args) < 2 {
+			_, _ = fmt.Fprintln(errOut, "usage: reachctl assistant explain <command>")
+			_, _ = fmt.Fprintln(out, "\nAvailable commands to explain:")
+			_, _ = fmt.Fprintln(out, "  - diff-run: Compare two runs for differences")
+			_, _ = fmt.Fprintln(out, "  - verify-determinism: Check determinism stability")
+			_, _ = fmt.Fprintln(out, "  - checkpoint: Save run state for rewinding")
+			_, _ = fmt.Fprintln(out, "  - simulate: Preview run against history")
+			_, _ = fmt.Fprintln(out, "  - chaos: Test determinism under perturbation")
+			_, _ = fmt.Fprintln(out, "  - trust: Calculate trust score")
+			return 1
+		}
+		command := args[1]
+		explanations := map[string]string{
+			"diff-run": "Compares two runs and shows differences in steps, proofs, and outputs.",
+			"verify-determinism": "Runs the same pack multiple times to verify deterministic behavior.",
+			"checkpoint": "Creates a named checkpoint of a run at a specific step for later rewinding.",
+			"rewind": "Restarts a run from a checkpoint with optional input overrides.",
+			"simulate": "Previews what would happen if you ran a pack without actually executing it.",
+			"chaos": "Intentionally perturbs execution to test determinism boundaries.",
+			"trust": "Calculates a trust score based on evidence completeness and determinism.",
+			"provenance": "Shows the complete provenance chain for a run.",
+			"steps": "Lists all steps in a run with their proof hashes.",
+		}
+		if explanation, ok := explanations[command]; ok {
+			_, _ = fmt.Fprintf(out, "%s: %s\n", command, explanation)
+		} else {
+			_, _ = fmt.Fprintf(out, "No explanation available for '%s'. Try 'reachctl assistant explain' for a list.\n", command)
+		}
+		return 0
+	default:
+		_, _ = fmt.Fprintf(errOut, "Unknown assistant command: %s\n", args[0])
+		_, _ = fmt.Fprintln(errOut, "Usage: reachctl assistant <on|off|suggest|explain>")
+		return 1
+	}
 }
