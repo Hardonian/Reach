@@ -46,4 +46,20 @@ Network:
     expect(report.checks[0].label).toContain('Registry unreachable');
     expect(report.checks[1].status).toBe('WARN');
   });
+
+  it('parses mixed output with WARN and OK', () => {
+    const output = `
+Reach v0.3.1
+Storage:
+  [OK] Config found
+  [WARN] Disk space low (15%)
+  [OK] Permissions verified
+`;
+    const report = parseDoctorOutput(output);
+    expect(report.checks).toHaveLength(3);
+    expect(report.checks[0].status).toBe('OK');
+    expect(report.checks[1].status).toBe('WARN');
+    expect(report.checks[1].label).toContain('Disk space low');
+    expect(report.checks[2].status).toBe('OK');
+  });
 });
