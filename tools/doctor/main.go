@@ -73,12 +73,16 @@ func main() {
 
 	checks := []func(string) checkResult{
 		checkGitInstalled,
+		checkGoInstalled,
 		checkDockerRunning,
 		checkNodeVersion,
 		checkNpmInstalled,
 		checkMakeInstalled,
 		checkPython3Installed,
 		checkCargoInstalled,
+		checkProtocInstalled,
+		checkJqInstalled,
+		checkCurlInstalled,
 		checkRegistrySourceConfig,
 		checkIndexSchemaAndCache,
 		checkSignatureVerificationPath,
@@ -261,6 +265,54 @@ func checkCargoInstalled(root string) checkResult {
 	}
 	if err := exec.Command(path, "--version").Run(); err != nil {
 		return checkResult{name: name, ok: true, severity: "WARN", detail: "cargo found but not executable"}
+	}
+	return pass(name)
+}
+
+func checkGoInstalled(root string) checkResult {
+	name := "go installed"
+	path, err := exec.LookPath("go")
+	if err != nil {
+		return fail(name, err, "install go toolchain")
+	}
+	if err := exec.Command(path, "version").Run(); err != nil {
+		return fail(name, err, "go found but not executable")
+	}
+	return pass(name)
+}
+
+func checkProtocInstalled(root string) checkResult {
+	name := "protoc installed"
+	path, err := exec.LookPath("protoc")
+	if err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "protoc not found", remediation: "install protobuf compiler for gRPC generation"}
+	}
+	if err := exec.Command(path, "--version").Run(); err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "protoc found but not executable"}
+	}
+	return pass(name)
+}
+
+func checkJqInstalled(root string) checkResult {
+	name := "jq installed"
+	path, err := exec.LookPath("jq")
+	if err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "jq not found", remediation: "install jq for shell script JSON processing"}
+	}
+	if err := exec.Command(path, "--version").Run(); err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "jq found but not executable"}
+	}
+	return pass(name)
+}
+
+func checkCurlInstalled(root string) checkResult {
+	name := "curl installed"
+	path, err := exec.LookPath("curl")
+	if err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "curl not found", remediation: "install curl for network scripts"}
+	}
+	if err := exec.Command(path, "--version").Run(); err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "curl found but not executable"}
 	}
 	return pass(name)
 }
