@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -70,6 +71,7 @@ func main() {
 	checks := []func(string) checkResult{
 		checkGitInstalled,
 		checkDockerRunning,
+		checkNodeVersion,
 		checkRegistrySourceConfig,
 		checkIndexSchemaAndCache,
 		checkSignatureVerificationPath,
@@ -174,6 +176,34 @@ func checkDockerRunning(root string) checkResult {
 		return fail(name, err, "docker found but daemon not reachable (is Docker Desktop running?)")
 	}
 	return pass(name)
+}
+
+func checkNodeVersion(root string) checkResult {
+	name := "node version >= 18"
+	path, err := exec.LookPath("node")
+	if err != nil {
+		return fail(name, err, "install nodejs >= 18")
+	}
+	out, err := exec.Command(path, "--version").Output()
+	if err != nil {
+		return fail(name, err, "node found but not executable")
+	}
+	versionStr := strings.TrimSpace(string(out))
+	v := strings.TrimPrefix(versionStr, "v")
+	parts := strings.Split(v, ".")
+	if len(parts) > 0 {
+		if major, err := strconv.Atoi(parts[0]); err == nil {
+			if major >= 18 {
+				return pass(name)
+			}
+			return checkResult{
+				name:        name,
+				detail:      fmt.Sprintf("found %s", versionStr),
+				remediation: "upgrade nodejs to >= 18",
+			}
+		}
+	}
+	return fail(name, fmt.Errorf("could not parse version: %s", versionStr), "ensure node --version returns standard version string")
 }
 
 func checkRegistrySourceConfig(root string) checkResult {
