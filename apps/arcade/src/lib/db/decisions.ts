@@ -130,7 +130,7 @@ export const decisionRepository = {
     recommendedActionId?: string;
     governanceBadges?: string;
   }): DecisionReport | null {
-    const db = getDatabase();
+    const db = getDB();
     const updatedAt = now();
     
     const stmt = db.prepare(`
@@ -247,7 +247,7 @@ export const decisionRepository = {
     successRate: number;
     regretRate: number;
   } {
-    const db = getDatabase();
+    const db = getDB();
     let where = 'deleted_at IS NULL';
     const params: unknown[] = [];
     
