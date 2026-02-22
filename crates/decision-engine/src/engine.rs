@@ -123,7 +123,7 @@ fn compute_minimax_regret_scores(
     // Compute regret for each action in each scenario
     for (action_id, scenario_map) in utility_table {
         let mut action_regrets: BTreeMap<String, f64> = BTreeMap::new();
-        let mut max_r = 0.0;
+        let mut max_r: f64 = 0.0;
 
         for (scenario_id, &utility) in scenario_map {
             if let Some(best) = best_by_scenario.get(scenario_id) {
@@ -221,7 +221,7 @@ fn validate_input(input: &DecisionInput) -> Result<(), DecisionError> {
 
     // Validate weights if provided
     if let Some(constraints) = &input.constraints {
-        if let Some(max_regret) = constraints.max_regret {
+        if let Some(_max_regret) = constraints.max_regret {
             let weights = CompositeWeights::default();
             let sum = weights.worst_case + weights.minimax_regret + weights.adversarial;
             if (sum - 1.0).abs() > 1e-9 {
@@ -259,9 +259,9 @@ pub fn evaluate_decision(input: &DecisionInput) -> Result<DecisionOutput, Decisi
     let composite = compute_composite_scores(&worst_case, &max_regret, &adversarial, &weights);
 
     // Rank actions (sort by composite score, descending)
-    let mut ranked: Vec<(&String, f64)> = composite.iter().collect();
+    let mut ranked: Vec<(&String, f64)> = composite.iter().map(|(k, v)| (k, *v)).collect();
     ranked.sort_by(|a, b| {
-        let cmp = b.1.partial_cmp(a.1).unwrap_or(std::cmp::Ordering::Equal);
+        let cmp = b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal);
         if cmp == std::cmp::Ordering::Equal {
             // Tie-break: lexicographic by action_id
             a.0.cmp(b.0)
@@ -272,19 +272,19 @@ pub fn evaluate_decision(input: &DecisionInput) -> Result<DecisionOutput, Decisi
 
     // Build ranked actions
     let mut ranked_actions: Vec<RankedAction> = Vec::new();
-    let mut best_composite = ranked.first().map(|(_, &s)| s).unwrap_or(0.0);
+    let mut best_composite = ranked.first().map(|(_, s)| *s).unwrap_or(0.0);
 
-    for (rank, (action_id, &comp_score)) in ranked.iter().enumerate() {
-        let wc = worst_case.get(action_id).copied().unwrap_or(0.0);
-        let mr = max_regret.get(action_id).copied().unwrap_or(0.0);
-        let adv = adversarial.get(action_id).copied().unwrap_or(0.0);
+    for (rank, (action_id, comp_score)) in ranked.iter().enumerate() {
+        let wc = worst_case.get((*action_id).as_str()).copied().unwrap_or(0.0);
+        let mr = max_regret.get((*action_id).as_str()).copied().unwrap_or(0.0);
+        let adv = adversarial.get((*action_id).as_str()).copied().unwrap_or(0.0);
 
         ranked_actions.push(RankedAction {
-            action_id: action_id.clone(),
+            action_id: (*action_id).clone(),
             score_worst_case: wc,
             score_minimax_regret: mr,
             score_adversarial: adv,
-            composite_score: comp_score,
+            composite_score: *comp_score,
             recommended: rank == 0,
             rank: rank + 1,
         });
@@ -387,8 +387,8 @@ pub fn rank_evidence_by_voi(
         let flip_distance = output
             .trace
             .utility_table
-            .get(&output.ranked_actions.first().map(|a| &a.action_id).unwrap_or(&String::new()))
-            .and_then(|m| m.get(&scenario.id))
+            .get(output.ranked_actions.first().map(|a| a.action_id.as_str()).unwrap_or(""))
+            .and_then(|m| m.get(scenario.id.as_str()))
             .map(|&u| 1.0 / (u.abs() + 0.1)) // Inverse utility as proxy for sensitivity
             .unwrap_or(0.0);
 

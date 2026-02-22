@@ -290,7 +290,7 @@ impl RunHandle {
             }
         }
 
-        let Some(step) = self.workflow.steps.get(self.current_step) else {
+        let Some(step) = self.workflow.steps.get(self.current_step).cloned() else {
             if self.transition(RunStatus::Completed).is_err() {
                 return Action::Error {
                     message: "unable to complete run".to_owned(),

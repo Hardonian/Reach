@@ -62,12 +62,12 @@ pub use determinism::{
 };
 
 pub use engine::{
-    compute_flip_distines, evaluate_decision, explain_decision_boundary,
+    compute_flip_distances, evaluate_decision, explain_decision_boundary,
     generate_regret_bounded_plan, rank_evidence_by_voi, referee_proposal, DecisionError,
 };
 
 pub use types::{
-    ActionOption, CompositeWeights, DecisionBoundary, DecisionConstraint, DecisionError,
+    ActionOption, CompositeWeights, DecisionBoundary, DecisionConstraint,
     DecisionEvidence, DecisionInput, DecisionMeta, DecisionOutput, DecisionTrace,
     FlipDistance, PlannedAction, RankedAction, RefereeAdjudication, RegretBoundedPlan,
     Scenario, VoiRanking,
