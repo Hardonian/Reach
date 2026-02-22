@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -3671,46 +3672,67 @@ func runBenchmark(ctx context.Context, dataRoot string, args []string, out io.Wr
 
 	fmt.Fprintf(out, "Benchmarking %s (%d trials)...\n", *packID, *trials)
 
-	var totalDuration time.Duration
-	var totalMemory int64
-	var maxArtifactSize int64
+	var stats []struct {
+		duration time.Duration
+		allocMB  uint64
+	}
 
 	for i := 0; i < *trials; i++ {
 		start := time.Now()
-		// Simulate execution
-		time.Sleep(100 * time.Millisecond)
-		dur := time.Since(start)
-		totalDuration += dur
 
-		// Mock memory usage (would use runtime.MemStats in real scenario)
+		// Load and execute pack (simulated for now, would call engine.Execute)
+		// We'll perform some actual work (SHA256 hashing) to simulate CPU load
+		data := make([]byte, 1024*1024) // 1MB
+		for j := 0; j < 100; j++ {
+			_ = sha256.Sum256(data)
+		}
+
+		dur := time.Since(start)
+
 		var m runtime.MemStats
 		runtime.ReadMemStats(&m)
-		totalMemory += int64(m.Alloc)
 
-		fmt.Fprintf(out, "Trial %d: %v, Memory: %v MB\n", i+1, dur, m.Alloc/1024/1024)
+		stats = append(stats, struct {
+			duration time.Duration
+			allocMB  uint64
+		}{dur, m.Alloc / 1024 / 1024})
+
+		fmt.Fprintf(out, "Trial %d: %v, Memory: %v MB\n", i+1, dur, stats[i].allocMB)
 	}
 
-	avgDur := totalDuration / time.Duration(*trials)
-	avgMem := totalMemory / int64(*trials)
+	var totalDur time.Duration
+	var totalMem uint64
+	for _, s := range stats {
+		totalDur += s.duration
+		totalMem += s.allocMB
+	}
+
+	avgDur := totalDur / time.Duration(*trials)
+	avgMem := totalMem / uint64(*trials)
 
 	results := map[string]any{
-		"pack":                    *packID,
-		"avg_duration_ms":         avgDur.Milliseconds(),
-		"avg_memory_mb":           avgMem / 1024 / 1024,
-		"max_artifact_size_bytes": maxArtifactSize,
-		"timestamp":               time.Now().Format(time.RFC3339),
+		"pack":            *packID,
+		"avg_duration_ms": avgDur.Milliseconds(),
+		"avg_memory_mb":   avgMem,
+		"timestamp":       time.Now().Format(time.RFC3339),
+		"metadata": map[string]any{
+			"os":      runtime.GOOS,
+			"arch":    runtime.GOARCH,
+			"cpus":    runtime.NumCPU(),
+			"version": specVersion,
+		},
 	}
 
 	// Store result
-	home, _ := os.UserHomeDir()
-	benchDir := filepath.Join(home, ".reach", "benchmarks")
-	_ = os.MkdirAll(benchDir, 0755)
-	benchFile := filepath.Join(benchDir, fmt.Sprintf("benchmark_%s_%d.json", *packID, time.Now().Unix()))
-	_ = writeDeterministicJSON(benchFile, results)
+	benchFile := filepath.Join(dataRoot, "benchmarks", fmt.Sprintf("benchmark_%s_%d.json", *packID, time.Now().Unix()))
+	_ = os.MkdirAll(filepath.Dir(benchFile), 0755)
+
+	b, _ := json.MarshalIndent(results, "", "  ")
+	_ = os.WriteFile(benchFile, b, 0644)
 
 	fmt.Fprintf(out, "\nBenchmark Complete:\n")
 	fmt.Fprintf(out, "  Avg Duration: %v\n", avgDur)
-	fmt.Fprintf(out, "  Avg Memory:   %d MB\n", avgMem/1024/1024)
+	fmt.Fprintf(out, "  Avg Memory:   %d MB\n", avgMem)
 	fmt.Fprintf(out, "Results stored in: %s\n", benchFile)
 
 	return 0
