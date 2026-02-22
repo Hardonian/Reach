@@ -2,6 +2,7 @@ package determinism
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -57,46 +58,79 @@ func diffDeep(a, b any, path string, fields *[]DiffField) {
 	case map[string]any:
 		vb, ok := b.(map[string]any)
 		if !ok {
-			*fields = append(*fields, DiffField{Path: path, ValA: a, ValB: b, Reason: "type mismatch"})
+			*fields = append(*fields, DiffField{Path: path, ValA: a, ValB: b, Reason: "type mismatch (expected map)"})
 			return
 		}
-		// Check keys
-		keys := make(map[string]bool)
+
+		// Collect all unique keys
+		keys := make(map[string]struct{})
 		for k := range va {
-			keys[k] = true
+			keys[k] = struct{}{}
 		}
 		for k := range vb {
-			keys[k] = true
+			keys[k] = struct{}{}
 		}
 
+		// Sort keys for deterministic diff order
+		sortedKeys := make([]string, 0, len(keys))
 		for k := range keys {
+			sortedKeys = append(sortedKeys, k)
+		}
+		sort.Strings(sortedKeys)
+
+		for _, k := range sortedKeys {
 			newPath := k
 			if path != "" {
 				newPath = path + "." + k
 			}
-			diffDeep(va[k], vb[k], newPath, fields)
+
+			valA, okA := va[k]
+			valB, okB := vb[k]
+
+			if !okA {
+				*fields = append(*fields, DiffField{Path: newPath, ValA: nil, ValB: valB, Reason: "missing in A"})
+				continue
+			}
+			if !okB {
+				*fields = append(*fields, DiffField{Path: newPath, ValA: valA, ValB: nil, Reason: "missing in B"})
+				continue
+			}
+
+			diffDeep(valA, valB, newPath, fields)
 		}
 
 	case []any:
 		vb, ok := b.([]any)
 		if !ok {
-			*fields = append(*fields, DiffField{Path: path, ValA: a, ValB: b, Reason: "type mismatch"})
+			*fields = append(*fields, DiffField{Path: path, ValA: a, ValB: b, Reason: "type mismatch (expected array)"})
 			return
 		}
+
 		if len(va) != len(vb) {
 			*fields = append(*fields, DiffField{Path: path, ValA: fmt.Sprintf("len=%d", len(va)), ValB: fmt.Sprintf("len=%d", len(vb)), Reason: "length mismatch"})
 		}
-		minLen := len(va)
-		if len(vb) < minLen {
-			minLen = len(vb)
+
+		maxLen := len(va)
+		if len(vb) > maxLen {
+			maxLen = len(vb)
 		}
-		for i := 0; i < minLen; i++ {
-			diffDeep(va[i], vb[i], fmt.Sprintf("%s[%d]", path, i), fields)
+
+		for i := 0; i < maxLen; i++ {
+			newPath := fmt.Sprintf("%s[%d]", path, i)
+			if i >= len(va) {
+				*fields = append(*fields, DiffField{Path: newPath, ValA: nil, ValB: vb[i], Reason: "out of bounds in A"})
+				continue
+			}
+			if i >= len(vb) {
+				*fields = append(*fields, DiffField{Path: newPath, ValA: va[i], ValB: nil, Reason: "out of bounds in B"})
+				continue
+			}
+			diffDeep(va[i], vb[i], newPath, fields)
 		}
 
 	default:
 		if fmt.Sprint(a) != fmt.Sprint(b) {
-			*fields = append(*fields, DiffField{Path: path, ValA: a, ValB: b})
+			*fields = append(*fields, DiffField{Path: path, ValA: a, ValB: b, Reason: "value mismatch"})
 		}
 	}
 }

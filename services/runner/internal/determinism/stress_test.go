@@ -114,3 +114,52 @@ func TestStressRandomizedInput(t *testing.T) {
 		}
 	}
 }
+
+// TestStressConcurrentAccess verifies that hashing is thread-safe and stable.
+func TestStressConcurrentAccess(t *testing.T) {
+	input := map[string]any{"a": 1, "b": 2, "c": 3}
+	expectedHash := Hash(input)
+
+	const workers = 10
+	const iterations = 100
+	done := make(chan bool)
+
+	for i := 0; i < workers; i++ {
+		go func() {
+			for j := 0; j < iterations; j++ {
+				if Hash(input) != expectedHash {
+					t.Errorf("Concurrent hash mismatch")
+				}
+			}
+			done <- true
+		}()
+	}
+
+	for i := 0; i < workers; i++ {
+		<-done
+	}
+}
+
+// TestStressNestedShuffle verifies that deep canonicalization works.
+func TestStressNestedShuffle(t *testing.T) {
+	input1 := map[string]any{
+		"outer": map[string]any{
+			"inner": map[string]any{"z": 1, "a": 2},
+		},
+		"list": []any{
+			map[string]any{"q": 5, "p": 6},
+		},
+	}
+	input2 := map[string]any{
+		"list": []any{
+			map[string]any{"p": 6, "q": 5},
+		},
+		"outer": map[string]any{
+			"inner": map[string]any{"a": 2, "z": 1},
+		},
+	}
+
+	if Hash(input1) != Hash(input2) {
+		t.Error("Nested structure shuffling should not affect hash")
+	}
+}
