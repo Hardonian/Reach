@@ -107,10 +107,12 @@ func main() {
 		enc.SetIndent("", "  ")
 		enc.Encode(struct {
 			Brand    string        `json:"brand"`
+			Version  string        `json:"version"`
 			Checks   []checkResult `json:"checks"`
 			Failures int           `json:"failures"`
 		}{
 			Brand:    "Reach",
+			Version:  "0.3.1",
 			Checks:   results,
 			Failures: failures,
 		})
