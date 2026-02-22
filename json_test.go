@@ -29,6 +29,16 @@ func TestCheckResultJSON(t *testing.T) {
 			},
 			expected: `{"name":"failed check","status":"FAIL","remediation":"fix it","detail":"something went wrong"}`,
 		},
+		{
+			name: "warning case",
+			input: checkResult{
+				name:     "warning check",
+				ok:       true,
+				severity: "WARN",
+				detail:   "optional component missing",
+			},
+			expected: `{"name":"warning check","status":"WARN","detail":"optional component missing"}`,
+		},
 	}
 
 	for _, tt := range tests {
