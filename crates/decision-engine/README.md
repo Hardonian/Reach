@@ -5,8 +5,9 @@ Deterministic quant decision primitives extracted from Zeolite into Rust for str
 ## Overview
 
 This crate provides robust quant decision-making algorithms under uncertainty, implementing:
+
 - **Worst-case (Maximin)**: Maximize minimum utility across all scenarios
-- **Minimax Regret**: Minimize maximum regret 
+- **Minimax Regret**: Minimize maximum regret
 - **Adversarial Robustness**: Score against worst adversarial scenarios
 - **Composite Scoring**: Weighted combination of all metrics
 
@@ -63,6 +64,7 @@ println!("Fingerprint: {}", output.determinism_fingerprint);
 ## Core Types
 
 ### DecisionInput
+
 ```rust
 pub struct DecisionInput {
     pub id: Option<String>,
@@ -76,6 +78,7 @@ pub struct DecisionInput {
 ```
 
 ### DecisionOutput
+
 ```rust
 pub struct DecisionOutput {
     pub ranked_actions: Vec<RankedAction>,
@@ -87,21 +90,27 @@ pub struct DecisionOutput {
 ## Algorithms
 
 ### evaluate_decision
+
 Main entry point that computes all metrics and returns ranked actions with composite scores.
 
 ### compute_flip_distances
+
 Computes sensitivity thresholds - how much each assumption can change before the decision ranking flips.
 
 ### rank_evidence_by_voi
+
 Ranks evidence by estimated Value of Information (VOI) given a minimum threshold.
 
 ### generate_regret_bounded_plan
+
 Generates a sequence of evidence-gathering actions bounded by horizon and minimum VOI.
 
 ### explain_decision_boundary
+
 Explains the current decision boundary and what would change the top action.
 
 ### referee_proposal
+
 Adjudicates whether a proposed action matches the recommended boundary action.
 
 ## Running Tests
