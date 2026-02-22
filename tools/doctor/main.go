@@ -20,6 +20,24 @@ type checkResult struct {
 	detail      string
 }
 
+func (c checkResult) MarshalJSON() ([]byte, error) {
+	status := "FAIL"
+	if c.ok {
+		status = "OK"
+	}
+	return json.Marshal(struct {
+		Name        string `json:"name"`
+		Status      string `json:"status"`
+		Remediation string `json:"remediation,omitempty"`
+		Detail      string `json:"detail,omitempty"`
+	}{
+		Name:        c.name,
+		Status:      status,
+		Remediation: c.remediation,
+		Detail:      c.detail,
+	})
+}
+
 func main() {
 	// Check if running in mobile mode
 	if os.Getenv("REACH_MOBILE") == "1" || os.Getenv("TERMUX_VERSION") != "" {
@@ -27,15 +45,30 @@ func main() {
 		return
 	}
 
+	jsonOutput := false
+	for _, arg := range os.Args {
+		if arg == "--json" {
+			jsonOutput = true
+			break
+		}
+	}
+
 	root, err := repoRoot()
 	if err != nil {
+		if jsonOutput {
+			fmt.Printf(`{"error": "repo root: %s"}`, err)
+			os.Exit(1)
+		}
 		fmt.Printf("reach doctor: fail: repo root: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("reach doctor (%s/%s)\n", runtime.GOOS, runtime.GOARCH)
+	if !jsonOutput {
+		fmt.Printf("reach doctor (%s/%s)\n", runtime.GOOS, runtime.GOARCH)
+	}
 
 	checks := []func(string) checkResult{
+		checkGitInstalled,
 		checkRegistrySourceConfig,
 		checkIndexSchemaAndCache,
 		checkSignatureVerificationPath,
@@ -46,20 +79,45 @@ func main() {
 	}
 
 	failures := 0
+	var results []checkResult
 	for _, run := range checks {
 		result := run(root)
-		if result.ok {
-			fmt.Printf("[OK]   %s\n", result.name)
-			continue
+		results = append(results, result)
+		if !result.ok {
+			failures++
 		}
-		failures++
-		fmt.Printf("[FAIL] %s\n", result.name)
-		if result.detail != "" {
-			fmt.Printf("       %s\n", result.detail)
+
+		if !jsonOutput {
+			if result.ok {
+				fmt.Printf("[OK]   %s\n", result.name)
+				continue
+			}
+			fmt.Printf("[FAIL] %s\n", result.name)
+			if result.detail != "" {
+				fmt.Printf("       %s\n", result.detail)
+			}
+			if result.remediation != "" {
+				fmt.Printf("       remediation: %s\n", result.remediation)
+			}
 		}
-		if result.remediation != "" {
-			fmt.Printf("       remediation: %s\n", result.remediation)
+	}
+
+	if jsonOutput {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		enc.Encode(struct {
+			Brand    string        `json:"brand"`
+			Checks   []checkResult `json:"checks"`
+			Failures int           `json:"failures"`
+		}{
+			Brand:    "Reach",
+			Checks:   results,
+			Failures: failures,
+		})
+		if failures > 0 {
+			os.Exit(1)
 		}
+		return
 	}
 
 	if failures > 0 {
@@ -89,6 +147,18 @@ func runMobileDoctor() {
 	if report.Summary.Overall == "needs_attention" {
 		os.Exit(1)
 	}
+}
+
+func checkGitInstalled(root string) checkResult {
+	name := "git installed and accessible"
+	path, err := exec.LookPath("git")
+	if err != nil {
+		return fail(name, err, "install git and ensure it is in PATH")
+	}
+	if err := exec.Command(path, "--version").Run(); err != nil {
+		return fail(name, err, "git found but not executable")
+	}
+	return pass(name)
 }
 
 func checkRegistrySourceConfig(root string) checkResult {
