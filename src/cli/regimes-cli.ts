@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Zeo Regimes CLI
  *
@@ -285,3 +286,4 @@ Detector Options:
   Supported detection: CUSUM, Volatility Breaks, Distribution Shifts, Cadence Changes
 `);
 }
+

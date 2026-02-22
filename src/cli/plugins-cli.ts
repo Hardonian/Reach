@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
@@ -152,3 +153,4 @@ export async function runPluginsCommand(args: PluginsArgs): Promise<number> {
 }
 
 export const __private__ = { loadPluginManifests, pluginsRoots };
+

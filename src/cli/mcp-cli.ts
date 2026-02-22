@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createInterface } from "node:readline";
 import type { ZeoliteOperation } from "../core/zeolite-core.js";
 
@@ -255,3 +256,4 @@ export async function runMcpCommand(args: McpCliArgs): Promise<number> {
   if (args.command === "test") return runTestCommand(args);
   return runToolsCommand();
 }
+

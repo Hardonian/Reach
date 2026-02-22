@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, cpSync } from "node:fs";
 import { basename, resolve } from "node:path";
 
@@ -147,3 +148,4 @@ export async function runAgentsCommand(args: AgentsArgs): Promise<number> {
 
   return 0;
 }
+

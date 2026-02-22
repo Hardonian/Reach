@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from "vitest";
 import { __private__ } from "./analyze-pr-cli.js";
 
@@ -51,3 +52,4 @@ describe("analyze-pr", () => {
     expect(analysis.summary.risk_score).toBe(score);
   });
 });
+

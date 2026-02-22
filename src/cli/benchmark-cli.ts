@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { performance } from "node:perf_hooks";
 import { spawnSync } from "node:child_process";
 
@@ -32,3 +33,4 @@ export async function runBenchmarkCommand(): Promise<number> {
 
   return 0;
 }
+

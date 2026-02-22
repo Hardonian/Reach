@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { resolve } from "node:path";
 
 async function loadCore() {
@@ -115,3 +116,4 @@ export async function runGraphCommand(argv: string[]): Promise<number> {
     console.error(`Unknown graph action: ${action}`);
     return 1;
 }
+

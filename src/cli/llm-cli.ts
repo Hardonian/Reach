@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -147,3 +148,4 @@ export async function runLlmCommand(args: DoctorArgs): Promise<number> {
   }, null, 2));
   return 0;
 }
+

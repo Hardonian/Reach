@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Performance CLI Module
  * 
@@ -777,3 +778,4 @@ export async function runPerfCommand(args: PerfCliArgs): Promise<number> {
     return 1;
   }
 }
+

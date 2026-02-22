@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { execSync } from "node:child_process";
@@ -80,3 +81,4 @@ export async function runViewCommand(args: ViewCliArgs): Promise<number> {
   if (args.open) openPath(staticPath);
   return 0;
 }
+

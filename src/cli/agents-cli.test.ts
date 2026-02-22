@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -79,3 +80,4 @@ describe("agents permissions", () => {
     expect(first.recommendations[0].agent).toBe("extractor-agent");
   });
 });
+

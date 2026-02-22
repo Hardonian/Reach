@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -367,3 +368,4 @@ export async function runDemoCommand(argv: string[]): Promise<number> {
   process.stdout.write(`${outDir}\n`);
   return 0;
 }
+

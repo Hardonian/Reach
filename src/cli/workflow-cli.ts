@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, cpSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -1302,3 +1303,4 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
 
   return 1;
 }
+

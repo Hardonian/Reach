@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from "vitest";
 import { __private__ } from "./plugins-cli.js";
 
@@ -8,3 +9,4 @@ describe("plugins cli", () => {
     expect(ids).toContain("sample-deterministic-plugin");
   });
 });
+

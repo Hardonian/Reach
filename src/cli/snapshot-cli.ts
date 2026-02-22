@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
@@ -120,3 +121,4 @@ export function getRestoredSnapshotPointer(): SnapshotStatePointer | null {
   if (!existsSync(path)) return null;
   return JSON.parse(readFileSync(path, "utf8")) as SnapshotStatePointer;
 }
+

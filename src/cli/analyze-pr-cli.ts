@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createHash, randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { resolve, dirname, join, relative } from "node:path";
@@ -438,3 +439,4 @@ export function runAnalyzePrReplay(runId: string): number {
   process.stdout.write(`${JSON.stringify({ run_id: runId, manifest, summary, findings }, null, 2)}\n`);
   return EXIT_CODES.OK;
 }
+

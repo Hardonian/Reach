@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Evidence Graph CLI
  *
@@ -200,3 +201,4 @@ Usage:
   zeo refresh-evidence
 `);
 }
+

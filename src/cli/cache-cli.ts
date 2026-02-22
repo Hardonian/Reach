@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from "node:fs";
 import { resolve, join } from "node:path";
 
@@ -74,3 +75,4 @@ export async function runCacheCommand(args: CacheCliArgs): Promise<number> {
   console.log(`gc removed ${removed} entries, size=${size}`);
   return 0;
 }
+

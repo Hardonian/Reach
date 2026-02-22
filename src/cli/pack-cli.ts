@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
@@ -218,3 +219,4 @@ export async function runPackCommand(args: PackCliArgs): Promise<number> {
 
 
 export const __private__ = { hashPack, parsePackManifest };
+

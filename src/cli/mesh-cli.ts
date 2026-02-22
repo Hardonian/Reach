@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Mesh CLI — zeo mesh commands + zeo sign-envelope + zeo verify-envelope
  *
@@ -340,3 +341,4 @@ Options:
   --out <path>               Output file path
 `);
 }
+

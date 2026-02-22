@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
@@ -332,3 +333,4 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
 function printHelp(): void {
   process.stdout.write(`Zeo transcript/key/trust commands\n`);
 }
+

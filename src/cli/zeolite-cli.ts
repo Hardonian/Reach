@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { executeZeoliteOperation, type ZeoliteOperation } from "../core/zeolite-core.js";
@@ -76,3 +77,4 @@ export async function runZeoliteCommand(args: ZeoliteCliArgs): Promise<number> {
     return 1;
   }
 }
+

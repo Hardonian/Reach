@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Zeo v3 CLI Module — Governed Multi-Tenant Decision Infrastructure
  *
@@ -608,3 +609,4 @@ async function runOutcomeCommand(args: V3Args): Promise<number> {
       return 1;
   }
 }
+

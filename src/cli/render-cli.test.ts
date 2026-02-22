@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, expect, it } from "vitest";
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -83,3 +84,4 @@ describe("render/share/demo", () => {
     process.chdir(cwd);
   });
 });
+

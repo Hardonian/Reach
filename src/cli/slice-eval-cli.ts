@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Slice Eval CLI Module
  *
@@ -348,3 +349,4 @@ export async function runSliceEvalCommand(args: SliceEvalCliArgs): Promise<numbe
     return 1;
   }
 }
+

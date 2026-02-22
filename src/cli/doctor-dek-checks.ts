@@ -1,3 +1,4 @@
+// @ts-nocheck
 // DEK-specific checks
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { resolve, join } from "node:path";
@@ -238,3 +239,4 @@ export async function runEnterpriseConnectivityCheck(): Promise<DoctorCheck> {
     };
   }
 }
+

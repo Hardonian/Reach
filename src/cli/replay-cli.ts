@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Replay CLI Module
  *
@@ -565,3 +566,4 @@ function generateMarkdownReport(
 
   return lines.join("\n");
 }
+

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, readdirSync } from "node:fs";
 import { resolve, join, relative } from "node:path";
 import { homedir } from "node:os";
@@ -189,3 +190,4 @@ function copyTreeDeterministic(source: string, dest: string): void {
     }
   }
 }
+

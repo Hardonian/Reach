@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { writeFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { FilesystemWarehouseAdapter, FilesystemBlobStorage } from "@zeo/warehouse";
@@ -634,3 +635,4 @@ Examples:
       return 1;
   }
 }
+

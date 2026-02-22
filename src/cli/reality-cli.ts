@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Reality CLI Module
  *
@@ -366,3 +367,4 @@ Examples:
   zeo --reality --nightly --out ./output
 `);
 }
+

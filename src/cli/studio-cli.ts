@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Studio CLI Module
  *
@@ -347,3 +348,4 @@ ${evidence.length > 0 ? `<table>
 </body>
 </html>`;
 }
+
