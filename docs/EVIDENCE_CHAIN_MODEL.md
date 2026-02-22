@@ -128,9 +128,60 @@ Specifically, any new feature that:
 
 ---
 
+## Extended Chain: Governance + Reproducibility Layer
+
+The Evidence Chain is extended by three new provenance layers added in this release:
+
+### Governance Policy Layer (Phase C)
+
+The governance policy DSL adds a **Policy Fingerprint** to the chain:
+
+```text
+[Policy]
+  policy_fingerprint = SHA-256(canonical_policy_text)
+  policy_version     = integer
+  evaluation_result  = ALLOWED | DENIED
+  violations         = []ViolationCode
+```
+
+CLI: `reachctl policy evaluate <runId>` evaluates against the active `reach-policy.txt`.
+
+### Cryptographic Signature Layer (Phase D)
+
+The fingerprint is now optionally **signed** using ed25519:
+
+```text
+[Signature]
+  algorithm      = "ed25519"
+  signed_payload = "reach-proof:v1:<run_id>:<proof_hash>"
+  public_key     = hex(ed25519.PublicKey)
+  signature_hex  = hex(ed25519.Sign(private_key, signed_payload))
+```
+
+CLI: `reachctl sign <runId>` | `reachctl verify-signature <runId>`
+
+### Reproducibility Score Layer (Phase B)
+
+Each run accumulates a **Reproducibility Score**:
+
+```text
+[Reproducibility Metadata]
+  proof_stability_rate   = % of N runs with identical fingerprint
+  step_drift_pct         = % of runs with step key differences
+  entropy_variance       = variance of step counts across runs
+  reproducibility_score  = 0-100 composite score
+```
+
+CLI: `reachctl bench reproducibility <pipelineId> --runs 10`
+
+---
+
 ## Related Documents
 
 - [`docs/DETERMINISM_SPEC.md`](DETERMINISM_SPEC.md) — Hash construction rules
 - [`docs/REPLAY_INTEGRITY_PROOF.md`](REPLAY_INTEGRITY_PROOF.md) — Formal integrity proof
 - [`docs/POLICY_ENGINE_SPEC.md`](POLICY_ENGINE_SPEC.md) — Policy evaluation model
 - [`protocol/schemas/events.schema.json`](../protocol/schemas/events.schema.json) — Event schema
+- [`testdata/fixtures/conformance/governance-policy-baseline.json`](../testdata/fixtures/conformance/governance-policy-baseline.json) — Policy golden fixture
+- [`services/runner/internal/governance/dsl.go`](../services/runner/internal/governance/dsl.go) — Policy DSL implementation
+- [`services/runner/internal/signing/ed25519.go`](../services/runner/internal/signing/ed25519.go) — Signing implementation
