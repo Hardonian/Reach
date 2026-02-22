@@ -68,6 +68,17 @@ pub fn validate_structure(input_json: &str) -> Result<bool, JsError> {
     }
 }
 
+#[wasm_bindgen]
+pub fn validate_probabilities(input_json: &str) -> Result<bool, JsError> {
+    let input: DecisionInput = serde_json::from_str(input_json)
+        .map_err(|e| JsError::new(&format!("E_SCHEMA: Invalid input JSON: {}", e)))?;
+    
+    match input.validate_probabilities() {
+        Ok(_) => Ok(true),
+        Err(e) => Err(JsError::new(&format!("E_INVALID_PROBABILITIES: {}", e))),
+    }
+}
+
 #[wasm_bindgen(start)]
 pub fn init() {
     // Optional initialization hook

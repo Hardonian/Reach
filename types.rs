@@ -60,6 +60,8 @@ pub enum ValidationError {
     InvalidUtility,
     #[error("Weights must sum to 1.0 (got {0})")]
     InvalidWeightSum(f64),
+    #[error("Probability value must be between 0.0 and 1.0 (got {0})")]
+    InvalidProbability(f64),
 }
 
 impl DecisionInput {
@@ -80,6 +82,7 @@ impl DecisionInput {
 
         if self.strict {
             self.validate_weights()?;
+            self.validate_probabilities()?;
         }
 
         Ok(())
@@ -121,6 +124,17 @@ impl DecisionInput {
             let sum: f64 = weights.values().map(|v| v.0).sum();
             if (sum - 1.0).abs() > 1e-9 {
                 return Err(ValidationError::InvalidWeightSum(sum));
+            }
+        }
+        Ok(())
+    }
+
+    pub fn validate_probabilities(&self) -> Result<(), ValidationError> {
+        if let Some(weights) = &self.weights {
+            for v in weights.values() {
+                if v.0 < 0.0 || v.0 > 1.0 {
+                    return Err(ValidationError::InvalidProbability(v.0));
+                }
             }
         }
         Ok(())

@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { evaluateDecisionFallback, validateOutcomesFallback, validateStructureFallback, DecisionInput, DecisionOutput } from './fallback';
+import { evaluateDecisionFallback, validateOutcomesFallback, validateStructureFallback, validateProbabilitiesFallback, DecisionInput, DecisionOutput } from './fallback';
 
 let wasmModule: any = null;
 
@@ -61,6 +61,22 @@ export function validateStructure(input: DecisionInput): boolean {
     }
   }
   return validateStructureFallback(input);
+}
+
+/**
+ * Validates that the decision input weights (probabilities) are between 0 and 1.
+ */
+export function validateProbabilities(input: DecisionInput): boolean {
+  if (wasmModule) {
+    try {
+      const inputJson = JSON.stringify(input);
+      return wasmModule.validate_probabilities(inputJson);
+    } catch (e) {
+      console.error("ERROR: WASM validation failed.", e);
+      return validateProbabilitiesFallback(input);
+    }
+  }
+  return validateProbabilitiesFallback(input);
 }
 
 // Re-export types

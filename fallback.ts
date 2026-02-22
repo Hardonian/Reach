@@ -30,6 +30,11 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
       if (Math.abs(sum - 1.0) > 1e-9) {
         throw new Error(`Weights must sum to 1.0 (got ${sum})`);
       }
+      for (const v of Object.values(input.weights)) {
+        if (v < 0.0 || v > 1.0) {
+          throw new Error(`Probability value must be between 0.0 and 1.0 (got ${v})`);
+        }
+      }
     } else if (sum !== 0 && Math.abs(sum - 1.0) > 1e-9) {
       // Normalize if not strict
       effectiveWeights = {};
@@ -121,6 +126,17 @@ export function validateOutcomesFallback(input: DecisionInput): boolean {
       }
       if (!Number.isFinite(val)) {
         throw new Error("Utility value cannot be NaN or Infinity");
+      }
+    }
+  }
+  return true;
+}
+
+export function validateProbabilitiesFallback(input: DecisionInput): boolean {
+  if (input.weights) {
+    for (const v of Object.values(input.weights)) {
+      if (v < 0.0 || v > 1.0) {
+        throw new Error(`Probability value must be between 0.0 and 1.0 (got ${v})`);
       }
     }
   }
