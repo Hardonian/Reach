@@ -6,7 +6,8 @@
   "scripts": {
     "build": "npm run build:wasm && tsc",
     "build:wasm": "wasm-pack build ../decision-engine-rs --target nodejs --out-dir ../decision-engine-wasm/pkg",
-    "test": "node dist/test.js"
+    "test": "node test/parity.js",
+    "benchmark": "node test/benchmark.js"
   },
   "dependencies": {
     "fs-extra": "^11.1.0"

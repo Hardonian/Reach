@@ -1,95 +1,96 @@
 //! Core types for the decision engine.
 //!
-//! All types are designed for deterministic serialization and stable hashing.
+//! All types are designed for deterministic serialization:
+//! - Uses `BTreeMap` instead of `HashMap` for sorted key order
+//! - All floats are normalized to fixed precision
+//! - Optional fields use `Option<T>` with explicit defaults
 
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-/// An action option available in a decision context.
+/// An action option in a decision problem.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ActionOption {
-    /// Unique identifier for the action (used for stable tie-breaking).
+    /// Unique identifier for the action.
     pub id: String,
     /// Human-readable label for the action.
     pub label: String,
 }
 
-/// A scenario representing a possible state of the world.
+/// A scenario in a decision problem.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Scenario {
     /// Unique identifier for the scenario.
     pub id: String,
     /// Probability of the scenario occurring (0.0 to 1.0).
-    /// If None, all scenarios are treated as equally likely.
+    /// If None, all scenarios are treated equally.
     pub probability: Option<f64>,
-    /// Whether this scenario represents an adversarial condition.
-    /// Adversarial scenarios are weighted differently in robust scoring.
+    /// Whether this scenario represents an adversarial/worst-case scenario.
     #[serde(default)]
     pub adversarial: bool,
 }
 
-/// A constraint on the decision space.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// Constraints on the decision problem.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct DecisionConstraint {
-    /// Unique identifier for the constraint.
-    pub id: String,
-    /// Name of the constraint.
-    pub name: String,
-    /// Value of the constraint (e.g., "7d" for deadline).
-    pub value: String,
-    /// Status of the constraint (e.g., "assumption", "verified").
-    pub status: String,
+    /// Maximum acceptable regret.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_regret: Option<f64>,
+    /// Risk tolerance level (0.0 to 1.0).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub risk_tolerance: Option<f64>,
+    /// Additional constraints as key-value pairs.
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub additional: BTreeMap<String, String>,
 }
 
-/// Evidence metadata for a decision.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// Evidence for the decision problem.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct DecisionEvidence {
-    /// Drift score (0.0 to 1.0) indicating how much evidence has changed.
-    #[serde(default)]
+    /// Drift score (0.0 to 1.0).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub drift: Option<f64>,
-    /// Trust score (0.0 to 1.0) indicating confidence in evidence quality.
-    #[serde(default)]
+    /// Trust score (0.0 to 1.0).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub trust: Option<f64>,
     /// Policy compliance score (0.0 to 1.0).
-    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub policy: Option<f64>,
-    /// Provenance information for the evidence.
-    #[serde(default)]
+    /// Provenance information.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub provenance: Option<String>,
 }
 
-/// Metadata for a decision (does NOT affect scoring unless explicitly included).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// Metadata for the decision (does NOT affect scoring).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct DecisionMeta {
-    /// Creation timestamp in ISO 8601 format.
-    #[serde(default)]
+    /// Creation timestamp (ISO 8601).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_at: Option<String>,
-    /// Version of the decision schema.
-    #[serde(default)]
+    /// Version string.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub version: Option<String>,
+    /// Additional metadata.
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub additional: BTreeMap<String, String>,
 }
 
-/// Input to a decision evaluation.
-///
-/// Contains all information needed to compute robust decision metrics.
-/// The order of actions and scenarios does NOT affect the output;
-/// all internal processing uses stable, sorted ordering.
+/// Input to the decision engine.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DecisionInput {
     /// Optional identifier for the decision.
-    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
-    /// Available actions to choose from.
+    /// Available actions.
     pub actions: Vec<ActionOption>,
-    /// Possible scenarios that may occur.
+    /// Possible scenarios.
     pub scenarios: Vec<Scenario>,
-    /// Outcome matrix as (action_id, scenario_id, utility) tuples.
-    /// Higher utility values are preferred.
+    /// Outcomes as (action_id, scenario_id, utility) tuples.
     pub outcomes: Vec<(String, String, f64)>,
-    /// Optional constraints on the decision.
+    /// Optional constraints.
     #[serde(default)]
-    pub constraints: Option<Vec<DecisionConstraint>>,
-    /// Optional evidence metadata.
+    pub constraints: Option<DecisionConstraint>,
+    /// Optional evidence.
     #[serde(default)]
     pub evidence: Option<DecisionEvidence>,
     /// Optional metadata (does NOT affect scoring).
@@ -97,18 +98,18 @@ pub struct DecisionInput {
     pub meta: Option<DecisionMeta>,
 }
 
-/// A ranked action with computed scores.
+/// A ranked action with scores.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RankedAction {
     /// Action identifier.
     pub action_id: String,
-    /// Worst-case utility (minimum across all scenarios).
+    /// Worst-case utility score.
     pub score_worst_case: f64,
-    /// Maximum regret across all scenarios.
+    /// Maximum regret score.
     pub score_minimax_regret: f64,
-    /// Adversarial robustness score (worst-case over adversarial subset).
+    /// Adversarial robustness score.
     pub score_adversarial: f64,
-    /// Composite score (weighted aggregation).
+    /// Composite score (weighted combination).
     pub composite_score: f64,
     /// Whether this action is recommended.
     pub recommended: bool,
@@ -116,34 +117,14 @@ pub struct RankedAction {
     pub rank: usize,
 }
 
-/// Intermediate computation tables for transparency and debugging.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct DecisionTrace {
-    /// Utility table: action_id -> scenario_id -> utility.
-    pub utility_table: BTreeMap<String, BTreeMap<String, f64>>,
-    /// Worst-case table: action_id -> minimum utility.
-    pub worst_case_table: BTreeMap<String, f64>,
-    /// Regret table: action_id -> scenario_id -> regret.
-    pub regret_table: BTreeMap<String, BTreeMap<String, f64>>,
-    /// Maximum regret per action: action_id -> max_regret.
-    pub max_regret_table: BTreeMap<String, f64>,
-    /// Adversarial worst-case table: action_id -> minimum utility over adversarial scenarios.
-    pub adversarial_table: BTreeMap<String, f64>,
-    /// Weights used for composite scoring.
-    pub composite_weights: CompositeWeights,
-    /// Tie-break rule applied (always lexicographic by action_id).
-    pub tie_break_rule: String,
-}
-
-/// Weights for composite score computation.
+/// Weights for composite score calculation.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CompositeWeights {
-    /// Weight for worst-case score (default: 0.4).
+    /// Weight for worst-case score.
     pub worst_case: f64,
-    /// Weight for minimax regret score (default: 0.4).
-    /// Note: Regret is inverted (1.0 - normalized_regret) before weighting.
+    /// Weight for minimax regret score.
     pub minimax_regret: f64,
-    /// Weight for adversarial robustness score (default: 0.2).
+    /// Weight for adversarial robustness score.
     pub adversarial: f64,
 }
 
@@ -157,19 +138,38 @@ impl Default for CompositeWeights {
     }
 }
 
-/// Output from a decision evaluation.
+/// Trace of the decision computation for reproducibility.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DecisionTrace {
+    /// Utility table: action_id -> scenario_id -> utility.
+    pub utility_table: BTreeMap<String, BTreeMap<String, f64>>,
+    /// Worst-case table: action_id -> minimum utility.
+    pub worst_case_table: BTreeMap<String, f64>,
+    /// Regret table: action_id -> scenario_id -> regret.
+    pub regret_table: BTreeMap<String, BTreeMap<String, f64>>,
+    /// Maximum regret table: action_id -> maximum regret.
+    pub max_regret_table: BTreeMap<String, f64>,
+    /// Adversarial worst-case table: action_id -> adversarial worst utility.
+    pub adversarial_table: BTreeMap<String, f64>,
+    /// Weights used for composite score.
+    pub composite_weights: CompositeWeights,
+    /// Tie-breaking rule used.
+    pub tie_break_rule: String,
+}
+
+/// Output from the decision engine.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DecisionOutput {
-    /// Ranked actions in order of preference.
+    /// Ranked actions (best first).
     pub ranked_actions: Vec<RankedAction>,
-    /// SHA-256 fingerprint of the canonical input JSON.
+    /// SHA-256 fingerprint of the canonical input.
     pub determinism_fingerprint: String,
-    /// Trace of intermediate computations.
+    /// Trace of the computation.
     pub trace: DecisionTrace,
 }
 
 impl DecisionOutput {
-    /// Returns the ID of the recommended action, if any.
+    /// Get the recommended action ID.
     pub fn recommended_action_id(&self) -> Option<&str> {
         self.ranked_actions
             .iter()
@@ -178,44 +178,31 @@ impl DecisionOutput {
     }
 }
 
-/// Flip distance result for sensitivity analysis.
+/// Flip distance for sensitivity analysis.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FlipDistance {
-    /// Variable/assumption ID.
+    /// Variable/scenario ID.
     pub variable_id: String,
     /// Distance (magnitude of change) needed to flip the decision.
     pub flip_distance: f64,
-    /// The new top action if this variable flips.
+    /// The action that would become top if this variable flips.
     pub new_top_action: String,
 }
 
-/// Value of Information ranking for evidence prioritization.
+/// Value of Information ranking.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct VoiRanking {
-    /// Action/evidence ID.
+    /// Evidence action ID.
     pub action_id: String,
     /// Expected value of information.
     pub evoi: f64,
     /// Recommendation: "do_now", "plan_later", or "defer".
     pub recommendation: String,
-    /// Rationale for the recommendation.
+    /// Rationale for the ranking.
     pub rationale: Vec<String>,
 }
 
-/// Regret-bounded plan output.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RegretBoundedPlan {
-    /// Plan identifier.
-    pub id: String,
-    /// Decision ID this plan is for.
-    pub decision_id: String,
-    /// Actions in the plan.
-    pub actions: Vec<PlannedAction>,
-    /// Bounded horizon (max actions).
-    pub bounded_horizon: usize,
-}
-
-/// An action within a regret-bounded plan.
+/// A planned action in a regret-bounded plan.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PlannedAction {
     /// Action ID.
@@ -224,12 +211,25 @@ pub struct PlannedAction {
     pub rationale: Vec<String>,
 }
 
+/// A regret-bounded plan.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct RegretBoundedPlan {
+    /// Plan ID (deterministic hash).
+    pub id: String,
+    /// Decision ID this plan is for.
+    pub decision_id: String,
+    /// Planned actions.
+    pub actions: Vec<PlannedAction>,
+    /// Bounded horizon.
+    pub bounded_horizon: usize,
+}
+
 /// Decision boundary explanation.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DecisionBoundary {
     /// Current top action.
     pub top_action: String,
-    /// Nearest flip distances (sorted by distance).
+    /// Nearest flip distances.
     pub nearest_flips: Vec<FlipDistance>,
 }
 
@@ -238,11 +238,11 @@ pub struct DecisionBoundary {
 pub struct RefereeAdjudication {
     /// Whether the proposal was accepted.
     pub accepted: bool,
-    /// The agent's claimed action.
+    /// The agent's claim.
     pub agent_claim: Option<String>,
-    /// The computed boundary.
+    /// The computed decision boundary.
     pub boundary: DecisionBoundary,
-    /// What would need to change for the claim to be accepted.
+    /// What would need to change for acceptance.
     pub what_would_change: Vec<String>,
 }
 
@@ -251,11 +251,91 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_action_option_serialization() {
+        let action = ActionOption {
+            id: "test_action".to_string(),
+            label: "Test Action".to_string(),
+        };
+
+        let json = serde_json::to_string(&action).unwrap();
+        let parsed: ActionOption = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(action, parsed);
+    }
+
+    #[test]
+    fn test_scenario_serialization() {
+        let scenario = Scenario {
+            id: "test_scenario".to_string(),
+            probability: Some(0.5),
+            adversarial: true,
+        };
+
+        let json = serde_json::to_string(&scenario).unwrap();
+        let parsed: Scenario = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(scenario, parsed);
+    }
+
+    #[test]
+    fn test_scenario_default_adversarial() {
+        let json = r#"{"id": "test", "probability": 0.5}"#;
+        let scenario: Scenario = serde_json::from_str(json).unwrap();
+
+        assert!(!scenario.adversarial);
+    }
+
+    #[test]
+    fn test_decision_input_serialization() {
+        let input = DecisionInput {
+            id: Some("test_decision".to_string()),
+            actions: vec![ActionOption {
+                id: "a1".to_string(),
+                label: "Action 1".to_string(),
+            }],
+            scenarios: vec![Scenario {
+                id: "s1".to_string(),
+                probability: Some(1.0),
+                adversarial: false,
+            }],
+            outcomes: vec![("a1".to_string(), "s1".to_string(), 100.0)],
+            constraints: None,
+            evidence: None,
+            meta: None,
+        };
+
+        let json = serde_json::to_string(&input).unwrap();
+        let parsed: DecisionInput = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(input, parsed);
+    }
+
+    #[test]
+    fn test_ranked_action_serialization() {
+        let action = RankedAction {
+            action_id: "test".to_string(),
+            score_worst_case: 50.0,
+            score_minimax_regret: 25.0,
+            score_adversarial: 40.0,
+            composite_score: 0.75,
+            recommended: true,
+            rank: 1,
+        };
+
+        let json = serde_json::to_string(&action).unwrap();
+        let parsed: RankedAction = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(action, parsed);
+    }
+
+    #[test]
     fn test_composite_weights_default() {
         let weights = CompositeWeights::default();
+
         assert!((weights.worst_case - 0.4).abs() < 1e-9);
         assert!((weights.minimax_regret - 0.4).abs() < 1e-9);
         assert!((weights.adversarial - 0.2).abs() < 1e-9);
+
         // Weights should sum to 1.0
         let sum = weights.worst_case + weights.minimax_regret + weights.adversarial;
         assert!((sum - 1.0).abs() < 1e-9);
@@ -266,22 +346,22 @@ mod tests {
         let output = DecisionOutput {
             ranked_actions: vec![
                 RankedAction {
-                    action_id: "action_b".to_string(),
-                    score_worst_case: 40.0,
-                    score_minimax_regret: 20.0,
+                    action_id: "a1".to_string(),
+                    score_worst_case: 50.0,
+                    score_minimax_regret: 25.0,
                     score_adversarial: 40.0,
-                    composite_score: 0.6,
-                    recommended: false,
-                    rank: 2,
-                },
-                RankedAction {
-                    action_id: "action_a".to_string(),
-                    score_worst_case: 20.0,
-                    score_minimax_regret: 40.0,
-                    score_adversarial: 20.0,
-                    composite_score: 0.8,
+                    composite_score: 0.75,
                     recommended: true,
                     rank: 1,
+                },
+                RankedAction {
+                    action_id: "a2".to_string(),
+                    score_worst_case: 40.0,
+                    score_minimax_regret: 30.0,
+                    score_adversarial: 35.0,
+                    composite_score: 0.65,
+                    recommended: false,
+                    rank: 2,
                 },
             ],
             determinism_fingerprint: "abc123".to_string(),
@@ -295,6 +375,21 @@ mod tests {
                 tie_break_rule: "lexicographic_by_action_id".to_string(),
             },
         };
-        assert_eq!(output.recommended_action_id(), Some("action_a"));
+
+        assert_eq!(output.recommended_action_id(), Some("a1"));
+    }
+
+    #[test]
+    fn test_btree_map_sorted_keys() {
+        let mut map: BTreeMap<String, f64> = BTreeMap::new();
+        map.insert("zebra".to_string(), 3.0);
+        map.insert("apple".to_string(), 1.0);
+        map.insert("mango".to_string(), 2.0);
+
+        // Keys should be sorted
+        let keys: Vec<&String> = map.keys().collect();
+        assert_eq!(keys[0], "apple");
+        assert_eq!(keys[1], "mango");
+        assert_eq!(keys[2], "zebra");
     }
 }
