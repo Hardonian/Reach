@@ -506,20 +506,6 @@ func loadChaosInstability(dataRoot string) float64 {
 	return report.InstabilityPct
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 func usageAssistant(out io.Writer) {
 	_, _ = io.WriteString(out, `usage: reach assistant <command> [options]
 

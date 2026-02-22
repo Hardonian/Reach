@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 import (
 	"context"
@@ -177,6 +177,14 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runChaos(ctx, dataRoot, args[1:], out, errOut)
 	case "trust":
 		return runTrust(ctx, dataRoot, args[1:], out, errOut)
+	case "policy":
+		return runPolicyCommand(ctx, dataRoot, args[1:], out, errOut)
+	case "bench":
+		return runBenchmark(ctx, dataRoot, args[1:], out, errOut)
+	case "sign":
+		return runSign(ctx, dataRoot, args[1:], out, errOut)
+	case "verify-signature":
+		return runVerifySignature(ctx, dataRoot, args[1:], out, errOut)
 	case "provenance":
 		return runProvenance(ctx, dataRoot, args[1:], out, errOut)
 	case "steps":
@@ -787,53 +795,53 @@ func calculateOperatorMetrics(dataRoot string, nodes []federation.StatusNode) *O
 
 func printMobileOperatorDashboard(out io.Writer, m *OperatorMetrics) {
 	// Header
-	fmt.Fprintln(out, "╔════════════════════════════════════════════════╗")
-	fmt.Fprintln(out, "║        Reach Operator Dashboard (Mobile)       ║")
-	fmt.Fprintln(out, "╚════════════════════════════════════════════════╝")
+	fmt.Fprintln(out, "â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—")
+	fmt.Fprintln(out, "â•‘        Reach Operator Dashboard (Mobile)       â•‘")
+	fmt.Fprintln(out, "â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•")
 	fmt.Fprintln(out)
 
 	// Status indicator
 	statusEmoji := map[string]string{
-		"healthy":         "✓",
-		"needs_attention": "⚠",
-		"critical":        "✗",
+		"healthy":         "âœ“",
+		"needs_attention": "âš ",
+		"critical":        "âœ—",
 	}
 	fmt.Fprintf(out, "Health: %s %s\n\n", statusEmoji[m.Health.Overall], strings.ToUpper(m.Health.Overall))
 
 	// Runs section
-	fmt.Fprintln(out, "┌─ Runs ────────────────────────────────────────┐")
-	fmt.Fprintf(out, "│  Total:     %d\n", m.Runs.Total)
-	fmt.Fprintf(out, "│  ✓ Success: %d\n", m.Runs.Success)
-	fmt.Fprintf(out, "│  ✗ Denied:  %d\n", m.Runs.Denied)
+	fmt.Fprintln(out, "â”Œâ”€ Runs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”")
+	fmt.Fprintf(out, "â”‚  Total:     %d\n", m.Runs.Total)
+	fmt.Fprintf(out, "â”‚  âœ“ Success: %d\n", m.Runs.Success)
+	fmt.Fprintf(out, "â”‚  âœ— Denied:  %d\n", m.Runs.Denied)
 	if m.Runs.Mismatches > 0 {
-		fmt.Fprintf(out, "│  ⚠ Mismatch:%d\n", m.Runs.Mismatches)
+		fmt.Fprintf(out, "â”‚  âš  Mismatch:%d\n", m.Runs.Mismatches)
 	}
-	fmt.Fprintln(out, "└───────────────────────────────────────────────┘")
+	fmt.Fprintln(out, "â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜")
 	fmt.Fprintln(out)
 
 	// Topology section
-	fmt.Fprintln(out, "┌─ Federation ──────────────────────────────────┐")
-	fmt.Fprintf(out, "│  Nodes:   %d\n", m.Topology.Nodes)
-	fmt.Fprintf(out, "│  Trusted: %d\n", m.Topology.TrustedPeers)
+	fmt.Fprintln(out, "â”Œâ”€ Federation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”")
+	fmt.Fprintf(out, "â”‚  Nodes:   %d\n", m.Topology.Nodes)
+	fmt.Fprintf(out, "â”‚  Trusted: %d\n", m.Topology.TrustedPeers)
 	if m.Topology.Quarantined > 0 {
-		fmt.Fprintf(out, "│  ⚠ Quarantine: %d\n", m.Topology.Quarantined)
+		fmt.Fprintf(out, "â”‚  âš  Quarantine: %d\n", m.Topology.Quarantined)
 	}
-	fmt.Fprintln(out, "└───────────────────────────────────────────────┘")
+	fmt.Fprintln(out, "â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜")
 	fmt.Fprintln(out)
 
 	// Capsules section
-	fmt.Fprintln(out, "┌─ Capsules ────────────────────────────────────┐")
-	fmt.Fprintf(out, "│  Total:    %d\n", m.Capsules.Total)
-	fmt.Fprintf(out, "│  Verified: %d\n", m.Capsules.Verified)
-	fmt.Fprintln(out, "└───────────────────────────────────────────────┘")
+	fmt.Fprintln(out, "â”Œâ”€ Capsules â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”")
+	fmt.Fprintf(out, "â”‚  Total:    %d\n", m.Capsules.Total)
+	fmt.Fprintf(out, "â”‚  Verified: %d\n", m.Capsules.Verified)
+	fmt.Fprintln(out, "â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜")
 	fmt.Fprintln(out)
 
 	// Mobile section
 	if m.Mobile.LowMemoryMode {
-		fmt.Fprintln(out, "┌─ Mobile Settings ─────────────────────────────┐")
-		fmt.Fprintln(out, "│  Low Memory Mode: ON")
-		fmt.Fprintf(out, "│  Storage Used: %d MB\n", m.Mobile.StorageUsedMB)
-		fmt.Fprintln(out, "└───────────────────────────────────────────────┘")
+		fmt.Fprintln(out, "â”Œâ”€ Mobile Settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”")
+		fmt.Fprintln(out, "â”‚  Low Memory Mode: ON")
+		fmt.Fprintf(out, "â”‚  Storage Used: %d MB\n", m.Mobile.StorageUsedMB)
+		fmt.Fprintln(out, "â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜")
 		fmt.Fprintln(out)
 	}
 
@@ -1778,14 +1786,14 @@ func (d *Doctor) Diagnose(packPath string) *doctorReport {
 
 func (r *doctorReport) ToHuman() string {
 	var sb strings.Builder
-	statusEmoji := map[string]string{"healthy": "✓", "needs_attention": "⚠", "critical": "✗"}
+	statusEmoji := map[string]string{"healthy": "âœ“", "needs_attention": "âš ", "critical": "âœ—"}
 
 	sb.WriteString(fmt.Sprintf("%s Pack Health Report: %s\n", statusEmoji[r.Overall], r.PackPath))
 	sb.WriteString(fmt.Sprintf("Overall Status: %s\n\n", strings.ToUpper(r.Overall)))
 
 	sb.WriteString("Checks:\n")
 	for _, check := range r.Checks {
-		emoji := map[string]string{"pass": "✓", "fail": "✗", "warn": "⚠", "skip": "⊘"}[check.Status]
+		emoji := map[string]string{"pass": "âœ“", "fail": "âœ—", "warn": "âš ", "skip": "âŠ˜"}[check.Status]
 		sb.WriteString(fmt.Sprintf("  %s %s: %s\n", emoji, check.Name, check.Message))
 	}
 
@@ -2490,30 +2498,30 @@ func (w *Wizard) Run(ctx context.Context) int {
 }
 
 func (w *Wizard) printHeader() {
-	fmt.Fprintln(w.Out, "╔════════════════════════════════════════╗")
-	fmt.Fprintln(w.Out, "║     Reach Guided Run Wizard            ║")
-	fmt.Fprintln(w.Out, "║     Run → Verify → Share in 3 steps    ║")
-	fmt.Fprintln(w.Out, "╚════════════════════════════════════════╝")
+	fmt.Fprintln(w.Out, "â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—")
+	fmt.Fprintln(w.Out, "â•‘     Reach Guided Run Wizard            â•‘")
+	fmt.Fprintln(w.Out, "â•‘     Run â†’ Verify â†’ Share in 3 steps    â•‘")
+	fmt.Fprintln(w.Out, "â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•")
 	fmt.Fprintln(w.Out)
 }
 
 func (w *Wizard) printSuccess() {
 	fmt.Fprintln(w.Out)
-	fmt.Fprintln(w.Out, "✓ Run completed successfully!")
+	fmt.Fprintln(w.Out, "âœ“ Run completed successfully!")
 	fmt.Fprintf(w.Out, "  Run ID: %s\n", w.State.RunID)
 	fmt.Fprintf(w.Out, "  Capsule: %s\n", w.State.CapsulePath)
 	fmt.Fprintln(w.Out)
 	fmt.Fprintln(w.Out, "Next steps:")
-	fmt.Fprintln(w.Out, "  • reach share run", w.State.RunID)
-	fmt.Fprintln(w.Out, "  • reach explain", w.State.RunID)
-	fmt.Fprintln(w.Out, "  • reach proof verify", w.State.RunID)
+	fmt.Fprintln(w.Out, "  â€¢ reach share run", w.State.RunID)
+	fmt.Fprintln(w.Out, "  â€¢ reach explain", w.State.RunID)
+	fmt.Fprintln(w.Out, "  â€¢ reach proof verify", w.State.RunID)
 }
 
 func (w *Wizard) logError(msg string, err error) {
 	if w.JSONOut {
 		writeJSON(w.Out, map[string]any{"error": msg, "detail": err.Error(), "state": w.State})
 	} else {
-		fmt.Fprintf(w.ErrOut, "✗ %s: %v\n", msg, err)
+		fmt.Fprintf(w.ErrOut, "âœ— %s: %v\n", msg, err)
 	}
 }
 
@@ -2538,7 +2546,7 @@ func (w *Wizard) stepChoosePack() error {
 		for i, p := range idx.Packs {
 			verified := ""
 			if p.Verified {
-				verified = " ✓ verified"
+				verified = " âœ“ verified"
 			}
 			fmt.Fprintf(w.Out, "  [%d] %s%s\n", i+1, p.Name, verified)
 			if p.Description != "" {
@@ -2552,7 +2560,7 @@ func (w *Wizard) stepChoosePack() error {
 	if w.QuickMode {
 		w.State.SelectedPack = idx.Packs[0].Name
 		if !w.JSONOut {
-			fmt.Fprintf(w.Out, "✓ Auto-selected: %s\n\n", w.State.SelectedPack)
+			fmt.Fprintf(w.Out, "âœ“ Auto-selected: %s\n\n", w.State.SelectedPack)
 		}
 		return nil
 	}
@@ -2580,9 +2588,9 @@ func (w *Wizard) stepChooseInput() error {
 	w.State.Input["timeout"] = "30"
 
 	if !w.JSONOut {
-		fmt.Fprintln(w.Out, "✓ Using safe defaults:")
-		fmt.Fprintf(w.Out, "  • Mode: %s\n", w.State.Input["mode"])
-		fmt.Fprintf(w.Out, "  • Timeout: %ss\n", w.State.Input["timeout"])
+		fmt.Fprintln(w.Out, "âœ“ Using safe defaults:")
+		fmt.Fprintf(w.Out, "  â€¢ Mode: %s\n", w.State.Input["mode"])
+		fmt.Fprintf(w.Out, "  â€¢ Timeout: %ss\n", w.State.Input["timeout"])
 		fmt.Fprintln(w.Out)
 	}
 
@@ -2626,7 +2634,7 @@ func (w *Wizard) stepRun(ctx context.Context) error {
 	}
 
 	if !w.JSONOut {
-		fmt.Fprintf(w.Out, "✓ Run complete: %s\n\n", w.State.RunID)
+		fmt.Fprintf(w.Out, "âœ“ Run complete: %s\n\n", w.State.RunID)
 	}
 
 	w.State.Success = true
@@ -2650,7 +2658,7 @@ func (w *Wizard) stepVerify() error {
 	fingerprint := stableHash(map[string]any{"event_log": record.EventLog, "run_id": record.RunID})
 
 	if !w.JSONOut {
-		fmt.Fprintf(w.Out, "✓ Verified (fingerprint: %s...)\n\n", fingerprint[:16])
+		fmt.Fprintf(w.Out, "âœ“ Verified (fingerprint: %s...)\n\n", fingerprint[:16])
 	}
 
 	return nil
@@ -2679,11 +2687,11 @@ func (w *Wizard) stepShare() error {
 	}
 
 	if !w.JSONOut {
-		fmt.Fprintf(w.Out, "✓ Capsule ready: %s\n", w.State.CapsulePath)
+		fmt.Fprintf(w.Out, "âœ“ Capsule ready: %s\n", w.State.CapsulePath)
 		fmt.Fprintln(w.Out)
 		fmt.Fprintln(w.Out, "Share options:")
-		fmt.Fprintf(w.Out, "  • QR code: reach share run %s\n", w.State.RunID)
-		fmt.Fprintf(w.Out, "  • File: %s\n", w.State.CapsulePath)
+		fmt.Fprintf(w.Out, "  â€¢ QR code: reach share run %s\n", w.State.RunID)
+		fmt.Fprintf(w.Out, "  â€¢ File: %s\n", w.State.CapsulePath)
 		fmt.Fprintln(w.Out)
 	}
 
@@ -2775,7 +2783,7 @@ func runQuick(args []string, out, errOut io.Writer) int {
 	finalResultJSON, _ := json.Marshal(results["node2"])
 	scoreRes, scoreErr := eval.ScoreRun(ctx, test, runID, string(finalResultJSON), nil, time.Duration(state.Latency)*time.Millisecond, state.TokenUsage)
 	if scoreErr == nil {
-		fmt.Fprintf(out, "🎯 Evaluation Score: %.2f (G:%.2f, P:%.2f, T:%.2f)\n",
+		fmt.Fprintf(out, "ðŸŽ¯ Evaluation Score: %.2f (G:%.2f, P:%.2f, T:%.2f)\n",
 			scoreRes.Score, scoreRes.Grounding, scoreRes.PolicyCompliance, scoreRes.ToolCorrectness)
 	}
 
@@ -2858,9 +2866,9 @@ func shareRun(dataRoot, runID string, out, errOut io.Writer) int {
 	// Generate share data
 	shareURL := fmt.Sprintf("reach://share/%s?v=1", runID)
 
-	fmt.Fprintln(out, "╔════════════════════════════════════════╗")
-	fmt.Fprintln(out, "║        Share Your Run                  ║")
-	fmt.Fprintln(out, "╚════════════════════════════════════════╝")
+	fmt.Fprintln(out, "â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—")
+	fmt.Fprintln(out, "â•‘        Share Your Run                  â•‘")
+	fmt.Fprintln(out, "â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•")
 	fmt.Fprintln(out)
 	fmt.Fprintf(out, "Run ID: %s\n", runID)
 	fmt.Fprintln(out)
@@ -2886,7 +2894,7 @@ func shareRun(dataRoot, runID string, out, errOut io.Writer) int {
 		downloadsPath := "/sdcard/Download/reach-" + runID + ".capsule.json"
 		if input, err := os.ReadFile(capsulePath); err == nil {
 			if err := os.WriteFile(downloadsPath, input, 0644); err == nil {
-				fmt.Fprintf(out, "\n✓ Also saved to: %s\n", downloadsPath)
+				fmt.Fprintf(out, "\nâœ“ Also saved to: %s\n", downloadsPath)
 			}
 		}
 	}
@@ -2905,9 +2913,9 @@ func shareCapsule(path string, out, errOut io.Writer) int {
 	hash := stableHash(cap.EventLog)[:16]
 	shareURL := fmt.Sprintf("reach://capsule/%s?verify=true", hash)
 
-	fmt.Fprintln(out, "╔════════════════════════════════════════╗")
-	fmt.Fprintln(out, "║        Share Capsule                   ║")
-	fmt.Fprintln(out, "╚════════════════════════════════════════╝")
+	fmt.Fprintln(out, "â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—")
+	fmt.Fprintln(out, "â•‘        Share Capsule                   â•‘")
+	fmt.Fprintln(out, "â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•")
 	fmt.Fprintln(out)
 	fmt.Fprintf(out, "Run ID: %s\n", cap.Manifest.RunID)
 	fingerprint := cap.Manifest.RunFingerprint
@@ -3234,9 +3242,9 @@ func meshQR(dataDir string, out io.Writer, errOut io.Writer) int {
 	qrData := node.CreateQRCode()
 	code := node.CreatePairingCode()
 
-	fmt.Fprintln(out, "╔════════════════════════════════════════════════╗")
-	fmt.Fprintln(out, "║         Reach Mesh Pairing Code                ║")
-	fmt.Fprintln(out, "╚════════════════════════════════════════════════╝")
+	fmt.Fprintln(out, "â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—")
+	fmt.Fprintln(out, "â•‘         Reach Mesh Pairing Code                â•‘")
+	fmt.Fprintln(out, "â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•")
 	fmt.Fprintln(out)
 	fmt.Fprintf(out, "Pairing Code: %s\n", code.Code)
 	fmt.Fprintf(out, "Expires: %s\n", code.ExpiresAt.Format(time.RFC3339))
@@ -3254,15 +3262,15 @@ func meshQR(dataDir string, out io.Writer, errOut io.Writer) int {
 func generateTextQR(out io.Writer, text string) {
 	// This is a simplified placeholder - real QR would use qrencode library
 	// For now, create a visual frame that suggests QR structure
-	fmt.Fprintln(out, "  ┌─────────────┐")
-	fmt.Fprintln(out, "  │ ▄▄▄   ▄▄▄  │")
-	fmt.Fprintln(out, "  │ █ █ ▄ █ █  │")
-	fmt.Fprintln(out, "  │ ▀▀▀ ▀ ▀▀▀  │")
-	fmt.Fprintln(out, "  │ ▄▄  ▀▄  ▄▄ │")
-	fmt.Fprintln(out, "  │ ▀▀▄▄▄▀▄ ▀▀ │")
-	fmt.Fprintln(out, "  │ ▄▄▀ ▀▄▀▄▄  │")
-	fmt.Fprintln(out, "  │ ▀▀▀   ▀▀▀  │")
-	fmt.Fprintln(out, "  └─────────────┘")
+	fmt.Fprintln(out, "  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”")
+	fmt.Fprintln(out, "  â”‚ â–„â–„â–„   â–„â–„â–„  â”‚")
+	fmt.Fprintln(out, "  â”‚ â–ˆ â–ˆ â–„ â–ˆ â–ˆ  â”‚")
+	fmt.Fprintln(out, "  â”‚ â–€â–€â–€ â–€ â–€â–€â–€  â”‚")
+	fmt.Fprintln(out, "  â”‚ â–„â–„  â–€â–„  â–„â–„ â”‚")
+	fmt.Fprintln(out, "  â”‚ â–€â–€â–„â–„â–„â–€â–„ â–€â–€ â”‚")
+	fmt.Fprintln(out, "  â”‚ â–„â–„â–€ â–€â–„â–€â–„â–„  â”‚")
+	fmt.Fprintln(out, "  â”‚ â–€â–€â–€   â–€â–€â–€  â”‚")
+	fmt.Fprintln(out, "  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜")
 	fmt.Fprintln(out, "  (Use: pkg install libqrencode for real QR codes)")
 }
 
@@ -3311,7 +3319,7 @@ func runGateConnect(args []string, out io.Writer, errOut io.Writer) int {
 	}
 
 	if len(existingWorkflows) > 0 {
-		fmt.Fprintf(out, "✓ Found %d existing workflow(s).\n", len(existingWorkflows))
+		fmt.Fprintf(out, "âœ“ Found %d existing workflow(s).\n", len(existingWorkflows))
 		fmt.Fprintln(out, "Suggestion: Add ReadyLayer Gate to your primary CI workflow.")
 	} else {
 		fmt.Fprintln(out, "! No GitHub Action workflows found.")
@@ -3359,7 +3367,7 @@ func runGateRun(args []string, out io.Writer, errOut io.Writer) int {
 	time.Sleep(500 * time.Millisecond)
 
 	// Simulated pass for CLI UX
-	fmt.Fprintln(out, "✓ All checks passed.")
+	fmt.Fprintln(out, "âœ“ All checks passed.")
 	fmt.Fprintln(out, "Verdict: PASSED")
 
 	return 0
@@ -3703,7 +3711,7 @@ func runVerifyDeterminism(ctx context.Context, dataRoot string, args []string, o
 		return 1
 	}
 
-	fmt.Fprintf(out, "\n✓ Determinism verified. Final hash: %s\n", hash)
+	fmt.Fprintf(out, "\nâœ“ Determinism verified. Final hash: %s\n", hash)
 	return 0
 }
 
@@ -3781,6 +3789,25 @@ func runBenchmark(ctx context.Context, dataRoot string, args []string, out io.Wr
 	return 0
 }
 
+// runBench dispatches `reachctl bench <subcommand>`.
+// Currently supports: bench reproducibility
+func runBench(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	_ = ctx
+	if len(args) < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reach bench <subcommand>")
+		_, _ = fmt.Fprintln(errOut, "  reproducibility <pipelineId> [--runs N] [--json]")
+		return 1
+	}
+	switch args[0] {
+	case "reproducibility":
+		return runBenchReproducibility(dataRoot, args[1:], out, errOut)
+	default:
+		_, _ = fmt.Fprintf(errOut, "unknown bench subcommand: %q\n", args[0])
+		_, _ = fmt.Fprintln(errOut, "available: reproducibility")
+		return 1
+	}
+}
+
 func runRecordToMap(rec runRecord) map[string]any {
 	b, _ := json.Marshal(rec)
 	var m map[string]any
@@ -3828,10 +3855,10 @@ func runDoctor(args []string, out, errOut io.Writer) int {
 	}
 
 	if healthy {
-		fmt.Fprintln(out, "\n✨ System is healthy and ready for OSS mode.")
+		fmt.Fprintln(out, "\nâœ¨ System is healthy and ready for OSS mode.")
 		return 0
 	} else {
-		fmt.Fprintln(errOut, "\n⚠️ Some issues were detected. See above for details.")
+		fmt.Fprintln(errOut, "\nâš ï¸ Some issues were detected. See above for details.")
 		return 1
 	}
 }
@@ -3869,7 +3896,7 @@ func runCheckpoint(ctx context.Context, dataRoot string, args []string, out io.W
 	if *jsonFlag {
 		return writeJSON(out, result)
 	}
-	_, _ = fmt.Fprintf(out, "✓ Checkpoint created for run %s at %s\n", runID, checkpointPath)
+	_, _ = fmt.Fprintf(out, "âœ“ Checkpoint created for run %s at %s\n", runID, checkpointPath)
 	return 0
 }
 
@@ -3906,7 +3933,7 @@ func runRewind(ctx context.Context, dataRoot string, args []string, out io.Write
 	if *jsonFlag {
 		return writeJSON(out, result)
 	}
-	_, _ = fmt.Fprintf(out, "✓ Restored from checkpoint %s\n", checkpointID)
+	_, _ = fmt.Fprintf(out, "âœ“ Restored from checkpoint %s\n", checkpointID)
 	return 0
 }
 
@@ -4006,7 +4033,7 @@ func runTrust(ctx context.Context, dataRoot string, args []string, out io.Writer
 	_, _ = fmt.Fprintf(out, "Replay Success: %d%%\n", result["replay_success"])
 	_, _ = fmt.Fprintf(out, "Chaos Pass Rate: %d%%\n", result["chaos_pass_rate"])
 	_, _ = fmt.Fprintf(out, "Drift Incidents: %d\n", result["drift_incidents"])
-	_, _ = fmt.Fprintln(out, "\n✓ Workspace is trustworthy!")
+	_, _ = fmt.Fprintln(out, "\nâœ“ Workspace is trustworthy!")
 	return 0
 }
 
@@ -4182,66 +4209,3 @@ func runProvenance(ctx context.Context, dataRoot string, args []string, out io.W
 	return 0
 }
 
-// runAssistant provides helpful copilot mode
-func runAssistant(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
-	if len(args) < 1 {
-		_, _ = fmt.Fprintln(errOut, "usage: reachctl assistant <on|off|suggest|explain> [args]")
-		return 1
-	}
-
-	switch args[0] {
-	case "on":
-		_, _ = fmt.Fprintln(out, "Assistant mode enabled.")
-		_, _ = fmt.Fprintln(out, "The assistant will provide helpful tips and suggestions.")
-		return 0
-	case "off":
-		_, _ = fmt.Fprintln(out, "Assistant mode disabled.")
-		return 0
-	case "suggest":
-		if len(args) < 2 {
-			_, _ = fmt.Fprintln(errOut, "usage: reachctl assistant suggest <runId>")
-			return 1
-		}
-		runID := args[1]
-		_, _ = fmt.Fprintf(out, "Assistant suggestions for run %s:\n\n", runID)
-		_, _ = fmt.Fprintln(out, "Based on the run data, here are some suggestions:")
-		_, _ = fmt.Fprintln(out, "  1. Run 'reachctl explain "+runID+"' to see detailed analysis")
-		_, _ = fmt.Fprintln(out, "  2. Run 'reachctl steps "+runID+"' to view step details")
-		_, _ = fmt.Fprintln(out, "  3. Run 'reachctl capsule create "+runID+"' to create a shareable capsule")
-		return 0
-	case "explain":
-		if len(args) < 2 {
-			_, _ = fmt.Fprintln(errOut, "usage: reachctl assistant explain <command>")
-			_, _ = fmt.Fprintln(out, "\nAvailable commands to explain:")
-			_, _ = fmt.Fprintln(out, "  - diff-run: Compare two runs for differences")
-			_, _ = fmt.Fprintln(out, "  - verify-determinism: Check determinism stability")
-			_, _ = fmt.Fprintln(out, "  - checkpoint: Save run state for rewinding")
-			_, _ = fmt.Fprintln(out, "  - simulate: Preview run against history")
-			_, _ = fmt.Fprintln(out, "  - chaos: Test determinism under perturbation")
-			_, _ = fmt.Fprintln(out, "  - trust: Calculate trust score")
-			return 1
-		}
-		command := args[1]
-		explanations := map[string]string{
-			"diff-run": "Compares two runs and shows differences in steps, proofs, and outputs.",
-			"verify-determinism": "Runs the same pack multiple times to verify deterministic behavior.",
-			"checkpoint": "Creates a named checkpoint of a run at a specific step for later rewinding.",
-			"rewind": "Restarts a run from a checkpoint with optional input overrides.",
-			"simulate": "Previews what would happen if you ran a pack without actually executing it.",
-			"chaos": "Intentionally perturbs execution to test determinism boundaries.",
-			"trust": "Calculates a trust score based on evidence completeness and determinism.",
-			"provenance": "Shows the complete provenance chain for a run.",
-			"steps": "Lists all steps in a run with their proof hashes.",
-		}
-		if explanation, ok := explanations[command]; ok {
-			_, _ = fmt.Fprintf(out, "%s: %s\n", command, explanation)
-		} else {
-			_, _ = fmt.Fprintf(out, "No explanation available for '%s'. Try 'reachctl assistant explain' for a list.\n", command)
-		}
-		return 0
-	default:
-		_, _ = fmt.Fprintf(errOut, "Unknown assistant command: %s\n", args[0])
-		_, _ = fmt.Fprintln(errOut, "Usage: reachctl assistant <on|off|suggest|explain>")
-		return 1
-	}
-}
