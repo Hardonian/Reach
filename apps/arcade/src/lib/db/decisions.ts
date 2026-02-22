@@ -38,7 +38,7 @@ export const decisionRepository = {
     inputFingerprint: string;
     decisionInput: string;
   }): DecisionReport {
-    const db = getDatabase();
+    const db = getDB();
     const id = generateId('dec');
     const createdAt = now();
     
@@ -66,7 +66,7 @@ export const decisionRepository = {
    * Get decision by ID
    */
   getById(id: string): DecisionReport | null {
-    const db = getDatabase();
+    const db = getDB();
     const stmt = db.prepare('SELECT * FROM decision_reports WHERE id = ? AND deleted_at IS NULL');
     const row = stmt.get(id) as DecisionReport | undefined;
     return row || null;
@@ -82,7 +82,7 @@ export const decisionRepository = {
     limit?: number;
     offset?: number;
   } = {}): { decisions: DecisionReport[]; total: number } {
-    const db = getDatabase();
+    const db = getDB();
     const conditions: string[] = ['deleted_at IS NULL'];
     const params: unknown[] = [];
     
@@ -160,7 +160,7 @@ export const decisionRepository = {
    * Update decision status (lifecycle transition)
    */
   updateStatus(id: string, status: DecisionStatus): DecisionReport | null {
-    const db = getDatabase();
+    const db = getDB();
     const updatedAt = now();
     
     const stmt = db.prepare(`
@@ -180,7 +180,7 @@ export const decisionRepository = {
     notes?: string;
     actualScore?: number;
   }): DecisionReport | null {
-    const db = getDatabase();
+    const db = getDB();
     const updatedAt = now();
     const outcomeTimestamp = now();
     
@@ -230,7 +230,7 @@ export const decisionRepository = {
    * Get decision by fingerprint (for deduplication)
    */
   getByFingerprint(fingerprint: string): DecisionReport | null {
-    const db = getDatabase();
+    const db = getDB();
     const stmt = db.prepare('SELECT * FROM decision_reports WHERE input_fingerprint = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 1');
     const row = stmt.get(fingerprint) as DecisionReport | undefined;
     return row || null;
@@ -305,7 +305,7 @@ export const junctionRepository = {
     triggerData: string;
     triggerTrace: string;
   }): Junction {
-    const db = getDatabase();
+    const db = getDB();
     const id = generateId('jct');
     const createdAt = now();
     
@@ -331,7 +331,7 @@ export const junctionRepository = {
    * Get junction by ID
    */
   getById(id: string): Junction | null {
-    const db = getDatabase();
+    const db = getDB();
     const stmt = db.prepare('SELECT * FROM junctions WHERE id = ? AND deleted_at IS NULL');
     const row = stmt.get(id) as Junction | undefined;
     return row || null;
@@ -347,7 +347,7 @@ export const junctionRepository = {
     limit?: number;
     offset?: number;
   } = {}): { junctions: Junction[]; total: number } {
-    const db = getDatabase();
+    const db = getDB();
     const conditions: string[] = ['deleted_at IS NULL'];
     const params: unknown[] = [];
     
@@ -390,7 +390,7 @@ export const junctionRepository = {
    * Check for existing junction with same fingerprint (deduplication)
    */
   getByFingerprint(fingerprint: string): Junction | null {
-    const db = getDatabase();
+    const db = getDB();
     const stmt = db.prepare(`
       SELECT * FROM junctions 
       WHERE fingerprint = ? 
@@ -407,7 +407,7 @@ export const junctionRepository = {
    * Update junction status
    */
   updateStatus(id: string, status: 'triggered' | 'acknowledged' | 'resolved' | 'superseded'): Junction | null {
-    const db = getDatabase();
+    const db = getDB();
     
     const stmt = db.prepare(`
       UPDATE junctions SET status = ?
@@ -422,7 +422,7 @@ export const junctionRepository = {
    * Link junction to decision
    */
   linkToDecision(junctionId: string, decisionId: string): Junction | null {
-    const db = getDatabase();
+    const db = getDB();
     
     const stmt = db.prepare(`
       UPDATE junctions SET decision_id = ?
@@ -437,7 +437,7 @@ export const junctionRepository = {
    * Set cooldown period for deduplication
    */
   setCooldown(id: string, cooldownMinutes: number): Junction | null {
-    const db = getDatabase();
+    const db = getDB();
     const cooldownUntil = new Date(Date.now() + cooldownMinutes * 60 * 1000).toISOString();
     
     const stmt = db.prepare(`
@@ -463,7 +463,7 @@ export const actionIntentRepository = {
     actionId: string;
     notes?: string;
   }): ActionIntent {
-    const db = getDatabase();
+    const db = getDB();
     const id = generateId('act');
     const createdAt = now();
     
@@ -484,7 +484,7 @@ export const actionIntentRepository = {
    * Get action intent by ID
    */
   getById(id: string): ActionIntent | null {
-    const db = getDatabase();
+    const db = getDB();
     const stmt = db.prepare('SELECT * FROM action_intents WHERE id = ?');
     const row = stmt.get(id) as ActionIntent | undefined;
     return row || null;
@@ -494,7 +494,7 @@ export const actionIntentRepository = {
    * Get action intents by decision ID
    */
   getByDecisionId(decisionId: string): ActionIntent[] {
-    const db = getDatabase();
+    const db = getDB();
     const stmt = db.prepare('SELECT * FROM action_intents WHERE decision_id = ? ORDER BY created_at DESC');
     return stmt.all(decisionId) as ActionIntent[];
   },
@@ -503,7 +503,7 @@ export const actionIntentRepository = {
    * Update action intent status
    */
   updateStatus(id: string, status: 'pending' | 'executed' | 'cancelled' | 'failed'): ActionIntent | null {
-    const db = getDatabase();
+    const db = getDB();
     const executedAt = status === 'executed' ? now() : null;
     
     const stmt = db.prepare(`
