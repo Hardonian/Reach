@@ -1,0 +1,26 @@
+{
+  "name": "Diff Critical Junction Test Fixture",
+  "description": "Test fixture for diff critical junction evaluation",
+  "evidence": {
+    "runId": "test-run-diff-critical-001",
+    "changedFiles": [
+      "src/auth/login.ts",
+      "src/payments/stripe.ts",
+      "config/database.yaml",
+      "src/admin/users.ts"
+    ],
+    "criticalFiles": [
+      "src/payments/stripe.ts",
+      "src/admin/users.ts"
+    ],
+    "addedLines": 150,
+    "removedLines": 20,
+    "riskScore": 0.75
+  },
+  "expected": {
+    "shouldTrigger": true,
+    "minSeverity": 0.7,
+    "type": "diff_critical",
+    "reasonContains": "critical"
+  }
+}

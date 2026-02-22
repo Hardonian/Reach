@@ -1,0 +1,19 @@
+{
+  "name": "Drift Alert Junction Test Fixture",
+  "description": "Test fixture for drift alert junction evaluation",
+  "evidence": {
+    "runId": "test-run-drift-001",
+    "resourceType": "config",
+    "resourceName": "database",
+    "driftType": "permission",
+    "severity": 0.65,
+    "driftedKeys": ["max_connections", "pool_size", "timeout"],
+    "baseline": {"max_connections": 100, "pool_size": 10, "timeout": 30},
+    "current": {"max_connections": 50, "pool_size": 5, "timeout": 60}
+  },
+  "expected": {
+    "shouldTrigger": true,
+    "minSeverity": 0.6,
+    "type": "drift_alert"
+  }
+}
