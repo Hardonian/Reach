@@ -1,7 +1,7 @@
 # OSS First Component Map
 
 | Component | Purpose | Dependencies | Tier | Coupling Notes |
-|-----------|---------|--------------|------|----------------|
+| :--- | :--- | :--- | :--- | :--- |
 | `services/runner` | Core execution engine, deterministic gates, replay | Go, SQLite (local) | OSS | Foundation of the protocol. |
 | `reachctl` | Primary CLI for interacting with Reach | `services/runner` | OSS | Directly invokes engine logic. |
 | `sdk/ts` | TypeScript SDK for building and interacting with Reach | Node.js | OSS | Essential for developer experience. |

@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { ROUTES } from '@/lib/routes';
 import { BRAND_NAME } from '@/lib/brand';
 import { track } from '@/lib/analytics';
+import { OSSModeBanner } from './OSSModeBanner';
 
 const primaryNav = [
   { href: ROUTES.PLAYGROUND, label: 'Playground' },
@@ -27,6 +28,7 @@ export function NavBar() {
 
   return (
     <header className="sticky top-0 z-50 glass-panel border-b border-border">
+      <OSSModeBanner />
       <nav className="section-container">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
