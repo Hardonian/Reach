@@ -4,7 +4,7 @@
  * Coordinates junction detection, evaluation, deduplication, and persistence.
  */
 
-import { junctionRepository } from '../db/decisions';
+import { junctionRepository } from '../../db/decisions';
 import { JunctionScanResult, JunctionTemplateResult, JunctionType } from './types';
 import { evaluateDiffCritical, type DiffEvidence } from './templates/diffCritical';
 import { evaluateDriftAlert, type DriftEvidence } from './templates/driftAlert';
