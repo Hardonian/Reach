@@ -1,0 +1,16 @@
+{
+  "name": "Trust Drop Junction Test Fixture",
+  "description": "Test fixture for trust drop junction evaluation",
+  "evidence": {
+    "runId": "test-run-trust-001",
+    "previousScore": 0.85,
+    "currentScore": 0.25,
+    "threshold": 0.3,
+    "factors": ["failed_checks", "dependency_vulnerability", "code_smell"]
+  },
+  "expected": {
+    "shouldTrigger": true,
+    "minSeverity": 0.5,
+    "type": "trust_drop"
+  }
+}

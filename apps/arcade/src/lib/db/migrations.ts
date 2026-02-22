@@ -612,8 +612,7 @@ export const MIGRATIONS: string[] = [
   `,
 
   /* 014 — Decision Pillar: Decision Reports, Junctions, Action Intents */
-  `;
-  -- Decision Reports: Core entity for decision tracking
+  `
   CREATE TABLE IF NOT EXISTS decision_reports (
     id                    TEXT PRIMARY KEY,
     created_at            TEXT NOT NULL,
@@ -671,7 +670,7 @@ export const MIGRATIONS: string[] = [
   CREATE INDEX IF NOT EXISTS idx_junctions_fingerprint ON junctions(fingerprint);
   CREATE INDEX IF NOT EXISTS idx_junctions_status ON junctions(status);
   CREATE INDEX IF NOT EXISTS idx_action_intents_decision ON action_intents(decision_id);
-  `;
+  `,
 
   idx_entropy_snapshots_ts ON entropy_snapshots(timestamp);
   `,
