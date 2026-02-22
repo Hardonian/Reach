@@ -17,6 +17,7 @@ import (
 type checkResult struct {
 	name        string
 	ok          bool
+	severity    string
 	remediation string
 	detail      string
 }
@@ -24,6 +25,9 @@ type checkResult struct {
 func (c checkResult) MarshalJSON() ([]byte, error) {
 	status := "FAIL"
 	if c.ok {
+	if c.severity != "" {
+		status = c.severity
+	} else if c.ok {
 		status = "OK"
 	}
 	return json.Marshal(struct {
@@ -72,6 +76,8 @@ func main() {
 		checkGitInstalled,
 		checkDockerRunning,
 		checkNodeVersion,
+		checkNpmInstalled,
+		checkMakeInstalled,
 		checkRegistrySourceConfig,
 		checkIndexSchemaAndCache,
 		checkSignatureVerificationPath,
@@ -92,10 +98,16 @@ func main() {
 
 		if !jsonOutput {
 			if result.ok {
+			if result.ok && result.severity != "WARN" {
 				fmt.Printf("[OK]   %s\n", result.name)
 				continue
 			}
 			fmt.Printf("[FAIL] %s\n", result.name)
+			label := "FAIL"
+			if result.severity != "" {
+				label = result.severity
+			}
+			fmt.Printf("[%s] %s\n", label, result.name)
 			if result.detail != "" {
 				fmt.Printf("       %s\n", result.detail)
 			}
@@ -204,6 +216,30 @@ func checkNodeVersion(root string) checkResult {
 		}
 	}
 	return fail(name, fmt.Errorf("could not parse version: %s", versionStr), "ensure node --version returns standard version string")
+}
+
+func checkNpmInstalled(root string) checkResult {
+	name := "npm installed and accessible"
+	path, err := exec.LookPath("npm")
+	if err != nil {
+		return fail(name, err, "install npm (usually comes with nodejs)")
+	}
+	if err := exec.Command(path, "--version").Run(); err != nil {
+		return fail(name, err, "npm found but not executable")
+	}
+	return pass(name)
+}
+
+func checkMakeInstalled(root string) checkResult {
+	name := "make installed"
+	path, err := exec.LookPath("make")
+	if err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "make not found", remediation: "install make for building from source"}
+	}
+	if err := exec.Command(path, "--version").Run(); err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "make found but not executable"}
+	}
+	return pass(name)
 }
 
 func checkRegistrySourceConfig(root string) checkResult {
