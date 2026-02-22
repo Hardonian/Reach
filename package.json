@@ -59,6 +59,7 @@
     "validate:simplicity": "npx tsx scripts/validate-simplicity.ts",
     "validate:simplicity:enforce": "AGENTS_ENFORCE=1 npx tsx scripts/validate-simplicity.ts",
     "validate:boundaries": "npx tsx scripts/validate-import-boundaries.ts",
+    "validate:import-boundaries": "node scripts/validate-import-boundaries.js",
     "validate:oss-purity": "npx tsx scripts/validate-oss-purity.ts",
     "validate:all": "npm run validate:brand && npm run validate:simplicity && npm run validate:language && npm run validate:boundaries && npm run validate:oss-purity && npm run verify:oss"
   },
@@ -83,3 +84,4 @@
     "node-llama-cpp": "npm:@reach/empty@1.0.0"
   }
 }
+
