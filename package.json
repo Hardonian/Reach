@@ -50,14 +50,15 @@
     "security:check": "npm run verify:no-toxic-deps && npm run security:audit",
     "preinstall": "node scripts/check-node-version.mjs",
     "clean": "node -e \"const fs=require('fs');['services/runner/reach-serve.exe','services/runner/reachctl.exe'].forEach(f=>{try{fs.unlinkSync(f)}catch(e){}})\" && (npm run clean --workspaces --if-present)",
-    "validate:language": "npx tsx scripts/enforce-canonical-language.ts",
+    "validate:language": "npx tsx scripts/validate-canonical-language.ts",
+    "verify:oss": "REACH_CLOUD=0 npm run verify:fast && npm run validate:language",
     "check:routes": "node scripts/check-route-duplication.mjs",
     "docs:doctor": "npx tsx tools/docs/drift/run.ts",
     "docs:doctor:fix": "npx tsx tools/docs/drift/run.ts --fix",
     "validate:brand": "npx tsx scripts/validate-brand.ts",
     "validate:simplicity": "npx tsx scripts/validate-simplicity.ts",
     "validate:simplicity:enforce": "AGENTS_ENFORCE=1 npx tsx scripts/validate-simplicity.ts",
-    "validate:all": "npm run validate:brand && npm run validate:simplicity && npm run validate:language"
+    "validate:all": "npm run validate:brand && npm run validate:simplicity && npm run validate:language && npm run verify:oss"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
