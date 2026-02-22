@@ -4,7 +4,7 @@ pub mod types;
 
 use wasm_bindgen::prelude::*;
 use crate::types::{DecisionInput, DecisionOutput};
-use crate::engine::minimax_regret;
+use crate::engine::{minimax_regret, maximin};
 use crate::determinism::CanonicalJson;
 
 #[wasm_bindgen]
@@ -18,7 +18,10 @@ pub fn evaluate_decision(input_json: &str) -> Result<String, JsError> {
         .map_err(|e| JsError::new(&format!("E_INVALID_INPUT: {}", e)))?;
 
     // 3. Execute Engine (Minimax Regret)
-    let mut output = minimax_regret(&input)
+    let mut output = match input.algorithm.as_deref() {
+        Some("maximin") => maximin(&input),
+        _ => minimax_regret(&input),
+    }
         .map_err(|e| JsError::new(&format!("E_INTERNAL: Engine failure: {}", e)))?;
 
     // 4. Compute Deterministic Fingerprint

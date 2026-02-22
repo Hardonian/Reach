@@ -56,9 +56,54 @@ pub fn minimax_regret(input: &DecisionInput) -> Result<DecisionOutput> {
         ranking: ranked_actions,
         trace: DecisionTrace {
             algorithm: "minimax_regret".to_string(),
-            regret_table,
-            max_regret: max_regret_per_action,
+            regret_table: Some(regret_table),
+            max_regret: Some(max_regret_per_action),
+            min_utility: None,
             fingerprint: None, // Calculated by caller
+        },
+    })
+}
+
+pub fn maximin(input: &DecisionInput) -> Result<DecisionOutput> {
+    // 1. Calculate Min Utility per Action
+    let mut min_utility_per_action = BTreeMap::new();
+
+    for action in &input.actions {
+        let mut current_min = OrderedFloat(f64::INFINITY);
+
+        for state in &input.states {
+            // Safe due to validation
+            let util = input.outcomes.get(action).unwrap().get(state).unwrap();
+            if *util < current_min {
+                current_min = *util;
+            }
+        }
+        min_utility_per_action.insert(action.clone(), current_min);
+    }
+
+    // 2. Rank Actions (Maximize the Minimum Utility)
+    let mut ranked_actions = input.actions.clone();
+    ranked_actions.sort_by(|a, b| {
+        let min_a = min_utility_per_action.get(a).unwrap();
+        let min_b = min_utility_per_action.get(b).unwrap();
+        // Descending order for utility (higher is better)
+        match min_b.cmp(min_a) {
+            std::cmp::Ordering::Equal => a.cmp(b), // Tie-break: Lexicographic (asc)
+            other => other,
+        }
+    });
+
+    let recommended = ranked_actions.first().ok_or_else(|| anyhow::anyhow!("No actions provided"))?.clone();
+
+    Ok(DecisionOutput {
+        recommended_action: recommended,
+        ranking: ranked_actions,
+        trace: DecisionTrace {
+            algorithm: "maximin".to_string(),
+            regret_table: None,
+            max_regret: None,
+            min_utility: Some(min_utility_per_action),
+            fingerprint: None,
         },
     })
 }
