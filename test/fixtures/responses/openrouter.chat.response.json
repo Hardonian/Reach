@@ -1,0 +1,32 @@
+{
+  "provider": "openrouter",
+  "payload": {
+    "id": "gen-test",
+    "provider": "OpenAI",
+    "model": "openai/gpt-4o-mini",
+    "choices": [
+      {
+        "message": {
+          "role": "assistant",
+          "content": "{\"verdict\":\"ok\",\"sensitivity\":\"high\"}"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 20,
+      "completion_tokens": 8,
+      "total_tokens": 28
+    }
+  },
+  "expected": {
+    "json": {
+      "verdict": "ok",
+      "sensitivity": "high"
+    },
+    "usage": {
+      "inputTokens": 20,
+      "outputTokens": 8
+    }
+  }
+}

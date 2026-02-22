@@ -1,0 +1,54 @@
+{
+  "_comment": "Golden fixture: successful replay verification. Tests that replay produces identical fingerprint.",
+  "fixture_version": "1.0.0",
+  "description": "Multi-step run with tool calls. Replay must produce byte-identical event log hash and fingerprint.",
+  "run": {
+    "run_id": "sha256:run-replay-verification-v1",
+    "engine_version": "0.2.0",
+    "policy_version": "sha256:policy-strict-default-v1",
+    "input_hash": "sha256:2c624232cdd221771294ef6ff482edb8b44e69d3e1d2c1b50e87a7a29d23abe5",
+    "artifact_hashes": [
+      "sha256:aab7cf32fe6e0ene12c1f40c7694a8d0b823b64f35d4e55dbfed5d7e1b5efc6c"
+    ],
+    "output_hash": "sha256:4b4da8b53dabb5f44f5df5f7e001b6c3db0de7f97e11c56e8e36cce46e65a78c",
+    "event_log_hash": "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+    "timestamp_epoch": 0,
+    "fingerprint": "sha256:7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b"
+  },
+  "inputs": {
+    "query": "list-all",
+    "format": "json"
+  },
+  "steps": [
+    {"id": "step-1", "tool": "list-tool",   "input": {"query": "list-all"}, "output": {"items": ["a", "b", "c"]}},
+    {"id": "step-2", "tool": "format-tool",  "input": {"items": ["a","b","c"], "format": "json"}, "output": {"result": "[\"a\",\"b\",\"c\"]"}}
+  ],
+  "expected_outputs": {
+    "result": "[\"a\",\"b\",\"c\"]",
+    "status": "success"
+  },
+  "expected_events": [
+    {"seq": 0, "type": "run.started",      "run_id": "sha256:run-replay-verification-v1"},
+    {"seq": 1, "type": "step.started",     "step_id": "step-1"},
+    {"seq": 2, "type": "tool.called",      "tool": "list-tool", "input_hash": "sha256:list-input-hash"},
+    {"seq": 3, "type": "tool.responded",   "tool": "list-tool", "output_hash": "sha256:list-output-hash"},
+    {"seq": 4, "type": "step.completed",   "step_id": "step-1"},
+    {"seq": 5, "type": "step.started",     "step_id": "step-2"},
+    {"seq": 6, "type": "tool.called",      "tool": "format-tool", "input_hash": "sha256:format-input-hash"},
+    {"seq": 7, "type": "tool.responded",   "tool": "format-tool", "output_hash": "sha256:format-output-hash"},
+    {"seq": 8, "type": "step.completed",   "step_id": "step-2"},
+    {"seq": 9, "type": "run.completed",    "run_id": "sha256:run-replay-verification-v1", "status": "success"}
+  ],
+  "replay_assertion": {
+    "must_match": ["fingerprint", "event_log_hash", "output_hash"],
+    "tool_responses_from": "event_log",
+    "note": "Replay must use stored tool responses from event log, NOT re-invoke external tools"
+  },
+  "conformance_rules": [
+    "fingerprint must match exactly on replay",
+    "event_log_hash must be identical",
+    "tool responses must be replayed from stored log, not re-executed",
+    "event sequence order must be preserved exactly",
+    "timestamp_epoch must be 0 in all fingerprint-contributing fields"
+  ]
+}

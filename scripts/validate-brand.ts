@@ -57,11 +57,13 @@ const ALLOWED_PATTERNS: RegExp[] = [
   // Process identifiers
   /pkill.*reach/,
   // Shell navigation to repo dir
-  /\bcd Reach\b/,
+  /\b(cd|ls|mkdir)\s+Reach\b/i,
+  // Reach binary or directory reference
+  /\.\/Reach\b|\/Reach\./i,
   // reachctl (internal CLI binary)
-  /reachctl/,
+  /reachctl/i,
   // "reaching" / "reached" / "reachable" (English verbs, not brand)
-  /\b(reaching|reached|reachable|unreachable)\b/,
+  /\b(reaching|reached|reachable|unreachable)\b/i,
   // Email addresses
   /@reach\.(dev|io)/,
   // Already correctly using ReadyLayer

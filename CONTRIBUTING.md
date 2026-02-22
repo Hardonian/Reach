@@ -1,4 +1,31 @@
-# Contributing to Reach Thank you for your interest in contributing to Reach! This document provides comprehensive guidelines for contributing to the project.
+# Contributing to Reach
+
+Last Updated: 2026-02-22
+
+Thank you for your interest in contributing to Reach! This document provides comprehensive guidelines for contributing to the project.
+
+## ⚠️ Deterministic CI Requirements (Read First)
+
+Before opening any PR, all contributors must pass the OSS governance gate:
+
+```bash
+npm run verify:oss
+```
+
+This runs three required checks:
+1. `validate:language` — No internal terms in UI-facing text
+2. `validate:boundaries` — No cloud SDK imports in OSS Core paths
+3. `validate:oss-purity` — Zero-cloud lock verified
+
+Additionally, all PRs must pass the CI checks in [AGENTS.md](AGENTS.md). Specifically:
+- Never introduce `time.Now()` or `rand.Int()` in fingerprint paths (causes determinism violations)
+- Never iterate over Go maps without sorting keys first
+- Any new execution feature must include a golden fixture in `testdata/fixtures/conformance/`
+- Any new event type requires an update to `protocol/schemas/events.schema.json`
+
+See [AGENTS.md](AGENTS.md) for the complete governance contract.
+
+---
 
 ## Table of Contents - [Code of Conduct](#code-of-conduct)
 - [Getting Started](#getting-started)

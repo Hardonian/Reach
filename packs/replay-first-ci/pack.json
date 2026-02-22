@@ -1,0 +1,8 @@
+{
+  "name": "replay-first-ci",
+  "version": "1.0.0",
+  "description": "A starter pack for deterministic CI with replay verification. Perfect for teams who want proof that their builds are reproducible.",
+  "recipes": ["replay-verify", "ci-check"],
+  "rules": ["determinism-required", "frozen-artifacts"],
+  "learn_doc": "Learn how to make your CI deterministic and verifiable. Every run produces a proof that can be replayed."
+}

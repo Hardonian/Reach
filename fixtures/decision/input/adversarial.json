@@ -1,0 +1,32 @@
+{
+  "id": "fixture_004_adversarial",
+  "description": "Decision with adversarial scenarios to test adversarial robustness scoring",
+  "input": {
+    "id": "adversarial_001",
+    "actions": [
+      {"id": "conservative", "label": "Conservative"},
+      {"id": "aggressive", "label": "Aggressive"},
+      {"id": "balanced", "label": "Balanced"}
+    ],
+    "scenarios": [
+      {"id": "normal", "probability": 0.4, "adversarial": false},
+      {"id": "optimistic", "probability": 0.2, "adversarial": false},
+      {"id": "pessimistic", "probability": 0.2, "adversarial": true},
+      {"id": "worst_case", "probability": 0.2, "adversarial": true}
+    ],
+    "outcomes": [
+      ["conservative", "normal", 30],
+      ["conservative", "optimistic", 40],
+      ["conservative", "pessimistic", 20],
+      ["conservative", "worst_case", 10],
+      ["aggressive", "normal", 100],
+      ["aggressive", "optimistic", 150],
+      ["aggressive", "pessimistic", -50],
+      ["aggressive", "worst_case", -100],
+      ["balanced", "normal", 60],
+      ["balanced", "optimistic", 80],
+      ["balanced", "pessimistic", 30],
+      ["balanced", "worst_case", 0]
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "provider": "anthropic",
+  "payload": {
+    "id": "msg_test",
+    "type": "message",
+    "role": "assistant",
+    "model": "claude-3-5-sonnet-20241022",
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"verdict\":\"ok\",\"assumption\":\"bounded\"}"
+      }
+    ],
+    "usage": {
+      "input_tokens": 31,
+      "output_tokens": 12
+    }
+  },
+  "expected": {
+    "json": {
+      "verdict": "ok",
+      "assumption": "bounded"
+    },
+    "usage": {
+      "inputTokens": 31,
+      "outputTokens": 12
+    }
+  }
+}

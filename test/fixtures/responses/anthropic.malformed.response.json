@@ -1,0 +1,7 @@
+{
+  "provider": "anthropic",
+  "payload": {
+    "content": []
+  },
+  "expectedError": "Malformed anthropic response: missing content[0].text"
+}

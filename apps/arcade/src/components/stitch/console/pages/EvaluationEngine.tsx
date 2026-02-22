@@ -35,7 +35,7 @@ export function EvaluationEngine() {
           </div>
           <div className="flex flex-col">
             {history.map((item) => (
-              <div key={item.version} className={`p-4 border-l-2 cursor-pointer transition-colors ${item.active ? 'border-[#135bec] bg-[#135bec]/5' : 'border-transparent border-b border-slate-800/50 hover:bg-[#1c2333]'}`}>
+              <div key={item.version} className={`p-4 border-l-2 cursor-pointer transition-colors ${item.active ? 'border-[#135bec] bg-[#135bec]/5' : 'border-l-transparent border-b border-slate-800/50 hover:bg-[#1c2333]'}`}>
                 <div className="flex items-center justify-between mb-1">
                   <span className={`${item.active ? 'text-[#135bec]' : 'text-slate-400'} text-xs font-bold`}>{item.version} {item.active && '(Current)'}</span>
                   <span className="text-slate-500 text-[10px]">{item.time}</span>
@@ -80,7 +80,7 @@ export function EvaluationEngine() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-[#9da6b9] text-[10px] font-bold uppercase tracking-widest">Lock Weights</span>
-                    <button type="button" className="relative inline-flex h-5 w-9 items-center rounded-full bg-slate-700"><span className="inline-block h-3 w-3 transform rounded-full bg-white translate-x-1 transition"></span></button>
+                    <button type="button" aria-label="Lock Weights" className="relative inline-flex h-5 w-9 items-center rounded-full bg-slate-700"><span className="inline-block h-3 w-3 transform rounded-full bg-white translate-x-1 transition"></span></button>
                   </div>
                 </div>
                 <div className="p-8 grid gap-8">
@@ -98,6 +98,7 @@ export function EvaluationEngine() {
                        </div>
                        <input 
                          type="range" 
+                         aria-label={field.label}
                          value={weights[field.key as keyof typeof weights]} 
                          onChange={(e) => setWeights({ ...weights, [field.key]: parseInt(e.target.value) })}
                          className="flex-1 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#135bec]"

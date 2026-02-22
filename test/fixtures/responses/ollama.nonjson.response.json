@@ -1,0 +1,9 @@
+{
+  "provider": "ollama",
+  "payload": {
+    "message": {
+      "content": "not-json"
+    }
+  },
+  "expectedError": "Provider 'ollama' returned non-JSON content"
+}

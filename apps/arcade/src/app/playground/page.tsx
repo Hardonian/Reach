@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/lib/routes';
 import { track } from '@/lib/analytics';
 import { CTA } from '@/lib/copy';
+import { ExecutionDetails } from '@/components/ExecutionDetails';
+import type { ExecutionGraph, RunArtifact } from '@/lib/runtime';
 
 type RunState = 'idle' | 'loading' | 'done' | 'error';
 
@@ -67,17 +69,30 @@ const TEMPLATES = [
   { id: 'regression-suite-starter', label: 'Change detection starter', icon: '⟳' },
 ];
 
+// Map template IDs to skill IDs for runtime execution
+const TEMPLATE_TO_SKILL: Record<string, string> = {
+  'agent-readiness-baseline': 'readiness-check',
+  'policy-gate-tool-calls': 'policy-gate',
+  'regression-suite-starter': 'regression-detect',
+};
+
 export default function PlaygroundPage() {
   const router = useRouter();
   const [state, setState] = useState<RunState>('idle');
   const [result, setResult] = useState<PlaygroundResult | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState(TEMPLATES[0].id);
+  const [showDetails, setShowDetails] = useState(false);
+  const [executionGraph, setExecutionGraph] = useState<ExecutionGraph | null>(null);
+  const [artifacts, setArtifacts] = useState<RunArtifact[]>([]);
 
   async function runCheck() {
     setState('loading');
     setResult(null);
     setErrorMsg('');
+    setShowDetails(false);
+    setExecutionGraph(null);
+    setArtifacts([]);
 
     await track('first_success_demo_run_started', {
       source: 'playground',
@@ -85,26 +100,46 @@ export default function PlaygroundPage() {
     });
 
     try {
-      const res = await fetch(ROUTES.API.V1.PLAYGROUND, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ template_id: selectedTemplate }),
-      });
+      // Run both the demo check and the runtime execution in parallel
+      const [playgroundRes, executeRes] = await Promise.all([
+        fetch(ROUTES.API.V1.PLAYGROUND, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ template_id: selectedTemplate }),
+        }),
+        fetch(ROUTES.API.V1.EXECUTE, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            skill_id: TEMPLATE_TO_SKILL[selectedTemplate] ?? 'readiness-check',
+            inputs: { agent_trace: {}, template_id: selectedTemplate },
+            mode: 'browser',
+          }),
+        }),
+      ]);
 
-      if (res.status === 429) {
+      if (playgroundRes.status === 429) {
         setErrorMsg('Too many requests. Wait a moment and try again.');
         setState('error');
         return;
       }
 
-      if (!res.ok) {
+      if (!playgroundRes.ok) {
         setErrorMsg('Something went wrong. Please try again.');
         setState('error');
         return;
       }
 
-      const data = await res.json() as PlaygroundResult;
+      const data = await playgroundRes.json() as PlaygroundResult;
       setResult(data);
+
+      // Parse execution graph if available
+      if (executeRes.ok) {
+        const execData = await executeRes.json() as { graph: ExecutionGraph; artifacts: RunArtifact[] };
+        setExecutionGraph(execData.graph);
+        setArtifacts(execData.artifacts);
+      }
+
       setState('done');
     } catch {
       setErrorMsg('Network error. Check your connection and try again.');
@@ -172,7 +207,8 @@ export default function PlaygroundPage() {
             <p className="text-gray-400 text-sm">Running checks on demo agent…</p>
             <div className="mt-4 space-y-1.5 text-xs text-gray-600 text-left max-w-xs mx-auto">
               <p>✓ Loading agent trace</p>
-              <p>✓ Checking tool call budgets</p>
+              <p>✓ Routing to provider</p>
+              <p>✓ Invoking tools</p>
               <p className="animate-pulse">⟳ Evaluating rules gates…</p>
             </div>
           </div>
@@ -240,6 +276,24 @@ export default function PlaygroundPage() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Execution Details Toggle (Phase 6: hidden by default) */}
+            {executionGraph && (
+              <div className="mb-4">
+                <button
+                  onClick={() => setShowDetails(!showDetails)}
+                  className="w-full text-left px-4 py-3 rounded-lg border border-border text-sm text-gray-400 hover:text-white hover:border-gray-600 transition-all flex items-center justify-between"
+                >
+                  <span>View execution details</span>
+                  <span className="text-xs">{showDetails ? '▲' : '▼'}</span>
+                </button>
+                {showDetails && (
+                  <div className="mt-4">
+                    <ExecutionDetails graph={executionGraph} artifacts={artifacts} />
+                  </div>
+                )}
               </div>
             )}
 

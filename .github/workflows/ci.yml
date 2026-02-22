@@ -197,9 +197,29 @@ jobs:
         run: npm run test
 
 
+  oss-gate:
+    name: verify:oss (OSS purity + boundaries)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.7'
+          cache: true
+      - name: install
+        run: npm install
+      - name: verify:oss gate
+        run: npm run verify:oss
+      - name: validate:oss-purity
+        run: npm run validate:oss-purity
+
   verify-full:
     name: verify full
-    needs: [hygiene, language-enforcement, protocol, spec-conformance, rust, go, go-module-sanity]
+    needs: [hygiene, language-enforcement, protocol, spec-conformance, rust, go, go-module-sanity, oss-gate]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

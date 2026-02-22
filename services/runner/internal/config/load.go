@@ -228,14 +228,14 @@ func PrintEnvDocs() {
 	fmt.Println()
 
 	categories := map[string][]string{
-		"Execution": {},
-		"Federation": {},
-		"Policy": {},
-		"Registry": {},
-		"Telemetry": {},
-		"Security": {},
+		"Execution":   {},
+		"Federation":  {},
+		"Policy":      {},
+		"Registry":    {},
+		"Telemetry":   {},
+		"Security":    {},
 		"Determinism": {},
-		"General": {},
+		"General":     {},
 	}
 
 	docs := GetEnvDocs()
@@ -269,4 +269,7 @@ func PrintEnvDocs() {
 			fmt.Println()
 		}
 	}
+}
+func IsCloudEnabled() bool {
+	return os.Getenv("REACH_CLOUD") == "1"
 }

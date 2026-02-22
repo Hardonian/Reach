@@ -1,0 +1,44 @@
+{
+  "name": "replay-verify",
+  "description": "Verify that a run can be replayed and produces the same fingerprint. Essential for deterministic CI.",
+  "version": "1.0",
+  "steps": [
+    {
+      "name": "load-run",
+      "action": "load",
+      "params": {
+        "target": "{{inputs.run_id}}"
+      }
+    },
+    {
+      "name": "verify-fingerprint",
+      "action": "verify"
+    },
+    {
+      "name": "replay-run",
+      "action": "replay"
+    },
+    {
+      "name": "compare-fingerprints",
+      "action": "compare"
+    },
+    {
+      "name": "generate-proof",
+      "action": "checkpoint"
+    }
+  ],
+  "inputs": {
+    "run_id": {
+      "type": "string",
+      "description": "The run ID to verify",
+      "required": true
+    }
+  },
+  "rules_packs": ["determinism-required"],
+  "output_format": "md",
+  "deterministic": {
+    "enabled": true,
+    "frozen_artifacts": true,
+    "stable_output": true
+  }
+}

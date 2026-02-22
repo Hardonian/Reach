@@ -1,0 +1,11 @@
+{
+  "provider": "openrouter",
+  "payload": {
+    "choices": [
+      {
+        "message": {}
+      }
+    ]
+  },
+  "expectedError": "Malformed openrouter response: missing choices[0].message.content"
+}

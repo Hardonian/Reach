@@ -1,0 +1,11 @@
+{
+  "provider": "anthropic",
+  "payload": {
+    "content": [
+      {
+        "text": "[1,2,3]"
+      }
+    ]
+  },
+  "expectedSchemaError": "Schema validation failed at $: expected object, received array"
+}
