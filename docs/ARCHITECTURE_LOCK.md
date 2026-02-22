@@ -148,3 +148,19 @@ These modules form the deterministic, offline-capable heart of Reach. They MUST 
 | `ide-bridge` | `services/ide-bridge/` | IDE bridge WebSocket server |
 | `session-hub` | `services/session-hub/` | Session hub WebSocket server |
 | `policy-engine` | `services/policy-engine/` | Policy engine service (stub) |
+| `compat` | `compat/` | Compatibility test suite |
+| `examples` | `examples/` | SDK usage examples (Express, FastAPI, Next.js, Python, TypeScript, Pack examples) |
+| `extensions/vscode` | `extensions/vscode/` | VSCode extension — bridge client, context sync, diff, marketplace, panel |
+| `openapi` | `openapi/` | OpenAPI specification |
+| `contracts` | `contracts/` | Mobile API contract definitions |
+| `design` | `design/` | Design tokens and visual system |
+| `config` | `config/` | Economics configuration |
+| `data` | `data/` | Test data (evaluation smoke tests) |
+| `policies` | `policies/` | Policy manifests (strict-default) |
+
+### 1.10 Demo Web App (`apps/arcade/` — OSS portions)
+
+The arcade app contains BOTH OSS and cloud code. The following submodules are classified as OSS:
+
+| Module | Path | Description |
+|--------|------|-------------|
