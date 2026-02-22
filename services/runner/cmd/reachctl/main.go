@@ -181,7 +181,7 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 	case "policy":
 		return runPolicyCommand(ctx, dataRoot, args[1:], out, errOut)
 	case "bench":
-		return runBenchmark(ctx, dataRoot, args[1:], out, errOut)
+		return runBench(ctx, dataRoot, args[1:], out, errOut)
 	case "sign":
 		return runSign(ctx, dataRoot, args[1:], out, errOut)
 	case "verify-signature":

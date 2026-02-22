@@ -1,0 +1,12 @@
+{
+  "avg_duration_ms": 50,
+  "avg_memory_mb": 2,
+  "metadata": {
+    "arch": "amd64",
+    "cpus": 16,
+    "os": "windows",
+    "version": "1.0"
+  },
+  "pack": "arcadeSafe.demo",
+  "timestamp": "2026-02-21T22:59:33-05:00"
+}
