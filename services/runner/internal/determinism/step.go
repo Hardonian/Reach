@@ -130,34 +130,50 @@ func ComputeRunProofHash(stepProofs []ProofHash, contextFingerprint string, engi
 
 // VerifyProofChain verifies that a sequence of proofs forms a valid chain.
 // Returns true if all proofs are valid and dependencies are satisfied.
+// Note: Full proof verification requires original inputs/outputs; this checks
+// structural integrity and dependency relationships.
 func VerifyProofChain(steps []StepRecord) (bool, []string) {
 	var issues []string
 	proofMap := make(map[string]ProofHash)
+	stepMap := make(map[string]StepRecord)
 	
-	// Build proof map
+	// Build maps
 	for _, step := range steps {
 		proofMap[step.StepID] = step.ProofHash
+		stepMap[step.StepID] = step
 	}
 	
 	// Verify each step
 	for i, step := range steps {
-		// Verify the proof hash matches recomputed
-		recomputed := ComputeProofHash(
-			step.StepKey,
-			step.ProofHash.ContextFingerprint,
-			hashPlaceholder(step.InputsHash),
-			hashPlaceholder(step.OutputsHash),
-			step.ProofHash.DependencyProofs,
-		)
-		
-		if recomputed.Hash != step.ProofHash.Hash {
-			issues = append(issues, fmt.Sprintf("step %d (%s): proof hash mismatch", i, step.StepID))
+		// Verify the proof hash references the correct step key
+		if step.ProofHash.StepKeyHash != step.StepKey.Hash {
+			issues = append(issues, fmt.Sprintf("step %d (%s): step key hash mismatch in proof", i, step.StepID))
 		}
 		
-		// Verify dependencies exist
+		// Verify the proof hash references the correct inputs/outputs
+		if step.ProofHash.InputsHash != step.InputsHash {
+			issues = append(issues, fmt.Sprintf("step %d (%s): inputs hash mismatch in proof", i, step.StepID))
+		}
+		if step.ProofHash.OutputsHash != step.OutputsHash {
+			issues = append(issues, fmt.Sprintf("step %d (%s): outputs hash mismatch in proof", i, step.StepID))
+		}
+		
+		// Verify dependencies exist and their proofs are included
 		for _, depID := range step.DependsOn {
-			if _, ok := proofMap[depID]; !ok {
+			if depStep, ok := stepMap[depID]; !ok {
 				issues = append(issues, fmt.Sprintf("step %d (%s): missing dependency %s", i, step.StepID, depID))
+			} else {
+				// Check that dependency proof is referenced
+				depProofFound := false
+				for _, depProof := range step.ProofHash.DependencyProofs {
+					if depProof == depStep.ProofHash.Hash {
+						depProofFound = true
+						break
+					}
+				}
+				if !depProofFound {
+					issues = append(issues, fmt.Sprintf("step %d (%s): dependency proof for %s not found", i, step.StepID, depID))
+				}
 			}
 		}
 	}
@@ -292,13 +308,13 @@ func compareSteps(before, after StepRecord) StepDiff {
 	if before.StepKey.Hash != after.StepKey.Hash {
 		diff.KeyChanged = true
 		diff.Changed = true
-		diff.Differences["step_key"] = fmt.Sprintf("%s -> %s", before.StepKey.Hash[:8], after.StepKey.Hash[:8])
+		diff.Differences["step_key"] = fmt.Sprintf("%s -> %s", before.StepKey.ShortHash(), after.StepKey.ShortHash())
 	}
 	
 	if before.ProofHash.Hash != after.ProofHash.Hash {
 		diff.ProofChanged = true
 		diff.Changed = true
-		diff.Differences["proof_hash"] = fmt.Sprintf("%s -> %s", before.ProofHash.Hash[:8], after.ProofHash.Hash[:8])
+		diff.Differences["proof_hash"] = fmt.Sprintf("%s -> %s", before.ProofHash.ShortHash(), after.ProofHash.ShortHash())
 	}
 	
 	if before.InputsHash != after.InputsHash {
@@ -329,10 +345,26 @@ func (sk StepKey) String() string {
 	return sk.Hash
 }
 
+// ShortHash returns a short prefix of the hash for display.
+func (sk StepKey) ShortHash() string {
+	if len(sk.Hash) > 8 {
+		return sk.Hash[:8]
+	}
+	return sk.Hash
+}
+
 // String returns a human-readable representation of a ProofHash.
 func (ph ProofHash) String() string {
 	if len(ph.Hash) > 16 {
 		return ph.Hash[:16]
+	}
+	return ph.Hash
+}
+
+// ShortHash returns a short prefix of the hash for display.
+func (ph ProofHash) ShortHash() string {
+	if len(ph.Hash) > 8 {
+		return ph.Hash[:8]
 	}
 	return ph.Hash
 }
