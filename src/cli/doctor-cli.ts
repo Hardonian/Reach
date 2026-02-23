@@ -694,15 +694,17 @@ function computeSeed(): string {
   const inputs = {
     version: VERSION_INFO.version,
     gitSha: VERSION_INFO.gitSha,
-    timestamp: new Date().toISOString(),
   };
   return createHash("sha256").update(JSON.stringify(inputs)).digest("hex");
 }
 
 function generateRequestId(): string {
   const timestamp = Date.now().toString(36);
-  const random = createHash("sha256").update(Math.random().toString()).digest("hex").slice(0, 8);
-  return `req_${timestamp}_${random}`;
+  const suffix = createHash("sha256")
+    .update(`${timestamp}-${VERSION_INFO.version}-${VERSION_INFO.gitSha}`)
+    .digest("hex")
+    .slice(0, 8);
+  return `req_${timestamp}_${suffix}`;
 }
 
 function formatStatus(status: string): string {
