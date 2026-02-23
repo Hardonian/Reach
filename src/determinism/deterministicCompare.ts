@@ -51,7 +51,9 @@ export function byStringKey<T>(key: keyof T): (a: T, b: T) => -1 | 0 | 1 {
  *   byStringKey("id"),
  * ))
  */
-export function chainCompare<T>(...comparators: Array<(a: T, b: T) => number>): (a: T, b: T) => number {
+export function chainCompare<T>(
+  ...comparators: Array<(a: T, b: T) => number>
+): (a: T, b: T) => number {
   return (a: T, b: T) => {
     for (const cmp of comparators) {
       const result = cmp(a, b);

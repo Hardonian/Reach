@@ -152,9 +152,7 @@ describe("DET-12: locale-independent sorting", () => {
       { category: "a", id: "2" },
       { category: "a", id: "1" },
     ];
-    const sorted = [...items].sort(
-      chainCompare(byStringKey("category"), byStringKey("id")),
-    );
+    const sorted = [...items].sort(chainCompare(byStringKey("category"), byStringKey("id")));
     expect(sorted).toEqual([
       { category: "a", id: "1" },
       { category: "a", id: "2" },
@@ -208,9 +206,7 @@ describe("stress: hash stability under repetition", () => {
         { id: "a2", label: "Action 2" },
       ],
       constraints: [{ id: "c1", name: "deadline", value: "7d" }],
-      assumptions: [
-        { id: "as1", text: "Timeline is strict", confidence: "medium" },
-      ],
+      assumptions: [{ id: "as1", text: "Timeline is strict", confidence: "medium" }],
     },
     evidence: [
       {

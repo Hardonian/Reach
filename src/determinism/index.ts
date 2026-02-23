@@ -38,8 +38,4 @@ export {
   combineHashes,
 } from "./hashStream.js";
 
-export {
-  codePointCompare,
-  byStringKey,
-  chainCompare,
-} from "./deterministicCompare.js";
+export { codePointCompare, byStringKey, chainCompare } from "./deterministicCompare.js";

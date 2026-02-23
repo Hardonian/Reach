@@ -240,9 +240,7 @@ export function verifyTranscriptChain(envelopes: Envelope[]): {
     const env = envelopes[i];
 
     // Verify the transcript_hash matches the actual transcript content
-    const computedHash = createHash("sha256")
-      .update(canonicalJson(env.transcript))
-      .digest("hex");
+    const computedHash = createHash("sha256").update(canonicalJson(env.transcript)).digest("hex");
     if (computedHash !== env.transcript_hash) {
       errors.push(
         `Envelope ${i}: transcript_hash mismatch (expected ${computedHash}, got ${env.transcript_hash})`,
