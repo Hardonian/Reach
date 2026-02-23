@@ -3,12 +3,12 @@ name: go-ci
 on:
   push:
     paths:
-      - 'services/runner/**'
-      - '.github/workflows/ci-go.yml'
+      - "services/runner/**"
+      - ".github/workflows/ci-go.yml"
   pull_request:
     paths:
-      - 'services/runner/**'
-      - '.github/workflows/ci-go.yml'
+      - "services/runner/**"
+      - ".github/workflows/ci-go.yml"
 
 jobs:
   test-runner:

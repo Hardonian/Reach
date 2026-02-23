@@ -45,7 +45,14 @@ export function parseEvidenceGraphArgs(argv: string[]): EvidenceGraphCliArgs {
   };
 
   const cmd = argv[0];
-  if (cmd === "list" || cmd === "add" || cmd === "mark" || cmd === "drift" || cmd === "refresh" || cmd === "regret") {
+  if (
+    cmd === "list" ||
+    cmd === "add" ||
+    cmd === "mark" ||
+    cmd === "drift" ||
+    cmd === "refresh" ||
+    cmd === "regret"
+  ) {
     result.command = cmd;
   }
 
@@ -56,24 +63,41 @@ export function parseEvidenceGraphArgs(argv: string[]): EvidenceGraphCliArgs {
     if (arg === "--stale") result.stale = true;
     else if (arg === "--high-regret") result.highRegret = true;
     else if (arg === "--json") result.json = true;
-    else if (arg === "--tag" && next) { result.tag = next; i++; }
-    else if (arg === "--decision" && next) { result.decision = next; i++; }
-    else if (arg === "--claim" && next) { result.claim = next; i++; }
-    else if (arg === "--source" && next) { result.source = next; i++; }
-    else if (arg === "--confidence" && next) { result.confidence = parseFloat(next); i++; }
-    else if (arg === "--decay" && next) { result.decay = parseFloat(next); i++; }
-    else if (arg === "--outcome" && next) {
+    else if (arg === "--tag" && next) {
+      result.tag = next;
+      i++;
+    } else if (arg === "--decision" && next) {
+      result.decision = next;
+      i++;
+    } else if (arg === "--claim" && next) {
+      result.claim = next;
+      i++;
+    } else if (arg === "--source" && next) {
+      result.source = next;
+      i++;
+    } else if (arg === "--confidence" && next) {
+      result.confidence = parseFloat(next);
+      i++;
+    } else if (arg === "--decay" && next) {
+      result.decay = parseFloat(next);
+      i++;
+    } else if (arg === "--outcome" && next) {
       if (next === "positive" || next === "negative") result.outcome = next;
       i++;
+    } else if (arg === "--threshold" && next) {
+      result.threshold = parseFloat(next);
+      i++;
+    } else if (!result.evidenceId && result.command === "mark") {
+      result.evidenceId = arg;
     }
-    else if (arg === "--threshold" && next) { result.threshold = parseFloat(next); i++; }
-    else if (!result.evidenceId && result.command === "mark") { result.evidenceId = arg; }
   }
 
   return result;
 }
 
-export async function runEvidenceGraphCommand(args: EvidenceGraphCliArgs): Promise<number> {
+export async function runEvidenceGraphCommand(
+  args: EvidenceGraphCliArgs,
+): Promise<number> {
   const core = await import("@zeo/core");
 
   if (!args.command) {
@@ -89,7 +113,8 @@ export async function runEvidenceGraphCommand(args: EvidenceGraphCliArgs): Promi
 
       if (args.stale) nodes = core.filterStale(graph, args.threshold);
       else if (args.tag) nodes = core.filterByTag(graph, args.tag);
-      else if (args.decision) nodes = core.filterByDecision(graph, args.decision);
+      else if (args.decision)
+        nodes = core.filterByDecision(graph, args.decision);
       else if (args.highRegret) nodes = core.filterHighRegret(graph);
 
       if (args.json) {
@@ -102,7 +127,9 @@ export async function runEvidenceGraphCommand(args: EvidenceGraphCliArgs): Promi
 
     case "add": {
       if (!args.claim || !args.source) {
-        console.error("Usage: zeo evidence add --claim <text> --source <text> [--confidence <0-1>] [--decay <rate>]");
+        console.error(
+          "Usage: zeo evidence add --claim <text> --source <text> [--confidence <0-1>] [--decay <rate>]",
+        );
         return 1;
       }
 
@@ -120,19 +147,26 @@ export async function runEvidenceGraphCommand(args: EvidenceGraphCliArgs): Promi
       } else {
         console.log(`Registered: ${node.id}`);
         console.log(`  Claim: ${node.claim}`);
-        console.log(`  Confidence: ${(node.confidenceScore * 100).toFixed(1)}%`);
+        console.log(
+          `  Confidence: ${(node.confidenceScore * 100).toFixed(1)}%`,
+        );
       }
       return 0;
     }
 
     case "mark": {
       if (!args.evidenceId || !args.outcome) {
-        console.error("Usage: zeo evidence mark <evidence_id> --outcome positive|negative");
+        console.error(
+          "Usage: zeo evidence mark <evidence_id> --outcome positive|negative",
+        );
         return 1;
       }
 
       try {
-        const outcomeMarker = args.outcome === "positive" ? "outcome_positive" as const : "outcome_negative" as const;
+        const outcomeMarker =
+          args.outcome === "positive"
+            ? ("outcome_positive" as const)
+            : ("outcome_negative" as const);
         core.markOutcome(graph, args.evidenceId, outcomeMarker);
         core.saveEvidenceGraph(graph);
         console.log(`Marked ${args.evidenceId} as ${args.outcome}`);
@@ -201,4 +235,3 @@ Usage:
   zeo refresh-evidence
 `);
 }
-

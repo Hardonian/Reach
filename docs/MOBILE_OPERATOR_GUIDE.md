@@ -1,10 +1,12 @@
 # Reach Mobile Operator Guide One-tap execution for Android/Termux. Run → Verify → Share in 3 steps.
 
 ## Quick Start (Termux) ```bash
+
 # One-line installer curl -fsSL https://get.reach.dev/termux | bash
 
 # Or with wget wget -qO- https://get.reach.dev/termux | bash
-```
+
+````
 
 ## First Run ```bash
 # Check system health reach doctor
@@ -12,9 +14,10 @@
 # Run the guided wizard reach wizard
 
 # View your dashboard reach operator
-```
+````
 
 ## Core Commands | Command | Purpose | Mobile-Optimized |
+
 |---------|---------|------------------|
 | `reach wizard` | Guided pack selection and execution | ✓ Yes |
 | `reach doctor` | Health check with mobile-specific tips | ✓ Yes |
@@ -23,7 +26,8 @@
 | `reach operator` | Dashboard with key metrics | ✓ Yes |
 
 ## The 3-Step Flow ### Step 1: Choose & Run
-```bash
+
+````bash
 reach wizard
 # 1. Select pack from list # 2. Confirm safe defaults
 # 3. Execute (run ID generated) ```
@@ -80,22 +84,28 @@ Without termux-api, shares as text URL.
 ```bash
 # Fix permissions mkdir -p ~/.reach/data
 chmod 755 ~/.reach
-```
+````
 
 ### "Out of memory" ```bash
+
 # Reduce memory limit export REACH_MAX_MEMORY_MB=128
+
 reach wizard
-```
+
+````
 
 ### "QR code not showing" ```bash
 # Install qrencode pkg install libqrencode
 # Or use termux-api pkg install termux-api
-```
+````
 
 ### "Run fails immediately" ```bash
+
 # Check doctor reach doctor --json
+
 # Verify Go runtime pkg install golang
-```
+
+````
 
 ## Privacy & Security - **Offline-first**: No network required for core operations
 - **Local-only**: Data stays on device unless explicitly shared
@@ -116,9 +126,14 @@ reach wizard
 # Support bot reach support ask "how do I share a run?"
 
 # Check logs ls ~/.reach/data/runs/
-```
+````
 
 ## Upgrade ```bash
+
 cd ~/.reach/repo && git pull
+
 # Or re-run installer curl -fsSL https://get.reach.dev/termux | bash
+
+```
+
 ```

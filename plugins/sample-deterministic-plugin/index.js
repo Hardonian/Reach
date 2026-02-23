@@ -8,9 +8,9 @@ module.exports = {
           deterministic: true,
           analyze(_input) {
             return [];
-          }
-        }
-      ]
+          },
+        },
+      ],
     };
-  }
+  },
 };

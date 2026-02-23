@@ -5,13 +5,16 @@
  * Works for both authenticated users and public share links.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth, cloudErrorResponse } from '@/lib/cloud-auth';
-import { getGateRun, getScenarioRun } from '@/lib/cloud-db';
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuth, cloudErrorResponse } from "@/lib/cloud-auth";
+import { getGateRun, getScenarioRun } from "@/lib/cloud-db";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+): Promise<NextResponse> {
   const ctx = await requireAuth(req);
   if (ctx instanceof NextResponse) return ctx;
 
@@ -21,7 +24,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const gateRun = getGateRun(id, ctx.tenantId);
   if (gateRun) {
     return NextResponse.json({
-      type: 'gate_run',
+      type: "gate_run",
       id: gateRun.id,
       status: gateRun.status,
       trigger_type: gateRun.trigger_type,
@@ -38,7 +41,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const scenarioRun = getScenarioRun(id, ctx.tenantId);
   if (scenarioRun) {
     return NextResponse.json({
-      type: 'scenario_run',
+      type: "scenario_run",
       id: scenarioRun.id,
       status: scenarioRun.status,
       results: scenarioRun.results,
@@ -48,5 +51,5 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     });
   }
 
-  return cloudErrorResponse('Report not found', 404);
+  return cloudErrorResponse("Report not found", 404);
 }

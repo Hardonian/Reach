@@ -1,5 +1,5 @@
 // @ts-ignore
-import Database from 'better-sqlite3';
+import Database from "better-sqlite3";
 
 export const MIGRATIONS: string[] = [
   /* 001 — core multi-tenant schema */
@@ -679,7 +679,9 @@ export function applyMigrations(db: Database.Database): void {
     applied_at TEXT NOT NULL
   )`);
 
-  const applied = db.prepare('SELECT version FROM schema_version').all() as { version: number }[];
+  const applied = db.prepare("SELECT version FROM schema_version").all() as {
+    version: number;
+  }[];
   const appliedSet = new Set(applied.map((r) => r.version));
 
   for (let i = 0; i < MIGRATIONS.length; i++) {
@@ -687,10 +689,9 @@ export function applyMigrations(db: Database.Database): void {
     if (!appliedSet.has(version)) {
       const applyMigration = db.transaction(() => {
         db.exec(MIGRATIONS[i]);
-        db.prepare('INSERT OR IGNORE INTO schema_version (version, applied_at) VALUES (?, ?)').run(
-          version,
-          new Date().toISOString()
-        );
+        db.prepare(
+          "INSERT OR IGNORE INTO schema_version (version, applied_at) VALUES (?, ?)",
+        ).run(version, new Date().toISOString());
       });
       applyMigration();
     }

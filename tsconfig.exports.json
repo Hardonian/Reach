@@ -1,6 +1,4 @@
 {
   "extends": "./tsconfig.json",
-  "include": [
-    "src/index.exports.typecheck.ts"
-  ]
+  "include": ["src/index.exports.typecheck.ts"]
 }

@@ -28,10 +28,11 @@ function assert(condition, message) {
 // Test 1: Clean component produces no violations
 console.log("\nTest 1: Clean component — no violations");
 try {
-  const out = execSync(
-    `npx tsx scripts/enforce-canonical-language.ts`,
-    { cwd: repoRoot, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
-  );
+  const out = execSync(`npx tsx scripts/enforce-canonical-language.ts`, {
+    cwd: repoRoot,
+    encoding: "utf-8",
+    stdio: ["pipe", "pipe", "pipe"],
+  });
   assert(out.includes("PASSED"), "Script reports PASSED for clean codebase");
 } catch (e) {
   // If script exits non-zero, check if it's about our test fixtures
@@ -42,29 +43,31 @@ try {
 // Test 2: Verify fixtures directory is skipped (it's in __tests__)
 console.log("\nTest 2: __tests__ directory is in SKIP_PATTERNS");
 try {
-  const out = execSync(
-    `npx tsx scripts/enforce-canonical-language.ts`,
-    { cwd: repoRoot, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
-  );
+  const out = execSync(`npx tsx scripts/enforce-canonical-language.ts`, {
+    cwd: repoRoot,
+    encoding: "utf-8",
+    stdio: ["pipe", "pipe", "pipe"],
+  });
   assert(
     !out.includes("violation-component"),
-    "Violation fixture is not reported (skipped by __tests__ pattern)"
+    "Violation fixture is not reported (skipped by __tests__ pattern)",
   );
 } catch (e) {
   const stderr = e.stderr?.toString() || "";
   assert(
     !stderr.includes("violation-component"),
-    "Violation fixture is not reported (skipped by __tests__ pattern)"
+    "Violation fixture is not reported (skipped by __tests__ pattern)",
   );
 }
 
 // Test 3: Verify the script itself doesn't crash
 console.log("\nTest 3: Script runs without crashing");
 try {
-  execSync(
-    `npx tsx scripts/enforce-canonical-language.ts`,
-    { cwd: repoRoot, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
-  );
+  execSync(`npx tsx scripts/enforce-canonical-language.ts`, {
+    cwd: repoRoot,
+    encoding: "utf-8",
+    stdio: ["pipe", "pipe", "pipe"],
+  });
   assert(true, "Script exited cleanly (code 0)");
 } catch (e) {
   assert(false, `Script crashed or found violations: ${e.message}`);

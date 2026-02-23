@@ -6,10 +6,15 @@ export interface CtaContext {
 }
 
 function missingEvidenceCount(model: DashboardViewModel): number {
-  return model.lists.findings.filter((finding: any) => finding.severity >= 4).length;
+  return model.lists.findings.filter((finding: any) => finding.severity >= 4)
+    .length;
 }
 
-export function generateCtas(model: DashboardViewModel, persona: DashboardPersona, context: CtaContext = {}): DashboardViewModel["ctas"] {
+export function generateCtas(
+  model: DashboardViewModel,
+  persona: DashboardPersona,
+  context: CtaContext = {},
+): DashboardViewModel["ctas"] {
   const items: DashboardViewModel["ctas"] = [];
   const highRisk = model.summary.riskScore >= 60;
   const missingEvidence = missingEvidenceCount(model);
@@ -57,5 +62,8 @@ export function generateCtas(model: DashboardViewModel, persona: DashboardPerson
 
   return items
     .slice(0, 5)
-    .sort((a: any, b: any) => a.priority - b.priority || a.label.localeCompare(b.label));
+    .sort(
+      (a: any, b: any) =>
+        a.priority - b.priority || a.label.localeCompare(b.label),
+    );
 }

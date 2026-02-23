@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 export default function MarketplaceError({
   error,
@@ -10,7 +10,7 @@ export default function MarketplaceError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Marketplace error:', error);
+    console.error("Marketplace error:", error);
   }, [error]);
 
   return (

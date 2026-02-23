@@ -1,9 +1,11 @@
 # Reach Mobile Operator Milestone - Summary ## Overview
+
 Milestone 2/3: "One-Tap" Mobile Operator (Android-First UX) - **COMPLETE**
 
 Made Reach feel effortless on Android/Termux and usable by non-technical operators through guided flows, QR pairing, and a simple "Run → Verify → Share" experience.
 
 ## Deliverables ### 1. Termux Bootstrap One-Liner ✅
+
 **File:** `scripts/install-termux.sh`
 
 - One-line installer: `curl -fsSL https://get.reach.dev/termux | bash`
@@ -23,6 +25,7 @@ Made Reach feel effortless on Android/Termux and usable by non-technical operato
 ### 2. Mobile-Aware `reach doctor` ✅ **Files:** `tools/doctor/mobile.go` (new), `tools/doctor/main.go` (enhanced)
 
 Mobile-specific health checks:
+
 - Storage availability
 - Memory configuration
 - Termux API availability
@@ -39,6 +42,7 @@ reach doctor --json   # Machine-readable output
 ### 3. Guided Run Wizard ✅ **File:** `services/runner/cmd/reachctl/main.go` (enhanced)
 
 New `reach wizard` command provides 5-step guided flow:
+
 1. **Choose Pack** - Select from available packs
 2. **Configure Input** - Safe defaults applied
 3. **Execute** - Run with progress indication
@@ -54,12 +58,14 @@ reach wizard --json   # JSON output
 ### 4. Share UX (QR + Capsule) ✅ **File:** `services/runner/cmd/reachctl/main.go` (enhanced)
 
 New `reach share` command:
+
 ```bash
 reach share run <run-id>       # Share a run
 reach share capsule <file>     # Share a capsule file
 ```
 
 Features:
+
 - QR code generation (text-based placeholder, real with libqrencode)
 - Share URL generation (`reach://share/<id>`)
 - Auto-export to Downloads on Android
@@ -68,6 +74,7 @@ Features:
 ### 5. Enhanced Operator Dashboard ✅ **File:** `services/runner/cmd/reachctl/main.go` (enhanced)
 
 New mobile-friendly TUI in `reach operator`:
+
 - Visual box-drawing interface
 - Key metrics: runs, successes, denials, mismatches
 - Federation status: nodes, trusted peers, quarantines
@@ -92,6 +99,7 @@ Health: ✓ HEALTHY
 ### 6. Accessibility & Safe Defaults ✅ **File:** `docs/MOBILE_OPERATOR_GUIDE.md`
 
 Accessibility features:
+
 - Clear, jargon-free language
 - Status emojis (✓ ✗ ⚠) for quick scanning
 - Visual separation with box drawing
@@ -109,11 +117,13 @@ Safe defaults enforced:
 | Policy gates | enabled | No bypass |
 
 ### 7. Tests ✅ **Files:**
+
 - `services/runner/cmd/reachctl/main_test.go` (unit tests)
 - `tests/mobile_guided_flow_test.sh` (integration test)
 - `tools/mobile-smoke.sh` (smoke test)
 
 Test coverage:
+
 - Wizard quick mode
 - Wizard JSON output
 - Share run command
@@ -123,6 +133,7 @@ Test coverage:
 - End-to-end integration flow
 
 ## Command Reference ### New Commands
+
 ```bash
 reach wizard              # Guided run flow
 reach run <pack>          # Quick run
@@ -131,17 +142,20 @@ reach share capsule <f>   # Share capsule
 ```
 
 ### Enhanced Commands ```bash
-reach doctor              # Now mobile-aware
-reach operator            # Enhanced TUI dashboard
-reach help                # Updated help text
-```
+
+reach doctor # Now mobile-aware
+reach operator # Enhanced TUI dashboard
+reach help # Updated help text
+
+````
 
 ## Verification Run the smoke test:
 ```bash
 ./tools/mobile-smoke.sh
-```
+````
 
 Expected output:
+
 ```
 ╔════════════════════════════════════════════════════════╗
 ║     Reach Mobile Smoke Test                            ║
@@ -160,6 +174,7 @@ Expected output:
 ```
 
 ## Non-Negotiables Verified | Requirement | Status |
+
 |-------------|--------|
 | Determinism unchanged | ✅ Core hash logic preserved |
 | Policy/signing unchanged | ✅ Existing gates maintained |
@@ -169,30 +184,32 @@ Expected output:
 | No secret leakage | ✅ No secrets in logs, policy redaction |
 
 ## Architecture ```
-+-------------------+        +-----------------------+
-| User (Termux)     |        | scripts/install-termux.sh
-| reach wizard      +------->+ Environment setup     |
-+-------------------+        +-----------+-----------+
-                                         |
-                             +-----------v-----------+
-                             | tools/doctor          |
-                             | Mobile health checks  |
-                             +-----------+-----------+
-                                         |
-                             +-----------v-----------+
-                             | services/runner       |
-                             | cmd/reachctl          |
-                             | - wizard              |
-                             | - share               |
-                             | - operator (TUI)      |
-                             +-----------+-----------+
-                                         |
-                             +-----------v-----------+
-                             | ~/.reach/data/        |
-                             | - runs/               |
-                             | - capsules/           |
-                             | - registry/           |
-                             +-----------------------+
+
++-------------------+ +-----------------------+
+| User (Termux) | | scripts/install-termux.sh
+| reach wizard +------->+ Environment setup |
++-------------------+ +-----------+-----------+
+|
++-----------v-----------+
+| tools/doctor |
+| Mobile health checks |
++-----------+-----------+
+|
++-----------v-----------+
+| services/runner |
+| cmd/reachctl |
+| - wizard |
+| - share |
+| - operator (TUI) |
++-----------+-----------+
+|
++-----------v-----------+
+| ~/.reach/data/ |
+| - runs/ |
+| - capsules/ |
+| - registry/ |
++-----------------------+
+
 ```
 
 ## Next Steps (Milestone 3 Preview) - Real QR code generation (qrencode integration)
@@ -216,3 +233,4 @@ Expected output:
 ---
 
 **Status:** ✅ All phases complete. Ready for testing.
+```

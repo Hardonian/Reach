@@ -22,47 +22,50 @@ export interface CopyEntry {
 /** Terminology translation map — replaces jargon with action language */
 export const TERMS: Record<string, CopyEntry> = {
   policy: {
-    display: 'Rules',
-    tooltip: 'Rules: Rules your agent must obey.',
+    display: "Rules",
+    tooltip: "Rules: Rules your agent must obey.",
   },
   drift: {
-    display: 'Drift',
-    tooltip: 'Drift: When behavior changes over time.',
+    display: "Drift",
+    tooltip: "Drift: When behavior changes over time.",
   },
   gate: {
-    display: 'Gate',
-    tooltip: 'Gate: Automated block for bad builds.',
+    display: "Gate",
+    tooltip: "Gate: Automated block for bad builds.",
   },
   trace: {
-    display: 'Trace',
-    tooltip: 'Trace: Step-by-step history of actions.',
+    display: "Trace",
+    tooltip: "Trace: Step-by-step history of actions.",
   },
   signal: {
-    display: 'Signal',
-    tooltip: 'Signal: Real-time health data points.',
+    display: "Signal",
+    tooltip: "Signal: Real-time health data points.",
   },
   run_artifacts: {
-    display: 'Reports',
-    tooltip: 'Reports are saved snapshots of a check run.',
+    display: "Reports",
+    tooltip: "Reports are saved snapshots of a check run.",
   },
 };
 
 /** Hero copy variants with Category Lock */
 export const HERO_VARIANTS = {
   A: {
-    headline: 'Agent Reliability. Guaranteed.',
-    subhead: 'ReadyLayer is the category-defining suite for shipping agents that actually work.',
-    badge: 'Category: Agent Reliability',
+    headline: "Agent Reliability. Guaranteed.",
+    subhead:
+      "ReadyLayer is the category-defining suite for shipping agents that actually work.",
+    badge: "Category: Agent Reliability",
   },
   B: {
-    headline: 'Stop guessing. Start shipping.',
-    subhead: 'The infrastructure for safe, predictable, and auditable AI agents.',
-    badge: 'Reliability Suite',
+    headline: "Stop guessing. Start shipping.",
+    subhead:
+      "The infrastructure for safe, predictable, and auditable AI agents.",
+    badge: "Reliability Suite",
   },
   C: {
-    headline: 'Zero drift. Zero doubt.',
-    subhead: 'Automated gates and side-by-side simulation for production agents.',
-    badge: 'Pro Grade',
+    headline: "Zero drift. Zero doubt.",
+    subhead:
+      "Automated gates and side-by-side simulation for production agents.",
+    badge: "Pro Grade",
   },
 } as const;
 
@@ -70,114 +73,117 @@ export type HeroVariant = keyof typeof HERO_VARIANTS;
 
 /** CTA copy variants */
 export const CTA = {
-  primary: 'Run demo (free)',
-  primaryAlt: 'Try instantly',
-  secondary: 'Get started for free',
-  sales: 'Talk to us',
-  saveRun: 'Save this run',
-  signupCta: 'Start free — no card required',
-  reassurance: 'No credit card. Works locally. OSS-friendly.',
+  primary: "Run demo (free)",
+  primaryAlt: "Try instantly",
+  secondary: "Get started for free",
+  sales: "Talk to us",
+  saveRun: "Save this run",
+  signupCta: "Start free — no card required",
+  reassurance: "No credit card. Works locally. OSS-friendly.",
 } as const;
 
 /** Onboarding checklist copy */
 export const CHECKLIST = [
   {
-    id: 'demo_run',
-    title: 'Run Demo',
-    description: 'See a real report in 30 seconds.',
-    cta: 'Run now',
-    completedLabel: 'Demo check done',
+    id: "demo_run",
+    title: "Run Demo",
+    description: "See a real report in 30 seconds.",
+    cta: "Run now",
+    completedLabel: "Demo check done",
   },
   {
-    id: 'connect_repo',
-    title: 'Connect Repo',
-    description: 'Link your logic for automated checks.',
-    cta: 'Connect',
-    completedLabel: 'Repo connected',
+    id: "connect_repo",
+    title: "Connect Repo",
+    description: "Link your logic for automated checks.",
+    cta: "Connect",
+    completedLabel: "Repo connected",
   },
   {
-    id: 'save_baseline',
-    title: 'Set Baseline',
+    id: "save_baseline",
+    title: "Set Baseline",
     description: 'Save a "Pass" run to catch future drifts.',
-    cta: 'Save baseline',
-    completedLabel: 'Baseline saved',
+    cta: "Save baseline",
+    completedLabel: "Baseline saved",
   },
   {
-    id: 'active_gate',
-    title: 'Active Gate',
-    description: 'Connect to GitHub to block broken PRs.',
-    cta: 'Connect GitHub',
-    completedLabel: 'Gate active',
+    id: "active_gate",
+    title: "Active Gate",
+    description: "Connect to GitHub to block broken PRs.",
+    cta: "Connect GitHub",
+    completedLabel: "Gate active",
   },
   {
-    id: 'invite',
-    title: 'Invite Team',
-    description: 'Share results with your engineers.',
-    cta: 'Invite',
-    completedLabel: 'Teammates invited',
+    id: "invite",
+    title: "Invite Team",
+    description: "Share results with your engineers.",
+    cta: "Invite",
+    completedLabel: "Teammates invited",
   },
 ] as const;
 
-export type ChecklistItemId = typeof CHECKLIST[number]['id'];
+export type ChecklistItemId = (typeof CHECKLIST)[number]["id"];
 
 /** How-it-works steps (outcome-framed) */
 export const HOW_IT_WORKS = [
   {
-    step: '01',
-    title: 'Run a check',
-    description: 'Point ReadyLayer at your agent. It runs a suite of readiness checks instantly.',
-    icon: '▶',
+    step: "01",
+    title: "Run a check",
+    description:
+      "Point ReadyLayer at your agent. It runs a suite of readiness checks instantly.",
+    icon: "▶",
   },
   {
-    step: '02',
-    title: 'Fix what breaks',
-    description: 'Get plain-English explanations and specific fix suggestions for every finding.',
-    icon: '⚡',
+    step: "02",
+    title: "Fix what breaks",
+    description:
+      "Get plain-English explanations and specific fix suggestions for every finding.",
+    icon: "⚡",
   },
   {
-    step: '03',
-    title: 'Ship with confidence',
-    description: 'Gate your CI/CD on a green score. Never merge a broken agent again.',
-    icon: '✓',
+    step: "03",
+    title: "Ship with confidence",
+    description:
+      "Gate your CI/CD on a green score. Never merge a broken agent again.",
+    icon: "✓",
   },
 ] as const;
 
 /** Core capabilities (show first 3 above fold, rest behind "Show more") */
 export const CAPABILITIES = [
   {
-    title: 'Release Gates',
-    description: 'Automated PR checks to stop shipping broken agents.',
-    href: '/docs/quick-start',
+    title: "Release Gates",
+    description: "Automated PR checks to stop shipping broken agents.",
+    href: "/docs/quick-start",
     primary: true,
   },
   {
-    title: 'CI Ingestion',
-    description: 'Local test integration for your terminal workflows.',
-    href: '/docs/quick-start',
+    title: "CI Ingestion",
+    description: "Local test integration for your terminal workflows.",
+    href: "/docs/quick-start",
     primary: true,
   },
   {
-    title: 'Monitoring',
-    description: 'Post-ship health tracking to catch failures early.',
-    href: '/docs/quick-start',
+    title: "Monitoring",
+    description: "Post-ship health tracking to catch failures early.",
+    href: "/docs/quick-start",
     primary: true,
   },
   {
-    title: 'Simulation',
-    description: 'Side-by-side experiments to find the best variants.',
-    href: '/docs/quick-start',
+    title: "Simulation",
+    description: "Side-by-side experiments to find the best variants.",
+    href: "/docs/quick-start",
     primary: false,
   },
   {
-    title: 'Rules Engine',
-    description: 'Define agent boundaries and enforce them at every run.',
-    href: '/docs/quick-start',
+    title: "Rules Engine",
+    description: "Define agent boundaries and enforce them at every run.",
+    href: "/docs/quick-start",
     primary: false,
   },
   {
-    title: 'Traceability',
-    description: 'Step-by-step logs for every decision your agent makes.',
-    href: '/docs/quick-start',
+    title: "Traceability",
+    description: "Step-by-step logs for every decision your agent makes.",
+    href: "/docs/quick-start",
     primary: false,
   },
 ] as const;
@@ -185,19 +191,19 @@ export const CAPABILITIES = [
 /** Before / After comparison data */
 export const BEFORE_AFTER = [
   {
-    before: 'Manually test prompts in a notebook',
-    after: 'Automated check suite runs in CI',
+    before: "Manually test prompts in a notebook",
+    after: "Automated check suite runs in CI",
   },
   {
-    before: 'Ship and hope it works the same',
-    after: 'Change detection flags regressions before merge',
+    before: "Ship and hope it works the same",
+    after: "Change detection flags regressions before merge",
   },
   {
-    before: 'Debug failures in production logs',
-    after: 'Step-by-step trace shows exactly what went wrong',
+    before: "Debug failures in production logs",
+    after: "Step-by-step trace shows exactly what went wrong",
   },
   {
-    before: 'No audit trail for agent decisions',
-    after: 'Every run logged with full lineage',
+    before: "No audit trail for agent decisions",
+    after: "Every run logged with full lineage",
   },
 ] as const;

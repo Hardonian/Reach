@@ -4,15 +4,15 @@
   "input": {
     "id": "adversarial_001",
     "actions": [
-      {"id": "conservative", "label": "Conservative"},
-      {"id": "aggressive", "label": "Aggressive"},
-      {"id": "balanced", "label": "Balanced"}
+      { "id": "conservative", "label": "Conservative" },
+      { "id": "aggressive", "label": "Aggressive" },
+      { "id": "balanced", "label": "Balanced" }
     ],
     "scenarios": [
-      {"id": "normal", "probability": 0.4, "adversarial": false},
-      {"id": "optimistic", "probability": 0.2, "adversarial": false},
-      {"id": "pessimistic", "probability": 0.2, "adversarial": true},
-      {"id": "worst_case", "probability": 0.2, "adversarial": true}
+      { "id": "normal", "probability": 0.4, "adversarial": false },
+      { "id": "optimistic", "probability": 0.2, "adversarial": false },
+      { "id": "pessimistic", "probability": 0.2, "adversarial": true },
+      { "id": "worst_case", "probability": 0.2, "adversarial": true }
     ],
     "outcomes": [
       ["conservative", "normal", 30],

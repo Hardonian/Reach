@@ -44,21 +44,27 @@ interface RunData {
   seed?: string;
 }
 
-async function importOrFallback<T>(specifier: string, fallbackRelativeToDist: string): Promise<T> {
+async function importOrFallback<T>(
+  specifier: string,
+  fallbackRelativeToDist: string,
+): Promise<T> {
   try {
-    return await import(specifier) as T;
+    return (await import(specifier)) as T;
   } catch {
     const fallbackUrl = new URL(fallbackRelativeToDist, import.meta.url);
-    return await import(fallbackUrl.href) as T;
+    return (await import(fallbackUrl.href)) as T;
   }
 }
 
-async function importPreferFallback<T>(fallbackRelativeToDist: string, specifier: string): Promise<T> {
+async function importPreferFallback<T>(
+  fallbackRelativeToDist: string,
+  specifier: string,
+): Promise<T> {
   try {
     const fallbackUrl = new URL(fallbackRelativeToDist, import.meta.url);
-    return await import(fallbackUrl.href) as T;
+    return (await import(fallbackUrl.href)) as T;
   } catch {
-    return await import(specifier) as T;
+    return (await import(specifier)) as T;
   }
 }
 
@@ -114,51 +120,126 @@ export function parseReplayArgs(argv: string[]): ReplayCliArgs {
 }
 
 export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
-  let replayMod: { replayCase: (item: unknown, opts: unknown) => Promise<ReplayResult> };
+  let replayMod: {
+    replayCase: (item: unknown, opts: unknown) => Promise<ReplayResult>;
+  };
   let budgetsMod: {
     createTracker: (defaults: unknown, ctx: string) => void;
     checkBudget: (ctx: string) => BudgetCheckResult;
     recordUsage: (ctx: string, resource: string, amount: number) => void;
-    createBudgetGuard: (ctx: string) => { checkAndRecord: (resource: string, amount: number) => boolean; record: (resource: string, amount: number) => void; };
+    createBudgetGuard: (ctx: string) => {
+      checkAndRecord: (resource: string, amount: number) => boolean;
+      record: (resource: string, amount: number) => void;
+    };
     SAFE_DEFAULTS: unknown;
   };
-  let jobsMod: { getJobQueue: (opts: { autoStart: boolean }) => { stop: () => void } };
+  let jobsMod: {
+    getJobQueue: (opts: { autoStart: boolean }) => { stop: () => void };
+  };
   let reproMod: {
     readReproPackZip: (buffer: Buffer) => Record<string, string>;
-    replayFromPack: (files: Record<string, string>, pipeline: (inputs: Record<string, unknown>, assumptions: unknown[], seed?: string) => Promise<RunData>, opts: { verify: boolean }) => Promise<{ match: boolean; errors: string[]; diffs: DiffEntry[] }>;
-    createAssumptionTracker: () => { getAssumption: (id: string) => unknown; recordAssumption: (assumption: unknown) => void; getAssumptions: () => unknown[]; getUncertaintyMap: () => Record<string, unknown>; getEvents: () => unknown[]; };
+    replayFromPack: (
+      files: Record<string, string>,
+      pipeline: (
+        inputs: Record<string, unknown>,
+        assumptions: unknown[],
+        seed?: string,
+      ) => Promise<RunData>,
+      opts: { verify: boolean },
+    ) => Promise<{ match: boolean; errors: string[]; diffs: DiffEntry[] }>;
+    createAssumptionTracker: () => {
+      getAssumption: (id: string) => unknown;
+      recordAssumption: (assumption: unknown) => void;
+      getAssumptions: () => unknown[];
+      getUncertaintyMap: () => Record<string, unknown>;
+      getEvents: () => unknown[];
+    };
     EXIT_CODES: { SUCCESS: number; FAIL: number };
   };
-  let coreMod: { runDecision: (spec: DecisionSpec, opts: { tracker: unknown }) => { explanation: { whatWouldChange: unknown }; nextBestEvidence: unknown; graph: { nodes: unknown[]; edges: unknown[] }; evaluations: unknown; } };
+  let coreMod: {
+    runDecision: (
+      spec: DecisionSpec,
+      opts: { tracker: unknown },
+    ) => {
+      explanation: { whatWouldChange: unknown };
+      nextBestEvidence: unknown;
+      graph: { nodes: unknown[]; edges: unknown[] };
+      evaluations: unknown;
+    };
+  };
 
   try {
-    replayMod = await importPreferFallback<{ replayCase: (item: unknown, opts: unknown) => Promise<ReplayResult>; }>("../../../packages/replay/src/index.js", "@zeo/replay");
+    replayMod = await importPreferFallback<{
+      replayCase: (item: unknown, opts: unknown) => Promise<ReplayResult>;
+    }>("../../../packages/replay/src/index.js", "@zeo/replay");
     budgetsMod = await importOrFallback<{
-    createTracker: (defaults: unknown, ctx: string) => void;
-    checkBudget: (ctx: string) => BudgetCheckResult;
-    recordUsage: (ctx: string, resource: string, amount: number) => void;
-    createBudgetGuard: (ctx: string) => { checkAndRecord: (resource: string, amount: number) => boolean; record: (resource: string, amount: number) => void; };
-    SAFE_DEFAULTS: unknown;
-  }>("@zeo/budgets", "../../../packages/budgets/src/index.js");
-    jobsMod = await importOrFallback<{ getJobQueue: (opts: { autoStart: boolean }) => { stop: () => void; }; }>("@zeo/jobs", "../../../packages/jobs/src/index.js");
+      createTracker: (defaults: unknown, ctx: string) => void;
+      checkBudget: (ctx: string) => BudgetCheckResult;
+      recordUsage: (ctx: string, resource: string, amount: number) => void;
+      createBudgetGuard: (ctx: string) => {
+        checkAndRecord: (resource: string, amount: number) => boolean;
+        record: (resource: string, amount: number) => void;
+      };
+      SAFE_DEFAULTS: unknown;
+    }>("@zeo/budgets", "../../../packages/budgets/src/index.js");
+    jobsMod = await importOrFallback<{
+      getJobQueue: (opts: { autoStart: boolean }) => { stop: () => void };
+    }>("@zeo/jobs", "../../../packages/jobs/src/index.js");
     reproMod = await importPreferFallback<{
-    readReproPackZip: (buffer: Buffer) => Record<string, string>;
-    replayFromPack: (files: Record<string, string>, pipeline: (inputs: Record<string, unknown>, assumptions: unknown[], seed?: string) => Promise<RunData>, opts: { verify: boolean }) => Promise<{ match: boolean; errors: string[]; diffs: DiffEntry[] }>;
-    createAssumptionTracker: () => { getAssumption: (id: string) => unknown; recordAssumption: (assumption: unknown) => void; getAssumptions: () => unknown[]; getUncertaintyMap: () => Record<string, unknown>; getEvents: () => unknown[]; };
-    EXIT_CODES: { SUCCESS: number; FAIL: number };
-  }>("../../../packages/repro-pack/src/index.js", "@zeo/repro-pack");
-    coreMod = await importPreferFallback<{ runDecision: (spec: DecisionSpec, opts: { tracker: unknown }) => { explanation: { whatWouldChange: unknown }; nextBestEvidence: unknown; graph: { nodes: unknown[]; edges: unknown[] }; evaluations: unknown; }; }>("../../../packages/core/src/index.js", "@zeo/core");
+      readReproPackZip: (buffer: Buffer) => Record<string, string>;
+      replayFromPack: (
+        files: Record<string, string>,
+        pipeline: (
+          inputs: Record<string, unknown>,
+          assumptions: unknown[],
+          seed?: string,
+        ) => Promise<RunData>,
+        opts: { verify: boolean },
+      ) => Promise<{ match: boolean; errors: string[]; diffs: DiffEntry[] }>;
+      createAssumptionTracker: () => {
+        getAssumption: (id: string) => unknown;
+        recordAssumption: (assumption: unknown) => void;
+        getAssumptions: () => unknown[];
+        getUncertaintyMap: () => Record<string, unknown>;
+        getEvents: () => unknown[];
+      };
+      EXIT_CODES: { SUCCESS: number; FAIL: number };
+    }>("../../../packages/repro-pack/src/index.js", "@zeo/repro-pack");
+    coreMod = await importPreferFallback<{
+      runDecision: (
+        spec: DecisionSpec,
+        opts: { tracker: unknown },
+      ) => {
+        explanation: { whatWouldChange: unknown };
+        nextBestEvidence: unknown;
+        graph: { nodes: unknown[]; edges: unknown[] };
+        evaluations: unknown;
+      };
+    }>("../../../packages/core/src/index.js", "@zeo/core");
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`Replay runtime unavailable: ${message}`);
-    console.error("Next steps: run 'pnpm -r build' to compile workspace packages required by replay.");
+    console.error(
+      "Next steps: run 'pnpm -r build' to compile workspace packages required by replay.",
+    );
     return 1;
   }
 
   const { replayCase } = replayMod;
-  const { createTracker, checkBudget, recordUsage, createBudgetGuard, SAFE_DEFAULTS } = budgetsMod;
+  const {
+    createTracker,
+    checkBudget,
+    recordUsage,
+    createBudgetGuard,
+    SAFE_DEFAULTS,
+  } = budgetsMod;
   const { getJobQueue } = jobsMod;
-  const { readReproPackZip, replayFromPack, createAssumptionTracker, EXIT_CODES } = reproMod;
+  const {
+    readReproPackZip,
+    replayFromPack,
+    createAssumptionTracker,
+    EXIT_CODES,
+  } = reproMod;
   const { runDecision } = coreMod;
   // ─── Repro Pack Replay ────────────────────────────────────────────────────
   if (args.pack) {
@@ -178,7 +259,7 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
     const pipeline = async (
       inputs: Record<string, unknown>,
       _assumptions: unknown[],
-      _seed?: string
+      _seed?: string,
     ): Promise<RunData> => {
       // Reconstitute the run execution
       // We expect inputs to contain the spec as per pack-cli.ts convention
@@ -231,7 +312,9 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
     };
 
     console.log("Verifying replay...");
-    const result = await replayFromPack(files, pipeline, { verify: args.verify });
+    const result = await replayFromPack(files, pipeline, {
+      verify: args.verify,
+    });
 
     if (result.match) {
       console.log("✅ Replay successful: Outputs match exactly.");
@@ -301,7 +384,7 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
 
   // Filter cases if --case specified
   const casesToRun = args.case
-    ? dataset.cases.filter(c => c.caseId === args.case)
+    ? dataset.cases.filter((c) => c.caseId === args.case)
     : dataset.cases;
 
   if (args.case && casesToRun.length === 0) {
@@ -311,7 +394,9 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
 
   // Check budget for expected cases
   if (!budgetGuard.checkAndRecord("cases", casesToRun.length)) {
-    console.error(`Error: Case budget exceeded (${casesToRun.length} cases requested)`);
+    console.error(
+      `Error: Case budget exceeded (${casesToRun.length} cases requested)`,
+    );
     const budgetStatus = checkBudget(budgetContext);
     printBudgetIssues(budgetStatus);
     return 1;
@@ -351,9 +436,11 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
 
       // Print summary
       console.log(`  Checkpoints: ${result.checkpoints.length}`);
-      console.log(`  Coverage: ${(result.scoring.coverage.overall * 100).toFixed(1)}%`);
       console.log(
-        `  Recommended widen factor: ${result.scoring.recommendedAdjustment.widenFactorOverall.toFixed(2)}x`
+        `  Coverage: ${(result.scoring.coverage.overall * 100).toFixed(1)}%`,
+      );
+      console.log(
+        `  Recommended widen factor: ${result.scoring.recommendedAdjustment.widenFactorOverall.toFixed(2)}x`,
       );
 
       // Check budget warnings
@@ -376,8 +463,10 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
     Math.max(results.length, 1);
 
   const aggregateWidenFactor =
-    results.reduce((sum, r) => sum + r.scoring.recommendedAdjustment.widenFactorOverall, 0) /
-    Math.max(results.length, 1);
+    results.reduce(
+      (sum, r) => sum + r.scoring.recommendedAdjustment.widenFactorOverall,
+      0,
+    ) / Math.max(results.length, 1);
 
   // Print budget summary
   const finalBudgetCheck = checkBudget(budgetContext);
@@ -393,21 +482,34 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
   if (finalBudgetCheck.usage.length > 0) {
     console.log("\nBudget Usage:");
     for (const usage of finalBudgetCheck.usage) {
-      const status = usage.isExceeded ? "EXCEEDED" : usage.isWarning ? "warning" : "ok";
-      console.log(`  ${usage.resource}: ${usage.used}/${usage.limit} (${(usage.percentUsed * 100).toFixed(0)}%) [${status}]`);
+      const status = usage.isExceeded
+        ? "EXCEEDED"
+        : usage.isWarning
+          ? "warning"
+          : "ok";
+      console.log(
+        `  ${usage.resource}: ${usage.used}/${usage.limit} (${(usage.percentUsed * 100).toFixed(0)}%) [${status}]`,
+      );
     }
   }
 
   // Per-domain breakdown
-  const domainStats: Record<string, { coverages: number[]; widenFactors: number[] }> = {};
+  const domainStats: Record<
+    string,
+    { coverages: number[]; widenFactors: number[] }
+  > = {};
   for (const result of results) {
-    for (const [domain, coverage] of Object.entries(result.scoring.coverage.byDomain)) {
+    for (const [domain, coverage] of Object.entries(
+      result.scoring.coverage.byDomain,
+    )) {
       if (!domainStats[domain]) {
         domainStats[domain] = { coverages: [], widenFactors: [] };
       }
       domainStats[domain].coverages.push(coverage);
     }
-    for (const [domain, factor] of Object.entries(result.scoring.recommendedAdjustment.widenFactorByDomain)) {
+    for (const [domain, factor] of Object.entries(
+      result.scoring.recommendedAdjustment.widenFactorByDomain,
+    )) {
       if (!domainStats[domain]) {
         domainStats[domain] = { coverages: [], widenFactors: [] };
       }
@@ -419,10 +521,14 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
     console.log("\nPer-domain:");
     for (const [domain, stats] of Object.entries(domainStats)) {
       const avgCoverage =
-        stats.coverages.reduce((a, b) => a + b, 0) / Math.max(stats.coverages.length, 1);
+        stats.coverages.reduce((a, b) => a + b, 0) /
+        Math.max(stats.coverages.length, 1);
       const avgWiden =
-        stats.widenFactors.reduce((a, b) => a + b, 0) / Math.max(stats.widenFactors.length, 1);
-      console.log(`  ${domain}: ${(avgCoverage * 100).toFixed(1)}% coverage, ${avgWiden.toFixed(2)}x widen`);
+        stats.widenFactors.reduce((a, b) => a + b, 0) /
+        Math.max(stats.widenFactors.length, 1);
+      console.log(
+        `  ${domain}: ${(avgCoverage * 100).toFixed(1)}% coverage, ${avgWiden.toFixed(2)}x widen`,
+      );
     }
   }
 
@@ -446,11 +552,13 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
             domain,
             {
               coverage:
-                stats.coverages.reduce((a, b) => a + b, 0) / Math.max(stats.coverages.length, 1),
+                stats.coverages.reduce((a, b) => a + b, 0) /
+                Math.max(stats.coverages.length, 1),
               widenFactor:
-                stats.widenFactors.reduce((a, b) => a + b, 0) / Math.max(stats.widenFactors.length, 1),
+                stats.widenFactors.reduce((a, b) => a + b, 0) /
+                Math.max(stats.widenFactors.length, 1),
             },
-          ])
+          ]),
         ),
       },
       caseResults: results,
@@ -475,13 +583,17 @@ function printBudgetIssues(budgetCheck: BudgetCheckResult): void {
   if (budgetCheck.exceeded.length > 0) {
     console.error("\nBudget exceeded:");
     for (const usage of budgetCheck.exceeded) {
-      console.error(`  - ${usage.resource}: ${usage.used}/${usage.limit} (${(usage.percentUsed * 100).toFixed(0)}%)`);
+      console.error(
+        `  - ${usage.resource}: ${usage.used}/${usage.limit} (${(usage.percentUsed * 100).toFixed(0)}%)`,
+      );
     }
   }
   if (budgetCheck.warnings.length > 0) {
     console.warn("\nBudget warnings:");
     for (const usage of budgetCheck.warnings) {
-      console.warn(`  - ${usage.resource}: ${usage.used}/${usage.limit} (${(usage.percentUsed * 100).toFixed(0)}%)`);
+      console.warn(
+        `  - ${usage.resource}: ${usage.used}/${usage.limit} (${(usage.percentUsed * 100).toFixed(0)}%)`,
+      );
     }
   }
   if (budgetCheck.suggestions.length > 0) {
@@ -503,7 +615,7 @@ function generateMarkdownReport(
       byDomain: Record<string, { coverage: number; widenFactor: number }>;
     };
     caseResults: ReplayResult[];
-  }
+  },
 ): string {
   const lines: string[] = [];
 
@@ -516,8 +628,12 @@ function generateMarkdownReport(
   lines.push("## Summary");
   lines.push("");
   lines.push(`- **Total Cases:** ${reportJson.summary.totalCases}`);
-  lines.push(`- **Overall Coverage:** ${(reportJson.summary.overallCoverage * 100).toFixed(1)}%`);
-  lines.push(`- **Recommended Widen Factor:** ${reportJson.summary.recommendedWidenFactor.toFixed(2)}x`);
+  lines.push(
+    `- **Overall Coverage:** ${(reportJson.summary.overallCoverage * 100).toFixed(1)}%`,
+  );
+  lines.push(
+    `- **Recommended Widen Factor:** ${reportJson.summary.recommendedWidenFactor.toFixed(2)}x`,
+  );
   lines.push("");
 
   if (Object.keys(reportJson.summary.byDomain).length > 0) {
@@ -527,7 +643,7 @@ function generateMarkdownReport(
     lines.push("|--------|----------|--------------|");
     for (const [domain, stats] of Object.entries(reportJson.summary.byDomain)) {
       lines.push(
-        `| ${domain} | ${(stats.coverage * 100).toFixed(1)}% | ${stats.widenFactor.toFixed(2)}x |`
+        `| ${domain} | ${(stats.coverage * 100).toFixed(1)}% | ${stats.widenFactor.toFixed(2)}x |`,
       );
     }
     lines.push("");
@@ -540,19 +656,23 @@ function generateMarkdownReport(
     lines.push(`### ${result.caseId}`);
     lines.push("");
     lines.push(`- **Checkpoints:** ${result.checkpoints.length}`);
-    lines.push(`- **Coverage:** ${(result.scoring.coverage.overall * 100).toFixed(1)}%`);
     lines.push(
-      `- **Widen Factor:** ${result.scoring.recommendedAdjustment.widenFactorOverall.toFixed(2)}x`
+      `- **Coverage:** ${(result.scoring.coverage.overall * 100).toFixed(1)}%`,
     );
     lines.push(
-      `- **Rationale:** ${result.scoring.recommendedAdjustment.rationale}`
+      `- **Widen Factor:** ${result.scoring.recommendedAdjustment.widenFactorOverall.toFixed(2)}x`,
+    );
+    lines.push(
+      `- **Rationale:** ${result.scoring.recommendedAdjustment.rationale}`,
     );
 
     if (Object.keys(result.scoring.coverage.byMetricId).length > 0) {
       lines.push("");
       lines.push("**Per-Metric Coverage:**");
       lines.push("");
-      for (const [metricId, coverage] of Object.entries(result.scoring.coverage.byMetricId)) {
+      for (const [metricId, coverage] of Object.entries(
+        result.scoring.coverage.byMetricId,
+      )) {
         lines.push(`- ${metricId}: ${(coverage * 100).toFixed(1)}%`);
       }
     }
@@ -563,9 +683,10 @@ function generateMarkdownReport(
   lines.push("---");
   lines.push("");
   lines.push("*This report was generated by Zeo Replay Runner v0.3.1*");
-  lines.push("*Calibration follows the widen-only rule: intervals may only be widened, never narrowed.*");
+  lines.push(
+    "*Calibration follows the widen-only rule: intervals may only be widened, never narrowed.*",
+  );
   lines.push("");
 
   return lines.join("\n");
 }
-

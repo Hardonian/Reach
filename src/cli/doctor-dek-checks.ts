@@ -6,19 +6,20 @@ import type { DoctorCheck } from "./doctor-cli.js";
 
 export function runDekJournalCheck(): DoctorCheck {
   const journalDir = resolve(process.cwd(), ".zeo", "journal");
-  
+
   if (!existsSync(journalDir)) {
     return {
       id: "dek-journal",
       name: "DEK Journal Health",
       status: "pass",
-      message: "Journal directory not yet created (will be created on first run)",
+      message:
+        "Journal directory not yet created (will be created on first run)",
     };
   }
 
   try {
-    const files = readdirSync(journalDir).filter(f => f.endsWith(".jsonl"));
-    
+    const files = readdirSync(journalDir).filter((f) => f.endsWith(".jsonl"));
+
     if (files.length === 0) {
       return {
         id: "dek-journal",
@@ -32,7 +33,7 @@ export function runDekJournalCheck(): DoctorCheck {
     const latestFile = files.sort().reverse()[0];
     const content = readFileSync(join(journalDir, latestFile), "utf8");
     const lines = content.trim().split("\n").filter(Boolean);
-    
+
     let corruptLines = 0;
     for (const line of lines.slice(-10)) {
       try {
@@ -75,7 +76,7 @@ export function runModelAdapterCheck(): DoctorCheck {
     // This would typically check the actual adapter registry
     // For now, we check if adapter configuration exists
     const adapterConfigPath = resolve(process.cwd(), ".zeo", "adapters.json");
-    
+
     if (!existsSync(adapterConfigPath)) {
       return {
         id: "model-adapters",
@@ -87,7 +88,7 @@ export function runModelAdapterCheck(): DoctorCheck {
 
     const config = JSON.parse(readFileSync(adapterConfigPath, "utf8"));
     const adapters = config.adapters || [];
-    
+
     if (adapters.length === 0) {
       return {
         id: "model-adapters",
@@ -99,8 +100,9 @@ export function runModelAdapterCheck(): DoctorCheck {
     }
 
     // Check each adapter has required fields
-    const validAdapters = adapters.filter((a: any) => 
-      a.id && a.provider && a.model && typeof a.execute === 'function'
+    const validAdapters = adapters.filter(
+      (a: any) =>
+        a.id && a.provider && a.model && typeof a.execute === "function",
     );
 
     return {
@@ -122,27 +124,31 @@ export function runModelAdapterCheck(): DoctorCheck {
 
 export function runPolicySchemaCheck(): DoctorCheck {
   const policyPath = resolve(process.cwd(), ".zeo", "policy.json");
-  
+
   // Default policy version
   const currentSchemaVersion = "1.0.0";
-  
+
   if (!existsSync(policyPath)) {
     return {
       id: "policy-schema",
       name: "Policy Schema Version",
       status: "pass",
       message: `Using default policy schema v${currentSchemaVersion}`,
-      details: { current: currentSchemaVersion, latest: currentSchemaVersion, compatible: true },
+      details: {
+        current: currentSchemaVersion,
+        latest: currentSchemaVersion,
+        compatible: true,
+      },
     };
   }
 
   try {
     const policy = JSON.parse(readFileSync(policyPath, "utf8"));
     const policyVersion = policy.schemaVersion || policy.version || "unknown";
-    
+
     // Simple semver comparison
     const isCompatible = policyVersion.startsWith("1.");
-    
+
     if (!isCompatible) {
       return {
         id: "policy-schema",
@@ -150,7 +156,11 @@ export function runPolicySchemaCheck(): DoctorCheck {
         status: "warning",
         message: `Policy schema v${policyVersion} may be incompatible (expected v1.x)`,
         remediation: "Update policy schema to v1.0.0 or check migration guide",
-        details: { current: policyVersion, latest: currentSchemaVersion, compatible: false },
+        details: {
+          current: policyVersion,
+          latest: currentSchemaVersion,
+          compatible: false,
+        },
       };
     }
 
@@ -159,7 +169,11 @@ export function runPolicySchemaCheck(): DoctorCheck {
       name: "Policy Schema Version",
       status: "pass",
       message: `Policy schema v${policyVersion} compatible`,
-      details: { current: policyVersion, latest: currentSchemaVersion, compatible: true },
+      details: {
+        current: policyVersion,
+        latest: currentSchemaVersion,
+        compatible: true,
+      },
     };
   } catch (err) {
     return {
@@ -174,7 +188,7 @@ export function runPolicySchemaCheck(): DoctorCheck {
 
 export async function runEnterpriseConnectivityCheck(): Promise<DoctorCheck> {
   const supabaseUrl = process.env.SUPABASE_URL;
-  
+
   if (!supabaseUrl) {
     return {
       id: "enterprise",
@@ -201,10 +215,10 @@ export async function runEnterpriseConnectivityCheck(): Promise<DoctorCheck> {
   try {
     const startTime = Date.now();
     const response = await fetch(`${supabaseUrl}/rest/v1/`, {
-      method: 'HEAD',
+      method: "HEAD",
       headers: {
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${supabaseKey}`,
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
       },
     });
     const latencyMs = Date.now() - startTime;
@@ -239,4 +253,3 @@ export async function runEnterpriseConnectivityCheck(): Promise<DoctorCheck> {
     };
   }
 }
-

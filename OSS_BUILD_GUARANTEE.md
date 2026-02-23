@@ -3,6 +3,7 @@
 **Enforced by**: `scripts/validate-oss-purity.ts`
 
 Reach guarantees that the Open Source edition can be built and run without:
+
 1. Proprietary dependencies.
 2. Cloud provider SDKs (AWS, GCP, Azure).
 3. SaaS vendor SDKs (Stripe, Auth0).

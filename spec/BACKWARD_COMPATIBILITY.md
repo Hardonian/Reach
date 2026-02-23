@@ -44,7 +44,7 @@ Minor version upgrades require no action. New features are opt-in.
 ## Runtime Compatibility Checks The runtime performs explicit spec version checking:
 
 ```javascript
-import { validatePackSpecVersion } from './spec/version.mjs';
+import { validatePackSpecVersion } from "./spec/version.mjs";
 
 const result = validatePackSpecVersion(pack);
 if (!result.valid) {
@@ -54,6 +54,7 @@ if (!result.valid) {
 ```
 
 ### Error Codes | Code | Description | Action |
+
 |------|-------------|--------|
 | `PACK_MISSING_SPEC_VERSION` | Pack has no specVersion | Add specVersion field |
 | `PACK_SPEC_VERSION_MISMATCH` | Major version mismatch | Migrate to current version |
@@ -61,6 +62,7 @@ if (!result.valid) {
 | `PACK_INVALID_SPEC_VERSION` | Invalid format | Use SemVer format |
 
 ## Feature Compatibility Matrix | Feature | 1.0.0 | Notes |
+
 |---------|-------|-------|
 | Execution Model | ✓ | Base execution |
 | Policy Enforcement | ✓ | Capability declarations |
@@ -76,6 +78,7 @@ npm run verify:compat
 ```
 
 This validates:
+
 - Schema conformance
 - Determinism guarantees
 - Replay compatibility
@@ -83,6 +86,7 @@ This validates:
 - Error structure
 
 ## Support Policy | Version | Status | Support Until |
+
 |---------|--------|---------------|
 | 1.0.0 | Current | N/A (current) |
 

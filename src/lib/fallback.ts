@@ -24,7 +24,7 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
 
   if (input.weights) {
     const sum = Object.values(input.weights).reduce((a, b) => a + b, 0);
-    
+
     if (input.strict) {
       if (Math.abs(sum - 1.0) > 1e-9) {
         throw new Error(`Weights must sum to 1.0 (got ${sum})`);
@@ -37,7 +37,7 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
       }
     }
   }
-  
+
   // Create effective input with potentially normalized weights
   const effectiveInput = { ...input, weights: effectiveWeights };
 
@@ -89,14 +89,14 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
     ranking,
     trace: {
       algorithm: "minimax_regret_fallback",
-      max_regret: maxRegret
-    }
+      max_regret: maxRegret,
+    },
   };
 }
 
 function weightedSumFallback(input: DecisionInput): DecisionOutput {
   const weights = input.weights || {};
-  
+
   // 1. Calculate Scores
   const scores: Record<string, number> = {};
 
@@ -126,8 +126,8 @@ function weightedSumFallback(input: DecisionInput): DecisionOutput {
     ranking,
     trace: {
       algorithm: "weighted_sum",
-      weighted_scores: scores
-    }
+      weighted_scores: scores,
+    },
   };
 }
 
@@ -160,7 +160,7 @@ function maximinFallback(input: DecisionInput): DecisionOutput {
     ranking,
     trace: {
       algorithm: "maximin_fallback",
-      min_utility: minUtility
-    }
+      min_utility: minUtility,
+    },
   };
 }

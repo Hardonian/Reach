@@ -21,15 +21,19 @@
 ## 1. Boundary Principles
 
 ### P1: Local-First Core
+
 The deterministic engine MUST function entirely offline. No network calls, no cloud SDKs, no external service dependencies in core paths.
 
 ### P2: Interface Isolation
+
 Cloud features MUST NEVER be imported directly by OSS core modules. Cloud functionality MUST be accessed via adapter interfaces or behind feature flags.
 
 ### P3: Deterministic Heart
+
 The `services/runner` and `crates/engine` are the deterministic heart. External side effects such as network calls, cloud storage, and billing MUST be gated.
 
 ### P4: Graceful Degradation
+
 When cloud features are unavailable, the system MUST fall back to OSS-mode behavior. No hard-500 errors for missing cloud credentials.
 
 ---
@@ -41,6 +45,7 @@ When cloud features are unavailable, the system MUST fall back to OSS-mode behav
 **Scope**: `core/`, `crates/`
 
 **Forbidden imports**:
+
 - Any module from `services/billing/`
 - Any module from `apps/arcade/src/lib/cloud-*`
 - Any cloud SDK: `stripe`, `auth0`, `@google-cloud`, `aws-sdk`, `azure-sdk`
@@ -53,6 +58,7 @@ When cloud features are unavailable, the system MUST fall back to OSS-mode behav
 **Scope**: `services/runner/cmd/reachctl/`, `services/runner/cmd/reach-eval/`, `services/runner/cmd/reach-serve/`
 
 **Forbidden imports**:
+
 - Any module from `apps/arcade/`
 - Any frontend framework: `next`, `react`, `react-dom`
 - Any browser APIs or UI libraries
@@ -64,12 +70,14 @@ When cloud features are unavailable, the system MUST fall back to OSS-mode behav
 **Scope**: `apps/arcade/`, `extensions/vscode/`
 
 **Forbidden patterns**:
+
 - Direct import of `crates/engine/` Rust source
 - Direct import of `core/evaluation/` Go source
 - Direct mutation of runner internal state
 - Bypassing the API/SDK layer to modify engine internals
 
 **Required**: Web apps MUST interact with the engine via:
+
 - SDK clients: `sdk/ts/`, `sdk/python/`
 - Protocol contracts: `protocol/`
 - HTTP APIs exposed by `services/runner/`
@@ -82,15 +90,16 @@ When cloud features are unavailable, the system MUST fall back to OSS-mode behav
 
 **Required feature flags**:
 
-| Cloud Feature | Flag | Required |
-|---------------|------|----------|
-| Cloud DB and auth | `REACH_CLOUD_ENABLED` | Yes |
-| Stripe billing | `BILLING_ENABLED` + `STRIPE_SECRET_KEY` | Yes |
-| Redis caching | `REDIS_URL` | Optional, graceful fallback |
-| GitHub integration | `GITHUB_CLIENT_ID` | Optional |
-| SMTP alerting | `SMTP_HOST` | Optional |
+| Cloud Feature      | Flag                                    | Required                    |
+| ------------------ | --------------------------------------- | --------------------------- |
+| Cloud DB and auth  | `REACH_CLOUD_ENABLED`                   | Yes                         |
+| Stripe billing     | `BILLING_ENABLED` + `STRIPE_SECRET_KEY` | Yes                         |
+| Redis caching      | `REDIS_URL`                             | Optional, graceful fallback |
+| GitHub integration | `GITHUB_CLIENT_ID`                      | Optional                    |
+| SMTP alerting      | `SMTP_HOST`                             | Optional                    |
 
 **Required behavior when disabled**:
+
 - Throw `CloudDisabledError` or equivalent
 - Fall back to local/in-memory alternatives
 - Never crash or hard-500
@@ -100,6 +109,7 @@ When cloud features are unavailable, the system MUST fall back to OSS-mode behav
 **Scope**: `core/`, `services/runner/`, `protocol/`
 
 **Forbidden SDK imports** (enforced by `scripts/validate-oss-purity.ts`):
+
 - `stripe`
 - `auth0`
 - `@google-cloud`
@@ -113,6 +123,7 @@ When cloud features are unavailable, the system MUST fall back to OSS-mode behav
 **Scope**: `sdk/`, `protocol/`
 
 **Forbidden imports**:
+
 - Any module from `services/billing/`
 - Any module from `services/capsule-sync/`
 - Any module from `apps/`
@@ -124,9 +135,11 @@ When cloud features are unavailable, the system MUST fall back to OSS-mode behav
 **Scope**: All `services/` directories EXCEPT `services/billing/` itself
 
 **Forbidden imports**:
+
 - `services/billing/` (DEPRECATED since 2026-02-18)
 
 **Current violations**:
+
 - `services/capsule-sync/` imports `services/billing/tier` — see [ARCHITECTURE_LOCK.md](ARCHITECTURE_LOCK.md) Violation 1
 
 **Required fix**: Replace billing tier imports with configuration-flag-based feature gating.
@@ -137,21 +150,22 @@ When cloud features are unavailable, the system MUST fall back to OSS-mode behav
 
 This matrix defines which directories can import from which other directories.
 
-| Source (importer) | core/ | crates/ | services/runner/ | services/billing/ | apps/arcade/ cloud | apps/arcade/ oss | sdk/ | protocol/ |
-|-------------------|-------|---------|------------------|--------------------|---------------------|-------------------|------|-----------|
-| **core/** | Yes | No | No | NO | NO | No | No | Yes |
-| **crates/** | No | Yes | No | NO | NO | No | No | No |
-| **services/runner/** | No | No | Yes | NO | NO | No | No | Yes |
-| **services/capsule-sync/** | No | No | No | VIOLATION | NO | No | No | Yes |
-| **apps/arcade/ oss** | No | No | No | No | No | Yes | Yes | Yes |
-| **apps/arcade/ cloud** | No | No | No | No | Yes | Yes | Yes | Yes |
-| **sdk/** | No | No | No | NO | NO | No | Yes | Yes |
-| **protocol/** | No | No | No | NO | NO | No | No | Yes |
-| **extensions/vscode/** | No | No | No | No | No | No | Yes | Yes |
-| **pack-devkit/** | No | No | No | No | No | No | No | Yes |
-| **internal/packkit/** | No | No | No | No | No | No | No | No |
+| Source (importer)          | core/ | crates/ | services/runner/ | services/billing/ | apps/arcade/ cloud | apps/arcade/ oss | sdk/ | protocol/ |
+| -------------------------- | ----- | ------- | ---------------- | ----------------- | ------------------ | ---------------- | ---- | --------- |
+| **core/**                  | Yes   | No      | No               | NO                | NO                 | No               | No   | Yes       |
+| **crates/**                | No    | Yes     | No               | NO                | NO                 | No               | No   | No        |
+| **services/runner/**       | No    | No      | Yes              | NO                | NO                 | No               | No   | Yes       |
+| **services/capsule-sync/** | No    | No      | No               | VIOLATION         | NO                 | No               | No   | Yes       |
+| **apps/arcade/ oss**       | No    | No      | No               | No                | No                 | Yes              | Yes  | Yes       |
+| **apps/arcade/ cloud**     | No    | No      | No               | No                | Yes                | Yes              | Yes  | Yes       |
+| **sdk/**                   | No    | No      | No               | NO                | NO                 | No               | Yes  | Yes       |
+| **protocol/**              | No    | No      | No               | NO                | NO                 | No               | No   | Yes       |
+| **extensions/vscode/**     | No    | No      | No               | No                | No                 | No               | Yes  | Yes       |
+| **pack-devkit/**           | No    | No      | No               | No                | No                 | No               | No   | Yes       |
+| **internal/packkit/**      | No    | No      | No               | No                | No                 | No               | No   | No        |
 
 Legend:
+
 - **Yes**: Allowed
 - **No**: Not applicable or unnecessary
 - **NO**: Explicitly forbidden
@@ -164,6 +178,7 @@ Legend:
 ### Rule 1: Core CANNOT Import Cloud
 
 **VALID** - Core importing standard library:
+
 ```go
 // core/evaluation/engine.go
 import (
@@ -174,12 +189,14 @@ import (
 ```
 
 **INVALID** - Core importing billing:
+
 ```go
 // core/evaluation/engine.go — THIS IS FORBIDDEN
 import "reach/services/billing/tier"
 ```
 
 **INVALID** - Core importing cloud SDK:
+
 ```go
 // core/evaluation/engine.go — THIS IS FORBIDDEN
 import "github.com/stripe/stripe-go/v81"
@@ -188,6 +205,7 @@ import "github.com/stripe/stripe-go/v81"
 ### Rule 2: CLI CANNOT Import Web
 
 **VALID** - CLI importing runner internals:
+
 ```go
 // services/runner/cmd/reach-serve/main.go
 import (
@@ -197,6 +215,7 @@ import (
 ```
 
 **INVALID** - CLI importing web framework:
+
 ```go
 // services/runner/cmd/reachctl/main.go — THIS IS FORBIDDEN
 import "reach/apps/arcade"
@@ -205,26 +224,30 @@ import "reach/apps/arcade"
 ### Rule 3: Web uses SDK, not engine directly
 
 **VALID** - Web app using SDK:
+
 ```typescript
 // apps/arcade/src/lib/some-feature.ts
-import { ReachClient } from '@reach/sdk';
+import { ReachClient } from "@reach/sdk";
 ```
 
 **VALID** - Web app using protocol types:
+
 ```typescript
 // apps/arcade/src/components/SomeWidget.tsx
-import type { RunEvent } from '@/lib/runtime/types';
+import type { RunEvent } from "@/lib/runtime/types";
 ```
 
 **INVALID** - Web app importing engine internals:
+
 ```typescript
 // apps/arcade/src/lib/some-feature.ts — THIS IS FORBIDDEN
-import { WorkflowMachine } from '../../../crates/engine/src/state_machine';
+import { WorkflowMachine } from "../../../crates/engine/src/state_machine";
 ```
 
 ### Rule 4: Cloud code behind flags
 
 **VALID** - Guarded cloud access:
+
 ```typescript
 // apps/arcade/src/lib/db/connection.ts
 export function getDB(): Database.Database {
@@ -234,6 +257,7 @@ export function getDB(): Database.Database {
 ```
 
 **VALID** - Guarded billing:
+
 ```typescript
 // apps/arcade/src/lib/stripe.ts
 export function getStripe(): Stripe {
@@ -243,23 +267,26 @@ export function getStripe(): Stripe {
 ```
 
 **INVALID** - Unguarded cloud access:
+
 ```typescript
 // THIS IS FORBIDDEN — no feature flag check
-const db = new Database('reach-cloud.db');
+const db = new Database("reach-cloud.db");
 ```
 
 ### Rule 5: SDK isolation
 
 **VALID** - SDK importing only protocol types:
+
 ```typescript
 // sdk/ts/src/index.ts
-import type { RunEvent } from './types';
+import type { RunEvent } from "./types";
 ```
 
 **INVALID** - SDK importing service:
+
 ```typescript
 // sdk/ts/src/index.ts — THIS IS FORBIDDEN
-import { billing } from '../../services/billing';
+import { billing } from "../../services/billing";
 ```
 
 ---
@@ -268,14 +295,14 @@ import { billing } from '../../services/billing';
 
 ### Required Environment Variables for Cloud Features
 
-| Variable | Required For | Default | Behavior When Missing |
-|----------|-------------|---------|----------------------|
-| `REACH_CLOUD_ENABLED=true` | All cloud DB features | `false` | Throws `CloudDisabledError` |
-| `BILLING_ENABLED=true` | Stripe billing | `false` | Throws `BillingDisabledError` |
-| `STRIPE_SECRET_KEY` | Stripe API calls | undefined | Billing disabled |
-| `STRIPE_WEBHOOK_SECRET` | Webhook verification | undefined | Webhook endpoint fails safely |
-| `REDIS_URL` | Redis caching | undefined | Falls back to in-memory store |
-| `REACH_CLOUD=1` | Enterprise build override | unset | OSS purity check runs |
+| Variable                   | Required For              | Default   | Behavior When Missing         |
+| -------------------------- | ------------------------- | --------- | ----------------------------- |
+| `REACH_CLOUD_ENABLED=true` | All cloud DB features     | `false`   | Throws `CloudDisabledError`   |
+| `BILLING_ENABLED=true`     | Stripe billing            | `false`   | Throws `BillingDisabledError` |
+| `STRIPE_SECRET_KEY`        | Stripe API calls          | undefined | Billing disabled              |
+| `STRIPE_WEBHOOK_SECRET`    | Webhook verification      | undefined | Webhook endpoint fails safely |
+| `REDIS_URL`                | Redis caching             | undefined | Falls back to in-memory store |
+| `REACH_CLOUD=1`            | Enterprise build override | unset     | OSS purity check runs         |
 
 ### Feature Flag Lifecycle
 
@@ -294,26 +321,27 @@ import { billing } from '../../services/billing';
 
 ### 6.1 Static Analysis Scripts
 
-| Script | What It Checks | Run Command |
-|--------|---------------|-------------|
-| `scripts/validate-import-boundaries.ts` | Core does not import cloud/billing; CLI does not import web | `npm run validate:boundaries` |
-| `scripts/validate-oss-purity.ts` | No cloud SDKs in OSS paths (core, runner, protocol) | `npm run validate:oss-purity` |
-| `scripts/verify-no-toxic-deps.mjs` | No toxic/banned dependencies in package.json | `npm run verify:no-toxic-deps` |
-| `scripts/anti-sprawl.mjs` | Route count and structure entropy | `npm run anti-sprawl` |
+| Script                                  | What It Checks                                              | Run Command                    |
+| --------------------------------------- | ----------------------------------------------------------- | ------------------------------ |
+| `scripts/validate-import-boundaries.ts` | Core does not import cloud/billing; CLI does not import web | `npm run validate:boundaries`  |
+| `scripts/validate-oss-purity.ts`        | No cloud SDKs in OSS paths (core, runner, protocol)         | `npm run validate:oss-purity`  |
+| `scripts/verify-no-toxic-deps.mjs`      | No toxic/banned dependencies in package.json                | `npm run verify:no-toxic-deps` |
+| `scripts/anti-sprawl.mjs`               | Route count and structure entropy                           | `npm run anti-sprawl`          |
 
 ### 6.2 CI Pipeline Gates
 
-| Workflow | Gate | Blocks Merge |
-|----------|------|--------------|
-| `ci.yml` | Full CI including boundary checks | Yes |
-| `readylayer-gate.yml` | ReadyLayer quality suite | Yes |
-| `security-audit.yml` | Security scanning | Yes |
-| `verify.yml` | Determinism verification | Yes |
-| `simplicity.yml` | Simplicity metrics | Yes |
+| Workflow              | Gate                              | Blocks Merge |
+| --------------------- | --------------------------------- | ------------ |
+| `ci.yml`              | Full CI including boundary checks | Yes          |
+| `readylayer-gate.yml` | ReadyLayer quality suite          | Yes          |
+| `security-audit.yml`  | Security scanning                 | Yes          |
+| `verify.yml`          | Determinism verification          | Yes          |
+| `simplicity.yml`      | Simplicity metrics                | Yes          |
 
 ### 6.3 Rust Workspace Guards
 
 The Rust workspace enforces additional safety:
+
 - `unsafe_code = "forbid"` workspace-wide
 - `clippy::all = "deny"` and `clippy::pedantic = "deny"`
 - Feature flags: `default = ["std"]` with `std` for standard library
@@ -321,6 +349,7 @@ The Rust workspace enforces additional safety:
 ### 6.4 Go Module Isolation
 
 Each Go service has its own `go.mod` preventing accidental cross-imports:
+
 - `services/runner/go.mod` — independent module
 - `services/capsule-sync/go.mod` — VIOLATION: depends on `services/billing`
 - `core/evaluation/go.mod` — independent module
@@ -379,12 +408,12 @@ AFTER:
 
 ### Current Known Violations
 
-| ID | Description | Status | Fix Plan |
-|----|-------------|--------|----------|
-| V1 | capsule-sync imports services/billing/tier | OPEN | Extract tier types to core/features or replace with config flags |
-| V2 | Compiled .exe binaries in source | OPEN | Add to .gitignore, remove from tracking |
-| V3 | Duplicated code in services/billing/internal/billing/plan.go | OPEN | Fix copy-paste corruption or remove since DEPRECATED |
-| V4 | Duplicate mobile/ and apps/mobile/ directories | OPEN | Designate canonical location, remove duplicate |
+| ID  | Description                                                  | Status | Fix Plan                                                         |
+| --- | ------------------------------------------------------------ | ------ | ---------------------------------------------------------------- |
+| V1  | capsule-sync imports services/billing/tier                   | OPEN   | Extract tier types to core/features or replace with config flags |
+| V2  | Compiled .exe binaries in source                             | OPEN   | Add to .gitignore, remove from tracking                          |
+| V3  | Duplicated code in services/billing/internal/billing/plan.go | OPEN   | Fix copy-paste corruption or remove since DEPRECATED             |
+| V4  | Duplicate mobile/ and apps/mobile/ directories               | OPEN   | Designate canonical location, remove duplicate                   |
 
 ---
 
@@ -426,15 +455,19 @@ npm run verify:full
 ## 1. Boundary Principles
 
 ### P1: Local-First Core
+
 The deterministic engine MUST function entirely offline. No network calls, no cloud SDKs, no external service dependencies in core paths.
 
 ### P2: Interface Isolation
+
 Cloud features MUST NEVER be imported directly by OSS core modules. Cloud functionality MUST be accessed via adapter interfaces or behind feature flags.
 
 ### P3: Deterministic Heart
+
 The `services/runner` and `crates/engine` are the deterministic heart. External side effects such as network calls, cloud storage, and billing MUST be gated.
 
 ### P4: Graceful Degradation
+
 When cloud features are unavailable, the system MUST fall back to OSS-mode behavior. No hard-500 errors for missing cloud credentials.
 
 ---
@@ -446,6 +479,7 @@ When cloud features are unavailable, the system MUST fall back to OSS-mode behav
 **Scope**: `core/`, `crates/`
 
 **Forbidden imports**:
+
 - Any module from `services/billing/`
 - Any module from `apps/arcade/src/lib/cloud-*`
 - Any cloud SDK: `stripe`, `auth0`, `@google-cloud`, `aws-sdk`, `azure-sdk`
@@ -458,6 +492,7 @@ When cloud features are unavailable, the system MUST fall back to OSS-mode behav
 **Scope**: `services/runner/cmd/reachctl/`, `services/runner/cmd/reach-eval/`, `services/runner/cmd/reach-serve/`
 
 **Forbidden imports**:
+
 - Any module from `apps/arcade/`
 - Any frontend framework: `next`, `react`, `react-dom`
 - Any browser APIs or UI libraries
@@ -469,12 +504,14 @@ When cloud features are unavailable, the system MUST fall back to OSS-mode behav
 **Scope**: `apps/arcade/`, `extensions/vscode/`
 
 **Forbidden patterns**:
+
 - Direct import of `crates/engine/` Rust source
 - Direct import of `core/evaluation/` Go source
 - Direct mutation of runner internal state
 - Bypassing the API/SDK layer to modify engine internals
 
 **Required**: Web apps MUST interact with the engine via:
+
 - SDK clients: `sdk/ts/`, `sdk/python/`
 - Protocol contracts: `protocol/`
 - HTTP APIs exposed by `services/runner/`
@@ -487,15 +524,16 @@ When cloud features are unavailable, the system MUST fall back to OSS-mode behav
 
 **Required feature flags**:
 
-| Cloud Feature | Flag | Required |
-|---------------|------|----------|
-| Cloud DB and auth | `REACH_CLOUD_ENABLED` | Yes |
-| Stripe billing | `BILLING_ENABLED` + `STRIPE_SECRET_KEY` | Yes |
-| Redis caching | `REDIS_URL` | Optional, graceful fallback |
-| GitHub integration | `GITHUB_CLIENT_ID` | Optional |
-| SMTP alerting | `SMTP_HOST` | Optional |
+| Cloud Feature      | Flag                                    | Required                    |
+| ------------------ | --------------------------------------- | --------------------------- |
+| Cloud DB and auth  | `REACH_CLOUD_ENABLED`                   | Yes                         |
+| Stripe billing     | `BILLING_ENABLED` + `STRIPE_SECRET_KEY` | Yes                         |
+| Redis caching      | `REDIS_URL`                             | Optional, graceful fallback |
+| GitHub integration | `GITHUB_CLIENT_ID`                      | Optional                    |
+| SMTP alerting      | `SMTP_HOST`                             | Optional                    |
 
 **Required behavior when disabled**:
+
 - Throw `CloudDisabledError` or equivalent
 - Fall back to local/in-memory alternatives
 - Never crash or hard-500
@@ -505,6 +543,7 @@ When cloud features are unavailable, the system MUST fall back to OSS-mode behav
 **Scope**: `core/`, `services/runner/`, `protocol/`
 
 **Forbidden SDK imports** (enforced by `scripts/validate-oss-purity.ts`):
+
 - `stripe`
 - `auth0`
 - `@google-cloud`
@@ -518,6 +557,7 @@ When cloud features are unavailable, the system MUST fall back to OSS-mode behav
 **Scope**: `sdk/`, `protocol/`
 
 **Forbidden imports**:
+
 - Any module from `services/billing/`
 - Any module from `services/capsule-sync/`
 - Any module from `apps/`
@@ -529,9 +569,11 @@ When cloud features are unavailable, the system MUST fall back to OSS-mode behav
 **Scope**: All `services/` directories EXCEPT `services/billing/` itself
 
 **Forbidden imports**:
+
 - `services/billing/` (DEPRECATED since 2026-02-18)
 
 **Current violations**:
+
 - `services/capsule-sync/` imports `services/billing/tier` — see [ARCHITECTURE_LOCK.md](ARCHITECTURE_LOCK.md) Violation 1
 
 **Required fix**: Replace billing tier imports with configuration-flag-based feature gating.
@@ -542,21 +584,22 @@ When cloud features are unavailable, the system MUST fall back to OSS-mode behav
 
 This matrix defines which directories can import from which other directories.
 
-| Source (importer) | core/ | crates/ | services/runner/ | services/billing/ | apps/arcade/ cloud | apps/arcade/ oss | sdk/ | protocol/ |
-|-------------------|-------|---------|------------------|--------------------|---------------------|-------------------|------|-----------|
-| **core/** | Yes | No | No | NO | NO | No | No | Yes |
-| **crates/** | No | Yes | No | NO | NO | No | No | No |
-| **services/runner/** | No | No | Yes | NO | NO | No | No | Yes |
-| **services/capsule-sync/** | No | No | No | VIOLATION | NO | No | No | Yes |
-| **apps/arcade/ oss** | No | No | No | No | No | Yes | Yes | Yes |
-| **apps/arcade/ cloud** | No | No | No | No | Yes | Yes | Yes | Yes |
-| **sdk/** | No | No | No | NO | NO | No | Yes | Yes |
-| **protocol/** | No | No | No | NO | NO | No | No | Yes |
-| **extensions/vscode/** | No | No | No | No | No | No | Yes | Yes |
-| **pack-devkit/** | No | No | No | No | No | No | No | Yes |
-| **internal/packkit/** | No | No | No | No | No | No | No | No |
+| Source (importer)          | core/ | crates/ | services/runner/ | services/billing/ | apps/arcade/ cloud | apps/arcade/ oss | sdk/ | protocol/ |
+| -------------------------- | ----- | ------- | ---------------- | ----------------- | ------------------ | ---------------- | ---- | --------- |
+| **core/**                  | Yes   | No      | No               | NO                | NO                 | No               | No   | Yes       |
+| **crates/**                | No    | Yes     | No               | NO                | NO                 | No               | No   | No        |
+| **services/runner/**       | No    | No      | Yes              | NO                | NO                 | No               | No   | Yes       |
+| **services/capsule-sync/** | No    | No      | No               | VIOLATION         | NO                 | No               | No   | Yes       |
+| **apps/arcade/ oss**       | No    | No      | No               | No                | No                 | Yes              | Yes  | Yes       |
+| **apps/arcade/ cloud**     | No    | No      | No               | No                | Yes                | Yes              | Yes  | Yes       |
+| **sdk/**                   | No    | No      | No               | NO                | NO                 | No               | Yes  | Yes       |
+| **protocol/**              | No    | No      | No               | NO                | NO                 | No               | No   | Yes       |
+| **extensions/vscode/**     | No    | No      | No               | No                | No                 | No               | Yes  | Yes       |
+| **pack-devkit/**           | No    | No      | No               | No                | No                 | No               | No   | Yes       |
+| **internal/packkit/**      | No    | No      | No               | No                | No                 | No               | No   | No        |
 
 Legend:
+
 - **Yes**: Allowed
 - **No**: Not applicable or unnecessary
 - **NO**: Explicitly forbidden
@@ -569,6 +612,7 @@ Legend:
 ### Rule 1: Core CANNOT Import Cloud
 
 **VALID** - Core importing standard library:
+
 ```go
 // core/evaluation/engine.go
 import (
@@ -579,12 +623,14 @@ import (
 ```
 
 **INVALID** - Core importing billing:
+
 ```go
 // core/evaluation/engine.go — THIS IS FORBIDDEN
 import "reach/services/billing/tier"
 ```
 
 **INVALID** - Core importing cloud SDK:
+
 ```go
 // core/evaluation/engine.go — THIS IS FORBIDDEN
 import "github.com/stripe/stripe-go/v81"
@@ -593,6 +639,7 @@ import "github.com/stripe/stripe-go/v81"
 ### Rule 2: CLI CANNOT Import Web
 
 **VALID** - CLI importing runner internals:
+
 ```go
 // services/runner/cmd/reach-serve/main.go
 import (
@@ -602,6 +649,7 @@ import (
 ```
 
 **INVALID** - CLI importing web framework:
+
 ```go
 // services/runner/cmd/reachctl/main.go — THIS IS FORBIDDEN
 import "reach/apps/arcade"
@@ -610,26 +658,30 @@ import "reach/apps/arcade"
 ### Rule 3: Web uses SDK, not engine directly
 
 **VALID** - Web app using SDK:
+
 ```typescript
 // apps/arcade/src/lib/some-feature.ts
-import { ReachClient } from '@reach/sdk';
+import { ReachClient } from "@reach/sdk";
 ```
 
 **VALID** - Web app using protocol types:
+
 ```typescript
 // apps/arcade/src/components/SomeWidget.tsx
-import type { RunEvent } from '@/lib/runtime/types';
+import type { RunEvent } from "@/lib/runtime/types";
 ```
 
 **INVALID** - Web app importing engine internals:
+
 ```typescript
 // apps/arcade/src/lib/some-feature.ts — THIS IS FORBIDDEN
-import { WorkflowMachine } from '../../../crates/engine/src/state_machine';
+import { WorkflowMachine } from "../../../crates/engine/src/state_machine";
 ```
 
 ### Rule 4: Cloud code behind flags
 
 **VALID** - Guarded cloud access:
+
 ```typescript
 // apps/arcade/src/lib/db/connection.ts
 export function getDB(): Database.Database {
@@ -639,6 +691,7 @@ export function getDB(): Database.Database {
 ```
 
 **VALID** - Guarded billing:
+
 ```typescript
 // apps/arcade/src/lib/stripe.ts
 export function getStripe(): Stripe {
@@ -648,23 +701,26 @@ export function getStripe(): Stripe {
 ```
 
 **INVALID** - Unguarded cloud access:
+
 ```typescript
 // THIS IS FORBIDDEN — no feature flag check
-const db = new Database('reach-cloud.db');
+const db = new Database("reach-cloud.db");
 ```
 
 ### Rule 5: SDK isolation
 
 **VALID** - SDK importing only protocol types:
+
 ```typescript
 // sdk/ts/src/index.ts
-import type { RunEvent } from './types';
+import type { RunEvent } from "./types";
 ```
 
 **INVALID** - SDK importing service:
+
 ```typescript
 // sdk/ts/src/index.ts — THIS IS FORBIDDEN
-import { billing } from '../../services/billing';
+import { billing } from "../../services/billing";
 ```
 
 ---
@@ -673,14 +729,14 @@ import { billing } from '../../services/billing';
 
 ### Required Environment Variables for Cloud Features
 
-| Variable | Required For | Default | Behavior When Missing |
-|----------|-------------|---------|----------------------|
-| `REACH_CLOUD_ENABLED=true` | All cloud DB features | `false` | Throws `CloudDisabledError` |
-| `BILLING_ENABLED=true` | Stripe billing | `false` | Throws `BillingDisabledError` |
-| `STRIPE_SECRET_KEY` | Stripe API calls | undefined | Billing disabled |
-| `STRIPE_WEBHOOK_SECRET` | Webhook verification | undefined | Webhook endpoint fails safely |
-| `REDIS_URL` | Redis caching | undefined | Falls back to in-memory store |
-| `REACH_CLOUD=1` | Enterprise build override | unset | OSS purity check runs |
+| Variable                   | Required For              | Default   | Behavior When Missing         |
+| -------------------------- | ------------------------- | --------- | ----------------------------- |
+| `REACH_CLOUD_ENABLED=true` | All cloud DB features     | `false`   | Throws `CloudDisabledError`   |
+| `BILLING_ENABLED=true`     | Stripe billing            | `false`   | Throws `BillingDisabledError` |
+| `STRIPE_SECRET_KEY`        | Stripe API calls          | undefined | Billing disabled              |
+| `STRIPE_WEBHOOK_SECRET`    | Webhook verification      | undefined | Webhook endpoint fails safely |
+| `REDIS_URL`                | Redis caching             | undefined | Falls back to in-memory store |
+| `REACH_CLOUD=1`            | Enterprise build override | unset     | OSS purity check runs         |
 
 ### Feature Flag Lifecycle
 
@@ -699,26 +755,27 @@ import { billing } from '../../services/billing';
 
 ### 6.1 Static Analysis Scripts
 
-| Script | What It Checks | Run Command |
-|--------|---------------|-------------|
-| `scripts/validate-import-boundaries.ts` | Core does not import cloud/billing; CLI does not import web | `npm run validate:boundaries` |
-| `scripts/validate-oss-purity.ts` | No cloud SDKs in OSS paths (core, runner, protocol) | `npm run validate:oss-purity` |
-| `scripts/verify-no-toxic-deps.mjs` | No toxic/banned dependencies in package.json | `npm run verify:no-toxic-deps` |
-| `scripts/anti-sprawl.mjs` | Route count and structure entropy | `npm run anti-sprawl` |
+| Script                                  | What It Checks                                              | Run Command                    |
+| --------------------------------------- | ----------------------------------------------------------- | ------------------------------ |
+| `scripts/validate-import-boundaries.ts` | Core does not import cloud/billing; CLI does not import web | `npm run validate:boundaries`  |
+| `scripts/validate-oss-purity.ts`        | No cloud SDKs in OSS paths (core, runner, protocol)         | `npm run validate:oss-purity`  |
+| `scripts/verify-no-toxic-deps.mjs`      | No toxic/banned dependencies in package.json                | `npm run verify:no-toxic-deps` |
+| `scripts/anti-sprawl.mjs`               | Route count and structure entropy                           | `npm run anti-sprawl`          |
 
 ### 6.2 CI Pipeline Gates
 
-| Workflow | Gate | Blocks Merge |
-|----------|------|--------------|
-| `ci.yml` | Full CI including boundary checks | Yes |
-| `readylayer-gate.yml` | ReadyLayer quality suite | Yes |
-| `security-audit.yml` | Security scanning | Yes |
-| `verify.yml` | Determinism verification | Yes |
-| `simplicity.yml` | Simplicity metrics | Yes |
+| Workflow              | Gate                              | Blocks Merge |
+| --------------------- | --------------------------------- | ------------ |
+| `ci.yml`              | Full CI including boundary checks | Yes          |
+| `readylayer-gate.yml` | ReadyLayer quality suite          | Yes          |
+| `security-audit.yml`  | Security scanning                 | Yes          |
+| `verify.yml`          | Determinism verification          | Yes          |
+| `simplicity.yml`      | Simplicity metrics                | Yes          |
 
 ### 6.3 Rust Workspace Guards
 
 The Rust workspace enforces additional safety:
+
 - `unsafe_code = "forbid"` workspace-wide
 - `clippy::all = "deny"` and `clippy::pedantic = "deny"`
 - Feature flags: `default = ["std"]` with `std` for standard library
@@ -726,6 +783,7 @@ The Rust workspace enforces additional safety:
 ### 6.4 Go Module Isolation
 
 Each Go service has its own `go.mod` preventing accidental cross-imports:
+
 - `services/runner/go.mod` — independent module
 - `services/capsule-sync/go.mod` — VIOLATION: depends on `services/billing`
 - `core/evaluation/go.mod` — independent module
@@ -784,12 +842,12 @@ AFTER:
 
 ### Current Known Violations
 
-| ID | Description | Status | Fix Plan |
-|----|-------------|--------|----------|
-| V1 | capsule-sync imports services/billing/tier | OPEN | Extract tier types to core/features or replace with config flags |
-| V2 | Compiled .exe binaries in source | OPEN | Add to .gitignore, remove from tracking |
-| V3 | Duplicated code in services/billing/internal/billing/plan.go | OPEN | Fix copy-paste corruption or remove since DEPRECATED |
-| V4 | Duplicate mobile/ and apps/mobile/ directories | OPEN | Designate canonical location, remove duplicate |
+| ID  | Description                                                  | Status | Fix Plan                                                         |
+| --- | ------------------------------------------------------------ | ------ | ---------------------------------------------------------------- |
+| V1  | capsule-sync imports services/billing/tier                   | OPEN   | Extract tier types to core/features or replace with config flags |
+| V2  | Compiled .exe binaries in source                             | OPEN   | Add to .gitignore, remove from tracking                          |
+| V3  | Duplicated code in services/billing/internal/billing/plan.go | OPEN   | Fix copy-paste corruption or remove since DEPRECATED             |
+| V4  | Duplicate mobile/ and apps/mobile/ directories               | OPEN   | Designate canonical location, remove duplicate                   |
 
 ---
 
@@ -809,4 +867,3 @@ npm run anti-sprawl
 # Run full CI suite locally
 npm run verify:full
 ```
-

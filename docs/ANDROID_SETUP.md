@@ -1,6 +1,7 @@
 # Android Setup Guide Reach runs on Android via Termux, enabling on-device execution packs and edge-first AI workflows.
 
 ## Prerequisites - Android 8.0+ (API 26+)
+
 - 2GB+ free storage
 - 4GB+ RAM recommended
 
@@ -43,17 +44,21 @@ Or manually:
 ```
 
 ### Step 4: Verify Installation ```bash
+
 reach doctor
+
 ```
 
 Expected output:
 ```
+
 ✓ Reach CLI installed
 ✓ Determinism engine available
 ✓ Config directory exists
 ✓ Edge mode: auto-detected
 ⚠ Ollama not running (optional)
-```
+
+````
 
 ## File System Constraints ### Storage Locations
 
@@ -73,7 +78,7 @@ For external storage:
 
 ```bash
 termux-setup-storage
-```
+````
 
 ## Performance Tuning ### Memory Management
 
@@ -104,6 +109,7 @@ reach config set edge_mode.max_context_tokens 2048
 ## PWA Strategy For a web-based interface on Android:
 
 ### Option 1: Termux + Web Server ```bash
+
 # In Termux, start Reach server reach serve --addr :8080 &
 
 # Open browser to http://localhost:8080 ```
@@ -114,27 +120,27 @@ reach config set edge_mode.max_context_tokens 2048
 <!-- index.html -->
 <!DOCTYPE html>
 <html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Reach Mobile</title>
     <script>
-        // Connect to local Reach instance
-        const API = 'http://localhost:8080';
+      // Connect to local Reach instance
+      const API = "http://localhost:8080";
 
-        async function runPack() {
-            const response = await fetch(`${API}/api/v1/run`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({pack: 'hello-world'})
-            });
-            return response.json();
-        }
+      async function runPack() {
+        const response = await fetch(`${API}/api/v1/run`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pack: "hello-world" }),
+        });
+        return response.json();
+      }
     </script>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Reach Mobile</h1>
     <button onclick="runPack()">Run Pack</button>
-</body>
+  </body>
 </html>
 ```
 
@@ -145,6 +151,7 @@ python3 -m http.server 8000
 ```
 
 ### Add to Home Screen 1. Open in Chrome
+
 2. Menu → "Add to Home screen"
 3. Launch as standalone app
 
@@ -152,14 +159,14 @@ python3 -m http.server 8000
 
 ```javascript
 // reach-rn-bridge
-import {NativeModules} from 'react-native';
+import { NativeModules } from "react-native";
 
-const {ReachModule} = NativeModules;
+const { ReachModule } = NativeModules;
 
 export async function runPack(packPath, options) {
   return ReachModule.runPack(packPath, {
     edgeMode: true,
-    ...options
+    ...options,
   });
 }
 ```
@@ -175,23 +182,28 @@ For now, use the PWA approach or Termux directly.
 ```
 
 ### Out of Memory ```bash
+
 # Reduce memory limits export REACH_EDGE_MEMORY_CAP_MB=256
+
 export REACH_EDGE_MAX_CONTEXT=2048
 
 # Kill background processes pkill -f ollama
-```
+
+````
 
 ### Network Unavailable ```bash
 # Check network ping google.com
 
 # Reset Termux network termux-wifi-enable true
-```
+````
 
 ### Slow Performance ```bash
+
 # Use smaller model ollama pull tinyllama:1.1b
 
 # Disable metrics reach config set telemetry.metrics_enabled false
-```
+
+````
 
 ## Development Workflow ### Developing on Android
 
@@ -202,13 +214,15 @@ cd ~/reach-packs/my-pack
 # Edit files (using nano/vim) nano reach.yaml
 
 # Pack and test reach pack . && reach run --edge ./my-pack.tar.gz
-```
+````
 
 ### Sync from Desktop ```bash
+
 # Using rsync over SSH rsync -avz ~/reach-packs/ phone:/data/data/com.termux/files/home/reach-packs/
 
 # Or using ADB adb push ~/reach-packs/ /sdcard/Download/reach/
-```
+
+````
 
 ## Debugging ### View Logs
 
@@ -216,14 +230,16 @@ cd ~/reach-packs/my-pack
 # Termux session tail -f ~/.reach/logs/reach.log
 
 # With logcat logcat -s "Reach:*"
-```
+````
 
 ### Check Resource Usage ```bash
+
 # Memory top -p $(pgrep reach)
 
 # Disk usage du -sh ~/.reach/
 
 # Network netstat -tlnp | grep reach
+
 ```
 
 ## Security Considerations ### Sandboxing
@@ -240,8 +256,10 @@ Policy enforcement still works:
 
 ### Key Storage Private keys are stored in:
 ```
+
 /data/data/com.termux/files/home/.reach/keys/
-```
+
+````
 
 This location is:
 - Protected by Android app sandbox
@@ -254,8 +272,9 @@ This location is:
 # Remove config rm -rf ~/.reach
 
 # Remove Termux data (DANGER: deletes everything) rm -rf /data/data/com.termux
-```
+````
 
 ## Further Reading - [Edge Mode](./EDGE_MODE.md)
+
 - [Termux Wiki](https://wiki.termux.com/)
 - [Ollama on Mobile](https://github.com/ollama/ollama/blob/main/docs/android.md)

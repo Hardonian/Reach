@@ -90,8 +90,7 @@ const FORBIDDEN_TERMS: ForbiddenTerm[] = [
   {
     term: "node (graph)",
     pattern: /(?:graph|execution)\s*node|node\s*(?:execution|result)/i,
-    description:
-      "Use 'step' or 'stage' instead of 'node' in workflow context",
+    description: "Use 'step' or 'stage' instead of 'node' in workflow context",
   },
   {
     term: "edge (graph)",
@@ -106,8 +105,7 @@ const FORBIDDEN_TERMS: ForbiddenTerm[] = [
   {
     term: "topological sort",
     pattern: /topological\s*sort/i,
-    description:
-      "Use 'execution ordering' instead of 'topological sort'",
+    description: "Use 'execution ordering' instead of 'topological sort'",
   },
   {
     term: "adjacency",
@@ -127,8 +125,7 @@ const FORBIDDEN_TERMS: ForbiddenTerm[] = [
   {
     term: "cycle detection",
     pattern: /cycle\s*detect/i,
-    description:
-      "Use 'circular dependency check' instead of 'cycle detection'",
+    description: "Use 'circular dependency check' instead of 'cycle detection'",
   },
   {
     term: "MCP (raw protocol name)",
@@ -138,14 +135,12 @@ const FORBIDDEN_TERMS: ForbiddenTerm[] = [
   {
     term: "POEE",
     pattern: /\bPOEE\b/,
-    description:
-      "Use 'execution proof' or 'audit trail' instead of 'POEE'",
+    description: "Use 'execution proof' or 'audit trail' instead of 'POEE'",
   },
   {
     term: "CID (content ID)",
     pattern: /\bCID\b/,
-    description:
-      "Use 'pack identifier' or 'content hash' instead of 'CID'",
+    description: "Use 'pack identifier' or 'content hash' instead of 'CID'",
   },
 ];
 
@@ -158,7 +153,11 @@ interface AllowlistEntry {
 }
 
 function loadAllowlist(repoRoot: string): AllowlistEntry[] {
-  const allowlistPath = path.join(repoRoot, "scripts", "canonical-language.allowlist.txt");
+  const allowlistPath = path.join(
+    repoRoot,
+    "scripts",
+    "canonical-language.allowlist.txt",
+  );
   if (!fs.existsSync(allowlistPath)) return [];
 
   const entries: AllowlistEntry[] = [];
@@ -170,7 +169,11 @@ function loadAllowlist(repoRoot: string): AllowlistEntry[] {
     // Format: <path>:<line> <term>  OR  <path> <term>
     const colonMatch = line.match(/^(.+?):(\d+)\s+(.+)$/);
     if (colonMatch) {
-      entries.push({ filePath: colonMatch[1], lineNumber: parseInt(colonMatch[2], 10), term: colonMatch[3] });
+      entries.push({
+        filePath: colonMatch[1],
+        lineNumber: parseInt(colonMatch[2], 10),
+        term: colonMatch[3],
+      });
       continue;
     }
     const spaceMatch = line.match(/^(\S+)\s+(.+)$/);
@@ -192,7 +195,8 @@ function isAllowlisted(
   return allowlist.some((entry) => {
     if (entry.term !== term) return false;
     if (!rel.startsWith(entry.filePath)) return false;
-    if (entry.lineNumber !== undefined && entry.lineNumber !== lineNumber) return false;
+    if (entry.lineNumber !== undefined && entry.lineNumber !== lineNumber)
+      return false;
     return true;
   });
 }
@@ -214,7 +218,8 @@ function shouldSkip(filePath: string): boolean {
 function isLineExempt(line: string, prevLine?: string): boolean {
   const trimmed = line.trim();
   // Inline escape hatch: previous line has `// canonical-language: allow`
-  if (prevLine && prevLine.trim() === "// canonical-language: allow") return true;
+  if (prevLine && prevLine.trim() === "// canonical-language: allow")
+    return true;
   // Skip import/require statements
   if (/^import\s/.test(trimmed) || /require\(/.test(trimmed)) return true;
   // Skip type-only lines (interfaces, type aliases)
@@ -243,7 +248,11 @@ function collectFiles(dir: string): string[] {
   return results;
 }
 
-function isTermExempt(term: string, filePath: string, repoRoot: string): boolean {
+function isTermExempt(
+  term: string,
+  filePath: string,
+  repoRoot: string,
+): boolean {
   const exemptions = TERM_EXEMPTIONS[term];
   if (!exemptions) return false;
   // Normalize to forward slashes for cross-platform comparison.
@@ -251,7 +260,11 @@ function isTermExempt(term: string, filePath: string, repoRoot: string): boolean
   return exemptions.some((ex) => rel.startsWith(ex));
 }
 
-function scanFile(filePath: string, repoRoot: string, allowlist: AllowlistEntry[]): Violation[] {
+function scanFile(
+  filePath: string,
+  repoRoot: string,
+  allowlist: AllowlistEntry[],
+): Violation[] {
   const violations: Violation[] = [];
   const content = fs.readFileSync(filePath, "utf-8");
   const lines = content.split("\n");
@@ -263,7 +276,8 @@ function scanFile(filePath: string, repoRoot: string, allowlist: AllowlistEntry[
 
     for (const forbidden of FORBIDDEN_TERMS) {
       if (isTermExempt(forbidden.term, filePath, repoRoot)) continue;
-      if (isAllowlisted(allowlist, filePath, i + 1, forbidden.term, repoRoot)) continue;
+      if (isAllowlisted(allowlist, filePath, i + 1, forbidden.term, repoRoot))
+        continue;
       if (forbidden.pattern.test(line)) {
         violations.push({
           file: filePath,
@@ -300,7 +314,7 @@ function main(): void {
   }
 
   console.error(
-    `validate:language — FAILED (${allViolations.length} violation(s) found)\n`
+    `validate:language — FAILED (${allViolations.length} violation(s) found)\n`,
   );
 
   for (const v of allViolations) {
@@ -312,11 +326,9 @@ function main(): void {
     console.error("");
   }
 
+  console.error("Internal terms must not appear in presentation/UI layers.");
   console.error(
-    "Internal terms must not appear in presentation/UI layers."
-  );
-  console.error(
-    "Fix the above violations or add exemptions to enforce-canonical-language.ts."
+    "Fix the above violations or add exemptions to enforce-canonical-language.ts.",
   );
   process.exit(1);
 }

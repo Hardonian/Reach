@@ -12,9 +12,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/HandshakeChallengeRequest'
+              $ref: "#/components/schemas/HandshakeChallengeRequest"
       responses:
-        '200':
+        "200":
           description: Challenge issued
           content:
             application/json:
@@ -29,14 +29,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/HandshakeCompleteRequest'
+              $ref: "#/components/schemas/HandshakeCompleteRequest"
       responses:
-        '200':
+        "200":
           description: Session issued
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HandshakeSession'
+                $ref: "#/components/schemas/HandshakeSession"
   /v1/mobile/policy/preflight:
     post:
       requestBody:
@@ -44,14 +44,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyPreflightRequest'
+              $ref: "#/components/schemas/PolicyPreflightRequest"
       responses:
-        '200':
+        "200":
           description: Decision
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PolicyPreflightResponse'
+                $ref: "#/components/schemas/PolicyPreflightResponse"
   /v1/runs:
     post:
       requestBody:
@@ -59,9 +59,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RunPackRequest'
+              $ref: "#/components/schemas/RunPackRequest"
       responses:
-        '201':
+        "201":
           description: Run created
   /v1/mobile/runs/{id}:
     get:
@@ -71,12 +71,12 @@ paths:
           required: true
           schema: { type: string }
       responses:
-        '200':
+        "200":
           description: Redacted run timeline
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RunTimelineResponse'
+                $ref: "#/components/schemas/RunTimelineResponse"
   /v1/mobile/share-tokens:
     post:
       requestBody:
@@ -89,7 +89,7 @@ paths:
                 run_id: { type: string }
               required: [run_id]
       responses:
-        '201':
+        "201":
           description: Share token
   /v1/mobile/share/{token}:
     get:
@@ -99,12 +99,12 @@ paths:
           required: true
           schema: { type: string }
       responses:
-        '200':
+        "200":
           description: Shared run redacted timeline
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RunTimelineResponse'
+                $ref: "#/components/schemas/RunTimelineResponse"
 components:
   schemas:
     HandshakeChallengeRequest:
@@ -169,5 +169,5 @@ components:
         timeline:
           type: array
           items:
-            $ref: '#/components/schemas/TimelineEvent'
+            $ref: "#/components/schemas/TimelineEvent"
       required: [run_id, timeline]

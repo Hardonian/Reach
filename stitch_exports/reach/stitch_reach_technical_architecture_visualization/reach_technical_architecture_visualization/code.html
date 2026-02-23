@@ -1,20 +1,30 @@
-<!DOCTYPE html>
+<!doctype html>
 
-<html class="dark" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Reach Architecture - Technical Visualization</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script>
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Reach Architecture - Technical Visualization</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script>
       tailwind.config = {
         darkMode: "class",
         theme: {
           extend: {
             colors: {
-              "primary": "#135bec",
+              primary: "#135bec",
               "primary-dark": "#0d43b3",
               "background-light": "#f6f6f8",
               "background-dark": "#101622",
@@ -22,258 +32,480 @@
               "border-dark": "#2d3545",
             },
             fontFamily: {
-              "display": ["Inter", "sans-serif"],
-              "mono": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
+              display: ["Inter", "sans-serif"],
+              mono: [
+                "ui-monospace",
+                "SFMono-Regular",
+                "Menlo",
+                "Monaco",
+                "Consolas",
+                "Liberation Mono",
+                "Courier New",
+                "monospace",
+              ],
             },
             backgroundImage: {
-              'grid-pattern': "linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)",
-            }
+              "grid-pattern":
+                "linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)",
+            },
           },
         },
-      }
+      };
     </script>
-<style>
-        body {
-            font-family: 'Inter', sans-serif;
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .glass-panel {
+        background: rgba(16, 22, 34, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .node-connector {
+        position: absolute;
+        z-index: 0;
+        background: linear-gradient(
+          90deg,
+          #2d3545 0%,
+          #135bec 50%,
+          #2d3545 100%
+        );
+        background-size: 200% 100%;
+        animation: flow 3s linear infinite;
+      }
+      @keyframes flow {
+        0% {
+          background-position: 100% 0;
         }
-        .glass-panel {
-            background: rgba(16, 22, 34, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+        100% {
+          background-position: -100% 0;
         }
-        .node-connector {
-            position: absolute;
-            z-index: 0;
-            background: linear-gradient(90deg, #2d3545 0%, #135bec 50%, #2d3545 100%);
-            background-size: 200% 100%;
-            animation: flow 3s linear infinite;
-        }
-        @keyframes flow {
-            0% { background-position: 100% 0; }
-            100% { background-position: -100% 0; }
-        }
-        .glow-hover:hover {
-            box-shadow: 0 0 20px rgba(19, 91, 236, 0.3);
-            border-color: #135bec;
-        }
+      }
+      .glow-hover:hover {
+        box-shadow: 0 0 20px rgba(19, 91, 236, 0.3);
+        border-color: #135bec;
+      }
     </style>
-</head>
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 overflow-x-hidden min-h-screen flex flex-col">
-<!-- Navbar -->
-<header class="fixed top-0 left-0 right-0 z-50 border-b border-border-dark glass-panel">
-<div class="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
-<div class="flex items-center gap-3">
-<div class="size-8 rounded bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white">
-<span class="material-symbols-outlined text-[20px]">hub</span>
-</div>
-<h1 class="text-lg font-bold tracking-tight text-white">Reach</h1>
-<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-border-dark text-slate-400 uppercase tracking-wider">Architecture</span>
-</div>
-<nav class="hidden md:flex items-center gap-8">
-<a class="text-sm font-medium text-slate-400 hover:text-white transition-colors" href="#">Documentation</a>
-<a class="text-sm font-medium text-slate-400 hover:text-white transition-colors" href="#">API Reference</a>
-<a class="text-sm font-medium text-slate-400 hover:text-white transition-colors" href="#">System Status</a>
-</nav>
-<div class="flex items-center gap-4">
-<button class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-lg transition-colors shadow-[0_0_15px_rgba(19,91,236,0.3)]">
-<span>Open Console</span>
-<span class="material-symbols-outlined text-[16px]">terminal</span>
-</button>
-</div>
-</div>
-</header>
-<!-- Main Content Area -->
-<main class="flex-grow pt-24 pb-12 relative">
-<!-- Background Grid -->
-<div class="absolute inset-0 bg-grid-pattern bg-[size:40px_40px] opacity-[0.07] pointer-events-none z-0"></div>
-<div class="absolute inset-0 bg-gradient-to-b from-background-dark via-transparent to-background-dark pointer-events-none z-0"></div>
-<div class="relative z-10 max-w-[1400px] mx-auto px-6 flex flex-col gap-12">
-<!-- Header Text -->
-<div class="text-center max-w-3xl mx-auto space-y-4">
-<h2 class="text-4xl md:text-5xl font-black tracking-tight text-white leading-tight">
-                    The Reach <span class="text-primary">Architecture</span>
-</h2>
-<p class="text-lg text-slate-400 font-light">
-                    Transparency in Agentic Orchestration. Explore the primitives that power our safe, scalable control plane.
-                </p>
-</div>
-<!-- Visualization Canvas -->
-<div class="w-full relative min-h-[600px] bg-surface-dark/50 border border-border-dark rounded-xl overflow-hidden shadow-2xl backdrop-blur-sm group/canvas">
-<!-- Toolbar -->
-<div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 p-1.5 bg-surface-dark border border-border-dark rounded-lg shadow-lg z-20">
-<button class="p-2 hover:bg-border-dark rounded text-slate-400 hover:text-white" title="Reset View">
-<span class="material-symbols-outlined text-[20px]">center_focus_strong</span>
-</button>
-<div class="w-px h-4 bg-border-dark mx-1"></div>
-<button class="p-2 hover:bg-border-dark rounded text-primary hover:text-primary-light bg-primary/10" title="Show Traceability Spine">
-<span class="material-symbols-outlined text-[20px]">timeline</span>
-</button>
-<button class="p-2 hover:bg-border-dark rounded text-slate-400 hover:text-white" title="Show Security Layers">
-<span class="material-symbols-outlined text-[20px]">security</span>
-</button>
-<div class="w-px h-4 bg-border-dark mx-1"></div>
-<span class="text-xs text-slate-500 font-mono px-2">v2.4.0-stable</span>
-</div>
-<!-- Legend -->
-<div class="absolute top-6 left-6 flex flex-col gap-2 p-4 bg-surface-dark/90 border border-border-dark rounded-lg backdrop-blur z-20">
-<p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Legend</p>
-<div class="flex items-center gap-2 text-xs text-slate-300">
-<div class="size-2 rounded-full bg-primary"></div>
-<span>Active Execution</span>
-</div>
-<div class="flex items-center gap-2 text-xs text-slate-300">
-<div class="size-2 rounded-full bg-emerald-500"></div>
-<span>Passed Safe Ops</span>
-</div>
-<div class="flex items-center gap-2 text-xs text-slate-300">
-<div class="size-2 rounded-full bg-slate-500"></div>
-<span>Idle / Storage</span>
-</div>
-</div>
-<!-- Diagram Container -->
-<div class="absolute inset-0 flex items-center justify-center p-10 overflow-x-auto">
-<div class="relative min-w-[800px] w-full flex items-center justify-between gap-8">
-<!-- Traceability Spine (Visual Background Line) -->
-<div class="absolute top-1/2 left-0 right-0 h-0.5 bg-border-dark -translate-y-1/2 z-0"></div>
-<div class="absolute top-1/2 left-[10%] right-[10%] h-0.5 node-connector -translate-y-1/2 z-0 opacity-40"></div>
-<!-- Node 1: Agents -->
-<div class="relative z-10 flex flex-col items-center gap-4 group/node cursor-pointer">
-<div class="w-40 h-24 bg-surface-dark border-2 border-border-dark rounded-xl flex flex-col items-center justify-center p-4 transition-all duration-300 glow-hover">
-<div class="size-8 rounded-full bg-slate-800 flex items-center justify-center mb-2 group-hover/node:bg-primary/20 group-hover/node:text-primary transition-colors text-slate-400">
-<span class="material-symbols-outlined">smart_toy</span>
-</div>
-<span class="text-sm font-bold text-white">Agents</span>
-</div>
-<!-- Tooltip/Info -->
-<div class="absolute top-28 opacity-0 group-hover/node:opacity-100 transition-opacity w-56 p-3 bg-[#0F1115] border border-border-dark rounded-lg shadow-xl pointer-events-none">
-<h4 class="text-white text-xs font-bold mb-1">Autonomous Unit</h4>
-<p class="text-slate-400 text-[10px] leading-relaxed">Capable of complex reasoning and breaking down user intent into actionable tasks.</p>
-</div>
-</div>
-<!-- Connector Label -->
-<div class="z-10 bg-background-dark px-2 py-1 rounded border border-border-dark text-[10px] font-mono text-slate-500">JSON-RPC</div>
-<!-- Node 2: Runners -->
-<div class="relative z-10 flex flex-col items-center gap-4 group/node cursor-pointer">
-<div class="relative w-40 h-24 bg-surface-dark border-2 border-border-dark rounded-xl flex flex-col items-center justify-center p-4 transition-all duration-300 glow-hover">
-<div class="absolute -top-1 -right-1 size-3 bg-emerald-500 rounded-full border-2 border-background-dark animate-pulse"></div>
-<div class="size-8 rounded-full bg-slate-800 flex items-center justify-center mb-2 group-hover/node:bg-primary/20 group-hover/node:text-primary transition-colors text-slate-400">
-<span class="material-symbols-outlined">memory</span>
-</div>
-<span class="text-sm font-bold text-white">Runners</span>
-</div>
-<div class="absolute top-28 opacity-0 group-hover/node:opacity-100 transition-opacity w-56 p-3 bg-[#0F1115] border border-border-dark rounded-lg shadow-xl pointer-events-none">
-<h4 class="text-white text-xs font-bold mb-1">Isolated Sandbox</h4>
-<p class="text-slate-400 text-[10px] leading-relaxed">Secure execution environments where untrusted agent code is run safely.</p>
-</div>
-</div>
-<!-- Connector Label -->
-<div class="z-10 flex flex-col items-center gap-1">
-<div class="bg-background-dark px-2 py-1 rounded border border-border-dark text-[10px] font-mono text-slate-500">Stream</div>
-<span class="material-symbols-outlined text-[12px] text-primary animate-pulse">lock</span>
-</div>
-<!-- Node 3: Evaluations (Safe Ops) -->
-<div class="relative z-10 flex flex-col items-center gap-4 group/node cursor-pointer">
-<div class="w-40 h-24 bg-surface-dark border-2 border-border-dark rounded-xl flex flex-col items-center justify-center p-4 transition-all duration-300 glow-hover ring-1 ring-primary/20">
-<div class="size-8 rounded-full bg-slate-800 flex items-center justify-center mb-2 group-hover/node:bg-primary/20 group-hover/node:text-primary transition-colors text-slate-400">
-<span class="material-symbols-outlined">policy</span>
-</div>
-<span class="text-sm font-bold text-white">Evaluations</span>
-<span class="text-[9px] uppercase tracking-widest text-primary font-bold mt-1">Safe Ops</span>
-</div>
-<div class="absolute top-28 opacity-0 group-hover/node:opacity-100 transition-opacity w-56 p-3 bg-[#0F1115] border border-border-dark rounded-lg shadow-xl pointer-events-none">
-<h4 class="text-white text-xs font-bold mb-1">Policy Gate</h4>
-<p class="text-slate-400 text-[10px] leading-relaxed">Outputs are validated against pre-defined safety policies before release.</p>
-</div>
-</div>
-<!-- Connector Label -->
-<div class="z-10 bg-background-dark px-2 py-1 rounded border border-border-dark text-[10px] font-mono text-slate-500">Log</div>
-<!-- Node 4: Artifacts -->
-<div class="relative z-10 flex flex-col items-center gap-4 group/node cursor-pointer">
-<div class="w-40 h-24 bg-surface-dark border-2 border-border-dark rounded-xl flex flex-col items-center justify-center p-4 transition-all duration-300 glow-hover">
-<div class="size-8 rounded-full bg-slate-800 flex items-center justify-center mb-2 group-hover/node:bg-primary/20 group-hover/node:text-primary transition-colors text-slate-400">
-<span class="material-symbols-outlined">database</span>
-</div>
-<span class="text-sm font-bold text-white">Artifacts</span>
-</div>
-<div class="absolute top-28 opacity-0 group-hover/node:opacity-100 transition-opacity w-56 p-3 bg-[#0F1115] border border-border-dark rounded-lg shadow-xl pointer-events-none">
-<h4 class="text-white text-xs font-bold mb-1">Immutable Storage</h4>
-<p class="text-slate-400 text-[10px] leading-relaxed">Persistent storage for agent outputs, logs, and traceability data.</p>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Deep Dive Grid -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8">
-<!-- Feature 1 -->
-<div class="p-6 rounded-xl bg-surface-dark border border-border-dark hover:border-primary/50 transition-colors group">
-<div class="flex items-center gap-3 mb-4">
-<div class="p-2 bg-slate-800 rounded-lg text-white group-hover:bg-primary group-hover:text-white transition-colors">
-<span class="material-symbols-outlined">account_tree</span>
-</div>
-<h3 class="text-white font-bold text-lg">Traceability Spine</h3>
-</div>
-<p class="text-slate-400 text-sm leading-relaxed mb-4">
-                        The central nervous system of Reach. Every action, decision, and output is logged to an immutable ledger, providing 100% auditability for enterprise compliance.
-                    </p>
-<a class="text-primary text-sm font-medium hover:underline flex items-center gap-1" href="#">
-                        View Logs Spec <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-</a>
-</div>
-<!-- Feature 2 -->
-<div class="p-6 rounded-xl bg-surface-dark border border-border-dark hover:border-primary/50 transition-colors group">
-<div class="flex items-center gap-3 mb-4">
-<div class="p-2 bg-slate-800 rounded-lg text-white group-hover:bg-primary group-hover:text-white transition-colors">
-<span class="material-symbols-outlined">verified_user</span>
-</div>
-<h3 class="text-white font-bold text-lg">Safe Ops Protocol</h3>
-</div>
-<p class="text-slate-400 text-sm leading-relaxed mb-4">
-                        Our proprietary safety layer intercepts all agent actions. Policies are evaluated in real-time to prevent hallucinations or unauthorized resource access.
-                    </p>
-<a class="text-primary text-sm font-medium hover:underline flex items-center gap-1" href="#">
-                        View Policy Engine <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-</a>
-</div>
-<!-- Feature 3 -->
-<div class="p-6 rounded-xl bg-surface-dark border border-border-dark hover:border-primary/50 transition-colors group">
-<div class="flex items-center gap-3 mb-4">
-<div class="p-2 bg-slate-800 rounded-lg text-white group-hover:bg-primary group-hover:text-white transition-colors">
-<span class="material-symbols-outlined">terminal</span>
-</div>
-<h3 class="text-white font-bold text-lg">Developer SDK</h3>
-</div>
-<p class="text-slate-400 text-sm leading-relaxed mb-4">
-                        Integrate Reach into your existing stack with our type-safe SDKs. Built for TypeScript and Python, designed for instant productivity.
-                    </p>
-<div class="bg-[#0F1115] rounded p-3 font-mono text-xs text-slate-300 border border-border-dark">
-<span class="text-primary">npm</span> install @reach/core
-                    </div>
-</div>
-</div>
-</div>
-</main>
-<!-- Footer -->
-<footer class="border-t border-border-dark bg-background-dark py-12 mt-12">
-<div class="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
-<div class="flex items-center gap-3">
-<div class="size-6 rounded bg-slate-800 flex items-center justify-center text-white">
-<span class="material-symbols-outlined text-[16px]">hub</span>
-</div>
-<span class="text-slate-500 text-sm">© 2023 Reach Systems Inc.</span>
-</div>
-<div class="flex gap-8">
-<a class="text-slate-500 hover:text-white text-sm transition-colors" href="#">Documentation</a>
-<a class="text-slate-500 hover:text-white text-sm transition-colors" href="#">API Status</a>
-<a class="text-slate-500 hover:text-white text-sm transition-colors" href="#">Privacy Policy</a>
-<a class="text-slate-500 hover:text-white text-sm transition-colors" href="#">Terms of Service</a>
-</div>
-<div class="flex gap-4">
-<a class="text-slate-500 hover:text-white transition-colors" href="#">
-<span class="sr-only">GitHub</span>
-<svg aria-hidden="true" class="size-5" fill="currentColor" viewbox="0 0 24 24"><path clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" fill-rule="evenodd"></path></svg>
-</a>
-</div>
-</div>
-</footer>
-</body></html>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 overflow-x-hidden min-h-screen flex flex-col"
+  >
+    <!-- Navbar -->
+    <header
+      class="fixed top-0 left-0 right-0 z-50 border-b border-border-dark glass-panel"
+    >
+      <div
+        class="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="size-8 rounded bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white"
+          >
+            <span class="material-symbols-outlined text-[20px]">hub</span>
+          </div>
+          <h1 class="text-lg font-bold tracking-tight text-white">Reach</h1>
+          <span
+            class="px-2 py-0.5 rounded text-[10px] font-bold bg-border-dark text-slate-400 uppercase tracking-wider"
+            >Architecture</span
+          >
+        </div>
+        <nav class="hidden md:flex items-center gap-8">
+          <a
+            class="text-sm font-medium text-slate-400 hover:text-white transition-colors"
+            href="#"
+            >Documentation</a
+          >
+          <a
+            class="text-sm font-medium text-slate-400 hover:text-white transition-colors"
+            href="#"
+            >API Reference</a
+          >
+          <a
+            class="text-sm font-medium text-slate-400 hover:text-white transition-colors"
+            href="#"
+            >System Status</a
+          >
+        </nav>
+        <div class="flex items-center gap-4">
+          <button
+            class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-lg transition-colors shadow-[0_0_15px_rgba(19,91,236,0.3)]"
+          >
+            <span>Open Console</span>
+            <span class="material-symbols-outlined text-[16px]">terminal</span>
+          </button>
+        </div>
+      </div>
+    </header>
+    <!-- Main Content Area -->
+    <main class="flex-grow pt-24 pb-12 relative">
+      <!-- Background Grid -->
+      <div
+        class="absolute inset-0 bg-grid-pattern bg-[size:40px_40px] opacity-[0.07] pointer-events-none z-0"
+      ></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-background-dark via-transparent to-background-dark pointer-events-none z-0"
+      ></div>
+      <div
+        class="relative z-10 max-w-[1400px] mx-auto px-6 flex flex-col gap-12"
+      >
+        <!-- Header Text -->
+        <div class="text-center max-w-3xl mx-auto space-y-4">
+          <h2
+            class="text-4xl md:text-5xl font-black tracking-tight text-white leading-tight"
+          >
+            The Reach <span class="text-primary">Architecture</span>
+          </h2>
+          <p class="text-lg text-slate-400 font-light">
+            Transparency in Agentic Orchestration. Explore the primitives that
+            power our safe, scalable control plane.
+          </p>
+        </div>
+        <!-- Visualization Canvas -->
+        <div
+          class="w-full relative min-h-[600px] bg-surface-dark/50 border border-border-dark rounded-xl overflow-hidden shadow-2xl backdrop-blur-sm group/canvas"
+        >
+          <!-- Toolbar -->
+          <div
+            class="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 p-1.5 bg-surface-dark border border-border-dark rounded-lg shadow-lg z-20"
+          >
+            <button
+              class="p-2 hover:bg-border-dark rounded text-slate-400 hover:text-white"
+              title="Reset View"
+            >
+              <span class="material-symbols-outlined text-[20px]"
+                >center_focus_strong</span
+              >
+            </button>
+            <div class="w-px h-4 bg-border-dark mx-1"></div>
+            <button
+              class="p-2 hover:bg-border-dark rounded text-primary hover:text-primary-light bg-primary/10"
+              title="Show Traceability Spine"
+            >
+              <span class="material-symbols-outlined text-[20px]"
+                >timeline</span
+              >
+            </button>
+            <button
+              class="p-2 hover:bg-border-dark rounded text-slate-400 hover:text-white"
+              title="Show Security Layers"
+            >
+              <span class="material-symbols-outlined text-[20px]"
+                >security</span
+              >
+            </button>
+            <div class="w-px h-4 bg-border-dark mx-1"></div>
+            <span class="text-xs text-slate-500 font-mono px-2"
+              >v2.4.0-stable</span
+            >
+          </div>
+          <!-- Legend -->
+          <div
+            class="absolute top-6 left-6 flex flex-col gap-2 p-4 bg-surface-dark/90 border border-border-dark rounded-lg backdrop-blur z-20"
+          >
+            <p
+              class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1"
+            >
+              Legend
+            </p>
+            <div class="flex items-center gap-2 text-xs text-slate-300">
+              <div class="size-2 rounded-full bg-primary"></div>
+              <span>Active Execution</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-slate-300">
+              <div class="size-2 rounded-full bg-emerald-500"></div>
+              <span>Passed Safe Ops</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-slate-300">
+              <div class="size-2 rounded-full bg-slate-500"></div>
+              <span>Idle / Storage</span>
+            </div>
+          </div>
+          <!-- Diagram Container -->
+          <div
+            class="absolute inset-0 flex items-center justify-center p-10 overflow-x-auto"
+          >
+            <div
+              class="relative min-w-[800px] w-full flex items-center justify-between gap-8"
+            >
+              <!-- Traceability Spine (Visual Background Line) -->
+              <div
+                class="absolute top-1/2 left-0 right-0 h-0.5 bg-border-dark -translate-y-1/2 z-0"
+              ></div>
+              <div
+                class="absolute top-1/2 left-[10%] right-[10%] h-0.5 node-connector -translate-y-1/2 z-0 opacity-40"
+              ></div>
+              <!-- Node 1: Agents -->
+              <div
+                class="relative z-10 flex flex-col items-center gap-4 group/node cursor-pointer"
+              >
+                <div
+                  class="w-40 h-24 bg-surface-dark border-2 border-border-dark rounded-xl flex flex-col items-center justify-center p-4 transition-all duration-300 glow-hover"
+                >
+                  <div
+                    class="size-8 rounded-full bg-slate-800 flex items-center justify-center mb-2 group-hover/node:bg-primary/20 group-hover/node:text-primary transition-colors text-slate-400"
+                  >
+                    <span class="material-symbols-outlined">smart_toy</span>
+                  </div>
+                  <span class="text-sm font-bold text-white">Agents</span>
+                </div>
+                <!-- Tooltip/Info -->
+                <div
+                  class="absolute top-28 opacity-0 group-hover/node:opacity-100 transition-opacity w-56 p-3 bg-[#0F1115] border border-border-dark rounded-lg shadow-xl pointer-events-none"
+                >
+                  <h4 class="text-white text-xs font-bold mb-1">
+                    Autonomous Unit
+                  </h4>
+                  <p class="text-slate-400 text-[10px] leading-relaxed">
+                    Capable of complex reasoning and breaking down user intent
+                    into actionable tasks.
+                  </p>
+                </div>
+              </div>
+              <!-- Connector Label -->
+              <div
+                class="z-10 bg-background-dark px-2 py-1 rounded border border-border-dark text-[10px] font-mono text-slate-500"
+              >
+                JSON-RPC
+              </div>
+              <!-- Node 2: Runners -->
+              <div
+                class="relative z-10 flex flex-col items-center gap-4 group/node cursor-pointer"
+              >
+                <div
+                  class="relative w-40 h-24 bg-surface-dark border-2 border-border-dark rounded-xl flex flex-col items-center justify-center p-4 transition-all duration-300 glow-hover"
+                >
+                  <div
+                    class="absolute -top-1 -right-1 size-3 bg-emerald-500 rounded-full border-2 border-background-dark animate-pulse"
+                  ></div>
+                  <div
+                    class="size-8 rounded-full bg-slate-800 flex items-center justify-center mb-2 group-hover/node:bg-primary/20 group-hover/node:text-primary transition-colors text-slate-400"
+                  >
+                    <span class="material-symbols-outlined">memory</span>
+                  </div>
+                  <span class="text-sm font-bold text-white">Runners</span>
+                </div>
+                <div
+                  class="absolute top-28 opacity-0 group-hover/node:opacity-100 transition-opacity w-56 p-3 bg-[#0F1115] border border-border-dark rounded-lg shadow-xl pointer-events-none"
+                >
+                  <h4 class="text-white text-xs font-bold mb-1">
+                    Isolated Sandbox
+                  </h4>
+                  <p class="text-slate-400 text-[10px] leading-relaxed">
+                    Secure execution environments where untrusted agent code is
+                    run safely.
+                  </p>
+                </div>
+              </div>
+              <!-- Connector Label -->
+              <div class="z-10 flex flex-col items-center gap-1">
+                <div
+                  class="bg-background-dark px-2 py-1 rounded border border-border-dark text-[10px] font-mono text-slate-500"
+                >
+                  Stream
+                </div>
+                <span
+                  class="material-symbols-outlined text-[12px] text-primary animate-pulse"
+                  >lock</span
+                >
+              </div>
+              <!-- Node 3: Evaluations (Safe Ops) -->
+              <div
+                class="relative z-10 flex flex-col items-center gap-4 group/node cursor-pointer"
+              >
+                <div
+                  class="w-40 h-24 bg-surface-dark border-2 border-border-dark rounded-xl flex flex-col items-center justify-center p-4 transition-all duration-300 glow-hover ring-1 ring-primary/20"
+                >
+                  <div
+                    class="size-8 rounded-full bg-slate-800 flex items-center justify-center mb-2 group-hover/node:bg-primary/20 group-hover/node:text-primary transition-colors text-slate-400"
+                  >
+                    <span class="material-symbols-outlined">policy</span>
+                  </div>
+                  <span class="text-sm font-bold text-white">Evaluations</span>
+                  <span
+                    class="text-[9px] uppercase tracking-widest text-primary font-bold mt-1"
+                    >Safe Ops</span
+                  >
+                </div>
+                <div
+                  class="absolute top-28 opacity-0 group-hover/node:opacity-100 transition-opacity w-56 p-3 bg-[#0F1115] border border-border-dark rounded-lg shadow-xl pointer-events-none"
+                >
+                  <h4 class="text-white text-xs font-bold mb-1">Policy Gate</h4>
+                  <p class="text-slate-400 text-[10px] leading-relaxed">
+                    Outputs are validated against pre-defined safety policies
+                    before release.
+                  </p>
+                </div>
+              </div>
+              <!-- Connector Label -->
+              <div
+                class="z-10 bg-background-dark px-2 py-1 rounded border border-border-dark text-[10px] font-mono text-slate-500"
+              >
+                Log
+              </div>
+              <!-- Node 4: Artifacts -->
+              <div
+                class="relative z-10 flex flex-col items-center gap-4 group/node cursor-pointer"
+              >
+                <div
+                  class="w-40 h-24 bg-surface-dark border-2 border-border-dark rounded-xl flex flex-col items-center justify-center p-4 transition-all duration-300 glow-hover"
+                >
+                  <div
+                    class="size-8 rounded-full bg-slate-800 flex items-center justify-center mb-2 group-hover/node:bg-primary/20 group-hover/node:text-primary transition-colors text-slate-400"
+                  >
+                    <span class="material-symbols-outlined">database</span>
+                  </div>
+                  <span class="text-sm font-bold text-white">Artifacts</span>
+                </div>
+                <div
+                  class="absolute top-28 opacity-0 group-hover/node:opacity-100 transition-opacity w-56 p-3 bg-[#0F1115] border border-border-dark rounded-lg shadow-xl pointer-events-none"
+                >
+                  <h4 class="text-white text-xs font-bold mb-1">
+                    Immutable Storage
+                  </h4>
+                  <p class="text-slate-400 text-[10px] leading-relaxed">
+                    Persistent storage for agent outputs, logs, and traceability
+                    data.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Deep Dive Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8">
+          <!-- Feature 1 -->
+          <div
+            class="p-6 rounded-xl bg-surface-dark border border-border-dark hover:border-primary/50 transition-colors group"
+          >
+            <div class="flex items-center gap-3 mb-4">
+              <div
+                class="p-2 bg-slate-800 rounded-lg text-white group-hover:bg-primary group-hover:text-white transition-colors"
+              >
+                <span class="material-symbols-outlined">account_tree</span>
+              </div>
+              <h3 class="text-white font-bold text-lg">Traceability Spine</h3>
+            </div>
+            <p class="text-slate-400 text-sm leading-relaxed mb-4">
+              The central nervous system of Reach. Every action, decision, and
+              output is logged to an immutable ledger, providing 100%
+              auditability for enterprise compliance.
+            </p>
+            <a
+              class="text-primary text-sm font-medium hover:underline flex items-center gap-1"
+              href="#"
+            >
+              View Logs Spec
+              <span class="material-symbols-outlined text-[16px]"
+                >arrow_forward</span
+              >
+            </a>
+          </div>
+          <!-- Feature 2 -->
+          <div
+            class="p-6 rounded-xl bg-surface-dark border border-border-dark hover:border-primary/50 transition-colors group"
+          >
+            <div class="flex items-center gap-3 mb-4">
+              <div
+                class="p-2 bg-slate-800 rounded-lg text-white group-hover:bg-primary group-hover:text-white transition-colors"
+              >
+                <span class="material-symbols-outlined">verified_user</span>
+              </div>
+              <h3 class="text-white font-bold text-lg">Safe Ops Protocol</h3>
+            </div>
+            <p class="text-slate-400 text-sm leading-relaxed mb-4">
+              Our proprietary safety layer intercepts all agent actions.
+              Policies are evaluated in real-time to prevent hallucinations or
+              unauthorized resource access.
+            </p>
+            <a
+              class="text-primary text-sm font-medium hover:underline flex items-center gap-1"
+              href="#"
+            >
+              View Policy Engine
+              <span class="material-symbols-outlined text-[16px]"
+                >arrow_forward</span
+              >
+            </a>
+          </div>
+          <!-- Feature 3 -->
+          <div
+            class="p-6 rounded-xl bg-surface-dark border border-border-dark hover:border-primary/50 transition-colors group"
+          >
+            <div class="flex items-center gap-3 mb-4">
+              <div
+                class="p-2 bg-slate-800 rounded-lg text-white group-hover:bg-primary group-hover:text-white transition-colors"
+              >
+                <span class="material-symbols-outlined">terminal</span>
+              </div>
+              <h3 class="text-white font-bold text-lg">Developer SDK</h3>
+            </div>
+            <p class="text-slate-400 text-sm leading-relaxed mb-4">
+              Integrate Reach into your existing stack with our type-safe SDKs.
+              Built for TypeScript and Python, designed for instant
+              productivity.
+            </p>
+            <div
+              class="bg-[#0F1115] rounded p-3 font-mono text-xs text-slate-300 border border-border-dark"
+            >
+              <span class="text-primary">npm</span> install @reach/core
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <!-- Footer -->
+    <footer class="border-t border-border-dark bg-background-dark py-12 mt-12">
+      <div
+        class="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="size-6 rounded bg-slate-800 flex items-center justify-center text-white"
+          >
+            <span class="material-symbols-outlined text-[16px]">hub</span>
+          </div>
+          <span class="text-slate-500 text-sm">© 2023 Reach Systems Inc.</span>
+        </div>
+        <div class="flex gap-8">
+          <a
+            class="text-slate-500 hover:text-white text-sm transition-colors"
+            href="#"
+            >Documentation</a
+          >
+          <a
+            class="text-slate-500 hover:text-white text-sm transition-colors"
+            href="#"
+            >API Status</a
+          >
+          <a
+            class="text-slate-500 hover:text-white text-sm transition-colors"
+            href="#"
+            >Privacy Policy</a
+          >
+          <a
+            class="text-slate-500 hover:text-white text-sm transition-colors"
+            href="#"
+            >Terms of Service</a
+          >
+        </div>
+        <div class="flex gap-4">
+          <a class="text-slate-500 hover:text-white transition-colors" href="#">
+            <span class="sr-only">GitHub</span>
+            <svg
+              aria-hidden="true"
+              class="size-5"
+              fill="currentColor"
+              viewbox="0 0 24 24"
+            >
+              <path
+                clip-rule="evenodd"
+                d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                fill-rule="evenodd"
+              ></path>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

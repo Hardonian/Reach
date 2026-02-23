@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Reach Protocol Compatibility Test Suite
- * 
+ *
  * Validates conformance to Reach Protocol Specification v1.0.0
  */
 
@@ -19,7 +19,7 @@ const fixturesDir = path.join(repoRoot, "spec", "fixtures");
 const results = {
   passed: 0,
   failed: 0,
-  tests: []
+  tests: [],
 };
 
 function assert(condition, message) {
@@ -54,7 +54,7 @@ function loadFixture(name) {
 // Simple JSON Schema validation
 function validateSchema(data, schema) {
   const errors = [];
-  
+
   function validate(value, schemaNode, path) {
     if (schemaNode.type) {
       if (schemaNode.type === "object" && typeof value !== "object") {
@@ -74,22 +74,26 @@ function validateSchema(data, schema) {
         return;
       }
     }
-    
+
     if (schemaNode.const !== undefined && value !== schemaNode.const) {
       errors.push(`${path}: expected ${schemaNode.const}, got ${value}`);
     }
-    
+
     if (schemaNode.enum && !schemaNode.enum.includes(value)) {
-      errors.push(`${path}: expected one of ${schemaNode.enum.join(", ")}, got ${value}`);
+      errors.push(
+        `${path}: expected one of ${schemaNode.enum.join(", ")}, got ${value}`,
+      );
     }
-    
+
     if (schemaNode.pattern && typeof value === "string") {
       const regex = new RegExp(schemaNode.pattern);
       if (!regex.test(value)) {
-        errors.push(`${path}: value "${value}" does not match pattern ${schemaNode.pattern}`);
+        errors.push(
+          `${path}: value "${value}" does not match pattern ${schemaNode.pattern}`,
+        );
       }
     }
-    
+
     if (schemaNode.required && typeof value === "object" && value !== null) {
       for (const field of schemaNode.required) {
         if (!(field in value)) {
@@ -97,7 +101,7 @@ function validateSchema(data, schema) {
         }
       }
     }
-    
+
     if (schemaNode.properties && typeof value === "object" && value !== null) {
       for (const [key, propSchema] of Object.entries(schemaNode.properties)) {
         if (key in value) {
@@ -106,7 +110,7 @@ function validateSchema(data, schema) {
       }
     }
   }
-  
+
   validate(data, schema, "root");
   return errors;
 }
@@ -124,7 +128,10 @@ console.log("\n--- Schema Validation Tests ---\n");
 
 test("run.schema.json is valid JSON Schema", () => {
   const schema = loadSchema("run.schema.json");
-  assert(schema.$schema === "https://json-schema.org/draft/2020-12/schema", "Must declare draft 2020-12");
+  assert(
+    schema.$schema === "https://json-schema.org/draft/2020-12/schema",
+    "Must declare draft 2020-12",
+  );
   assert(schema.$id.endsWith("run.schema.json"), "Must have correct $id");
   assert(schema.required.includes("specVersion"), "Must require specVersion");
   assert(schema.required.includes("runId"), "Must require runId");
@@ -133,7 +140,10 @@ test("run.schema.json is valid JSON Schema", () => {
 
 test("event.schema.json is valid JSON Schema", () => {
   const schema = loadSchema("event.schema.json");
-  assert(schema.$schema === "https://json-schema.org/draft/2020-12/schema", "Must declare draft 2020-12");
+  assert(
+    schema.$schema === "https://json-schema.org/draft/2020-12/schema",
+    "Must declare draft 2020-12",
+  );
   assert(schema.$id.endsWith("event.schema.json"), "Must have correct $id");
   assert(schema.required.includes("eventId"), "Must require eventId");
   assert(schema.required.includes("type"), "Must require type");
@@ -141,7 +151,10 @@ test("event.schema.json is valid JSON Schema", () => {
 
 test("pack.schema.json is valid JSON Schema", () => {
   const schema = loadSchema("pack.schema.json");
-  assert(schema.$schema === "https://json-schema.org/draft/2020-12/schema", "Must declare draft 2020-12");
+  assert(
+    schema.$schema === "https://json-schema.org/draft/2020-12/schema",
+    "Must declare draft 2020-12",
+  );
   assert(schema.$id.endsWith("pack.schema.json"), "Must have correct $id");
   assert(schema.required.includes("id"), "Must require id");
   assert(schema.required.includes("manifest"), "Must require manifest");
@@ -149,14 +162,20 @@ test("pack.schema.json is valid JSON Schema", () => {
 
 test("capsule.schema.json is valid JSON Schema", () => {
   const schema = loadSchema("capsule.schema.json");
-  assert(schema.$schema === "https://json-schema.org/draft/2020-12/schema", "Must declare draft 2020-12");
+  assert(
+    schema.$schema === "https://json-schema.org/draft/2020-12/schema",
+    "Must declare draft 2020-12",
+  );
   assert(schema.$id.endsWith("capsule.schema.json"), "Must have correct $id");
   assert(schema.required.includes("capsuleId"), "Must require capsuleId");
 });
 
 test("error.schema.json is valid JSON Schema", () => {
   const schema = loadSchema("error.schema.json");
-  assert(schema.$schema === "https://json-schema.org/draft/2020-12/schema", "Must declare draft 2020-12");
+  assert(
+    schema.$schema === "https://json-schema.org/draft/2020-12/schema",
+    "Must declare draft 2020-12",
+  );
   assert(schema.$id.endsWith("error.schema.json"), "Must have correct $id");
   assert(schema.required.includes("error"), "Must require error");
 });
@@ -175,15 +194,15 @@ test("runHash computation is deterministic", () => {
     packMetadata: {
       id: "test-pack",
       version: "1.0.0",
-      specVersion: "1.0.0"
-    }
+      specVersion: "1.0.0",
+    },
   };
-  
+
   // Canonical JSON serialization for hashing
   const canonical = JSON.stringify(run, Object.keys(run).sort());
   const hash1 = crypto.createHash("sha256").update(canonical).digest("hex");
   const hash2 = crypto.createHash("sha256").update(canonical).digest("hex");
-  
+
   assert(hash1 === hash2, "Same input must produce same hash");
   assert(hash1.length === 64, "Hash must be 64 hex characters (256 bits)");
 });
@@ -192,19 +211,19 @@ test("event ordering is preserved in hash chain", () => {
   const events = [
     { sequence: 0, type: "run.started", payload: {} },
     { sequence: 1, type: "tool.invoked", payload: { tool: "test" } },
-    { sequence: 2, type: "tool.completed", payload: { result: "ok" } }
+    { sequence: 2, type: "tool.completed", payload: { result: "ok" } },
   ];
-  
+
   let prevHash = "0".repeat(64);
   const hashes = [];
-  
+
   for (const event of events) {
     const data = JSON.stringify({ ...event, prevHash });
     const hash = crypto.createHash("sha256").update(data).digest("hex");
     hashes.push(hash);
     prevHash = hash;
   }
-  
+
   assert(hashes.length === 3, "Must produce hash for each event");
   assert(new Set(hashes).size === 3, "Each hash must be unique");
 });
@@ -217,7 +236,10 @@ console.log("\n--- Replay Tests ---\n");
 test("capsule contains required replay fields", () => {
   const capsuleSchema = loadSchema("capsule.schema.json");
   assert(capsuleSchema.properties.events, "Must include events");
-  assert(capsuleSchema.properties.toolRecordings, "Must include tool recordings");
+  assert(
+    capsuleSchema.properties.toolRecordings,
+    "Must include tool recordings",
+  );
   assert(capsuleSchema.properties.manifest, "Must have manifest");
 });
 
@@ -236,7 +258,10 @@ console.log("\n--- Policy Tests ---\n");
 
 test("pack manifest requires capability declarations", () => {
   const packSchema = loadSchema("pack.schema.json");
-  assert(packSchema.$defs.Manifest.required.includes("capabilities"), "Manifest must require capabilities");
+  assert(
+    packSchema.$defs.Manifest.required.includes("capabilities"),
+    "Manifest must require capabilities",
+  );
 });
 
 test("capabilities include tools and resources", () => {
@@ -249,9 +274,19 @@ test("capabilities include tools and resources", () => {
 
 test("policy violations have structured error format", () => {
   const errorSchema = loadSchema("error.schema.json");
-  assert(errorSchema.$defs && errorSchema.$defs.ErrorDetails, "Must have ErrorDetails def");
-  assert(errorSchema.$defs.ErrorDetails.properties && errorSchema.$defs.ErrorDetails.properties.category, "Must include category");
-  assert(errorSchema.$defs.ErrorDetails.properties.recoverable, "Must include recoverable flag");
+  assert(
+    errorSchema.$defs && errorSchema.$defs.ErrorDetails,
+    "Must have ErrorDetails def",
+  );
+  assert(
+    errorSchema.$defs.ErrorDetails.properties &&
+      errorSchema.$defs.ErrorDetails.properties.category,
+    "Must include category",
+  );
+  assert(
+    errorSchema.$defs.ErrorDetails.properties.recoverable,
+    "Must include recoverable flag",
+  );
 });
 
 // ----------------------------------------------------------------------------
@@ -300,14 +335,23 @@ console.log("\n--- Error Code Tests ---\n");
 
 test("error codes follow CATEGORY_DETAIL format", () => {
   const errorSchema = loadSchema("error.schema.json");
-  assert(errorSchema.$defs && errorSchema.$defs.ErrorDetails, "Must have ErrorDetails def");
+  assert(
+    errorSchema.$defs && errorSchema.$defs.ErrorDetails,
+    "Must have ErrorDetails def",
+  );
   const pattern = errorSchema.$defs.ErrorDetails.properties.code.pattern;
-  assert(pattern === "^[A-Z][A-Z0-9]*_[A-Z][A-Z0-9_]*$", "Must match required pattern");
+  assert(
+    pattern === "^[A-Z][A-Z0-9]*_[A-Z][A-Z0-9_]*$",
+    "Must match required pattern",
+  );
 });
 
 test("all error categories are defined", () => {
   const errorSchema = loadSchema("error.schema.json");
-  assert(errorSchema.$defs && errorSchema.$defs.ErrorDetails, "Must have ErrorDetails def");
+  assert(
+    errorSchema.$defs && errorSchema.$defs.ErrorDetails,
+    "Must have ErrorDetails def",
+  );
   const categories = errorSchema.$defs.ErrorDetails.properties.category.enum;
   assert(categories.includes("PROTOCOL"), "Must include PROTOCOL");
   assert(categories.includes("POLICY"), "Must include POLICY");
@@ -326,17 +370,32 @@ test("all schemas declare specVersion", () => {
   const eventSchema = loadSchema("event.schema.json");
   const packSchema = loadSchema("pack.schema.json");
   const capsuleSchema = loadSchema("capsule.schema.json");
-  
-  assert(runSchema.required.includes("specVersion"), "run schema must require specVersion");
-  assert(eventSchema.required.includes("specVersion"), "event schema must require specVersion");
-  assert(packSchema.required.includes("specVersion"), "pack schema must require specVersion");
-  assert(capsuleSchema.required.includes("specVersion"), "capsule schema must require specVersion");
+
+  assert(
+    runSchema.required.includes("specVersion"),
+    "run schema must require specVersion",
+  );
+  assert(
+    eventSchema.required.includes("specVersion"),
+    "event schema must require specVersion",
+  );
+  assert(
+    packSchema.required.includes("specVersion"),
+    "pack schema must require specVersion",
+  );
+  assert(
+    capsuleSchema.required.includes("specVersion"),
+    "capsule schema must require specVersion",
+  );
 });
 
 test("specVersion follows SemVer pattern", () => {
   const runSchema = loadSchema("run.schema.json");
   const pattern = runSchema.properties.specVersion.pattern;
-  assert(pattern === "^[0-9]+\\.[0-9]+\\.[0-9]+$", "Must require SemVer format");
+  assert(
+    pattern === "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+    "Must require SemVer format",
+  );
 });
 
 // ----------------------------------------------------------------------------
@@ -354,10 +413,10 @@ test("valid run fixture validates against schema", () => {
     packMetadata: {
       id: "test-pack",
       version: "1.0.0",
-      specVersion: "1.0.0"
-    }
+      specVersion: "1.0.0",
+    },
   };
-  
+
   const errors = validateSchema(fixture, schema, "run");
   assert(errors.length === 0, `Validation errors: ${errors.join(", ")}`);
 });
@@ -372,10 +431,10 @@ test("valid event fixture validates against schema", () => {
     payload: {
       runId: "550e8400-e29b-41d4-a716-446655440000",
       packId: "test-pack",
-      specVersion: "1.0.0"
-    }
+      specVersion: "1.0.0",
+    },
   };
-  
+
   const errors = validateSchema(fixture, schema, "event");
   assert(errors.length === 0, `Validation errors: ${errors.join(", ")}`);
 });
@@ -389,12 +448,12 @@ test("valid pack fixture validates against schema", () => {
     manifest: {
       manifestVersion: "1.0.0",
       capabilities: {
-        tools: [{ name: "fs.read" }]
-      }
+        tools: [{ name: "fs.read" }],
+      },
     },
-    entrypoint: "index.js"
+    entrypoint: "index.js",
   };
-  
+
   const errors = validateSchema(fixture, schema, "pack");
   assert(errors.length === 0, `Validation errors: ${errors.join(", ")}`);
 });
@@ -409,7 +468,7 @@ console.log(`Failed: ${results.failed}`);
 
 if (results.failed > 0) {
   console.log("\nFailed tests:");
-  for (const test of results.tests.filter(t => t.status === "FAIL")) {
+  for (const test of results.tests.filter((t) => t.status === "FAIL")) {
     console.log(`  - ${test.name}: ${test.error}`);
   }
   process.exit(1);

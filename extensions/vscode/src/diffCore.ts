@@ -19,14 +19,14 @@ export function parseUnifiedDiff(diffText: string): ParsedFilePatch[] {
   let currentHunk: ParsedHunk | null = null;
 
   for (const line of lines) {
-    if (line.startsWith('--- ')) {
+    if (line.startsWith("--- ")) {
       if (current) {
         patches.push(current);
       }
       current = {
         oldPath: normalizePath(line.slice(4)),
-        newPath: '',
-        hunks: []
+        newPath: "",
+        hunks: [],
       };
       currentHunk = null;
       continue;
@@ -36,7 +36,7 @@ export function parseUnifiedDiff(diffText: string): ParsedFilePatch[] {
       continue;
     }
 
-    if (line.startsWith('+++ ')) {
+    if (line.startsWith("+++ ")) {
       current.newPath = normalizePath(line.slice(4));
       continue;
     }
@@ -45,10 +45,10 @@ export function parseUnifiedDiff(diffText: string): ParsedFilePatch[] {
     if (hunkMatch) {
       currentHunk = {
         oldStart: Number(hunkMatch[1]),
-        oldCount: Number(hunkMatch[2] ?? '1'),
+        oldCount: Number(hunkMatch[2] ?? "1"),
         newStart: Number(hunkMatch[3]),
-        newCount: Number(hunkMatch[4] ?? '1'),
-        lines: []
+        newCount: Number(hunkMatch[4] ?? "1"),
+        lines: [],
       };
       current.hunks.push(currentHunk);
       continue;
@@ -66,8 +66,11 @@ export function parseUnifiedDiff(diffText: string): ParsedFilePatch[] {
   return patches.filter((patch) => patch.newPath && patch.hunks.length > 0);
 }
 
-export function applyPatchToText(originalText: string, patch: ParsedFilePatch): string {
-  const originalLines = originalText.split('\n');
+export function applyPatchToText(
+  originalText: string,
+  patch: ParsedFilePatch,
+): string {
+  const originalLines = originalText.split("\n");
   const resultLines: string[] = [];
   let readIndex = 0;
 
@@ -83,18 +86,18 @@ export function applyPatchToText(originalText: string, patch: ParsedFilePatch): 
       const operation = hunkLine[0];
       const content = hunkLine.slice(1);
 
-      if (operation === ' ') {
+      if (operation === " ") {
         if (originalLines[readIndex] !== content) {
           throw new Error(`Patch context mismatch for ${patch.newPath}`);
         }
         resultLines.push(originalLines[readIndex]);
         readIndex += 1;
-      } else if (operation === '-') {
+      } else if (operation === "-") {
         if (originalLines[readIndex] !== content) {
           throw new Error(`Patch deletion mismatch for ${patch.newPath}`);
         }
         readIndex += 1;
-      } else if (operation === '+') {
+      } else if (operation === "+") {
         resultLines.push(content);
       }
     }
@@ -105,9 +108,9 @@ export function applyPatchToText(originalText: string, patch: ParsedFilePatch): 
     readIndex += 1;
   }
 
-  return resultLines.join('\n');
+  return resultLines.join("\n");
 }
 
 function normalizePath(raw: string): string {
-  return raw.replace(/^[ab]\//, '').trim();
+  return raw.replace(/^[ab]\//, "").trim();
 }

@@ -5,6 +5,7 @@ Last Updated: 2026-02-22
 ## When to Use This Guide
 
 Use this guide when:
+
 - `reachctl replay` returns `REPLAY_DIVERGED`
 - `reachctl verify-determinism` finds mismatched fingerprints
 - CI reports a determinism violation
@@ -24,12 +25,12 @@ Look for the `first_divergent_event_index` field in the output. The divergence i
 
 **Common divergence locations:**
 
-| Location | Likely Cause |
-| :--- | :--- |
+| Location                  | Likely Cause                                  |
+| :------------------------ | :-------------------------------------------- |
 | `event_log_hash` mismatch | Event ordering, missing event, or extra event |
-| `output_hash` mismatch | Non-deterministic output generation |
-| `fingerprint` mismatch | Any of the above, or engine version change |
-| `input_hash` mismatch | Inputs were modified (not a true divergence) |
+| `output_hash` mismatch    | Non-deterministic output generation           |
+| `fingerprint` mismatch    | Any of the above, or engine version change    |
+| `input_hash` mismatch     | Inputs were modified (not a true divergence)  |
 
 ---
 
@@ -115,6 +116,7 @@ event := Event{Timestamp: ctx.DeterministicTime()} // returns epoch zero
 **Diagnosis**: The tool may be returning non-deterministic data (e.g., current time, random IDs, unordered lists).
 
 **Fix**: For types that can return non-deterministic data:
+
 1. Record the raw response and normalize it before hashing.
 2. Sort arrays in tool responses if order is semantically irrelevant.
 3. Document that the tool is non-deterministic and assert it is NOT replay-safe.

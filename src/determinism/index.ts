@@ -28,10 +28,7 @@ export {
 
 export { DeterministicMap } from "./deterministicMap.js";
 
-export {
-  seededRandom,
-  type SeededRng,
-} from "./seededRandom.js";
+export { seededRandom, type SeededRng } from "./seededRandom.js";
 
 export {
   HashStream,

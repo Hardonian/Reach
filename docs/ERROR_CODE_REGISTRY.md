@@ -18,14 +18,14 @@ All errors returned by Reach CLI and services follow this structured format:
 
 ## Global Error Codes
 
-| Code | Category | Name | Description |
-| --- | --- | --- | --- |
-| RL-0001 | general | CodeUnknown | An unexpected internal error. |
-| RL-0002 | general | CodeInternal | Internal system failure. |
-| RL-1001 | policy | CodePolicyDenied | Execution denied by policy contract. |
-| RL-2001 | determinism | CodeReplayMismatch | Replay hash does not match original fingerprint. |
-| RL-3001 | storage | CodeStorageReadFailed | Failed to read from local execution data. |
-| RL-4001 | cloud | CodeCloudDisabled | Cloud-only feature requested in OSS mode. |
+| Code    | Category    | Name                  | Description                                      |
+| ------- | ----------- | --------------------- | ------------------------------------------------ |
+| RL-0001 | general     | CodeUnknown           | An unexpected internal error.                    |
+| RL-0002 | general     | CodeInternal          | Internal system failure.                         |
+| RL-1001 | policy      | CodePolicyDenied      | Execution denied by policy contract.             |
+| RL-2001 | determinism | CodeReplayMismatch    | Replay hash does not match original fingerprint. |
+| RL-3001 | storage     | CodeStorageReadFailed | Failed to read from local execution data.        |
+| RL-4001 | cloud       | CodeCloudDisabled     | Cloud-only feature requested in OSS mode.        |
 
 ## Subsystem Codes
 

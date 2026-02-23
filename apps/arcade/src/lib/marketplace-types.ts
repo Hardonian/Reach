@@ -2,7 +2,7 @@
  * Reach Marketplace — Central type definitions
  */
 
-export type SecurityStatus = 'passed' | 'warning' | 'concern' | 'failed';
+export type SecurityStatus = "passed" | "warning" | "concern" | "failed";
 
 export interface ReputationBreakdown {
   stability: number;
@@ -38,7 +38,7 @@ export interface MarketplacePack {
   tools: string[];
   capabilities: string[];
   permissions: string[];
-  dataHandling: 'minimal' | 'processed' | 'significant';
+  dataHandling: "minimal" | "processed" | "significant";
   lastUpdated: string;
   readme: string;
 }
@@ -54,7 +54,7 @@ export interface PackVersion {
 export interface BrowseFilters {
   search?: string;
   category?: string;
-  sort?: 'relevance' | 'newest' | 'trending' | 'rating' | 'reputation';
+  sort?: "relevance" | "newest" | "trending" | "rating" | "reputation";
   verifiedOnly?: boolean;
   trending?: boolean;
   tools?: string[];
@@ -88,6 +88,6 @@ export interface PackPublishInput {
 }
 
 export interface PackReportInput {
-  reason: 'security' | 'spam' | 'policy_violation' | 'malicious' | 'other';
+  reason: "security" | "spam" | "policy_violation" | "malicious" | "other";
   details: string;
 }

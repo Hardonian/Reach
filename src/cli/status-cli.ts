@@ -7,18 +7,21 @@ export async function runStatusCommand(): Promise<number> {
   const recent = listRecentArtifacts(10);
   const uptime = os.uptime();
 
-  const latencies = recent.map(a => a.execution_duration_ms).filter(Boolean);
-  const avgLatency = latencies.length > 0
-    ? (latencies.reduce((a, b) => a + b, 0) / latencies.length).toFixed(2)
-    : "N/A";
+  const latencies = recent.map((a) => a.execution_duration_ms).filter(Boolean);
+  const avgLatency =
+    latencies.length > 0
+      ? (latencies.reduce((a, b) => a + b, 0) / latencies.length).toFixed(2)
+      : "N/A";
 
   console.log("\n=== Zeo Operator Status ===");
   console.log(`System Uptime: ${(uptime / 3600).toFixed(2)} hours`);
   console.log(`Average Latency (recent): ${avgLatency}ms`);
   console.log(`Recent Decisions: ${recent.length}`);
   console.log("\nLast 10 Decisions:");
-  recent.forEach(a => {
-    console.log(`- ${a.decision_id}: ${a.timestamp} (${a.execution_duration_ms}ms)`);
+  recent.forEach((a) => {
+    console.log(
+      `- ${a.decision_id}: ${a.timestamp} (${a.execution_duration_ms}ms)`,
+    );
   });
 
   console.log("\nConfig Summary:");
@@ -31,4 +34,3 @@ export async function runStatusCommand(): Promise<number> {
 
   return 0;
 }
-

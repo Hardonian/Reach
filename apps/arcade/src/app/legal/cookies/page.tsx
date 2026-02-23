@@ -1,8 +1,9 @@
-import { Metadata } from 'next';
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Cookie Policy | ReadyLayer',
-  description: 'Information about how ReadyLayer uses cookies and browser storage.',
+  title: "Cookie Policy | ReadyLayer",
+  description:
+    "Information about how ReadyLayer uses cookies and browser storage.",
 };
 
 export default function CookiesPage() {
@@ -15,36 +16,47 @@ export default function CookiesPage() {
         <section>
           <h2>1. Minimalist Approach</h2>
           <p>
-            ReadyLayer uses a strictly minimalist approach to browser storage. We do not use advertising
-            trackers or third-party marketing cookies.
+            ReadyLayer uses a strictly minimalist approach to browser storage.
+            We do not use advertising trackers or third-party marketing cookies.
           </p>
         </section>
 
         <section>
           <h2>2. Essential Cookies</h2>
           <p>
-            We only use cookies that are technically necessary for the operation of the ReadyLayer Arcade:
+            We only use cookies that are technically necessary for the operation
+            of the ReadyLayer Arcade:
           </p>
           <ul>
-            <li><strong>__session:</strong> Encrypted session token for authentication.</li>
-            <li><strong>__tenant_id:</strong> Used to maintain context between dashboard views.</li>
-            <li><strong>reach_theme:</strong> Stores your preference for Dark or Light mode.</li>
+            <li>
+              <strong>__session:</strong> Encrypted session token for
+              authentication.
+            </li>
+            <li>
+              <strong>__tenant_id:</strong> Used to maintain context between
+              dashboard views.
+            </li>
+            <li>
+              <strong>reach_theme:</strong> Stores your preference for Dark or
+              Light mode.
+            </li>
           </ul>
         </section>
 
         <section>
           <h2>3. Managing Cookies</h2>
           <p>
-            You can disable cookies in your browser settings, but please note that the ReadyLayer Arcade
-            dashboard will not function without the essential session cookies.
+            You can disable cookies in your browser settings, but please note
+            that the ReadyLayer Arcade dashboard will not function without the
+            essential session cookies.
           </p>
         </section>
 
         <section>
           <h2>4. Local Storage</h2>
           <p>
-            We may use the <code>localStorage</code> API to cache non-sensitive configuration data
-            locally for performance optimization.
+            We may use the <code>localStorage</code> API to cache non-sensitive
+            configuration data locally for performance optimization.
           </p>
         </section>
       </div>

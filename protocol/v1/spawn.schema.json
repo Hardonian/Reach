@@ -3,21 +3,31 @@
   "$id": "https://reach.dev/protocol/v1/spawn.schema.json",
   "title": "Spawn",
   "type": "object",
-  "required": ["schemaVersion", "spawnId", "sessionId", "goal", "depth", "status"],
+  "required": [
+    "schemaVersion",
+    "spawnId",
+    "sessionId",
+    "goal",
+    "depth",
+    "status"
+  ],
   "properties": {
-    "schemaVersion": {"const": "1.0.0"},
-    "spawnId": {"type": "string", "minLength": 1},
-    "sessionId": {"type": "string", "minLength": 1},
-    "parentSpawnId": {"type": ["string", "null"]},
-    "goal": {"type": "string", "minLength": 1},
-    "depth": {"type": "integer", "minimum": 0},
-    "status": {"type": "string", "enum": ["pending", "running", "completed", "failed", "stopped"]},
+    "schemaVersion": { "const": "1.0.0" },
+    "spawnId": { "type": "string", "minLength": 1 },
+    "sessionId": { "type": "string", "minLength": 1 },
+    "parentSpawnId": { "type": ["string", "null"] },
+    "goal": { "type": "string", "minLength": 1 },
+    "depth": { "type": "integer", "minimum": 0 },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "running", "completed", "failed", "stopped"]
+    },
     "budget": {
       "type": "object",
       "required": ["maxToolCalls", "usedToolCalls"],
       "properties": {
-        "maxToolCalls": {"type": "integer", "minimum": 0},
-        "usedToolCalls": {"type": "integer", "minimum": 0}
+        "maxToolCalls": { "type": "integer", "minimum": 0 },
+        "usedToolCalls": { "type": "integer", "minimum": 0 }
       },
       "additionalProperties": false
     }

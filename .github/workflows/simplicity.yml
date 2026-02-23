@@ -4,13 +4,13 @@ on:
   pull_request:
   schedule:
     # Weekly on Monday 09:00 UTC
-    - cron: '0 9 * * 1'
+    - cron: "0 9 * * 1"
   workflow_dispatch:
     inputs:
       enforce:
-        description: 'Enforce mode (fail on violations)'
+        description: "Enforce mode (fail on violations)"
         required: false
-        default: 'false'
+        default: "false"
         type: boolean
 
 jobs:

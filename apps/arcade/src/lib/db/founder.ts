@@ -1,5 +1,5 @@
-import { getDB } from './connection';
-import { newId } from './helpers';
+import { getDB } from "./connection";
+import { newId } from "./helpers";
 
 export interface FounderMetrics {
   activation: {
@@ -28,23 +28,70 @@ export function getFounderMetrics(): FounderMetrics {
   const db = getDB();
 
   // Optimization: Simple counts for now
-  const visitors = (db.prepare("SELECT COUNT(*) as count FROM analytics_events WHERE event = 'page_view' AND ts > date('now', '-7 days')").get() as any).count;
-  const demoRuns = (db.prepare("SELECT COUNT(*) as count FROM workflow_runs WHERE tenant_id = 't_demo_01' AND created_at > date('now', '-7 days')").get() as any).count;
-  const signups = (db.prepare("SELECT COUNT(*) as count FROM users WHERE created_at > date('now', '-7 days')").get() as any).count;
-  const firstPasses = (db.prepare("SELECT COUNT(*) as count FROM users WHERE first_success_at > date('now', '-7 days')").get() as any).count;
+  const visitors = (
+    db
+      .prepare(
+        "SELECT COUNT(*) as count FROM analytics_events WHERE event = 'page_view' AND ts > date('now', '-7 days')",
+      )
+      .get() as any
+  ).count;
+  const demoRuns = (
+    db
+      .prepare(
+        "SELECT COUNT(*) as count FROM workflow_runs WHERE tenant_id = 't_demo_01' AND created_at > date('now', '-7 days')",
+      )
+      .get() as any
+  ).count;
+  const signups = (
+    db
+      .prepare(
+        "SELECT COUNT(*) as count FROM users WHERE created_at > date('now', '-7 days')",
+      )
+      .get() as any
+  ).count;
+  const firstPasses = (
+    db
+      .prepare(
+        "SELECT COUNT(*) as count FROM users WHERE first_success_at > date('now', '-7 days')",
+      )
+      .get() as any
+  ).count;
 
   // MTTFS
-  const mttfs = (db.prepare(`
+  const mttfs =
+    (
+      db
+        .prepare(
+          `
     SELECT AVG(CAST(strftime('%s', first_success_at) - strftime('%s', created_at) AS FLOAT))/60 AS avg_minutes
     FROM users 
     WHERE first_success_at IS NOT NULL 
     AND created_at > date('now', '-7 days')
-  `).get() as any).avg_minutes || 0;
+  `,
+        )
+        .get() as any
+    ).avg_minutes || 0;
 
   // Adoption
-  const tenantsWithGates = (db.prepare("SELECT COUNT(DISTINCT tenant_id) as count FROM gates WHERE status = 'enabled'").get() as any).count;
-  const tenantsWithMonitoring = (db.prepare("SELECT COUNT(DISTINCT tenant_id) as count FROM signals WHERE status = 'enabled'").get() as any).count;
-  const tenantsWithSimulation = (db.prepare("SELECT COUNT(DISTINCT tenant_id) as count FROM scenarios").get() as any).count;
+  const tenantsWithGates = (
+    db
+      .prepare(
+        "SELECT COUNT(DISTINCT tenant_id) as count FROM gates WHERE status = 'enabled'",
+      )
+      .get() as any
+  ).count;
+  const tenantsWithMonitoring = (
+    db
+      .prepare(
+        "SELECT COUNT(DISTINCT tenant_id) as count FROM signals WHERE status = 'enabled'",
+      )
+      .get() as any
+  ).count;
+  const tenantsWithSimulation = (
+    db
+      .prepare("SELECT COUNT(DISTINCT tenant_id) as count FROM scenarios")
+      .get() as any
+  ).count;
 
   return {
     activation: {
@@ -88,24 +135,26 @@ export function createDecisionProposal(proposal: {
   createdBy: string;
 }) {
   const db = getDB();
-  const id = newId('dec');
-  
+  const id = newId("dec");
+
   // Calculate total score using the weighted model
   // (A+G+M+S+E+Lv) - (C + U)
-  const scoreTotal = 
-    (proposal.scores.activation * 1.0) +
-    (proposal.scores.gateLeverage * 1.5) +
-    (proposal.scores.monitoring * 1.0) +
-    (proposal.scores.simulation * 1.0) +
-    (proposal.scores.ecosystem * 0.8) +
-    (proposal.scores.monetization * 1.2) -
-    (proposal.scores.complexity * 2.0) -
-    (proposal.scores.uiExpansion * 1.5);
+  const scoreTotal =
+    proposal.scores.activation * 1.0 +
+    proposal.scores.gateLeverage * 1.5 +
+    proposal.scores.monitoring * 1.0 +
+    proposal.scores.simulation * 1.0 +
+    proposal.scores.ecosystem * 0.8 +
+    proposal.scores.monetization * 1.2 -
+    proposal.scores.complexity * 2.0 -
+    proposal.scores.uiExpansion * 1.5;
 
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO founder_decisions (id, title, description, scores_json, score_total, strategic_align, created_by, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
+  `,
+  ).run(
     id,
     proposal.title,
     proposal.description,
@@ -114,7 +163,7 @@ export function createDecisionProposal(proposal: {
     proposal.strategicAlign ? 1 : 0,
     proposal.createdBy,
     new Date().toISOString(),
-    new Date().toISOString()
+    new Date().toISOString(),
   );
 
   return id;
@@ -122,5 +171,7 @@ export function createDecisionProposal(proposal: {
 
 export function getDecisions() {
   const db = getDB();
-  return db.prepare('SELECT * FROM founder_decisions ORDER BY created_at DESC').all();
+  return db
+    .prepare("SELECT * FROM founder_decisions ORDER BY created_at DESC")
+    .all();
 }

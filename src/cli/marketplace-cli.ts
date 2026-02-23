@@ -1,5 +1,12 @@
 // @ts-nocheck
-import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, readdirSync } from "node:fs";
+import {
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  rmSync,
+  existsSync,
+  readdirSync,
+} from "node:fs";
 import { resolve, join, relative } from "node:path";
 import { homedir } from "node:os";
 import { execFileSync } from "node:child_process";
@@ -53,7 +60,9 @@ export async function runMarketplaceCommand(argv: string[]): Promise<number> {
     }
     console.log(`=== Local Modules (${modules.length}) ===`);
     for (const mod of modules) {
-      const det = mod.deterministicSupport ? "deterministic" : "nondeterministic";
+      const det = mod.deterministicSupport
+        ? "deterministic"
+        : "nondeterministic";
       console.log(`${mod.moduleId}@${mod.version} [${det}]`);
     }
     return 0;
@@ -66,7 +75,9 @@ export async function runMarketplaceCommand(argv: string[]): Promise<number> {
       return 1;
     }
     const changed = revokeModule(moduleId, REVOCATION_PATH);
-    console.log(changed ? `Revoked ${moduleId}` : `Already revoked ${moduleId}`);
+    console.log(
+      changed ? `Revoked ${moduleId}` : `Already revoked ${moduleId}`,
+    );
     return 0;
   }
 
@@ -91,7 +102,10 @@ export async function runMarketplaceCommand(argv: string[]): Promise<number> {
     }
     const pipelineContent = readFileSync(resolve(pipelinePath), "utf8");
     const pipeline = parsePipelineDefinition(pipelineContent);
-    const errors = validatePipelineCompatibility(pipeline, listLocalModules(MODULES_ROOT));
+    const errors = validatePipelineCompatibility(
+      pipeline,
+      listLocalModules(MODULES_ROOT),
+    );
     if (errors.length > 0) {
       for (const error of errors) {
         console.error(`- ${error}`);
@@ -105,7 +119,10 @@ export async function runMarketplaceCommand(argv: string[]): Promise<number> {
 
   if (command === "export" && argv.includes("--deterministic")) {
     const outputArgIdx = argv.findIndex((arg) => arg === "--out");
-    const outPath = outputArgIdx >= 0 ? argv[outputArgIdx + 1] : ".zeo/export/zeo-modules-deterministic.tar";
+    const outPath =
+      outputArgIdx >= 0
+        ? argv[outputArgIdx + 1]
+        : ".zeo/export/zeo-modules-deterministic.tar";
     if (!outPath) {
       console.error("Usage: zeo export --deterministic [--out <tar-path>]");
       return 1;
@@ -113,7 +130,12 @@ export async function runMarketplaceCommand(argv: string[]): Promise<number> {
     const absOut = resolve(outPath);
     mkdirSync(resolve(dirnameSafe(absOut)), { recursive: true });
 
-    const stageDir = resolve(homedir(), ".zeo", "exports", `stage-${Date.now()}`);
+    const stageDir = resolve(
+      homedir(),
+      ".zeo",
+      "exports",
+      `stage-${Date.now()}`,
+    );
     rmSync(stageDir, { recursive: true, force: true });
     mkdirSync(stageDir, { recursive: true });
 
@@ -121,8 +143,19 @@ export async function runMarketplaceCommand(argv: string[]): Promise<number> {
 
     execFileSync(
       "tar",
-      ["--sort=name", "--mtime=@0", "--owner=0", "--group=0", "--numeric-owner", "-cf", absOut, "-C", stageDir, "."],
-      { stdio: "inherit" }
+      [
+        "--sort=name",
+        "--mtime=@0",
+        "--owner=0",
+        "--group=0",
+        "--numeric-owner",
+        "-cf",
+        absOut,
+        "-C",
+        stageDir,
+        ".",
+      ],
+      { stdio: "inherit" },
     );
     rmSync(stageDir, { recursive: true, force: true });
     console.log(`Deterministic export written: ${absOut}`);
@@ -150,7 +183,9 @@ export async function runMarketplaceCommand(argv: string[]): Promise<number> {
       for (const line of badLines) console.error(`- ${line}`);
       return 1;
     }
-    const hash = execFileSync("sha256sum", [absTar], { encoding: "utf8" }).split(/\s+/)[0];
+    const hash = execFileSync("sha256sum", [absTar], {
+      encoding: "utf8",
+    }).split(/\s+/)[0];
     console.log(`Export verified: ${absTar}`);
     console.log(`sha256=${hash}`);
     return 0;
@@ -174,7 +209,9 @@ function copyTreeDeterministic(source: string, dest: string): void {
   while (stack.length > 0) {
     const current = stack.pop();
     if (!current) continue;
-    const entries = readdirSync(current, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name));
+    const entries = readdirSync(current, { withFileTypes: true }).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
     for (const entry of entries) {
       const srcPath = join(current, entry.name);
       const rel = relative(source, srcPath);
@@ -190,4 +227,3 @@ function copyTreeDeterministic(source: string, dest: string): void {
     }
   }
 }
-

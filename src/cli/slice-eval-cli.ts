@@ -15,7 +15,11 @@ import {
   type SliceDimension,
   getGatingThresholds,
 } from "@zeo/eval";
-import type { ReplayDataset, ReplayResult, CalibrationBucket } from "@zeo/contracts";
+import type {
+  ReplayDataset,
+  ReplayResult,
+  CalibrationBucket,
+} from "@zeo/contracts";
 
 /**
  * Slice eval CLI arguments
@@ -169,10 +173,14 @@ function parseDimensions(dimensionsStr: string | undefined): SliceDimension[] {
   const parsed = dimensionsStr
     .split(",")
     .map((d) => d.trim())
-    .filter((d): d is SliceDimension => validDimensions.includes(d as SliceDimension));
+    .filter((d): d is SliceDimension =>
+      validDimensions.includes(d as SliceDimension),
+    );
 
   if (parsed.length === 0) {
-    throw new Error(`No valid dimensions provided. Valid: ${validDimensions.join(", ")}`);
+    throw new Error(
+      `No valid dimensions provided. Valid: ${validDimensions.join(", ")}`,
+    );
   }
 
   return parsed;
@@ -185,20 +193,26 @@ function validatePreset(preset: string): "strict" | "standard" | "lenient" {
   if (preset === "strict" || preset === "standard" || preset === "lenient") {
     return preset;
   }
-  throw new Error(`Invalid preset: ${preset}. Use: strict, standard, or lenient`);
+  throw new Error(
+    `Invalid preset: ${preset}. Use: strict, standard, or lenient`,
+  );
 }
 
 /**
  * Run slice evaluation from CLI
  */
-export async function runSliceEvalCommand(args: SliceEvalCliArgs): Promise<number> {
+export async function runSliceEvalCommand(
+  args: SliceEvalCliArgs,
+): Promise<number> {
   if (args.help) {
     printSliceEvalHelp();
     return 0;
   }
 
   if (!args.dataset) {
-    console.error("[SLICE_EVAL_ERROR] No dataset specified. Use --dataset <path>");
+    console.error(
+      "[SLICE_EVAL_ERROR] No dataset specified. Use --dataset <path>",
+    );
     console.error("Run 'zeo eval:slices --help' for usage information.");
     return 1;
   }
@@ -232,7 +246,9 @@ export async function runSliceEvalCommand(args: SliceEvalCliArgs): Promise<numbe
     if (args.verbose) {
       console.log(`Using ${preset} gating preset:`);
       console.log(`  Min sample size: ${thresholds.minSampleSize}`);
-      console.log(`  Min coverage: ${(thresholds.minCoverage * 100).toFixed(0)}%`);
+      console.log(
+        `  Min coverage: ${(thresholds.minCoverage * 100).toFixed(0)}%`,
+      );
       console.log(`  Max Brier: ${thresholds.maxBrierScore}`);
     }
 
@@ -256,7 +272,7 @@ export async function runSliceEvalCommand(args: SliceEvalCliArgs): Promise<numbe
             variableCount: c.decisionSpec.assumptions?.length || 0,
             observationCount: c.observationBatches.reduce(
               (sum, b) => sum + b.observations.length,
-              0
+              0,
             ),
             modelStrength: 0.7,
           },
@@ -342,11 +358,12 @@ export async function runSliceEvalCommand(args: SliceEvalCliArgs): Promise<numbe
 
     return 0;
   } catch (err) {
-    console.error(`[SLICE_EVAL_ERROR] ${err instanceof Error ? err.message : err}`);
+    console.error(
+      `[SLICE_EVAL_ERROR] ${err instanceof Error ? err.message : err}`,
+    );
     if (args.verbose) {
       console.error(err);
     }
     return 1;
   }
 }
-

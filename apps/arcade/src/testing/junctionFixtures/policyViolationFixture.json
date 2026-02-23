@@ -5,9 +5,24 @@
     "runId": "test-run-policy-001",
     "policyName": "security-baseline",
     "violations": [
-      {"rule": "no-secrets", "severity": 0.9, "message": "Hardcoded API key detected", "resource": "src/config.ts"},
-      {"rule": "no-secrets", "severity": 0.85, "message": "Password in plain text", "resource": "src/auth.ts"},
-      {"rule": "require-https", "severity": 0.7, "message": "HTTP endpoint allowed", "resource": "src/api.ts"}
+      {
+        "rule": "no-secrets",
+        "severity": 0.9,
+        "message": "Hardcoded API key detected",
+        "resource": "src/config.ts"
+      },
+      {
+        "rule": "no-secrets",
+        "severity": 0.85,
+        "message": "Password in plain text",
+        "resource": "src/auth.ts"
+      },
+      {
+        "rule": "require-https",
+        "severity": 0.7,
+        "message": "HTTP endpoint allowed",
+        "resource": "src/api.ts"
+      }
     ]
   },
   "expected": {

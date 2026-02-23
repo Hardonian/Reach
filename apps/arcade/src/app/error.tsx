@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 export default function Error({
   error,
@@ -10,7 +10,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Application error:', error);
+    console.error("Application error:", error);
   }, [error]);
 
   return (
@@ -22,10 +22,7 @@ export default function Error({
           We apologize for the inconvenience. Our team has been notified.
         </p>
         <div className="flex gap-4 justify-center">
-          <button
-            onClick={reset}
-            className="btn-primary"
-          >
+          <button onClick={reset} className="btn-primary">
             Try Again
           </button>
           <a href="/" className="btn-secondary">

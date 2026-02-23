@@ -13,6 +13,7 @@ Reach Federated Execution allows multiple nodes across different organizations t
 - `TTL`: Time-to-live for the delegated execution.
 
 ## 3. Execution Lifecycle 1. **Advertisement**: Nodes exchange capability snapshots and registry hashes during handshake.
+
 2. **Negotiation**: Node A selects Node B based on capability match and trust level.
 3. **Delegation**: Node A sends a signed delegation request to Node B.
 4. **Validation**: Node B re-verifies the pack signature, checks local policy, and validates the registry hash.
@@ -26,5 +27,6 @@ Reach Federated Execution allows multiple nodes across different organizations t
 - **Node Provenance**: Every tool execution record contains `OriginNodeID` and `ExecutionNodeID`.
 
 ## 5. Failure Containment - **Circuit Breaker**: Nodes track failure rates of peers and temporarily suspend delegation if a threshold is exceeded.
+
 - **Depth Limit**: Maximum delegation depth is strictly enforced (default: 5).
 - **TTL Enforcement**: Delegated runs are terminated if they exceed the specified TTL.

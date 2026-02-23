@@ -47,10 +47,12 @@ Identifies the pack.
 
 ### 4. Logic (`execution_graph`) The serialized orchestration plan. Can be a static graph or a set of prompts for the Planner.
 
-### 5. Integrity (`signature_hash`) A SHA-256 hash of the canonical JSON representation of the pack *excluding* the `signature_hash` field.
+### 5. Integrity (`signature_hash`) A SHA-256 hash of the canonical JSON representation of the pack _excluding_ the `signature_hash` field.
+
 Marketplace packs may require a digital signature from a trusted key.
 
 ## Validation Lifecycle 1. **Load**: Parse JSON.
+
 2. **Verify Hash**: Re-compute SHA-256 of content. Compare with `signature_hash`. Fail if mismatch.
 3. **Verify Capabilities**: Check against the local `CapabilityRegistry`.
    - Are all `declared_tools` available?
@@ -64,7 +66,7 @@ Marketplace packs may require a digital signature from a trusted key.
 - The `ExecutionPack` is immutable.
 - A `RunID` is generated for the session.
 - The `ExecutionContext` includes the `PackID` and `PackVersion`.
-- Replaying a run strictly requires the *exact same version* of the Pack.
+- Replaying a run strictly requires the _exact same version_ of the Pack.
 
 ## Marketplace Rules Packs distributed via the Marketplace must:
 

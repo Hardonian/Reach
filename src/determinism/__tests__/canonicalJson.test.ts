@@ -7,8 +7,17 @@
 
 import assert from "assert";
 import { test, describe } from "node:test";
-import { canonicalJson, canonicalJsonPretty, canonicalEqual } from "../canonicalJson.js";
-import { sortStrings, sortByKey, sortedEntries, sortedKeys } from "../deterministicSort.js";
+import {
+  canonicalJson,
+  canonicalJsonPretty,
+  canonicalEqual,
+} from "../canonicalJson.js";
+import {
+  sortStrings,
+  sortByKey,
+  sortedEntries,
+  sortedKeys,
+} from "../deterministicSort.js";
 import { DeterministicMap } from "../deterministicMap.js";
 import { seededRandom } from "../seededRandom.js";
 import { HashStream, hashString, combineHashes } from "../hashStream.js";
@@ -57,10 +66,7 @@ describe("canonicalJson", () => {
   });
 
   test("canonicalEqual returns true for same-content objects", () => {
-    assert.strictEqual(
-      canonicalEqual({ b: 2, a: 1 }, { a: 1, b: 2 }),
-      true
-    );
+    assert.strictEqual(canonicalEqual({ b: 2, a: 1 }, { a: 1, b: 2 }), true);
   });
 
   test("canonicalEqual returns false for different objects", () => {
@@ -94,7 +100,7 @@ describe("deterministicSort", () => {
     const sorted = sortByKey(items, "id");
     assert.deepStrictEqual(
       sorted.map((x) => x.id),
-      ["a", "b", "c"]
+      ["a", "b", "c"],
     );
   });
 
@@ -131,7 +137,11 @@ describe("DeterministicMap", () => {
   });
 
   test("keys() returns sorted keys", () => {
-    const map = new DeterministicMap<number>([["c", 3], ["a", 1], ["b", 2]]);
+    const map = new DeterministicMap<number>([
+      ["c", 3],
+      ["a", 1],
+      ["b", 2],
+    ]);
     assert.deepStrictEqual([...map.keys()], ["a", "b", "c"]);
   });
 
@@ -185,7 +195,7 @@ describe("seededRandom", () => {
       const v = rng.nextInt(10);
       assert.ok(
         Number.isInteger(v) && v >= 0 && v < 10,
-        `Expected [0,10), got ${v}`
+        `Expected [0,10), got ${v}`,
       );
     }
   });

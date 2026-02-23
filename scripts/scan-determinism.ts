@@ -102,8 +102,7 @@ const GO_PATTERNS: Pattern[] = [
   },
   {
     id: "UUID_V4",
-    regex:
-      /uuid\s*\.\s*(?:New|NewString|NewRandom|MustParse)\s*\(\s*\)/g,
+    regex: /uuid\s*\.\s*(?:New|NewString|NewRandom|MustParse)\s*\(\s*\)/g,
     risk: "CRITICAL",
     description: "UUID v4 generation is nondeterministic",
     remedy: "Derive IDs deterministically from content hash",
@@ -185,9 +184,26 @@ const SKIP_DIRS = new Set([
 ]);
 
 const SKIP_EXTENSIONS = new Set([
-  ".exe", ".zip", ".png", ".mp4", ".ico", ".woff", ".woff2",
-  ".ttf", ".otf", ".eot", ".svg", ".jpg", ".jpeg", ".gif",
-  ".webp", ".avif", ".pdf", ".bin", ".db", ".sqlite",
+  ".exe",
+  ".zip",
+  ".png",
+  ".mp4",
+  ".ico",
+  ".woff",
+  ".woff2",
+  ".ttf",
+  ".otf",
+  ".eot",
+  ".svg",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ".avif",
+  ".pdf",
+  ".bin",
+  ".db",
+  ".sqlite",
 ]);
 
 // ---------------------------------------------------------------------------
@@ -260,7 +276,10 @@ function scanFile(filePath: string, patterns: Pattern[]): Finding[] {
       }
 
       // Inline-comment check: skip if line contains suppression marker
-      if (line.includes("// determinism:ok") || line.includes("// nondeterministic:ok")) {
+      if (
+        line.includes("// determinism:ok") ||
+        line.includes("// nondeterministic:ok")
+      ) {
         continue;
       }
 
@@ -320,16 +339,14 @@ function generateReport(repoRoot: string): AuditReport {
   const medium = findings.filter((f) => f.risk === "MEDIUM").length;
   const low = findings.filter((f) => f.risk === "LOW").length;
   const proofHashRisks = findings.filter(
-    (f) => f.affectsProofHash && f.risk === "CRITICAL"
+    (f) => f.affectsProofHash && f.risk === "CRITICAL",
   ).length;
 
   // Stable scan ID derived from findings (deterministic)
   const scanId = crypto
     .createHash("sha256")
     .update(
-      JSON.stringify(
-        findings.map((f) => `${f.file}:${f.line}:${f.id}`).sort()
-      )
+      JSON.stringify(findings.map((f) => `${f.file}:${f.line}:${f.id}`).sort()),
     )
     .digest("hex")
     .substring(0, 16);
@@ -374,7 +391,7 @@ function generateMarkdown(report: AuditReport): string {
     lines.push("## 🔴 Critical Findings");
     lines.push("");
     lines.push(
-      "These findings may directly compromise proof hash stability. Fix before merging."
+      "These findings may directly compromise proof hash stability. Fix before merging.",
     );
     lines.push("");
     const critical = report.findings.filter((f) => f.risk === "CRITICAL");
@@ -388,7 +405,9 @@ function generateMarkdown(report: AuditReport): string {
       lines.push(f.snippet);
       lines.push("```");
       lines.push(`**Remedy:** ${f.remedy}`);
-      lines.push(`**Affects Proof Hash:** ${f.affectsProofHash ? "⚠️ Yes" : "No"}`);
+      lines.push(
+        `**Affects Proof Hash:** ${f.affectsProofHash ? "⚠️ Yes" : "No"}`,
+      );
       lines.push("");
     }
   }
@@ -410,9 +429,7 @@ function generateMarkdown(report: AuditReport): string {
     lines.push("");
     const low = report.findings.filter((f) => f.risk === "LOW");
     for (const f of low) {
-      lines.push(
-        `- \`${f.id}\` at \`${f.file}:${f.line}\`: ${f.description}`
-      );
+      lines.push(`- \`${f.id}\` at \`${f.file}:${f.line}\`: ${f.description}`);
     }
     lines.push("");
   }
@@ -420,25 +437,27 @@ function generateMarkdown(report: AuditReport): string {
   lines.push("## Remediation Priority");
   lines.push("");
   lines.push(
-    "1. **CRITICAL in engine paths** — Fix `DATE_NOW`, `MATH_RANDOM`, `TIME_NOW`, `UUID_V4` in `services/runner/internal/` and `core/`"
+    "1. **CRITICAL in engine paths** — Fix `DATE_NOW`, `MATH_RANDOM`, `TIME_NOW`, `UUID_V4` in `services/runner/internal/` and `core/`",
   );
   lines.push(
-    "2. **Unsorted iteration** — Replace `Object.keys()` without `.sort()` in any serialization path"
+    "2. **Unsorted iteration** — Replace `Object.keys()` without `.sort()` in any serialization path",
   );
   lines.push(
-    "3. **MEDIUM in metadata paths** — Audit `JSON_STRINGIFY_NON_CANONICAL` in report/audit code"
+    "3. **MEDIUM in metadata paths** — Audit `JSON_STRINGIFY_NON_CANONICAL` in report/audit code",
   );
   lines.push(
-    "4. **LOW** — Document acceptable environment reads with `// determinism:ok` suppression"
+    "4. **LOW** — Document acceptable environment reads with `// determinism:ok` suppression",
   );
   lines.push("");
   lines.push("## Suppression");
   lines.push("");
   lines.push(
-    "To suppress a known-acceptable finding, add `// determinism:ok` on the same line:"
+    "To suppress a known-acceptable finding, add `// determinism:ok` on the same line:",
   );
   lines.push("```typescript");
-  lines.push("const ts = Date.now(); // determinism:ok — used only for logging");
+  lines.push(
+    "const ts = Date.now(); // determinism:ok — used only for logging",
+  );
   lines.push("```");
 
   return lines.join("\n");
@@ -449,9 +468,7 @@ function generateMarkdown(report: AuditReport): string {
 // ---------------------------------------------------------------------------
 
 const args = process.argv.slice(2);
-const repoRoot = path.resolve(
-  args.find((a) => !a.startsWith("--")) ?? "."
-);
+const repoRoot = path.resolve(args.find((a) => !a.startsWith("--")) ?? ".");
 const jsonOutput = args.includes("--json");
 const ciMode = args.includes("--ci");
 // Second positional arg is output dir
@@ -484,7 +501,7 @@ if (jsonOutput) {
 
 if (ciMode && report.summary.proof_hash_risks > 0) {
   process.stderr.write(
-    `\n❌ CI FAILED: ${report.summary.proof_hash_risks} CRITICAL nondeterminism issue(s) in proof-hash paths. Fix before merging.\n`
+    `\n❌ CI FAILED: ${report.summary.proof_hash_risks} CRITICAL nondeterminism issue(s) in proof-hash paths. Fix before merging.\n`,
   );
   process.exit(1);
 }

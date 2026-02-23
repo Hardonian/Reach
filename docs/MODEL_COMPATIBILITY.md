@@ -2,13 +2,14 @@
 
 ## Supported Model Types ### Current
 
-| Type | Examples | Status |
-|------|----------|--------|
+| Type         | Examples                                      | Status       |
+| ------------ | --------------------------------------------- | ------------ |
 | Hosted Cloud | OpenAI GPT-4, Anthropic Claude, Google Gemini | ✅ Supported |
-| Local OSS | Ollama (llama3, mistral, phi3) | ✅ Supported |
-| Small Mode | Deterministic fallback | ✅ Supported |
+| Local OSS    | Ollama (llama3, mistral, phi3)                | ✅ Supported |
+| Small Mode   | Deterministic fallback                        | ✅ Supported |
 
 ### Future Roadmap | Type | Examples | ETA |
+
 |------|----------|-----|
 | Ultra-Long Context | 1M+ token models | 2025 Q2 |
 | Tool-Native Planning | Models with built-in agent loops | 2025 Q1 |
@@ -71,6 +72,7 @@ for _, cap := range result.SupportedCapabilities {
 ```
 
 ### Detected Capabilities | Capability | Detection Method |
+
 |------------|------------------|
 | `json_mode` | JSON output test |
 | `tool_use` | Tool invocation test |
@@ -80,19 +82,21 @@ for _, cap := range result.SupportedCapabilities {
 
 ## Version Compatibility ### Current Support Matrix
 
-| Model Version | Status | Notes |
-|---------------|--------|-------|
-| 1.0 - 2.0 | ✅ Supported | Legacy tool format |
-| 2.0 - 3.0 | ✅ Fully Supported | Current standard |
-| 3.0+ | ⚠️ Beta | New features may require flags |
+| Model Version | Status             | Notes                          |
+| ------------- | ------------------ | ------------------------------ |
+| 1.0 - 2.0     | ✅ Supported       | Legacy tool format             |
+| 2.0 - 3.0     | ✅ Fully Supported | Current standard               |
+| 3.0+          | ⚠️ Beta            | New features may require flags |
 
 ### Version Validation ```go
+
 err := model.ValidateCompatibility("2.5")
 if err != nil {
-    // Model too new or too old
-    log.Warn(err)
+// Model too new or too old
+log.Warn(err)
 }
-```
+
+````
 
 ## Feature Flags Experimental features are gated:
 
@@ -102,9 +106,10 @@ if model.CheckFeature("native_planning", caps) {
 } else {
     // Use Reach's planning layer
 }
-```
+````
 
 ### Available Feature Flags | Feature | Requires | Status |
+
 |---------|----------|--------|
 | `native_planning` | `nativePlanning` capability | Alpha |
 | `ultra_context` | `ultraLongContext` capability | Beta |
@@ -127,15 +132,17 @@ Tool{
 ```
 
 ### From 4K to 128K+ Context ```go
+
 // Old: Manual chunking required
 chunks := manualChunk(prompt, 4000)
 
 // New: Automatic negotiation
-config, _ := model.CreateFutureProofConfig(adapter, input, opts)
+config, \_ := model.CreateFutureProofConfig(adapter, input, opts)
 if config.Negotiated.RequiresChunking {
-    // Reach handles chunking
+// Reach handles chunking
 }
-```
+
+````
 
 ## Future-Proof Config Create configurations that work across model versions:
 
@@ -148,7 +155,7 @@ if err != nil {
 // Use negotiated parameters
 window := config.Negotiated.WindowSize
 budget := config.Budget
-```
+````
 
 ## Distilled Model Support Ultra-small models (<1B params) work in Edge Mode:
 
@@ -159,6 +166,7 @@ budget := config.Budget
 ```
 
 Characteristics:
+
 - No tool calling
 - No complex reasoning
 - Fast inference (~100ms/token)
@@ -176,21 +184,27 @@ adapted := layer.AdaptRequest(request)
 ```
 
 ## Deprecation Policy | Feature | Deprecated | Removal |
+
 |---------|------------|---------|
 | <4K context windows | 2025-01 | 2025-06 |
 | Tool format v1 | 2025-03 | 2025-09 |
 | Non-streaming adapters | 2025-06 | 2025-12 |
 
 ## Best Practices 1. **Use capability detection** - Don't assume model capabilities
+
 2. **Handle negotiation failures** - Always have a fallback
 3. **Budget conservatively** - Leave 10% buffer for overhead
 4. **Test with small models** - Ensures edge mode compatibility
 5. **Version pin in production** - Avoid surprise breaking changes
 
 ## Testing Compatibility ```bash
+
 # Test with specific model reach run --model=hosted --model-id=gpt-4
 
 # Test with fallback chain reach run --model-mode=auto --verbose
 
 # Verify edge mode works reach run --edge --verify-determinism
+
+```
+
 ```

@@ -1,5 +1,5 @@
-import Redis from 'ioredis';
-import { env } from './env';
+import Redis from "ioredis";
+import { env } from "./env";
 
 const globalForRedis = global as unknown as { redis: Redis | undefined };
 
@@ -13,4 +13,4 @@ export const redis =
       })
     : undefined);
 
-if (env.NODE_ENV !== 'production') globalForRedis.redis = redis;
+if (env.NODE_ENV !== "production") globalForRedis.redis = redis;

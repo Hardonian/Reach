@@ -12,10 +12,12 @@ export async function runAuditCommand(args: string[]): Promise<number> {
     return 0;
   }
 
-  const flagged = recent.filter(a => {
+  const flagged = recent.filter((a) => {
     if (a.flip_distance_summary.length === 0) return false;
     return a.flip_distance_summary.some(
-      (s: { distance?: number }) => typeof s.distance === "number" && s.distance < DRIFT_FLIP_DISTANCE_THRESHOLD
+      (s: { distance?: number }) =>
+        typeof s.distance === "number" &&
+        s.distance < DRIFT_FLIP_DISTANCE_THRESHOLD,
     );
   });
 
@@ -24,13 +26,17 @@ export async function runAuditCommand(args: string[]): Promise<number> {
 
   if (flagged.length > 0) {
     console.log("\nRecommended Re-evaluations:");
-    flagged.forEach(f => {
+    flagged.forEach((f) => {
       const breachedCount = f.flip_distance_summary.filter(
-        (s: { distance?: number }) => typeof s.distance === "number" && s.distance < DRIFT_FLIP_DISTANCE_THRESHOLD
+        (s: { distance?: number }) =>
+          typeof s.distance === "number" &&
+          s.distance < DRIFT_FLIP_DISTANCE_THRESHOLD,
       ).length;
       const riskTier = breachedCount >= 2 ? "HIGH" : "MEDIUM";
       console.log(`- ${f.decision_id}: RISK TIER ${riskTier}`);
-      console.log(`  Reason: Input distributions shifted; ${f.flip_distance_summary[0]?.assumption_id} boundary breached.`);
+      console.log(
+        `  Reason: Input distributions shifted; ${f.flip_distance_summary[0]?.assumption_id} boundary breached.`,
+      );
     });
   } else {
     console.log("\n✅ All recent decisions within drift tolerances.");
@@ -38,4 +44,3 @@ export async function runAuditCommand(args: string[]): Promise<number> {
 
   return 0;
 }
-

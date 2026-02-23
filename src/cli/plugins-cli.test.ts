@@ -9,4 +9,3 @@ describe("plugins cli", () => {
     expect(ids).toContain("sample-deterministic-plugin");
   });
 });
-

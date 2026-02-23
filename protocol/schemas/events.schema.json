@@ -10,9 +10,7 @@
           "const": "run_created"
         }
       },
-      "required": [
-        "type"
-      ],
+      "required": ["type"],
       "additionalProperties": false
     },
     {
@@ -22,9 +20,7 @@
           "const": "run_started"
         }
       },
-      "required": [
-        "type"
-      ],
+      "required": ["type"],
       "additionalProperties": false
     },
     {
@@ -40,11 +36,7 @@
           "$ref": "toolcall.schema.json#/$defs/ToolCall"
         }
       },
-      "required": [
-        "type",
-        "step_id",
-        "call"
-      ],
+      "required": ["type", "step_id", "call"],
       "additionalProperties": false
     },
     {
@@ -60,11 +52,7 @@
           "$ref": "toolcall.schema.json#/$defs/ToolResult"
         }
       },
-      "required": [
-        "type",
-        "step_id",
-        "result"
-      ],
+      "required": ["type", "step_id", "result"],
       "additionalProperties": false
     },
     {
@@ -83,12 +71,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "type",
-        "step_id",
-        "call",
-        "reason"
-      ],
+      "required": ["type", "step_id", "call", "reason"],
       "additionalProperties": false
     },
     {
@@ -104,11 +87,7 @@
           "$ref": "artifact.schema.json#/$defs/Patch"
         }
       },
-      "required": [
-        "type",
-        "step_id",
-        "patch"
-      ],
+      "required": ["type", "step_id", "patch"],
       "additionalProperties": false
     },
     {
@@ -118,9 +97,7 @@
           "const": "run_completed"
         }
       },
-      "required": [
-        "type"
-      ],
+      "required": ["type"],
       "additionalProperties": false
     },
     {
@@ -133,10 +110,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "type",
-        "reason"
-      ],
+      "required": ["type", "reason"],
       "additionalProperties": false
     },
     {
@@ -185,18 +159,10 @@
         },
         "decision": {
           "type": "string",
-          "enum": [
-            "approve_once",
-            "approve_run",
-            "deny"
-          ]
+          "enum": ["approve_once", "approve_run", "deny"]
         }
       },
-      "required": [
-        "type",
-        "gate_id",
-        "decision"
-      ],
+      "required": ["type", "gate_id", "decision"],
       "additionalProperties": false
     }
   ]

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
+import { useEffect, useState } from "react";
+import Image from "next/image";
 
 interface HeroMediaProps {
   videoSrc?: string;
@@ -9,20 +9,24 @@ interface HeroMediaProps {
   className?: string;
 }
 
-export function HeroMedia({ videoSrc, fallbackSrc, className = '' }: HeroMediaProps) {
+export function HeroMedia({
+  videoSrc,
+  fallbackSrc,
+  className = "",
+}: HeroMediaProps) {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReducedMotion(mediaQuery.matches);
 
     const handleChange = (e: MediaQueryListEvent) => {
       setPrefersReducedMotion(e.matches);
     };
 
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
   // If user prefers reduced motion or video failed to load, show static image

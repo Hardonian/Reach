@@ -34,7 +34,7 @@ export function sortNumbers(arr: readonly number[]): number[] {
  */
 export function sortByKey<T extends Record<string, unknown>>(
   arr: readonly T[],
-  key: keyof T
+  key: keyof T,
 ): T[] {
   return [...arr].sort((a, b) => {
     const av = String(a[key]);
@@ -51,7 +51,7 @@ export function sortByKey<T extends Record<string, unknown>>(
  */
 export function sortByNumericKey<T extends Record<string, unknown>>(
   arr: readonly T[],
-  key: keyof T
+  key: keyof T,
 ): T[] {
   return [...arr].sort((a, b) => Number(a[key]) - Number(b[key]));
 }
@@ -62,7 +62,7 @@ export function sortByNumericKey<T extends Record<string, unknown>>(
  */
 export function sortWith<T>(
   arr: readonly T[],
-  comparator: (a: T, b: T) => number
+  comparator: (a: T, b: T) => number,
 ): T[] {
   return [...arr].sort(comparator);
 }
@@ -74,9 +74,7 @@ export function sortWith<T>(
  * @example
  * sortedEntries({ b: 2, a: 1 }) // [["a", 1], ["b", 2]]
  */
-export function sortedEntries<T>(
-  obj: Record<string, T>
-): Array<[string, T]> {
+export function sortedEntries<T>(obj: Record<string, T>): Array<[string, T]> {
   return Object.keys(obj)
     .sort()
     .map((k) => [k, obj[k]]);

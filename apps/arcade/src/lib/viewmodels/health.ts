@@ -1,4 +1,4 @@
-import { safeDefault, ViewModelResponse } from './types';
+import { safeDefault, ViewModelResponse } from "./types";
 
 export interface HealthData {
   uptime: string;
@@ -9,13 +9,15 @@ export interface HealthData {
   failureTrend: string;
 }
 
-export const getHealthData = async (): Promise<ViewModelResponse<HealthData>> => {
+export const getHealthData = async (): Promise<
+  ViewModelResponse<HealthData>
+> => {
   return safeDefault({
-    uptime: '99.98%',
-    uptimeTrend: '0.01%',
+    uptime: "99.98%",
+    uptimeTrend: "0.01%",
     queueDepth: 424,
-    queueTrend: '12%',
-    failureRate: '2.1%',
-    failureTrend: '0.5%',
+    queueTrend: "12%",
+    failureRate: "2.1%",
+    failureTrend: "0.5%",
   });
 };

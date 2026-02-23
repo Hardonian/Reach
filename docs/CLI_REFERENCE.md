@@ -7,11 +7,13 @@ Last Updated: 2026-02-22
 `reachctl` is the primary command-line interface for all Reach operations. It provides deterministic local execution, replay verification, policy management, and artifact lifecycle management.
 
 **Build from source:**
+
 ```bash
 cd services/runner && go build -ldflags="-s -w" ./cmd/reachctl
 ```
 
 **Global flags available on all commands:**
+
 - `--json` — Output structured JSON instead of human-readable text.
 - `--verbose` — Enable verbose logging.
 - `--data-dir <path>` — Override the default data directory (`~/.reach/`).
@@ -32,19 +34,27 @@ reachctl init [--name <pack-name>] [--governed] [--json]
 ```
 
 **Options:**
+
 - `--name <pack-name>` — Pack name (default: directory name)
 - `--governed` — Initialize with strict governance policy applied
 - `--template <id>` — Use a registered pack template
 
 **Output:**
+
 ```
 ✓ Initialized pack 'my-pack' at ./my-pack/
   manifest.json  ·  policy.json  ·  README.md
 ```
 
 **JSON output:**
+
 ```json
-{"status":"success","pack_name":"my-pack","path":"./my-pack/","files":["manifest.json","policy.json","README.md"]}
+{
+  "status": "success",
+  "pack_name": "my-pack",
+  "path": "./my-pack/",
+  "files": ["manifest.json", "policy.json", "README.md"]
+}
 ```
 
 ---
@@ -58,12 +68,14 @@ reachctl run <pack-name> [--input <json>] [--dry-run] [--json]
 ```
 
 **Options:**
+
 - `<pack-name>` — Name or path of the pack to run. Checks `~/.reach/packs/` if not found locally.
 - `--input <json>` — JSON-encoded input to the pack.
 - `--dry-run` — Validate without executing (checks policy + artifact availability).
 - `--timeout <duration>` — Override default execution timeout (e.g., `--timeout=60s`).
 
 **Output:**
+
 ```
 ▶ Running pack 'demo-pack'
   run_id: sha256:abc123
@@ -73,8 +85,14 @@ reachctl run <pack-name> [--input <json>] [--dry-run] [--json]
 ```
 
 **JSON output:**
+
 ```json
-{"run_id":"sha256:abc123","status":"success","fingerprint":"sha256:def456","duration_ms":420}
+{
+  "run_id": "sha256:abc123",
+  "status": "success",
+  "fingerprint": "sha256:def456",
+  "duration_ms": 420
+}
 ```
 
 ---
@@ -88,11 +106,13 @@ reachctl replay <run-id> [--verbose] [--json]
 ```
 
 **Options:**
+
 - `<run-id>` — The run ID to replay. Must exist in the local data directory.
 - `--verbose` — Show per-event comparison on divergence.
 - `--timeout <duration>` — Override default timeout.
 
 **Output (verified):**
+
 ```
 ▶ Replaying run sha256:abc123
 ✓ REPLAY_VERIFIED
@@ -102,6 +122,7 @@ reachctl replay <run-id> [--verbose] [--json]
 ```
 
 **Output (diverged):**
+
 ```
 ▶ Replaying run sha256:abc123
 ✗ REPLAY_DIVERGED
@@ -124,6 +145,7 @@ reachctl doctor [--json]
 ```
 
 Checks:
+
 - Go runtime version
 - Rust/engine binary availability
 - SQLite version
@@ -132,6 +154,7 @@ Checks:
 - Policy bundle integrity
 
 **Output:**
+
 ```
 Reach Doctor
 ─────────────────────────────
@@ -155,6 +178,7 @@ reachctl explain-failure <run-id> [--json]
 ```
 
 **Output:**
+
 ```
 Run sha256:abc123 failed with: RL-1001 PolicyDenied
 
@@ -180,6 +204,7 @@ reachctl export <run-id> [--output <path>] [--json]
 Creates a `.reach.zip` file containing all artifacts needed for replay on another machine.
 
 **Output:**
+
 ```
 ✓ Exported run sha256:abc123
   → ./sha256-abc123.reach.zip (2.4 MB)
@@ -197,6 +222,7 @@ reachctl import <path-to-bundle.reach.zip> [--json]
 ```
 
 **Output:**
+
 ```
 ✓ Imported run sha256:abc123
   Stored at: ~/.reach/runs/sha256:abc123/
@@ -214,10 +240,12 @@ reachctl gc [--older-than <duration>] [--dry-run] [--json]
 ```
 
 **Options:**
+
 - `--older-than <duration>` — Remove runs older than this duration (default: 30d).
 - `--dry-run` — Show what would be removed without deleting.
 
 **Output:**
+
 ```
 ✓ GC complete: removed 12 runs (145 MB freed)
   Oldest kept: 30 days ago
@@ -234,6 +262,7 @@ reachctl data-dir [--json]
 ```
 
 **Output:**
+
 ```
 /home/user/.reach
 ```
@@ -249,6 +278,7 @@ reachctl benchmark [--pack <name>] [--trials <n>] [--json]
 ```
 
 **Output:**
+
 ```
 Benchmark: demo-pack (3 trials)
 ──────────────────────────────────────────
@@ -273,10 +303,12 @@ reachctl verify-determinism [--n <count>] [--pack <name>] [--json]
 ```
 
 **Options:**
+
 - `--n <count>` — Number of runs (default: 5, minimum: 2).
 - `--pack <name>` — Pack to test (default: demo-pack if available).
 
 **Output (pass):**
+
 ```
 Determinism verification: demo-pack (5 runs)
 ✓ All 5 fingerprints match: sha256:def456
@@ -284,6 +316,7 @@ Determinism verification: demo-pack (5 runs)
 ```
 
 **Output (fail):**
+
 ```
 ✗ Determinism violation detected!
   Run 3 fingerprint: sha256:xxxxxx
@@ -304,6 +337,7 @@ reachctl diff-run <run-id-A> <run-id-B> [--json]
 ```
 
 **Output:**
+
 ```
 diff-run sha256:abc001 sha256:abc003
 ──────────────────────────────────────────
@@ -319,7 +353,7 @@ diff-run sha256:abc001 sha256:abc003
   First divergent event: #5 (tool.responded)
     A: {"tool":"list","output":{"items":["a","b","c"]}}
     B: {"tool":"list","output":{"items":["c","a","b"]}}
-  
+
   Likely cause: tool response order not deterministic.
   Fix: ensure tool responses are sorted before inclusion in event log.
 ```

@@ -14,11 +14,9 @@
     },
     "declared_tools": ["echo"],
     "declared_permissions": [],
-    "model_requirements": {"tier": "minimal"},
+    "model_requirements": { "tier": "minimal" },
     "execution_graph": {
-      "steps": [
-        {"id": "step-1", "tool": "echo", "input": "hello world"}
-      ]
+      "steps": [{ "id": "step-1", "tool": "echo", "input": "hello world" }]
     },
     "deterministic": true,
     "signature_hash": ""

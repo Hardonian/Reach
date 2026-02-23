@@ -1,24 +1,50 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { ROUTES } from '@/lib/routes';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ROUTES } from "@/lib/routes";
 
 const sidebarItems = [
-  { section: 'Account', items: [
-    { href: ROUTES.SETTINGS.PROFILE, label: 'Profile', icon: 'person' },
-    { href: ROUTES.SETTINGS.API_KEYS, label: 'API Keys', icon: 'vpn_key' },
-    { href: ROUTES.SETTINGS.ADVANCED.SECURITY, label: 'Security', icon: 'shield' },
-    { href: ROUTES.SETTINGS.BILLING, label: 'Billing', icon: 'credit_card' },
-  ]},
-  { section: 'Advanced', items: [
-    { href: ROUTES.SETTINGS.ADVANCED.WEBHOOKS, label: 'Webhooks', icon: 'webhook' },
-    { href: ROUTES.SETTINGS.ADVANCED.RELEASE_GATES, label: 'Release Gates', icon: 'verified' },
-    { href: ROUTES.SETTINGS.ADVANCED.ALERTS, label: 'Alerts', icon: 'notifications_active' },
-  ]},
+  {
+    section: "Account",
+    items: [
+      { href: ROUTES.SETTINGS.PROFILE, label: "Profile", icon: "person" },
+      { href: ROUTES.SETTINGS.API_KEYS, label: "API Keys", icon: "vpn_key" },
+      {
+        href: ROUTES.SETTINGS.ADVANCED.SECURITY,
+        label: "Security",
+        icon: "shield",
+      },
+      { href: ROUTES.SETTINGS.BILLING, label: "Billing", icon: "credit_card" },
+    ],
+  },
+  {
+    section: "Advanced",
+    items: [
+      {
+        href: ROUTES.SETTINGS.ADVANCED.WEBHOOKS,
+        label: "Webhooks",
+        icon: "webhook",
+      },
+      {
+        href: ROUTES.SETTINGS.ADVANCED.RELEASE_GATES,
+        label: "Release Gates",
+        icon: "verified",
+      },
+      {
+        href: ROUTES.SETTINGS.ADVANCED.ALERTS,
+        label: "Alerts",
+        icon: "notifications_active",
+      },
+    ],
+  },
 ];
 
-export default function SettingsLayout({ children }: { children: React.ReactNode }) {
+export default function SettingsLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
 
   return (
@@ -39,11 +65,13 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                     href={item.href}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-accent/20 text-accent'
-                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        ? "bg-accent/20 text-accent"
+                        : "text-gray-400 hover:text-white hover:bg-white/5"
                     }`}
                   >
-                    <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                    <span className="material-symbols-outlined text-[20px]">
+                      {item.icon}
+                    </span>
                     {item.label}
                   </Link>
                 );
@@ -55,9 +83,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto px-6 py-8">
-          {children}
-        </div>
+        <div className="max-w-5xl mx-auto px-6 py-8">{children}</div>
       </main>
     </div>
   );

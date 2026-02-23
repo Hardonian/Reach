@@ -4,7 +4,7 @@ info:
   description: |
     Deterministic execution fabric for AI systems. This API provides endpoints for
     managing runs, events, capsules, packs, and federation nodes.
-    
+
     ## Versioning Policy
     - `apiVersion`: The API implementation version (e.g., "1.0.0")
     - `specVersion`: The OpenAPI spec version this document represents

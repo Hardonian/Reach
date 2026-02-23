@@ -5,11 +5,13 @@
  * Falls back gracefully when disabled.
  */
 // @ts-ignore
-import Stripe from 'stripe';
-import { env } from './env';
+import Stripe from "stripe";
+import { env } from "./env";
 
 export class BillingDisabledError extends Error {
-  constructor() { super('BILLING_ENABLED is not set or STRIPE_SECRET_KEY is missing.'); }
+  constructor() {
+    super("BILLING_ENABLED is not set or STRIPE_SECRET_KEY is missing.");
+  }
 }
 
 function isBillingEnabled(): boolean {
@@ -22,7 +24,7 @@ export function getStripe(): Stripe {
   if (!isBillingEnabled()) throw new BillingDisabledError();
   if (_stripe) return _stripe;
   _stripe = new Stripe(env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2026-01-28.clover',
+    apiVersion: "2026-01-28.clover",
   });
   return _stripe;
 }
@@ -31,8 +33,8 @@ export function getStripe(): Stripe {
 // Set these env vars to real Stripe Price IDs:
 //   STRIPE_PRICE_PRO, STRIPE_PRICE_TEAM, STRIPE_PRICE_ENTERPRISE
 export const PLAN_PRICE_IDS: Record<string, string | undefined> = {
-  pro:        env.STRIPE_PRICE_PRO,
-  team:       env.STRIPE_PRICE_TEAM,
+  pro: env.STRIPE_PRICE_PRO,
+  team: env.STRIPE_PRICE_TEAM,
   enterprise: env.STRIPE_PRICE_ENTERPRISE,
 };
 
@@ -40,7 +42,7 @@ export function getPlanForPriceId(priceId: string): string {
   for (const [plan, pid] of Object.entries(PLAN_PRICE_IDS)) {
     if (pid === priceId) return plan;
   }
-  return 'pro'; // default fallback
+  return "pro"; // default fallback
 }
 
 // ── Checkout session ───────────────────────────────────────────────────────
@@ -55,7 +57,7 @@ export async function createCheckoutSession(opts: {
 }): Promise<Stripe.Checkout.Session> {
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.create({
-    mode: 'subscription',
+    mode: "subscription",
     customer: opts.existingCustomerId,
     customer_email: opts.existingCustomerId ? undefined : opts.email,
     line_items: [{ price: opts.priceId, quantity: 1 }],
@@ -71,15 +73,24 @@ export async function createCheckoutSession(opts: {
 }
 
 // ── Customer portal ────────────────────────────────────────────────────────
-export async function createPortalSession(customerId: string, returnUrl: string): Promise<Stripe.BillingPortal.Session> {
+export async function createPortalSession(
+  customerId: string,
+  returnUrl: string,
+): Promise<Stripe.BillingPortal.Session> {
   const stripe = getStripe();
-  return stripe.billingPortal.sessions.create({ customer: customerId, return_url: returnUrl });
+  return stripe.billingPortal.sessions.create({
+    customer: customerId,
+    return_url: returnUrl,
+  });
 }
 
 // ── Webhook signature verification ─────────────────────────────────────────
-export function constructWebhookEvent(rawBody: Buffer, sig: string): Stripe.Event {
+export function constructWebhookEvent(
+  rawBody: Buffer,
+  sig: string,
+): Stripe.Event {
   const stripe = getStripe();
   const secret = env.STRIPE_WEBHOOK_SECRET;
-  if (!secret) throw new Error('STRIPE_WEBHOOK_SECRET not configured');
+  if (!secret) throw new Error("STRIPE_WEBHOOK_SECRET not configured");
   return stripe.webhooks.constructEvent(rawBody, sig, secret);
 }

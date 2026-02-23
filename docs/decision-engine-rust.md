@@ -33,6 +33,7 @@ cargo test
 ### WASM Build
 
 Prerequisites:
+
 - `rustup target add wasm32-unknown-unknown`
 - `cargo install wasm-pack`
 
@@ -80,21 +81,21 @@ println!("Fingerprint: {}", output.determinism_fingerprint);
 ### WASM (JavaScript/TypeScript)
 
 ```javascript
-const { evaluate_decision_json } = require('./decision_engine.js');
+const { evaluate_decision_json } = require("./decision_engine.js");
 
 const input = {
-    actions: [{ id: "buy", label: "Buy" }],
-    scenarios: [{ id: "bull", probability: 1.0, adversarial: false }],
-    outcomes: [["buy", "bull", 100]]
+  actions: [{ id: "buy", label: "Buy" }],
+  scenarios: [{ id: "bull", probability: 1.0, adversarial: false }],
+  outcomes: [["buy", "bull", 100]],
 };
 
 const result = evaluate_decision_json(JSON.stringify(input));
 const output = JSON.parse(result);
 
 if (output.ok) {
-    console.log("Recommended:", output.data.ranked_actions[0].action_id);
+  console.log("Recommended:", output.data.ranked_actions[0].action_id);
 } else {
-    console.error("Error:", output.error.code, output.error.message);
+  console.error("Error:", output.error.code, output.error.message);
 }
 ```
 
@@ -107,6 +108,7 @@ Evaluate a decision from JSON input.
 **Input:** JSON string representing a `DecisionInput`
 
 **Output:** JSON string with structure:
+
 ```json
 {
   "ok": true,
@@ -119,6 +121,7 @@ Evaluate a decision from JSON input.
 ```
 
 On error:
+
 ```json
 {
   "ok": false,
@@ -135,6 +138,7 @@ On error:
 Compute the SHA-256 fingerprint for a decision input.
 
 **Output:**
+
 ```json
 {
   "ok": true,
@@ -149,6 +153,7 @@ Compute the SHA-256 fingerprint for a decision input.
 Get the engine version.
 
 **Output:**
+
 ```json
 {
   "ok": true,
@@ -160,12 +165,12 @@ Get the engine version.
 
 ## Error Codes
 
-| Code | Description |
-|------|-------------|
-| `E_SCHEMA` | Invalid JSON schema (malformed JSON or missing required fields) |
+| Code              | Description                                                       |
+| ----------------- | ----------------------------------------------------------------- |
+| `E_SCHEMA`        | Invalid JSON schema (malformed JSON or missing required fields)   |
 | `E_INVALID_INPUT` | Invalid input values (e.g., empty actions, invalid probabilities) |
-| `E_NOT_FOUND` | Referenced entity not found |
-| `E_INTERNAL` | Internal error (should not occur in normal operation) |
+| `E_NOT_FOUND`     | Referenced entity not found                                       |
+| `E_INTERNAL`      | Internal error (should not occur in normal operation)             |
 
 ## Determinism Guarantees
 
@@ -180,6 +185,7 @@ Get the engine version.
 ### Worst-case (Maximin)
 
 For each action, find the minimum utility across all scenarios:
+
 ```
 worst_case[action] = min(scenarios, utility[action, scenario])
 ```
@@ -202,6 +208,7 @@ worst_case[action] = min(scenarios, utility[action, scenario])
 ### Adversarial Robustness
 
 For each action, find the minimum utility across adversarial scenarios only:
+
 ```
 adversarial[action] = min(adversarial_scenarios, utility[action, scenario])
 ```
@@ -209,6 +216,7 @@ adversarial[action] = min(adversarial_scenarios, utility[action, scenario])
 ### Composite Score
 
 Weighted combination:
+
 ```
 composite = 0.4 * worst_case + 0.4 * (100 - max_regret) + 0.2 * adversarial
 ```
@@ -233,6 +241,7 @@ cargo test -p decision-engine -- --nocapture
 ### WASM build fails
 
 Ensure you have the WASM target installed:
+
 ```bash
 rustup target add wasm32-unknown-unknown
 cargo install wasm-pack
@@ -241,6 +250,7 @@ cargo install wasm-pack
 ### Non-deterministic outputs
 
 Check for:
+
 1. Unsorted maps (use `BTreeMap` instead of `HashMap`)
 2. Float precision issues (use `float_normalize()`)
 3. Array order sensitivity (sort by ID before hashing)
@@ -248,6 +258,7 @@ Check for:
 ### Type mismatches between Rust and TypeScript
 
 Ensure field names match:
+
 - Rust: `snake_case` → TypeScript: `camelCase`
 - The wrapper handles conversion automatically
 

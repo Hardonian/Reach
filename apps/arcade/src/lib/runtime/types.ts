@@ -9,7 +9,7 @@
 
 // ── Execution Modes ──
 
-export type ExecutionMode = 'browser' | 'edge' | 'mcp-server' | 'local-cli';
+export type ExecutionMode = "browser" | "edge" | "mcp-server" | "local-cli";
 
 export interface ExecutionContext {
   mode: ExecutionMode;
@@ -36,7 +36,7 @@ export interface SkillManifest {
 
 export interface SkillInput {
   name: string;
-  type: 'string' | 'number' | 'boolean' | 'json' | 'file';
+  type: "string" | "number" | "boolean" | "json" | "file";
   required: boolean;
   description: string;
   default?: string | number | boolean;
@@ -57,7 +57,13 @@ export interface SkillComposition {
 
 // ── Tools ──
 
-export type ToolType = 'http' | 'github' | 'file' | 'webhook' | 'local-cli' | 'vector-db';
+export type ToolType =
+  | "http"
+  | "github"
+  | "file"
+  | "webhook"
+  | "local-cli"
+  | "vector-db";
 
 export interface ToolDefinition {
   id: string;
@@ -71,7 +77,7 @@ export interface ToolDefinition {
 }
 
 export interface ToolPermission {
-  action: 'read' | 'write' | 'execute' | 'network';
+  action: "read" | "write" | "execute" | "network";
   resource: string;
   granted: boolean;
 }
@@ -91,7 +97,7 @@ export interface ToolInvocation {
   startedAt: string;
   completedAt: string;
   durationMs: number;
-  status: 'success' | 'error' | 'timeout';
+  status: "success" | "error" | "timeout";
   error?: string;
 }
 
@@ -100,7 +106,7 @@ export interface ToolInvocation {
 export interface ProviderConfig {
   id: string;
   name: string;
-  type: 'openrouter' | 'anthropic' | 'openai' | 'custom';
+  type: "openrouter" | "anthropic" | "openai" | "custom";
   isDefault: boolean;
   models: ProviderModel[];
   fallbackProviderId?: string;
@@ -122,7 +128,7 @@ export interface ProviderRoutingResult {
   providerName: string;
   modelId: string;
   modelName: string;
-  reason: 'default' | 'cost-optimized' | 'latency-optimized' | 'fallback';
+  reason: "default" | "cost-optimized" | "latency-optimized" | "fallback";
   attemptNumber: number;
 }
 
@@ -130,7 +136,7 @@ export interface ProviderRoutingResult {
 
 export interface ExecutionGraph {
   runId: string;
-  status: 'running' | 'completed' | 'failed' | 'cancelled';
+  status: "running" | "completed" | "failed" | "cancelled";
   mode: ExecutionMode;
   startedAt: string;
   completedAt?: string;
@@ -145,9 +151,9 @@ export interface ExecutionGraph {
 
 export interface ExecutionNode {
   id: string;
-  type: 'skill' | 'tool' | 'provider' | 'evaluation' | 'input' | 'output';
+  type: "skill" | "tool" | "provider" | "evaluation" | "input" | "output";
   label: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'skipped';
+  status: "pending" | "running" | "completed" | "failed" | "skipped";
   startedAt?: string;
   completedAt?: string;
   durationMs?: number;
@@ -176,7 +182,7 @@ export interface EvaluationSummary {
 
 export interface EvaluationFinding {
   id: string;
-  severity: 'high' | 'medium' | 'low';
+  severity: "high" | "medium" | "low";
   category: string;
   title: string;
   detail: string;
@@ -185,7 +191,7 @@ export interface EvaluationFinding {
 
 // ── Artifacts ──
 
-export type ArtifactFormat = 'json' | 'mcp-config' | 'cli-command' | 'report';
+export type ArtifactFormat = "json" | "mcp-config" | "cli-command" | "report";
 
 export interface RunArtifact {
   runId: string;

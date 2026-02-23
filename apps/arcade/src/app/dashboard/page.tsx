@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { CHECKLIST, type ChecklistItemId } from '@/lib/copy';
-import { track } from '@/lib/analytics';
-import { ROUTES } from '@/lib/routes';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { CHECKLIST, type ChecklistItemId } from "@/lib/copy";
+import { track } from "@/lib/analytics";
+import { ROUTES } from "@/lib/routes";
 
-const STORAGE_KEY = 'rl_onboarding_progress';
+const STORAGE_KEY = "rl_onboarding_progress";
 
 function loadProgress(): Set<ChecklistItemId> {
-  if (typeof window === 'undefined') return new Set();
+  if (typeof window === "undefined") return new Set();
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return new Set();
@@ -23,7 +23,9 @@ function loadProgress(): Set<ChecklistItemId> {
 function saveProgress(done: Set<ChecklistItemId>): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...done]));
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 export default function DashboardPage() {
@@ -44,31 +46,33 @@ export default function DashboardPage() {
     setCompleted(next);
     saveProgress(next);
 
-    await track('onboarding_step_completed', { step_id: id });
+    await track("onboarding_step_completed", { step_id: id });
 
     if (next.size === CHECKLIST.length) {
       setAllDone(true);
-      await track('onboarding_checklist_completed', { steps_completed: next.size });
+      await track("onboarding_checklist_completed", {
+        steps_completed: next.size,
+      });
     }
   }
 
-  function handleCta(item: typeof CHECKLIST[number]) {
+  function handleCta(item: (typeof CHECKLIST)[number]) {
     setActiveItem(item.id);
     switch (item.id) {
-      case 'demo_run':
+      case "demo_run":
         router.push(ROUTES.PLAYGROUND);
         break;
-      case 'connect_repo':
+      case "connect_repo":
         router.push(ROUTES.DOCS);
         break;
-      case 'active_gate':
+      case "active_gate":
         router.push(ROUTES.SETTINGS.ADVANCED.RELEASE_GATES);
         break;
-      case 'save_baseline':
-        markDone('save_baseline');
+      case "save_baseline":
+        markDone("save_baseline");
         break;
-      case 'invite':
-        markDone('invite');
+      case "invite":
+        markDone("invite");
         break;
     }
   }
@@ -82,7 +86,9 @@ export default function DashboardPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Get started with ReadyLayer</h1>
+          <h1 className="text-3xl font-bold mb-2">
+            Get started with ReadyLayer
+          </h1>
           <p className="text-gray-400">
             5 steps to your first successful agent check.
           </p>
@@ -91,7 +97,9 @@ export default function DashboardPage() {
         {/* Progress bar */}
         <div className="mb-8">
           <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-gray-400">{doneCount} of {totalCount} complete</span>
+            <span className="text-gray-400">
+              {doneCount} of {totalCount} complete
+            </span>
             <span className="text-accent font-medium">{pct}%</span>
           </div>
           <div className="h-2 bg-surface rounded-full overflow-hidden">
@@ -106,9 +114,12 @@ export default function DashboardPage() {
         {allDone && (
           <div className="card border-emerald-500/40 bg-emerald-950/20 p-6 mb-6 text-center animate-slide-up">
             <div className="text-3xl mb-2">✅</div>
-            <h2 className="text-xl font-bold text-emerald-400 mb-1">You&apos;re all set!</h2>
+            <h2 className="text-xl font-bold text-emerald-400 mb-1">
+              You&apos;re all set!
+            </h2>
             <p className="text-gray-400 text-sm mb-4">
-              You&apos;ve completed onboarding. Your agent is ready to be shipped with confidence.
+              You&apos;ve completed onboarding. Your agent is ready to be
+              shipped with confidence.
             </p>
             <Link href={ROUTES.DOCS} className="btn-primary">
               Explore the docs
@@ -127,31 +138,37 @@ export default function DashboardPage() {
                 key={item.id}
                 className={`card transition-all ${
                   isDone
-                    ? 'border-emerald-500/30 bg-emerald-950/10 opacity-80'
+                    ? "border-emerald-500/30 bg-emerald-950/10 opacity-80"
                     : isActive
-                    ? 'border-accent/50 bg-accent/5'
-                    : 'hover:border-gray-600'
+                      ? "border-accent/50 bg-accent/5"
+                      : "hover:border-gray-600"
                 }`}
               >
                 <div className="flex items-start gap-4">
                   {/* Step indicator */}
-                  <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mt-0.5 ${
-                    isDone
-                      ? 'bg-emerald-500/20 text-emerald-400'
-                      : 'bg-surface border border-border text-gray-500'
-                  }`}>
-                    {isDone ? '✓' : index + 1}
+                  <div
+                    className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mt-0.5 ${
+                      isDone
+                        ? "bg-emerald-500/20 text-emerald-400"
+                        : "bg-surface border border-border text-gray-500"
+                    }`}
+                  >
+                    {isDone ? "✓" : index + 1}
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <h3 className={`font-semibold ${isDone ? 'text-emerald-400' : 'text-white'}`}>
+                        <h3
+                          className={`font-semibold ${isDone ? "text-emerald-400" : "text-white"}`}
+                        >
                           {isDone ? item.completedLabel : item.title}
                         </h3>
                         {!isDone && (
-                          <p className="text-sm text-gray-400 mt-0.5">{item.description}</p>
+                          <p className="text-sm text-gray-400 mt-0.5">
+                            {item.description}
+                          </p>
                         )}
                       </div>
 
@@ -188,34 +205,64 @@ export default function DashboardPage() {
         <div className="mt-12 pt-8 border-t border-border">
           <h2 className="text-lg font-semibold mb-4">Jump to</h2>
           <div className="grid grid-cols-2 gap-3">
-            <Link href={ROUTES.PLAYGROUND} className="card p-4 hover:border-accent/50 transition-all group">
+            <Link
+              href={ROUTES.PLAYGROUND}
+              className="card p-4 hover:border-accent/50 transition-all group"
+            >
               <div className="text-xl mb-1">▶</div>
-              <div className="font-medium text-sm group-hover:text-accent transition-colors">Playground</div>
+              <div className="font-medium text-sm group-hover:text-accent transition-colors">
+                Playground
+              </div>
               <div className="text-xs text-gray-500">Run a demo check</div>
             </Link>
-            <Link href={ROUTES.TEMPLATES} className="card p-4 hover:border-accent/50 transition-all group">
+            <Link
+              href={ROUTES.TEMPLATES}
+              className="card p-4 hover:border-accent/50 transition-all group"
+            >
               <div className="text-xl mb-1">📋</div>
-              <div className="font-medium text-sm group-hover:text-accent transition-colors">Templates</div>
+              <div className="font-medium text-sm group-hover:text-accent transition-colors">
+                Templates
+              </div>
               <div className="text-xs text-gray-500">Start from a baseline</div>
             </Link>
-            <Link href={ROUTES.DOCS} className="card p-4 hover:border-accent/50 transition-all group">
+            <Link
+              href={ROUTES.DOCS}
+              className="card p-4 hover:border-accent/50 transition-all group"
+            >
               <div className="text-xl mb-1">📖</div>
-              <div className="font-medium text-sm group-hover:text-accent transition-colors">Docs</div>
+              <div className="font-medium text-sm group-hover:text-accent transition-colors">
+                Docs
+              </div>
               <div className="text-xs text-gray-500">Quickstart guide</div>
             </Link>
-            <Link href={ROUTES.PRICING} className="card p-4 hover:border-accent/50 transition-all group">
+            <Link
+              href={ROUTES.PRICING}
+              className="card p-4 hover:border-accent/50 transition-all group"
+            >
               <div className="text-xl mb-1">💡</div>
-              <div className="font-medium text-sm group-hover:text-accent transition-colors">Pricing</div>
+              <div className="font-medium text-sm group-hover:text-accent transition-colors">
+                Pricing
+              </div>
               <div className="text-xs text-gray-500">Free forever plan</div>
             </Link>
-            <Link href={ROUTES.MONITORING} className="card p-4 hover:border-accent/50 transition-all group">
+            <Link
+              href={ROUTES.MONITORING}
+              className="card p-4 hover:border-accent/50 transition-all group"
+            >
               <div className="text-xl mb-1">📡</div>
-              <div className="font-medium text-sm group-hover:text-accent transition-colors">Monitoring</div>
+              <div className="font-medium text-sm group-hover:text-accent transition-colors">
+                Monitoring
+              </div>
               <div className="text-xs text-gray-500">Agent health & drift</div>
             </Link>
-            <Link href={ROUTES.SIMULATE} className="card p-4 hover:border-accent/50 transition-all group">
+            <Link
+              href={ROUTES.SIMULATE}
+              className="card p-4 hover:border-accent/50 transition-all group"
+            >
               <div className="text-xl mb-1">🧪</div>
-              <div className="font-medium text-sm group-hover:text-accent transition-colors">Simulate</div>
+              <div className="font-medium text-sm group-hover:text-accent transition-colors">
+                Simulate
+              </div>
               <div className="text-xs text-gray-500">What-if experiments</div>
             </Link>
           </div>

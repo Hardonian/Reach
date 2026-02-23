@@ -14,19 +14,19 @@ We formalize this as the **Zero-Cloud Lock Guarantee**:
 
 ## What This Covers
 
-| Component | OSS | Needs Cloud |
-| :--- | :--- | :--- |
-| `reachctl` CLI | ✅ Full | None |
-| Deterministic execution engine | ✅ Full | None |
-| Local SQLite storage | ✅ Full | None |
-| Policy evaluation | ✅ Full | None |
-| Replay verification | ✅ Full | None |
-| Export/import capsules | ✅ Full | None |
-| Benchmarking | ✅ Full | None |
-| Web playground | ✅ Full (local) | Cloud features only |
-| Multi-tenant hosting | ❌ | Requires REACH_CLOUD=1 |
-| Enterprise SSO | ❌ | Requires REACH_CLOUD=1 |
-| Cloud artifact sync | ❌ | Requires REACH_CLOUD=1 |
+| Component                      | OSS             | Needs Cloud            |
+| :----------------------------- | :-------------- | :--------------------- |
+| `reachctl` CLI                 | ✅ Full         | None                   |
+| Deterministic execution engine | ✅ Full         | None                   |
+| Local SQLite storage           | ✅ Full         | None                   |
+| Policy evaluation              | ✅ Full         | None                   |
+| Replay verification            | ✅ Full         | None                   |
+| Export/import capsules         | ✅ Full         | None                   |
+| Benchmarking                   | ✅ Full         | None                   |
+| Web playground                 | ✅ Full (local) | Cloud features only    |
+| Multi-tenant hosting           | ❌              | Requires REACH_CLOUD=1 |
+| Enterprise SSO                 | ❌              | Requires REACH_CLOUD=1 |
+| Cloud artifact sync            | ❌              | Requires REACH_CLOUD=1 |
 
 ---
 

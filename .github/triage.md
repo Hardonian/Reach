@@ -4,12 +4,12 @@ This document describes how we prioritize and label issues in the Reach reposito
 
 ## Priorities
 
-| Label | Description | SLA (Estimated) |
-| :--- | :--- | :--- |
-| `priority:critical` | System is unusable, major security flaw, or data corruption. | < 4 hours |
-| `priority:high` | Major feature broken, significant performance regression. | < 24 hours |
-| `priority:medium` | Feature partially broken, non-critical bug. | Next release |
-| `priority:low` | UI glitch, minor doc fix, suggestion. | Backlog |
+| Label               | Description                                                  | SLA (Estimated) |
+| :------------------ | :----------------------------------------------------------- | :-------------- |
+| `priority:critical` | System is unusable, major security flaw, or data corruption. | < 4 hours       |
+| `priority:high`     | Major feature broken, significant performance regression.    | < 24 hours      |
+| `priority:medium`   | Feature partially broken, non-critical bug.                  | Next release    |
+| `priority:low`      | UI glitch, minor doc fix, suggestion.                        | Backlog         |
 
 ## Common Labels
 

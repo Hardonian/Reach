@@ -3,15 +3,15 @@ name: perf-gate
 on:
   pull_request:
     paths:
-      - 'services/runner/**'
-      - 'services/session-hub/**'
-      - 'services/integration-hub/**'
-      - 'services/capsule-sync/**'
-      - 'apps/mobile/android/**'
-      - 'apps/mobile/ios/**'
-      - 'tools/perf/**'
-      - 'docs/perf/**'
-      - '.github/workflows/perf-gate.yml'
+      - "services/runner/**"
+      - "services/session-hub/**"
+      - "services/integration-hub/**"
+      - "services/capsule-sync/**"
+      - "apps/mobile/android/**"
+      - "apps/mobile/ios/**"
+      - "tools/perf/**"
+      - "docs/perf/**"
+      - ".github/workflows/perf-gate.yml"
   workflow_dispatch:
 
 jobs:
@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.22.7'
+          go-version: "1.22.7"
 
       - name: Build runner
         working-directory: services/runner

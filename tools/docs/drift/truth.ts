@@ -1,26 +1,26 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const REPO_ROOT = path.resolve(__dirname, '../../..');
-const ARTIFACTS_DIR = path.join(REPO_ROOT, '.artifacts/docs-drift');
+const REPO_ROOT = path.resolve(__dirname, "../../..");
+const ARTIFACTS_DIR = path.join(REPO_ROOT, ".artifacts/docs-drift");
 
 const TRUTH_FILES = [
-  'README.md',
-  'AGENTS.md',
-  'SKILLS.md',
-  'MODEL_SPEC.md',
-  'SECURITY.md',
-  'CHANGELOG.md'
+  "README.md",
+  "AGENTS.md",
+  "SKILLS.md",
+  "MODEL_SPEC.md",
+  "SECURITY.md",
+  "CHANGELOG.md",
 ];
 
 interface TruthIssue {
   file: string;
   reference: string;
-  type: 'file' | 'command' | 'env';
+  type: "file" | "command" | "env";
   message: string;
 }
 
@@ -31,22 +31,26 @@ interface TruthReport {
 
 function getPackageScripts(): Set<string> {
   const scripts = new Set<string>();
-  const rootPkg = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'package.json'), 'utf-8'));
-  Object.keys(rootPkg.scripts || {}).forEach(s => scripts.add(s));
-  
+  const rootPkg = JSON.parse(
+    fs.readFileSync(path.join(REPO_ROOT, "package.json"), "utf-8"),
+  );
+  Object.keys(rootPkg.scripts || {}).forEach((s) => scripts.add(s));
+
   // Also check apps/arcade
-  const arcadePkg = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'apps/arcade/package.json'), 'utf-8'));
-  Object.keys(arcadePkg.scripts || {}).forEach(s => scripts.add(s));
-  
+  const arcadePkg = JSON.parse(
+    fs.readFileSync(path.join(REPO_ROOT, "apps/arcade/package.json"), "utf-8"),
+  );
+  Object.keys(arcadePkg.scripts || {}).forEach((s) => scripts.add(s));
+
   return scripts;
 }
 
 function getEnvVars(): Set<string> {
   const envs = new Set<string>();
-  const envExamplePath = path.join(REPO_ROOT, '.env.example');
+  const envExamplePath = path.join(REPO_ROOT, ".env.example");
   if (fs.existsSync(envExamplePath)) {
-    const content = fs.readFileSync(envExamplePath, 'utf-8');
-    const lines = content.split('\n');
+    const content = fs.readFileSync(envExamplePath, "utf-8");
+    const lines = content.split("\n");
     for (const line of lines) {
       const match = line.match(/^([A-Z0-9_]+)=/);
       if (match) envs.add(match[1]);
@@ -55,11 +59,11 @@ function getEnvVars(): Set<string> {
   return envs;
 }
 
-const IS_FIX_MODE = process.argv.includes('--fix');
+const IS_FIX_MODE = process.argv.includes("--fix");
 
 function validateTruth() {
-  console.log('--- Repo Truth Validator ---');
-  if (IS_FIX_MODE) console.log('FIX MODE ENABLED');
+  console.log("--- Repo Truth Validator ---");
+  if (IS_FIX_MODE) console.log("FIX MODE ENABLED");
 
   const scripts = getPackageScripts();
   const envs = getEnvVars();
@@ -70,7 +74,7 @@ function validateTruth() {
     const filePath = path.join(REPO_ROOT, truthFile);
     if (!fs.existsSync(filePath)) continue;
 
-    let content = fs.readFileSync(filePath, 'utf-8');
+    let content = fs.readFileSync(filePath, "utf-8");
     const originalContent = content;
 
     // 1. Validate file references: `path/to/file`
@@ -78,15 +82,22 @@ function validateTruth() {
     let match;
     while ((match = pathRegex.exec(content)) !== null) {
       const refPath = match[1];
-      if (refPath.includes('://') || refPath.startsWith('npm ') || refPath.startsWith('pnpm ') || refPath.startsWith('node ') || refPath.includes('*')) continue;
-      
+      if (
+        refPath.includes("://") ||
+        refPath.startsWith("npm ") ||
+        refPath.startsWith("pnpm ") ||
+        refPath.startsWith("node ") ||
+        refPath.includes("*")
+      )
+        continue;
+
       const fullPath = path.join(REPO_ROOT, refPath);
       if (!fs.existsSync(fullPath)) {
         issues.push({
           file: truthFile,
           reference: refPath,
-          type: 'file',
-          message: `File reference does not exist: ${refPath}`
+          type: "file",
+          message: `File reference does not exist: ${refPath}`,
         });
       }
     }
@@ -96,14 +107,14 @@ function validateTruth() {
     while ((match = commandRegex.exec(content)) !== null) {
       const tool = match[1];
       const fullCmd = match[2].trim();
-      const cmd = fullCmd.split(' ')[0];
-      
+      const cmd = fullCmd.split(" ")[0];
+
       if (!scripts.has(cmd)) {
         issues.push({
           file: truthFile,
           reference: match[0],
-          type: 'command',
-          message: `Command referenced but not found in package.json: ${cmd}`
+          type: "command",
+          message: `Command referenced but not found in package.json: ${cmd}`,
         });
 
         if (IS_FIX_MODE) {
@@ -118,14 +129,15 @@ function validateTruth() {
     const envRegex = /`([A-Z][A-Z0-9_]{3,})`/g;
     while ((match = envRegex.exec(content)) !== null) {
       const envVar = match[1];
-      if (['LICENSE', 'VERSION', 'NOTICE', 'README', 'CI'].includes(envVar)) continue;
-      
+      if (["LICENSE", "VERSION", "NOTICE", "README", "CI"].includes(envVar))
+        continue;
+
       if (!envs.has(envVar)) {
         issues.push({
           file: truthFile,
           reference: envVar,
-          type: 'env',
-          message: `Environment variable referenced but missing from .env.example: ${envVar}`
+          type: "env",
+          message: `Environment variable referenced but missing from .env.example: ${envVar}`,
         });
       }
     }
@@ -137,14 +149,14 @@ function validateTruth() {
 
   const report: TruthReport = {
     timestamp: new Date().toISOString(),
-    issues
+    issues,
   };
 
   if (!fs.existsSync(ARTIFACTS_DIR)) {
     fs.mkdirSync(ARTIFACTS_DIR, { recursive: true });
   }
 
-  const reportPath = path.join(ARTIFACTS_DIR, 'truth.report.json');
+  const reportPath = path.join(ARTIFACTS_DIR, "truth.report.json");
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
 
   if (fixesApplied > 0) {
@@ -153,12 +165,14 @@ function validateTruth() {
 
   if (issues.length > 0) {
     console.warn(`Found ${issues.length} drift issues in repo truth files:`);
-    issues.forEach(issue => {
-      console.log(`[${issue.type.toUpperCase()}] ${issue.file}: ${issue.message}`);
+    issues.forEach((issue) => {
+      console.log(
+        `[${issue.type.toUpperCase()}] ${issue.file}: ${issue.message}`,
+      );
     });
     process.exit(1);
   } else {
-    console.log('No truth issues found!');
+    console.log("No truth issues found!");
   }
 }
 

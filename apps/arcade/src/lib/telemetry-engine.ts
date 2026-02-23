@@ -1,12 +1,12 @@
 /**
  * ReadyLayer Telemetry Engine
- * 
+ *
  * Provides production-grade instrumentation and observation.
- * 
+ *
  * @module telemetry-engine
  */
 
-import { z } from 'zod';
+import { z } from "zod";
 
 export interface TelemetryEvent {
   id: string;
@@ -25,6 +25,6 @@ export const TelemetryEventSchema = z.object({
 export class TelemetryEngine {
   async track(event: TelemetryEvent): Promise<void> {
     // Basic event tracking mock
-    console.log('Telemetry event:', event);
+    console.log("Telemetry event:", event);
   }
 }

@@ -36,6 +36,7 @@ READYLAYER_ALERT_EMAIL_FROM=alerts@your-domain.com
 Migrations run automatically on startup via `getDB()` → `applyMigrations()`.
 
 **New tables added (migrations 007–010):**
+
 - `gates` — release gate definitions
 - `gate_runs` — per-trigger gate execution records
 - `github_installations` — GitHub app/OAuth token cache
@@ -86,6 +87,7 @@ No manual migration needed — all auto-applied on next startup.
 6. Toggle **Enable** on the gate
 
 **Manual trigger via API:**
+
 ```bash
 curl -X POST https://your-domain/api/v1/gates/:gateId/run \
   -H "Authorization: Bearer rk_live_..." \
@@ -100,6 +102,7 @@ curl -X POST https://your-domain/api/v1/gates/:gateId/run \
 Copy `.github/workflows/readylayer-gate.yml` to your target repository.
 
 Add these secrets to the target repo:
+
 ```
 READYLAYER_API_KEY     = rk_live_...    (Settings > API Keys, scope: ingest_runs)
 READYLAYER_GATE_ID     = gat_...        (from your gate)
@@ -107,6 +110,7 @@ READYLAYER_BASE_URL    = https://...    (your domain)
 ```
 
 **Manual ingest:**
+
 ```bash
 curl -X POST https://your-domain/api/ci/ingest \
   -H "Authorization: Bearer rk_live_..." \
@@ -132,6 +136,7 @@ curl -X POST https://your-domain/api/ci/ingest \
 4. Note the `signal_id` from the created monitor
 
 **Send metrics from your agent runtime:**
+
 ```bash
 curl -X POST https://your-domain/api/monitor/ingest \
   -H "Authorization: Bearer rk_live_..." \
@@ -140,6 +145,7 @@ curl -X POST https://your-domain/api/monitor/ingest \
 ```
 
 **Configure alerts** at Settings → Alerts (`/settings/alerts`):
+
 - Channel: `email` (requires `READYLAYER_ALERT_EMAIL_ENDPOINT`) or `webhook`
 - Webhook URL: any URL receiving POST JSON (Slack, Discord, n8n, etc.)
 
@@ -153,6 +159,7 @@ curl -X POST https://your-domain/api/monitor/ingest \
 4. View side-by-side comparison and recommendation
 
 **Via API:**
+
 ```bash
 # Create scenario
 SCENARIO=$(curl -s -X POST https://your-domain/api/v1/scenarios \
@@ -177,12 +184,12 @@ curl -X POST https://your-domain/api/v1/scenarios/$SCENARIO/run \
 
 Create CI-scoped tokens at **Settings → API Keys**:
 
-| Scope | Purpose |
-|-------|---------|
-| `ingest_runs` | CI pipeline ingestion, monitor ingestion |
-| `read_reports` | Read gate runs and simulation results |
-| `manage_gates` | Create/update/delete gates (admin only) |
-| `*` | Full access (default for admin keys) |
+| Scope          | Purpose                                  |
+| -------------- | ---------------------------------------- |
+| `ingest_runs`  | CI pipeline ingestion, monitor ingestion |
+| `read_reports` | Read gate runs and simulation results    |
+| `manage_gates` | Create/update/delete gates (admin only)  |
+| `*`            | Full access (default for admin keys)     |
 
 ---
 
@@ -210,6 +217,7 @@ AGENTS_ENFORCE=1 npm run validate:simplicity  # strict mode (CI)
 ```
 
 **Constraints enforced:**
+
 - Primary nav: Home, Playground, Studio, Templates, Docs, Pricing only
 - No paragraphs > 2 sentences on key surfaces
 - Primary CTA must be "Run demo (free)"
@@ -219,29 +227,29 @@ AGENTS_ENFORCE=1 npm run validate:simplicity  # strict mode (CI)
 
 ## 11. Canonical New Routes
 
-| Route | Purpose |
-|-------|---------|
+| Route                     | Purpose                                   |
+| ------------------------- | ----------------------------------------- |
 | `/settings/release-gates` | Create/manage gates (Settings > Advanced) |
-| `/settings/alerts` | Configure alert destinations |
-| `/monitoring` | Agent health dashboard |
-| `/simulate` | Simulation lab |
-| `/reports/:id` | Canonical gate/simulation report |
-| `/reports/share/:slug` | Public read-only share |
+| `/settings/alerts`        | Configure alert destinations              |
+| `/monitoring`             | Agent health dashboard                    |
+| `/simulate`               | Simulation lab                            |
+| `/reports/:id`            | Canonical gate/simulation report          |
+| `/reports/share/:slug`    | Public read-only share                    |
 
 **New API endpoints:**
 
-| Method | Path | Auth | Purpose |
-|--------|------|------|---------|
-| GET/POST | `/api/v1/gates` | Bearer | CRUD gates |
-| GET/PATCH/DELETE | `/api/v1/gates/:id` | Bearer | Gate detail |
-| POST | `/api/v1/gates/:id/run` | Bearer | Trigger gate |
-| POST | `/api/github/webhook` | HMAC | GitHub events |
-| POST | `/api/ci/ingest` | Bearer (ingest_runs) | CI artifact ingest |
-| POST | `/api/monitor/ingest` | Bearer (ingest_runs) | Metric ingest |
-| GET/POST | `/api/v1/signals` | Bearer | CRUD signals |
-| GET/POST | `/api/v1/scenarios` | Bearer | CRUD scenarios |
-| POST | `/api/v1/scenarios/:id/run` | Bearer | Trigger simulation |
-| GET/POST | `/api/v1/alerts` | Bearer | CRUD alert rules |
-| GET | `/api/v1/reports/:id` | Bearer | Get report |
-| POST | `/api/v1/reports/:id/share` | Bearer | Create share link |
-| GET | `/api/v1/reports/share/:slug` | Public | Read shared report |
+| Method           | Path                          | Auth                 | Purpose            |
+| ---------------- | ----------------------------- | -------------------- | ------------------ |
+| GET/POST         | `/api/v1/gates`               | Bearer               | CRUD gates         |
+| GET/PATCH/DELETE | `/api/v1/gates/:id`           | Bearer               | Gate detail        |
+| POST             | `/api/v1/gates/:id/run`       | Bearer               | Trigger gate       |
+| POST             | `/api/github/webhook`         | HMAC                 | GitHub events      |
+| POST             | `/api/ci/ingest`              | Bearer (ingest_runs) | CI artifact ingest |
+| POST             | `/api/monitor/ingest`         | Bearer (ingest_runs) | Metric ingest      |
+| GET/POST         | `/api/v1/signals`             | Bearer               | CRUD signals       |
+| GET/POST         | `/api/v1/scenarios`           | Bearer               | CRUD scenarios     |
+| POST             | `/api/v1/scenarios/:id/run`   | Bearer               | Trigger simulation |
+| GET/POST         | `/api/v1/alerts`              | Bearer               | CRUD alert rules   |
+| GET              | `/api/v1/reports/:id`         | Bearer               | Get report         |
+| POST             | `/api/v1/reports/:id/share`   | Bearer               | Create share link  |
+| GET              | `/api/v1/reports/share/:slug` | Public               | Read shared report |

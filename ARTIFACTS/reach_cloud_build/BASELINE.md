@@ -1,6 +1,7 @@
 # Reach Cloud Build - Baseline Report **Date:** 2026-02-19
 
 ## Current Repository State ### Frameworks & Technologies
+
 - **Backend:** Go 1.25.6 with standard library HTTP server
 - **Frontend:** Next.js 16.1.6 (apps/arcade)
 - **Database:** SQLite with modernc.org/sqlite driver
@@ -8,6 +9,7 @@
 - **Package Manager:** npm with workspaces
 
 ### Existing Domain Concepts - **Runs:** Execution units with capabilities and tier-based limits
+
 - **Packs:** Execution packs with manifests and signatures
 - **Capsules:** Immutable execution artifacts with Merkle proofs
 - **Events:** Event-sourced run history with SSE streaming
@@ -19,15 +21,17 @@
 - **Telemetry:** Metrics and observability
 
 ### Services Structure ```
+
 services/
-├── runner/           # Main API + job queue + storage
-├── billing/          # (exists but minimal)
-├── capsule-sync/     # Capsule synchronization
+├── runner/ # Main API + job queue + storage
+├── billing/ # (exists but minimal)
+├── capsule-sync/ # Capsule synchronization
 ├── connector-registry/
 ├── ide-bridge/
 ├── integration-hub/
 ├── policy-engine/
 └── session-hub/
+
 ```
 
 ### Current Database Schema (SQLite) - `runs` - Run records with tenant isolation
@@ -67,3 +71,4 @@ services/
 5. Stripe billing with webhook raw-body verification
 6. Partner docs pages (HuggingFace, Vercel, Stripe)
 7. Smoke scripts + RUNBOOK.md
+```

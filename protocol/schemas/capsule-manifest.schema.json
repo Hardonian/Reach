@@ -4,10 +4,10 @@
   "title": "Run Capsule Manifest",
   "type": "object",
   "properties": {
-    "version": {"type": "string"},
-    "run_id": {"type": "string"},
-    "created_at": {"type": "string"},
-    "files": {"type": "array", "items": {"type": "string"}}
+    "version": { "type": "string" },
+    "run_id": { "type": "string" },
+    "created_at": { "type": "string" },
+    "files": { "type": "array", "items": { "type": "string" } }
   },
   "required": ["version", "run_id", "created_at", "files"],
   "additionalProperties": false

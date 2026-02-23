@@ -14,17 +14,20 @@ Edge Mode activates automatically when:
 - Explicit `--edge` flag provided
 
 ### Manual Activation ```bash
+
 # CLI flag reach run --edge
 
 # Environment variable REACH_EDGE_MODE=true reach run
 
 # Config file (~/.reach/config.json) {
-  "edge_mode": {
-    "enabled": true,
-    "auto_detect": false
-  }
+
+"edge_mode": {
+"enabled": true,
+"auto_detect": false
 }
-```
+}
+
+````
 
 ## Behavior Changes ### Model Adaptation
 
@@ -50,7 +53,7 @@ MaxContextTokens  = 4096
 DisableBranching  = true
 SimplifyReasoning = true
 MemoryCapMB       = 512
-```
+````
 
 ## Platform Detection Reach detects constrained environments via:
 
@@ -79,12 +82,12 @@ platform.CPUCount      // Number of CPUs
 
 Recommended models for Edge Mode:
 
-| Model | Size | VRAM | Use Case |
-|-------|------|------|----------|
-| tinyllama:1.1b | 700MB | 1GB | Minimal resource |
-| llama3.2:1b | 800MB | 1.5GB | Basic tasks |
-| llama3.2:3b | 2GB | 3GB | Balanced |
-| phi3:mini | 2GB | 3GB | Good reasoning |
+| Model          | Size  | VRAM  | Use Case         |
+| -------------- | ----- | ----- | ---------------- |
+| tinyllama:1.1b | 700MB | 1GB   | Minimal resource |
+| llama3.2:1b    | 800MB | 1.5GB | Basic tasks      |
+| llama3.2:3b    | 2GB   | 3GB   | Balanced         |
+| phi3:mini      | 2GB   | 3GB   | Good reasoning   |
 
 ## Android Setup See [ANDROID_SETUP.md](./ANDROID_SETUP.md) for Termux installation.
 
@@ -101,14 +104,15 @@ pkg install ollama
 
 ## Performance Characteristics ### Memory Usage
 
-| Component | Normal | Edge |
-|-----------|--------|------|
-| Base Runtime | 50MB | 30MB |
-| Event Buffer | 100MB | 10MB |
-| Model (hosted) | 0MB | 0MB |
-| Model (local) | 4000MB | 2000MB |
+| Component      | Normal | Edge   |
+| -------------- | ------ | ------ |
+| Base Runtime   | 50MB   | 30MB   |
+| Event Buffer   | 100MB  | 10MB   |
+| Model (hosted) | 0MB    | 0MB    |
+| Model (local)  | 4000MB | 2000MB |
 
 ### Latency | Operation | Normal | Edge |
+
 |-----------|--------|------|
 | Policy Check | 5ms | 5ms |
 | Small Model | 2000ms | 500ms |
@@ -125,6 +129,7 @@ pkg install ollama
 Only the model capability is reduced, not execution integrity.
 
 ## CLI Commands ```bash
+
 # Check if edge mode would activate reach doctor --check-edge
 
 # Force edge mode reach run --edge
@@ -132,7 +137,8 @@ Only the model capability is reduced, not execution integrity.
 # Check current mode reach config get edge_mode.enabled
 
 # Set persistent edge mode reach config set edge_mode.enabled true
-```
+
+````
 
 ## Troubleshooting ### Edge Mode Activates Unexpectedly
 
@@ -140,9 +146,10 @@ Check resource detection:
 
 ```bash
 reach doctor --verbose
-```
+````
 
 Look for:
+
 - Available RAM detection
 - Android platform flag
 - Model availability

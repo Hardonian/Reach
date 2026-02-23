@@ -7,7 +7,7 @@
 
 export interface DoctorCheck {
   category: string;
-  status: 'OK' | 'FAIL' | 'WARN';
+  status: "OK" | "FAIL" | "WARN";
   label: string;
 }
 
@@ -19,9 +19,14 @@ export interface DoctorReport {
 }
 
 export const parseDoctorOutput = (stdout: string): DoctorReport => {
-  const lines = stdout.split('\n');
-  const report: DoctorReport = { brand: 'Reach', version: 'unknown', checks: [], raw: stdout };
-  let currentCategory = 'General';
+  const lines = stdout.split("\n");
+  const report: DoctorReport = {
+    brand: "Reach",
+    version: "unknown",
+    checks: [],
+    raw: stdout,
+  };
+  let currentCategory = "General";
 
   for (const line of lines) {
     const trimmed = line.trim();
@@ -36,8 +41,8 @@ export const parseDoctorOutput = (stdout: string): DoctorReport => {
     }
 
     // Category detection (lines ending in :)
-    if (trimmed.endsWith(':') && !trimmed.includes('[')) {
-      currentCategory = trimmed.replace(':', '');
+    if (trimmed.endsWith(":") && !trimmed.includes("[")) {
+      currentCategory = trimmed.replace(":", "");
       continue;
     }
 
@@ -46,8 +51,8 @@ export const parseDoctorOutput = (stdout: string): DoctorReport => {
     if (statusMatch) {
       report.checks.push({
         category: currentCategory,
-        status: statusMatch[1] as 'OK' | 'FAIL' | 'WARN',
-        label: statusMatch[2]
+        status: statusMatch[1] as "OK" | "FAIL" | "WARN",
+        label: statusMatch[2],
       });
     }
   }

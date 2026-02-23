@@ -30,20 +30,20 @@ graph TB
         Playground[Web Playground]
         Packs[Pack System]
     end
-    
+
     subgraph Enterprise Cloud - Deprecate
         Billing[Stripe Billing]
         Auth[Multi-tenant Auth]
         CloudDB[Cloud Database]
         Entitlements[Usage Limits]
     end
-    
+
     CLI --> Engine
     CLI --> Storage
     CLI --> Packs
     Playground --> Engine
     Engine --> Packs
-    
+
     Billing -.->|Stub| Auth
     Auth -.->|Stub| CloudDB
     Entitlements -.->|Stub| CloudDB
@@ -82,6 +82,7 @@ graph TB
 - [ ] Ensure deterministic JSON serialization
 
 **Files to Focus On:**
+
 - `crates/engine/src/lib.rs`
 - `crates/engine/src/policy/mod.rs`
 - `crates/engine/src/state_machine.rs`
@@ -95,14 +96,14 @@ graph TB
 
 ### 2.1 Core Commands Audit
 
-| Command | Status | Action Needed |
-|---------|--------|---------------|
-| `reach run` | Needs testing | Verify pack execution flow |
-| `reach doctor` | Implemented | Add more diagnostic checks |
-| `reach pack` | Implemented | Test lint/score/docs subcommands |
-| `reach capsule` | Implemented | Verify create/verify/replay |
-| `reach wizard` | Implemented | Test guided workflow |
-| `reach share` | Implemented | Test QR code generation |
+| Command         | Status        | Action Needed                    |
+| --------------- | ------------- | -------------------------------- |
+| `reach run`     | Needs testing | Verify pack execution flow       |
+| `reach doctor`  | Implemented   | Add more diagnostic checks       |
+| `reach pack`    | Implemented   | Test lint/score/docs subcommands |
+| `reach capsule` | Implemented   | Verify create/verify/replay      |
+| `reach wizard`  | Implemented   | Test guided workflow             |
+| `reach share`   | Implemented   | Test QR code generation          |
 
 ### 2.2 Error Handling
 
@@ -119,6 +120,7 @@ graph TB
 - [ ] Test: `reachctl capsule verify less than file greater than` confirms integrity
 
 **Files to Focus On:**
+
 - `services/runner/cmd/reachctl/main.go`
 - `services/runner/internal/pack/`
 - `services/runner/internal/determinism/`
@@ -159,6 +161,7 @@ data/
 - [ ] Verify cross-platform compatibility
 
 **Files to Focus On:**
+
 - `services/runner/internal/storage/`
 - `services/runner/cmd/reachctl/main.go` - runs export/import
 
@@ -192,6 +195,7 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 - [ ] Clear documentation for local development setup
 
 **Files to Focus On:**
+
 - `apps/arcade/src/app/`
 - `apps/arcade/src/lib/templates.ts`
 - `apps/arcade/src/lib/demo-data.ts`
@@ -236,6 +240,7 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 **Current State:** Stripe integration in `apps/arcade/src/lib/stripe.ts`
 
 **Action:**
+
 - [ ] Create `BillingDisabledError` fallback (already exists)
 - [ ] Ensure all billing routes return graceful "not available" responses
 - [ ] Remove Stripe from required dependencies
@@ -245,6 +250,7 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 **Current State:** `requireAuth`, `tenantId` throughout API routes
 
 **Action:**
+
 - [ ] Create OSS mode that bypasses auth for local development
 - [ ] Add `OSS_MODE=true` environment variable
 - [ ] Stub `requireAuth` to return default user in OSS mode
@@ -255,6 +261,7 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 **Current State:** `apps/arcade/src/lib/cloud-db.ts`
 
 **Action:**
+
 - [ ] Create in-memory or SQLite fallback for OSS mode
 - [ ] Ensure playground works without cloud database
 - [ ] Document local data persistence
@@ -264,6 +271,7 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 **Current State:** `apps/arcade/src/app/pricing/page.tsx`
 
 **Action:**
+
 - [ ] Update to emphasize "Free and Open Source"
 - [ ] Remove enterprise tier or mark as "Coming Later"
 - [ ] Add link to self-hosting documentation
@@ -272,44 +280,50 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 
 Routes requiring `requireAuth` that need OSS fallback:
 
-| Route | OSS Behavior |
-|-------|--------------|
-| `/api/v1/billing/*` | Return "Not available in OSS mode" |
-| `/api/v1/gates/*` | Use local storage |
-| `/api/v1/workflows/*` | Use local storage |
-| `/api/v1/projects/*` | Use local storage |
-| `/api/v1/auth/*` | Bypass in OSS mode |
+| Route                 | OSS Behavior                       |
+| --------------------- | ---------------------------------- |
+| `/api/v1/billing/*`   | Return "Not available in OSS mode" |
+| `/api/v1/gates/*`     | Use local storage                  |
+| `/api/v1/workflows/*` | Use local storage                  |
+| `/api/v1/projects/*`  | Use local storage                  |
+| `/api/v1/auth/*`      | Bypass in OSS mode                 |
 
 ---
 
 ## Success Criteria
 
 ### Phase 1 Complete When:
+
 - [ ] All engine tests pass with greater than 90% coverage
 - [ ] Property-based tests prove determinism
 - [ ] No panics in engine under any input
 
 ### Phase 2 Complete When:
+
 - [ ] All CLI commands work without errors
 - [ ] `reach doctor` passes on clean install
 - [ ] Error messages are helpful and actionable
 
 ### Phase 3 Complete When:
+
 - [ ] SQLite storage handles all edge cases
 - [ ] Run export/import works cross-platform
 - [ ] No data corruption under normal use
 
 ### Phase 4 Complete When:
+
 - [ ] All 5 demo scenarios work flawlessly
 - [ ] Playground loads without authentication
 - [ ] Local dev setup takes less than 5 minutes
 
 ### Phase 5 Complete When:
+
 - [ ] README demo works as documented
 - [ ] All CLI commands documented
 - [ ] Contributing guide is complete
 
 ### Phase 6 Complete When:
+
 - [ ] App runs without Stripe keys
 - [ ] App runs without auth service
 - [ ] Pricing page reflects OSS focus
@@ -319,19 +333,23 @@ Routes requiring `requireAuth` that need OSS fallback:
 ## Files Changed Summary
 
 ### Core Engine (Phase 1)
+
 - `crates/engine/src/*.rs`
 - `crates/engine/tests/*.rs`
 - `crates/engine-core/src/*.rs`
 
 ### CLI (Phase 2)
+
 - `services/runner/cmd/reachctl/main.go`
 - `services/runner/internal/pack/*.go`
 - `services/runner/internal/determinism/*.go`
 
 ### Storage (Phase 3)
+
 - `services/runner/internal/storage/*.go`
 
 ### Web App (Phase 4-6)
+
 - `apps/arcade/src/lib/stripe.ts`
 - `apps/arcade/src/lib/cloud-db.ts`
 - `apps/arcade/src/lib/cloud-auth.ts`
@@ -339,6 +357,7 @@ Routes requiring `requireAuth` that need OSS fallback:
 - `apps/arcade/src/app/api/v1/**/*.ts`
 
 ### Documentation (Phase 5)
+
 - `README.md`
 - `docs/ERROR_CODES.md`
 - `CONTRIBUTING.md`
@@ -347,12 +366,12 @@ Routes requiring `requireAuth` that need OSS fallback:
 
 ## Risk Mitigation
 
-| Risk | Mitigation |
-|------|------------|
-| Breaking existing cloud users | Feature flag for OSS mode |
-| Lost revenue opportunity | OSS builds trust for future enterprise |
-| Community does not adopt | Focus on developer experience |
-| Core engine bugs found | Comprehensive testing phase |
+| Risk                          | Mitigation                             |
+| ----------------------------- | -------------------------------------- |
+| Breaking existing cloud users | Feature flag for OSS mode              |
+| Lost revenue opportunity      | OSS builds trust for future enterprise |
+| Community does not adopt      | Focus on developer experience          |
+| Core engine bugs found        | Comprehensive testing phase            |
 
 ---
 
@@ -365,7 +384,7 @@ Routes requiring `requireAuth` that need OSS fallback:
 
 ---
 
-*This plan prioritizes building a rock-solid foundation before adding the complexity of multi-tenant cloud operations.*
+_This plan prioritizes building a rock-solid foundation before adding the complexity of multi-tenant cloud operations._
 
 **Status:** Draft  
 **Created:** 2026-02-22  
@@ -397,20 +416,20 @@ graph TB
         Playground[Web Playground]
         Packs[Pack System]
     end
-    
+
     subgraph Enterprise Cloud - Deprecate
         Billing[Stripe Billing]
         Auth[Multi-tenant Auth]
         CloudDB[Cloud Database]
         Entitlements[Usage Limits]
     end
-    
+
     CLI --> Engine
     CLI --> Storage
     CLI --> Packs
     Playground --> Engine
     Engine --> Packs
-    
+
     Billing -.->|Stub| Auth
     Auth -.->|Stub| CloudDB
     Entitlements -.->|Stub| CloudDB
@@ -449,6 +468,7 @@ graph TB
 - [ ] Ensure deterministic JSON serialization
 
 **Files to Focus On:**
+
 - `crates/engine/src/lib.rs`
 - `crates/engine/src/policy/mod.rs`
 - `crates/engine/src/state_machine.rs`
@@ -462,14 +482,14 @@ graph TB
 
 ### 2.1 Core Commands Audit
 
-| Command | Status | Action Needed |
-|---------|--------|---------------|
-| `reach run` | Needs testing | Verify pack execution flow |
-| `reach doctor` | Implemented | Add more diagnostic checks |
-| `reach pack` | Implemented | Test lint/score/docs subcommands |
-| `reach capsule` | Implemented | Verify create/verify/replay |
-| `reach wizard` | Implemented | Test guided workflow |
-| `reach share` | Implemented | Test QR code generation |
+| Command         | Status        | Action Needed                    |
+| --------------- | ------------- | -------------------------------- |
+| `reach run`     | Needs testing | Verify pack execution flow       |
+| `reach doctor`  | Implemented   | Add more diagnostic checks       |
+| `reach pack`    | Implemented   | Test lint/score/docs subcommands |
+| `reach capsule` | Implemented   | Verify create/verify/replay      |
+| `reach wizard`  | Implemented   | Test guided workflow             |
+| `reach share`   | Implemented   | Test QR code generation          |
 
 ### 2.2 Error Handling
 
@@ -486,6 +506,7 @@ graph TB
 - [ ] Test: `reachctl capsule verify less than file greater than` confirms integrity
 
 **Files to Focus On:**
+
 - `services/runner/cmd/reachctl/main.go`
 - `services/runner/internal/pack/`
 - `services/runner/internal/determinism/`
@@ -526,6 +547,7 @@ data/
 - [ ] Verify cross-platform compatibility
 
 **Files to Focus On:**
+
 - `services/runner/internal/storage/`
 - `services/runner/cmd/reachctl/main.go` - runs export/import
 
@@ -559,6 +581,7 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 - [ ] Clear documentation for local development setup
 
 **Files to Focus On:**
+
 - `apps/arcade/src/app/`
 - `apps/arcade/src/lib/templates.ts`
 - `apps/arcade/src/lib/demo-data.ts`
@@ -603,6 +626,7 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 **Current State:** Stripe integration in `apps/arcade/src/lib/stripe.ts`
 
 **Action:**
+
 - [ ] Create `BillingDisabledError` fallback (already exists)
 - [ ] Ensure all billing routes return graceful "not available" responses
 - [ ] Remove Stripe from required dependencies
@@ -612,6 +636,7 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 **Current State:** `requireAuth`, `tenantId` throughout API routes
 
 **Action:**
+
 - [ ] Create OSS mode that bypasses auth for local development
 - [ ] Add `OSS_MODE=true` environment variable
 - [ ] Stub `requireAuth` to return default user in OSS mode
@@ -622,6 +647,7 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 **Current State:** `apps/arcade/src/lib/cloud-db.ts`
 
 **Action:**
+
 - [ ] Create in-memory or SQLite fallback for OSS mode
 - [ ] Ensure playground works without cloud database
 - [ ] Document local data persistence
@@ -631,6 +657,7 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 **Current State:** `apps/arcade/src/app/pricing/page.tsx`
 
 **Action:**
+
 - [ ] Update to emphasize "Free and Open Source"
 - [ ] Remove enterprise tier or mark as "Coming Later"
 - [ ] Add link to self-hosting documentation
@@ -639,44 +666,50 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 
 Routes requiring `requireAuth` that need OSS fallback:
 
-| Route | OSS Behavior |
-|-------|--------------|
-| `/api/v1/billing/*` | Return "Not available in OSS mode" |
-| `/api/v1/gates/*` | Use local storage |
-| `/api/v1/workflows/*` | Use local storage |
-| `/api/v1/projects/*` | Use local storage |
-| `/api/v1/auth/*` | Bypass in OSS mode |
+| Route                 | OSS Behavior                       |
+| --------------------- | ---------------------------------- |
+| `/api/v1/billing/*`   | Return "Not available in OSS mode" |
+| `/api/v1/gates/*`     | Use local storage                  |
+| `/api/v1/workflows/*` | Use local storage                  |
+| `/api/v1/projects/*`  | Use local storage                  |
+| `/api/v1/auth/*`      | Bypass in OSS mode                 |
 
 ---
 
 ## Success Criteria
 
 ### Phase 1 Complete When:
+
 - [ ] All engine tests pass with greater than 90% coverage
 - [ ] Property-based tests prove determinism
 - [ ] No panics in engine under any input
 
 ### Phase 2 Complete When:
+
 - [ ] All CLI commands work without errors
 - [ ] `reach doctor` passes on clean install
 - [ ] Error messages are helpful and actionable
 
 ### Phase 3 Complete When:
+
 - [ ] SQLite storage handles all edge cases
 - [ ] Run export/import works cross-platform
 - [ ] No data corruption under normal use
 
 ### Phase 4 Complete When:
+
 - [ ] All 5 demo scenarios work flawlessly
 - [ ] Playground loads without authentication
 - [ ] Local dev setup takes less than 5 minutes
 
 ### Phase 5 Complete When:
+
 - [ ] README demo works as documented
 - [ ] All CLI commands documented
 - [ ] Contributing guide is complete
 
 ### Phase 6 Complete When:
+
 - [ ] App runs without Stripe keys
 - [ ] App runs without auth service
 - [ ] Pricing page reflects OSS focus
@@ -686,19 +719,23 @@ Routes requiring `requireAuth` that need OSS fallback:
 ## Files Changed Summary
 
 ### Core Engine (Phase 1)
+
 - `crates/engine/src/*.rs`
 - `crates/engine/tests/*.rs`
 - `crates/engine-core/src/*.rs`
 
 ### CLI (Phase 2)
+
 - `services/runner/cmd/reachctl/main.go`
 - `services/runner/internal/pack/*.go`
 - `services/runner/internal/determinism/*.go`
 
 ### Storage (Phase 3)
+
 - `services/runner/internal/storage/*.go`
 
 ### Web App (Phase 4-6)
+
 - `apps/arcade/src/lib/stripe.ts`
 - `apps/arcade/src/lib/cloud-db.ts`
 - `apps/arcade/src/lib/cloud-auth.ts`
@@ -706,6 +743,7 @@ Routes requiring `requireAuth` that need OSS fallback:
 - `apps/arcade/src/app/api/v1/**/*.ts`
 
 ### Documentation (Phase 5)
+
 - `README.md`
 - `docs/ERROR_CODES.md`
 - `CONTRIBUTING.md`
@@ -714,12 +752,12 @@ Routes requiring `requireAuth` that need OSS fallback:
 
 ## Risk Mitigation
 
-| Risk | Mitigation |
-|------|------------|
-| Breaking existing cloud users | Feature flag for OSS mode |
-| Lost revenue opportunity | OSS builds trust for future enterprise |
-| Community does not adopt | Focus on developer experience |
-| Core engine bugs found | Comprehensive testing phase |
+| Risk                          | Mitigation                             |
+| ----------------------------- | -------------------------------------- |
+| Breaking existing cloud users | Feature flag for OSS mode              |
+| Lost revenue opportunity      | OSS builds trust for future enterprise |
+| Community does not adopt      | Focus on developer experience          |
+| Core engine bugs found        | Comprehensive testing phase            |
 
 ---
 
@@ -732,7 +770,7 @@ Routes requiring `requireAuth` that need OSS fallback:
 
 ---
 
-*This plan prioritizes building a rock-solid foundation before adding the complexity of multi-tenant cloud operations.*
+_This plan prioritizes building a rock-solid foundation before adding the complexity of multi-tenant cloud operations._
 
 - `CONTRIBUTING.md`
 
@@ -740,12 +778,12 @@ Routes requiring `requireAuth` that need OSS fallback:
 
 ## Risk Mitigation
 
-| Risk | Mitigation |
-|------|------------|
-| Breaking existing cloud users | Feature flag for OSS mode |
-| Lost revenue opportunity | OSS builds trust for future enterprise |
-| Community doesn't adopt | Focus on developer experience |
-| Core engine bugs found | Comprehensive testing phase |
+| Risk                          | Mitigation                             |
+| ----------------------------- | -------------------------------------- |
+| Breaking existing cloud users | Feature flag for OSS mode              |
+| Lost revenue opportunity      | OSS builds trust for future enterprise |
+| Community doesn't adopt       | Focus on developer experience          |
+| Core engine bugs found        | Comprehensive testing phase            |
 
 ---
 
@@ -758,7 +796,7 @@ Routes requiring `requireAuth` that need OSS fallback:
 
 ---
 
-*This plan prioritizes building a rock-solid foundation before adding the complexity of multi-tenant cloud operations.*
+_This plan prioritizes building a rock-solid foundation before adding the complexity of multi-tenant cloud operations._
 
 **Status:** Draft  
 **Created:** 2026-02-22  
@@ -790,20 +828,20 @@ graph TB
         Playground[Web Playground]
         Packs[Pack System]
     end
-    
+
     subgraph Enterprise Cloud - Deprecate
         Billing[Stripe Billing]
         Auth[Multi-tenant Auth]
         CloudDB[Cloud Database]
         Entitlements[Usage Limits]
     end
-    
+
     CLI --> Engine
     CLI --> Storage
     CLI --> Packs
     Playground --> Engine
     Engine --> Packs
-    
+
     Billing -.->|Stub| Auth
     Auth -.->|Stub| CloudDB
     Entitlements -.->|Stub| CloudDB
@@ -842,6 +880,7 @@ graph TB
 - [ ] Ensure deterministic JSON serialization
 
 **Files to Focus On:**
+
 - [`crates/engine/src/lib.rs`](crates/engine/src/lib.rs)
 - [`crates/engine/src/policy/mod.rs`](crates/engine/src/policy/mod.rs)
 - [`crates/engine/src/state_machine.rs`](crates/engine/src/state_machine.rs)
@@ -855,14 +894,14 @@ graph TB
 
 ### 2.1 Core Commands Audit
 
-| Command | Status | Action Needed |
-|---------|--------|---------------|
-| `reach run` | Needs testing | Verify pack execution flow |
-| `reach doctor` | Implemented | Add more diagnostic checks |
-| `reach pack` | Implemented | Test lint/score/docs subcommands |
-| `reach capsule` | Implemented | Verify create/verify/replay |
-| `reach wizard` | Implemented | Test guided workflow |
-| `reach share` | Implemented | Test QR code generation |
+| Command         | Status        | Action Needed                    |
+| --------------- | ------------- | -------------------------------- |
+| `reach run`     | Needs testing | Verify pack execution flow       |
+| `reach doctor`  | Implemented   | Add more diagnostic checks       |
+| `reach pack`    | Implemented   | Test lint/score/docs subcommands |
+| `reach capsule` | Implemented   | Verify create/verify/replay      |
+| `reach wizard`  | Implemented   | Test guided workflow             |
+| `reach share`   | Implemented   | Test QR code generation          |
 
 ### 2.2 Error Handling
 
@@ -879,6 +918,7 @@ graph TB
 - [ ] Test: `reachctl capsule verify <file>` → integrity confirmed
 
 **Files to Focus On:**
+
 - [`services/runner/cmd/reachctl/main.go`](services/runner/cmd/reachctl/main.go)
 - [`services/runner/internal/pack/`](services/runner/internal/pack/)
 - [`services/runner/internal/determinism/`](services/runner/internal/determinism/)
@@ -919,6 +959,7 @@ data/
 - [ ] Verify cross-platform compatibility
 
 **Files to Focus On:**
+
 - [`services/runner/internal/storage/`](services/runner/internal/storage/)
 - [`services/runner/cmd/reachctl/main.go`](services/runner/cmd/reachctl/main.go) - runs export/import
 
@@ -952,6 +993,7 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 - [ ] Clear documentation for local development setup
 
 **Files to Focus On:**
+
 - [`apps/arcade/src/app/`](apps/arcade/src/app/)
 - [`apps/arcade/src/lib/templates.ts`](apps/arcade/src/lib/templates.ts)
 - [`apps/arcade/src/lib/demo-data.ts`](apps/arcade/src/lib/demo-data.ts)
@@ -996,6 +1038,7 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 **Current State:** Stripe integration in [`apps/arcade/src/lib/stripe.ts`](apps/arcade/src/lib/stripe.ts)
 
 **Action:**
+
 - [ ] Create `BillingDisabledError` fallback (already exists)
 - [ ] Ensure all billing routes return graceful "not available" responses
 - [ ] Remove Stripe from required dependencies
@@ -1005,6 +1048,7 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 **Current State:** `requireAuth`, `tenantId` throughout API routes
 
 **Action:**
+
 - [ ] Create OSS mode that bypasses auth for local development
 - [ ] Add `OSS_MODE=true` environment variable
 - [ ] Stub `requireAuth` to return default user in OSS mode
@@ -1015,6 +1059,7 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 **Current State:** [`apps/arcade/src/lib/cloud-db.ts`](apps/arcade/src/lib/cloud-db.ts)
 
 **Action:**
+
 - [ ] Create in-memory or SQLite fallback for OSS mode
 - [ ] Ensure playground works without cloud database
 - [ ] Document local data persistence
@@ -1024,6 +1069,7 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 **Current State:** [`apps/arcade/src/app/pricing/page.tsx`](apps/arcade/src/app/pricing/page.tsx)
 
 **Action:**
+
 - [ ] Update to emphasize "Free & Open Source"
 - [ ] Remove enterprise tier or mark as "Coming Later"
 - [ ] Add link to self-hosting documentation
@@ -1032,13 +1078,13 @@ Implement the 5 "30-Second Wow" scripts from strategy:
 
 Routes requiring `requireAuth` that need OSS fallback:
 
-| Route | OSS Behavior |
-|-------|--------------|
-| `/api/v1/billing/*` | Return "Not available in OSS mode" |
-| `/api/v1/gates/*` | Use local storage |
-| `/api/v1/workflows/*` | Use local storage |
-| `/api/v1/projects/*` | Use local storage |
-| `/api/v1/auth/*` | Bypass in OSS mode |
+| Route                 | OSS Behavior                       |
+| --------------------- | ---------------------------------- |
+| `/api/v1/billing/*`   | Return "Not available in OSS mode" |
+| `/api/v1/gates/*`     | Use local storage                  |
+| `/api/v1/workflows/*` | Use local storage                  |
+| `/api/v1/projects/*`  | Use local storage                  |
+| `/api/v1/auth/*`      | Bypass in OSS mode                 |
 
 ---
 
@@ -1071,31 +1117,37 @@ gantt
 ## Success Criteria
 
 ### Phase 1 Complete When:
+
 - [ ] All engine tests pass with >90% coverage
 - [ ] Property-based tests prove determinism
 - [ ] No panics in engine under any input
 
 ### Phase 2 Complete When:
+
 - [ ] All CLI commands work without errors
 - [ ] `reach doctor` passes on clean install
 - [ ] Error messages are helpful and actionable
 
 ### Phase 3 Complete When:
+
 - [ ] SQLite storage handles all edge cases
 - [ ] Run export/import works cross-platform
 - [ ] No data corruption under normal use
 
 ### Phase 4 Complete When:
+
 - [ ] All 5 demo scenarios work flawlessly
 - [ ] Playground loads without authentication
 - [ ] Local dev setup takes <5 minutes
 
 ### Phase 5 Complete When:
+
 - [ ] README demo works as documented
 - [ ] All CLI commands documented
 - [ ] Contributing guide is complete
 
 ### Phase 6 Complete When:
+
 - [ ] App runs without Stripe keys
 - [ ] App runs without auth service
 - [ ] Pricing page reflects OSS focus
@@ -1105,19 +1157,23 @@ gantt
 ## Files Changed Summary
 
 ### Core Engine (Phase 1)
+
 - `crates/engine/src/*.rs`
 - `crates/engine/tests/*.rs`
 - `crates/engine-core/src/*.rs`
 
 ### CLI (Phase 2)
+
 - `services/runner/cmd/reachctl/main.go`
 - `services/runner/internal/pack/*.go`
 - `services/runner/internal/determinism/*.go`
 
 ### Storage (Phase 3)
+
 - `services/runner/internal/storage/*.go`
 
 ### Web App (Phase 4-6)
+
 - `apps/arcade/src/lib/stripe.ts`
 - `apps/arcade/src/lib/cloud-db.ts`
 - `apps/arcade/src/lib/cloud-auth.ts`
@@ -1125,6 +1181,7 @@ gantt
 - `apps/arcade/src/app/api/v1/**/*.ts`
 
 ### Documentation (Phase 5)
+
 - `README.md`
 - `docs/ERROR_CODES.md`
 - `CONTRIBUTING.md`
@@ -1133,12 +1190,12 @@ gantt
 
 ## Risk Mitigation
 
-| Risk | Mitigation |
-|------|------------|
-| Breaking existing cloud users | Feature flag for OSS mode |
-| Lost revenue opportunity | OSS builds trust for future enterprise |
-| Community doesn't adopt | Focus on developer experience |
-| Core engine bugs found | Comprehensive testing phase |
+| Risk                          | Mitigation                             |
+| ----------------------------- | -------------------------------------- |
+| Breaking existing cloud users | Feature flag for OSS mode              |
+| Lost revenue opportunity      | OSS builds trust for future enterprise |
+| Community doesn't adopt       | Focus on developer experience          |
+| Core engine bugs found        | Comprehensive testing phase            |
 
 ---
 
@@ -1151,5 +1208,4 @@ gantt
 
 ---
 
-*This plan prioritizes building a rock-solid foundation before adding the complexity of multi-tenant cloud operations.*
-
+_This plan prioritizes building a rock-solid foundation before adding the complexity of multi-tenant cloud operations._

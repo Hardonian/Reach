@@ -16,11 +16,11 @@ import type {
   ToolInvocation,
   RunArtifact,
   MCPServerConfig,
-} from './types';
-import { getSkill } from './skills';
-import { getToolsForSkill } from './tools';
-import { routeToProvider } from './providers';
-import type { RoutingStrategy } from './providers';
+} from "./types";
+import { getSkill } from "./skills";
+import { getToolsForSkill } from "./tools";
+import { routeToProvider } from "./providers";
+import type { RoutingStrategy } from "./providers";
 
 // ── Run Options ──
 
@@ -41,7 +41,10 @@ export function executeRun(options: RunOptions): ExecutionGraph {
   const startedAt = new Date().toISOString();
 
   // Route to provider
-  const provider = routeToProvider(routingStrategy ?? 'default', preferredProvider);
+  const provider = routeToProvider(
+    routingStrategy ?? "default",
+    preferredProvider,
+  );
 
   // Build execution nodes
   const nodes: ExecutionNode[] = [];
@@ -49,10 +52,10 @@ export function executeRun(options: RunOptions): ExecutionGraph {
 
   // Input node
   nodes.push({
-    id: 'input',
-    type: 'input',
-    label: 'Input',
-    status: 'completed',
+    id: "input",
+    type: "input",
+    label: "Input",
+    status: "completed",
     startedAt,
     completedAt: startedAt,
     durationMs: 0,
@@ -63,14 +66,14 @@ export function executeRun(options: RunOptions): ExecutionGraph {
   const skillNodeId = `skill-${skillId}`;
   nodes.push({
     id: skillNodeId,
-    type: 'skill',
+    type: "skill",
     label: skill?.name ?? skillId,
-    status: 'completed',
+    status: "completed",
     startedAt,
     durationMs: 0,
     metadata: { skillId },
   });
-  edges.push({ from: 'input', to: skillNodeId });
+  edges.push({ from: "input", to: skillNodeId });
 
   // Tool nodes
   const tools = skill ? getToolsForSkill(skillId) : [];
@@ -84,9 +87,9 @@ export function executeRun(options: RunOptions): ExecutionGraph {
 
     nodes.push({
       id: toolNodeId,
-      type: 'tool',
+      type: "tool",
       label: tool.name,
-      status: 'completed',
+      status: "completed",
       startedAt: toolStart,
       completedAt: toolEnd,
       durationMs: toolDuration,
@@ -99,11 +102,11 @@ export function executeRun(options: RunOptions): ExecutionGraph {
       toolName: tool.name,
       type: tool.type,
       input: inputs,
-      output: { status: 'ok' },
+      output: { status: "ok" },
       startedAt: toolStart,
       completedAt: toolEnd,
       durationMs: toolDuration,
-      status: 'success',
+      status: "success",
     });
   });
 
@@ -111,9 +114,9 @@ export function executeRun(options: RunOptions): ExecutionGraph {
   const providerNodeId = `provider-${provider.providerId}`;
   nodes.push({
     id: providerNodeId,
-    type: 'provider',
+    type: "provider",
     label: `${provider.providerName} / ${provider.modelName}`,
-    status: 'completed',
+    status: "completed",
     durationMs: 0,
     metadata: { provider },
   });
@@ -127,27 +130,28 @@ export function executeRun(options: RunOptions): ExecutionGraph {
   // Evaluation node
   const evaluation = generateEvaluation(skillId, inputs);
   nodes.push({
-    id: 'evaluation',
-    type: 'evaluation',
-    label: 'Evaluation',
-    status: 'completed',
+    id: "evaluation",
+    type: "evaluation",
+    label: "Evaluation",
+    status: "completed",
     durationMs: 0,
     metadata: { score: evaluation.score },
   });
-  edges.push({ from: providerNodeId, to: 'evaluation' });
+  edges.push({ from: providerNodeId, to: "evaluation" });
 
   // Output node
   nodes.push({
-    id: 'output',
-    type: 'output',
-    label: 'Output',
-    status: 'completed',
+    id: "output",
+    type: "output",
+    label: "Output",
+    status: "completed",
     durationMs: 0,
   });
-  edges.push({ from: 'evaluation', to: 'output' });
+  edges.push({ from: "evaluation", to: "output" });
 
   // Calculate totals
-  const totalDurationMs = toolInvocations.reduce((sum, t) => sum + t.durationMs, 0) + 200;
+  const totalDurationMs =
+    toolInvocations.reduce((sum, t) => sum + t.durationMs, 0) + 200;
   const completedAt = new Date(Date.now() + totalDurationMs).toISOString();
 
   // Update skill node timing
@@ -165,12 +169,15 @@ export function executeRun(options: RunOptions): ExecutionGraph {
   };
   tokenUsage.totalTokens = tokenUsage.inputTokens + tokenUsage.outputTokens;
   tokenUsage.estimatedCost = parseFloat(
-    ((tokenUsage.inputTokens * 0.003 + tokenUsage.outputTokens * 0.015) / 1000).toFixed(6)
+    (
+      (tokenUsage.inputTokens * 0.003 + tokenUsage.outputTokens * 0.015) /
+      1000
+    ).toFixed(6),
   );
 
   return {
     runId,
-    status: 'completed',
+    status: "completed",
     mode,
     startedAt,
     completedAt,
@@ -186,21 +193,70 @@ export function executeRun(options: RunOptions): ExecutionGraph {
 
 // ── Evaluation ──
 
-function generateEvaluation(skillId: string, _inputs: Record<string, unknown>): EvaluationSummary {
+function generateEvaluation(
+  skillId: string,
+  _inputs: Record<string, unknown>,
+): EvaluationSummary {
   const findingsMap: Record<string, EvaluationFinding[]> = {
-    'readiness-check': [
-      { id: 'f001', severity: 'high', category: 'Tool reliability', title: 'Tool call timeout exceeded', detail: '"search_web" exceeded the 2s timeout budget on 2 of 5 runs (p95: 3.1s).', fix: 'Set `timeout_ms: 1500` on the search_web tool. Add a fallback for slow responses.' },
-      { id: 'f002', severity: 'medium', category: 'Policy gate', title: 'Unguarded external call', detail: 'The agent calls an external API without checking the allow-list rule.', fix: 'Add `external_calls: [approved-apis]` to your policy config.' },
-      { id: 'f003', severity: 'low', category: 'Regression', title: 'Output format drift', detail: 'Response schema changed from v1 baseline.', fix: 'Pin your output schema or update the baseline.' },
+    "readiness-check": [
+      {
+        id: "f001",
+        severity: "high",
+        category: "Tool reliability",
+        title: "Tool call timeout exceeded",
+        detail:
+          '"search_web" exceeded the 2s timeout budget on 2 of 5 runs (p95: 3.1s).',
+        fix: "Set `timeout_ms: 1500` on the search_web tool. Add a fallback for slow responses.",
+      },
+      {
+        id: "f002",
+        severity: "medium",
+        category: "Policy gate",
+        title: "Unguarded external call",
+        detail:
+          "The agent calls an external API without checking the allow-list rule.",
+        fix: "Add `external_calls: [approved-apis]` to your policy config.",
+      },
+      {
+        id: "f003",
+        severity: "low",
+        category: "Regression",
+        title: "Output format drift",
+        detail: "Response schema changed from v1 baseline.",
+        fix: "Pin your output schema or update the baseline.",
+      },
     ],
-    'policy-gate': [
-      { id: 'f010', severity: 'high', category: 'Policy gate', title: 'write_file called without approval gate', detail: 'The write_file tool was invoked without passing through the approval flow.', fix: 'Add `require_approval: true` to write_file policy.' },
+    "policy-gate": [
+      {
+        id: "f010",
+        severity: "high",
+        category: "Policy gate",
+        title: "write_file called without approval gate",
+        detail:
+          "The write_file tool was invoked without passing through the approval flow.",
+        fix: "Add `require_approval: true` to write_file policy.",
+      },
     ],
-    'regression-detect': [
-      { id: 'f020', severity: 'medium', category: 'Regression', title: 'confidence field dropped', detail: 'The `confidence` field was present in baseline but missing in 1 of 5 runs.', fix: 'Pin output schema or update baseline after intentional change.' },
+    "regression-detect": [
+      {
+        id: "f020",
+        severity: "medium",
+        category: "Regression",
+        title: "confidence field dropped",
+        detail:
+          "The `confidence` field was present in baseline but missing in 1 of 5 runs.",
+        fix: "Pin output schema or update baseline after intentional change.",
+      },
     ],
-    'release-gate': [
-      { id: 'f030', severity: 'high', category: 'Release gate', title: 'Score below threshold', detail: 'Agent score 74 is below the minimum threshold of 80.', fix: 'Fix tool timeout issue before merging.' },
+    "release-gate": [
+      {
+        id: "f030",
+        severity: "high",
+        category: "Release gate",
+        title: "Score below threshold",
+        detail: "Agent score 74 is below the minimum threshold of 80.",
+        fix: "Fix tool timeout issue before merging.",
+      },
     ],
   };
 
@@ -220,25 +276,25 @@ export function generateArtifacts(graph: ExecutionGraph): RunArtifact[] {
   return [
     {
       runId: graph.runId,
-      format: 'json',
+      format: "json",
       content: JSON.stringify(graph, null, 2),
       generatedAt: now,
     },
     {
       runId: graph.runId,
-      format: 'mcp-config',
+      format: "mcp-config",
       content: JSON.stringify(graphToMCPConfig(graph), null, 2),
       generatedAt: now,
     },
     {
       runId: graph.runId,
-      format: 'cli-command',
+      format: "cli-command",
       content: generateCLICommand(graph),
       generatedAt: now,
     },
     {
       runId: graph.runId,
-      format: 'report',
+      format: "report",
       content: generateReport(graph),
       generatedAt: now,
     },
@@ -246,28 +302,28 @@ export function generateArtifacts(graph: ExecutionGraph): RunArtifact[] {
 }
 
 function graphToMCPConfig(graph: ExecutionGraph): MCPServerConfig {
-  const toolNodes = graph.nodes.filter((n) => n.type === 'tool');
+  const toolNodes = graph.nodes.filter((n) => n.type === "tool");
   return {
     name: `readylayer-run-${graph.runId}`,
-    version: '1.0.0',
+    version: "1.0.0",
     tools: toolNodes.map((n) => ({
-      name: n.label.toLowerCase().replace(/\s+/g, '_'),
+      name: n.label.toLowerCase().replace(/\s+/g, "_"),
       description: `Tool: ${n.label}`,
-      inputSchema: { type: 'object', properties: {} },
+      inputSchema: { type: "object", properties: {} },
     })),
     resources: [
       {
         uri: `readylayer://runs/${graph.runId}`,
         name: `Run ${graph.runId}`,
-        mimeType: 'application/json',
+        mimeType: "application/json",
       },
     ],
   };
 }
 
 function generateCLICommand(graph: ExecutionGraph): string {
-  const skillNode = graph.nodes.find((n) => n.type === 'skill');
-  const skillId = (skillNode?.metadata?.skillId as string) ?? 'unknown';
+  const skillNode = graph.nodes.find((n) => n.type === "skill");
+  const skillId = (skillNode?.metadata?.skillId as string) ?? "unknown";
   return `readylayer run --skill ${skillId} --mode ${graph.mode} --provider ${graph.provider.providerId}`;
 }
 
@@ -300,7 +356,9 @@ function generateReport(graph: ExecutionGraph): string {
     if (eval_.findings.length > 0) {
       lines.push(`## Findings`);
       eval_.findings.forEach((f) => {
-        lines.push(`- **[${f.severity.toUpperCase()}]** ${f.title}: ${f.detail}`);
+        lines.push(
+          `- **[${f.severity.toUpperCase()}]** ${f.title}: ${f.detail}`,
+        );
         lines.push(`  - Fix: ${f.fix}`);
       });
     }
@@ -311,5 +369,5 @@ function generateReport(graph: ExecutionGraph): string {
     lines.push(`- ${t.toolName} (${t.type}): ${t.durationMs}ms — ${t.status}`);
   });
 
-  return lines.join('\n');
+  return lines.join("\n");
 }

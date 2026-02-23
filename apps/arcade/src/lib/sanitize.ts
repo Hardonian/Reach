@@ -13,7 +13,7 @@ const SENSITIVE_KEYS = [
 // Values that look like secrets (e.g. high entropy, specific formats)
 // This is a heuristic and should be used in conjunction with key matching
 const SENSITIVE_VALUE_REGEX = [
-  /sk-[a-zA-Z0-9]{20,}/,  // OpenAI-style keys
+  /sk-[a-zA-Z0-9]{20,}/, // OpenAI-style keys
   /eyJ[a-zA-Z0-9_-]{10,}/, // JWT-like prefix
 ];
 
@@ -22,11 +22,11 @@ export function sanitize(data: unknown): unknown {
     return data;
   }
 
-  if (typeof data === 'string') {
+  if (typeof data === "string") {
     // Check for embedded secrets in strings
     for (const regex of SENSITIVE_VALUE_REGEX) {
       if (regex.test(data)) {
-        return '[REDACTED_SECRET]';
+        return "[REDACTED_SECRET]";
       }
     }
     return data;
@@ -36,11 +36,13 @@ export function sanitize(data: unknown): unknown {
     return data.map((item: unknown) => sanitize(item));
   }
 
-  if (typeof data === 'object') {
+  if (typeof data === "object") {
     const sanitized: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
-      if (SENSITIVE_KEYS.some(regex => regex.test(key))) {
-        sanitized[key] = '[REDACTED]';
+    for (const [key, value] of Object.entries(
+      data as Record<string, unknown>,
+    )) {
+      if (SENSITIVE_KEYS.some((regex) => regex.test(key))) {
+        sanitized[key] = "[REDACTED]";
       } else {
         sanitized[key] = sanitize(value);
       }

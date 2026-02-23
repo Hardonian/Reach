@@ -158,11 +158,19 @@
       "required": ["violationType", "details"],
       "properties": {
         "violationType": {
-          "enum": ["UNDEFINED_TOOL", "RESOURCE_ACCESS", "PERMISSION_DENIED", "TIMEOUT_EXCEEDED"]
+          "enum": [
+            "UNDEFINED_TOOL",
+            "RESOURCE_ACCESS",
+            "PERMISSION_DENIED",
+            "TIMEOUT_EXCEEDED"
+          ]
         },
         "details": { "type": "string" },
         "attemptedCapability": { "type": "string" },
-        "declaredCapabilities": { "type": "array", "items": { "type": "string" } }
+        "declaredCapabilities": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
       }
     },
     "FederationDelegationPayload": {

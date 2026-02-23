@@ -1,4 +1,5 @@
 # Packkit transplant notes ## Discovery
+
 - `../keys`: not found.
 - git remote `keys`: not configured.
 - `KEYS_PATH`: empty.
@@ -8,6 +9,7 @@ Because Keys source was unavailable, Reach packkit was implemented as a clean-ro
 ## Attribution and licensing No Keys source files were copied into this repository in this change. Existing Reach project licensing remains unchanged.
 
 ## Usage - Connector registry reads from `connectors/index.json`.
+
 - Signed manifests are required unless `DEV_ALLOW_UNSIGNED=1`.
 - Installed package pins are written to `reach.lock.json`.
 

@@ -1,458 +1,861 @@
-<!DOCTYPE html>
+<!doctype html>
 
-<html class="dark" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Reach Marketplace &amp; Templates</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        primary: "#135bec",
-                        "background-light": "#f6f6f8",
-                        "background-dark": "#101622",
-                        "card-dark": "#1a2230",
-                        "border-dark": "#283040",
-                        "text-secondary": "#9da6b9",
-                    },
-                    fontFamily: {
-                        display: ["Inter", "sans-serif"],
-                    },
-                    borderRadius: {
-                        lg: "0.5rem",
-                        xl: "0.75rem",
-                        "2xl": "1rem",
-                    },
-                },
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Reach Marketplace &amp; Templates</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#135bec",
+              "background-light": "#f6f6f8",
+              "background-dark": "#101622",
+              "card-dark": "#1a2230",
+              "border-dark": "#283040",
+              "text-secondary": "#9da6b9",
             },
-        }
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              lg: "0.5rem",
+              xl: "0.75rem",
+              "2xl": "1rem",
+            },
+          },
+        },
+      };
     </script>
-<style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
     </style>
-</head>
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-display antialiased selection:bg-primary/30">
-<!-- Header -->
-<header class="sticky top-0 z-50 flex items-center justify-between border-b border-solid border-border-dark bg-background-dark/80 backdrop-blur-md px-6 py-3">
-<div class="flex items-center gap-4">
-<div class="flex items-center gap-2 text-white">
-<div class="size-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
-<svg fill="none" height="20" viewbox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
-<path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-<path d="M2 17L12 22L22 17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-<path d="M2 12L12 17L22 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-</svg>
-</div>
-<h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">Reach Platform</h2>
-</div>
-</div>
-<div class="hidden md:flex flex-1 justify-center">
-<nav class="flex items-center gap-1 bg-card-dark/50 p-1 rounded-full border border-border-dark">
-<a class="text-white text-sm font-medium leading-normal px-4 py-1.5 rounded-full bg-primary/10 text-primary transition-colors" href="#">Marketplace</a>
-<a class="text-text-secondary hover:text-white text-sm font-medium leading-normal px-4 py-1.5 rounded-full transition-colors" href="#">Documentation</a>
-<a class="text-text-secondary hover:text-white text-sm font-medium leading-normal px-4 py-1.5 rounded-full transition-colors" href="#">Pricing</a>
-</nav>
-</div>
-<div class="flex items-center gap-3">
-<button class="hidden sm:flex h-9 items-center justify-center px-4 rounded-lg text-sm font-medium text-text-secondary hover:text-white hover:bg-white/5 transition-colors">
-                Log In
-            </button>
-<button class="flex h-9 items-center justify-center gap-2 rounded-lg px-4 bg-primary hover:bg-primary/90 text-white text-sm font-bold leading-normal tracking-[0.015em] transition-all shadow-[0_0_15px_-3px_rgba(19,91,236,0.4)]">
-<span>Go to Console</span>
-<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-</button>
-</div>
-</header>
-<div class="flex flex-1 overflow-hidden">
-<!-- Sidebar Navigation -->
-<aside class="hidden lg:flex w-64 flex-col border-r border-border-dark bg-background-dark overflow-y-auto">
-<div class="p-4 space-y-6">
-<!-- Search for Sidebar (Mobile style usually, but good for quick filter) -->
-<div>
-<h3 class="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">Browse</h3>
-<nav class="flex flex-col gap-1">
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary" href="#">
-<span class="material-symbols-outlined text-[20px]">grid_view</span>
-<span class="text-sm font-medium">All Templates</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:text-white hover:bg-white/5 transition-colors" href="#">
-<span class="material-symbols-outlined text-[20px]">smart_toy</span>
-<span class="text-sm font-medium">Agent Templates</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:text-white hover:bg-white/5 transition-colors" href="#">
-<span class="material-symbols-outlined text-[20px]">dns</span>
-<span class="text-sm font-medium">Runner Pre-sets</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:text-white hover:bg-white/5 transition-colors" href="#">
-<span class="material-symbols-outlined text-[20px]">extension</span>
-<span class="text-sm font-medium">Integrations</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:text-white hover:bg-white/5 transition-colors" href="#">
-<span class="material-symbols-outlined text-[20px]">group</span>
-<span class="text-sm font-medium">Community</span>
-</a>
-</nav>
-</div>
-<div class="h-px bg-border-dark w-full"></div>
-<div>
-<h3 class="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">Industries</h3>
-<div class="flex flex-col gap-1">
-<label class="flex items-center gap-3 px-3 py-1.5 cursor-pointer group">
-<div class="relative flex items-center">
-<input class="peer h-4 w-4 rounded border-border-dark bg-card-dark text-primary focus:ring-0 focus:ring-offset-0" type="checkbox"/>
-</div>
-<span class="text-sm text-text-secondary group-hover:text-white transition-colors">Finance</span>
-</label>
-<label class="flex items-center gap-3 px-3 py-1.5 cursor-pointer group">
-<div class="relative flex items-center">
-<input class="peer h-4 w-4 rounded border-border-dark bg-card-dark text-primary focus:ring-0 focus:ring-offset-0" type="checkbox"/>
-</div>
-<span class="text-sm text-text-secondary group-hover:text-white transition-colors">Healthcare</span>
-</label>
-<label class="flex items-center gap-3 px-3 py-1.5 cursor-pointer group">
-<div class="relative flex items-center">
-<input class="peer h-4 w-4 rounded border-border-dark bg-card-dark text-primary focus:ring-0 focus:ring-offset-0" type="checkbox"/>
-</div>
-<span class="text-sm text-text-secondary group-hover:text-white transition-colors">DevOps</span>
-</label>
-<label class="flex items-center gap-3 px-3 py-1.5 cursor-pointer group">
-<div class="relative flex items-center">
-<input class="peer h-4 w-4 rounded border-border-dark bg-card-dark text-primary focus:ring-0 focus:ring-offset-0" type="checkbox"/>
-</div>
-<span class="text-sm text-text-secondary group-hover:text-white transition-colors">Customer Support</span>
-</label>
-</div>
-</div>
-<!-- Featured Promo -->
-<div class="mt-auto pt-6">
-<div class="rounded-xl bg-gradient-to-br from-card-dark to-primary/10 border border-border-dark p-4">
-<div class="flex items-start justify-between mb-2">
-<div class="p-1.5 bg-primary rounded-lg">
-<span class="material-symbols-outlined text-white text-[18px]">rocket_launch</span>
-</div>
-<span class="text-[10px] font-bold bg-primary/20 text-primary px-2 py-0.5 rounded text-white">NEW</span>
-</div>
-<h4 class="text-sm font-semibold text-white mb-1">Enterprise Runner</h4>
-<p class="text-xs text-text-secondary mb-3">Dedicated instances with SOC2 compliance built-in.</p>
-<button class="w-full py-1.5 rounded-lg bg-card-dark border border-border-dark hover:bg-border-dark text-xs font-medium text-white transition-colors">Learn More</button>
-</div>
-</div>
-</div>
-</aside>
-<!-- Main Content -->
-<main class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark">
-<div class="max-w-[1400px] mx-auto p-6 md:p-8 lg:p-12 space-y-10">
-<!-- Hero Section -->
-<section class="space-y-6">
-<div class="max-w-3xl">
-<h1 class="text-3xl md:text-5xl font-bold text-white tracking-tight mb-4">
-                            Reach Marketplace
-                        </h1>
-<p class="text-lg text-text-secondary leading-relaxed">
-                            Accelerate your AI workforce. Discover pre-built agent templates, secure runner configurations, and community-driven workflows ready to deploy.
-                        </p>
-</div>
-<!-- Search & Filter Bar -->
-<div class="flex flex-col md:flex-row gap-4">
-<div class="relative flex-1 group">
-<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-secondary group-focus-within:text-primary transition-colors">
-<span class="material-symbols-outlined">search</span>
-</div>
-<input class="block w-full pl-10 pr-4 py-3 rounded-lg bg-card-dark border border-border-dark text-white placeholder-text-secondary focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" placeholder="Search templates, runners, and integrations..." type="text"/>
-<div class="absolute inset-y-0 right-0 pr-2 flex items-center">
-<kbd class="hidden sm:inline-block px-2 py-0.5 rounded bg-background-dark border border-border-dark text-xs text-text-secondary">⌘K</kbd>
-</div>
-</div>
-<div class="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-<button class="flex items-center gap-2 px-4 py-3 rounded-lg bg-card-dark border border-border-dark text-text-secondary hover:text-white hover:border-primary/50 whitespace-nowrap transition-colors">
-<span class="material-symbols-outlined text-[18px]">tune</span>
-<span class="text-sm font-medium">Filters</span>
-</button>
-<button class="flex items-center gap-2 px-4 py-3 rounded-lg bg-card-dark border border-border-dark text-text-secondary hover:text-white hover:border-primary/50 whitespace-nowrap transition-colors">
-<span class="text-sm font-medium">Sort by: Popular</span>
-<span class="material-symbols-outlined text-[18px]">expand_more</span>
-</button>
-</div>
-</div>
-<!-- Quick Tags -->
-<div class="flex flex-wrap gap-2">
-<span class="text-sm text-text-secondary py-1 mr-2">Trending:</span>
-<a class="px-3 py-1 rounded-full bg-border-dark/50 hover:bg-primary/20 hover:text-primary text-xs font-medium text-text-secondary border border-transparent hover:border-primary/20 transition-all" href="#">Financial Analyst</a>
-<a class="px-3 py-1 rounded-full bg-border-dark/50 hover:bg-primary/20 hover:text-primary text-xs font-medium text-text-secondary border border-transparent hover:border-primary/20 transition-all" href="#">HIPAA Runner</a>
-<a class="px-3 py-1 rounded-full bg-border-dark/50 hover:bg-primary/20 hover:text-primary text-xs font-medium text-text-secondary border border-transparent hover:border-primary/20 transition-all" href="#">Slack Bot</a>
-<a class="px-3 py-1 rounded-full bg-border-dark/50 hover:bg-primary/20 hover:text-primary text-xs font-medium text-text-secondary border border-transparent hover:border-primary/20 transition-all" href="#">Data Scraper</a>
-</div>
-</section>
-<!-- Featured Section -->
-<section>
-<div class="flex items-center justify-between mb-6">
-<div>
-<h2 class="text-xl font-bold text-white mb-1">Featured Agent Templates</h2>
-<p class="text-sm text-text-secondary">High-performance agents curated by the Reach team.</p>
-</div>
-<a class="text-sm font-medium text-primary hover:text-primary/80 flex items-center gap-1" href="#">
-                            View All <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-</a>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-<!-- Card 1 -->
-<div class="group relative flex flex-col rounded-xl border border-border-dark bg-card-dark p-5 hover:border-primary/50 hover:shadow-[0_0_20px_-10px_rgba(19,91,236,0.3)] transition-all duration-300">
-<div class="flex items-start justify-between mb-4">
-<div class="flex items-center gap-3">
-<div class="size-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center border border-blue-500/20">
-<span class="material-symbols-outlined">query_stats</span>
-</div>
-<div>
-<h3 class="text-base font-bold text-white group-hover:text-primary transition-colors">Financial Analyst</h3>
-<p class="text-xs text-text-secondary">v2.4.0 • Reach Official</p>
-</div>
-</div>
-<div class="flex items-center gap-1 bg-background-dark px-2 py-1 rounded text-xs font-medium text-text-secondary">
-<span class="material-symbols-outlined text-[14px] text-yellow-500">star</span>
-<span class="text-white">4.9</span>
-</div>
-</div>
-<p class="text-sm text-text-secondary mb-6 line-clamp-2">
-                                Autonomous agent designed for anomaly detection in financial reports. Integrates with Quickbooks and Xero APIs.
-                            </p>
-<div class="mt-auto flex items-center justify-between pt-4 border-t border-border-dark/50">
-<div class="flex items-center gap-2 text-xs text-text-secondary">
-<span class="material-symbols-outlined text-[16px]">download</span>
-<span>12k deploys</span>
-</div>
-<button class="px-3 py-1.5 rounded-lg bg-white text-background-dark text-xs font-bold hover:bg-primary hover:text-white transition-colors">
-                                    Deploy
-                                </button>
-</div>
-</div>
-<!-- Card 2 -->
-<div class="group relative flex flex-col rounded-xl border border-border-dark bg-card-dark p-5 hover:border-primary/50 hover:shadow-[0_0_20px_-10px_rgba(19,91,236,0.3)] transition-all duration-300">
-<div class="flex items-start justify-between mb-4">
-<div class="flex items-center gap-3">
-<div class="size-10 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center border border-purple-500/20">
-<span class="material-symbols-outlined">support_agent</span>
-</div>
-<div>
-<h3 class="text-base font-bold text-white group-hover:text-primary transition-colors">Support Triager</h3>
-<p class="text-xs text-text-secondary">v1.1.0 • Reach Official</p>
-</div>
-</div>
-<div class="flex items-center gap-1 bg-background-dark px-2 py-1 rounded text-xs font-medium text-text-secondary">
-<span class="material-symbols-outlined text-[14px] text-yellow-500">star</span>
-<span class="text-white">4.7</span>
-</div>
-</div>
-<p class="text-sm text-text-secondary mb-6 line-clamp-2">
-                                First-line support agent that classifies tickets, drafts responses, and escalates complex issues to human agents.
-                            </p>
-<div class="mt-auto flex items-center justify-between pt-4 border-t border-border-dark/50">
-<div class="flex items-center gap-2 text-xs text-text-secondary">
-<span class="material-symbols-outlined text-[16px]">download</span>
-<span>8.5k deploys</span>
-</div>
-<button class="px-3 py-1.5 rounded-lg bg-white text-background-dark text-xs font-bold hover:bg-primary hover:text-white transition-colors">
-                                    Deploy
-                                </button>
-</div>
-</div>
-<!-- Card 3 -->
-<div class="group relative flex flex-col rounded-xl border border-border-dark bg-card-dark p-5 hover:border-primary/50 hover:shadow-[0_0_20px_-10px_rgba(19,91,236,0.3)] transition-all duration-300">
-<div class="flex items-start justify-between mb-4">
-<div class="flex items-center gap-3">
-<div class="size-10 rounded-lg bg-green-500/10 text-green-500 flex items-center justify-center border border-green-500/20">
-<span class="material-symbols-outlined">code</span>
-</div>
-<div>
-<h3 class="text-base font-bold text-white group-hover:text-primary transition-colors">Code Reviewer</h3>
-<p class="text-xs text-text-secondary">v3.0.1 • Community</p>
-</div>
-</div>
-<div class="flex items-center gap-1 bg-background-dark px-2 py-1 rounded text-xs font-medium text-text-secondary">
-<span class="material-symbols-outlined text-[14px] text-yellow-500">star</span>
-<span class="text-white">4.8</span>
-</div>
-</div>
-<p class="text-sm text-text-secondary mb-6 line-clamp-2">
-                                Automatically reviews PRs for style violations, security vulnerabilities, and test coverage.
-                            </p>
-<div class="mt-auto flex items-center justify-between pt-4 border-t border-border-dark/50">
-<div class="flex items-center gap-2 text-xs text-text-secondary">
-<span class="material-symbols-outlined text-[16px]">download</span>
-<span>5.2k deploys</span>
-</div>
-<button class="px-3 py-1.5 rounded-lg bg-white text-background-dark text-xs font-bold hover:bg-primary hover:text-white transition-colors">
-                                    Deploy
-                                </button>
-</div>
-</div>
-</div>
-</section>
-<!-- Runner Pre-sets -->
-<section>
-<div class="flex items-center justify-between mb-6">
-<div>
-<h2 class="text-xl font-bold text-white mb-1">Industry Runners</h2>
-<p class="text-sm text-text-secondary">Pre-configured environments compliant with industry standards.</p>
-</div>
-<a class="text-sm font-medium text-primary hover:text-primary/80 flex items-center gap-1" href="#">
-                            View All <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-</a>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-<!-- Runner Card 1 -->
-<div class="group flex flex-col p-4 rounded-xl border border-border-dark bg-gradient-to-br from-card-dark to-background-dark hover:from-card-dark hover:to-card-dark hover:border-primary/30 transition-all cursor-pointer">
-<div class="flex justify-between mb-3">
-<div class="p-2 rounded bg-rose-500/10 text-rose-500">
-<span class="material-symbols-outlined">local_hospital</span>
-</div>
-<span class="bg-rose-500/10 text-rose-500 text-[10px] font-bold px-2 py-1 rounded h-fit">HIPAA</span>
-</div>
-<h3 class="font-bold text-white mb-1">Healthcare Shield</h3>
-<p class="text-xs text-text-secondary mb-4">Strict PII redaction and audit logs enabled by default.</p>
-<div class="mt-auto flex items-center text-xs font-medium text-primary group-hover:underline">
-                                Configure Runner <span class="material-symbols-outlined text-[14px] ml-1">chevron_right</span>
-</div>
-</div>
-<!-- Runner Card 2 -->
-<div class="group flex flex-col p-4 rounded-xl border border-border-dark bg-gradient-to-br from-card-dark to-background-dark hover:from-card-dark hover:to-card-dark hover:border-primary/30 transition-all cursor-pointer">
-<div class="flex justify-between mb-3">
-<div class="p-2 rounded bg-amber-500/10 text-amber-500">
-<span class="material-symbols-outlined">account_balance</span>
-</div>
-<span class="bg-amber-500/10 text-amber-500 text-[10px] font-bold px-2 py-1 rounded h-fit">SOC2</span>
-</div>
-<h3 class="font-bold text-white mb-1">FinTech Secure</h3>
-<p class="text-xs text-text-secondary mb-4">Isolated memory containers with zero-retention policies.</p>
-<div class="mt-auto flex items-center text-xs font-medium text-primary group-hover:underline">
-                                Configure Runner <span class="material-symbols-outlined text-[14px] ml-1">chevron_right</span>
-</div>
-</div>
-<!-- Runner Card 3 -->
-<div class="group flex flex-col p-4 rounded-xl border border-border-dark bg-gradient-to-br from-card-dark to-background-dark hover:from-card-dark hover:to-card-dark hover:border-primary/30 transition-all cursor-pointer">
-<div class="flex justify-between mb-3">
-<div class="p-2 rounded bg-cyan-500/10 text-cyan-500">
-<span class="material-symbols-outlined">shopping_cart</span>
-</div>
-<span class="bg-cyan-500/10 text-cyan-500 text-[10px] font-bold px-2 py-1 rounded h-fit">PCI-DSS</span>
-</div>
-<h3 class="font-bold text-white mb-1">E-Commerce Core</h3>
-<p class="text-xs text-text-secondary mb-4">Transaction monitoring and fraud detection preset.</p>
-<div class="mt-auto flex items-center text-xs font-medium text-primary group-hover:underline">
-                                Configure Runner <span class="material-symbols-outlined text-[14px] ml-1">chevron_right</span>
-</div>
-</div>
-<!-- Runner Card 4 -->
-<div class="group flex flex-col p-4 rounded-xl border border-border-dark bg-gradient-to-br from-card-dark to-background-dark hover:from-card-dark hover:to-card-dark hover:border-primary/30 transition-all cursor-pointer">
-<div class="flex justify-between mb-3">
-<div class="p-2 rounded bg-emerald-500/10 text-emerald-500">
-<span class="material-symbols-outlined">public</span>
-</div>
-<span class="bg-emerald-500/10 text-emerald-500 text-[10px] font-bold px-2 py-1 rounded h-fit">GDPR</span>
-</div>
-<h3 class="font-bold text-white mb-1">EU Compliance</h3>
-<p class="text-xs text-text-secondary mb-4">Data residency locks and user consent workflows.</p>
-<div class="mt-auto flex items-center text-xs font-medium text-primary group-hover:underline">
-                                Configure Runner <span class="material-symbols-outlined text-[14px] ml-1">chevron_right</span>
-</div>
-</div>
-</div>
-</section>
-<!-- Community / New & Noteworthy -->
-<section>
-<div class="flex items-center justify-between mb-6">
-<div>
-<h2 class="text-xl font-bold text-white mb-1">New &amp; Noteworthy</h2>
-<p class="text-sm text-text-secondary">Fresh from the community.</p>
-</div>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-<!-- Compact Card 1 -->
-<div class="flex items-center gap-4 p-4 rounded-xl bg-card-dark border border-border-dark hover:border-border-dark/80 transition-colors">
-<div class="size-12 rounded bg-background-dark flex items-center justify-center text-text-secondary">
-<span class="material-symbols-outlined">mail</span>
-</div>
-<div class="flex-1 min-w-0">
-<h4 class="text-sm font-bold text-white truncate">Email Drafter Pro</h4>
-<p class="text-xs text-text-secondary truncate">By @sarah_dev • 400 uses</p>
-</div>
-<button class="p-2 rounded-lg hover:bg-white/10 text-text-secondary hover:text-white transition-colors">
-<span class="material-symbols-outlined text-[20px]">add_circle</span>
-</button>
-</div>
-<!-- Compact Card 2 -->
-<div class="flex items-center gap-4 p-4 rounded-xl bg-card-dark border border-border-dark hover:border-border-dark/80 transition-colors">
-<div class="size-12 rounded bg-background-dark flex items-center justify-center text-text-secondary">
-<span class="material-symbols-outlined">translate</span>
-</div>
-<div class="flex-1 min-w-0">
-<h4 class="text-sm font-bold text-white truncate">Legal Translator</h4>
-<p class="text-xs text-text-secondary truncate">By @legal_tech_co • 1.2k uses</p>
-</div>
-<button class="p-2 rounded-lg hover:bg-white/10 text-text-secondary hover:text-white transition-colors">
-<span class="material-symbols-outlined text-[20px]">add_circle</span>
-</button>
-</div>
-<!-- Compact Card 3 -->
-<div class="flex items-center gap-4 p-4 rounded-xl bg-card-dark border border-border-dark hover:border-border-dark/80 transition-colors">
-<div class="size-12 rounded bg-background-dark flex items-center justify-center text-text-secondary">
-<span class="material-symbols-outlined">calendar_month</span>
-</div>
-<div class="flex-1 min-w-0">
-<h4 class="text-sm font-bold text-white truncate">Meeting Scheduler</h4>
-<p class="text-xs text-text-secondary truncate">By @productivity_hacks • 850 uses</p>
-</div>
-<button class="p-2 rounded-lg hover:bg-white/10 text-text-secondary hover:text-white transition-colors">
-<span class="material-symbols-outlined text-[20px]">add_circle</span>
-</button>
-</div>
-</div>
-</section>
-<!-- Footer CTA -->
-<section class="py-10 border-t border-border-dark">
-<div class="rounded-2xl bg-gradient-to-r from-primary/20 via-card-dark to-card-dark border border-border-dark p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden">
-<!-- Decorative glow -->
-<div class="absolute -top-20 -left-20 size-64 bg-primary/20 blur-[100px] rounded-full pointer-events-none"></div>
-<div class="relative z-10 max-w-xl">
-<h2 class="text-2xl font-bold text-white mb-2">Can't find what you're looking for?</h2>
-<p class="text-text-secondary">Build your own custom agent from scratch using our SDK or request a specific template from our engineering team.</p>
-</div>
-<div class="relative z-10 flex gap-4">
-<button class="px-5 py-2.5 rounded-lg border border-border-dark bg-background-dark text-white text-sm font-medium hover:bg-border-dark transition-colors">
-                                Request Template
-                            </button>
-<button class="px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
-                                Build Custom Agent
-                            </button>
-</div>
-</div>
-</section>
-</div>
-<!-- Simple Footer -->
-<footer class="bg-background-dark border-t border-border-dark py-8 px-6 md:px-12 mt-auto">
-<div class="flex flex-col md:flex-row justify-between items-center gap-4">
-<p class="text-xs text-text-secondary">© 2024 Reach Platform Inc. All rights reserved.</p>
-<div class="flex gap-6">
-<a class="text-xs text-text-secondary hover:text-white transition-colors" href="#">Privacy Policy</a>
-<a class="text-xs text-text-secondary hover:text-white transition-colors" href="#">Terms of Service</a>
-<a class="text-xs text-text-secondary hover:text-white transition-colors" href="#">Support</a>
-</div>
-</div>
-</footer>
-</main>
-</div>
-</body></html>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-display antialiased selection:bg-primary/30"
+  >
+    <!-- Header -->
+    <header
+      class="sticky top-0 z-50 flex items-center justify-between border-b border-solid border-border-dark bg-background-dark/80 backdrop-blur-md px-6 py-3"
+    >
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 text-white">
+          <div
+            class="size-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary"
+          >
+            <svg
+              fill="none"
+              height="20"
+              viewbox="0 0 24 24"
+              width="20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2L2 7L12 12L22 7L12 2Z"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+              ></path>
+              <path
+                d="M2 17L12 22L22 17"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+              ></path>
+              <path
+                d="M2 12L12 17L22 12"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+              ></path>
+            </svg>
+          </div>
+          <h2
+            class="text-white text-lg font-bold leading-tight tracking-[-0.015em]"
+          >
+            Reach Platform
+          </h2>
+        </div>
+      </div>
+      <div class="hidden md:flex flex-1 justify-center">
+        <nav
+          class="flex items-center gap-1 bg-card-dark/50 p-1 rounded-full border border-border-dark"
+        >
+          <a
+            class="text-white text-sm font-medium leading-normal px-4 py-1.5 rounded-full bg-primary/10 text-primary transition-colors"
+            href="#"
+            >Marketplace</a
+          >
+          <a
+            class="text-text-secondary hover:text-white text-sm font-medium leading-normal px-4 py-1.5 rounded-full transition-colors"
+            href="#"
+            >Documentation</a
+          >
+          <a
+            class="text-text-secondary hover:text-white text-sm font-medium leading-normal px-4 py-1.5 rounded-full transition-colors"
+            href="#"
+            >Pricing</a
+          >
+        </nav>
+      </div>
+      <div class="flex items-center gap-3">
+        <button
+          class="hidden sm:flex h-9 items-center justify-center px-4 rounded-lg text-sm font-medium text-text-secondary hover:text-white hover:bg-white/5 transition-colors"
+        >
+          Log In
+        </button>
+        <button
+          class="flex h-9 items-center justify-center gap-2 rounded-lg px-4 bg-primary hover:bg-primary/90 text-white text-sm font-bold leading-normal tracking-[0.015em] transition-all shadow-[0_0_15px_-3px_rgba(19,91,236,0.4)]"
+        >
+          <span>Go to Console</span>
+          <span class="material-symbols-outlined text-[18px]"
+            >arrow_forward</span
+          >
+        </button>
+      </div>
+    </header>
+    <div class="flex flex-1 overflow-hidden">
+      <!-- Sidebar Navigation -->
+      <aside
+        class="hidden lg:flex w-64 flex-col border-r border-border-dark bg-background-dark overflow-y-auto"
+      >
+        <div class="p-4 space-y-6">
+          <!-- Search for Sidebar (Mobile style usually, but good for quick filter) -->
+          <div>
+            <h3
+              class="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3"
+            >
+              Browse
+            </h3>
+            <nav class="flex flex-col gap-1">
+              <a
+                class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary"
+                href="#"
+              >
+                <span class="material-symbols-outlined text-[20px]"
+                  >grid_view</span
+                >
+                <span class="text-sm font-medium">All Templates</span>
+              </a>
+              <a
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:text-white hover:bg-white/5 transition-colors"
+                href="#"
+              >
+                <span class="material-symbols-outlined text-[20px]"
+                  >smart_toy</span
+                >
+                <span class="text-sm font-medium">Agent Templates</span>
+              </a>
+              <a
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:text-white hover:bg-white/5 transition-colors"
+                href="#"
+              >
+                <span class="material-symbols-outlined text-[20px]">dns</span>
+                <span class="text-sm font-medium">Runner Pre-sets</span>
+              </a>
+              <a
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:text-white hover:bg-white/5 transition-colors"
+                href="#"
+              >
+                <span class="material-symbols-outlined text-[20px]"
+                  >extension</span
+                >
+                <span class="text-sm font-medium">Integrations</span>
+              </a>
+              <a
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:text-white hover:bg-white/5 transition-colors"
+                href="#"
+              >
+                <span class="material-symbols-outlined text-[20px]">group</span>
+                <span class="text-sm font-medium">Community</span>
+              </a>
+            </nav>
+          </div>
+          <div class="h-px bg-border-dark w-full"></div>
+          <div>
+            <h3
+              class="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3"
+            >
+              Industries
+            </h3>
+            <div class="flex flex-col gap-1">
+              <label
+                class="flex items-center gap-3 px-3 py-1.5 cursor-pointer group"
+              >
+                <div class="relative flex items-center">
+                  <input
+                    class="peer h-4 w-4 rounded border-border-dark bg-card-dark text-primary focus:ring-0 focus:ring-offset-0"
+                    type="checkbox"
+                  />
+                </div>
+                <span
+                  class="text-sm text-text-secondary group-hover:text-white transition-colors"
+                  >Finance</span
+                >
+              </label>
+              <label
+                class="flex items-center gap-3 px-3 py-1.5 cursor-pointer group"
+              >
+                <div class="relative flex items-center">
+                  <input
+                    class="peer h-4 w-4 rounded border-border-dark bg-card-dark text-primary focus:ring-0 focus:ring-offset-0"
+                    type="checkbox"
+                  />
+                </div>
+                <span
+                  class="text-sm text-text-secondary group-hover:text-white transition-colors"
+                  >Healthcare</span
+                >
+              </label>
+              <label
+                class="flex items-center gap-3 px-3 py-1.5 cursor-pointer group"
+              >
+                <div class="relative flex items-center">
+                  <input
+                    class="peer h-4 w-4 rounded border-border-dark bg-card-dark text-primary focus:ring-0 focus:ring-offset-0"
+                    type="checkbox"
+                  />
+                </div>
+                <span
+                  class="text-sm text-text-secondary group-hover:text-white transition-colors"
+                  >DevOps</span
+                >
+              </label>
+              <label
+                class="flex items-center gap-3 px-3 py-1.5 cursor-pointer group"
+              >
+                <div class="relative flex items-center">
+                  <input
+                    class="peer h-4 w-4 rounded border-border-dark bg-card-dark text-primary focus:ring-0 focus:ring-offset-0"
+                    type="checkbox"
+                  />
+                </div>
+                <span
+                  class="text-sm text-text-secondary group-hover:text-white transition-colors"
+                  >Customer Support</span
+                >
+              </label>
+            </div>
+          </div>
+          <!-- Featured Promo -->
+          <div class="mt-auto pt-6">
+            <div
+              class="rounded-xl bg-gradient-to-br from-card-dark to-primary/10 border border-border-dark p-4"
+            >
+              <div class="flex items-start justify-between mb-2">
+                <div class="p-1.5 bg-primary rounded-lg">
+                  <span class="material-symbols-outlined text-white text-[18px]"
+                    >rocket_launch</span
+                  >
+                </div>
+                <span
+                  class="text-[10px] font-bold bg-primary/20 text-primary px-2 py-0.5 rounded text-white"
+                  >NEW</span
+                >
+              </div>
+              <h4 class="text-sm font-semibold text-white mb-1">
+                Enterprise Runner
+              </h4>
+              <p class="text-xs text-text-secondary mb-3">
+                Dedicated instances with SOC2 compliance built-in.
+              </p>
+              <button
+                class="w-full py-1.5 rounded-lg bg-card-dark border border-border-dark hover:bg-border-dark text-xs font-medium text-white transition-colors"
+              >
+                Learn More
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <!-- Main Content -->
+      <main
+        class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark"
+      >
+        <div class="max-w-[1400px] mx-auto p-6 md:p-8 lg:p-12 space-y-10">
+          <!-- Hero Section -->
+          <section class="space-y-6">
+            <div class="max-w-3xl">
+              <h1
+                class="text-3xl md:text-5xl font-bold text-white tracking-tight mb-4"
+              >
+                Reach Marketplace
+              </h1>
+              <p class="text-lg text-text-secondary leading-relaxed">
+                Accelerate your AI workforce. Discover pre-built agent
+                templates, secure runner configurations, and community-driven
+                workflows ready to deploy.
+              </p>
+            </div>
+            <!-- Search & Filter Bar -->
+            <div class="flex flex-col md:flex-row gap-4">
+              <div class="relative flex-1 group">
+                <div
+                  class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-secondary group-focus-within:text-primary transition-colors"
+                >
+                  <span class="material-symbols-outlined">search</span>
+                </div>
+                <input
+                  class="block w-full pl-10 pr-4 py-3 rounded-lg bg-card-dark border border-border-dark text-white placeholder-text-secondary focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                  placeholder="Search templates, runners, and integrations..."
+                  type="text"
+                />
+                <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
+                  <kbd
+                    class="hidden sm:inline-block px-2 py-0.5 rounded bg-background-dark border border-border-dark text-xs text-text-secondary"
+                    >⌘K</kbd
+                  >
+                </div>
+              </div>
+              <div
+                class="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide"
+              >
+                <button
+                  class="flex items-center gap-2 px-4 py-3 rounded-lg bg-card-dark border border-border-dark text-text-secondary hover:text-white hover:border-primary/50 whitespace-nowrap transition-colors"
+                >
+                  <span class="material-symbols-outlined text-[18px]"
+                    >tune</span
+                  >
+                  <span class="text-sm font-medium">Filters</span>
+                </button>
+                <button
+                  class="flex items-center gap-2 px-4 py-3 rounded-lg bg-card-dark border border-border-dark text-text-secondary hover:text-white hover:border-primary/50 whitespace-nowrap transition-colors"
+                >
+                  <span class="text-sm font-medium">Sort by: Popular</span>
+                  <span class="material-symbols-outlined text-[18px]"
+                    >expand_more</span
+                  >
+                </button>
+              </div>
+            </div>
+            <!-- Quick Tags -->
+            <div class="flex flex-wrap gap-2">
+              <span class="text-sm text-text-secondary py-1 mr-2"
+                >Trending:</span
+              >
+              <a
+                class="px-3 py-1 rounded-full bg-border-dark/50 hover:bg-primary/20 hover:text-primary text-xs font-medium text-text-secondary border border-transparent hover:border-primary/20 transition-all"
+                href="#"
+                >Financial Analyst</a
+              >
+              <a
+                class="px-3 py-1 rounded-full bg-border-dark/50 hover:bg-primary/20 hover:text-primary text-xs font-medium text-text-secondary border border-transparent hover:border-primary/20 transition-all"
+                href="#"
+                >HIPAA Runner</a
+              >
+              <a
+                class="px-3 py-1 rounded-full bg-border-dark/50 hover:bg-primary/20 hover:text-primary text-xs font-medium text-text-secondary border border-transparent hover:border-primary/20 transition-all"
+                href="#"
+                >Slack Bot</a
+              >
+              <a
+                class="px-3 py-1 rounded-full bg-border-dark/50 hover:bg-primary/20 hover:text-primary text-xs font-medium text-text-secondary border border-transparent hover:border-primary/20 transition-all"
+                href="#"
+                >Data Scraper</a
+              >
+            </div>
+          </section>
+          <!-- Featured Section -->
+          <section>
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h2 class="text-xl font-bold text-white mb-1">
+                  Featured Agent Templates
+                </h2>
+                <p class="text-sm text-text-secondary">
+                  High-performance agents curated by the Reach team.
+                </p>
+              </div>
+              <a
+                class="text-sm font-medium text-primary hover:text-primary/80 flex items-center gap-1"
+                href="#"
+              >
+                View All
+                <span class="material-symbols-outlined text-[16px]"
+                  >arrow_forward</span
+                >
+              </a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <!-- Card 1 -->
+              <div
+                class="group relative flex flex-col rounded-xl border border-border-dark bg-card-dark p-5 hover:border-primary/50 hover:shadow-[0_0_20px_-10px_rgba(19,91,236,0.3)] transition-all duration-300"
+              >
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="size-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center border border-blue-500/20"
+                    >
+                      <span class="material-symbols-outlined">query_stats</span>
+                    </div>
+                    <div>
+                      <h3
+                        class="text-base font-bold text-white group-hover:text-primary transition-colors"
+                      >
+                        Financial Analyst
+                      </h3>
+                      <p class="text-xs text-text-secondary">
+                        v2.4.0 • Reach Official
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    class="flex items-center gap-1 bg-background-dark px-2 py-1 rounded text-xs font-medium text-text-secondary"
+                  >
+                    <span
+                      class="material-symbols-outlined text-[14px] text-yellow-500"
+                      >star</span
+                    >
+                    <span class="text-white">4.9</span>
+                  </div>
+                </div>
+                <p class="text-sm text-text-secondary mb-6 line-clamp-2">
+                  Autonomous agent designed for anomaly detection in financial
+                  reports. Integrates with Quickbooks and Xero APIs.
+                </p>
+                <div
+                  class="mt-auto flex items-center justify-between pt-4 border-t border-border-dark/50"
+                >
+                  <div
+                    class="flex items-center gap-2 text-xs text-text-secondary"
+                  >
+                    <span class="material-symbols-outlined text-[16px]"
+                      >download</span
+                    >
+                    <span>12k deploys</span>
+                  </div>
+                  <button
+                    class="px-3 py-1.5 rounded-lg bg-white text-background-dark text-xs font-bold hover:bg-primary hover:text-white transition-colors"
+                  >
+                    Deploy
+                  </button>
+                </div>
+              </div>
+              <!-- Card 2 -->
+              <div
+                class="group relative flex flex-col rounded-xl border border-border-dark bg-card-dark p-5 hover:border-primary/50 hover:shadow-[0_0_20px_-10px_rgba(19,91,236,0.3)] transition-all duration-300"
+              >
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="size-10 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center border border-purple-500/20"
+                    >
+                      <span class="material-symbols-outlined"
+                        >support_agent</span
+                      >
+                    </div>
+                    <div>
+                      <h3
+                        class="text-base font-bold text-white group-hover:text-primary transition-colors"
+                      >
+                        Support Triager
+                      </h3>
+                      <p class="text-xs text-text-secondary">
+                        v1.1.0 • Reach Official
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    class="flex items-center gap-1 bg-background-dark px-2 py-1 rounded text-xs font-medium text-text-secondary"
+                  >
+                    <span
+                      class="material-symbols-outlined text-[14px] text-yellow-500"
+                      >star</span
+                    >
+                    <span class="text-white">4.7</span>
+                  </div>
+                </div>
+                <p class="text-sm text-text-secondary mb-6 line-clamp-2">
+                  First-line support agent that classifies tickets, drafts
+                  responses, and escalates complex issues to human agents.
+                </p>
+                <div
+                  class="mt-auto flex items-center justify-between pt-4 border-t border-border-dark/50"
+                >
+                  <div
+                    class="flex items-center gap-2 text-xs text-text-secondary"
+                  >
+                    <span class="material-symbols-outlined text-[16px]"
+                      >download</span
+                    >
+                    <span>8.5k deploys</span>
+                  </div>
+                  <button
+                    class="px-3 py-1.5 rounded-lg bg-white text-background-dark text-xs font-bold hover:bg-primary hover:text-white transition-colors"
+                  >
+                    Deploy
+                  </button>
+                </div>
+              </div>
+              <!-- Card 3 -->
+              <div
+                class="group relative flex flex-col rounded-xl border border-border-dark bg-card-dark p-5 hover:border-primary/50 hover:shadow-[0_0_20px_-10px_rgba(19,91,236,0.3)] transition-all duration-300"
+              >
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="size-10 rounded-lg bg-green-500/10 text-green-500 flex items-center justify-center border border-green-500/20"
+                    >
+                      <span class="material-symbols-outlined">code</span>
+                    </div>
+                    <div>
+                      <h3
+                        class="text-base font-bold text-white group-hover:text-primary transition-colors"
+                      >
+                        Code Reviewer
+                      </h3>
+                      <p class="text-xs text-text-secondary">
+                        v3.0.1 • Community
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    class="flex items-center gap-1 bg-background-dark px-2 py-1 rounded text-xs font-medium text-text-secondary"
+                  >
+                    <span
+                      class="material-symbols-outlined text-[14px] text-yellow-500"
+                      >star</span
+                    >
+                    <span class="text-white">4.8</span>
+                  </div>
+                </div>
+                <p class="text-sm text-text-secondary mb-6 line-clamp-2">
+                  Automatically reviews PRs for style violations, security
+                  vulnerabilities, and test coverage.
+                </p>
+                <div
+                  class="mt-auto flex items-center justify-between pt-4 border-t border-border-dark/50"
+                >
+                  <div
+                    class="flex items-center gap-2 text-xs text-text-secondary"
+                  >
+                    <span class="material-symbols-outlined text-[16px]"
+                      >download</span
+                    >
+                    <span>5.2k deploys</span>
+                  </div>
+                  <button
+                    class="px-3 py-1.5 rounded-lg bg-white text-background-dark text-xs font-bold hover:bg-primary hover:text-white transition-colors"
+                  >
+                    Deploy
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+          <!-- Runner Pre-sets -->
+          <section>
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h2 class="text-xl font-bold text-white mb-1">
+                  Industry Runners
+                </h2>
+                <p class="text-sm text-text-secondary">
+                  Pre-configured environments compliant with industry standards.
+                </p>
+              </div>
+              <a
+                class="text-sm font-medium text-primary hover:text-primary/80 flex items-center gap-1"
+                href="#"
+              >
+                View All
+                <span class="material-symbols-outlined text-[16px]"
+                  >arrow_forward</span
+                >
+              </a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <!-- Runner Card 1 -->
+              <div
+                class="group flex flex-col p-4 rounded-xl border border-border-dark bg-gradient-to-br from-card-dark to-background-dark hover:from-card-dark hover:to-card-dark hover:border-primary/30 transition-all cursor-pointer"
+              >
+                <div class="flex justify-between mb-3">
+                  <div class="p-2 rounded bg-rose-500/10 text-rose-500">
+                    <span class="material-symbols-outlined"
+                      >local_hospital</span
+                    >
+                  </div>
+                  <span
+                    class="bg-rose-500/10 text-rose-500 text-[10px] font-bold px-2 py-1 rounded h-fit"
+                    >HIPAA</span
+                  >
+                </div>
+                <h3 class="font-bold text-white mb-1">Healthcare Shield</h3>
+                <p class="text-xs text-text-secondary mb-4">
+                  Strict PII redaction and audit logs enabled by default.
+                </p>
+                <div
+                  class="mt-auto flex items-center text-xs font-medium text-primary group-hover:underline"
+                >
+                  Configure Runner
+                  <span class="material-symbols-outlined text-[14px] ml-1"
+                    >chevron_right</span
+                  >
+                </div>
+              </div>
+              <!-- Runner Card 2 -->
+              <div
+                class="group flex flex-col p-4 rounded-xl border border-border-dark bg-gradient-to-br from-card-dark to-background-dark hover:from-card-dark hover:to-card-dark hover:border-primary/30 transition-all cursor-pointer"
+              >
+                <div class="flex justify-between mb-3">
+                  <div class="p-2 rounded bg-amber-500/10 text-amber-500">
+                    <span class="material-symbols-outlined"
+                      >account_balance</span
+                    >
+                  </div>
+                  <span
+                    class="bg-amber-500/10 text-amber-500 text-[10px] font-bold px-2 py-1 rounded h-fit"
+                    >SOC2</span
+                  >
+                </div>
+                <h3 class="font-bold text-white mb-1">FinTech Secure</h3>
+                <p class="text-xs text-text-secondary mb-4">
+                  Isolated memory containers with zero-retention policies.
+                </p>
+                <div
+                  class="mt-auto flex items-center text-xs font-medium text-primary group-hover:underline"
+                >
+                  Configure Runner
+                  <span class="material-symbols-outlined text-[14px] ml-1"
+                    >chevron_right</span
+                  >
+                </div>
+              </div>
+              <!-- Runner Card 3 -->
+              <div
+                class="group flex flex-col p-4 rounded-xl border border-border-dark bg-gradient-to-br from-card-dark to-background-dark hover:from-card-dark hover:to-card-dark hover:border-primary/30 transition-all cursor-pointer"
+              >
+                <div class="flex justify-between mb-3">
+                  <div class="p-2 rounded bg-cyan-500/10 text-cyan-500">
+                    <span class="material-symbols-outlined">shopping_cart</span>
+                  </div>
+                  <span
+                    class="bg-cyan-500/10 text-cyan-500 text-[10px] font-bold px-2 py-1 rounded h-fit"
+                    >PCI-DSS</span
+                  >
+                </div>
+                <h3 class="font-bold text-white mb-1">E-Commerce Core</h3>
+                <p class="text-xs text-text-secondary mb-4">
+                  Transaction monitoring and fraud detection preset.
+                </p>
+                <div
+                  class="mt-auto flex items-center text-xs font-medium text-primary group-hover:underline"
+                >
+                  Configure Runner
+                  <span class="material-symbols-outlined text-[14px] ml-1"
+                    >chevron_right</span
+                  >
+                </div>
+              </div>
+              <!-- Runner Card 4 -->
+              <div
+                class="group flex flex-col p-4 rounded-xl border border-border-dark bg-gradient-to-br from-card-dark to-background-dark hover:from-card-dark hover:to-card-dark hover:border-primary/30 transition-all cursor-pointer"
+              >
+                <div class="flex justify-between mb-3">
+                  <div class="p-2 rounded bg-emerald-500/10 text-emerald-500">
+                    <span class="material-symbols-outlined">public</span>
+                  </div>
+                  <span
+                    class="bg-emerald-500/10 text-emerald-500 text-[10px] font-bold px-2 py-1 rounded h-fit"
+                    >GDPR</span
+                  >
+                </div>
+                <h3 class="font-bold text-white mb-1">EU Compliance</h3>
+                <p class="text-xs text-text-secondary mb-4">
+                  Data residency locks and user consent workflows.
+                </p>
+                <div
+                  class="mt-auto flex items-center text-xs font-medium text-primary group-hover:underline"
+                >
+                  Configure Runner
+                  <span class="material-symbols-outlined text-[14px] ml-1"
+                    >chevron_right</span
+                  >
+                </div>
+              </div>
+            </div>
+          </section>
+          <!-- Community / New & Noteworthy -->
+          <section>
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h2 class="text-xl font-bold text-white mb-1">
+                  New &amp; Noteworthy
+                </h2>
+                <p class="text-sm text-text-secondary">
+                  Fresh from the community.
+                </p>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Compact Card 1 -->
+              <div
+                class="flex items-center gap-4 p-4 rounded-xl bg-card-dark border border-border-dark hover:border-border-dark/80 transition-colors"
+              >
+                <div
+                  class="size-12 rounded bg-background-dark flex items-center justify-center text-text-secondary"
+                >
+                  <span class="material-symbols-outlined">mail</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-sm font-bold text-white truncate">
+                    Email Drafter Pro
+                  </h4>
+                  <p class="text-xs text-text-secondary truncate">
+                    By @sarah_dev • 400 uses
+                  </p>
+                </div>
+                <button
+                  class="p-2 rounded-lg hover:bg-white/10 text-text-secondary hover:text-white transition-colors"
+                >
+                  <span class="material-symbols-outlined text-[20px]"
+                    >add_circle</span
+                  >
+                </button>
+              </div>
+              <!-- Compact Card 2 -->
+              <div
+                class="flex items-center gap-4 p-4 rounded-xl bg-card-dark border border-border-dark hover:border-border-dark/80 transition-colors"
+              >
+                <div
+                  class="size-12 rounded bg-background-dark flex items-center justify-center text-text-secondary"
+                >
+                  <span class="material-symbols-outlined">translate</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-sm font-bold text-white truncate">
+                    Legal Translator
+                  </h4>
+                  <p class="text-xs text-text-secondary truncate">
+                    By @legal_tech_co • 1.2k uses
+                  </p>
+                </div>
+                <button
+                  class="p-2 rounded-lg hover:bg-white/10 text-text-secondary hover:text-white transition-colors"
+                >
+                  <span class="material-symbols-outlined text-[20px]"
+                    >add_circle</span
+                  >
+                </button>
+              </div>
+              <!-- Compact Card 3 -->
+              <div
+                class="flex items-center gap-4 p-4 rounded-xl bg-card-dark border border-border-dark hover:border-border-dark/80 transition-colors"
+              >
+                <div
+                  class="size-12 rounded bg-background-dark flex items-center justify-center text-text-secondary"
+                >
+                  <span class="material-symbols-outlined">calendar_month</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-sm font-bold text-white truncate">
+                    Meeting Scheduler
+                  </h4>
+                  <p class="text-xs text-text-secondary truncate">
+                    By @productivity_hacks • 850 uses
+                  </p>
+                </div>
+                <button
+                  class="p-2 rounded-lg hover:bg-white/10 text-text-secondary hover:text-white transition-colors"
+                >
+                  <span class="material-symbols-outlined text-[20px]"
+                    >add_circle</span
+                  >
+                </button>
+              </div>
+            </div>
+          </section>
+          <!-- Footer CTA -->
+          <section class="py-10 border-t border-border-dark">
+            <div
+              class="rounded-2xl bg-gradient-to-r from-primary/20 via-card-dark to-card-dark border border-border-dark p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden"
+            >
+              <!-- Decorative glow -->
+              <div
+                class="absolute -top-20 -left-20 size-64 bg-primary/20 blur-[100px] rounded-full pointer-events-none"
+              ></div>
+              <div class="relative z-10 max-w-xl">
+                <h2 class="text-2xl font-bold text-white mb-2">
+                  Can't find what you're looking for?
+                </h2>
+                <p class="text-text-secondary">
+                  Build your own custom agent from scratch using our SDK or
+                  request a specific template from our engineering team.
+                </p>
+              </div>
+              <div class="relative z-10 flex gap-4">
+                <button
+                  class="px-5 py-2.5 rounded-lg border border-border-dark bg-background-dark text-white text-sm font-medium hover:bg-border-dark transition-colors"
+                >
+                  Request Template
+                </button>
+                <button
+                  class="px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
+                >
+                  Build Custom Agent
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+        <!-- Simple Footer -->
+        <footer
+          class="bg-background-dark border-t border-border-dark py-8 px-6 md:px-12 mt-auto"
+        >
+          <div
+            class="flex flex-col md:flex-row justify-between items-center gap-4"
+          >
+            <p class="text-xs text-text-secondary">
+              © 2024 Reach Platform Inc. All rights reserved.
+            </p>
+            <div class="flex gap-6">
+              <a
+                class="text-xs text-text-secondary hover:text-white transition-colors"
+                href="#"
+                >Privacy Policy</a
+              >
+              <a
+                class="text-xs text-text-secondary hover:text-white transition-colors"
+                href="#"
+                >Terms of Service</a
+              >
+              <a
+                class="text-xs text-text-secondary hover:text-white transition-colors"
+                href="#"
+                >Support</a
+              >
+            </div>
+          </div>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

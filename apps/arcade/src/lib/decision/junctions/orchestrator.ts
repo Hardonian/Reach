@@ -1,15 +1,25 @@
 /**
  * Junction Orchestrator
- * 
+ *
  * Coordinates junction detection, evaluation, deduplication, and persistence.
  */
 
-import { junctionRepository } from '../../db/decisions';
-import { JunctionScanResult, JunctionTemplateResult, JunctionType } from './types';
-import { evaluateDiffCritical, type DiffEvidence } from './templates/diffCritical';
-import { evaluateDriftAlert, type DriftEvidence } from './templates/driftAlert';
-import { evaluateTrustDrop, type TrustEvidence } from './templates/trustDrop';
-import { evaluatePolicyViolation, type PolicyViolationEvidence } from './templates/policyViolation';
+import { junctionRepository } from "../../db/decisions";
+import {
+  JunctionScanResult,
+  JunctionTemplateResult,
+  JunctionType,
+} from "./types";
+import {
+  evaluateDiffCritical,
+  type DiffEvidence,
+} from "./templates/diffCritical";
+import { evaluateDriftAlert, type DriftEvidence } from "./templates/driftAlert";
+import { evaluateTrustDrop, type TrustEvidence } from "./templates/trustDrop";
+import {
+  evaluatePolicyViolation,
+  type PolicyViolationEvidence,
+} from "./templates/policyViolation";
 
 /**
  * Junction configuration
@@ -68,11 +78,11 @@ export const DEFAULT_JUNCTION_CONFIG: JunctionConfig = {
  */
 export class JunctionOrchestrator {
   private config: JunctionConfig;
-  
+
   constructor(config: Partial<JunctionConfig> = {}) {
     this.config = { ...DEFAULT_JUNCTION_CONFIG, ...config };
   }
-  
+
   /**
    * Evaluate evidence for all junction types
    */
@@ -83,7 +93,7 @@ export class JunctionOrchestrator {
     policy?: PolicyViolationEvidence;
   }): JunctionTemplateResult[] {
     const results: JunctionTemplateResult[] = [];
-    
+
     // Evaluate diff critical
     if (data.diff && this.config.diffCritical.enabled) {
       const result = evaluateDiffCritical(data.diff);
@@ -91,7 +101,7 @@ export class JunctionOrchestrator {
         results.push(result);
       }
     }
-    
+
     // Evaluate drift alert
     if (data.drift && this.config.driftAlert.enabled) {
       const result = evaluateDriftAlert(data.drift);
@@ -99,7 +109,7 @@ export class JunctionOrchestrator {
         results.push(result);
       }
     }
-    
+
     // Evaluate trust drop
     if (data.trust && this.config.trustDrop.enabled) {
       const result = evaluateTrustDrop(data.trust);
@@ -107,7 +117,7 @@ export class JunctionOrchestrator {
         results.push(result);
       }
     }
-    
+
     // Evaluate policy violation
     if (data.policy && this.config.policyViolation.enabled) {
       const result = evaluatePolicyViolation(data.policy);
@@ -115,10 +125,10 @@ export class JunctionOrchestrator {
         results.push(result);
       }
     }
-    
+
     return results;
   }
-  
+
   /**
    * Scan and create junctions from evidence
    */
@@ -133,20 +143,22 @@ export class JunctionOrchestrator {
       skipped: [],
       errors: [],
     };
-    
+
     const templateResults = this.evaluateEvidence(data);
-    
+
     for (const template of templateResults) {
       try {
         // Check for existing junction with same fingerprint (deduplication)
-        const existing = junctionRepository.getByFingerprint(template.fingerprint);
-        
+        const existing = junctionRepository.getByFingerprint(
+          template.fingerprint,
+        );
+
         if (existing) {
           // Skip if within cooldown window
           results.skipped.push(template);
           continue;
         }
-        
+
         // Create new junction
         const junction = junctionRepository.create({
           type: template.type,
@@ -156,48 +168,48 @@ export class JunctionOrchestrator {
           triggerData: template.triggerData,
           triggerTrace: JSON.stringify(template.triggerTrace),
         });
-        
+
         // Set cooldown
         const cooldownMinutes = this.getCooldownForType(template.type);
         junctionRepository.setCooldown(junction.id, cooldownMinutes);
-        
+
         results.triggered.push(template);
       } catch (error) {
         results.errors.push({
           source: template.triggerSourceRef,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: error instanceof Error ? error.message : "Unknown error",
         });
       }
     }
-    
+
     return results;
   }
-  
+
   /**
    * Get cooldown minutes for junction type
    */
   private getCooldownForType(type: JunctionType): number {
     switch (type) {
-      case 'diff_critical':
+      case "diff_critical":
         return this.config.diffCritical.cooldownMinutes;
-      case 'drift_alert':
+      case "drift_alert":
         return this.config.driftAlert.cooldownMinutes;
-      case 'trust_drop':
+      case "trust_drop":
         return this.config.trustDrop.cooldownMinutes;
-      case 'policy_violation':
+      case "policy_violation":
         return this.config.policyViolation.cooldownMinutes;
       default:
         return 60;
     }
   }
-  
+
   /**
    * Update configuration
    */
   updateConfig(config: Partial<JunctionConfig>): void {
     this.config = { ...this.config, ...config };
   }
-  
+
   /**
    * Get current configuration
    */

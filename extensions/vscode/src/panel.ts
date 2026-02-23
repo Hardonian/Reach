@@ -1,7 +1,7 @@
-import * as vscode from 'vscode';
-import { BridgeClient } from './bridgeClient';
-import { ApprovalPrompt, Artifact, BridgeEvent } from './types';
-import { previewAndApplyDiff } from './diff';
+import * as vscode from "vscode";
+import { BridgeClient } from "./bridgeClient";
+import { ApprovalPrompt, Artifact, BridgeEvent } from "./types";
+import { previewAndApplyDiff } from "./diff";
 
 export class ReachPanel implements vscode.Disposable {
   private panel: vscode.WebviewPanel | undefined;
@@ -20,25 +20,38 @@ export class ReachPanel implements vscode.Disposable {
       return;
     }
 
-    this.panel = vscode.window.createWebviewPanel('reachBridgePanel', 'Reach Bridge', vscode.ViewColumn.Beside, {
-      enableScripts: true
-    });
+    this.panel = vscode.window.createWebviewPanel(
+      "reachBridgePanel",
+      "Reach Bridge",
+      vscode.ViewColumn.Beside,
+      {
+        enableScripts: true,
+      },
+    );
 
     this.panel.webview.html = this.render();
-    this.panel.webview.onDidReceiveMessage((message: { type: string; [key: string]: unknown }) => {
-      if (message.type === 'approvalDecision' && typeof message.promptId === 'string' && typeof message.decision === 'string') {
-        this.bridgeClient.send({
-          type: 'approvalDecision',
-          promptId: message.promptId,
-          decision: message.decision
-        });
-        const index = this.approvals.findIndex((prompt) => prompt.id === message.promptId);
-        if (index >= 0) {
-          this.approvals.splice(index, 1);
+    this.panel.webview.onDidReceiveMessage(
+      (message: { type: string; [key: string]: unknown }) => {
+        if (
+          message.type === "approvalDecision" &&
+          typeof message.promptId === "string" &&
+          typeof message.decision === "string"
+        ) {
+          this.bridgeClient.send({
+            type: "approvalDecision",
+            promptId: message.promptId,
+            decision: message.decision,
+          });
+          const index = this.approvals.findIndex(
+            (prompt) => prompt.id === message.promptId,
+          );
+          if (index >= 0) {
+            this.approvals.splice(index, 1);
+          }
+          this.refresh();
         }
-        this.refresh();
-      }
-    });
+      },
+    );
 
     this.panel.onDidDispose(() => {
       this.panel = undefined;
@@ -51,20 +64,25 @@ export class ReachPanel implements vscode.Disposable {
       this.events.length = 100;
     }
 
-    if (event.type === 'artifact' && typeof event.name === 'string') {
+    if (event.type === "artifact" && typeof event.name === "string") {
       this.artifacts.unshift({
         name: event.name,
-        description: typeof event.description === 'string' ? event.description : undefined,
-        uri: typeof event.uri === 'string' ? event.uri : undefined
+        description:
+          typeof event.description === "string" ? event.description : undefined,
+        uri: typeof event.uri === "string" ? event.uri : undefined,
       });
       this.artifacts.length = Math.min(this.artifacts.length, 50);
     }
 
-    if (event.type === 'approvalPrompt' && typeof event.id === 'string' && typeof event.title === 'string') {
+    if (
+      event.type === "approvalPrompt" &&
+      typeof event.id === "string" &&
+      typeof event.title === "string"
+    ) {
       this.approvals.unshift({
         id: event.id,
         title: event.title,
-        detail: typeof event.detail === 'string' ? event.detail : undefined
+        detail: typeof event.detail === "string" ? event.detail : undefined,
       });
       this.approvals.length = Math.min(this.approvals.length, 20);
     }
@@ -76,19 +94,25 @@ export class ReachPanel implements vscode.Disposable {
       this.autonomousBanner = "Autonomous mode stopped";
     }
 
-    if (event.type === 'patch' && typeof event.diff === 'string') {
+    if (event.type === "patch" && typeof event.diff === "string") {
       try {
         await previewAndApplyDiff(event.diff);
       } catch (error) {
-        vscode.window.showErrorMessage(`Reach patch apply failed: ${(error as Error).message}`);
+        vscode.window.showErrorMessage(
+          `Reach patch apply failed: ${(error as Error).message}`,
+        );
       }
     }
 
-    if (event.type === 'session.member' && typeof event.memberId === 'string') {
+    if (event.type === "session.member" && typeof event.memberId === "string") {
       this.sessionMembers.add(event.memberId);
     }
 
-    if (event.type === 'session.run' && typeof event.runId === 'string' && typeof event.nodeId === 'string') {
+    if (
+      event.type === "session.run" &&
+      typeof event.runId === "string" &&
+      typeof event.nodeId === "string"
+    ) {
       this.liveRuns.unshift({ runId: event.runId, nodeId: event.nodeId });
       this.liveRuns.length = Math.min(this.liveRuns.length, 25);
     }
@@ -105,13 +129,13 @@ export class ReachPanel implements vscode.Disposable {
       return;
     }
     this.panel.webview.postMessage({
-      type: 'state',
+      type: "state",
       events: this.events,
       artifacts: this.artifacts,
       approvals: this.approvals,
       autonomousBanner: this.autonomousBanner,
       sessionMembers: Array.from(this.sessionMembers),
-      liveRuns: this.liveRuns
+      liveRuns: this.liveRuns,
     });
   }
 

@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    company: '',
-    message: '',
-    interest: 'general',
+    name: "",
+    email: "",
+    company: "",
+    message: "",
+    interest: "general",
   });
   const [submitted, setSubmitted] = useState(false);
 
@@ -26,7 +26,9 @@ export default function Contact() {
           <p className="text-gray-400 mb-8">
             Thank you for reaching out. We'll get back to you within 24 hours.
           </p>
-          <a href="/" className="btn-primary">Return Home</a>
+          <a href="/" className="btn-primary">
+            Return Home
+          </a>
         </div>
       </div>
     );
@@ -55,7 +57,9 @@ export default function Contact() {
                   className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-white placeholder-gray-500 focus:outline-none focus:border-accent"
                   placeholder="Your name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                 />
               </div>
 
@@ -67,27 +71,37 @@ export default function Contact() {
                   className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-white placeholder-gray-500 focus:outline-none focus:border-accent"
                   placeholder="you@company.com"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Company</label>
+                <label className="block text-sm font-medium mb-2">
+                  Company
+                </label>
                 <input
                   type="text"
                   className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-white placeholder-gray-500 focus:outline-none focus:border-accent"
                   placeholder="Your company (optional)"
                   value={formData.company}
-                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, company: e.target.value })
+                  }
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Interest</label>
+                <label className="block text-sm font-medium mb-2">
+                  Interest
+                </label>
                 <select
                   className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-white focus:outline-none focus:border-accent"
                   value={formData.interest}
-                  onChange={(e) => setFormData({ ...formData, interest: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, interest: e.target.value })
+                  }
                 >
                   <option value="general">General Inquiry</option>
                   <option value="sales">Sales / Enterprise</option>
@@ -97,14 +111,18 @@ export default function Contact() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Message</label>
+                <label className="block text-sm font-medium mb-2">
+                  Message
+                </label>
                 <textarea
                   required
                   rows={4}
                   className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-white placeholder-gray-500 focus:outline-none focus:border-accent"
                   placeholder="How can we help?"
                   value={formData.message}
-                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, message: e.target.value })
+                  }
                 />
               </div>
 
@@ -119,34 +137,52 @@ export default function Contact() {
             <div className="card">
               <h3 className="font-bold mb-2">📧 Email</h3>
               <p className="text-gray-400">hello@reach.io</p>
-              <p className="text-sm text-gray-500 mt-1">For general inquiries</p>
+              <p className="text-sm text-gray-500 mt-1">
+                For general inquiries
+              </p>
             </div>
 
             <div className="card">
               <h3 className="font-bold mb-2">💼 Sales</h3>
               <p className="text-gray-400">sales@reach.io</p>
-              <p className="text-sm text-gray-500 mt-1">For enterprise inquiries</p>
+              <p className="text-sm text-gray-500 mt-1">
+                For enterprise inquiries
+              </p>
             </div>
 
             <div className="card">
               <h3 className="font-bold mb-2">🛟 Support</h3>
               <p className="text-gray-400">support@reach.io</p>
-              <p className="text-sm text-gray-500 mt-1">For technical assistance</p>
+              <p className="text-sm text-gray-500 mt-1">
+                For technical assistance
+              </p>
             </div>
 
             <div className="card">
               <h3 className="font-bold mb-4">🌐 Connect</h3>
               <div className="flex gap-4">
-                <a href="https://github.com" className="text-gray-400 hover:text-white transition-colors">
+                <a
+                  href="https://github.com"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   GitHub
                 </a>
-                <a href="https://twitter.com" className="text-gray-400 hover:text-white transition-colors">
+                <a
+                  href="https://twitter.com"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   Twitter
                 </a>
-                <a href="https://linkedin.com" className="text-gray-400 hover:text-white transition-colors">
+                <a
+                  href="https://linkedin.com"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   LinkedIn
                 </a>
-                <a href="https://discord.com" className="text-gray-400 hover:text-white transition-colors">
+                <a
+                  href="https://discord.com"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   Discord
                 </a>
               </div>

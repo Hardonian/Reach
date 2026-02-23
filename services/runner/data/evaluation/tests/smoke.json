@@ -4,9 +4,6 @@
   "expected_behavior": "",
   "policy_constraints": null,
   "rag_expectations": null,
-  "tool_expectations": [
-    "read_file",
-    "summarize"
-  ],
+  "tool_expectations": ["read_file", "summarize"],
   "difficulty": ""
 }

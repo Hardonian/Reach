@@ -52,7 +52,9 @@ for (const domain of CANONICAL_DOMAINS) {
   const dir = path.join(appDir, domain);
   const pagePath = path.join(dir, "page.tsx");
   if (!fs.existsSync(pagePath)) {
-    console.error(`  MISSING: ${domain}/page.tsx — canonical route has no page`);
+    console.error(
+      `  MISSING: ${domain}/page.tsx — canonical route has no page`,
+    );
     errors++;
   } else {
     console.log(`  OK: ${domain}/page.tsx`);
@@ -68,7 +70,12 @@ function findPageFiles(dir, prefix = "") {
   if (!fs.existsSync(dir)) return results;
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   for (const entry of entries) {
-    if (entry.name === "node_modules" || entry.name === ".next" || entry.name === "api") continue;
+    if (
+      entry.name === "node_modules" ||
+      entry.name === ".next" ||
+      entry.name === "api"
+    )
+      continue;
     const fullPath = path.join(dir, entry.name);
     const relPath = prefix ? `${prefix}/${entry.name}` : entry.name;
     if (entry.isDirectory()) {
@@ -93,7 +100,7 @@ for (const route of allRoutes) {
 }
 
 // Look for domain roots that have similar names (possible duplicates)
-const routeNames = allRoutes.map(r => r.split("/")[0]);
+const routeNames = allRoutes.map((r) => r.split("/")[0]);
 const seen = new Set();
 for (const name of routeNames) {
   if (seen.has(name)) continue;
@@ -104,8 +111,12 @@ for (const name of routeNames) {
     if (other === name) continue;
     if (other.startsWith(name + "-") || name.startsWith(other + "-")) {
       if (!ALLOWED_ALIASES.has(name) && !ALLOWED_ALIASES.has(other)) {
-        console.error(`  DUPLICATE?: "${name}" and "${other}" look like route duplicates`);
-        console.error(`    If intentional, add to ALLOWED_ALIASES in check-route-duplication.mjs`);
+        console.error(
+          `  DUPLICATE?: "${name}" and "${other}" look like route duplicates`,
+        );
+        console.error(
+          `    If intentional, add to ALLOWED_ALIASES in check-route-duplication.mjs`,
+        );
         errors++;
       } else {
         console.log(`  OK (allowed alias): ${name} / ${other}`);
@@ -117,15 +128,22 @@ for (const name of routeNames) {
 // ── Check 3: Console nav doesn't have duplicate hrefs ────────────────
 
 console.log("\nCheck 3: Console nav has no duplicate hrefs\n");
-const consoleLayoutPath = path.join(repoRoot, "apps/arcade/src/components/stitch/console/ConsoleLayout.tsx");
+const consoleLayoutPath = path.join(
+  repoRoot,
+  "apps/arcade/src/components/stitch/console/ConsoleLayout.tsx",
+);
 if (fs.existsSync(consoleLayoutPath)) {
   const content = fs.readFileSync(consoleLayoutPath, "utf-8");
-  const hrefMatches = [...content.matchAll(/href:\s*(?:ROUTES\.\w+(?:\.\w+)*|['"]([^'"]+)['"])/g)];
-  const hrefs = hrefMatches.map(m => m[0]);
+  const hrefMatches = [
+    ...content.matchAll(/href:\s*(?:ROUTES\.\w+(?:\.\w+)*|['"]([^'"]+)['"])/g),
+  ];
+  const hrefs = hrefMatches.map((m) => m[0]);
   const hrefSet = new Set();
   for (const href of hrefs) {
     if (hrefSet.has(href)) {
-      console.error(`  DUPLICATE NAV: ${href} appears multiple times in ConsoleLayout`);
+      console.error(
+        `  DUPLICATE NAV: ${href} appears multiple times in ConsoleLayout`,
+      );
       errors++;
     }
     hrefSet.add(href);
@@ -139,5 +157,7 @@ if (fs.existsSync(consoleLayoutPath)) {
 
 // ── Summary ──────────────────────────────────────────────────────────
 
-console.log(`\n--- Route duplication check: ${errors === 0 ? "PASSED" : `FAILED (${errors} issue(s))`} ---`);
+console.log(
+  `\n--- Route duplication check: ${errors === 0 ? "PASSED" : `FAILED (${errors} issue(s))`} ---`,
+);
 process.exit(errors > 0 ? 1 : 0);

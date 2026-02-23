@@ -21,9 +21,23 @@
     "status": "success"
   },
   "expected_events": [
-    {"seq": 0, "type": "run.started",   "run_id": "sha256:run-hello-deterministic-v1"},
-    {"seq": 1, "type": "step.completed","step": "echo", "output": "hello-world"},
-    {"seq": 2, "type": "run.completed", "run_id": "sha256:run-hello-deterministic-v1", "status": "success"}
+    {
+      "seq": 0,
+      "type": "run.started",
+      "run_id": "sha256:run-hello-deterministic-v1"
+    },
+    {
+      "seq": 1,
+      "type": "step.completed",
+      "step": "echo",
+      "output": "hello-world"
+    },
+    {
+      "seq": 2,
+      "type": "run.completed",
+      "run_id": "sha256:run-hello-deterministic-v1",
+      "status": "success"
+    }
   ],
   "conformance_rules": [
     "fingerprint must match exactly",

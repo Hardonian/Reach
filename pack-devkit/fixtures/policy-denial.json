@@ -14,10 +14,10 @@
     },
     "declared_tools": ["exec", "file_write"],
     "declared_permissions": ["sys:exec"],
-    "model_requirements": {"tier": "standard"},
+    "model_requirements": { "tier": "standard" },
     "execution_graph": {
       "steps": [
-        {"id": "step-1", "tool": "exec", "input": "dangerous_command"}
+        { "id": "step-1", "tool": "exec", "input": "dangerous_command" }
       ]
     },
     "deterministic": true,
@@ -26,7 +26,11 @@
   "policy_contract": {
     "default": "deny",
     "rules": [
-      {"action": "deny", "resource": "sys:exec", "reason": "high_risk_permission"}
+      {
+        "action": "deny",
+        "resource": "sys:exec",
+        "reason": "high_risk_permission"
+      }
     ]
   },
   "expected": {

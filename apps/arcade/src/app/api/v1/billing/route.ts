@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth, cloudErrorResponse } from '@/lib/cloud-auth';
-import { getEntitlement, checkRunLimit } from '@/lib/cloud-db';
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuth, cloudErrorResponse } from "@/lib/cloud-auth";
+import { getEntitlement, checkRunLimit } from "@/lib/cloud-db";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const ctx = await requireAuth(req);
@@ -12,14 +12,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const limits = checkRunLimit(ctx.tenantId);
 
   return NextResponse.json({
-    plan: ent?.plan ?? 'free',
-    status: ent?.status ?? 'active',
+    plan: ent?.plan ?? "free",
+    status: ent?.status ?? "active",
     stripe_customer_id: ent?.stripe_customer_id ?? null,
-    has_active_subscription: !!(ent?.stripe_subscription_id && ent?.status === 'active'),
+    has_active_subscription: !!(
+      ent?.stripe_subscription_id && ent?.status === "active"
+    ),
     usage: {
       runs_used: limits.used,
       runs_limit: limits.limit,
-      runs_remaining: limits.limit === -1 ? null : Math.max(0, limits.limit - limits.used),
+      runs_remaining:
+        limits.limit === -1 ? null : Math.max(0, limits.limit - limits.used),
     },
     limits: {
       runs_per_month: ent?.runs_per_month ?? 100,

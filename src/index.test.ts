@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { parseArgs } from "./lib/args.js";
-import { evaluateDecision, DecisionEngine, type DecisionInput } from "./index.js";
+import {
+  evaluateDecision,
+  DecisionEngine,
+  type DecisionInput,
+} from "./index.js";
 
 describe("parseArgs", () => {
   it("returns defaults when no args given", () => {
@@ -41,8 +45,8 @@ describe("DecisionEngine", () => {
     states: ["s1", "s2"],
     outcomes: {
       a1: { s1: 10, s2: 5 },
-      a2: { s1: 0, s2: 20 }
-    }
+      a2: { s1: 0, s2: 20 },
+    },
   };
 
   it("evaluateDecision returns result (async)", async () => {

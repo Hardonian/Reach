@@ -1,7 +1,7 @@
 // @ts-nocheck
 /**
  * Performance CLI Module
- * 
+ *
  * Commands:
  *   zeo perf scan [--severity critical] [--paths packages/core,packages/replay]
  *   zeo perf profile --example negotiation --depth 3 [--out perf-report.json]
@@ -10,7 +10,13 @@
  *   zeo perf regression --replay dataset.json [--threshold 10%]
  */
 
-import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from "node:fs";
+import {
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  readdirSync,
+  statSync,
+} from "node:fs";
 import { resolve, join, relative } from "node:path";
 import { cwd } from "node:process";
 import {
@@ -36,7 +42,11 @@ import {
   canonicalizeDecisionSpec,
 } from "@zeo/core";
 import { replayCase } from "@zeo/replay";
-import { ZeoError, type ReplayDataset, type ReplayOptions } from "@zeo/contracts";
+import {
+  ZeoError,
+  type ReplayDataset,
+  type ReplayOptions,
+} from "@zeo/contracts";
 
 export interface PerfCliArgs {
   command: "scan" | "profile" | "benchmark" | "compare" | "regression" | null;
@@ -82,13 +92,19 @@ export function parsePerfArgs(argv: string[]): PerfCliArgs {
   const perfIdx = argv.indexOf("perf");
   if (perfIdx !== -1 && argv[perfIdx + 1]) {
     const cmd = argv[perfIdx + 1];
-    if (["scan", "profile", "benchmark", "compare", "regression"].includes(cmd)) {
+    if (
+      ["scan", "profile", "benchmark", "compare", "regression"].includes(cmd)
+    ) {
       result.command = cmd as PerfCliArgs["command"];
     }
   }
 
   // Also check if first arg is a command (when called directly)
-  if (!result.command && argv[0] && ["scan", "profile", "benchmark", "compare", "regression"].includes(argv[0])) {
+  if (
+    !result.command &&
+    argv[0] &&
+    ["scan", "profile", "benchmark", "compare", "regression"].includes(argv[0])
+  ) {
     result.command = argv[0] as PerfCliArgs["command"];
   }
 
@@ -97,7 +113,7 @@ export function parsePerfArgs(argv: string[]): PerfCliArgs {
     const next = argv[i + 1];
 
     if (arg === "--paths" && next) {
-      result.paths = next.split(",").map(p => p.trim());
+      result.paths = next.split(",").map((p) => p.trim());
       i++;
     } else if (arg === "--severity" && next) {
       if (["low", "medium", "high", "critical"].includes(next)) {
@@ -209,25 +225,28 @@ Examples:
  */
 function getTypeScriptFiles(dir: string, files: string[] = []): string[] {
   const items = readdirSync(dir);
-  
+
   for (const item of items) {
     const fullPath = join(dir, item);
     const stat = statSync(fullPath);
-    
+
     if (stat.isDirectory()) {
       // Skip node_modules and dist
       if (item === "node_modules" || item === "dist" || item === ".git") {
         continue;
       }
       getTypeScriptFiles(fullPath, files);
-    } else if (stat.isFile() && (item.endsWith(".ts") || item.endsWith(".tsx"))) {
+    } else if (
+      stat.isFile() &&
+      (item.endsWith(".ts") || item.endsWith(".tsx"))
+    ) {
       // Skip test files and declaration files
       if (!item.endsWith(".test.ts") && !item.endsWith(".d.ts")) {
         files.push(fullPath);
       }
     }
   }
-  
+
   return files;
 }
 
@@ -236,13 +255,15 @@ function getTypeScriptFiles(dir: string, files: string[] = []): string[] {
  */
 async function runScanCommand(args: PerfCliArgs): Promise<number> {
   console.log("\n=== Zeo Performance Scan ===");
-  
+
   const paths = args.paths.length > 0 ? args.paths : ["packages"];
-  const fullPaths = paths.map(p => resolve(cwd(), p));
-  
+  const fullPaths = paths.map((p) => resolve(cwd(), p));
+
   console.log(`Scanning paths: ${paths.join(", ")}`);
   console.log(`Severity threshold: ${args.severity}`);
-  console.log(`Experimental patterns: ${args.experimental ? "enabled" : "disabled"}`);
+  console.log(
+    `Experimental patterns: ${args.experimental ? "enabled" : "disabled"}`,
+  );
   console.log("");
 
   const scanOptions: ScanOptions = {
@@ -262,7 +283,9 @@ async function runScanCommand(args: PerfCliArgs): Promise<number> {
     }
 
     const files = getTypeScriptFiles(basePath);
-    console.log(`Found ${files.length} TypeScript files in ${relative(cwd(), basePath)}`);
+    console.log(
+      `Found ${files.length} TypeScript files in ${relative(cwd(), basePath)}`,
+    );
 
     for (const file of files) {
       try {
@@ -297,8 +320,12 @@ async function runScanCommand(args: PerfCliArgs): Promise<number> {
 }
 
 function printScanResults(result: ScanResult): void {
-  console.log(`Scanned ${result.summary.totalFilesScanned} files (${result.summary.totalLinesScanned} lines)`);
-  console.log(`Found ${result.findings.length} hot paths in ${result.durationMs}ms\n`);
+  console.log(
+    `Scanned ${result.summary.totalFilesScanned} files (${result.summary.totalLinesScanned} lines)`,
+  );
+  console.log(
+    `Found ${result.findings.length} hot paths in ${result.durationMs}ms\n`,
+  );
 
   if (result.findings.length === 0) {
     console.log("✓ No performance issues detected.");
@@ -307,17 +334,28 @@ function printScanResults(result: ScanResult): void {
 
   // Summary by severity
   console.log("Findings by severity:");
-  for (const [severity, count] of Object.entries(result.summary.findingsBySeverity)) {
+  for (const [severity, count] of Object.entries(
+    result.summary.findingsBySeverity,
+  )) {
     const countNum = count as number;
     if (countNum > 0) {
-      const icon = severity === "critical" ? "🔴" : severity === "high" ? "🟠" : severity === "medium" ? "🟡" : "⚪";
+      const icon =
+        severity === "critical"
+          ? "🔴"
+          : severity === "high"
+            ? "🟠"
+            : severity === "medium"
+              ? "🟡"
+              : "⚪";
       console.log(`  ${icon} ${severity}: ${countNum}`);
     }
   }
 
   // Summary by category
   console.log("\nFindings by category:");
-  for (const [category, count] of Object.entries(result.summary.findingsByCategory)) {
+  for (const [category, count] of Object.entries(
+    result.summary.findingsByCategory,
+  )) {
     const countNum = count as number;
     if (countNum > 0) {
       console.log(`  ${category}: ${countNum}`);
@@ -339,10 +377,19 @@ function printScanResults(result: ScanResult): void {
   const topFindings = result.findings.slice(0, 10);
   for (let i = 0; i < topFindings.length; i++) {
     const f = topFindings[i];
-    const icon = f.severity === "critical" ? "🔴" : f.severity === "high" ? "🟠" : f.severity === "medium" ? "🟡" : "⚪";
+    const icon =
+      f.severity === "critical"
+        ? "🔴"
+        : f.severity === "high"
+          ? "🟠"
+          : f.severity === "medium"
+            ? "🟡"
+            : "⚪";
     console.log(`\n  ${i + 1}. ${icon} ${f.filePath}:${f.lineNumber}`);
     console.log(`     Function: ${f.functionName}`);
-    console.log(`     Category: ${f.category} | Score: ${f.complexityScore}/100`);
+    console.log(
+      `     Category: ${f.category} | Score: ${f.complexityScore}/100`,
+    );
     console.log(`     ${f.description}`);
   }
 }
@@ -353,10 +400,12 @@ function printScanResults(result: ScanResult): void {
 async function runProfileCommand(args: PerfCliArgs): Promise<number> {
   console.log("\n=== Zeo Performance Profile ===");
 
-  const spec = args.example === "ops" ? makeOpsExample() : makeNegotiationExample();
+  const spec =
+    args.example === "ops" ? makeOpsExample() : makeNegotiationExample();
   const canonicalSpec = canonicalizeDecisionSpec(spec);
   const decisionHash = hashDecisionSpec(canonicalSpec);
-  const seed = args.seed || computeDeterministicSeed(decisionHash, undefined, args.depth);
+  const seed =
+    args.seed || computeDeterministicSeed(decisionHash, undefined, args.depth);
 
   console.log(`Example: ${args.example}`);
   console.log(`Depth: ${args.depth}`);
@@ -364,7 +413,9 @@ async function runProfileCommand(args: PerfCliArgs): Promise<number> {
 
   // Create profiler
   const profiler = getGlobalProfiler({ trackMemory: true });
-  const session = profiler.startSession(`profile-${args.example}-d${args.depth}`);
+  const session = profiler.startSession(
+    `profile-${args.example}-d${args.depth}`,
+  );
   const sessionId = session.id;
 
   // Profile the decision run
@@ -374,7 +425,7 @@ async function runProfileCommand(args: PerfCliArgs): Promise<number> {
     async () => {
       return runDecision(spec, { depth: args.depth });
     },
-    { functionName: "runDecision", filePath: "@zeo/core" }
+    { functionName: "runDecision", filePath: "@zeo/core" },
   );
 
   profiler.endSession(sessionId);
@@ -408,7 +459,9 @@ function printProfileReport(report: ProfileReport): void {
   console.log(`Average: ${report.summary.averageDuration.toFixed(2)}ms`);
 
   if (report.summary.memoryGrowth > 0) {
-    console.log(`Memory Growth: ${(report.summary.memoryGrowth / 1024 / 1024).toFixed(2)}MB`);
+    console.log(
+      `Memory Growth: ${(report.summary.memoryGrowth / 1024 / 1024).toFixed(2)}MB`,
+    );
   }
 
   if (report.summary.longestOperations.length > 0) {
@@ -430,7 +483,8 @@ function printProfileReport(report: ProfileReport): void {
 async function runBenchmarkCommand(args: PerfCliArgs): Promise<number> {
   console.log("\n=== Zeo Performance Benchmark ===");
 
-  const spec = args.example === "ops" ? makeOpsExample() : makeNegotiationExample();
+  const spec =
+    args.example === "ops" ? makeOpsExample() : makeNegotiationExample();
   const canonicalSpec = canonicalizeDecisionSpec(spec);
   const decisionHash = hashDecisionSpec(canonicalSpec);
 
@@ -443,7 +497,11 @@ async function runBenchmarkCommand(args: PerfCliArgs): Promise<number> {
   if (args.warmup > 0) {
     console.log("Running warmup...");
     for (let i = 0; i < args.warmup; i++) {
-      const seed = computeDeterministicSeed(decisionHash, undefined, args.depth);
+      const seed = computeDeterministicSeed(
+        decisionHash,
+        undefined,
+        args.depth,
+      );
       runDecision(spec, { depth: args.depth });
     }
   }
@@ -466,7 +524,9 @@ async function runBenchmarkCommand(args: PerfCliArgs): Promise<number> {
     measurements.push(duration);
     memorySnapshots.push(memAfter - memBefore);
 
-    process.stdout.write(`  Iteration ${i + 1}/${args.iterations}: ${duration.toFixed(2)}ms\r`);
+    process.stdout.write(
+      `  Iteration ${i + 1}/${args.iterations}: ${duration.toFixed(2)}ms\r`,
+    );
   }
   console.log(""); // New line after progress
 
@@ -535,7 +595,8 @@ interface BenchmarkResult {
 function calculateStats(values: number[]) {
   const sorted = [...values].sort((a, b) => a - b);
   const mean = values.reduce((a, b) => a + b, 0) / values.length;
-  const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
+  const variance =
+    values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
   const stdDev = Math.sqrt(variance);
 
   return {
@@ -593,9 +654,16 @@ async function runCompareCommand(args: PerfCliArgs): Promise<number> {
   // Compare benchmark results
   if (baseline.timing && current.timing) {
     const timingDelta = {
-      mean: ((current.timing.mean - baseline.timing.mean) / baseline.timing.mean) * 100,
-      median: ((current.timing.median - baseline.timing.median) / baseline.timing.median) * 100,
-      p95: ((current.timing.p95 - baseline.timing.p95) / baseline.timing.p95) * 100,
+      mean:
+        ((current.timing.mean - baseline.timing.mean) / baseline.timing.mean) *
+        100,
+      median:
+        ((current.timing.median - baseline.timing.median) /
+          baseline.timing.median) *
+        100,
+      p95:
+        ((current.timing.p95 - baseline.timing.p95) / baseline.timing.p95) *
+        100,
     };
 
     console.log("Timing Comparison:");
@@ -604,8 +672,8 @@ async function runCompareCommand(args: PerfCliArgs): Promise<number> {
     console.log(`  P95:    ${formatDelta(timingDelta.p95)}`);
 
     // Check for significant regression
-    const hasRegression = Object.values(timingDelta).some(d => d > 10);
-    const hasImprovement = Object.values(timingDelta).some(d => d < -10);
+    const hasRegression = Object.values(timingDelta).some((d) => d > 10);
+    const hasImprovement = Object.values(timingDelta).some((d) => d < -10);
 
     if (hasRegression) {
       console.log("\n⚠️  Performance regression detected (>10%)");
@@ -646,7 +714,9 @@ async function runRegressionCommand(args: PerfCliArgs): Promise<number> {
 
   for (let i = 0; i < dataset.cases.length; i++) {
     const testCase = dataset.cases[i];
-    process.stdout.write(`  Case ${i + 1}/${dataset.cases.length}: ${testCase.caseId}...\r`);
+    process.stdout.write(
+      `  Case ${i + 1}/${dataset.cases.length}: ${testCase.caseId}...\r`,
+    );
 
     // Measure performance
     const measurements: number[] = [];
@@ -655,7 +725,11 @@ async function runRegressionCommand(args: PerfCliArgs): Promise<number> {
     for (let j = 0; j < iterations; j++) {
       const start = performance.now();
       try {
-        await replayCase(testCase, { depth: 2, limits: { maxCheckpoints: 10 }, strict: false });
+        await replayCase(testCase, {
+          depth: 2,
+          limits: { maxCheckpoints: 10 },
+          strict: false,
+        });
       } catch (err) {
         // Continue even if case has issues - we're measuring performance
       }
@@ -663,7 +737,8 @@ async function runRegressionCommand(args: PerfCliArgs): Promise<number> {
       measurements.push(duration);
     }
 
-    const avgDuration = measurements.reduce((a, b) => a + b, 0) / measurements.length;
+    const avgDuration =
+      measurements.reduce((a, b) => a + b, 0) / measurements.length;
 
     results.push({
       caseId: testCase.caseId,
@@ -686,7 +761,9 @@ async function runRegressionCommand(args: PerfCliArgs): Promise<number> {
   console.log(`Total time: ${totalDuration.toFixed(2)}ms`);
 
   // Print slowest cases
-  const sortedByTime = [...results].sort((a, b) => b.avgDuration - a.avgDuration);
+  const sortedByTime = [...results].sort(
+    (a, b) => b.avgDuration - a.avgDuration,
+  );
   console.log("\nSlowest 5 cases:");
   for (const r of sortedByTime.slice(0, 5)) {
     console.log(`  ${r.caseId}: ${r.avgDuration.toFixed(2)}ms`);
@@ -778,4 +855,3 @@ export async function runPerfCommand(args: PerfCliArgs): Promise<number> {
     return 1;
   }
 }
-

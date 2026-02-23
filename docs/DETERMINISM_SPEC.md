@@ -18,31 +18,31 @@ Every Reach Run is described by an immutable model that serves as the source for
 
 ```json
 {
-  "run_id":          "<sha256-derived-from-pack-hash + input-hash + sequence>",
-  "engine_version":  "<semver, e.g. 0.2.0>",
-  "policy_version":  "<sha256 of policy bundle>",
-  "input_hash":      "<sha256 of canonical-JSON of inputs>",
+  "run_id": "<sha256-derived-from-pack-hash + input-hash + sequence>",
+  "engine_version": "<semver, e.g. 0.2.0>",
+  "policy_version": "<sha256 of policy bundle>",
+  "input_hash": "<sha256 of canonical-JSON of inputs>",
   "artifact_hashes": ["<sha256 of each artifact, sorted by artifact ID>"],
-  "output_hash":     "<sha256 of canonical-JSON of outputs>",
-  "event_log_hash":  "<sha256 of NDJSON event log, in insertion order>",
+  "output_hash": "<sha256 of canonical-JSON of outputs>",
+  "event_log_hash": "<sha256 of NDJSON event log, in insertion order>",
   "timestamp_epoch": 0,
-  "fingerprint":     "<sha256(run_id + engine_version + event_log_hash)>"
+  "fingerprint": "<sha256(run_id + engine_version + event_log_hash)>"
 }
 ```
 
 ### Field Invariants
 
-| Field | Invariant |
-| :--- | :--- |
-| `run_id` | Derived from content hash (never UUID v4). Same inputs → same `run_id`. |
-| `engine_version` | Pinned to the exact engine release. Must be bumped when behavior changes. |
-| `policy_version` | SHA-256 of the policy bundle contents. Policy changes create a new version. |
-| `input_hash` | SHA-256 of the canonical-JSON serialization of all inputs (sorted keys). |
-| `artifact_hashes` | Array of SHA-256 hashes, sorted by artifact ID lexicographically. |
-| `output_hash` | SHA-256 of canonical-JSON outputs (sorted keys, normalized values). |
-| `event_log_hash` | SHA-256 of the ordered NDJSON event log. Order is insertion order — not timestamps. |
+| Field             | Invariant                                                                                           |
+| :---------------- | :-------------------------------------------------------------------------------------------------- |
+| `run_id`          | Derived from content hash (never UUID v4). Same inputs → same `run_id`.                             |
+| `engine_version`  | Pinned to the exact engine release. Must be bumped when behavior changes.                           |
+| `policy_version`  | SHA-256 of the policy bundle contents. Policy changes create a new version.                         |
+| `input_hash`      | SHA-256 of the canonical-JSON serialization of all inputs (sorted keys).                            |
+| `artifact_hashes` | Array of SHA-256 hashes, sorted by artifact ID lexicographically.                                   |
+| `output_hash`     | SHA-256 of canonical-JSON outputs (sorted keys, normalized values).                                 |
+| `event_log_hash`  | SHA-256 of the ordered NDJSON event log. Order is insertion order — not timestamps.                 |
 | `timestamp_epoch` | Always `0` in deterministic paths. Wall-clock timestamps are excluded from fingerprint calculation. |
-| `fingerprint` | The final proof: `SHA-256(run_id \|\| engine_version \|\| event_log_hash)`. |
+| `fingerprint`     | The final proof: `SHA-256(run_id \|\| engine_version \|\| event_log_hash)`.                         |
 
 ---
 
@@ -81,24 +81,30 @@ func StableHash(v any) (string, error) {
 ## Determinism Invariants (Enforced by Engine)
 
 ### 1. Instruction Ordering
+
 All operations execute in a stable, predictable sequence. Parallelism is joined deterministically before any state is committed.
 
 ### 2. Stable Hashing
+
 SHA-256 is the only hash algorithm used in fingerprint paths. MD5 and CRC are permitted only in non-persistent diagnostic contexts.
 
 ### 3. Canonical Time
+
 - In strict (deterministic) mode, all timestamps are normalized to `0` (epoch zero).
 - Wall-clock time may appear in human-readable log metadata but never in the fingerprint.
 - Use `time.Unix(0, 0).UTC()` for epoch normalization in Go.
 
 ### 4. Stable IDs
+
 Run IDs and artifact IDs are derived from content hashes. Random UUID generation is forbidden in fingerprint paths.
 
 ### 5. No Hidden State
+
 - No reliance on uninitialized memory, race conditions, or environment variables not explicitly threaded through the execution context.
 - Map iteration order is never used directly — always sort keys before hashing.
 
 ### 6. Floating-Point Exclusion
+
 No float64 arithmetic in fingerprint paths. Use integer microseconds for durations.
 
 ---
@@ -107,13 +113,13 @@ No float64 arithmetic in fingerprint paths. Use integer microseconds for duratio
 
 The following are illegal in any code path that reaches the fingerprint:
 
-| Entropy Source | Why Forbidden | Mitigation |
-| :--- | :--- | :--- |
-| `time.Now()` | Non-deterministic wall clock | Use epoch zero in fingerprint paths |
-| `rand.Int()` / `uuid.New()` | Non-deterministic random | Use content-hash-derived IDs |
-| `map` iteration without sort | Go map iteration order is random | Always sort keys |
-| `os.Getenv()` in hash path | Environment-dependent | Thread values explicitly |
-| Concurrent goroutines joined by timestamp | Race condition | Join by logical order |
+| Entropy Source                            | Why Forbidden                    | Mitigation                          |
+| :---------------------------------------- | :------------------------------- | :---------------------------------- |
+| `time.Now()`                              | Non-deterministic wall clock     | Use epoch zero in fingerprint paths |
+| `rand.Int()` / `uuid.New()`               | Non-deterministic random         | Use content-hash-derived IDs        |
+| `map` iteration without sort              | Go map iteration order is random | Always sort keys                    |
+| `os.Getenv()` in hash path                | Environment-dependent            | Thread values explicitly            |
+| Concurrent goroutines joined by timestamp | Race condition                   | Join by logical order               |
 
 ---
 

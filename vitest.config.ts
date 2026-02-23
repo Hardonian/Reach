@@ -40,16 +40,22 @@ const aliases = Object.entries(paths).map(([key, value]) => {
   const resolvedReplacement = replacement.replace("*", "$1");
   return {
     find,
-    replacement: path.resolve(__dirname, resolvedReplacement)
+    replacement: path.resolve(__dirname, resolvedReplacement),
   };
 });
 
 // Fallback: ensure critical aliases exist even if tsconfig parsing fails
-const hasZeoCore = aliases.some(a => a.find.test("@zeo/core"));
+const hasZeoCore = aliases.some((a) => a.find.test("@zeo/core"));
 if (!hasZeoCore) {
   aliases.unshift(
-    { find: /^@zeo\/core$/, replacement: path.resolve(__dirname, "./src/core/shim.ts") },
-    { find: /^@zeo\/contracts$/, replacement: path.resolve(__dirname, "./sdk/ts/src/index.ts") },
+    {
+      find: /^@zeo\/core$/,
+      replacement: path.resolve(__dirname, "./src/core/shim.ts"),
+    },
+    {
+      find: /^@zeo\/contracts$/,
+      replacement: path.resolve(__dirname, "./sdk/ts/src/index.ts"),
+    },
     { find: /^@zeo\/(.*)$/, replacement: path.resolve(__dirname, "./src/$1") },
   );
 }
@@ -61,6 +67,12 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
-    exclude: ["node_modules", "dist", ".git", ".github", "src/determinism/__tests__"],
+    exclude: [
+      "node_modules",
+      "dist",
+      ".git",
+      ".github",
+      "src/determinism/__tests__",
+    ],
   },
 });

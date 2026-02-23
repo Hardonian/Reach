@@ -38,7 +38,8 @@ Welcome to the Reach Documentation. This repository follows the **Antigravity** 
 - [PoEE (Proof of Execution Evidence)](../EXECUTION_PROTOCOL.md) - Formal proof specs.
 
 ---
-*Reach: The Deterministic Spine for Agentic Intelligence.*
+
+_Reach: The Deterministic Spine for Agentic Intelligence._
 
 ## 📂 Other Documentation
 

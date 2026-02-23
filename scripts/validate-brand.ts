@@ -10,23 +10,23 @@
  * brand name changes to "Reach" and this script passes for that name.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
+import * as fs from "fs";
+import * as path from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname_compat = path.dirname(__filename);
 
-const REPO_ROOT = path.resolve(__dirname_compat, '..');
+const REPO_ROOT = path.resolve(__dirname_compat, "..");
 
 /**
  * Presentation-layer paths to scan (relative to REPO_ROOT).
  * Only user-visible files are included.
  */
 const PRESENTATION_PATHS = [
-  'apps/arcade/src/app',
-  'apps/arcade/src/components',
-  'README.md',
+  "apps/arcade/src/app",
+  "apps/arcade/src/components",
+  "README.md",
 ];
 
 /**
@@ -74,9 +74,11 @@ function isAllowed(line: string): boolean {
   return ALLOWED_PATTERNS.some((p) => p.test(line));
 }
 
-function scanFile(filePath: string): { file: string; line: number; text: string }[] {
-  const content = fs.readFileSync(filePath, 'utf-8');
-  const lines = content.split('\n');
+function scanFile(
+  filePath: string,
+): { file: string; line: number; text: string }[] {
+  const content = fs.readFileSync(filePath, "utf-8");
+  const lines = content.split("\n");
   const violations: { file: string; line: number; text: string }[] = [];
 
   for (let i = 0; i < lines.length; i++) {
@@ -107,7 +109,7 @@ function collectFiles(targetPath: string): string[] {
       const full = path.join(dir, entry);
       const s = fs.statSync(full);
       if (s.isDirectory()) {
-        if (entry === 'node_modules' || entry === '.git') continue;
+        if (entry === "node_modules" || entry === ".git") continue;
         walk(full);
       } else if (/\.(tsx?|jsx?|md)$/.test(entry)) {
         results.push(full);
@@ -120,10 +122,12 @@ function collectFiles(targetPath: string): string[] {
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 
-const expectedBrand = process.env.NEXT_PUBLIC_BRAND_NAME ?? 'ReadyLayer';
+const expectedBrand = process.env.NEXT_PUBLIC_BRAND_NAME ?? "ReadyLayer";
 
-if (expectedBrand === 'Reach') {
-  console.log('validate:brand — SKIP: rollback mode active (NEXT_PUBLIC_BRAND_NAME=Reach)');
+if (expectedBrand === "Reach") {
+  console.log(
+    "validate:brand — SKIP: rollback mode active (NEXT_PUBLIC_BRAND_NAME=Reach)",
+  );
   process.exit(0);
 }
 
@@ -139,13 +143,19 @@ for (const f of allFiles) {
 }
 
 if (allViolations.length === 0) {
-  console.log(`validate:brand — PASS: no residual "Reach" brand text found in ${allFiles.length} scanned files.`);
+  console.log(
+    `validate:brand — PASS: no residual "Reach" brand text found in ${allFiles.length} scanned files.`,
+  );
   process.exit(0);
 } else {
-  console.error(`validate:brand — FAIL: found ${allViolations.length} residual "Reach" occurrence(s):\n`);
+  console.error(
+    `validate:brand — FAIL: found ${allViolations.length} residual "Reach" occurrence(s):\n`,
+  );
   for (const v of allViolations) {
     console.error(`  ${v.file}:${v.line}  →  ${v.text}`);
   }
-  console.error('\nFix: replace visible "Reach" text with "ReadyLayer", or add an allowance in scripts/validate-brand.ts if it is an internal identifier.');
+  console.error(
+    '\nFix: replace visible "Reach" text with "ReadyLayer", or add an allowance in scripts/validate-brand.ts if it is an internal identifier.',
+  );
   process.exit(1);
 }

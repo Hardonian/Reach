@@ -139,6 +139,7 @@ type StorageDriver interface {
 ```
 
 **Implementations:**
+
 - `SqliteDriver` — OSS default. SQLite + local filesystem.
 - `CloudStorageDriver` — Enterprise only (REACH_CLOUD=1). Cloud object storage backend.
 
@@ -169,6 +170,7 @@ reachctl gc --json
 ```
 
 GC preserves:
+
 - The 100 most recent runs regardless of age.
 - Any run that has been exported to a capsule.
 - Any run explicitly marked as `keep`.

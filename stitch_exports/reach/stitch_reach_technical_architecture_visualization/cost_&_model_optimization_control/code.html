@@ -1,437 +1,868 @@
-<!DOCTYPE html>
+<!doctype html>
 
-<html class="dark" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Reach Control - Cost &amp; Model Optimization</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#135bec",
-                        "background-light": "#f6f6f8",
-                        "background-dark": "#101622",
-                        "surface-dark": "#1a1f2b",
-                        "border-dark": "#2e3646",
-                    },
-                    fontFamily: {
-                        "display": ["Inter", "sans-serif"]
-                    },
-                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
-                },
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Reach Control - Cost &amp; Model Optimization</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#135bec",
+              "background-light": "#f6f6f8",
+              "background-dark": "#101622",
+              "surface-dark": "#1a1f2b",
+              "border-dark": "#2e3646",
             },
-        }
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              "2xl": "1rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
     </script>
-<style>
-        /* Custom scrollbar for dark mode */
-        .dark ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        .dark ::-webkit-scrollbar-track {
-            background: #101622; 
-        }
-        .dark ::-webkit-scrollbar-thumb {
-            background: #2e3646; 
-            border-radius: 4px;
-        }
-        .dark ::-webkit-scrollbar-thumb:hover {
-            background: #3b4354; 
-        }
+    <style>
+      /* Custom scrollbar for dark mode */
+      .dark ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      .dark ::-webkit-scrollbar-track {
+        background: #101622;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #2e3646;
+        border-radius: 4px;
+      }
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background: #3b4354;
+      }
     </style>
-</head>
-<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased overflow-hidden">
-<div class="flex h-screen w-full overflow-hidden">
-<!-- Sidebar -->
-<div class="w-64 flex-none border-r border-border-dark bg-[#111318] flex flex-col justify-between p-4 h-full overflow-y-auto">
-<div class="flex flex-col gap-4">
-<div class="flex gap-3 px-2 mb-4">
-<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 bg-primary/20 flex items-center justify-center text-primary font-bold text-xl" data-alt="Abstract logo gradient">R</div>
-<div class="flex flex-col justify-center">
-<h1 class="text-white text-base font-medium leading-normal">Reach Control</h1>
-<p class="text-slate-400 text-xs font-normal leading-normal">Orchestration Plane</p>
-</div>
-</div>
-<div class="flex flex-col gap-1">
-<div class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg cursor-pointer transition-colors group">
-<span class="material-symbols-outlined group-hover:text-primary transition-colors">dashboard</span>
-<p class="text-sm font-medium leading-normal">Dashboard</p>
-</div>
-<div class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg cursor-pointer transition-colors group">
-<span class="material-symbols-outlined group-hover:text-primary transition-colors">smart_toy</span>
-<p class="text-sm font-medium leading-normal">Agents</p>
-</div>
-<div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary cursor-default">
-<span class="material-symbols-outlined fill-1">payments</span>
-<p class="text-sm font-medium leading-normal">Cost &amp; Optimization</p>
-</div>
-<div class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg cursor-pointer transition-colors group">
-<span class="material-symbols-outlined group-hover:text-primary transition-colors">settings</span>
-<p class="text-sm font-medium leading-normal">Settings</p>
-</div>
-<div class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg cursor-pointer transition-colors group">
-<span class="material-symbols-outlined group-hover:text-primary transition-colors">description</span>
-<p class="text-sm font-medium leading-normal">Logs</p>
-</div>
-</div>
-</div>
-<div class="mt-auto pt-6 border-t border-white/5">
-<div class="flex items-center gap-3 px-3">
-<div class="size-8 rounded-full bg-gradient-to-tr from-slate-700 to-slate-600" data-alt="User profile avatar"></div>
-<div class="flex flex-col">
-<p class="text-white text-sm font-medium">DevOps Admin</p>
-<p class="text-slate-500 text-xs">admin@reach.ai</p>
-</div>
-</div>
-</div>
-</div>
-<!-- Main Content -->
-<main class="flex-1 flex flex-col h-full overflow-hidden relative">
-<!-- Header -->
-<header class="flex-none h-16 border-b border-border-dark flex items-center justify-between px-8 bg-background-dark/50 backdrop-blur-sm z-10">
-<div>
-<h2 class="text-white text-lg font-semibold">Cost &amp; Model Optimization</h2>
-<p class="text-slate-400 text-xs">Financial governance and model switching</p>
-</div>
-<div class="flex items-center gap-4">
-<span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-medium border border-emerald-500/20 flex items-center gap-1">
-<span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        System Healthy
-                    </span>
-<button class="flex items-center gap-2 bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-primary/20">
-<span class="material-symbols-outlined text-[18px]">save</span>
-                        Save Changes
-                    </button>
-</div>
-</header>
-<!-- Scrollable Content -->
-<div class="flex-1 overflow-y-auto p-8">
-<div class="max-w-7xl mx-auto flex flex-col gap-6">
-<!-- KPI Cards Row -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-<div class="p-5 rounded-xl bg-surface-dark border border-border-dark flex flex-col gap-1 relative overflow-hidden group">
-<div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-<span class="material-symbols-outlined text-4xl text-white">attach_money</span>
-</div>
-<p class="text-slate-400 text-sm font-medium">Current Month Spend</p>
-<div class="flex items-baseline gap-2">
-<h3 class="text-white text-2xl font-bold tracking-tight">$2,340.50</h3>
-<span class="text-emerald-400 text-xs font-medium bg-emerald-500/10 px-1.5 py-0.5 rounded flex items-center">
-<span class="material-symbols-outlined text-[12px]">arrow_upward</span> 12%
-                                </span>
-</div>
-<div class="w-full bg-slate-700/30 h-1.5 rounded-full mt-3 overflow-hidden">
-<div class="bg-primary h-full rounded-full" style="width: 65%"></div>
-</div>
-<p class="text-slate-500 text-xs mt-1">65% of monthly budget</p>
-</div>
-<div class="p-5 rounded-xl bg-surface-dark border border-border-dark flex flex-col gap-1 relative overflow-hidden group">
-<div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-<span class="material-symbols-outlined text-4xl text-white">trending_up</span>
-</div>
-<p class="text-slate-400 text-sm font-medium">Projected Spend</p>
-<div class="flex items-baseline gap-2">
-<h3 class="text-white text-2xl font-bold tracking-tight">$4,100.00</h3>
-<span class="text-emerald-400 text-xs font-medium bg-emerald-500/10 px-1.5 py-0.5 rounded flex items-center">
-<span class="material-symbols-outlined text-[12px]">arrow_upward</span> 5%
-                                </span>
-</div>
-<p class="text-slate-500 text-xs mt-auto">Based on current burn rate</p>
-</div>
-<div class="p-5 rounded-xl bg-surface-dark border border-border-dark flex flex-col gap-1 relative overflow-hidden group">
-<div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-<span class="material-symbols-outlined text-4xl text-white">smart_toy</span>
-</div>
-<p class="text-slate-400 text-sm font-medium">Active Agents</p>
-<div class="flex items-baseline gap-2">
-<h3 class="text-white text-2xl font-bold tracking-tight">12</h3>
-<span class="text-rose-400 text-xs font-medium bg-rose-500/10 px-1.5 py-0.5 rounded flex items-center">
-<span class="material-symbols-outlined text-[12px]">arrow_downward</span> 2%
-                                </span>
-</div>
-<p class="text-slate-500 text-xs mt-auto">Across 4 environments</p>
-</div>
-<div class="p-5 rounded-xl bg-surface-dark border border-border-dark flex flex-col gap-1 relative overflow-hidden group">
-<div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-<span class="material-symbols-outlined text-4xl text-white">functions</span>
-</div>
-<p class="text-slate-400 text-sm font-medium">Avg Cost/Request</p>
-<div class="flex items-baseline gap-2">
-<h3 class="text-white text-2xl font-bold tracking-tight">$0.04</h3>
-<span class="text-slate-400 text-xs font-medium bg-slate-500/10 px-1.5 py-0.5 rounded flex items-center">
-                                    0%
-                                </span>
-</div>
-<p class="text-slate-500 text-xs mt-auto">Optimized for GPT-4-Turbo</p>
-</div>
-</div>
-<!-- Main Content Grid -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-<!-- Left Column (2/3) -->
-<div class="lg:col-span-2 flex flex-col gap-6">
-<!-- Burn Projection Chart -->
-<div class="p-6 rounded-xl bg-surface-dark border border-border-dark shadow-sm">
-<div class="flex flex-wrap items-center justify-between mb-6 gap-4">
-<div>
-<h3 class="text-white font-semibold text-lg">Burn Projection</h3>
-<p class="text-slate-400 text-sm">Forecasted spend based on active model configuration.</p>
-</div>
-<div class="flex bg-[#111318] p-1 rounded-lg border border-white/5">
-<button class="px-4 py-1.5 rounded-md text-xs font-medium bg-primary text-white shadow-sm">Daily</button>
-<button class="px-4 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-white transition-colors">Monthly</button>
-</div>
-</div>
-<!-- Fake Chart Visualization -->
-<div class="relative h-64 w-full mt-4 flex items-end gap-2 px-2 border-b border-border-dark pb-4">
-<!-- Y Axis Grid -->
-<div class="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8 pr-4">
-<div class="w-full h-px bg-white/5 border-t border-dashed border-white/5 relative"><span class="absolute -top-3 left-0 text-[10px] text-slate-500">$500</span></div>
-<div class="w-full h-px bg-white/5 border-t border-dashed border-white/5 relative"><span class="absolute -top-3 left-0 text-[10px] text-slate-500">$250</span></div>
-<div class="w-full h-px bg-white/5 border-t border-dashed border-white/5 relative"><span class="absolute -top-3 left-0 text-[10px] text-slate-500">$100</span></div>
-<div class="w-full h-px bg-white/5 border-t border-dashed border-white/5 relative"><span class="absolute -top-3 left-0 text-[10px] text-slate-500">$0</span></div>
-</div>
-<!-- Bars -->
-<div class="flex-1 flex items-end justify-between h-full pl-8 gap-2 z-0">
-<div class="w-full bg-primary/20 hover:bg-primary/40 rounded-t-sm h-[30%] relative group transition-all duration-300">
-<div class="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm h-[60%]"></div>
-<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">$120.40</div>
-</div>
-<div class="w-full bg-primary/20 hover:bg-primary/40 rounded-t-sm h-[45%] relative group transition-all duration-300">
-<div class="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm h-[50%]"></div>
-<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">$180.20</div>
-</div>
-<div class="w-full bg-primary/20 hover:bg-primary/40 rounded-t-sm h-[35%] relative group transition-all duration-300">
-<div class="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm h-[70%]"></div>
-</div>
-<div class="w-full bg-primary/20 hover:bg-primary/40 rounded-t-sm h-[55%] relative group transition-all duration-300">
-<div class="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm h-[60%]"></div>
-</div>
-<div class="w-full bg-primary/20 hover:bg-primary/40 rounded-t-sm h-[65%] relative group transition-all duration-300">
-<div class="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm h-[40%]"></div>
-</div>
-<div class="w-full bg-primary/20 hover:bg-primary/40 rounded-t-sm h-[40%] relative group transition-all duration-300">
-<div class="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm h-[55%]"></div>
-</div>
-<div class="w-full bg-primary/20 hover:bg-primary/40 rounded-t-sm h-[75%] relative group transition-all duration-300 border-t-2 border-dashed border-emerald-400/50">
-<div class="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm h-[45%]"></div>
-<div class="absolute top-2 left-1/2 -translate-x-1/2 text-[10px] text-emerald-400 font-mono tracking-tighter opacity-70">FORECAST</div>
-</div>
-<div class="w-full bg-primary/20 hover:bg-primary/40 rounded-t-sm h-[80%] relative group transition-all duration-300 border-t-2 border-dashed border-emerald-400/50">
-<div class="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm h-[45%]"></div>
-</div>
-</div>
-</div>
-<div class="flex items-center justify-center gap-6 mt-4">
-<div class="flex items-center gap-2">
-<span class="size-3 rounded-full bg-primary"></span>
-<span class="text-xs text-slate-400">Actual Spend</span>
-</div>
-<div class="flex items-center gap-2">
-<span class="size-3 rounded-full bg-primary/20 border border-primary/40"></span>
-<span class="text-xs text-slate-400">Projected</span>
-</div>
-<div class="flex items-center gap-2">
-<span class="h-0.5 w-4 bg-emerald-400/50 border-t border-dashed border-emerald-400"></span>
-<span class="text-xs text-slate-400">Trend Line</span>
-</div>
-</div>
-</div>
-<!-- Model Switch Simulator -->
-<div class="p-6 rounded-xl bg-surface-dark border border-border-dark shadow-sm">
-<div class="flex items-center gap-3 mb-6">
-<div class="p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
-<span class="material-symbols-outlined">swap_horiz</span>
-</div>
-<div>
-<h3 class="text-white font-semibold text-lg">Model Switch Simulator</h3>
-<p class="text-slate-400 text-sm">Estimate savings by switching default models.</p>
-</div>
-</div>
-<div class="flex flex-col md:flex-row gap-6 items-center">
-<div class="flex-1 w-full space-y-4">
-<div>
-<label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Current Model</label>
-<div class="p-3 bg-[#111318] border border-white/10 rounded-lg flex items-center justify-between">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-green-400">check_circle</span>
-<span class="text-white font-medium">GPT-4-Turbo</span>
-</div>
-<span class="text-slate-500 text-sm">$10.00 / 1M tok</span>
-</div>
-</div>
-<div class="flex justify-center">
-<span class="material-symbols-outlined text-slate-600 rotate-90 md:rotate-0">arrow_forward</span>
-</div>
-<div>
-<label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Target Model</label>
-<select class="w-full bg-[#111318] border border-white/10 text-white rounded-lg p-3 text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none">
-<option>Llama-3-70b-Instruct</option>
-<option>Claude-3-Sonnet</option>
-<option>Mistral-Large</option>
-<option>GPT-3.5-Turbo</option>
-</select>
-</div>
-</div>
-<div class="w-full md:w-px h-px md:h-32 bg-border-dark"></div>
-<div class="flex-1 w-full">
-<div class="p-4 rounded-lg bg-emerald-500/5 border border-emerald-500/20 flex flex-col items-center text-center">
-<span class="text-emerald-400 text-sm font-medium mb-1">Projected Monthly Savings</span>
-<span class="text-3xl font-bold text-white mb-2">$1,245.00</span>
-<p class="text-emerald-400/80 text-xs">~32% reduction in operational costs based on last 30 days usage.</p>
-<button class="mt-4 w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition-colors">
-                                                Apply Configuration
-                                            </button>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Right Column (1/3) -->
-<div class="flex flex-col gap-6">
-<!-- Global Defaults -->
-<div class="p-6 rounded-xl bg-surface-dark border border-border-dark shadow-sm">
-<h3 class="text-white font-semibold text-lg mb-4">Global Default Model</h3>
-<div class="space-y-4">
-<div class="relative">
-<select class="w-full appearance-none bg-[#111318] border border-border-dark text-white text-sm rounded-lg p-3 pr-10 focus:ring-1 focus:ring-primary outline-none">
-<option>GPT-4-Turbo</option>
-<option>Claude-3-Opus</option>
-<option>Llama-3-70b</option>
-</select>
-<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
-<span class="material-symbols-outlined">expand_more</span>
-</div>
-</div>
-<div class="flex items-center justify-between text-xs text-slate-400 px-1">
-<span>Current Rate</span>
-<span class="text-white font-medium">$0.01 / 1k tokens</span>
-</div>
-<div class="pt-4 border-t border-white/5">
-<p class="text-slate-400 text-xs mb-3">Model Fallback Chain</p>
-<div class="flex items-center gap-2 text-sm text-slate-300">
-<span class="bg-[#111318] px-2 py-1 rounded border border-white/10">GPT-4</span>
-<span class="material-symbols-outlined text-xs text-slate-500">arrow_forward</span>
-<span class="bg-[#111318] px-2 py-1 rounded border border-white/10">Claude-3</span>
-<span class="material-symbols-outlined text-xs text-slate-500">arrow_forward</span>
-<span class="bg-[#111318] px-2 py-1 rounded border border-white/10">Llama-3</span>
-</div>
-</div>
-</div>
-</div>
-<!-- Cost Circuit Breakers -->
-<div class="p-6 rounded-xl bg-surface-dark border border-border-dark shadow-sm">
-<div class="flex items-center gap-2 mb-4">
-<span class="material-symbols-outlined text-rose-500">gpp_maybe</span>
-<h3 class="text-white font-semibold text-lg">Circuit Breakers</h3>
-</div>
-<p class="text-slate-400 text-sm mb-6">Automated stops to prevent runaway spend.</p>
-<div class="space-y-6">
-<!-- Setting 1 -->
-<div class="flex items-center justify-between">
-<div>
-<p class="text-white text-sm font-medium">Daily Hard Limit</p>
-<p class="text-slate-500 text-xs">Stops all non-critical agents</p>
-</div>
-<label class="relative inline-flex items-center cursor-pointer">
-<input checked="" class="sr-only peer" type="checkbox" value=""/>
-<div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-</label>
-</div>
-<div class="relative">
-<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-<span class="text-slate-400 text-sm">$</span>
-</div>
-<input class="block w-full pl-7 pr-12 py-2 bg-[#111318] border border-border-dark rounded-lg text-white placeholder-slate-500 focus:ring-1 focus:ring-primary focus:border-primary text-sm" placeholder="0.00" type="number" value="500"/>
-<div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-<span class="text-slate-500 text-xs">USD</span>
-</div>
-</div>
-<!-- Setting 2 -->
-<div class="pt-4 border-t border-white/5 flex items-center justify-between">
-<div>
-<p class="text-white text-sm font-medium">Monthly Soft Cap</p>
-<p class="text-slate-500 text-xs">Send alerts to admins</p>
-</div>
-<label class="relative inline-flex items-center cursor-pointer">
-<input checked="" class="sr-only peer" type="checkbox" value=""/>
-<div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-</label>
-</div>
-<div class="relative">
-<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-<span class="text-slate-400 text-sm">$</span>
-</div>
-<input class="block w-full pl-7 pr-12 py-2 bg-[#111318] border border-border-dark rounded-lg text-white placeholder-slate-500 focus:ring-1 focus:ring-primary focus:border-primary text-sm" placeholder="0.00" type="number" value="5000"/>
-<div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-<span class="text-slate-500 text-xs">USD</span>
-</div>
-</div>
-</div>
-</div>
-<!-- Agent Heatmap Mini -->
-<div class="p-6 rounded-xl bg-surface-dark border border-border-dark shadow-sm flex-1">
-<h3 class="text-white font-semibold text-lg mb-4">Top Spenders</h3>
-<div class="space-y-3">
-<div class="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-2 rounded-lg -mx-2 transition-colors">
-<div class="flex items-center gap-3">
-<div class="size-8 rounded bg-rose-500/20 text-rose-500 flex items-center justify-center font-bold text-xs">A1</div>
-<div class="flex flex-col">
-<span class="text-white text-sm font-medium">DataScraper-01</span>
-<span class="text-slate-500 text-xs">45k tokens/hr</span>
-</div>
-</div>
-<span class="text-rose-400 font-bold text-sm">$45.20</span>
-</div>
-<div class="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-2 rounded-lg -mx-2 transition-colors">
-<div class="flex items-center gap-3">
-<div class="size-8 rounded bg-orange-500/20 text-orange-500 flex items-center justify-center font-bold text-xs">A2</div>
-<div class="flex flex-col">
-<span class="text-white text-sm font-medium">SupportBot-Main</span>
-<span class="text-slate-500 text-xs">32k tokens/hr</span>
-</div>
-</div>
-<span class="text-orange-400 font-bold text-sm">$28.90</span>
-</div>
-<div class="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-2 rounded-lg -mx-2 transition-colors">
-<div class="flex items-center gap-3">
-<div class="size-8 rounded bg-yellow-500/20 text-yellow-500 flex items-center justify-center font-bold text-xs">A3</div>
-<div class="flex flex-col">
-<span class="text-white text-sm font-medium">Summarizer-X</span>
-<span class="text-slate-500 text-xs">12k tokens/hr</span>
-</div>
-</div>
-<span class="text-yellow-400 font-bold text-sm">$12.50</span>
-</div>
-<div class="mt-4 pt-3 border-t border-white/5">
-<h4 class="text-xs font-medium text-slate-400 uppercase mb-2">Token Usage Intensity</h4>
-<div class="grid grid-cols-6 gap-1">
-<!-- Heatmap grid simulation -->
-<div class="aspect-square bg-rose-500 rounded-sm opacity-90"></div>
-<div class="aspect-square bg-rose-500 rounded-sm opacity-60"></div>
-<div class="aspect-square bg-orange-500 rounded-sm opacity-80"></div>
-<div class="aspect-square bg-orange-500 rounded-sm opacity-50"></div>
-<div class="aspect-square bg-yellow-500 rounded-sm opacity-70"></div>
-<div class="aspect-square bg-emerald-500 rounded-sm opacity-40"></div>
-<div class="aspect-square bg-rose-500 rounded-sm opacity-70"></div>
-<div class="aspect-square bg-orange-500 rounded-sm opacity-90"></div>
-<div class="aspect-square bg-orange-500 rounded-sm opacity-40"></div>
-<div class="aspect-square bg-yellow-500 rounded-sm opacity-60"></div>
-<div class="aspect-square bg-emerald-500 rounded-sm opacity-30"></div>
-<div class="aspect-square bg-emerald-500 rounded-sm opacity-20"></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</main>
-</div>
-</body></html>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased overflow-hidden"
+  >
+    <div class="flex h-screen w-full overflow-hidden">
+      <!-- Sidebar -->
+      <div
+        class="w-64 flex-none border-r border-border-dark bg-[#111318] flex flex-col justify-between p-4 h-full overflow-y-auto"
+      >
+        <div class="flex flex-col gap-4">
+          <div class="flex gap-3 px-2 mb-4">
+            <div
+              class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 bg-primary/20 flex items-center justify-center text-primary font-bold text-xl"
+              data-alt="Abstract logo gradient"
+            >
+              R
+            </div>
+            <div class="flex flex-col justify-center">
+              <h1 class="text-white text-base font-medium leading-normal">
+                Reach Control
+              </h1>
+              <p class="text-slate-400 text-xs font-normal leading-normal">
+                Orchestration Plane
+              </p>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <div
+              class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg cursor-pointer transition-colors group"
+            >
+              <span
+                class="material-symbols-outlined group-hover:text-primary transition-colors"
+                >dashboard</span
+              >
+              <p class="text-sm font-medium leading-normal">Dashboard</p>
+            </div>
+            <div
+              class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg cursor-pointer transition-colors group"
+            >
+              <span
+                class="material-symbols-outlined group-hover:text-primary transition-colors"
+                >smart_toy</span
+              >
+              <p class="text-sm font-medium leading-normal">Agents</p>
+            </div>
+            <div
+              class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary cursor-default"
+            >
+              <span class="material-symbols-outlined fill-1">payments</span>
+              <p class="text-sm font-medium leading-normal">
+                Cost &amp; Optimization
+              </p>
+            </div>
+            <div
+              class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg cursor-pointer transition-colors group"
+            >
+              <span
+                class="material-symbols-outlined group-hover:text-primary transition-colors"
+                >settings</span
+              >
+              <p class="text-sm font-medium leading-normal">Settings</p>
+            </div>
+            <div
+              class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg cursor-pointer transition-colors group"
+            >
+              <span
+                class="material-symbols-outlined group-hover:text-primary transition-colors"
+                >description</span
+              >
+              <p class="text-sm font-medium leading-normal">Logs</p>
+            </div>
+          </div>
+        </div>
+        <div class="mt-auto pt-6 border-t border-white/5">
+          <div class="flex items-center gap-3 px-3">
+            <div
+              class="size-8 rounded-full bg-gradient-to-tr from-slate-700 to-slate-600"
+              data-alt="User profile avatar"
+            ></div>
+            <div class="flex flex-col">
+              <p class="text-white text-sm font-medium">DevOps Admin</p>
+              <p class="text-slate-500 text-xs">admin@reach.ai</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Main Content -->
+      <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <!-- Header -->
+        <header
+          class="flex-none h-16 border-b border-border-dark flex items-center justify-between px-8 bg-background-dark/50 backdrop-blur-sm z-10"
+        >
+          <div>
+            <h2 class="text-white text-lg font-semibold">
+              Cost &amp; Model Optimization
+            </h2>
+            <p class="text-slate-400 text-xs">
+              Financial governance and model switching
+            </p>
+          </div>
+          <div class="flex items-center gap-4">
+            <span
+              class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-medium border border-emerald-500/20 flex items-center gap-1"
+            >
+              <span
+                class="size-1.5 rounded-full bg-emerald-500 animate-pulse"
+              ></span>
+              System Healthy
+            </span>
+            <button
+              class="flex items-center gap-2 bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-primary/20"
+            >
+              <span class="material-symbols-outlined text-[18px]">save</span>
+              Save Changes
+            </button>
+          </div>
+        </header>
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-8">
+          <div class="max-w-7xl mx-auto flex flex-col gap-6">
+            <!-- KPI Cards Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div
+                class="p-5 rounded-xl bg-surface-dark border border-border-dark flex flex-col gap-1 relative overflow-hidden group"
+              >
+                <div
+                  class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
+                >
+                  <span class="material-symbols-outlined text-4xl text-white"
+                    >attach_money</span
+                  >
+                </div>
+                <p class="text-slate-400 text-sm font-medium">
+                  Current Month Spend
+                </p>
+                <div class="flex items-baseline gap-2">
+                  <h3 class="text-white text-2xl font-bold tracking-tight">
+                    $2,340.50
+                  </h3>
+                  <span
+                    class="text-emerald-400 text-xs font-medium bg-emerald-500/10 px-1.5 py-0.5 rounded flex items-center"
+                  >
+                    <span class="material-symbols-outlined text-[12px]"
+                      >arrow_upward</span
+                    >
+                    12%
+                  </span>
+                </div>
+                <div
+                  class="w-full bg-slate-700/30 h-1.5 rounded-full mt-3 overflow-hidden"
+                >
+                  <div
+                    class="bg-primary h-full rounded-full"
+                    style="width: 65%"
+                  ></div>
+                </div>
+                <p class="text-slate-500 text-xs mt-1">65% of monthly budget</p>
+              </div>
+              <div
+                class="p-5 rounded-xl bg-surface-dark border border-border-dark flex flex-col gap-1 relative overflow-hidden group"
+              >
+                <div
+                  class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
+                >
+                  <span class="material-symbols-outlined text-4xl text-white"
+                    >trending_up</span
+                  >
+                </div>
+                <p class="text-slate-400 text-sm font-medium">
+                  Projected Spend
+                </p>
+                <div class="flex items-baseline gap-2">
+                  <h3 class="text-white text-2xl font-bold tracking-tight">
+                    $4,100.00
+                  </h3>
+                  <span
+                    class="text-emerald-400 text-xs font-medium bg-emerald-500/10 px-1.5 py-0.5 rounded flex items-center"
+                  >
+                    <span class="material-symbols-outlined text-[12px]"
+                      >arrow_upward</span
+                    >
+                    5%
+                  </span>
+                </div>
+                <p class="text-slate-500 text-xs mt-auto">
+                  Based on current burn rate
+                </p>
+              </div>
+              <div
+                class="p-5 rounded-xl bg-surface-dark border border-border-dark flex flex-col gap-1 relative overflow-hidden group"
+              >
+                <div
+                  class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
+                >
+                  <span class="material-symbols-outlined text-4xl text-white"
+                    >smart_toy</span
+                  >
+                </div>
+                <p class="text-slate-400 text-sm font-medium">Active Agents</p>
+                <div class="flex items-baseline gap-2">
+                  <h3 class="text-white text-2xl font-bold tracking-tight">
+                    12
+                  </h3>
+                  <span
+                    class="text-rose-400 text-xs font-medium bg-rose-500/10 px-1.5 py-0.5 rounded flex items-center"
+                  >
+                    <span class="material-symbols-outlined text-[12px]"
+                      >arrow_downward</span
+                    >
+                    2%
+                  </span>
+                </div>
+                <p class="text-slate-500 text-xs mt-auto">
+                  Across 4 environments
+                </p>
+              </div>
+              <div
+                class="p-5 rounded-xl bg-surface-dark border border-border-dark flex flex-col gap-1 relative overflow-hidden group"
+              >
+                <div
+                  class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
+                >
+                  <span class="material-symbols-outlined text-4xl text-white"
+                    >functions</span
+                  >
+                </div>
+                <p class="text-slate-400 text-sm font-medium">
+                  Avg Cost/Request
+                </p>
+                <div class="flex items-baseline gap-2">
+                  <h3 class="text-white text-2xl font-bold tracking-tight">
+                    $0.04
+                  </h3>
+                  <span
+                    class="text-slate-400 text-xs font-medium bg-slate-500/10 px-1.5 py-0.5 rounded flex items-center"
+                  >
+                    0%
+                  </span>
+                </div>
+                <p class="text-slate-500 text-xs mt-auto">
+                  Optimized for GPT-4-Turbo
+                </p>
+              </div>
+            </div>
+            <!-- Main Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <!-- Left Column (2/3) -->
+              <div class="lg:col-span-2 flex flex-col gap-6">
+                <!-- Burn Projection Chart -->
+                <div
+                  class="p-6 rounded-xl bg-surface-dark border border-border-dark shadow-sm"
+                >
+                  <div
+                    class="flex flex-wrap items-center justify-between mb-6 gap-4"
+                  >
+                    <div>
+                      <h3 class="text-white font-semibold text-lg">
+                        Burn Projection
+                      </h3>
+                      <p class="text-slate-400 text-sm">
+                        Forecasted spend based on active model configuration.
+                      </p>
+                    </div>
+                    <div
+                      class="flex bg-[#111318] p-1 rounded-lg border border-white/5"
+                    >
+                      <button
+                        class="px-4 py-1.5 rounded-md text-xs font-medium bg-primary text-white shadow-sm"
+                      >
+                        Daily
+                      </button>
+                      <button
+                        class="px-4 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-white transition-colors"
+                      >
+                        Monthly
+                      </button>
+                    </div>
+                  </div>
+                  <!-- Fake Chart Visualization -->
+                  <div
+                    class="relative h-64 w-full mt-4 flex items-end gap-2 px-2 border-b border-border-dark pb-4"
+                  >
+                    <!-- Y Axis Grid -->
+                    <div
+                      class="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8 pr-4"
+                    >
+                      <div
+                        class="w-full h-px bg-white/5 border-t border-dashed border-white/5 relative"
+                      >
+                        <span
+                          class="absolute -top-3 left-0 text-[10px] text-slate-500"
+                          >$500</span
+                        >
+                      </div>
+                      <div
+                        class="w-full h-px bg-white/5 border-t border-dashed border-white/5 relative"
+                      >
+                        <span
+                          class="absolute -top-3 left-0 text-[10px] text-slate-500"
+                          >$250</span
+                        >
+                      </div>
+                      <div
+                        class="w-full h-px bg-white/5 border-t border-dashed border-white/5 relative"
+                      >
+                        <span
+                          class="absolute -top-3 left-0 text-[10px] text-slate-500"
+                          >$100</span
+                        >
+                      </div>
+                      <div
+                        class="w-full h-px bg-white/5 border-t border-dashed border-white/5 relative"
+                      >
+                        <span
+                          class="absolute -top-3 left-0 text-[10px] text-slate-500"
+                          >$0</span
+                        >
+                      </div>
+                    </div>
+                    <!-- Bars -->
+                    <div
+                      class="flex-1 flex items-end justify-between h-full pl-8 gap-2 z-0"
+                    >
+                      <div
+                        class="w-full bg-primary/20 hover:bg-primary/40 rounded-t-sm h-[30%] relative group transition-all duration-300"
+                      >
+                        <div
+                          class="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm h-[60%]"
+                        ></div>
+                        <div
+                          class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10"
+                        >
+                          $120.40
+                        </div>
+                      </div>
+                      <div
+                        class="w-full bg-primary/20 hover:bg-primary/40 rounded-t-sm h-[45%] relative group transition-all duration-300"
+                      >
+                        <div
+                          class="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm h-[50%]"
+                        ></div>
+                        <div
+                          class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10"
+                        >
+                          $180.20
+                        </div>
+                      </div>
+                      <div
+                        class="w-full bg-primary/20 hover:bg-primary/40 rounded-t-sm h-[35%] relative group transition-all duration-300"
+                      >
+                        <div
+                          class="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm h-[70%]"
+                        ></div>
+                      </div>
+                      <div
+                        class="w-full bg-primary/20 hover:bg-primary/40 rounded-t-sm h-[55%] relative group transition-all duration-300"
+                      >
+                        <div
+                          class="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm h-[60%]"
+                        ></div>
+                      </div>
+                      <div
+                        class="w-full bg-primary/20 hover:bg-primary/40 rounded-t-sm h-[65%] relative group transition-all duration-300"
+                      >
+                        <div
+                          class="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm h-[40%]"
+                        ></div>
+                      </div>
+                      <div
+                        class="w-full bg-primary/20 hover:bg-primary/40 rounded-t-sm h-[40%] relative group transition-all duration-300"
+                      >
+                        <div
+                          class="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm h-[55%]"
+                        ></div>
+                      </div>
+                      <div
+                        class="w-full bg-primary/20 hover:bg-primary/40 rounded-t-sm h-[75%] relative group transition-all duration-300 border-t-2 border-dashed border-emerald-400/50"
+                      >
+                        <div
+                          class="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm h-[45%]"
+                        ></div>
+                        <div
+                          class="absolute top-2 left-1/2 -translate-x-1/2 text-[10px] text-emerald-400 font-mono tracking-tighter opacity-70"
+                        >
+                          FORECAST
+                        </div>
+                      </div>
+                      <div
+                        class="w-full bg-primary/20 hover:bg-primary/40 rounded-t-sm h-[80%] relative group transition-all duration-300 border-t-2 border-dashed border-emerald-400/50"
+                      >
+                        <div
+                          class="absolute bottom-0 left-0 w-full bg-primary rounded-t-sm h-[45%]"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-center gap-6 mt-4">
+                    <div class="flex items-center gap-2">
+                      <span class="size-3 rounded-full bg-primary"></span>
+                      <span class="text-xs text-slate-400">Actual Spend</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span
+                        class="size-3 rounded-full bg-primary/20 border border-primary/40"
+                      ></span>
+                      <span class="text-xs text-slate-400">Projected</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span
+                        class="h-0.5 w-4 bg-emerald-400/50 border-t border-dashed border-emerald-400"
+                      ></span>
+                      <span class="text-xs text-slate-400">Trend Line</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Model Switch Simulator -->
+                <div
+                  class="p-6 rounded-xl bg-surface-dark border border-border-dark shadow-sm"
+                >
+                  <div class="flex items-center gap-3 mb-6">
+                    <div
+                      class="p-2 bg-indigo-500/10 rounded-lg text-indigo-400"
+                    >
+                      <span class="material-symbols-outlined">swap_horiz</span>
+                    </div>
+                    <div>
+                      <h3 class="text-white font-semibold text-lg">
+                        Model Switch Simulator
+                      </h3>
+                      <p class="text-slate-400 text-sm">
+                        Estimate savings by switching default models.
+                      </p>
+                    </div>
+                  </div>
+                  <div class="flex flex-col md:flex-row gap-6 items-center">
+                    <div class="flex-1 w-full space-y-4">
+                      <div>
+                        <label
+                          class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2"
+                          >Current Model</label
+                        >
+                        <div
+                          class="p-3 bg-[#111318] border border-white/10 rounded-lg flex items-center justify-between"
+                        >
+                          <div class="flex items-center gap-2">
+                            <span
+                              class="material-symbols-outlined text-green-400"
+                              >check_circle</span
+                            >
+                            <span class="text-white font-medium"
+                              >GPT-4-Turbo</span
+                            >
+                          </div>
+                          <span class="text-slate-500 text-sm"
+                            >$10.00 / 1M tok</span
+                          >
+                        </div>
+                      </div>
+                      <div class="flex justify-center">
+                        <span
+                          class="material-symbols-outlined text-slate-600 rotate-90 md:rotate-0"
+                          >arrow_forward</span
+                        >
+                      </div>
+                      <div>
+                        <label
+                          class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2"
+                          >Target Model</label
+                        >
+                        <select
+                          class="w-full bg-[#111318] border border-white/10 text-white rounded-lg p-3 text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                        >
+                          <option>Llama-3-70b-Instruct</option>
+                          <option>Claude-3-Sonnet</option>
+                          <option>Mistral-Large</option>
+                          <option>GPT-3.5-Turbo</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div
+                      class="w-full md:w-px h-px md:h-32 bg-border-dark"
+                    ></div>
+                    <div class="flex-1 w-full">
+                      <div
+                        class="p-4 rounded-lg bg-emerald-500/5 border border-emerald-500/20 flex flex-col items-center text-center"
+                      >
+                        <span class="text-emerald-400 text-sm font-medium mb-1"
+                          >Projected Monthly Savings</span
+                        >
+                        <span class="text-3xl font-bold text-white mb-2"
+                          >$1,245.00</span
+                        >
+                        <p class="text-emerald-400/80 text-xs">
+                          ~32% reduction in operational costs based on last 30
+                          days usage.
+                        </p>
+                        <button
+                          class="mt-4 w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition-colors"
+                        >
+                          Apply Configuration
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Right Column (1/3) -->
+              <div class="flex flex-col gap-6">
+                <!-- Global Defaults -->
+                <div
+                  class="p-6 rounded-xl bg-surface-dark border border-border-dark shadow-sm"
+                >
+                  <h3 class="text-white font-semibold text-lg mb-4">
+                    Global Default Model
+                  </h3>
+                  <div class="space-y-4">
+                    <div class="relative">
+                      <select
+                        class="w-full appearance-none bg-[#111318] border border-border-dark text-white text-sm rounded-lg p-3 pr-10 focus:ring-1 focus:ring-primary outline-none"
+                      >
+                        <option>GPT-4-Turbo</option>
+                        <option>Claude-3-Opus</option>
+                        <option>Llama-3-70b</option>
+                      </select>
+                      <div
+                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400"
+                      >
+                        <span class="material-symbols-outlined"
+                          >expand_more</span
+                        >
+                      </div>
+                    </div>
+                    <div
+                      class="flex items-center justify-between text-xs text-slate-400 px-1"
+                    >
+                      <span>Current Rate</span>
+                      <span class="text-white font-medium"
+                        >$0.01 / 1k tokens</span
+                      >
+                    </div>
+                    <div class="pt-4 border-t border-white/5">
+                      <p class="text-slate-400 text-xs mb-3">
+                        Model Fallback Chain
+                      </p>
+                      <div
+                        class="flex items-center gap-2 text-sm text-slate-300"
+                      >
+                        <span
+                          class="bg-[#111318] px-2 py-1 rounded border border-white/10"
+                          >GPT-4</span
+                        >
+                        <span
+                          class="material-symbols-outlined text-xs text-slate-500"
+                          >arrow_forward</span
+                        >
+                        <span
+                          class="bg-[#111318] px-2 py-1 rounded border border-white/10"
+                          >Claude-3</span
+                        >
+                        <span
+                          class="material-symbols-outlined text-xs text-slate-500"
+                          >arrow_forward</span
+                        >
+                        <span
+                          class="bg-[#111318] px-2 py-1 rounded border border-white/10"
+                          >Llama-3</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Cost Circuit Breakers -->
+                <div
+                  class="p-6 rounded-xl bg-surface-dark border border-border-dark shadow-sm"
+                >
+                  <div class="flex items-center gap-2 mb-4">
+                    <span class="material-symbols-outlined text-rose-500"
+                      >gpp_maybe</span
+                    >
+                    <h3 class="text-white font-semibold text-lg">
+                      Circuit Breakers
+                    </h3>
+                  </div>
+                  <p class="text-slate-400 text-sm mb-6">
+                    Automated stops to prevent runaway spend.
+                  </p>
+                  <div class="space-y-6">
+                    <!-- Setting 1 -->
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-white text-sm font-medium">
+                          Daily Hard Limit
+                        </p>
+                        <p class="text-slate-500 text-xs">
+                          Stops all non-critical agents
+                        </p>
+                      </div>
+                      <label
+                        class="relative inline-flex items-center cursor-pointer"
+                      >
+                        <input
+                          checked=""
+                          class="sr-only peer"
+                          type="checkbox"
+                          value=""
+                        />
+                        <div
+                          class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
+                        ></div>
+                      </label>
+                    </div>
+                    <div class="relative">
+                      <div
+                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                      >
+                        <span class="text-slate-400 text-sm">$</span>
+                      </div>
+                      <input
+                        class="block w-full pl-7 pr-12 py-2 bg-[#111318] border border-border-dark rounded-lg text-white placeholder-slate-500 focus:ring-1 focus:ring-primary focus:border-primary text-sm"
+                        placeholder="0.00"
+                        type="number"
+                        value="500"
+                      />
+                      <div
+                        class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"
+                      >
+                        <span class="text-slate-500 text-xs">USD</span>
+                      </div>
+                    </div>
+                    <!-- Setting 2 -->
+                    <div
+                      class="pt-4 border-t border-white/5 flex items-center justify-between"
+                    >
+                      <div>
+                        <p class="text-white text-sm font-medium">
+                          Monthly Soft Cap
+                        </p>
+                        <p class="text-slate-500 text-xs">
+                          Send alerts to admins
+                        </p>
+                      </div>
+                      <label
+                        class="relative inline-flex items-center cursor-pointer"
+                      >
+                        <input
+                          checked=""
+                          class="sr-only peer"
+                          type="checkbox"
+                          value=""
+                        />
+                        <div
+                          class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
+                        ></div>
+                      </label>
+                    </div>
+                    <div class="relative">
+                      <div
+                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                      >
+                        <span class="text-slate-400 text-sm">$</span>
+                      </div>
+                      <input
+                        class="block w-full pl-7 pr-12 py-2 bg-[#111318] border border-border-dark rounded-lg text-white placeholder-slate-500 focus:ring-1 focus:ring-primary focus:border-primary text-sm"
+                        placeholder="0.00"
+                        type="number"
+                        value="5000"
+                      />
+                      <div
+                        class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"
+                      >
+                        <span class="text-slate-500 text-xs">USD</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Agent Heatmap Mini -->
+                <div
+                  class="p-6 rounded-xl bg-surface-dark border border-border-dark shadow-sm flex-1"
+                >
+                  <h3 class="text-white font-semibold text-lg mb-4">
+                    Top Spenders
+                  </h3>
+                  <div class="space-y-3">
+                    <div
+                      class="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-2 rounded-lg -mx-2 transition-colors"
+                    >
+                      <div class="flex items-center gap-3">
+                        <div
+                          class="size-8 rounded bg-rose-500/20 text-rose-500 flex items-center justify-center font-bold text-xs"
+                        >
+                          A1
+                        </div>
+                        <div class="flex flex-col">
+                          <span class="text-white text-sm font-medium"
+                            >DataScraper-01</span
+                          >
+                          <span class="text-slate-500 text-xs"
+                            >45k tokens/hr</span
+                          >
+                        </div>
+                      </div>
+                      <span class="text-rose-400 font-bold text-sm"
+                        >$45.20</span
+                      >
+                    </div>
+                    <div
+                      class="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-2 rounded-lg -mx-2 transition-colors"
+                    >
+                      <div class="flex items-center gap-3">
+                        <div
+                          class="size-8 rounded bg-orange-500/20 text-orange-500 flex items-center justify-center font-bold text-xs"
+                        >
+                          A2
+                        </div>
+                        <div class="flex flex-col">
+                          <span class="text-white text-sm font-medium"
+                            >SupportBot-Main</span
+                          >
+                          <span class="text-slate-500 text-xs"
+                            >32k tokens/hr</span
+                          >
+                        </div>
+                      </div>
+                      <span class="text-orange-400 font-bold text-sm"
+                        >$28.90</span
+                      >
+                    </div>
+                    <div
+                      class="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-2 rounded-lg -mx-2 transition-colors"
+                    >
+                      <div class="flex items-center gap-3">
+                        <div
+                          class="size-8 rounded bg-yellow-500/20 text-yellow-500 flex items-center justify-center font-bold text-xs"
+                        >
+                          A3
+                        </div>
+                        <div class="flex flex-col">
+                          <span class="text-white text-sm font-medium"
+                            >Summarizer-X</span
+                          >
+                          <span class="text-slate-500 text-xs"
+                            >12k tokens/hr</span
+                          >
+                        </div>
+                      </div>
+                      <span class="text-yellow-400 font-bold text-sm"
+                        >$12.50</span
+                      >
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-white/5">
+                      <h4
+                        class="text-xs font-medium text-slate-400 uppercase mb-2"
+                      >
+                        Token Usage Intensity
+                      </h4>
+                      <div class="grid grid-cols-6 gap-1">
+                        <!-- Heatmap grid simulation -->
+                        <div
+                          class="aspect-square bg-rose-500 rounded-sm opacity-90"
+                        ></div>
+                        <div
+                          class="aspect-square bg-rose-500 rounded-sm opacity-60"
+                        ></div>
+                        <div
+                          class="aspect-square bg-orange-500 rounded-sm opacity-80"
+                        ></div>
+                        <div
+                          class="aspect-square bg-orange-500 rounded-sm opacity-50"
+                        ></div>
+                        <div
+                          class="aspect-square bg-yellow-500 rounded-sm opacity-70"
+                        ></div>
+                        <div
+                          class="aspect-square bg-emerald-500 rounded-sm opacity-40"
+                        ></div>
+                        <div
+                          class="aspect-square bg-rose-500 rounded-sm opacity-70"
+                        ></div>
+                        <div
+                          class="aspect-square bg-orange-500 rounded-sm opacity-90"
+                        ></div>
+                        <div
+                          class="aspect-square bg-orange-500 rounded-sm opacity-40"
+                        ></div>
+                        <div
+                          class="aspect-square bg-yellow-500 rounded-sm opacity-60"
+                        ></div>
+                        <div
+                          class="aspect-square bg-emerald-500 rounded-sm opacity-30"
+                        ></div>
+                        <div
+                          class="aspect-square bg-emerald-500 rounded-sm opacity-20"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

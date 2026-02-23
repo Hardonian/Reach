@@ -16,7 +16,9 @@ import { execSync, spawn, type ChildProcess } from "node:child_process";
 // ─── Studio Launch ───────────────────────────────────────────────────────────
 
 export async function runStudioCommand(argv: string[]): Promise<number> {
-  const port = argv.includes("--port") ? argv[argv.indexOf("--port") + 1] : "3000";
+  const port = argv.includes("--port")
+    ? argv[argv.indexOf("--port") + 1]
+    : "3000";
   const noBrowser = argv.includes("--no-browser");
 
   console.log(`
@@ -37,8 +39,12 @@ export async function runStudioCommand(argv: string[]): Promise<number> {
   const hasWeb = existsSync(join(webDir, "package.json"));
 
   if (!hasWeb) {
-    console.log("\n⚠ apps/web not found. Ensure you're in the Zeo project root.\n");
-    console.log("  You can still access Studio by running 'pnpm --filter web dev' manually,");
+    console.log(
+      "\n⚠ apps/web not found. Ensure you're in the Zeo project root.\n",
+    );
+    console.log(
+      "  You can still access Studio by running 'pnpm --filter web dev' manually,",
+    );
     console.log("  then navigating to http://localhost:3000/studio");
     return 1;
   }
@@ -50,9 +56,17 @@ export async function runStudioCommand(argv: string[]): Promise<number> {
 
     const isWindows = process.platform === "win32";
     if (isWindows) {
-      child = spawn("npx.cmd", ["next", "dev", "--port", port], { cwd: webDir, env, stdio: "pipe" });
+      child = spawn("npx.cmd", ["next", "dev", "--port", port], {
+        cwd: webDir,
+        env,
+        stdio: "pipe",
+      });
     } else {
-      child = spawn("npx", ["next", "dev", "--port", port], { cwd: webDir, env, stdio: "pipe" });
+      child = spawn("npx", ["next", "dev", "--port", port], {
+        cwd: webDir,
+        env,
+        stdio: "pipe",
+      });
     }
 
     child.stdout?.on("data", (data: Buffer) => {
@@ -73,7 +87,8 @@ export async function runStudioCommand(argv: string[]): Promise<number> {
         const url = `http://localhost:${port}/studio`;
         try {
           if (isWindows) execSync(`start ${url}`, { stdio: "ignore" });
-          else if (process.platform === "darwin") execSync(`open ${url}`, { stdio: "ignore" });
+          else if (process.platform === "darwin")
+            execSync(`open ${url}`, { stdio: "ignore" });
           else execSync(`xdg-open ${url}`, { stdio: "ignore" });
         } catch {
           console.log(`\n  Open in browser: ${url}\n`);
@@ -84,7 +99,10 @@ export async function runStudioCommand(argv: string[]): Promise<number> {
     // Wait for process
     return new Promise<number>((resolve) => {
       child.on("exit", (code) => resolve(code ?? 0));
-      process.on("SIGINT", () => { child.kill(); resolve(0); });
+      process.on("SIGINT", () => {
+        child.kill();
+        resolve(0);
+      });
     });
   } catch (e) {
     console.error(`Failed to start Studio: ${(e as Error).message}`);
@@ -112,7 +130,9 @@ export async function runExportReportCommand(argv: string[]): Promise<number> {
     return 1;
   }
 
-  const outDir = argv.includes("--out") ? argv[argv.indexOf("--out") + 1] : process.cwd();
+  const outDir = argv.includes("--out")
+    ? argv[argv.indexOf("--out") + 1]
+    : process.cwd();
 
   try {
     const core = await import("@zeo/core");
@@ -140,12 +160,22 @@ export async function runExportReportCommand(argv: string[]): Promise<number> {
       seed: snapshot.seed,
       spec: snapshot.input.spec,
       evaluations: snapshot.output?.evaluations ?? [],
-      explanation: snapshot.output?.explanation ?? { why: [], whatWouldChange: [] },
+      explanation: snapshot.output?.explanation ?? {
+        why: [],
+        whatWouldChange: [],
+      },
       nextBestEvidence: snapshot.output?.nextBestEvidence ?? [],
     };
 
     // Replay
-    let replayData: { verdict: string; originalOutputHash: string; replayOutputHash: string; durationMs: number } | undefined;
+    let replayData:
+      | {
+          verdict: string;
+          originalOutputHash: string;
+          replayOutputHash: string;
+          durationMs: number;
+        }
+      | undefined;
     try {
       console.log("  🔁 Running replay verification...");
       const replayResult = core.replayRun(runId);
@@ -240,8 +270,14 @@ export async function runVerifyReportCommand(argv: string[]): Promise<number> {
     // Recompute
     const toVerify = { ...parsed };
     delete toVerify.signature;
-    const normalized = JSON.stringify(toVerify, Object.keys(toVerify).sort(), 0);
-    const computedSignature = createHash("sha256").update(normalized).digest("hex");
+    const normalized = JSON.stringify(
+      toVerify,
+      Object.keys(toVerify).sort(),
+      0,
+    );
+    const computedSignature = createHash("sha256")
+      .update(normalized)
+      .digest("hex");
 
     const valid = computedSignature === reportedSignature;
 
@@ -314,31 +350,45 @@ function generateCliHtmlReport(report: Record<string, unknown>): string {
   <div class="meta-item"><div class="label">Title</div><div class="val">${run.title}</div></div>
   <div class="meta-item"><div class="label">Created</div><div class="val">${run.createdAt}</div></div>
   <div class="meta-item"><div class="label">Duration</div><div class="val">${run.durationMs}ms</div></div>
-  <div class="meta-item"><div class="label">Mode</div><div class="val">${run.deterministic ? '<span class="badge badge-det">DETERMINISTIC</span>' : 'Standard'}</div></div>
+  <div class="meta-item"><div class="label">Mode</div><div class="val">${run.deterministic ? '<span class="badge badge-det">DETERMINISTIC</span>' : "Standard"}</div></div>
   <div class="meta-item"><div class="label">Input Hash</div><div class="val"><code>${String(run.inputHash).slice(0, 24)}…</code></div></div>
   <div class="meta-item"><div class="label">Output Hash</div><div class="val"><code>${String(run.outputHash).slice(0, 24)}…</code></div></div>
   <div class="meta-item"><div class="label">Chain Hash</div><div class="val"><code>${String(run.chainHash).slice(0, 24)}…</code></div></div>
 </div>
 
-${replay ? `
+${
+  replay
+    ? `
 <h2>Replay Verification</h2>
 <div class="section">
-  <span class="badge ${String(replay.verdict) === 'PASS' ? 'badge-pass' : 'badge-drift'}">${replay.verdict}</span>
+  <span class="badge ${String(replay.verdict) === "PASS" ? "badge-pass" : "badge-drift"}">${replay.verdict}</span>
   <p style="margin-top:.5rem;font-size:.85rem">Original: <code>${replay.originalOutputHash}</code></p>
   <p style="font-size:.85rem">Replay: <code>${replay.replayOutputHash}</code></p>
   <p style="font-size:.85rem;color:#94a3b8">Duration: ${replay.durationMs}ms</p>
-</div>` : '<h2>Replay</h2><p style="color:#64748b;font-size:.85rem">Not replayed.</p>'}
+</div>`
+    : '<h2>Replay</h2><p style="color:#64748b;font-size:.85rem">Not replayed.</p>'
+}
 
 <h2>Evidence (${evidence.length} nodes)</h2>
-${evidence.length > 0 ? `<table>
+${
+  evidence.length > 0
+    ? `<table>
   <tr><th>ID</th><th>Claim</th><th>Confidence</th><th>Source</th></tr>
-  ${evidence.slice(0, 20).map(e => `<tr><td><code>${e.id}</code></td><td>${e.claim}</td><td>${(((e.confidenceScore as number) ?? 0) * 100).toFixed(0)}%</td><td>${e.source}</td></tr>`).join('')}
-</table>` : '<p style="color:#64748b;font-size:.85rem">No evidence nodes.</p>'}
+  ${evidence
+    .slice(0, 20)
+    .map(
+      (e) =>
+        `<tr><td><code>${e.id}</code></td><td>${e.claim}</td><td>${(((e.confidenceScore as number) ?? 0) * 100).toFixed(0)}%</td><td>${e.source}</td></tr>`,
+    )
+    .join("")}
+</table>`
+    : '<p style="color:#64748b;font-size:.85rem">No evidence nodes.</p>'
+}
 
 <h2>Tools (${tools.length})</h2>
 <table>
   <tr><th>Tool</th><th>Version</th><th>Status</th></tr>
-  ${tools.map(t => `<tr><td>${t.name}</td><td>${t.version}</td><td>${t.status}</td></tr>`).join('')}
+  ${tools.map((t) => `<tr><td>${t.name}</td><td>${t.version}</td><td>${t.status}</td></tr>`).join("")}
 </table>
 
 <div class="sig">
@@ -348,4 +398,3 @@ ${evidence.length > 0 ? `<table>
 </body>
 </html>`;
 }
-

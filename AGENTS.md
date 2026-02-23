@@ -21,14 +21,14 @@ Defines autonomous agent roles, responsibilities, and constraints for **Reach**.
 
 ## Agent Roles
 
-| Role | Responsibilities |
-| :--- | :--- |
-| **Architecture Agent** | System design, invariants, boundaries, modular cohesion |
-| **Code Quality Agent** | Lint/typecheck/build, hydration/perf passes, vulnerability hygiene |
-| **Design Agent** | Visual system integrity, tokens, UI coherence, hero/motion alignment |
-| **Infrastructure Agent** | CI/resilience, env validation, security hardening, deploy readiness |
-| **Release Agent** | Changelog discipline, versioning, smoke verification, rollback notes |
-| **Documentation Agent** | README/CHANGELOG/ADR updates, eliminates redundancy |
+| Role                     | Responsibilities                                                     |
+| :----------------------- | :------------------------------------------------------------------- |
+| **Architecture Agent**   | System design, invariants, boundaries, modular cohesion              |
+| **Code Quality Agent**   | Lint/typecheck/build, hydration/perf passes, vulnerability hygiene   |
+| **Design Agent**         | Visual system integrity, tokens, UI coherence, hero/motion alignment |
+| **Infrastructure Agent** | CI/resilience, env validation, security hardening, deploy readiness  |
+| **Release Agent**        | Changelog discipline, versioning, smoke verification, rollback notes |
+| **Documentation Agent**  | README/CHANGELOG/ADR updates, eliminates redundancy                  |
 
 ---
 
@@ -93,31 +93,31 @@ All user-facing text must use approved terminology. Internal terms like "DAG", "
 
 These CI checks must pass before any PR can be merged:
 
-| Check | Command | Blocks Merge |
-| :--- | :--- | :--- |
-| OSS Gate | `npm run verify:oss` | ✅ Yes |
-| Language Enforcement | `npm run validate:language` | ✅ Yes |
-| Import Boundaries | `npm run validate:boundaries` | ✅ Yes |
-| OSS Purity | `npm run validate:oss-purity` | ✅ Yes |
-| Rust Engine | `cargo clippy --workspace` + `cargo test -p engine-core` | ✅ Yes |
-| Go Vet + Tests | `go vet ./...` + `go test ./...` | ✅ Yes |
+| Check                | Command                                                  | Blocks Merge |
+| :------------------- | :------------------------------------------------------- | :----------- |
+| OSS Gate             | `npm run verify:oss`                                     | ✅ Yes       |
+| Language Enforcement | `npm run validate:language`                              | ✅ Yes       |
+| Import Boundaries    | `npm run validate:boundaries`                            | ✅ Yes       |
+| OSS Purity           | `npm run validate:oss-purity`                            | ✅ Yes       |
+| Rust Engine          | `cargo clippy --workspace` + `cargo test -p engine-core` | ✅ Yes       |
+| Go Vet + Tests       | `go vet ./...` + `go test ./...`                         | ✅ Yes       |
 
 ---
 
 ## Reach Glossary
 
-| Term | Definition |
-| :--- | :--- |
-| **Run** | A single execution of a pack with specific inputs. |
-| **Determinism** | The property where identical inputs, policies, and artifacts ALWAYS produce identical output hashes. |
-| **Replay** | The process of re-executing a Run from its event log to verify its fingerprint. |
-| **Gate** | A policy evaluation point that can allow or deny execution. |
-| **Artifact** | A versioned dependency or environment state used during a Run. |
-| **Policy** | A set of rules (e.g., Rego) that governs execution behavior. |
-| **Fingerprint** | The derived SHA-256 hash of a Run's event log and ID. |
-| **Capsule** | A signed, portable bundle containing a Run's manifest and event log. |
-| **Evidence Chain** | The cryptographically linked chain: Input → Policy → Artifacts → Execution → Output → Fingerprint. |
-| **StorageDriver** | The interface that abstracts storage backends (SQLite in OSS, cloud object store in Enterprise). |
+| Term               | Definition                                                                                           |
+| :----------------- | :--------------------------------------------------------------------------------------------------- |
+| **Run**            | A single execution of a pack with specific inputs.                                                   |
+| **Determinism**    | The property where identical inputs, policies, and artifacts ALWAYS produce identical output hashes. |
+| **Replay**         | The process of re-executing a Run from its event log to verify its fingerprint.                      |
+| **Gate**           | A policy evaluation point that can allow or deny execution.                                          |
+| **Artifact**       | A versioned dependency or environment state used during a Run.                                       |
+| **Policy**         | A set of rules (e.g., Rego) that governs execution behavior.                                         |
+| **Fingerprint**    | The derived SHA-256 hash of a Run's event log and ID.                                                |
+| **Capsule**        | A signed, portable bundle containing a Run's manifest and event log.                                 |
+| **Evidence Chain** | The cryptographically linked chain: Input → Policy → Artifacts → Execution → Output → Fingerprint.   |
+| **StorageDriver**  | The interface that abstracts storage backends (SQLite in OSS, cloud object store in Enterprise).     |
 
 ---
 

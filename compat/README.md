@@ -10,9 +10,11 @@
 6. **Schema**: All artifacts validate against JSON schemas
 
 ## Running the Suite ```bash
+
 # Run all compatibility tests node compat/compat-suite.mjs
 
 # Or via npm npm run verify:compat
+
 ```
 
 ## Test Coverage ### Schema Validation
@@ -63,3 +65,4 @@
 **Reach Protocol Specification v1.0.0**
 
 See `spec/REACH_PROTOCOL_v1.md` for the normative specification.
+```

@@ -3,8 +3,8 @@ name: Anti-Sprawl Enforcement
 on:
   pull_request:
     paths:
-      - 'apps/arcade/src/app/**'
-      - 'apps/arcade/src/components/**'
+      - "apps/arcade/src/app/**"
+      - "apps/arcade/src/components/**"
   push:
     branches: [main]
 

@@ -27,23 +27,23 @@ export function validatePackManifest(manifest: PackManifest) {
   const errors: string[] = [];
 
   if (!manifest.name.trim()) {
-    errors.push('Pack name is required.');
+    errors.push("Pack name is required.");
   }
 
   if (!/^\d+\.\d+$/.test(manifest.specVersion)) {
-    errors.push('specVersion must be major.minor (example: 1.0).');
+    errors.push("specVersion must be major.minor (example: 1.0).");
   }
 
   if (!manifest.policyContract || !manifest.policyContract.trim()) {
-    errors.push('Policy declaration is required.');
+    errors.push("Policy declaration is required.");
   }
 
   if (manifest.tests.length === 0) {
-    errors.push('At least one conformance test is required.');
+    errors.push("At least one conformance test is required.");
   }
 
   if (!manifest.signature) {
-    warnings.push('Unsigned pack: run sign before publish.');
+    warnings.push("Unsigned pack: run sign before publish.");
   }
 
   return { valid: errors.length === 0, errors, warnings };
@@ -51,19 +51,29 @@ export function validatePackManifest(manifest: PackManifest) {
 
 export function compareEventStreams(left: EventStep[], right: EventStep[]) {
   const maxLength = Math.max(left.length, right.length);
-  const diff: Array<{ index: number; left?: EventStep; right?: EventStep; mismatch: string }> = [];
+  const diff: Array<{
+    index: number;
+    left?: EventStep;
+    right?: EventStep;
+    mismatch: string;
+  }> = [];
 
   for (let i = 0; i < maxLength; i += 1) {
     const lhs = left[i];
     const rhs = right[i];
 
     if (!lhs || !rhs) {
-      diff.push({ index: i, left: lhs, right: rhs, mismatch: 'missing-step' });
+      diff.push({ index: i, left: lhs, right: rhs, mismatch: "missing-step" });
       continue;
     }
 
     if (lhs.type !== rhs.type || lhs.payloadHash !== rhs.payloadHash) {
-      diff.push({ index: i, left: lhs, right: rhs, mismatch: 'event-mismatch' });
+      diff.push({
+        index: i,
+        left: lhs,
+        right: rhs,
+        mismatch: "event-mismatch",
+      });
     }
   }
 
@@ -88,6 +98,9 @@ export function deterministicArenaScore(seed: string, weights: number[]) {
 export function federationReadModel(nodes: FederationNode[]) {
   const total = nodes.length;
   const quarantined = nodes.filter((n) => n.quarantined).length;
-  const avgTrust = total === 0 ? 0 : Math.round(nodes.reduce((sum, n) => sum + n.trustScore, 0) / total);
+  const avgTrust =
+    total === 0
+      ? 0
+      : Math.round(nodes.reduce((sum, n) => sum + n.trustScore, 0) / total);
   return { total, quarantined, avgTrust };
 }

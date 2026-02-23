@@ -5,7 +5,11 @@
     "slug": "acme-labs"
   },
   "users": [
-    { "id": "u_demo_01", "name": "Alice Architect", "email": "alice@acme.example" },
+    {
+      "id": "u_demo_01",
+      "name": "Alice Architect",
+      "email": "alice@acme.example"
+    },
     { "id": "u_demo_02", "name": "Bob Builder", "email": "bob@acme.example" }
   ],
   "packs": [

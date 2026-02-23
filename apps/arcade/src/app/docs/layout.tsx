@@ -1,6 +1,6 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { sidebarItems } from '@/lib/docs/nav';
+import { sidebarItems } from "@/lib/docs/nav";
 
 export default function DocsLayout({
   children,

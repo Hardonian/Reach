@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { StatusIndicator } from './StatusIndicator';
+import React from "react";
+import { StatusIndicator } from "./StatusIndicator";
 
-export type StageType = 'input' | 'processor' | 'retrieval' | 'output';
-export type StageStatus = 'running' | 'idle' | 'error';
+export type StageType = "input" | "processor" | "retrieval" | "output";
+export type StageStatus = "running" | "idle" | "error";
 
 interface PipelineStageProps {
   id: string;
@@ -16,11 +16,14 @@ interface PipelineStageProps {
   onClick?: () => void;
 }
 
-const typeConfig: Record<StageType, { color: string; icon: string; label: string }> = {
-  input: { color: '#10B981', icon: '📥', label: 'Input' },
-  processor: { color: '#7C3AED', icon: '⚙️', label: 'Processor' },
-  retrieval: { color: '#3B82F6', icon: '🔍', label: 'Retrieval' },
-  output: { color: '#F59E0B', icon: '📤', label: 'Output' },
+const typeConfig: Record<
+  StageType,
+  { color: string; icon: string; label: string }
+> = {
+  input: { color: "#10B981", icon: "📥", label: "Input" },
+  processor: { color: "#7C3AED", icon: "⚙️", label: "Processor" },
+  retrieval: { color: "#3B82F6", icon: "🔍", label: "Retrieval" },
+  output: { color: "#F59E0B", icon: "📤", label: "Output" },
 };
 
 export function PipelineStage({
@@ -33,15 +36,16 @@ export function PipelineStage({
   onClick,
 }: PipelineStageProps) {
   const typeInfo = typeConfig[type];
-  const statusVariant = status === 'running' ? 'running' : status === 'error' ? 'error' : 'idle';
+  const statusVariant =
+    status === "running" ? "running" : status === "error" ? "error" : "idle";
 
   return (
     <div
       onClick={onClick}
       className={`flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all ${
         isSelected
-          ? 'border-accent bg-accent/10'
-          : 'border-border bg-surface hover:border-accent/50'
+          ? "border-accent bg-accent/10"
+          : "border-border bg-surface hover:border-accent/50"
       }`}
     >
       <div
@@ -53,7 +57,10 @@ export function PipelineStage({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <h4 className="font-bold truncate">{name}</h4>
-          <StatusIndicator status={statusVariant} pulse={status === 'running'} />
+          <StatusIndicator
+            status={statusVariant}
+            pulse={status === "running"}
+          />
         </div>
         <p className="text-sm text-gray-500 truncate">{description}</p>
       </div>
@@ -75,7 +82,8 @@ export function PipelineStageCompact({
   status: StageStatus;
 }) {
   const typeInfo = typeConfig[type];
-  const statusVariant = status === 'running' ? 'running' : status === 'error' ? 'error' : 'idle';
+  const statusVariant =
+    status === "running" ? "running" : status === "error" ? "error" : "idle";
 
   return (
     <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-surface/50">
@@ -88,7 +96,11 @@ export function PipelineStageCompact({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="font-medium text-sm truncate">{name}</span>
-          <StatusIndicator status={statusVariant} size="sm" pulse={status === 'running'} />
+          <StatusIndicator
+            status={statusVariant}
+            size="sm"
+            pulse={status === "running"}
+          />
         </div>
       </div>
     </div>

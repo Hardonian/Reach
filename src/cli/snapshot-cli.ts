@@ -49,9 +49,15 @@ export async function runSnapshotCreateCommand(debug = false): Promise<number> {
   const path = core.saveSnapshot(snapshot);
 
   if (debug) {
-    console.log(`[debug] step=1 phase=input_canonicalization hash=${snapshot.inputHash.slice(0, 12)}`);
-    console.log(`[debug] step=2 phase=branch_generation output=${snapshot.outputHash.slice(0, 12)}`);
-    console.log(`[debug] step=3 phase=snapshot_finalization pipeline=${snapshot.pipelineHash.slice(0, 12)}`);
+    console.log(
+      `[debug] step=1 phase=input_canonicalization hash=${snapshot.inputHash.slice(0, 12)}`,
+    );
+    console.log(
+      `[debug] step=2 phase=branch_generation output=${snapshot.outputHash.slice(0, 12)}`,
+    );
+    console.log(
+      `[debug] step=3 phase=snapshot_finalization pipeline=${snapshot.pipelineHash.slice(0, 12)}`,
+    );
   }
 
   console.log(`Created snapshot ${snapshot.snapshotId} (${path})`);
@@ -62,7 +68,9 @@ export async function runSnapshotListCommand(json = false): Promise<number> {
   const core = await import("@zeo/core");
   const ids = core.listSnapshots();
   if (json) {
-    const snapshots = ids.map((id: string) => core.loadSnapshot(id)).filter(Boolean);
+    const snapshots = ids
+      .map((id: string) => core.loadSnapshot(id))
+      .filter(Boolean);
     console.log(JSON.stringify(snapshots, null, 2));
     return 0;
   }
@@ -75,13 +83,17 @@ export async function runSnapshotListCommand(json = false): Promise<number> {
   for (const id of ids) {
     const snapshot = core.loadSnapshot(id);
     if (snapshot) {
-      console.log(`${snapshot.snapshotId} | run=${snapshot.runId} | pointer=${snapshot.executionPointer.step}/${snapshot.executionPointer.totalSteps}`);
+      console.log(
+        `${snapshot.snapshotId} | run=${snapshot.runId} | pointer=${snapshot.executionPointer.step}/${snapshot.executionPointer.totalSteps}`,
+      );
     }
   }
   return 0;
 }
 
-export async function runSnapshotRestoreCommand(snapshotId: string): Promise<number> {
+export async function runSnapshotRestoreCommand(
+  snapshotId: string,
+): Promise<number> {
   const core = await import("@zeo/core");
   const snapshot = core.loadSnapshot(snapshotId);
   if (!snapshot) {
@@ -91,7 +103,9 @@ export async function runSnapshotRestoreCommand(snapshotId: string): Promise<num
 
   const validation = core.validateSnapshotEnvironment(snapshot);
   if (validation.ok === false) {
-    console.error(`Cannot restore snapshot due to environment mismatch: ${validation.reason}`);
+    console.error(
+      `Cannot restore snapshot due to environment mismatch: ${validation.reason}`,
+    );
     return 1;
   }
 
@@ -103,12 +117,21 @@ export async function runSnapshotRestoreCommand(snapshotId: string): Promise<num
     snapshotId: snapshot.snapshotId,
     restoredAt: new Date().toISOString(),
   };
-  writeFileSync(statePointerPath(), `${JSON.stringify(pointer, null, 2)}\n`, "utf8");
-  console.log(`Restored snapshot ${snapshot.snapshotId} at execution pointer ${snapshot.executionPointer.step}.`);
+  writeFileSync(
+    statePointerPath(),
+    `${JSON.stringify(pointer, null, 2)}\n`,
+    "utf8",
+  );
+  console.log(
+    `Restored snapshot ${snapshot.snapshotId} at execution pointer ${snapshot.executionPointer.step}.`,
+  );
   return 0;
 }
 
-export async function runReplayFromStepCommand(runId: string, argv: string[]): Promise<number> {
+export async function runReplayFromStepCommand(
+  runId: string,
+  argv: string[],
+): Promise<number> {
   const { replayRun, formatReplayResult } = await import("@zeo/core");
   const fromStep = parseFromStep(argv);
   const result = replayRun(runId, undefined, fromStep);
@@ -121,4 +144,3 @@ export function getRestoredSnapshotPointer(): SnapshotStatePointer | null {
   if (!existsSync(path)) return null;
   return JSON.parse(readFileSync(path, "utf8")) as SnapshotStatePointer;
 }
-

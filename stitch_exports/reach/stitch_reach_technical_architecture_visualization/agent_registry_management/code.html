@@ -1,606 +1,1101 @@
-<!DOCTYPE html>
+<!doctype html>
 
-<html class="dark" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Reach Console - Agent Registry</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#135bec",
-                        "background-light": "#f6f6f8",
-                        "background-dark": "#101622",
-                        "surface-dark": "#1a202c",
-                        "border-dark": "#2d3748",
-                    },
-                    fontFamily: {
-                        "display": ["Inter", "sans-serif"],
-                        "mono": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
-                    },
-                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
-                },
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Reach Console - Agent Registry</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#135bec",
+              "background-light": "#f6f6f8",
+              "background-dark": "#101622",
+              "surface-dark": "#1a202c",
+              "border-dark": "#2d3748",
             },
-        }
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+              mono: [
+                "ui-monospace",
+                "SFMono-Regular",
+                "Menlo",
+                "Monaco",
+                "Consolas",
+                "Liberation Mono",
+                "Courier New",
+                "monospace",
+              ],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
     </script>
-<style>
-        /* Custom scrollbar for dark theme */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #111318; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #374151; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #4b5563; 
-        }
+    <style>
+      /* Custom scrollbar for dark theme */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #111318;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #374151;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #4b5563;
+      }
     </style>
-</head>
-<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased overflow-hidden">
-<div class="flex h-screen w-full overflow-hidden">
-<!-- Sidebar -->
-<aside class="flex w-72 flex-col border-r border-slate-800 bg-[#111318] flex-shrink-0">
-<div class="flex h-full flex-col justify-between p-4">
-<div class="flex flex-col gap-4">
-<div class="flex gap-3 px-2">
-<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 relative overflow-hidden bg-slate-800 flex items-center justify-center">
-<div class="absolute inset-0 bg-gradient-to-br from-primary to-purple-600 opacity-80"></div>
-<span class="material-symbols-outlined text-white relative z-10" style="font-size: 24px;">rocket_launch</span>
-</div>
-<div class="flex flex-col justify-center">
-<h1 class="text-white text-base font-medium leading-normal">Reach Console</h1>
-<p class="text-slate-400 text-sm font-normal leading-none">Orchestration Plane</p>
-</div>
-</div>
-<nav class="flex flex-col gap-1 mt-4">
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors" href="#">
-<span class="material-symbols-outlined">dashboard</span>
-<span class="text-sm font-medium">Dashboard</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary border border-primary/20" href="#">
-<span class="material-symbols-outlined font-fill">smart_toy</span>
-<span class="text-sm font-medium">Agent Registry</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors" href="#">
-<span class="material-symbols-outlined">cloud_upload</span>
-<span class="text-sm font-medium">Deployments</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors" href="#">
-<span class="material-symbols-outlined">monitoring</span>
-<span class="text-sm font-medium">Observability</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors" href="#">
-<span class="material-symbols-outlined">settings</span>
-<span class="text-sm font-medium">Settings</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors" href="#">
-<span class="material-symbols-outlined">menu_book</span>
-<span class="text-sm font-medium">Documentation</span>
-</a>
-</nav>
-</div>
-<div class="mt-auto pt-4 border-t border-slate-800">
-<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 cursor-pointer">
-<div class="size-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white">JD</div>
-<div class="flex flex-col">
-<span class="text-sm font-medium text-white">John Doe</span>
-<span class="text-xs text-slate-500">Admin</span>
-</div>
-</div>
-</div>
-</div>
-</aside>
-<!-- Main Content -->
-<main class="flex-1 flex flex-col h-full min-w-0 overflow-hidden bg-background-dark relative">
-<!-- Header Section -->
-<header class="flex-shrink-0 border-b border-slate-800 bg-[#111318]/50 backdrop-blur-md z-10">
-<div class="px-6 py-4 flex flex-col gap-4">
-<!-- Breadcrumbs -->
-<div class="flex items-center gap-2 text-sm">
-<a class="text-slate-400 hover:text-slate-200" href="#">Reach</a>
-<span class="text-slate-600">/</span>
-<a class="text-slate-400 hover:text-slate-200" href="#">Console</a>
-<span class="text-slate-600">/</span>
-<span class="text-white font-medium">Agents</span>
-</div>
-<!-- Title & Actions -->
-<div class="flex flex-wrap items-center justify-between gap-4">
-<div>
-<h2 class="text-2xl font-bold text-white tracking-tight">Agent Registry</h2>
-<p class="text-slate-400 text-sm mt-1">Manage lifecycle, capabilities, and health status across your organization.</p>
-</div>
-<div class="flex gap-3">
-<button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-200 text-sm font-medium hover:bg-slate-700 hover:border-slate-600 transition-all">
-<span class="material-symbols-outlined text-[20px]">file_upload</span>
-                            Import Config
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased overflow-hidden"
+  >
+    <div class="flex h-screen w-full overflow-hidden">
+      <!-- Sidebar -->
+      <aside
+        class="flex w-72 flex-col border-r border-slate-800 bg-[#111318] flex-shrink-0"
+      >
+        <div class="flex h-full flex-col justify-between p-4">
+          <div class="flex flex-col gap-4">
+            <div class="flex gap-3 px-2">
+              <div
+                class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 relative overflow-hidden bg-slate-800 flex items-center justify-center"
+              >
+                <div
+                  class="absolute inset-0 bg-gradient-to-br from-primary to-purple-600 opacity-80"
+                ></div>
+                <span
+                  class="material-symbols-outlined text-white relative z-10"
+                  style="font-size: 24px"
+                  >rocket_launch</span
+                >
+              </div>
+              <div class="flex flex-col justify-center">
+                <h1 class="text-white text-base font-medium leading-normal">
+                  Reach Console
+                </h1>
+                <p class="text-slate-400 text-sm font-normal leading-none">
+                  Orchestration Plane
+                </p>
+              </div>
+            </div>
+            <nav class="flex flex-col gap-1 mt-4">
+              <a
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                href="#"
+              >
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="text-sm font-medium">Dashboard</span>
+              </a>
+              <a
+                class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary border border-primary/20"
+                href="#"
+              >
+                <span class="material-symbols-outlined font-fill"
+                  >smart_toy</span
+                >
+                <span class="text-sm font-medium">Agent Registry</span>
+              </a>
+              <a
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                href="#"
+              >
+                <span class="material-symbols-outlined">cloud_upload</span>
+                <span class="text-sm font-medium">Deployments</span>
+              </a>
+              <a
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                href="#"
+              >
+                <span class="material-symbols-outlined">monitoring</span>
+                <span class="text-sm font-medium">Observability</span>
+              </a>
+              <a
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                href="#"
+              >
+                <span class="material-symbols-outlined">settings</span>
+                <span class="text-sm font-medium">Settings</span>
+              </a>
+              <a
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                href="#"
+              >
+                <span class="material-symbols-outlined">menu_book</span>
+                <span class="text-sm font-medium">Documentation</span>
+              </a>
+            </nav>
+          </div>
+          <div class="mt-auto pt-4 border-t border-slate-800">
+            <div
+              class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 cursor-pointer"
+            >
+              <div
+                class="size-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white"
+              >
+                JD
+              </div>
+              <div class="flex flex-col">
+                <span class="text-sm font-medium text-white">John Doe</span>
+                <span class="text-xs text-slate-500">Admin</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <!-- Main Content -->
+      <main
+        class="flex-1 flex flex-col h-full min-w-0 overflow-hidden bg-background-dark relative"
+      >
+        <!-- Header Section -->
+        <header
+          class="flex-shrink-0 border-b border-slate-800 bg-[#111318]/50 backdrop-blur-md z-10"
+        >
+          <div class="px-6 py-4 flex flex-col gap-4">
+            <!-- Breadcrumbs -->
+            <div class="flex items-center gap-2 text-sm">
+              <a class="text-slate-400 hover:text-slate-200" href="#">Reach</a>
+              <span class="text-slate-600">/</span>
+              <a class="text-slate-400 hover:text-slate-200" href="#"
+                >Console</a
+              >
+              <span class="text-slate-600">/</span>
+              <span class="text-white font-medium">Agents</span>
+            </div>
+            <!-- Title & Actions -->
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 class="text-2xl font-bold text-white tracking-tight">
+                  Agent Registry
+                </h2>
+                <p class="text-slate-400 text-sm mt-1">
+                  Manage lifecycle, capabilities, and health status across your
+                  organization.
+                </p>
+              </div>
+              <div class="flex gap-3">
+                <button
+                  class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-200 text-sm font-medium hover:bg-slate-700 hover:border-slate-600 transition-all"
+                >
+                  <span class="material-symbols-outlined text-[20px]"
+                    >file_upload</span
+                  >
+                  Import Config
+                </button>
+                <button
+                  class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-blue-600 text-white text-sm font-bold shadow-lg shadow-blue-900/20 transition-all"
+                >
+                  <span class="material-symbols-outlined text-[20px]">add</span>
+                  Register New Agent
+                </button>
+              </div>
+            </div>
+            <!-- Stats Cards -->
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-2"
+            >
+              <div
+                class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 flex flex-col"
+              >
+                <span
+                  class="text-slate-400 text-xs font-medium uppercase tracking-wider"
+                  >Total Agents</span
+                >
+                <div class="flex items-end justify-between mt-1">
+                  <span class="text-2xl font-bold text-white">124</span>
+                  <span
+                    class="text-emerald-400 text-xs font-medium bg-emerald-400/10 px-1.5 py-0.5 rounded flex items-center gap-1"
+                  >
+                    <span class="material-symbols-outlined text-[14px]"
+                      >trending_up</span
+                    >
+                    12%
+                  </span>
+                </div>
+              </div>
+              <div
+                class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 flex flex-col"
+              >
+                <span
+                  class="text-slate-400 text-xs font-medium uppercase tracking-wider"
+                  >Active Instances</span
+                >
+                <div class="flex items-end justify-between mt-1">
+                  <span class="text-2xl font-bold text-white">118</span>
+                  <span
+                    class="text-emerald-400 text-xs font-medium bg-emerald-400/10 px-1.5 py-0.5 rounded flex items-center gap-1"
+                  >
+                    <span class="material-symbols-outlined text-[14px]"
+                      >trending_up</span
+                    >
+                    5%
+                  </span>
+                </div>
+              </div>
+              <div
+                class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 flex flex-col"
+              >
+                <span
+                  class="text-slate-400 text-xs font-medium uppercase tracking-wider"
+                  >Healthy</span
+                >
+                <div class="flex items-end justify-between mt-1">
+                  <span class="text-2xl font-bold text-white">112</span>
+                  <span class="text-slate-400 text-xs">90.3% Uptime</span>
+                </div>
+              </div>
+              <div
+                class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 flex flex-col"
+              >
+                <span
+                  class="text-slate-400 text-xs font-medium uppercase tracking-wider"
+                  >High Error Rate (&gt;1%)</span
+                >
+                <div class="flex items-end justify-between mt-1">
+                  <span class="text-2xl font-bold text-white">6</span>
+                  <span
+                    class="text-rose-400 text-xs font-medium bg-rose-400/10 px-1.5 py-0.5 rounded flex items-center gap-1"
+                  >
+                    <span class="material-symbols-outlined text-[14px]"
+                      >trending_down</span
+                    >
+                    -2%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+        <!-- Filters & Table Section -->
+        <div class="flex-1 overflow-auto p-6 pt-2">
+          <!-- Filters Toolbar -->
+          <div class="sticky top-0 z-10 bg-background-dark pb-4 pt-2">
+            <div
+              class="flex flex-col lg:flex-row gap-3 items-start lg:items-center justify-between"
+            >
+              <!-- Search -->
+              <div class="relative w-full lg:w-96">
+                <div
+                  class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                >
+                  <span class="material-symbols-outlined text-slate-500"
+                    >search</span
+                  >
+                </div>
+                <input
+                  class="block w-full pl-10 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg leading-5 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm"
+                  placeholder="Search by name, ID, or capability..."
+                  type="text"
+                />
+              </div>
+              <!-- Dropdowns -->
+              <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                <select
+                  class="form-select bg-slate-800 border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-primary focus:border-primary py-2 pl-3 pr-8"
+                >
+                  <option>All Organizations</option>
+                  <option>Finance</option>
+                  <option>Engineering</option>
+                  <option>Support</option>
+                </select>
+                <select
+                  class="form-select bg-slate-800 border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-primary focus:border-primary py-2 pl-3 pr-8"
+                >
+                  <option>All Capabilities</option>
+                  <option>RAG</option>
+                  <option>Python Exec</option>
+                  <option>Search</option>
+                </select>
+                <select
+                  class="form-select bg-slate-800 border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-primary focus:border-primary py-2 pl-3 pr-8"
+                >
+                  <option>Status: Any</option>
+                  <option>Healthy</option>
+                  <option>Degraded</option>
+                  <option>Down</option>
+                </select>
+                <div class="h-6 w-px bg-slate-700 mx-1 hidden lg:block"></div>
+                <button
+                  class="text-slate-400 hover:text-white p-2 rounded hover:bg-slate-800 transition-colors"
+                  title="View Grid"
+                >
+                  <span class="material-symbols-outlined text-[20px]"
+                    >grid_view</span
+                  >
+                </button>
+                <button
+                  class="text-primary bg-primary/10 p-2 rounded transition-colors"
+                  title="View List"
+                >
+                  <span class="material-symbols-outlined text-[20px]"
+                    >view_list</span
+                  >
+                </button>
+              </div>
+            </div>
+          </div>
+          <!-- Table Container -->
+          <div
+            class="border border-slate-800 rounded-lg overflow-hidden bg-slate-900/50 shadow-sm"
+          >
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-slate-800">
+                <thead class="bg-slate-900">
+                  <tr>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-slate-200"
+                      scope="col"
+                    >
+                      <div class="flex items-center gap-1">
+                        Agent Name
+                        <span class="material-symbols-outlined text-[14px]"
+                          >arrow_downward</span
+                        >
+                      </div>
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider"
+                      scope="col"
+                    >
+                      Repo &amp; Version
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider"
+                      scope="col"
+                    >
+                      Capabilities
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-slate-200"
+                      scope="col"
+                    >
+                      <div class="flex items-center gap-1">Health</div>
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider"
+                      scope="col"
+                    >
+                      Error Rate
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider"
+                      scope="col"
+                    >
+                      Last Run
+                    </th>
+                    <th
+                      class="px-6 py-3 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider"
+                      scope="col"
+                    >
+                      State
+                    </th>
+                    <th class="relative px-6 py-3" scope="col">
+                      <span class="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800">
+                  <!-- Row 1: Healthy Agent -->
+                  <tr class="hover:bg-slate-800/50 transition-colors group">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div
+                          class="flex-shrink-0 h-9 w-9 bg-indigo-500/20 rounded-lg flex items-center justify-center text-indigo-400 border border-indigo-500/30"
+                        >
+                          <span class="material-symbols-outlined text-[20px]"
+                            >account_balance</span
+                          >
+                        </div>
+                        <div class="ml-4">
+                          <div class="text-sm font-medium text-white">
+                            finance-analyst-v2
+                          </div>
+                          <div class="text-xs text-slate-500">Finance Org</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-col gap-1">
+                        <a
+                          class="text-xs text-primary hover:underline flex items-center gap-1"
+                          href="#"
+                        >
+                          <span class="material-symbols-outlined text-[12px]"
+                            >code</span
+                          >
+                          github/fin-bot
+                        </a>
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-300 w-fit"
+                          >v2.4.1</span
+                        >
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-wrap gap-1 max-w-[200px]">
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400"
+                          >SQL</span
+                        >
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400"
+                          >RAG</span
+                        >
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400"
+                          >+2</span
+                        >
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                      >
+                        <span class="relative flex h-2 w-2">
+                          <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+                          ></span>
+                          <span
+                            class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"
+                          ></span>
+                        </span>
+                        Healthy
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-col">
+                        <span class="text-sm text-slate-300 font-mono"
+                          >0.02%</span
+                        >
+                        <div
+                          class="w-16 h-1 bg-slate-700 rounded-full mt-1 overflow-hidden"
+                        >
+                          <div class="bg-emerald-500 h-full w-[2%]"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-col">
+                        <span class="text-xs text-slate-300">2m ago</span>
+                        <a
+                          class="text-[10px] font-mono text-primary hover:text-blue-400 transition-colors"
+                          href="#"
+                          >#8a2b9c1</a
+                        >
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                      <label class="inline-flex items-center cursor-pointer">
+                        <input
+                          checked=""
+                          class="sr-only peer"
+                          type="checkbox"
+                          value=""
+                        />
+                        <div
+                          class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"
+                        ></div>
+                      </label>
+                    </td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                    >
+                      <div
+                        class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <button
+                          class="text-slate-400 hover:text-white p-1"
+                          title="View Audit Trail"
+                        >
+                          <span class="material-symbols-outlined text-[18px]"
+                            >history</span
+                          >
                         </button>
-<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-blue-600 text-white text-sm font-bold shadow-lg shadow-blue-900/20 transition-all">
-<span class="material-symbols-outlined text-[20px]">add</span>
-                            Register New Agent
+                        <button
+                          class="text-slate-400 hover:text-white p-1"
+                          title="More Actions"
+                        >
+                          <span class="material-symbols-outlined text-[18px]"
+                            >more_vert</span
+                          >
                         </button>
-</div>
-</div>
-<!-- Stats Cards -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-2">
-<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 flex flex-col">
-<span class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total Agents</span>
-<div class="flex items-end justify-between mt-1">
-<span class="text-2xl font-bold text-white">124</span>
-<span class="text-emerald-400 text-xs font-medium bg-emerald-400/10 px-1.5 py-0.5 rounded flex items-center gap-1">
-<span class="material-symbols-outlined text-[14px]">trending_up</span> 12%
-                            </span>
-</div>
-</div>
-<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 flex flex-col">
-<span class="text-slate-400 text-xs font-medium uppercase tracking-wider">Active Instances</span>
-<div class="flex items-end justify-between mt-1">
-<span class="text-2xl font-bold text-white">118</span>
-<span class="text-emerald-400 text-xs font-medium bg-emerald-400/10 px-1.5 py-0.5 rounded flex items-center gap-1">
-<span class="material-symbols-outlined text-[14px]">trending_up</span> 5%
-                            </span>
-</div>
-</div>
-<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 flex flex-col">
-<span class="text-slate-400 text-xs font-medium uppercase tracking-wider">Healthy</span>
-<div class="flex items-end justify-between mt-1">
-<span class="text-2xl font-bold text-white">112</span>
-<span class="text-slate-400 text-xs">90.3% Uptime</span>
-</div>
-</div>
-<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 flex flex-col">
-<span class="text-slate-400 text-xs font-medium uppercase tracking-wider">High Error Rate (&gt;1%)</span>
-<div class="flex items-end justify-between mt-1">
-<span class="text-2xl font-bold text-white">6</span>
-<span class="text-rose-400 text-xs font-medium bg-rose-400/10 px-1.5 py-0.5 rounded flex items-center gap-1">
-<span class="material-symbols-outlined text-[14px]">trending_down</span> -2%
-                            </span>
-</div>
-</div>
-</div>
-</div>
-</header>
-<!-- Filters & Table Section -->
-<div class="flex-1 overflow-auto p-6 pt-2">
-<!-- Filters Toolbar -->
-<div class="sticky top-0 z-10 bg-background-dark pb-4 pt-2">
-<div class="flex flex-col lg:flex-row gap-3 items-start lg:items-center justify-between">
-<!-- Search -->
-<div class="relative w-full lg:w-96">
-<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-<span class="material-symbols-outlined text-slate-500">search</span>
-</div>
-<input class="block w-full pl-10 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg leading-5 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm" placeholder="Search by name, ID, or capability..." type="text"/>
-</div>
-<!-- Dropdowns -->
-<div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-<select class="form-select bg-slate-800 border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-primary focus:border-primary py-2 pl-3 pr-8">
-<option>All Organizations</option>
-<option>Finance</option>
-<option>Engineering</option>
-<option>Support</option>
-</select>
-<select class="form-select bg-slate-800 border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-primary focus:border-primary py-2 pl-3 pr-8">
-<option>All Capabilities</option>
-<option>RAG</option>
-<option>Python Exec</option>
-<option>Search</option>
-</select>
-<select class="form-select bg-slate-800 border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-primary focus:border-primary py-2 pl-3 pr-8">
-<option>Status: Any</option>
-<option>Healthy</option>
-<option>Degraded</option>
-<option>Down</option>
-</select>
-<div class="h-6 w-px bg-slate-700 mx-1 hidden lg:block"></div>
-<button class="text-slate-400 hover:text-white p-2 rounded hover:bg-slate-800 transition-colors" title="View Grid">
-<span class="material-symbols-outlined text-[20px]">grid_view</span>
-</button>
-<button class="text-primary bg-primary/10 p-2 rounded transition-colors" title="View List">
-<span class="material-symbols-outlined text-[20px]">view_list</span>
-</button>
-</div>
-</div>
-</div>
-<!-- Table Container -->
-<div class="border border-slate-800 rounded-lg overflow-hidden bg-slate-900/50 shadow-sm">
-<div class="overflow-x-auto">
-<table class="min-w-full divide-y divide-slate-800">
-<thead class="bg-slate-900">
-<tr>
-<th class="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-slate-200" scope="col">
-<div class="flex items-center gap-1">Agent Name <span class="material-symbols-outlined text-[14px]">arrow_downward</span></div>
-</th>
-<th class="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider" scope="col">Repo &amp; Version</th>
-<th class="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider" scope="col">Capabilities</th>
-<th class="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-slate-200" scope="col">
-<div class="flex items-center gap-1">Health</div>
-</th>
-<th class="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider" scope="col">Error Rate</th>
-<th class="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider" scope="col">Last Run</th>
-<th class="px-6 py-3 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider" scope="col">State</th>
-<th class="relative px-6 py-3" scope="col"><span class="sr-only">Actions</span></th>
-</tr>
-</thead>
-<tbody class="divide-y divide-slate-800">
-<!-- Row 1: Healthy Agent -->
-<tr class="hover:bg-slate-800/50 transition-colors group">
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex items-center">
-<div class="flex-shrink-0 h-9 w-9 bg-indigo-500/20 rounded-lg flex items-center justify-center text-indigo-400 border border-indigo-500/30">
-<span class="material-symbols-outlined text-[20px]">account_balance</span>
-</div>
-<div class="ml-4">
-<div class="text-sm font-medium text-white">finance-analyst-v2</div>
-<div class="text-xs text-slate-500">Finance Org</div>
-</div>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-col gap-1">
-<a class="text-xs text-primary hover:underline flex items-center gap-1" href="#">
-<span class="material-symbols-outlined text-[12px]">code</span>
-                                            github/fin-bot
-                                        </a>
-<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-300 w-fit">v2.4.1</span>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-wrap gap-1 max-w-[200px]">
-<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400">SQL</span>
-<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400">RAG</span>
-<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400">+2</span>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-<span class="relative flex h-2 w-2">
-<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-</span>
-                                        Healthy
-                                    </span>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-col">
-<span class="text-sm text-slate-300 font-mono">0.02%</span>
-<div class="w-16 h-1 bg-slate-700 rounded-full mt-1 overflow-hidden">
-<div class="bg-emerald-500 h-full w-[2%]"></div>
-</div>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-col">
-<span class="text-xs text-slate-300">2m ago</span>
-<a class="text-[10px] font-mono text-primary hover:text-blue-400 transition-colors" href="#">#8a2b9c1</a>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap text-center">
-<label class="inline-flex items-center cursor-pointer">
-<input checked="" class="sr-only peer" type="checkbox" value=""/>
-<div class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-</label>
-</td>
-<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-<button class="text-slate-400 hover:text-white p-1" title="View Audit Trail">
-<span class="material-symbols-outlined text-[18px]">history</span>
-</button>
-<button class="text-slate-400 hover:text-white p-1" title="More Actions">
-<span class="material-symbols-outlined text-[18px]">more_vert</span>
-</button>
-</div>
-</td>
-</tr>
-<!-- Row 2: Agent with Warning -->
-<tr class="hover:bg-slate-800/50 transition-colors group">
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex items-center">
-<div class="flex-shrink-0 h-9 w-9 bg-purple-500/20 rounded-lg flex items-center justify-center text-purple-400 border border-purple-500/30">
-<span class="material-symbols-outlined text-[20px]">support_agent</span>
-</div>
-<div class="ml-4">
-<div class="text-sm font-medium text-white">support-triage-bot</div>
-<div class="text-xs text-slate-500">Customer Success</div>
-</div>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-col gap-1">
-<a class="text-xs text-primary hover:underline flex items-center gap-1" href="#">
-<span class="material-symbols-outlined text-[12px]">code</span>
-                                            github/cs-bot
-                                        </a>
-<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-300 w-fit">v1.0.9</span>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-wrap gap-1 max-w-[200px]">
-<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400">Classification</span>
-<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400">Jira</span>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
-<span class="h-2 w-2 rounded-full bg-amber-500"></span>
-                                        Degraded
-                                    </span>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-col">
-<span class="text-sm text-amber-400 font-mono">1.45%</span>
-<div class="w-16 h-1 bg-slate-700 rounded-full mt-1 overflow-hidden">
-<div class="bg-amber-500 h-full w-[45%]"></div>
-</div>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-col">
-<span class="text-xs text-slate-300">12s ago</span>
-<a class="text-[10px] font-mono text-primary hover:text-blue-400 transition-colors" href="#">#1f9d3x8</a>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap text-center">
-<label class="inline-flex items-center cursor-pointer">
-<input checked="" class="sr-only peer" type="checkbox" value=""/>
-<div class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-</label>
-</td>
-<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-<button class="text-slate-400 hover:text-white p-1" title="View Audit Trail">
-<span class="material-symbols-outlined text-[18px]">history</span>
-</button>
-<button class="text-slate-400 hover:text-white p-1" title="More Actions">
-<span class="material-symbols-outlined text-[18px]">more_vert</span>
-</button>
-</div>
-</td>
-</tr>
-<!-- Row 3: Disabled Agent -->
-<tr class="hover:bg-slate-800/50 transition-colors group opacity-70">
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex items-center">
-<div class="flex-shrink-0 h-9 w-9 bg-slate-700 rounded-lg flex items-center justify-center text-slate-400 border border-slate-600">
-<span class="material-symbols-outlined text-[20px]">science</span>
-</div>
-<div class="ml-4">
-<div class="text-sm font-medium text-slate-300">research-summarizer-beta</div>
-<div class="text-xs text-slate-500">R&amp;D Lab</div>
-</div>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-col gap-1">
-<a class="text-xs text-slate-500 hover:underline flex items-center gap-1" href="#">
-<span class="material-symbols-outlined text-[12px]">code</span>
-                                            github/rd-sum
-                                        </a>
-<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-400 w-fit">v0.5.0-beta</span>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-wrap gap-1 max-w-[200px]">
-<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-500">NLP</span>
-<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-500">Python</span>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-400 border border-slate-600">
-<span class="h-2 w-2 rounded-full bg-slate-400"></span>
-                                        Offline
-                                    </span>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-col">
-<span class="text-sm text-slate-500 font-mono">-</span>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-col">
-<span class="text-xs text-slate-500">2d ago</span>
-<span class="text-[10px] font-mono text-slate-600">#------</span>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap text-center">
-<label class="inline-flex items-center cursor-pointer">
-<input class="sr-only peer" type="checkbox" value=""/>
-<div class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-</label>
-</td>
-<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-<button class="text-slate-400 hover:text-white p-1" title="View Audit Trail">
-<span class="material-symbols-outlined text-[18px]">history</span>
-</button>
-<button class="text-slate-400 hover:text-white p-1" title="More Actions">
-<span class="material-symbols-outlined text-[18px]">more_vert</span>
-</button>
-</div>
-</td>
-</tr>
-<!-- Row 4: Error Agent -->
-<tr class="hover:bg-slate-800/50 transition-colors group">
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex items-center">
-<div class="flex-shrink-0 h-9 w-9 bg-rose-500/20 rounded-lg flex items-center justify-center text-rose-400 border border-rose-500/30">
-<span class="material-symbols-outlined text-[20px]">security</span>
-</div>
-<div class="ml-4">
-<div class="text-sm font-medium text-white">sec-monitor-v1</div>
-<div class="text-xs text-slate-500">Infra Sec</div>
-</div>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-col gap-1">
-<a class="text-xs text-primary hover:underline flex items-center gap-1" href="#">
-<span class="material-symbols-outlined text-[12px]">code</span>
-                                            github/sec-mon
-                                        </a>
-<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-300 w-fit">v1.2.0</span>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-wrap gap-1 max-w-[200px]">
-<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400">Audit</span>
-<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400">Logs</span>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
-<span class="h-2 w-2 rounded-full bg-rose-500"></span>
-                                        Critical
-                                    </span>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-col">
-<span class="text-sm text-rose-400 font-mono">12.5%</span>
-<div class="w-16 h-1 bg-slate-700 rounded-full mt-1 overflow-hidden">
-<div class="bg-rose-500 h-full w-[80%]"></div>
-</div>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-col">
-<span class="text-xs text-slate-300">5m ago</span>
-<a class="text-[10px] font-mono text-primary hover:text-blue-400 transition-colors" href="#">#9c2d1b4</a>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap text-center">
-<label class="inline-flex items-center cursor-pointer">
-<input checked="" class="sr-only peer" type="checkbox" value=""/>
-<div class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-</label>
-</td>
-<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-<button class="text-slate-400 hover:text-white p-1" title="View Audit Trail">
-<span class="material-symbols-outlined text-[18px]">history</span>
-</button>
-<button class="text-slate-400 hover:text-white p-1" title="More Actions">
-<span class="material-symbols-outlined text-[18px]">more_vert</span>
-</button>
-</div>
-</td>
-</tr>
-<!-- Row 5: Healthy Agent -->
-<tr class="hover:bg-slate-800/50 transition-colors group">
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex items-center">
-<div class="flex-shrink-0 h-9 w-9 bg-teal-500/20 rounded-lg flex items-center justify-center text-teal-400 border border-teal-500/30">
-<span class="material-symbols-outlined text-[20px]">shopping_cart</span>
-</div>
-<div class="ml-4">
-<div class="text-sm font-medium text-white">ecom-rec-engine</div>
-<div class="text-xs text-slate-500">Sales Org</div>
-</div>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-col gap-1">
-<a class="text-xs text-primary hover:underline flex items-center gap-1" href="#">
-<span class="material-symbols-outlined text-[12px]">code</span>
-                                            github/rec-sys
-                                        </a>
-<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-300 w-fit">v3.0.1</span>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-wrap gap-1 max-w-[200px]">
-<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400">Vector DB</span>
-<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400">Search</span>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-<span class="relative flex h-2 w-2">
-<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-</span>
-                                        Healthy
-                                    </span>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-col">
-<span class="text-sm text-slate-300 font-mono">0.00%</span>
-<div class="w-16 h-1 bg-slate-700 rounded-full mt-1 overflow-hidden">
-<div class="bg-emerald-500 h-full w-[0%]"></div>
-</div>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap">
-<div class="flex flex-col">
-<span class="text-xs text-slate-300">45s ago</span>
-<a class="text-[10px] font-mono text-primary hover:text-blue-400 transition-colors" href="#">#3f8a1c9</a>
-</div>
-</td>
-<td class="px-6 py-4 whitespace-nowrap text-center">
-<label class="inline-flex items-center cursor-pointer">
-<input checked="" class="sr-only peer" type="checkbox" value=""/>
-<div class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-</label>
-</td>
-<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-<button class="text-slate-400 hover:text-white p-1" title="View Audit Trail">
-<span class="material-symbols-outlined text-[18px]">history</span>
-</button>
-<button class="text-slate-400 hover:text-white p-1" title="More Actions">
-<span class="material-symbols-outlined text-[18px]">more_vert</span>
-</button>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-<!-- Pagination -->
-<div class="bg-slate-900 border-t border-slate-800 px-4 py-3 flex items-center justify-between sm:px-6">
-<div class="flex-1 flex justify-between sm:hidden">
-<a class="relative inline-flex items-center px-4 py-2 border border-slate-700 text-sm font-medium rounded-md text-slate-300 bg-slate-800 hover:bg-slate-700" href="#">Previous</a>
-<a class="relative inline-flex items-center px-4 py-2 border border-slate-700 text-sm font-medium rounded-md text-slate-300 bg-slate-800 hover:bg-slate-700" href="#">Next</a>
-</div>
-<div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-<div>
-<p class="text-sm text-slate-400">
-                                Showing <span class="font-medium text-white">1</span> to <span class="font-medium text-white">5</span> of <span class="font-medium text-white">124</span> results
-                            </p>
-</div>
-<div>
-<nav aria-label="Pagination" class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-<a class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-slate-700 bg-slate-800 text-sm font-medium text-slate-400 hover:bg-slate-700" href="#">
-<span class="sr-only">Previous</span>
-<span class="material-symbols-outlined text-[20px]">chevron_left</span>
-</a>
-<a aria-current="page" class="z-10 bg-primary/20 border-primary text-primary relative inline-flex items-center px-4 py-2 border text-sm font-medium" href="#">1</a>
-<a class="bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 relative inline-flex items-center px-4 py-2 border text-sm font-medium" href="#">2</a>
-<a class="bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 relative inline-flex items-center px-4 py-2 border text-sm font-medium" href="#">3</a>
-<span class="relative inline-flex items-center px-4 py-2 border border-slate-700 bg-slate-800 text-sm font-medium text-slate-400">...</span>
-<a class="bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 relative inline-flex items-center px-4 py-2 border text-sm font-medium" href="#">8</a>
-<a class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-slate-700 bg-slate-800 text-sm font-medium text-slate-400 hover:bg-slate-700" href="#">
-<span class="sr-only">Next</span>
-<span class="material-symbols-outlined text-[20px]">chevron_right</span>
-</a>
-</nav>
-</div>
-</div>
-</div>
-</div>
-<div class="mt-8 text-center pb-8">
-<p class="text-slate-600 text-xs">Reach Console © 2024. All rights reserved.</p>
-</div>
-</div>
-</main>
-</div>
-</body></html>
+                      </div>
+                    </td>
+                  </tr>
+                  <!-- Row 2: Agent with Warning -->
+                  <tr class="hover:bg-slate-800/50 transition-colors group">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div
+                          class="flex-shrink-0 h-9 w-9 bg-purple-500/20 rounded-lg flex items-center justify-center text-purple-400 border border-purple-500/30"
+                        >
+                          <span class="material-symbols-outlined text-[20px]"
+                            >support_agent</span
+                          >
+                        </div>
+                        <div class="ml-4">
+                          <div class="text-sm font-medium text-white">
+                            support-triage-bot
+                          </div>
+                          <div class="text-xs text-slate-500">
+                            Customer Success
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-col gap-1">
+                        <a
+                          class="text-xs text-primary hover:underline flex items-center gap-1"
+                          href="#"
+                        >
+                          <span class="material-symbols-outlined text-[12px]"
+                            >code</span
+                          >
+                          github/cs-bot
+                        </a>
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-300 w-fit"
+                          >v1.0.9</span
+                        >
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-wrap gap-1 max-w-[200px]">
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400"
+                          >Classification</span
+                        >
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400"
+                          >Jira</span
+                        >
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                      >
+                        <span class="h-2 w-2 rounded-full bg-amber-500"></span>
+                        Degraded
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-col">
+                        <span class="text-sm text-amber-400 font-mono"
+                          >1.45%</span
+                        >
+                        <div
+                          class="w-16 h-1 bg-slate-700 rounded-full mt-1 overflow-hidden"
+                        >
+                          <div class="bg-amber-500 h-full w-[45%]"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-col">
+                        <span class="text-xs text-slate-300">12s ago</span>
+                        <a
+                          class="text-[10px] font-mono text-primary hover:text-blue-400 transition-colors"
+                          href="#"
+                          >#1f9d3x8</a
+                        >
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                      <label class="inline-flex items-center cursor-pointer">
+                        <input
+                          checked=""
+                          class="sr-only peer"
+                          type="checkbox"
+                          value=""
+                        />
+                        <div
+                          class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"
+                        ></div>
+                      </label>
+                    </td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                    >
+                      <div
+                        class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <button
+                          class="text-slate-400 hover:text-white p-1"
+                          title="View Audit Trail"
+                        >
+                          <span class="material-symbols-outlined text-[18px]"
+                            >history</span
+                          >
+                        </button>
+                        <button
+                          class="text-slate-400 hover:text-white p-1"
+                          title="More Actions"
+                        >
+                          <span class="material-symbols-outlined text-[18px]"
+                            >more_vert</span
+                          >
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <!-- Row 3: Disabled Agent -->
+                  <tr
+                    class="hover:bg-slate-800/50 transition-colors group opacity-70"
+                  >
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div
+                          class="flex-shrink-0 h-9 w-9 bg-slate-700 rounded-lg flex items-center justify-center text-slate-400 border border-slate-600"
+                        >
+                          <span class="material-symbols-outlined text-[20px]"
+                            >science</span
+                          >
+                        </div>
+                        <div class="ml-4">
+                          <div class="text-sm font-medium text-slate-300">
+                            research-summarizer-beta
+                          </div>
+                          <div class="text-xs text-slate-500">R&amp;D Lab</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-col gap-1">
+                        <a
+                          class="text-xs text-slate-500 hover:underline flex items-center gap-1"
+                          href="#"
+                        >
+                          <span class="material-symbols-outlined text-[12px]"
+                            >code</span
+                          >
+                          github/rd-sum
+                        </a>
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-400 w-fit"
+                          >v0.5.0-beta</span
+                        >
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-wrap gap-1 max-w-[200px]">
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-500"
+                          >NLP</span
+                        >
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-500"
+                          >Python</span
+                        >
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-400 border border-slate-600"
+                      >
+                        <span class="h-2 w-2 rounded-full bg-slate-400"></span>
+                        Offline
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-col">
+                        <span class="text-sm text-slate-500 font-mono">-</span>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-col">
+                        <span class="text-xs text-slate-500">2d ago</span>
+                        <span class="text-[10px] font-mono text-slate-600"
+                          >#------</span
+                        >
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                      <label class="inline-flex items-center cursor-pointer">
+                        <input class="sr-only peer" type="checkbox" value="" />
+                        <div
+                          class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"
+                        ></div>
+                      </label>
+                    </td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                    >
+                      <div
+                        class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <button
+                          class="text-slate-400 hover:text-white p-1"
+                          title="View Audit Trail"
+                        >
+                          <span class="material-symbols-outlined text-[18px]"
+                            >history</span
+                          >
+                        </button>
+                        <button
+                          class="text-slate-400 hover:text-white p-1"
+                          title="More Actions"
+                        >
+                          <span class="material-symbols-outlined text-[18px]"
+                            >more_vert</span
+                          >
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <!-- Row 4: Error Agent -->
+                  <tr class="hover:bg-slate-800/50 transition-colors group">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div
+                          class="flex-shrink-0 h-9 w-9 bg-rose-500/20 rounded-lg flex items-center justify-center text-rose-400 border border-rose-500/30"
+                        >
+                          <span class="material-symbols-outlined text-[20px]"
+                            >security</span
+                          >
+                        </div>
+                        <div class="ml-4">
+                          <div class="text-sm font-medium text-white">
+                            sec-monitor-v1
+                          </div>
+                          <div class="text-xs text-slate-500">Infra Sec</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-col gap-1">
+                        <a
+                          class="text-xs text-primary hover:underline flex items-center gap-1"
+                          href="#"
+                        >
+                          <span class="material-symbols-outlined text-[12px]"
+                            >code</span
+                          >
+                          github/sec-mon
+                        </a>
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-300 w-fit"
+                          >v1.2.0</span
+                        >
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-wrap gap-1 max-w-[200px]">
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400"
+                          >Audit</span
+                        >
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400"
+                          >Logs</span
+                        >
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                      >
+                        <span class="h-2 w-2 rounded-full bg-rose-500"></span>
+                        Critical
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-col">
+                        <span class="text-sm text-rose-400 font-mono"
+                          >12.5%</span
+                        >
+                        <div
+                          class="w-16 h-1 bg-slate-700 rounded-full mt-1 overflow-hidden"
+                        >
+                          <div class="bg-rose-500 h-full w-[80%]"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-col">
+                        <span class="text-xs text-slate-300">5m ago</span>
+                        <a
+                          class="text-[10px] font-mono text-primary hover:text-blue-400 transition-colors"
+                          href="#"
+                          >#9c2d1b4</a
+                        >
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                      <label class="inline-flex items-center cursor-pointer">
+                        <input
+                          checked=""
+                          class="sr-only peer"
+                          type="checkbox"
+                          value=""
+                        />
+                        <div
+                          class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"
+                        ></div>
+                      </label>
+                    </td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                    >
+                      <div
+                        class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <button
+                          class="text-slate-400 hover:text-white p-1"
+                          title="View Audit Trail"
+                        >
+                          <span class="material-symbols-outlined text-[18px]"
+                            >history</span
+                          >
+                        </button>
+                        <button
+                          class="text-slate-400 hover:text-white p-1"
+                          title="More Actions"
+                        >
+                          <span class="material-symbols-outlined text-[18px]"
+                            >more_vert</span
+                          >
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <!-- Row 5: Healthy Agent -->
+                  <tr class="hover:bg-slate-800/50 transition-colors group">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div
+                          class="flex-shrink-0 h-9 w-9 bg-teal-500/20 rounded-lg flex items-center justify-center text-teal-400 border border-teal-500/30"
+                        >
+                          <span class="material-symbols-outlined text-[20px]"
+                            >shopping_cart</span
+                          >
+                        </div>
+                        <div class="ml-4">
+                          <div class="text-sm font-medium text-white">
+                            ecom-rec-engine
+                          </div>
+                          <div class="text-xs text-slate-500">Sales Org</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-col gap-1">
+                        <a
+                          class="text-xs text-primary hover:underline flex items-center gap-1"
+                          href="#"
+                        >
+                          <span class="material-symbols-outlined text-[12px]"
+                            >code</span
+                          >
+                          github/rec-sys
+                        </a>
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-300 w-fit"
+                          >v3.0.1</span
+                        >
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-wrap gap-1 max-w-[200px]">
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400"
+                          >Vector DB</span
+                        >
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-400"
+                          >Search</span
+                        >
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span
+                        class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                      >
+                        <span class="relative flex h-2 w-2">
+                          <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+                          ></span>
+                          <span
+                            class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"
+                          ></span>
+                        </span>
+                        Healthy
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-col">
+                        <span class="text-sm text-slate-300 font-mono"
+                          >0.00%</span
+                        >
+                        <div
+                          class="w-16 h-1 bg-slate-700 rounded-full mt-1 overflow-hidden"
+                        >
+                          <div class="bg-emerald-500 h-full w-[0%]"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex flex-col">
+                        <span class="text-xs text-slate-300">45s ago</span>
+                        <a
+                          class="text-[10px] font-mono text-primary hover:text-blue-400 transition-colors"
+                          href="#"
+                          >#3f8a1c9</a
+                        >
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                      <label class="inline-flex items-center cursor-pointer">
+                        <input
+                          checked=""
+                          class="sr-only peer"
+                          type="checkbox"
+                          value=""
+                        />
+                        <div
+                          class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"
+                        ></div>
+                      </label>
+                    </td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                    >
+                      <div
+                        class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <button
+                          class="text-slate-400 hover:text-white p-1"
+                          title="View Audit Trail"
+                        >
+                          <span class="material-symbols-outlined text-[18px]"
+                            >history</span
+                          >
+                        </button>
+                        <button
+                          class="text-slate-400 hover:text-white p-1"
+                          title="More Actions"
+                        >
+                          <span class="material-symbols-outlined text-[18px]"
+                            >more_vert</span
+                          >
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- Pagination -->
+            <div
+              class="bg-slate-900 border-t border-slate-800 px-4 py-3 flex items-center justify-between sm:px-6"
+            >
+              <div class="flex-1 flex justify-between sm:hidden">
+                <a
+                  class="relative inline-flex items-center px-4 py-2 border border-slate-700 text-sm font-medium rounded-md text-slate-300 bg-slate-800 hover:bg-slate-700"
+                  href="#"
+                  >Previous</a
+                >
+                <a
+                  class="relative inline-flex items-center px-4 py-2 border border-slate-700 text-sm font-medium rounded-md text-slate-300 bg-slate-800 hover:bg-slate-700"
+                  href="#"
+                  >Next</a
+                >
+              </div>
+              <div
+                class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between"
+              >
+                <div>
+                  <p class="text-sm text-slate-400">
+                    Showing <span class="font-medium text-white">1</span> to
+                    <span class="font-medium text-white">5</span> of
+                    <span class="font-medium text-white">124</span> results
+                  </p>
+                </div>
+                <div>
+                  <nav
+                    aria-label="Pagination"
+                    class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                  >
+                    <a
+                      class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-slate-700 bg-slate-800 text-sm font-medium text-slate-400 hover:bg-slate-700"
+                      href="#"
+                    >
+                      <span class="sr-only">Previous</span>
+                      <span class="material-symbols-outlined text-[20px]"
+                        >chevron_left</span
+                      >
+                    </a>
+                    <a
+                      aria-current="page"
+                      class="z-10 bg-primary/20 border-primary text-primary relative inline-flex items-center px-4 py-2 border text-sm font-medium"
+                      href="#"
+                      >1</a
+                    >
+                    <a
+                      class="bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 relative inline-flex items-center px-4 py-2 border text-sm font-medium"
+                      href="#"
+                      >2</a
+                    >
+                    <a
+                      class="bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 relative inline-flex items-center px-4 py-2 border text-sm font-medium"
+                      href="#"
+                      >3</a
+                    >
+                    <span
+                      class="relative inline-flex items-center px-4 py-2 border border-slate-700 bg-slate-800 text-sm font-medium text-slate-400"
+                      >...</span
+                    >
+                    <a
+                      class="bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 relative inline-flex items-center px-4 py-2 border text-sm font-medium"
+                      href="#"
+                      >8</a
+                    >
+                    <a
+                      class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-slate-700 bg-slate-800 text-sm font-medium text-slate-400 hover:bg-slate-700"
+                      href="#"
+                    >
+                      <span class="sr-only">Next</span>
+                      <span class="material-symbols-outlined text-[20px]"
+                        >chevron_right</span
+                      >
+                    </a>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-8 text-center pb-8">
+            <p class="text-slate-600 text-xs">
+              Reach Console © 2024. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

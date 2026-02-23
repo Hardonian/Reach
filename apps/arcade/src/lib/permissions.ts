@@ -1,4 +1,4 @@
-import type { Role } from '@/lib/cloud-db';
+import type { Role } from "@/lib/cloud-db";
 
 /**
  * RBAC permission helper for UI gating.
@@ -12,7 +12,7 @@ import type { Role } from '@/lib/cloud-db';
  *   <button disabled={!perms.can('admin')} title={perms.tooltip('admin')}>Delete</button>
  */
 
-const ROLE_ORDER: Role[] = ['viewer', 'member', 'admin', 'owner'];
+const ROLE_ORDER: Role[] = ["viewer", "member", "admin", "owner"];
 
 export interface Permissions {
   role: Role;
@@ -42,10 +42,12 @@ export function createPermissions(role: Role): Permissions {
  * All mutating actions are blocked; read-only access is allowed.
  */
 export const DEGRADED_PERMISSIONS: Permissions = {
-  role: 'viewer',
-  can: (minRole: Role) => ROLE_ORDER.indexOf('viewer') >= ROLE_ORDER.indexOf(minRole),
+  role: "viewer",
+  can: (minRole: Role) =>
+    ROLE_ORDER.indexOf("viewer") >= ROLE_ORDER.indexOf(minRole),
   tooltip: (minRole: Role) => {
-    if (ROLE_ORDER.indexOf('viewer') >= ROLE_ORDER.indexOf(minRole)) return undefined;
-    return 'Authentication unavailable — read-only mode';
+    if (ROLE_ORDER.indexOf("viewer") >= ROLE_ORDER.indexOf(minRole))
+      return undefined;
+    return "Authentication unavailable — read-only mode";
   },
 };

@@ -6,20 +6,20 @@
  */
 
 export type EventName =
-  | 'first_success_demo_run_started'
-  | 'first_success_demo_run_completed'
-  | 'first_success_saved_run_completed'
-  | 'signup_started'
-  | 'signup_completed'
-  | 'oauth_signup_completed'
-  | 'magic_link_signup_completed'
-  | 'onboarding_checklist_completed'
-  | 'onboarding_step_completed'
-  | 'cta_clicked'
-  | 'playground_opened'
-  | 'template_applied'
-  | 'ab_variant_assigned'
-  | 'runtime_execution_completed';
+  | "first_success_demo_run_started"
+  | "first_success_demo_run_completed"
+  | "first_success_saved_run_completed"
+  | "signup_started"
+  | "signup_completed"
+  | "oauth_signup_completed"
+  | "magic_link_signup_completed"
+  | "onboarding_checklist_completed"
+  | "onboarding_step_completed"
+  | "cta_clicked"
+  | "playground_opened"
+  | "template_applied"
+  | "ab_variant_assigned"
+  | "runtime_execution_completed";
 
 export interface AnalyticsEvent {
   event: EventName;
@@ -33,13 +33,13 @@ export interface AnalyticsEvent {
  */
 export async function track(
   event: EventName,
-  properties?: AnalyticsEvent['properties'],
+  properties?: AnalyticsEvent["properties"],
 ): Promise<void> {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   try {
-    await fetch('/api/v1/events', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    await fetch("/api/v1/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ event, properties } satisfies AnalyticsEvent),
       keepalive: true,
     });

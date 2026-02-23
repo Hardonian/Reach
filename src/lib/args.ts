@@ -20,7 +20,6 @@ export interface CliArgs {
   deterministic: boolean;
 }
 
-
 export function parseArgs(argv: string[]): CliArgs {
   const result: CliArgs = {
     example: "negotiation",
@@ -98,7 +97,8 @@ export function parseArgs(argv: string[]): CliArgs {
     } else if (arg === "--emit-transcript") {
       result.emitTranscript = true;
     } else if (arg === "--cache" && next) {
-      if (next === "read" || next === "write" || next === "off") result.cacheMode = next;
+      if (next === "read" || next === "write" || next === "off")
+        result.cacheMode = next;
       i++;
     } else if (arg === "--no-cache") {
       result.cacheMode = "off";

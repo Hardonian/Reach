@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ['@reach/sdk'],
+    serverComponentsExternalPackages: ["@reach/sdk"],
   },
 };
 

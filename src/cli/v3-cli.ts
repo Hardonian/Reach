@@ -77,7 +77,9 @@ export async function runV3Command(args: V3Args): Promise<number> {
         return 1;
     }
   } catch (err) {
-    console.error(`[v3] Error: ${err instanceof Error ? err.message : String(err)}`);
+    console.error(
+      `[v3] Error: ${err instanceof Error ? err.message : String(err)}`,
+    );
     return 1;
   }
 }
@@ -87,11 +89,13 @@ export async function runV3Command(args: V3Args): Promise<number> {
 // =============================================================================
 
 async function runTenantCommand(args: V3Args): Promise<number> {
-  const { tenantStore, formatUsage, formatPolicy } = await import("@zeo/tenant");
+  const { tenantStore, formatUsage, formatPolicy } =
+    await import("@zeo/tenant");
 
   switch (args.subcommand) {
     case "create": {
-      const name = args.positionals[0] ?? (args.flags["name"] as string) ?? "default";
+      const name =
+        args.positionals[0] ?? (args.flags["name"] as string) ?? "default";
       const owner = (args.flags["owner"] as string) ?? "cli-user";
       const tenant = tenantStore.createTenant(name, owner);
       console.log(`Tenant created: ${tenant.tenantId}`);
@@ -108,7 +112,9 @@ async function runTenantCommand(args: V3Args): Promise<number> {
       } else {
         console.log(`=== Tenants (${tenants.length}) ===`);
         for (const t of tenants) {
-          console.log(`  ${t.tenantId}: ${t.name} [${t.status}] (${t.createdAt})`);
+          console.log(
+            `  ${t.tenantId}: ${t.name} [${t.status}] (${t.createdAt})`,
+          );
         }
       }
       return 0;
@@ -152,16 +158,24 @@ async function runTenantCommand(args: V3Args): Promise<number> {
       const userId = args.positionals[1] ?? (args.flags["user"] as string);
       const role = (args.positionals[2] ?? args.flags["role"]) as string;
       if (!tenantId || !userId || !role) {
-        console.error("Usage: zeo tenant assign-role <tenant_id> <user_id> <role>");
+        console.error(
+          "Usage: zeo tenant assign-role <tenant_id> <user_id> <role>",
+        );
         return 1;
       }
-      tenantStore.assignRole(tenantId, userId, role as "owner" | "admin" | "operator" | "viewer");
+      tenantStore.assignRole(
+        tenantId,
+        userId,
+        role as "owner" | "admin" | "operator" | "viewer",
+      );
       console.log(`Role ${role} assigned to ${userId} in tenant ${tenantId}`);
       return 0;
     }
 
     default:
-      console.log(`Usage: zeo tenant <create|list|suspend|policy|usage|assign-role>`);
+      console.log(
+        `Usage: zeo tenant <create|list|suspend|policy|usage|assign-role>`,
+      );
       return 1;
   }
 }
@@ -179,8 +193,14 @@ async function runHealthCommand(_args: V3Args): Promise<number> {
   } = await import("@zeo/observability");
 
   // Register built-in checkers
-  healthRegistry.register("policy_enforcement", createPolicyEnforcementChecker(true));
-  healthRegistry.register("schema_compatibility", createSchemaCompatibilityChecker("3.0.0"));
+  healthRegistry.register(
+    "policy_enforcement",
+    createPolicyEnforcementChecker(true),
+  );
+  healthRegistry.register(
+    "schema_compatibility",
+    createSchemaCompatibilityChecker("3.0.0"),
+  );
 
   const report = await healthRegistry.runAll();
   console.log(formatHealthReport(report));
@@ -207,11 +227,14 @@ async function runDriftCommand(args: V3Args): Promise<number> {
 // =============================================================================
 
 async function runSchemasCommand(args: V3Args): Promise<number> {
-  const { schemaRegistry, formatSchemaList } = await import("@zeo/schema-registry");
+  const { schemaRegistry, formatSchemaList } =
+    await import("@zeo/schema-registry");
 
   if (args.subcommand === "validate") {
     const schemaName = args.positionals[0];
-    const version = args.positionals[1] ? parseInt(args.positionals[1], 10) : undefined;
+    const version = args.positionals[1]
+      ? parseInt(args.positionals[1], 10)
+      : undefined;
     if (!schemaName) {
       console.error("Usage: zeo schemas validate <schema_name> [version]");
       return 1;
@@ -300,7 +323,9 @@ async function runModulesCommand(args: V3Args): Promise<number> {
   switch (args.subcommand) {
     case "list": {
       const tenantId = args.flags["tenant"] as string | undefined;
-      const modules = tenantId ? moduleRegistry.listByTenant(tenantId) : moduleRegistry.list();
+      const modules = tenantId
+        ? moduleRegistry.listByTenant(tenantId)
+        : moduleRegistry.list();
       console.log(formatModuleList(modules));
       return 0;
     }
@@ -310,7 +335,9 @@ async function runModulesCommand(args: V3Args): Promise<number> {
       const entrypoint = (args.flags["entrypoint"] as string) ?? "./index.js";
       const version = (args.flags["version"] as string) ?? "1.0.0";
       if (!name) {
-        console.error("Usage: zeo modules register <name> --entrypoint <path> --version <ver>");
+        console.error(
+          "Usage: zeo modules register <name> --entrypoint <path> --version <ver>",
+        );
         return 1;
       }
       const { nanoid } = await import("nanoid");
@@ -355,7 +382,9 @@ async function runModulesCommand(args: V3Args): Promise<number> {
         console.log("=== Dependency Order ===");
         order.forEach((id, i) => console.log(`  ${i + 1}. ${id}`));
       } catch (err) {
-        console.error(`Cycle detected: ${err instanceof Error ? err.message : err}`);
+        console.error(
+          `Cycle detected: ${err instanceof Error ? err.message : err}`,
+        );
         return 1;
       }
       return 0;
@@ -394,10 +423,18 @@ async function runSimulateCommand(args: V3Args): Promise<number> {
         name,
         baseDecisionId,
         [
-          { assumptionId: "market_stress", originalValue: 0.5, modifiedValue: 0.8 },
-          { assumptionId: "timeline_pressure", originalValue: 0.3, modifiedValue: 0.6 },
+          {
+            assumptionId: "market_stress",
+            originalValue: 0.5,
+            modifiedValue: 0.8,
+          },
+          {
+            assumptionId: "timeline_pressure",
+            originalValue: 0.3,
+            modifiedValue: 0.6,
+          },
         ],
-        { tenantId }
+        { tenantId },
       );
 
       // Simulate with deterministic runners
@@ -417,7 +454,7 @@ async function runSimulateCommand(args: V3Args): Promise<number> {
           risk: 0.2,
           robustness: 0.72,
         }),
-        (args.flags["seed"] as string) ?? undefined
+        (args.flags["seed"] as string) ?? undefined,
       );
 
       console.log(formatWhatIfResult(result));
@@ -429,16 +466,24 @@ async function runSimulateCommand(args: V3Args): Promise<number> {
       const days = parseInt((args.flags["days"] as string) ?? "30", 10);
       const seed = (args.flags["seed"] as string) ?? `forecast-${decisionId}`;
       // If seeded (deterministic), default to a fixed start date if not provided
-      const defaultDate = args.flags["seed"] ? "2024-01-01T00:00:00.000Z" : undefined;
+      const defaultDate = args.flags["seed"]
+        ? "2024-01-01T00:00:00.000Z"
+        : undefined;
       const startDate = (args.flags["start-date"] as string) ?? defaultDate;
 
       const projection = forecastEngine.project(
         decisionId,
-        { selectedAction: "action-a", confidence: 0.78, expectedUtility: 0.85, risk: 0.2, robustness: 0.72 },
+        {
+          selectedAction: "action-a",
+          confidence: 0.78,
+          expectedUtility: 0.85,
+          risk: 0.2,
+          robustness: 0.72,
+        },
         { market_stress: 0.5, timeline_pressure: 0.3 },
         days,
         seed,
-        startDate
+        startDate,
       );
 
       console.log(formatForecast(projection));
@@ -471,14 +516,21 @@ async function runSimulateCommand(args: V3Args): Promise<number> {
         assumptions,
         (modified) => ({
           selectedAction: "action-a",
-          confidence: Math.max(0, Math.min(1, 0.78 - (modified["market_stress"] - 0.5) * 0.3
-            + (modified["counterparty_trust"] - 0.7) * 0.2
-            - (modified["timeline_pressure"] - 0.3) * 0.15)),
+          confidence: Math.max(
+            0,
+            Math.min(
+              1,
+              0.78 -
+                (modified["market_stress"] - 0.5) * 0.3 +
+                (modified["counterparty_trust"] - 0.7) * 0.2 -
+                (modified["timeline_pressure"] - 0.3) * 0.15,
+            ),
+          ),
           expectedUtility: 0.85,
           risk: 0.2,
           robustness: 0.72,
         }),
-        baseOutcome
+        baseOutcome,
       );
 
       console.log(formatSensitivity(entries));
@@ -486,7 +538,9 @@ async function runSimulateCommand(args: V3Args): Promise<number> {
     }
 
     default:
-      console.log("Usage: zeo simulate <what-if|forecast|confidence|sensitivity>");
+      console.log(
+        "Usage: zeo simulate <what-if|forecast|confidence|sensitivity>",
+      );
       return 1;
   }
 }
@@ -512,7 +566,9 @@ async function runOutcomeCommand(args: V3Args): Promise<number> {
       const action = (args.flags["action"] as string) ?? "action-a";
       const actual = (args.flags["actual"] as string) ?? "success";
       const utility = parseFloat((args.flags["utility"] as string) ?? "0.8");
-      const predicted = parseFloat((args.flags["predicted"] as string) ?? "0.85");
+      const predicted = parseFloat(
+        (args.flags["predicted"] as string) ?? "0.85",
+      );
       const user = (args.flags["user"] as string) ?? "cli-user";
 
       const outcome = outcomeStore.register(
@@ -521,14 +577,16 @@ async function runOutcomeCommand(args: V3Args): Promise<number> {
         actual,
         utility,
         predicted,
-        user
+        user,
       );
 
       console.log(`Outcome registered: ${outcome.id}`);
       console.log(`  Decision: ${outcome.decisionId}`);
       console.log(`  Action:   ${outcome.selectedAction}`);
       console.log(`  Outcome:  ${outcome.actualOutcome}`);
-      console.log(`  Utility:  observed=${outcome.observedUtility}, predicted=${outcome.predictedUtility}`);
+      console.log(
+        `  Utility:  observed=${outcome.observedUtility}, predicted=${outcome.predictedUtility}`,
+      );
       return 0;
     }
 
@@ -561,7 +619,9 @@ async function runOutcomeCommand(args: V3Args): Promise<number> {
       const adjustmentId = args.positionals[0];
       const action = args.positionals[1]; // approve | reject
       if (!adjustmentId || !action) {
-        console.log("Usage: zeo outcome adjust <adjustment_id> <approve|reject>");
+        console.log(
+          "Usage: zeo outcome adjust <adjustment_id> <approve|reject>",
+        );
         console.log("       zeo outcome adjust list");
         return 1;
       }
@@ -593,12 +653,12 @@ async function runOutcomeCommand(args: V3Args): Promise<number> {
         computeRegret(o, [
           { action: "alt-a", utility: o.observedUtility * 0.95 },
           { action: "alt-b", utility: o.observedUtility * 1.05 },
-        ])
+        ]),
       );
       const summary = generateOptimizationSummary(
         outcomes,
         regrets,
-        assumptionTuner.getAll()
+        assumptionTuner.getAll(),
       );
       console.log(formatOptimizationSummary(summary));
       return 0;
@@ -609,4 +669,3 @@ async function runOutcomeCommand(args: V3Args): Promise<number> {
       return 1;
   }
 }
-

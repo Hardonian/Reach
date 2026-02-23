@@ -2,13 +2,13 @@ name: Decision Engine (Rust/WASM)
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: ["main", "master"]
     paths:
       - "packages/decision-engine-rs/**"
       - "packages/decision-engine-wasm/**"
       - ".github/workflows/decision-engine.yml"
   pull_request:
-    branches: [ "main", "master" ]
+    branches: ["main", "master"]
     paths:
       - "packages/decision-engine-rs/**"
       - "packages/decision-engine-wasm/**"
@@ -18,7 +18,7 @@ jobs:
   build-and-test:
     name: Build, Test & Benchmark
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
 
@@ -30,7 +30,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh

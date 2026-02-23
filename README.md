@@ -39,4 +39,4 @@ Security is paramount. Please review our [SECURITY.md](SECURITY.md) for reportin
 
 ---
 
-*Reach: Reducing entropy in autonomous systems.*
+_Reach: Reducing entropy in autonomous systems._

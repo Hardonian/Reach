@@ -22,12 +22,12 @@ Use `traceUrl(id)` from `@/lib/trace/traceUrl` to generate this — never constr
 
 ### Standard Components
 
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| `TraceLink` | `components/trace/TraceLink.tsx` | Inline link to a trace. Renders disabled span when absent. |
-| `TracePill` | `components/trace/TracePill.tsx` | Compact pill for tables/cards. Truncates long IDs. |
-| `TraceTimeline` | `components/stitch/console/panels/TraceTimeline.tsx` | Full timeline visualization of trace steps. |
-| `TraceExplorer` | `components/stitch/console/pages/TraceExplorer.tsx` | Full-page trace exploration with search and details panel. |
+| Component       | Location                                             | Purpose                                                    |
+| --------------- | ---------------------------------------------------- | ---------------------------------------------------------- |
+| `TraceLink`     | `components/trace/TraceLink.tsx`                     | Inline link to a trace. Renders disabled span when absent. |
+| `TracePill`     | `components/trace/TracePill.tsx`                     | Compact pill for tables/cards. Truncates long IDs.         |
+| `TraceTimeline` | `components/stitch/console/panels/TraceTimeline.tsx` | Full timeline visualization of trace steps.                |
+| `TraceExplorer` | `components/stitch/console/pages/TraceExplorer.tsx`  | Full-page trace exploration with search and details panel. |
 
 ### Rules
 

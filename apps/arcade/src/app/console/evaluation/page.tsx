@@ -1,8 +1,8 @@
-import { EvaluationEngine } from '@/components/stitch/console/pages/EvaluationEngine';
-import { ConsoleLayout } from '@/components/stitch/console/ConsoleLayout';
+import { EvaluationEngine } from "@/components/stitch/console/pages/EvaluationEngine";
+import { ConsoleLayout } from "@/components/stitch/console/ConsoleLayout";
 
 export const metadata = {
-  title: 'Evaluation Engine | ReadyLayer Console',
+  title: "Evaluation Engine | ReadyLayer Console",
 };
 
 export default function EvaluationPage() {

@@ -3,7 +3,13 @@
   "$id": "https://reach.sh/protocol/v1/execution-contract.schema.json",
   "title": "Execution Contract",
   "type": "object",
-  "required": ["schemaVersion", "specVersion", "packMetadata", "executionMetadata", "federation"],
+  "required": [
+    "schemaVersion",
+    "specVersion",
+    "packMetadata",
+    "executionMetadata",
+    "federation"
+  ],
   "properties": {
     "schemaVersion": {
       "type": "string",
@@ -19,7 +25,10 @@
       "properties": {
         "id": { "type": "string", "minLength": 1 },
         "version": { "type": "string", "minLength": 1 },
-        "specVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" }
+        "specVersion": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        }
       },
       "additionalProperties": true
     },
@@ -27,7 +36,10 @@
       "type": "object",
       "required": ["specVersion"],
       "properties": {
-        "specVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "specVersion": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
         "packId": { "type": "string" },
         "packVersion": { "type": "string" },
         "packHash": { "type": "string" }
@@ -38,7 +50,10 @@
       "type": "object",
       "required": ["specVersion"],
       "properties": {
-        "specVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "specVersion": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
         "registrySnapshotHash": { "type": "string" },
         "policyVersion": { "type": "string" }
       },

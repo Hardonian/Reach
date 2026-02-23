@@ -6,18 +6,18 @@ Reach provides two primary CLI interfaces: `reachctl` (the core binary) and the 
 
 The root `./reach` script is the entry point for most developer tasks. It manages dependencies and provides a unified interface for sub-tools.
 
-| Command | Description |
-| :--- | :--- |
-| `doctor` | Perform a full system health check (Go, Node, Rust, SQLite). |
-| `run <pack>` | Quickly execute a deterministic pack locally. |
-| `eval` | Evaluate runs and check for regressions against golden fixtures. |
-| `audit` | Export and verify signed audit logs for compliance. |
-| `capsule` | Create or verify signed execution capsules for long-term storage. |
-| `proof` | Verify cryptographic execution proofs (PoEE). |
-| `gate` | Manage repository and release gates for CI/CD integration. |
-| `cost` | View unit economics and cost analysis for model executions. |
-| `metrics` | View GTM and usage analytics for the local node. |
-| `wizard` | Guided run wizard optimized for mobile/CLI interaction. |
+| Command      | Description                                                       |
+| :----------- | :---------------------------------------------------------------- |
+| `doctor`     | Perform a full system health check (Go, Node, Rust, SQLite).      |
+| `run <pack>` | Quickly execute a deterministic pack locally.                     |
+| `eval`       | Evaluate runs and check for regressions against golden fixtures.  |
+| `audit`      | Export and verify signed audit logs for compliance.               |
+| `capsule`    | Create or verify signed execution capsules for long-term storage. |
+| `proof`      | Verify cryptographic execution proofs (PoEE).                     |
+| `gate`       | Manage repository and release gates for CI/CD integration.        |
+| `cost`       | View unit economics and cost analysis for model executions.       |
+| `metrics`    | View GTM and usage analytics for the local node.                  |
+| `wizard`     | Guided run wizard optimized for mobile/CLI interaction.           |
 
 ### Usage Example
 
@@ -30,14 +30,14 @@ The root `./reach` script is the entry point for most developer tasks. It manage
 
 The workflow-specific commands manage long-running decision processes within a `.zeo` workspace.
 
-| Command | Description |
-| :--- | :--- |
-| `workflow start` | Initialize a new decision workspace with a title and type. |
+| Command             | Description                                                   |
+| :------------------ | :------------------------------------------------------------ |
+| `workflow start`    | Initialize a new decision workspace with a title and type.    |
 | `workflow add-note` | Append evidence, observations, or assertions to the decision. |
-| `workflow run` | Trigger the decision engine to compute recommended actions. |
-| `workflow export` | Export the decision (MD, ICS, or portable bundle). |
-| `workflow health` | View health scores, replay stability, and asset volatility. |
-| `workflow graph` | Visualize decision dependencies and impact chains. |
+| `workflow run`      | Trigger the decision engine to compute recommended actions.   |
+| `workflow export`   | Export the decision (MD, ICS, or portable bundle).            |
+| `workflow health`   | View health scores, replay stability, and asset volatility.   |
+| `workflow graph`    | Visualize decision dependencies and impact chains.            |
 
 ## Installation & Setup
 

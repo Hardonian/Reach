@@ -6,10 +6,30 @@
       "run_id": "demo-pipeline-run-a",
       "timestamp": "2026-01-15T10:00:00Z",
       "steps": [
-        {"type": "tool.call", "tool": "bash", "step_key": "tool:bash", "artifact_hash": "abc123def456"},
-        {"type": "tool.call", "tool": "node", "step_key": "tool:node", "artifact_hash": "def456ghi789"},
-        {"type": "tool.call", "tool": "python", "step_key": "tool:python", "artifact_hash": "ghi789jkl012"},
-        {"type": "tool.result", "tool": "bash", "step_key": "tool:bash", "result": "success"}
+        {
+          "type": "tool.call",
+          "tool": "bash",
+          "step_key": "tool:bash",
+          "artifact_hash": "abc123def456"
+        },
+        {
+          "type": "tool.call",
+          "tool": "node",
+          "step_key": "tool:node",
+          "artifact_hash": "def456ghi789"
+        },
+        {
+          "type": "tool.call",
+          "tool": "python",
+          "step_key": "tool:python",
+          "artifact_hash": "ghi789jkl012"
+        },
+        {
+          "type": "tool.result",
+          "tool": "bash",
+          "step_key": "tool:bash",
+          "result": "success"
+        }
       ],
       "metrics": {
         "reproducibility_score": 0.98,
@@ -22,10 +42,30 @@
       "run_id": "demo-pipeline-run-b",
       "timestamp": "2026-01-20T14:30:00Z",
       "steps": [
-        {"type": "tool.call", "tool": "bash", "step_key": "tool:bash", "artifact_hash": "abc123def456"},
-        {"type": "tool.call", "tool": "node", "step_key": "tool:node", "artifact_hash": "def456ghi789"},
-        {"type": "tool.call", "tool": "file_read", "step_key": "tool:file_read", "artifact_hash": "jkl012mno345"},
-        {"type": "tool.result", "tool": "bash", "step_key": "tool:bash", "result": "success"}
+        {
+          "type": "tool.call",
+          "tool": "bash",
+          "step_key": "tool:bash",
+          "artifact_hash": "abc123def456"
+        },
+        {
+          "type": "tool.call",
+          "tool": "node",
+          "step_key": "tool:node",
+          "artifact_hash": "def456ghi789"
+        },
+        {
+          "type": "tool.call",
+          "tool": "file_read",
+          "step_key": "tool:file_read",
+          "artifact_hash": "jkl012mno345"
+        },
+        {
+          "type": "tool.result",
+          "tool": "bash",
+          "step_key": "tool:bash",
+          "result": "success"
+        }
       ],
       "metrics": {
         "reproducibility_score": 0.96,
@@ -38,10 +78,30 @@
       "run_id": "demo-pipeline-run-c",
       "timestamp": "2026-01-25T09:15:00Z",
       "steps": [
-        {"type": "tool.call", "tool": "bash", "step_key": "tool:bash", "artifact_hash": "abc123def456"},
-        {"type": "tool.call", "tool": "python", "step_key": "tool:python", "artifact_hash": "ghi789jkl012"},
-        {"type": "tool.call", "tool": "http_get", "step_key": "tool:http_get", "artifact_hash": "mno345pqr678"},
-        {"type": "tool.result", "tool": "python", "step_key": "tool:python", "result": "success"}
+        {
+          "type": "tool.call",
+          "tool": "bash",
+          "step_key": "tool:bash",
+          "artifact_hash": "abc123def456"
+        },
+        {
+          "type": "tool.call",
+          "tool": "python",
+          "step_key": "tool:python",
+          "artifact_hash": "ghi789jkl012"
+        },
+        {
+          "type": "tool.call",
+          "tool": "http_get",
+          "step_key": "tool:http_get",
+          "artifact_hash": "mno345pqr678"
+        },
+        {
+          "type": "tool.result",
+          "tool": "python",
+          "step_key": "tool:python",
+          "result": "success"
+        }
       ],
       "metrics": {
         "reproducibility_score": 0.94,
@@ -54,11 +114,36 @@
       "run_id": "demo-pipeline-run-d",
       "timestamp": "2026-02-01T16:45:00Z",
       "steps": [
-        {"type": "tool.call", "tool": "bash", "step_key": "tool:bash", "artifact_hash": "abc123def456"},
-        {"type": "tool.call", "tool": "node", "step_key": "tool:node", "artifact_hash": "def456ghi789"},
-        {"type": "tool.call", "tool": "python", "step_key": "tool:python", "artifact_hash": "ghi789jkl012"},
-        {"type": "tool.call", "tool": "write_file", "step_key": "tool:write_file", "artifact_hash": "pqr678stu901"},
-        {"type": "tool.result", "tool": "node", "step_key": "tool:node", "result": "success"}
+        {
+          "type": "tool.call",
+          "tool": "bash",
+          "step_key": "tool:bash",
+          "artifact_hash": "abc123def456"
+        },
+        {
+          "type": "tool.call",
+          "tool": "node",
+          "step_key": "tool:node",
+          "artifact_hash": "def456ghi789"
+        },
+        {
+          "type": "tool.call",
+          "tool": "python",
+          "step_key": "tool:python",
+          "artifact_hash": "ghi789jkl012"
+        },
+        {
+          "type": "tool.call",
+          "tool": "write_file",
+          "step_key": "tool:write_file",
+          "artifact_hash": "pqr678stu901"
+        },
+        {
+          "type": "tool.result",
+          "tool": "node",
+          "step_key": "tool:node",
+          "result": "success"
+        }
       ],
       "metrics": {
         "reproducibility_score": 0.92,
@@ -71,13 +156,33 @@
       "run_id": "demo-pipeline-run-e",
       "timestamp": "2026-02-05T11:20:00Z",
       "steps": [
-        {"type": "tool.call", "tool": "bash", "step_key": "tool:bash", "artifact_hash": "abc123def456"},
-        {"type": "tool.call", "tool": "node", "step_key": "tool:node", "artifact_hash": "def456ghi789"},
-        {"type": "tool.call", "tool": "python", "step_key": "tool:python", "artifact_hash": "xyz987wvu654"},
-        {"type": "tool.result", "tool": "bash", "step_key": "tool:bash", "result": "success"}
+        {
+          "type": "tool.call",
+          "tool": "bash",
+          "step_key": "tool:bash",
+          "artifact_hash": "abc123def456"
+        },
+        {
+          "type": "tool.call",
+          "tool": "node",
+          "step_key": "tool:node",
+          "artifact_hash": "def456ghi789"
+        },
+        {
+          "type": "tool.call",
+          "tool": "python",
+          "step_key": "tool:python",
+          "artifact_hash": "xyz987wvu654"
+        },
+        {
+          "type": "tool.result",
+          "tool": "bash",
+          "step_key": "tool:bash",
+          "result": "success"
+        }
       ],
       "metrics": {
-        "reproducibility_score": 0.90,
+        "reproducibility_score": 0.9,
         "trust_score": 0.87,
         "chaos_sensitivity": 0.06,
         "step_count": 4
@@ -87,10 +192,30 @@
       "run_id": "demo-pipeline-run-f",
       "timestamp": "2026-02-10T13:00:00Z",
       "steps": [
-        {"type": "tool.call", "tool": "bash", "step_key": "tool:bash", "artifact_hash": "abc123def456"},
-        {"type": "tool.call", "tool": "node", "step_key": "tool:node", "artifact_hash": "def456ghi789"},
-        {"type": "tool.call", "tool": "http_post", "step_key": "tool:http_post", "artifact_hash": "stu901vwx234"},
-        {"type": "tool.result", "tool": "node", "step_key": "tool:node", "result": "success"}
+        {
+          "type": "tool.call",
+          "tool": "bash",
+          "step_key": "tool:bash",
+          "artifact_hash": "abc123def456"
+        },
+        {
+          "type": "tool.call",
+          "tool": "node",
+          "step_key": "tool:node",
+          "artifact_hash": "def456ghi789"
+        },
+        {
+          "type": "tool.call",
+          "tool": "http_post",
+          "step_key": "tool:http_post",
+          "artifact_hash": "stu901vwx234"
+        },
+        {
+          "type": "tool.result",
+          "tool": "node",
+          "step_key": "tool:node",
+          "result": "success"
+        }
       ],
       "metrics": {
         "reproducibility_score": 0.88,
@@ -103,10 +228,30 @@
       "run_id": "demo-pipeline-run-g",
       "timestamp": "2026-02-15T10:30:00Z",
       "steps": [
-        {"type": "tool.call", "tool": "bash", "step_key": "tool:bash", "artifact_hash": "abc123def456"},
-        {"type": "tool.call", "tool": "search", "step_key": "tool:search", "artifact_hash": "vwx234yza567"},
-        {"type": "tool.call", "tool": "python", "step_key": "tool:python", "artifact_hash": "ghi789jkl012"},
-        {"type": "tool.result", "tool": "bash", "step_key": "tool:bash", "result": "success"}
+        {
+          "type": "tool.call",
+          "tool": "bash",
+          "step_key": "tool:bash",
+          "artifact_hash": "abc123def456"
+        },
+        {
+          "type": "tool.call",
+          "tool": "search",
+          "step_key": "tool:search",
+          "artifact_hash": "vwx234yza567"
+        },
+        {
+          "type": "tool.call",
+          "tool": "python",
+          "step_key": "tool:python",
+          "artifact_hash": "ghi789jkl012"
+        },
+        {
+          "type": "tool.result",
+          "tool": "bash",
+          "step_key": "tool:bash",
+          "result": "success"
+        }
       ],
       "metrics": {
         "reproducibility_score": 0.86,
@@ -119,11 +264,36 @@
       "run_id": "demo-pipeline-run-h",
       "timestamp": "2026-02-18T15:45:00Z",
       "steps": [
-        {"type": "tool.call", "tool": "bash", "step_key": "tool:bash", "artifact_hash": "abc123def456"},
-        {"type": "tool.call", "tool": "node", "step_key": "tool:node", "artifact_hash": "def456ghi789"},
-        {"type": "tool.call", "tool": "python", "step_key": "tool:python", "artifact_hash": "ghi789jkl012"},
-        {"type": "tool.call", "tool": "file_read", "step_key": "tool:file_read", "artifact_hash": "yza567bcd890"},
-        {"type": "tool.result", "tool": "python", "step_key": "tool:python", "result": "success"}
+        {
+          "type": "tool.call",
+          "tool": "bash",
+          "step_key": "tool:bash",
+          "artifact_hash": "abc123def456"
+        },
+        {
+          "type": "tool.call",
+          "tool": "node",
+          "step_key": "tool:node",
+          "artifact_hash": "def456ghi789"
+        },
+        {
+          "type": "tool.call",
+          "tool": "python",
+          "step_key": "tool:python",
+          "artifact_hash": "ghi789jkl012"
+        },
+        {
+          "type": "tool.call",
+          "tool": "file_read",
+          "step_key": "tool:file_read",
+          "artifact_hash": "yza567bcd890"
+        },
+        {
+          "type": "tool.result",
+          "tool": "python",
+          "step_key": "tool:python",
+          "result": "success"
+        }
       ],
       "metrics": {
         "reproducibility_score": 0.84,
@@ -136,15 +306,35 @@
       "run_id": "demo-pipeline-run-i",
       "timestamp": "2026-02-20T12:15:00Z",
       "steps": [
-        {"type": "tool.call", "tool": "bash", "step_key": "tool:bash", "artifact_hash": "abc123def456"},
-        {"type": "tool.call", "tool": "node", "step_key": "tool:node", "artifact_hash": "def456ghi789"},
-        {"type": "tool.call", "tool": "python", "step_key": "tool:python", "artifact_hash": "ghi789jkl012"},
-        {"type": "tool.result", "tool": "bash", "step_key": "tool:bash", "result": "success"}
+        {
+          "type": "tool.call",
+          "tool": "bash",
+          "step_key": "tool:bash",
+          "artifact_hash": "abc123def456"
+        },
+        {
+          "type": "tool.call",
+          "tool": "node",
+          "step_key": "tool:node",
+          "artifact_hash": "def456ghi789"
+        },
+        {
+          "type": "tool.call",
+          "tool": "python",
+          "step_key": "tool:python",
+          "artifact_hash": "ghi789jkl012"
+        },
+        {
+          "type": "tool.result",
+          "tool": "bash",
+          "step_key": "tool:bash",
+          "result": "success"
+        }
       ],
       "metrics": {
         "reproducibility_score": 0.82,
         "trust_score": 0.79,
-        "chaos_sensitivity": 0.10,
+        "chaos_sensitivity": 0.1,
         "step_count": 4
       }
     },
@@ -152,14 +342,39 @@
       "run_id": "demo-pipeline-run-j",
       "timestamp": "2026-02-22T09:00:00Z",
       "steps": [
-        {"type": "tool.call", "tool": "bash", "step_key": "tool:bash", "artifact_hash": "abc123def456"},
-        {"type": "tool.call", "tool": "python", "step_key": "tool:python", "artifact_hash": "ghi789jkl012"},
-        {"type": "tool.call", "tool": "http_get", "step_key": "tool:http_get", "artifact_hash": "mno345pqr678"},
-        {"type": "tool.call", "tool": "write_file", "step_key": "tool:write_file", "artifact_hash": "pqr678stu901"},
-        {"type": "tool.result", "tool": "python", "step_key": "tool:python", "result": "success"}
+        {
+          "type": "tool.call",
+          "tool": "bash",
+          "step_key": "tool:bash",
+          "artifact_hash": "abc123def456"
+        },
+        {
+          "type": "tool.call",
+          "tool": "python",
+          "step_key": "tool:python",
+          "artifact_hash": "ghi789jkl012"
+        },
+        {
+          "type": "tool.call",
+          "tool": "http_get",
+          "step_key": "tool:http_get",
+          "artifact_hash": "mno345pqr678"
+        },
+        {
+          "type": "tool.call",
+          "tool": "write_file",
+          "step_key": "tool:write_file",
+          "artifact_hash": "pqr678stu901"
+        },
+        {
+          "type": "tool.result",
+          "tool": "python",
+          "step_key": "tool:python",
+          "result": "success"
+        }
       ],
       "metrics": {
-        "reproducibility_score": 0.80,
+        "reproducibility_score": 0.8,
         "trust_score": 0.77,
         "chaos_sensitivity": 0.11,
         "step_count": 5

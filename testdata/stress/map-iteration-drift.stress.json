@@ -9,19 +9,19 @@
     {
       "trial": 1,
       "description": "Inputs with keys in original order",
-      "inputs": {"action": "greet", "message": "hello", "target": "world"},
+      "inputs": { "action": "greet", "message": "hello", "target": "world" },
       "expected_fingerprint": "sha256:e1429c0ea0c3c2c8e7f61e15f4f8a6a1c7e1a2b3d4e5f6a7b8c9d0e1f2a3b4c5"
     },
     {
       "trial": 2,
       "description": "Inputs with keys shuffled (target first)",
-      "inputs": {"target": "world", "action": "greet", "message": "hello"},
+      "inputs": { "target": "world", "action": "greet", "message": "hello" },
       "expected_fingerprint": "sha256:e1429c0ea0c3c2c8e7f61e15f4f8a6a1c7e1a2b3d4e5f6a7b8c9d0e1f2a3b4c5"
     },
     {
       "trial": 3,
       "description": "Inputs with keys shuffled (message first)",
-      "inputs": {"message": "hello", "target": "world", "action": "greet"},
+      "inputs": { "message": "hello", "target": "world", "action": "greet" },
       "expected_fingerprint": "sha256:e1429c0ea0c3c2c8e7f61e15f4f8a6a1c7e1a2b3d4e5f6a7b8c9d0e1f2a3b4c5"
     }
   ],

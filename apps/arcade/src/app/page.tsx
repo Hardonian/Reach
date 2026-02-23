@@ -1,9 +1,18 @@
-import { HeroMedia } from '@/components/HeroMedia';
-import Link from 'next/link';
-import { ROUTES } from '@/lib/routes';
-import { HERO_VARIANTS, CTA, HOW_IT_WORKS, CAPABILITIES, BEFORE_AFTER } from '@/lib/copy';
-import { resolveVariant } from '@/lib/ab';
-import { HomepageClient, HomepageExtraCapabilities } from '@/components/HomepageClient';
+import { HeroMedia } from "@/components/HeroMedia";
+import Link from "next/link";
+import { ROUTES } from "@/lib/routes";
+import {
+  HERO_VARIANTS,
+  CTA,
+  HOW_IT_WORKS,
+  CAPABILITIES,
+  BEFORE_AFTER,
+} from "@/lib/copy";
+import { resolveVariant } from "@/lib/ab";
+import {
+  HomepageClient,
+  HomepageExtraCapabilities,
+} from "@/components/HomepageClient";
 
 interface HomePageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -17,15 +26,15 @@ export default async function Home({ searchParams }: HomePageProps) {
   const extraCaps = CAPABILITIES.filter((c) => !c.primary);
 
   const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'ReadyLayer',
-    url: 'https://reach.dev',
-    description: 'Global orchestration platform for distributed AI agents.',
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "ReadyLayer",
+    url: "https://reach.dev",
+    description: "Global orchestration platform for distributed AI agents.",
     potentialAction: {
-      '@type': 'SearchAction',
-      target: 'https://reach.dev/marketplace?q={search_term_string}',
-      'query-input': 'required name=search_term_string',
+      "@type": "SearchAction",
+      target: "https://reach.dev/marketplace?q={search_term_string}",
+      "query-input": "required name=search_term_string",
     },
   };
 
@@ -51,9 +60,13 @@ export default async function Home({ searchParams }: HomePageProps) {
             </div>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 leading-tight">
-              {hero.headline.split('.').map((part, i, arr) => (
-                <span key={i} className={i === arr.length - 1 ? 'text-gradient' : ''}>
-                  {part}{i < arr.length - 1 ? '.' : ''}{' '}
+              {hero.headline.split(".").map((part, i, arr) => (
+                <span
+                  key={i}
+                  className={i === arr.length - 1 ? "text-gradient" : ""}
+                >
+                  {part}
+                  {i < arr.length - 1 ? "." : ""}{" "}
                 </span>
               ))}
             </h1>
@@ -101,7 +114,9 @@ export default async function Home({ searchParams }: HomePageProps) {
       <section className="py-24 bg-surface/30">
         <div className="section-container">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">How it works</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              How it works
+            </h2>
             <p className="text-gray-400 max-w-xl mx-auto">
               From first run to shipping — in three steps.
             </p>
@@ -111,7 +126,9 @@ export default async function Home({ searchParams }: HomePageProps) {
             {HOW_IT_WORKS.map((item) => (
               <div key={item.step} className="card gradient-border">
                 <div className="text-3xl mb-4 text-accent">{item.icon}</div>
-                <div className="text-xs font-mono text-accent mb-2">{item.step}</div>
+                <div className="text-xs font-mono text-accent mb-2">
+                  {item.step}
+                </div>
                 <h3 className="text-xl font-bold mb-3">{item.title}</h3>
                 <p className="text-gray-400 text-sm">{item.description}</p>
               </div>
@@ -124,7 +141,9 @@ export default async function Home({ searchParams }: HomePageProps) {
       <section className="py-24">
         <div className="section-container">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">What ReadyLayer checks</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              What ReadyLayer checks
+            </h2>
             <p className="text-gray-400 max-w-xl mx-auto">
               Every run covers the things that break in production.
             </p>
@@ -137,12 +156,24 @@ export default async function Home({ searchParams }: HomePageProps) {
                 href={cap.href}
                 className="card group hover:border-accent/50 transition-all"
               >
-                <h3 className="font-bold mb-2 group-hover:text-accent transition-colors">{cap.title}</h3>
+                <h3 className="font-bold mb-2 group-hover:text-accent transition-colors">
+                  {cap.title}
+                </h3>
                 <p className="text-gray-400 text-sm">{cap.description}</p>
                 <div className="mt-4 flex items-center text-accent text-sm font-medium">
                   Learn more
-                  <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <svg
+                    className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </div>
               </Link>
@@ -157,7 +188,9 @@ export default async function Home({ searchParams }: HomePageProps) {
       <section className="py-24 bg-surface/30">
         <div className="section-container">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Before vs After</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Before vs After
+            </h2>
           </div>
 
           <div className="max-w-3xl mx-auto">
@@ -180,7 +213,8 @@ export default async function Home({ searchParams }: HomePageProps) {
                     key={`a-${i}`}
                     className="px-6 py-4 text-sm text-gray-200 border-b border-border border-l bg-emerald-950/10"
                   >
-                    {'✓ '}{row.after}
+                    {"✓ "}
+                    {row.after}
                   </div>
                 </>
               ))}
@@ -200,7 +234,9 @@ export default async function Home({ searchParams }: HomePageProps) {
             <p className="text-gray-400 mb-2 max-w-lg mx-auto">
               No credit card. No configuration. One click to your first check.
             </p>
-            <p className="text-sm text-gray-500 mb-8">OSS-friendly · Works locally · Team plans available</p>
+            <p className="text-sm text-gray-500 mb-8">
+              OSS-friendly · Works locally · Team plans available
+            </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href={ROUTES.PLAYGROUND} className="btn-primary">
                 {CTA.primary}

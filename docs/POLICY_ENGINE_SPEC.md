@@ -51,17 +51,17 @@ A policy is a bundle of named rules. Each rule has:
 
 ### Field Definitions
 
-| Field | Type | Required | Description |
-| :--- | :--- | :--- | :--- |
-| `version` | semver | Yes | Policy schema version. Must match the engine's expected schema version. |
-| `name` | string | Yes | Human-readable policy name. |
-| `rules` | Rule[] | Yes | Ordered array of policy rules. Evaluation follows `evaluation_order`. |
-| `rule.id` | string | Yes | Stable machine-readable identifier. Never change once published. |
-| `rule.severity` | `DENY \| WARN \| INFO` | Yes | `DENY` blocks execution. `WARN` logs but continues. `INFO` is informational only. |
-| `rule.condition` | string | Yes | Predicate expression. Must be deterministic given the same context. |
-| `rule.suggestion` | string | Yes | Human-readable fix guidance surfaced by `reachctl explain-failure`. |
-| `rule.deterministic` | boolean | Yes | If `true`, the same inputs MUST produce the same verdict. Non-deterministic rules (e.g., timeouts) are `false`. |
-| `rule.evaluation_order` | integer | Yes | Stable evaluation order. Lower numbers evaluate first. Must be unique within a policy. |
+| Field                   | Type                   | Required | Description                                                                                                     |
+| :---------------------- | :--------------------- | :------- | :-------------------------------------------------------------------------------------------------------------- |
+| `version`               | semver                 | Yes      | Policy schema version. Must match the engine's expected schema version.                                         |
+| `name`                  | string                 | Yes      | Human-readable policy name.                                                                                     |
+| `rules`                 | Rule[]                 | Yes      | Ordered array of policy rules. Evaluation follows `evaluation_order`.                                           |
+| `rule.id`               | string                 | Yes      | Stable machine-readable identifier. Never change once published.                                                |
+| `rule.severity`         | `DENY \| WARN \| INFO` | Yes      | `DENY` blocks execution. `WARN` logs but continues. `INFO` is informational only.                               |
+| `rule.condition`        | string                 | Yes      | Predicate expression. Must be deterministic given the same context.                                             |
+| `rule.suggestion`       | string                 | Yes      | Human-readable fix guidance surfaced by `reachctl explain-failure`.                                             |
+| `rule.deterministic`    | boolean                | Yes      | If `true`, the same inputs MUST produce the same verdict. Non-deterministic rules (e.g., timeouts) are `false`. |
+| `rule.evaluation_order` | integer                | Yes      | Stable evaluation order. Lower numbers evaluate first. Must be unique within a policy.                          |
 
 ---
 
@@ -74,6 +74,7 @@ evaluate(policy: Policy, context: ExecutionContext) → Verdict
 ```
 
 Where `Verdict` is one of:
+
 - `ALLOW` — All DENY rules passed. Execution may proceed.
 - `DENY(rule_id, message)` — At least one DENY rule failed.
 
@@ -91,14 +92,14 @@ The `ExecutionContext` passed to each rule includes:
 
 ```json
 {
-  "run_id":           "...",
-  "pack_id":          "...",
-  "tools_requested":  ["tool-a", "tool-b"],
-  "allowed_tools":    ["tool-a"],
-  "replay_mode":      false,
+  "run_id": "...",
+  "pack_id": "...",
+  "tools_requested": ["tool-a", "tool-b"],
+  "allowed_tools": ["tool-a"],
+  "replay_mode": false,
   "execution_duration_ms": 0,
   "timeout_limit_ms": 30000,
-  "input_hash":       "sha256:..."
+  "input_hash": "sha256:..."
 }
 ```
 
@@ -114,12 +115,12 @@ Gates (checkpoints in execution where policy is re-evaluated) must be:
 
 ### Gate Types
 
-| Gate | When It Fires | Default Policy |
-| :--- | :--- | :--- |
-| `pre-execution` | Before any step executes | Evaluate all DENY rules |
-| `tool-call` | Before each tool is invoked | Check capability allowlist |
-| `post-execution` | After all steps complete | Evaluate replay integrity |
-| `replay` | During replay verification | Check fingerprint match |
+| Gate             | When It Fires               | Default Policy             |
+| :--------------- | :-------------------------- | :------------------------- |
+| `pre-execution`  | Before any step executes    | Evaluate all DENY rules    |
+| `tool-call`      | Before each tool is invoked | Check capability allowlist |
+| `post-execution` | After all steps complete    | Evaluate replay integrity  |
+| `replay`         | During replay verification  | Check fingerprint match    |
 
 ---
 
@@ -132,6 +133,7 @@ reachctl explain-failure <run-id>
 ```
 
 Output (JSON):
+
 ```json
 {
   "run_id": "abc123",
@@ -173,6 +175,7 @@ reachctl validate-policy path/to/policy.json
 ## OSS Default Policy
 
 The OSS default policy (`policies/policy.strict-default/manifest.json`) enforces:
+
 1. Capability allowlist checking.
 2. No disallowed tool calls.
 3. Replay integrity verification on `replay` gate.

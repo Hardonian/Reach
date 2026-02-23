@@ -1,10 +1,19 @@
 // @ts-nocheck
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { join, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import type { DashboardPersona, DashboardViewModel } from "@zeo/contracts";
-import { loadOrGenerateDashboardViewModel, stableStringify } from "../lib/generateViewModel.js";
+import {
+  loadOrGenerateDashboardViewModel,
+  stableStringify,
+} from "../lib/generateViewModel.js";
 
 export type RenderTarget = "github-pr" | "slack" | "markdown" | "plain";
 
@@ -28,16 +37,30 @@ function parseFlag(argv: string[], flag: string): string | undefined {
 }
 
 function parseTarget(value?: string): RenderTarget {
-  if (value === "github-pr" || value === "slack" || value === "markdown" || value === "plain") return value;
+  if (
+    value === "github-pr" ||
+    value === "slack" ||
+    value === "markdown" ||
+    value === "plain"
+  )
+    return value;
   return "plain";
 }
 
 function detectNoExternalShare(model: DashboardViewModel): boolean {
-  return model.lists.policies.some((policy) => policy.id.includes("no-external-share") || policy.id.includes("internal-only"));
+  return model.lists.policies.some(
+    (policy) =>
+      policy.id.includes("no-external-share") ||
+      policy.id.includes("internal-only"),
+  );
 }
 
 function scanAndRedact(input: string, enabled: boolean): SecretScanResult {
-  if (!enabled) return { hasHighRisk: SECRET_PATTERNS.some((pattern) => pattern.test(input)), redacted: input };
+  if (!enabled)
+    return {
+      hasHighRisk: SECRET_PATTERNS.some((pattern) => pattern.test(input)),
+      redacted: input,
+    };
   let output = input;
   let hasHit = false;
   for (const pattern of SECRET_PATTERNS) {
@@ -52,9 +75,17 @@ function scanAndRedact(input: string, enabled: boolean): SecretScanResult {
 function topRisks(model: DashboardViewModel): string[] {
   return model.lists.findings
     .slice()
-    .sort((a, b) => b.severity - a.severity || (a.file ?? "").localeCompare(b.file ?? "") || a.id.localeCompare(b.id))
+    .sort(
+      (a, b) =>
+        b.severity - a.severity ||
+        (a.file ?? "").localeCompare(b.file ?? "") ||
+        a.id.localeCompare(b.id),
+    )
     .slice(0, 3)
-    .map((finding) => `- S${finding.severity} ${finding.title}${finding.file ? ` (${finding.file})` : ""}`);
+    .map(
+      (finding) =>
+        `- S${finding.severity} ${finding.title}${finding.file ? ` (${finding.file})` : ""}`,
+    );
 }
 
 function policySummary(model: DashboardViewModel): string[] {
@@ -69,10 +100,16 @@ function verificationLine(model: DashboardViewModel): string {
   return model.verificationStatus.verified ? "Replay Verified" : "Not Verified";
 }
 
-function renderOutput(model: DashboardViewModel, target: RenderTarget, compact: boolean): string {
+function renderOutput(
+  model: DashboardViewModel,
+  target: RenderTarget,
+  compact: boolean,
+): string {
   const topRiskLines = topRisks(model);
   const policyLines = policySummary(model);
-  const ctas = model.ctas.slice(0, compact ? 3 : 5).map((cta) => `- ${cta.command}`);
+  const ctas = model.ctas
+    .slice(0, compact ? 3 : 5)
+    .map((cta) => `- ${cta.command}`);
   const manifestHash = model.fingerprint.artifactsHash;
   const verify = verificationLine(model);
 
@@ -112,9 +149,18 @@ function renderOutput(model: DashboardViewModel, target: RenderTarget, compact: 
   }
 
   if (target === "markdown") {
-    const evidenceRows = model.lists.evidence.slice(0, 8).map((ev) => `| ${ev.id} | ${ev.qualityScore} | ${ev.freshness} | ${ev.ageDays} |`);
-    const findingRows = model.lists.findings.slice(0, 8).map((f) => `| ${f.id} | ${f.severity} | ${f.title} | ${f.file ?? ""} |`);
-    const policyRows = model.lists.policies.slice(0, 8).map((p) => `| ${p.id} | ${p.status} | ${p.severity} |`);
+    const evidenceRows = model.lists.evidence
+      .slice(0, 8)
+      .map(
+        (ev) =>
+          `| ${ev.id} | ${ev.qualityScore} | ${ev.freshness} | ${ev.ageDays} |`,
+      );
+    const findingRows = model.lists.findings
+      .slice(0, 8)
+      .map((f) => `| ${f.id} | ${f.severity} | ${f.title} | ${f.file ?? ""} |`);
+    const policyRows = model.lists.policies
+      .slice(0, 8)
+      .map((p) => `| ${p.id} | ${p.status} | ${p.severity} |`);
     return [
       `# Zeo Report ${model.id}`,
       "",
@@ -171,7 +217,9 @@ function loadModel(id: string, persona: DashboardPersona): DashboardViewModel {
 export async function runRenderCommand(argv: string[]): Promise<number> {
   const id = argv[0];
   if (!id) {
-    console.error("Usage: zeo render <decisionId|runId> --target github-pr|slack|markdown|plain [--persona exec|tech|security] [--compact|--full]");
+    console.error(
+      "Usage: zeo render <decisionId|runId> --target github-pr|slack|markdown|plain [--persona exec|tech|security] [--compact|--full]",
+    );
     return 1;
   }
   if (requireRedactOverride(argv)) {
@@ -179,7 +227,9 @@ export async function runRenderCommand(argv: string[]): Promise<number> {
     return 1;
   }
   const personaRaw = parseFlag(argv, "--persona");
-  const persona = (personaRaw === "tech" || personaRaw === "security" ? personaRaw : "exec") as DashboardPersona;
+  const persona = (
+    personaRaw === "tech" || personaRaw === "security" ? personaRaw : "exec"
+  ) as DashboardPersona;
   const target = parseTarget(parseFlag(argv, "--target"));
   const compact = argv.includes("--compact") || !argv.includes("--full");
   const redactEnabled = parseFlag(argv, "--redact") !== "off";
@@ -199,11 +249,15 @@ export async function runShareCommand(argv: string[]): Promise<number> {
   const channel = argv[0] as ShareChannel | undefined;
   const id = parseFlag(argv, "--id") ?? argv[1];
   if (!channel || (channel !== "github" && channel !== "slack") || !id) {
-    console.error("Usage: zeo share <github|slack> <runId> [--print] [--post] [--repo owner/name --pr 123]");
+    console.error(
+      "Usage: zeo share <github|slack> <runId> [--print] [--post] [--repo owner/name --pr 123]",
+    );
     return 1;
   }
   const personaRaw = parseFlag(argv, "--persona");
-  const persona = (personaRaw === "tech" || personaRaw === "security" ? personaRaw : "exec") as DashboardPersona;
+  const persona = (
+    personaRaw === "tech" || personaRaw === "security" ? personaRaw : "exec"
+  ) as DashboardPersona;
   const model = loadModel(id, persona);
   const redactEnabled = parseFlag(argv, "--redact") !== "off";
   if (requireRedactOverride(argv)) {
@@ -218,7 +272,9 @@ export async function runShareCommand(argv: string[]): Promise<number> {
   const post = argv.includes("--post");
 
   if (post && scanned.hasHighRisk) {
-    console.error(`Blocked share --post due to high-risk token detection. run_id=${id}`);
+    console.error(
+      `Blocked share --post due to high-risk token detection. run_id=${id}`,
+    );
     return 2;
   }
   if (post && policyBlocked) {
@@ -242,11 +298,18 @@ export async function runShareCommand(argv: string[]): Promise<number> {
       return 0;
     }
     const [owner, name] = repo.split("/");
-    const response = await fetch(`https://api.github.com/repos/${owner}/${name}/issues/${pr}/comments`, {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json", "User-Agent": "zeo-cli" },
-      body: JSON.stringify({ body: scanned.redacted }),
-    });
+    const response = await fetch(
+      `https://api.github.com/repos/${owner}/${name}/issues/${pr}/comments`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "User-Agent": "zeo-cli",
+        },
+        body: JSON.stringify({ body: scanned.redacted }),
+      },
+    );
     if (!response.ok) {
       console.error(`GitHub post failed: ${response.status}`);
       return 2;
@@ -302,14 +365,21 @@ export async function runDemoCommand(argv: string[]): Promise<number> {
   const outDir = resolve(process.cwd(), "dist", "demo", stamp);
   mkdirSync(outDir, { recursive: true });
 
-  const fixtures = ["examples/analyze-pr-auth/diff.patch", "examples/analyze-pr-migration/diff.patch", "examples/analyze-pr-performance/diff.patch"];
+  const fixtures = [
+    "examples/analyze-pr-auth/diff.patch",
+    "examples/analyze-pr-migration/diff.patch",
+    "examples/analyze-pr-performance/diff.patch",
+  ];
   const { runAnalyzePrCommand } = await import("./analyze-pr-cli.js");
 
   const runIds: string[] = [];
   for (const fixture of fixtures) {
     const chunks: string[] = [];
     const original = process.stdout.write;
-    process.stdout.write = ((chunk: string | Uint8Array) => { chunks.push(String(chunk)); return true; }) as typeof process.stdout.write;
+    process.stdout.write = ((chunk: string | Uint8Array) => {
+      chunks.push(String(chunk));
+      return true;
+    }) as typeof process.stdout.write;
     await runAnalyzePrCommand([fixture, "--json"]);
     process.stdout.write = original;
     const output = chunks.join("\n");
@@ -325,40 +395,71 @@ export async function runDemoCommand(argv: string[]): Promise<number> {
   const model = loadModel(id, "exec");
   const viewerDir = join(outDir, "viewer");
   mkdirSync(viewerDir, { recursive: true });
-  writeFileSync(join(viewerDir, "dashboard.json"), stableStringify(model), "utf8");
-  writeFileSync(join(outDir, "dashboard.html"), `<html><body><h1>Zeo Demo ${id}</h1><pre>${stableStringify(model).replace(/</g, "&lt;")}</pre></body></html>\n`, "utf8");
+  writeFileSync(
+    join(viewerDir, "dashboard.json"),
+    stableStringify(model),
+    "utf8",
+  );
+  writeFileSync(
+    join(outDir, "dashboard.html"),
+    `<html><body><h1>Zeo Demo ${id}</h1><pre>${stableStringify(model).replace(/</g, "&lt;")}</pre></body></html>\n`,
+    "utf8",
+  );
 
-  writeFileSync(join(outDir, "pr-comment.md"), renderOutput(model, "github-pr", false), "utf8");
-  writeFileSync(join(outDir, "slack-message.txt"), renderOutput(model, "slack", true), "utf8");
-  writeFileSync(join(outDir, "report.md"), renderOutput(model, "markdown", false), "utf8");
+  writeFileSync(
+    join(outDir, "pr-comment.md"),
+    renderOutput(model, "github-pr", false),
+    "utf8",
+  );
+  writeFileSync(
+    join(outDir, "slack-message.txt"),
+    renderOutput(model, "slack", true),
+    "utf8",
+  );
+  writeFileSync(
+    join(outDir, "report.md"),
+    renderOutput(model, "markdown", false),
+    "utf8",
+  );
 
   const bundleDir = join(outDir, "bundle");
   copyDir(resolve(process.cwd(), ".zeo", "analyze-pr", id), bundleDir);
-  const bundleHash = createHash("sha256").update(readFileSync(join(bundleDir, "manifest.json"), "utf8")).digest("hex");
+  const bundleHash = createHash("sha256")
+    .update(readFileSync(join(bundleDir, "manifest.json"), "utf8"))
+    .digest("hex");
   const bundleZip = join(outDir, "bundle.zip");
   zipDirectory(bundleDir, bundleZip);
 
-  writeFileSync(join(outDir, "README.md"), [
-    "# Zeo Demo",
-    "",
-    `Primary run: ${id}`,
-    "",
-    "Open:",
-    "- dashboard.html",
-    "- pr-comment.md",
-    "- report.md",
-    "",
-    `Bundle hash: ${bundleHash}`,
-  ].join("\n"), "utf8");
+  writeFileSync(
+    join(outDir, "README.md"),
+    [
+      "# Zeo Demo",
+      "",
+      `Primary run: ${id}`,
+      "",
+      "Open:",
+      "- dashboard.html",
+      "- pr-comment.md",
+      "- report.md",
+      "",
+      `Bundle hash: ${bundleHash}`,
+    ].join("\n"),
+    "utf8",
+  );
 
   if (argv.includes("--zip")) {
-    zipDirectory(outDir, join(resolve(process.cwd(), "dist", "demo"), `${stamp}.zip`));
+    zipDirectory(
+      outDir,
+      join(resolve(process.cwd(), "dist", "demo"), `${stamp}.zip`),
+    );
   }
 
   if (argv.includes("--open")) {
     try {
-      if (process.platform === "darwin") execFileSync("open", [join(outDir, "dashboard.html")]);
-      else if (process.platform === "win32") execFileSync("cmd", ["/c", "start", join(outDir, "dashboard.html")]);
+      if (process.platform === "darwin")
+        execFileSync("open", [join(outDir, "dashboard.html")]);
+      else if (process.platform === "win32")
+        execFileSync("cmd", ["/c", "start", join(outDir, "dashboard.html")]);
       else execFileSync("xdg-open", [join(outDir, "dashboard.html")]);
     } catch {
       console.log(`Open manually: ${join(outDir, "dashboard.html")}`);
@@ -368,4 +469,3 @@ export async function runDemoCommand(argv: string[]): Promise<number> {
   process.stdout.write(`${outDir}\n`);
   return 0;
 }
-

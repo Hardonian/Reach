@@ -33,5 +33,6 @@ Execution is defined by an `ExecutionGraph` containing:
    - Prioritizes models with the highest reasoning depth/capability.
 
 ## 4. Operational Boundaries - **Antigravity Compliance**: Determinism is preserved when required.
+
 - **Policy Gates**: Organization policies (e.g. max cost, allowed models) always override optimization choices.
 - **Bounded Recursion**: The graph is a DAG; no infinite loops are permitted.

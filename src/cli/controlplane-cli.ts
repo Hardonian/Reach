@@ -1,6 +1,13 @@
 // @ts-nocheck
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { join, resolve, basename } from "node:path";
 
 interface ControlPlaneArgs {
@@ -18,8 +25,21 @@ interface ControlPlaneStatus {
   repoRoot: string;
   agents: Array<{ id: string; path: string }>;
   runners: Array<{ id: string; path: string }>;
-  mcpTools: Array<{ name: string; enabled: boolean; scope: string; requireConfirmation: boolean }>;
-  modules: Array<{ module: string; lastExecution: string | null; health: Health; failures: number; retries: number; tokenUsage: number; costUsd: number }>;
+  mcpTools: Array<{
+    name: string;
+    enabled: boolean;
+    scope: string;
+    requireConfirmation: boolean;
+  }>;
+  modules: Array<{
+    module: string;
+    lastExecution: string | null;
+    health: Health;
+    failures: number;
+    retries: number;
+    tokenUsage: number;
+    costUsd: number;
+  }>;
   policyViolations24h: number;
   routingDecisions: Array<{ module: string; model: string; provider: string }>;
 }
@@ -81,7 +101,12 @@ function listFilesRecursive(base: string, maxDepth = 4): string[] {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const full = join(dir, entry.name);
       if (entry.isDirectory()) {
-        if (entry.name === "node_modules" || entry.name === ".git" || entry.name === ".next") continue;
+        if (
+          entry.name === "node_modules" ||
+          entry.name === ".git" ||
+          entry.name === ".next"
+        )
+          continue;
         walk(full, depth + 1);
       } else {
         out.push(full);
@@ -94,7 +119,22 @@ function listFilesRecursive(base: string, maxDepth = 4): string[] {
 
 function parseToolConfig(root: string): ControlPlaneStatus["mcpTools"] {
   const config = readJsonSafe(join(root, "zeo.mcp.json"));
-  const allowlist = config?.tools && typeof config.tools === "object" ? (config.tools as { allowlist?: Record<string, { name?: string; enabled?: boolean; scope?: string; requireConfirmation?: boolean }> }).allowlist : undefined;
+  const allowlist =
+    config?.tools && typeof config.tools === "object"
+      ? (
+          config.tools as {
+            allowlist?: Record<
+              string,
+              {
+                name?: string;
+                enabled?: boolean;
+                scope?: string;
+                requireConfirmation?: boolean;
+              }
+            >;
+          }
+        ).allowlist
+      : undefined;
   if (!allowlist) return [];
   return Object.keys(allowlist)
     .sort()
@@ -110,20 +150,25 @@ function parseToolConfig(root: string): ControlPlaneStatus["mcpTools"] {
 }
 
 function collectAgents(root: string): Array<{ id: string; path: string }> {
-  const files = listFilesRecursive(join(root, "agents"), 3).filter((file) => file.endsWith(".agent.json") || file.endsWith("zeo.agent.json"));
-  return files
-    .sort()
-    .map((file) => ({
-      id: basename(file).replace(/\.json$/, ""),
-      path: file.replace(`${root}/`, ""),
-    }));
+  const files = listFilesRecursive(join(root, "agents"), 3).filter(
+    (file) => file.endsWith(".agent.json") || file.endsWith("zeo.agent.json"),
+  );
+  return files.sort().map((file) => ({
+    id: basename(file).replace(/\.json$/, ""),
+    path: file.replace(`${root}/`, ""),
+  }));
 }
 
 function collectRunners(root: string): Array<{ id: string; path: string }> {
-  const plugins = listFilesRecursive(join(root, "plugins"), 3).filter((file) => file.endsWith("plugin.json"));
+  const plugins = listFilesRecursive(join(root, "plugins"), 3).filter((file) =>
+    file.endsWith("plugin.json"),
+  );
   return plugins
     .sort()
-    .map((file) => ({ id: basename(file, ".json"), path: file.replace(`${root}/`, "") }));
+    .map((file) => ({
+      id: basename(file, ".json"),
+      path: file.replace(`${root}/`, ""),
+    }));
 }
 
 function healthFromFailures(failures: number): Health {
@@ -135,39 +180,78 @@ function healthFromFailures(failures: number): Health {
 function collectModuleStats(root: string): ControlPlaneStatus["modules"] {
   const modules = ["zeo", "keys", "settler", "readylayer"];
   const now = Date.now();
-  return modules.map((module) => {
-    const relevantLogs = KNOWN_LOGS.map((log) => join(root, log)).filter((file) => existsSync(file));
-    const failures = relevantLogs.reduce((acc, file) => acc + (readFileSync(file, "utf8").toLowerCase().includes("fail") ? 1 : 0), 0);
-    const lastExecution = relevantLogs.length > 0
-      ? new Date(Math.max(...relevantLogs.map((file) => statSync(file).mtimeMs))).toISOString()
-      : null;
-    const tokenUsage = relevantLogs.reduce((acc, file) => acc + Math.floor(statSync(file).size / 4), 0);
-    return {
-      module,
-      lastExecution,
-      health: healthFromFailures(failures),
-      failures,
-      retries: Math.max(0, failures - 1),
-      tokenUsage,
-      costUsd: Number((tokenUsage * 0.000002).toFixed(6)),
-    };
-  }).sort((a, b) => a.module.localeCompare(b.module));
+  return modules
+    .map((module) => {
+      const relevantLogs = KNOWN_LOGS.map((log) => join(root, log)).filter(
+        (file) => existsSync(file),
+      );
+      const failures = relevantLogs.reduce(
+        (acc, file) =>
+          acc +
+          (readFileSync(file, "utf8").toLowerCase().includes("fail") ? 1 : 0),
+        0,
+      );
+      const lastExecution =
+        relevantLogs.length > 0
+          ? new Date(
+              Math.max(...relevantLogs.map((file) => statSync(file).mtimeMs)),
+            ).toISOString()
+          : null;
+      const tokenUsage = relevantLogs.reduce(
+        (acc, file) => acc + Math.floor(statSync(file).size / 4),
+        0,
+      );
+      return {
+        module,
+        lastExecution,
+        health: healthFromFailures(failures),
+        failures,
+        retries: Math.max(0, failures - 1),
+        tokenUsage,
+        costUsd: Number((tokenUsage * 0.000002).toFixed(6)),
+      };
+    })
+    .sort((a, b) => a.module.localeCompare(b.module));
 }
 
 function collectPolicyViolations24h(root: string): number {
-  const since = Date.now() - (24 * 60 * 60 * 1000);
-  return KNOWN_LOGS
-    .map((log) => join(root, log))
+  const since = Date.now() - 24 * 60 * 60 * 1000;
+  return KNOWN_LOGS.map((log) => join(root, log))
     .filter((file) => existsSync(file) && statSync(file).mtimeMs >= since)
-    .reduce((count, file) => count + (readFileSync(file, "utf8").toLowerCase().includes("policy") ? 1 : 0), 0);
+    .reduce(
+      (count, file) =>
+        count +
+        (readFileSync(file, "utf8").toLowerCase().includes("policy") ? 1 : 0),
+      0,
+    );
 }
 
-function collectRoutingDecisions(): Array<{ module: string; model: string; provider: string }> {
+function collectRoutingDecisions(): Array<{
+  module: string;
+  model: string;
+  provider: string;
+}> {
   return [
-    { module: "zeo", model: process.env.ZEO_MODEL || "gpt-4o-mini", provider: process.env.ZEO_PROVIDER || "openai" },
-    { module: "keys", model: process.env.KEYS_MODEL || "local-default", provider: process.env.KEYS_PROVIDER || "local" },
-    { module: "readylayer", model: process.env.READYLAYER_MODEL || "local-default", provider: process.env.READYLAYER_PROVIDER || "local" },
-    { module: "settler", model: process.env.SETTLER_MODEL || "local-default", provider: process.env.SETTLER_PROVIDER || "local" },
+    {
+      module: "zeo",
+      model: process.env.ZEO_MODEL || "gpt-4o-mini",
+      provider: process.env.ZEO_PROVIDER || "openai",
+    },
+    {
+      module: "keys",
+      model: process.env.KEYS_MODEL || "local-default",
+      provider: process.env.KEYS_PROVIDER || "local",
+    },
+    {
+      module: "readylayer",
+      model: process.env.READYLAYER_MODEL || "local-default",
+      provider: process.env.READYLAYER_PROVIDER || "local",
+    },
+    {
+      module: "settler",
+      model: process.env.SETTLER_MODEL || "local-default",
+      provider: process.env.SETTLER_PROVIDER || "local",
+    },
   ].sort((a, b) => a.module.localeCompare(b.module));
 }
 
@@ -189,33 +273,48 @@ function extractArtifacts(root: string): ArtifactRecord[] {
     ...listFilesRecursive(join(root, "examples"), 3),
     ...listFilesRecursive(join(root, "external/examples"), 4),
     ...listFilesRecursive(join(root, "apps/cli/reports"), 2),
-  ].filter((path) => path.endsWith("evidence.json") || path.endsWith("replay.json") || path.endsWith("replay_results.json"));
+  ].filter(
+    (path) =>
+      path.endsWith("evidence.json") ||
+      path.endsWith("replay.json") ||
+      path.endsWith("replay_results.json"),
+  );
 
-  const records = candidates
-    .sort()
-    .map((path) => {
-      const payload = readJsonSafe(path) ?? {};
-      const relative = path.replace(`${root}/`, "");
-      const inputHash = sha256(relative);
-      const contentHash = sha256(stableStringify(payload));
-      const createdAt = existsSync(path) ? statSync(path).mtime.toISOString() : new Date(0).toISOString();
-      const module = relative.startsWith("apps/") ? "zeo" : relative.startsWith("external/") ? "keys" : "settler";
-      const summary = payload.summary && typeof payload.summary === "object" ? payload.summary as Record<string, unknown> : { keys: Object.keys(payload).slice(0, 10) };
-      const evidence = payload.evidence && typeof payload.evidence === "object" ? payload.evidence as Record<string, unknown> : payload;
-      return {
-        version: "artifact.registry.v1",
-        artifactId: sha256(`${module}:${relative}:${contentHash}`).slice(0, 20),
-        module,
-        agent: "unknown",
-        policyVersion: "default-policy",
-        createdAt,
-        inputHash,
-        contentHash,
-        sourcePath: relative,
-        summary,
-        evidence,
-      } satisfies ArtifactRecord;
-    });
+  const records = candidates.sort().map((path) => {
+    const payload = readJsonSafe(path) ?? {};
+    const relative = path.replace(`${root}/`, "");
+    const inputHash = sha256(relative);
+    const contentHash = sha256(stableStringify(payload));
+    const createdAt = existsSync(path)
+      ? statSync(path).mtime.toISOString()
+      : new Date(0).toISOString();
+    const module = relative.startsWith("apps/")
+      ? "zeo"
+      : relative.startsWith("external/")
+        ? "keys"
+        : "settler";
+    const summary =
+      payload.summary && typeof payload.summary === "object"
+        ? (payload.summary as Record<string, unknown>)
+        : { keys: Object.keys(payload).slice(0, 10) };
+    const evidence =
+      payload.evidence && typeof payload.evidence === "object"
+        ? (payload.evidence as Record<string, unknown>)
+        : payload;
+    return {
+      version: "artifact.registry.v1",
+      artifactId: sha256(`${module}:${relative}:${contentHash}`).slice(0, 20),
+      module,
+      agent: "unknown",
+      policyVersion: "default-policy",
+      createdAt,
+      inputHash,
+      contentHash,
+      sourcePath: relative,
+      summary,
+      evidence,
+    } satisfies ArtifactRecord;
+  });
   return records;
 }
 
@@ -227,7 +326,8 @@ function ensureRegistry(root: string): ArtifactRegistry {
     generatedAt: new Date().toISOString(),
     artifacts,
   };
-  if (!existsSync(join(root, ".zeo/artifacts"))) mkdirSync(join(root, ".zeo/artifacts"), { recursive: true });
+  if (!existsSync(join(root, ".zeo/artifacts")))
+    mkdirSync(join(root, ".zeo/artifacts"), { recursive: true });
   writeFileSync(path, `${stableStringify(registry)}\n`, "utf8");
   return registry;
 }
@@ -261,10 +361,14 @@ function printJson(value: unknown): void {
 function printCpStatus(status: ControlPlaneStatus): void {
   console.log("ControlPlane Status");
   console.log(`Generated: ${status.generatedAt}`);
-  console.log(`Agents: ${status.agents.length} | Runners: ${status.runners.length} | MCP tools: ${status.mcpTools.length}`);
+  console.log(
+    `Agents: ${status.agents.length} | Runners: ${status.runners.length} | MCP tools: ${status.mcpTools.length}`,
+  );
   console.log(`Policy violations (24h): ${status.policyViolations24h}`);
   for (const module of status.modules) {
-    console.log(`- ${module.module}: health=${module.health} failures=${module.failures} retries=${module.retries} tokens=${module.tokenUsage} cost=$${module.costUsd.toFixed(6)} last=${module.lastExecution ?? "never"}`);
+    console.log(
+      `- ${module.module}: health=${module.health} failures=${module.failures} retries=${module.retries} tokens=${module.tokenUsage} cost=$${module.costUsd.toFixed(6)} last=${module.lastExecution ?? "never"}`,
+    );
   }
 }
 
@@ -273,7 +377,9 @@ function printArtifacts(registry: ArtifactRegistry): void {
   console.log(`Generated: ${registry.generatedAt}`);
   console.log(`Artifacts: ${registry.artifacts.length}`);
   for (const artifact of registry.artifacts.slice(0, 20)) {
-    console.log(`- ${artifact.artifactId} module=${artifact.module} created=${artifact.createdAt} source=${artifact.sourcePath}`);
+    console.log(
+      `- ${artifact.artifactId} module=${artifact.module} created=${artifact.createdAt} source=${artifact.sourcePath}`,
+    );
   }
 }
 
@@ -290,7 +396,9 @@ export async function runControlPlaneCommand(argv: string[]): Promise<number> {
     }
     if (args.command === "show") {
       const artifactId = args.subcommand;
-      const item = registry.artifacts.find((artifact) => artifact.artifactId === artifactId);
+      const item = registry.artifacts.find(
+        (artifact) => artifact.artifactId === artifactId,
+      );
       if (!item) {
         console.error(`Artifact not found: ${artifactId ?? "<missing-id>"}`);
         return 1;
@@ -299,22 +407,36 @@ export async function runControlPlaneCommand(argv: string[]): Promise<number> {
       return 0;
     }
     if (args.command === "export") {
-      const outPath = args.subcommand ? resolve(root, args.subcommand) : resolve(root, ".zeo/artifacts/export.json");
+      const outPath = args.subcommand
+        ? resolve(root, args.subcommand)
+        : resolve(root, ".zeo/artifacts/export.json");
       writeFileSync(outPath, `${stableStringify(registry)}\n`, "utf8");
       console.log(`Exported artifact registry to ${outPath}`);
       return 0;
     }
     if (args.command === "verify") {
-      const invalid = registry.artifacts.filter((artifact) => artifact.contentHash !== sha256(stableStringify(artifact.evidence)));
+      const invalid = registry.artifacts.filter(
+        (artifact) =>
+          artifact.contentHash !== sha256(stableStringify(artifact.evidence)),
+      );
       if (invalid.length > 0) {
-        console.error(`Artifact verification failed for ${invalid.length} record(s)`);
-        printJson(invalid.map((item) => ({ artifactId: item.artifactId, sourcePath: item.sourcePath })));
+        console.error(
+          `Artifact verification failed for ${invalid.length} record(s)`,
+        );
+        printJson(
+          invalid.map((item) => ({
+            artifactId: item.artifactId,
+            sourcePath: item.sourcePath,
+          })),
+        );
         return 1;
       }
       console.log(`Verified ${registry.artifacts.length} artifacts`);
       return 0;
     }
-    console.error("Usage: zeo artifacts <list|show <artifactId>|export <path>|verify> [--json]");
+    console.error(
+      "Usage: zeo artifacts <list|show <artifactId>|export <path>|verify> [--json]",
+    );
     return 1;
   }
 
@@ -330,11 +452,19 @@ export async function runControlPlaneCommand(argv: string[]): Promise<number> {
       action,
       deterministicHash: sha256(action),
       agents: status.agents.map((item) => item.id),
-      tools: status.mcpTools.filter((tool) => tool.enabled).map((tool) => tool.name),
-      estimatedCostUsd: Number((status.modules.reduce((acc, item) => acc + item.costUsd, 0) / 10).toFixed(6)),
+      tools: status.mcpTools
+        .filter((tool) => tool.enabled)
+        .map((tool) => tool.name),
+      estimatedCostUsd: Number(
+        (
+          status.modules.reduce((acc, item) => acc + item.costUsd, 0) / 10
+        ).toFixed(6),
+      ),
       estimatedTimeMs: status.modules.length * 250,
       riskScore: Math.min(1, status.policyViolations24h / 10),
-      approvals: status.mcpTools.filter((tool) => tool.requireConfirmation).map((tool) => tool.name),
+      approvals: status.mcpTools
+        .filter((tool) => tool.requireConfirmation)
+        .map((tool) => tool.name),
     };
     printJson(plan);
     return 0;
@@ -342,11 +472,16 @@ export async function runControlPlaneCommand(argv: string[]): Promise<number> {
   if (args.command === "policy" && args.subcommand === "inspect") {
     const policy = {
       version: "policy.inspect.v1",
-      appliedPolicies: listFilesRecursive(join(root, "packs"), 3).filter((file) => file.endsWith("default-policy.json")).map((path) => path.replace(`${root}/`, "")).sort(),
+      appliedPolicies: listFilesRecursive(join(root, "packs"), 3)
+        .filter((file) => file.endsWith("default-policy.json"))
+        .map((path) => path.replace(`${root}/`, ""))
+        .sort(),
       decisionCheckpoints: ["ingest", "evaluate", "enforce", "export"],
       blockedActions: collectPolicyViolations24h(root),
       complianceState: collectPolicyViolations24h(root) > 0 ? "red" : "green",
-      rlsSimulationMode: existsSync(join(root, "supabase")) ? "available" : "not_detected",
+      rlsSimulationMode: existsSync(join(root, "supabase"))
+        ? "available"
+        : "not_detected",
     };
     printJson(policy);
     return 0;
@@ -385,18 +520,35 @@ export async function runControlPlaneCommand(argv: string[]): Promise<number> {
   if (args.command === "doctor") {
     const doctor = {
       version: "cp.doctor.v1",
-      reposDetected: ["Zeo", "Keys", "Settler", "ReadyLayer", "ControlPlane", "TruthCore", "JobForge"],
+      reposDetected: [
+        "Zeo",
+        "Keys",
+        "Settler",
+        "ReadyLayer",
+        "ControlPlane",
+        "TruthCore",
+        "JobForge",
+      ],
       schemaContracts: status.mcpTools.length > 0 ? "ok" : "degraded",
-      circuitBreakerState: status.modules.some((module) => module.health === "red") ? "open" : "closed",
-      quarantineCount: status.modules.filter((module) => module.health === "red").length,
+      circuitBreakerState: status.modules.some(
+        (module) => module.health === "red",
+      )
+        ? "open"
+        : "closed",
+      quarantineCount: status.modules.filter(
+        (module) => module.health === "red",
+      ).length,
       breakingChanges: 0,
-      integrity: status.modules.every((module) => module.lastExecution !== null) ? "green" : "yellow",
+      integrity: status.modules.every((module) => module.lastExecution !== null)
+        ? "green"
+        : "yellow",
     };
     printJson(doctor);
     return 0;
   }
 
-  console.error("Usage: zeo cp <status|policy inspect|plan <action>|tools status|tools inspect <tool>|doctor> [--json]");
+  console.error(
+    "Usage: zeo cp <status|policy inspect|plan <action>|tools status|tools inspect <tool>|doctor> [--json]",
+  );
   return 1;
 }
-

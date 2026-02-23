@@ -1,4 +1,5 @@
 # Reach Protocol Specification v1.0.0 **Status:** NORMATIVE
+
 **Effective Date:** 2026-02-18
 **specVersion:** 1.0.0
 
@@ -16,6 +17,7 @@
 ## 2. Conformance The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
 
 A conforming implementation MUST:
+
 1. Satisfy all MUST-level requirements
 2. Produce valid output for all conformance test cases
 3. Maintain backward compatibility within major versions
@@ -41,13 +43,13 @@ PENDING → PREPARING → EXECUTING → COMPLETED
 
 **Transitions:**
 
-| From → To | Trigger | MUST Guarantee |
-|-----------|---------|----------------|
-| PENDING → PREPARING | Valid pack received | Input hash recorded |
-| PREPARING → EXECUTING | Policy validation passed | Capability manifest locked |
-| EXECUTING → COMPLETED | All steps succeed | Output hash committed |
-| EXECUTING → FAILED | Error or violation | Error code emitted, partial state captured |
-| Any → ABORTED | SIGTERM/SIGINT received | Graceful cleanup within 30s |
+| From → To             | Trigger                  | MUST Guarantee                             |
+| --------------------- | ------------------------ | ------------------------------------------ |
+| PENDING → PREPARING   | Valid pack received      | Input hash recorded                        |
+| PREPARING → EXECUTING | Policy validation passed | Capability manifest locked                 |
+| EXECUTING → COMPLETED | All steps succeed        | Output hash committed                      |
+| EXECUTING → FAILED    | Error or violation       | Error code emitted, partial state captured |
+| Any → ABORTED         | SIGTERM/SIGINT received  | Graceful cleanup within 30s                |
 
 ### 3.2 Event Ordering Events within a Run MUST be emitted in the following order:
 
@@ -143,13 +145,13 @@ Before execution, a Pack MUST declare:
 
 A valid Reach Pack MUST contain:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `specVersion` | string | Protocol version (semver) |
-| `id` | string | Unique pack identifier |
-| `version` | string | Pack version (semver) |
-| `manifest` | object | Capability declarations |
-| `entrypoint` | string | Path to main execution file |
+| Field         | Type   | Description                 |
+| ------------- | ------ | --------------------------- |
+| `specVersion` | string | Protocol version (semver)   |
+| `id`          | string | Unique pack identifier      |
+| `version`     | string | Pack version (semver)       |
+| `manifest`    | object | Capability declarations     |
+| `entrypoint`  | string | Path to main execution file |
 
 ### 5.2 specVersion The `specVersion` field declares the protocol version the pack targets:
 
@@ -234,20 +236,22 @@ Error codes follow the pattern: `CATEGORY_SUBCATEGORY_DETAIL`
 
 **Categories:**
 
-| Category | Prefix | Description |
-|----------|--------|-------------|
-| Protocol | `PROTO_` | Protocol-level errors |
-| Policy | `POLICY_` | Policy violations |
-| Execution | `EXEC_` | Runtime execution errors |
-| Federation | `FED_` | Federation communication errors |
-| Pack | `PACK_` | Pack validation errors |
+| Category   | Prefix    | Description                     |
+| ---------- | --------- | ------------------------------- |
+| Protocol   | `PROTO_`  | Protocol-level errors           |
+| Policy     | `POLICY_` | Policy violations               |
+| Execution  | `EXEC_`   | Runtime execution errors        |
+| Federation | `FED_`    | Federation communication errors |
+| Pack       | `PACK_`   | Pack validation errors          |
 
 ### 7.2 Error Classification Guarantees **Hard Failures** (MUST terminate run):
+
 - `PROTO_VERSION_MISMATCH`
 - `POLICY_VIOLATION`
 - `PACK_INVALID_SIGNATURE`
 
 **Soft Failures** (MAY be recoverable):
+
 - `EXEC_TOOL_TIMEOUT`
 - `EXEC_RESOURCE_UNAVAILABLE`
 - `FED_NODE_UNREACHABLE`
@@ -271,12 +275,14 @@ Error codes follow the pattern: `CATEGORY_SUBCATEGORY_DETAIL`
 Time capsules preserve execution state for replay:
 
 **Required Contents:**
+
 1. Run events (complete, ordered)
 2. Tool inputs and outputs
 3. External state snapshots
 4. Pack manifest and code
 
 **Format:**
+
 - Container: TAR archive
 - Compression: gzip
 - Naming: `{runHash}.capsule.tar.gz`
@@ -323,6 +329,7 @@ Time capsules preserve execution state for replay:
 ---
 
 ## Appendix A: Normative References - RFC 2119: Key words for use in RFCs
+
 - RFC 3339: Date and Time on the Internet
 - SemVer 2.0.0: Semantic Versioning
 - JSON Schema Draft 2020-12

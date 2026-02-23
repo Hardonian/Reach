@@ -11,7 +11,7 @@ export interface WorkspaceConfig {
 }
 
 export interface RepoSyncProfile {
-  mode: 'metadata' | 'diff-only' | 'full';
+  mode: "metadata" | "diff-only" | "full";
   branch_scope?: string[];
   file_scope?: string[];
   max_size?: number;
@@ -24,7 +24,7 @@ export interface ContextPayload {
   selection_range: SelectionRange | null;
   workspace_config?: WorkspaceConfig;
   repo_sync_profile?: RepoSyncProfile;
-  tier?: 'free' | 'pro' | 'enterprise';
+  tier?: "free" | "pro" | "enterprise";
 }
 
 export interface BridgeEvent {

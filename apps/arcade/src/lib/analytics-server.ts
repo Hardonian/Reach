@@ -5,7 +5,7 @@
  * Use analytics.ts (track) for client-side event submission.
  */
 
-import type { AnalyticsEvent } from './analytics';
+import type { AnalyticsEvent } from "./analytics";
 
 /**
  * Server-side record function.
@@ -14,11 +14,15 @@ import type { AnalyticsEvent } from './analytics';
 export function recordEvent(event: AnalyticsEvent): void {
   void (async () => {
     try {
-      const { appendEvent } = await import('./cloud-db');
-      appendEvent(event.event, event.properties ?? {}, event.ts ?? new Date().toISOString());
+      const { appendEvent } = await import("./cloud-db");
+      appendEvent(
+        event.event,
+        event.properties ?? {},
+        event.ts ?? new Date().toISOString(),
+      );
     } catch {
       // DB not available — log only
-      console.info('[analytics]', event.event, event.properties);
+      console.info("[analytics]", event.event, event.properties);
     }
   })();
 }

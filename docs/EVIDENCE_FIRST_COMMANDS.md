@@ -5,6 +5,7 @@ This document describes the new evidence-first commands added to Reach CLI as pa
 ## Overview
 
 The Evidence-First Determinism Suite provides commands for:
+
 - **Step Identity**: Stable identifiers for execution steps
 - **Proof Hashes**: Cryptographic verification of step execution
 - **Checkpoints**: Save and rewind run state
@@ -31,6 +32,7 @@ reachctl steps run-123456 --json
 ```
 
 **Example Output:**
+
 ```
 Steps for run run-123456
 ================
@@ -121,6 +123,7 @@ reachctl chaos run-123456 --level 5 --json
 ```
 
 **Chaos Levels:**
+
 - Level 1: Map iteration reordering
 - Level 2: Add jitter to timeouts (bounded)
 - Level 3: Random seed injection (chaos mode only)
@@ -143,6 +146,7 @@ reachctl provenance run-123456 --json
 ```
 
 **Example Output:**
+
 ```
 Provenance for run run-123456
 ==================
@@ -175,6 +179,7 @@ reachctl trust run-123456 --json
 ```
 
 **Scoring Model:**
+
 - Base score: 100
 - Deductions:
   - Missing provenance: -10
@@ -184,6 +189,7 @@ reachctl trust run-123456 --json
   - Plugin unsigned: -10
 
 **Example Output:**
+
 ```
 Trust Score Report
 ==================
@@ -258,6 +264,7 @@ go test ./internal/determinism/... -run Stress
 ### Step Identity
 
 Each step has a stable `StepKey` computed from:
+
 - Canonical step definition (sorted keys, no ephemeral fields)
 - Engine version (major only)
 - Plugin name and version
@@ -265,6 +272,7 @@ Each step has a stable `StepKey` computed from:
 ### Proof Hash
 
 Each step execution produces a `ProofHash` computed from:
+
 - StepKey hash
 - Run context fingerprint
 - Normalized inputs hash
@@ -274,6 +282,7 @@ Each step execution produces a `ProofHash` computed from:
 ### Run Proof Chain
 
 The run has an overall proof hash computed from:
+
 - Ordered step proof hashes
 - Run context fingerprint
 - Engine version

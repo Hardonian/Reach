@@ -1,6 +1,6 @@
-import { safeDefault, ViewModelResponse } from './types';
+import { safeDefault, ViewModelResponse } from "./types";
 
-export type SystemMode = 'normal' | 'degraded' | 'maintenance';
+export type SystemMode = "normal" | "degraded" | "maintenance";
 
 export interface SystemStatus {
   mode: SystemMode;
@@ -16,9 +16,11 @@ export interface SystemStatus {
  * Returns the current system status.
  * In the absence of a backend, returns safe defaults (normal mode).
  */
-export const getSystemStatus = async (): Promise<ViewModelResponse<SystemStatus>> => {
+export const getSystemStatus = async (): Promise<
+  ViewModelResponse<SystemStatus>
+> => {
   return safeDefault({
-    mode: 'normal',
+    mode: "normal",
     queuePaused: false,
     circuitBreakerOpen: false,
     rateLimitActive: false,

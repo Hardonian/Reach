@@ -3,28 +3,43 @@
   "$id": "https://reach.dev/protocol/integrations/notification.schema.json",
   "title": "Reach Notification",
   "type": "object",
-  "required": ["schemaVersion", "notificationId", "tenantId", "channel", "subject", "body", "status", "createdAt"],
+  "required": [
+    "schemaVersion",
+    "notificationId",
+    "tenantId",
+    "channel",
+    "subject",
+    "body",
+    "status",
+    "createdAt"
+  ],
   "properties": {
-    "schemaVersion": {"const": "1.0.0"},
-    "notificationId": {"type": "string", "minLength": 1},
-    "tenantId": {"type": "string", "minLength": 1},
-    "channel": {"type": "string", "enum": ["slack", "gmail", "webhook", "sms", "email", "teams"]},
-    "subject": {"type": "string", "minLength": 1},
-    "body": {"type": "string", "minLength": 1},
-    "status": {"type": "string", "enum": ["queued", "sent", "failed", "acknowledged"]},
+    "schemaVersion": { "const": "1.0.0" },
+    "notificationId": { "type": "string", "minLength": 1 },
+    "tenantId": { "type": "string", "minLength": 1 },
+    "channel": {
+      "type": "string",
+      "enum": ["slack", "gmail", "webhook", "sms", "email", "teams"]
+    },
+    "subject": { "type": "string", "minLength": 1 },
+    "body": { "type": "string", "minLength": 1 },
+    "status": {
+      "type": "string",
+      "enum": ["queued", "sent", "failed", "acknowledged"]
+    },
     "approval": {
       "type": "object",
       "properties": {
-        "required": {"type": "boolean"},
-        "approvalToken": {"type": "string"},
-        "approvedBy": {"type": "string"},
-        "decision": {"type": "string", "enum": ["approve", "deny"]}
+        "required": { "type": "boolean" },
+        "approvalToken": { "type": "string" },
+        "approvedBy": { "type": "string" },
+        "decision": { "type": "string", "enum": ["approve", "deny"] }
       },
       "additionalProperties": false
     },
-    "metadata": {"type": "object", "additionalProperties": true},
-    "createdAt": {"type": "string", "format": "date-time"},
-    "updatedAt": {"type": "string", "format": "date-time"}
+    "metadata": { "type": "object", "additionalProperties": true },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" }
   },
   "additionalProperties": false
 }

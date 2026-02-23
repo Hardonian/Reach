@@ -1,10 +1,10 @@
-import { ROUTES } from '@/lib/routes';
+import { ROUTES } from "@/lib/routes";
 
 /**
  * Canonical Trace ID type — branded string for type safety.
  * All trace identifiers flowing through the UI should use this type.
  */
-export type TraceId = string & { readonly __brand: 'TraceId' };
+export type TraceId = string & { readonly __brand: "TraceId" };
 
 /**
  * Constructs the canonical URL for a given trace ID.
@@ -20,5 +20,5 @@ export function traceUrl(traceId: TraceId | string): string {
  * Does not verify existence — only format.
  */
 export function isValidTraceId(value: string): value is TraceId {
-  return typeof value === 'string' && value.length >= 4 && value.length <= 128;
+  return typeof value === "string" && value.length >= 4 && value.length <= 128;
 }

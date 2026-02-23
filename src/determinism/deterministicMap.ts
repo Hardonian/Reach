@@ -87,7 +87,7 @@ export class DeterministicMap<V> implements Iterable<[string, V]> {
    * Iterates in sorted key order.
    */
   forEach(
-    callback: (value: V, key: string, map: DeterministicMap<V>) => void
+    callback: (value: V, key: string, map: DeterministicMap<V>) => void,
   ): void {
     for (const [key, value] of this.entries()) {
       callback(value, key, this);

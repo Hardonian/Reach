@@ -1,320 +1,536 @@
-<!DOCTYPE html>
+<!doctype html>
 
-<html class="dark" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Global Search &amp; Discovery Command</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#7f13ec",
-                        "background-light": "#f7f6f8",
-                        "background-dark": "#191022",
-                        "surface-dark": "#241b2f",
-                        "surface-darker": "#1f1629",
-                    },
-                    fontFamily: {
-                        "display": ["Inter", "sans-serif"]
-                    },
-                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
-                },
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Global Search &amp; Discovery Command</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#7f13ec",
+              "background-light": "#f7f6f8",
+              "background-dark": "#191022",
+              "surface-dark": "#241b2f",
+              "surface-darker": "#1f1629",
             },
-        }
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
     </script>
-<style>
-        /* Custom scrollbar for webkit browsers */
-        ::-webkit-scrollbar {
-            width: 8px;
+    <style>
+      /* Custom scrollbar for webkit browsers */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #4a4a4a;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #6b6b6b;
+      }
+
+      .glass-panel {
+        background: rgba(25, 16, 34, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+
+      /* Animation for the modal appearance */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.98) translateY(10px);
         }
-        ::-webkit-scrollbar-track {
-            background: transparent; 
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
         }
-        ::-webkit-scrollbar-thumb {
-            background: #4a4a4a; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #6b6b6b; 
-        }
-        
-        .glass-panel {
-            background: rgba(25, 16, 34, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-        
-        /* Animation for the modal appearance */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.98) translateY(10px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        .animate-enter {
-            animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
+      }
+      .animate-enter {
+        animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
     </style>
-</head>
-<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex items-center justify-center overflow-hidden">
-<!-- Blurred Background Mockup (to simulate overlay context) -->
-<div class="fixed inset-0 z-0 pointer-events-none opacity-40" style="background-image: radial-gradient(circle at 50% 50%, #2e213b 10%, #191022 90%);">
-<!-- Abstract dashboard background content representation -->
-<div class="absolute top-0 w-full h-16 border-b border-white/10 flex items-center px-8 justify-between">
-<div class="flex gap-4 items-center">
-<div class="w-8 h-8 rounded-full bg-white/10"></div>
-<div class="w-24 h-4 rounded bg-white/10"></div>
-</div>
-<div class="flex gap-4">
-<div class="w-8 h-8 rounded bg-white/10"></div>
-<div class="w-8 h-8 rounded bg-white/10"></div>
-</div>
-</div>
-<div class="mt-20 px-8 grid grid-cols-3 gap-6">
-<div class="h-64 rounded-xl bg-white/5 border border-white/5"></div>
-<div class="h-64 rounded-xl bg-white/5 border border-white/5 col-span-2"></div>
-</div>
-</div>
-<!-- Main Command Palette Modal -->
-<div class="relative z-10 w-full max-w-4xl max-h-[85vh] flex flex-col rounded-xl border border-white/10 shadow-2xl overflow-hidden animate-enter glass-panel">
-<!-- Search Header Section -->
-<div class="flex flex-col border-b border-white/10 bg-surface-darker/50">
-<!-- Input Area -->
-<div class="flex items-center px-6 py-5 gap-4">
-<span class="material-symbols-outlined text-primary text-3xl">search</span>
-<input autofocus="" class="w-full bg-transparent border-none text-xl font-medium text-white placeholder-white/30 focus:ring-0 p-0" placeholder="Search Reach Control Plane..." type="text"/>
-<button class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 transition-colors">
-<span class="material-symbols-outlined text-xl">tune</span>
-</button>
-<div class="hidden sm:flex px-2 py-1 rounded border border-white/10 bg-white/5 text-xs font-mono text-white/50">
-                    ESC
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex items-center justify-center overflow-hidden"
+  >
+    <!-- Blurred Background Mockup (to simulate overlay context) -->
+    <div
+      class="fixed inset-0 z-0 pointer-events-none opacity-40"
+      style="
+        background-image: radial-gradient(
+          circle at 50% 50%,
+          #2e213b 10%,
+          #191022 90%
+        );
+      "
+    >
+      <!-- Abstract dashboard background content representation -->
+      <div
+        class="absolute top-0 w-full h-16 border-b border-white/10 flex items-center px-8 justify-between"
+      >
+        <div class="flex gap-4 items-center">
+          <div class="w-8 h-8 rounded-full bg-white/10"></div>
+          <div class="w-24 h-4 rounded bg-white/10"></div>
+        </div>
+        <div class="flex gap-4">
+          <div class="w-8 h-8 rounded bg-white/10"></div>
+          <div class="w-8 h-8 rounded bg-white/10"></div>
+        </div>
+      </div>
+      <div class="mt-20 px-8 grid grid-cols-3 gap-6">
+        <div class="h-64 rounded-xl bg-white/5 border border-white/5"></div>
+        <div
+          class="h-64 rounded-xl bg-white/5 border border-white/5 col-span-2"
+        ></div>
+      </div>
+    </div>
+    <!-- Main Command Palette Modal -->
+    <div
+      class="relative z-10 w-full max-w-4xl max-h-[85vh] flex flex-col rounded-xl border border-white/10 shadow-2xl overflow-hidden animate-enter glass-panel"
+    >
+      <!-- Search Header Section -->
+      <div class="flex flex-col border-b border-white/10 bg-surface-darker/50">
+        <!-- Input Area -->
+        <div class="flex items-center px-6 py-5 gap-4">
+          <span class="material-symbols-outlined text-primary text-3xl"
+            >search</span
+          >
+          <input
+            autofocus=""
+            class="w-full bg-transparent border-none text-xl font-medium text-white placeholder-white/30 focus:ring-0 p-0"
+            placeholder="Search Reach Control Plane..."
+            type="text"
+          />
+          <button
+            class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 transition-colors"
+          >
+            <span class="material-symbols-outlined text-xl">tune</span>
+          </button>
+          <div
+            class="hidden sm:flex px-2 py-1 rounded border border-white/10 bg-white/5 text-xs font-mono text-white/50"
+          >
+            ESC
+          </div>
+        </div>
+        <!-- Smart Filters -->
+        <div class="flex gap-2 px-6 pb-4 overflow-x-auto no-scrollbar">
+          <button
+            class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/20 text-primary border border-primary/30 text-sm font-medium transition-colors hover:bg-primary/30"
+          >
+            <span class="material-symbols-outlined text-[18px]">smart_toy</span>
+            Agent
+          </button>
+          <button
+            class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white/70 border border-white/10 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white"
+          >
+            <span class="material-symbols-outlined text-[18px]">timeline</span>
+            Trace
+          </button>
+          <button
+            class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white/70 border border-white/10 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white"
+          >
+            <span class="material-symbols-outlined text-[18px]">database</span>
+            Dataset
+          </button>
+          <button
+            class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white/70 border border-white/10 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white"
+          >
+            <span class="material-symbols-outlined text-[18px]">terminal</span>
+            Run
+          </button>
+        </div>
+      </div>
+      <!-- Main Content Area: Split View -->
+      <div class="flex flex-1 overflow-hidden min-h-[480px]">
+        <!-- Left: Search Results -->
+        <div
+          class="flex-1 flex flex-col overflow-y-auto border-r border-white/10 bg-surface-dark/40"
+        >
+          <!-- Agents Category -->
+          <div class="px-2 pt-4 pb-2">
+            <h3
+              class="px-4 text-xs font-semibold text-white/40 tracking-wider uppercase mb-2"
+            >
+              Agents
+            </h3>
+            <!-- Result Item: Active -->
+            <div
+              class="group flex items-center justify-between px-4 py-3 mx-2 rounded-lg bg-primary/10 border border-primary/20 cursor-pointer mb-1 relative overflow-hidden"
+            >
+              <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-10 h-10 rounded-lg bg-surface-dark flex items-center justify-center text-primary border border-white/5"
+                >
+                  <span class="material-symbols-outlined">smart_toy</span>
                 </div>
-</div>
-<!-- Smart Filters -->
-<div class="flex gap-2 px-6 pb-4 overflow-x-auto no-scrollbar">
-<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/20 text-primary border border-primary/30 text-sm font-medium transition-colors hover:bg-primary/30">
-<span class="material-symbols-outlined text-[18px]">smart_toy</span>
-                    Agent
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4 class="text-white font-medium">Orchestrator-Alpha</h4>
+                    <span
+                      class="px-1.5 py-0.5 rounded text-[10px] bg-green-500/20 text-green-400 font-medium border border-green-500/20"
+                      >LIVE</span
+                    >
+                  </div>
+                  <p
+                    class="text-white/40 text-sm flex items-center gap-2 mt-0.5"
+                  >
+                    <span class="material-symbols-outlined text-[14px]"
+                      >code_blocks</span
+                    >
+                    Repo: main
+                  </p>
+                </div>
+              </div>
+              <div
+                class="flex items-center gap-3 opacity-100 transition-opacity"
+              >
+                <span class="text-white/30 text-xs">Jump to</span>
+                <span class="material-symbols-outlined text-white/40 text-lg"
+                  >arrow_forward</span
+                >
+              </div>
+            </div>
+            <!-- Result Item: Normal -->
+            <div
+              class="group flex items-center justify-between px-4 py-3 mx-2 rounded-lg hover:bg-white/5 cursor-pointer mb-1 transition-colors"
+            >
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-white/40 group-hover:text-white/60"
+                >
+                  <span class="material-symbols-outlined">smart_toy</span>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4
+                      class="text-white/80 group-hover:text-white font-medium"
+                    >
+                      Data-Synthesizer-V2
+                    </h4>
+                    <span
+                      class="px-1.5 py-0.5 rounded text-[10px] bg-yellow-500/20 text-yellow-400 font-medium border border-yellow-500/20"
+                      >PAUSED</span
+                    >
+                  </div>
+                  <p
+                    class="text-white/40 text-sm flex items-center gap-2 mt-0.5"
+                  >
+                    <span class="material-symbols-outlined text-[14px]"
+                      >code_blocks</span
+                    >
+                    Repo: dev-branch
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Traces Category -->
+          <div class="px-2 pt-2 pb-2">
+            <h3
+              class="px-4 text-xs font-semibold text-white/40 tracking-wider uppercase mb-2"
+            >
+              Recent Traces
+            </h3>
+            <!-- Result Item -->
+            <div
+              class="group flex items-center justify-between px-4 py-3 mx-2 rounded-lg hover:bg-white/5 cursor-pointer mb-1 transition-colors"
+            >
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-white/40 group-hover:text-white/60"
+                >
+                  <span class="material-symbols-outlined">timeline</span>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4
+                      class="text-white/80 group-hover:text-white font-medium font-mono"
+                    >
+                      Trace #8921-X
+                    </h4>
+                    <span
+                      class="px-1.5 py-0.5 rounded text-[10px] bg-red-500/20 text-red-400 font-medium border border-red-500/20"
+                      >FAILED</span
+                    >
+                  </div>
+                  <p class="text-white/40 text-sm mt-0.5">
+                    12ms ago • Network Timeout
+                  </p>
+                </div>
+              </div>
+              <div
+                class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <button
+                  class="p-1.5 rounded hover:bg-white/10 text-white/60"
+                  title="Copy ID"
+                >
+                  <span class="material-symbols-outlined text-lg"
+                    >content_copy</span
+                  >
                 </button>
-<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white/70 border border-white/10 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white">
-<span class="material-symbols-outlined text-[18px]">timeline</span>
-                    Trace
+              </div>
+            </div>
+            <!-- Result Item -->
+            <div
+              class="group flex items-center justify-between px-4 py-3 mx-2 rounded-lg hover:bg-white/5 cursor-pointer mb-1 transition-colors"
+            >
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-white/40 group-hover:text-white/60"
+                >
+                  <span class="material-symbols-outlined">timeline</span>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4
+                      class="text-white/80 group-hover:text-white font-medium font-mono"
+                    >
+                      Trace #8840-B
+                    </h4>
+                    <span
+                      class="px-1.5 py-0.5 rounded text-[10px] bg-green-500/20 text-green-400 font-medium border border-green-500/20"
+                      >SUCCESS</span
+                    >
+                  </div>
+                  <p class="text-white/40 text-sm mt-0.5">
+                    45s ago • Completed in 2.1s
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Datasets Category -->
+          <div class="px-2 pt-2 pb-4">
+            <h3
+              class="px-4 text-xs font-semibold text-white/40 tracking-wider uppercase mb-2"
+            >
+              Datasets
+            </h3>
+            <!-- Result Item -->
+            <div
+              class="group flex items-center justify-between px-4 py-3 mx-2 rounded-lg hover:bg-white/5 cursor-pointer mb-1 transition-colors"
+            >
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-white/40 group-hover:text-white/60"
+                >
+                  <span class="material-symbols-outlined">database</span>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4
+                      class="text-white/80 group-hover:text-white font-medium"
+                    >
+                      Global-Financial-Q3
+                    </h4>
+                  </div>
+                  <p class="text-white/40 text-sm mt-0.5">
+                    Source: S3 Bucket • Updated 2h ago
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Right: Details / Recent / Context Panel -->
+        <div
+          class="w-80 hidden md:flex flex-col bg-surface-darker/30 backdrop-blur-md"
+        >
+          <!-- Quick Preview of Selected Item (Orchestrator-Alpha) -->
+          <div class="p-6 border-b border-white/10">
+            <div class="flex items-start justify-between mb-4">
+              <div
+                class="w-14 h-14 rounded-xl bg-primary/20 flex items-center justify-center text-primary border border-primary/30 shadow-[0_0_15px_-3px_rgba(127,19,236,0.3)]"
+              >
+                <span class="material-symbols-outlined text-3xl"
+                  >smart_toy</span
+                >
+              </div>
+              <div class="flex gap-2">
+                <button
+                  class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 transition-colors"
+                  title="Star"
+                >
+                  <span class="material-symbols-outlined text-lg">star</span>
                 </button>
-<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white/70 border border-white/10 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white">
-<span class="material-symbols-outlined text-[18px]">database</span>
-                    Dataset
+                <button
+                  class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 transition-colors"
+                  title="Settings"
+                >
+                  <span class="material-symbols-outlined text-lg"
+                    >settings</span
+                  >
                 </button>
-<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-white/70 border border-white/10 text-sm font-medium transition-colors hover:bg-white/10 hover:text-white">
-<span class="material-symbols-outlined text-[18px]">terminal</span>
-                    Run
+              </div>
+            </div>
+            <h2 class="text-xl font-bold text-white mb-1">
+              Orchestrator-Alpha
+            </h2>
+            <p class="text-white/50 text-sm mb-4">
+              Primary agent for handling inbound user requests and routing to
+              sub-agents.
+            </p>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+              <div class="bg-white/5 rounded p-3">
+                <div class="text-xs text-white/40 uppercase tracking-wide mb-1">
+                  Status
+                </div>
+                <div
+                  class="text-green-400 font-medium flex items-center gap-1.5"
+                >
+                  <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                  Live
+                </div>
+              </div>
+              <div class="bg-white/5 rounded p-3">
+                <div class="text-xs text-white/40 uppercase tracking-wide mb-1">
+                  Version
+                </div>
+                <div class="text-white font-mono text-sm">v2.4.1-rc</div>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <button
+                class="w-full py-2.5 px-4 rounded-lg bg-primary hover:bg-primary/90 text-white font-medium text-sm transition-colors flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+              >
+                Open Dashboard
+                <span class="material-symbols-outlined text-lg"
+                  >open_in_new</span
+                >
+              </button>
+              <button
+                class="w-full py-2.5 px-4 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium text-sm transition-colors flex items-center justify-center gap-2 border border-white/5"
+              >
+                View Logs
+              </button>
+            </div>
+          </div>
+          <!-- Recent Searches Section -->
+          <div class="flex-1 p-6 overflow-y-auto">
+            <h3
+              class="text-xs font-semibold text-white/40 tracking-wider uppercase mb-3"
+            >
+              Recent Searches
+            </h3>
+            <ul class="space-y-1">
+              <li>
+                <button
+                  class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left group transition-colors"
+                >
+                  <div class="flex items-center gap-3">
+                    <span
+                      class="material-symbols-outlined text-white/20 text-lg group-hover:text-white/40"
+                      >history</span
+                    >
+                    <span class="text-white/60 text-sm group-hover:text-white"
+                      >Trace #999-Error</span
+                    >
+                  </div>
                 </button>
-</div>
-</div>
-<!-- Main Content Area: Split View -->
-<div class="flex flex-1 overflow-hidden min-h-[480px]">
-<!-- Left: Search Results -->
-<div class="flex-1 flex flex-col overflow-y-auto border-r border-white/10 bg-surface-dark/40">
-<!-- Agents Category -->
-<div class="px-2 pt-4 pb-2">
-<h3 class="px-4 text-xs font-semibold text-white/40 tracking-wider uppercase mb-2">Agents</h3>
-<!-- Result Item: Active -->
-<div class="group flex items-center justify-between px-4 py-3 mx-2 rounded-lg bg-primary/10 border border-primary/20 cursor-pointer mb-1 relative overflow-hidden">
-<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
-<div class="flex items-center gap-4">
-<div class="w-10 h-10 rounded-lg bg-surface-dark flex items-center justify-center text-primary border border-white/5">
-<span class="material-symbols-outlined">smart_toy</span>
-</div>
-<div>
-<div class="flex items-center gap-2">
-<h4 class="text-white font-medium">Orchestrator-Alpha</h4>
-<span class="px-1.5 py-0.5 rounded text-[10px] bg-green-500/20 text-green-400 font-medium border border-green-500/20">LIVE</span>
-</div>
-<p class="text-white/40 text-sm flex items-center gap-2 mt-0.5">
-<span class="material-symbols-outlined text-[14px]">code_blocks</span>
-                                    Repo: main
-                                </p>
-</div>
-</div>
-<div class="flex items-center gap-3 opacity-100 transition-opacity">
-<span class="text-white/30 text-xs">Jump to</span>
-<span class="material-symbols-outlined text-white/40 text-lg">arrow_forward</span>
-</div>
-</div>
-<!-- Result Item: Normal -->
-<div class="group flex items-center justify-between px-4 py-3 mx-2 rounded-lg hover:bg-white/5 cursor-pointer mb-1 transition-colors">
-<div class="flex items-center gap-4">
-<div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-white/40 group-hover:text-white/60">
-<span class="material-symbols-outlined">smart_toy</span>
-</div>
-<div>
-<div class="flex items-center gap-2">
-<h4 class="text-white/80 group-hover:text-white font-medium">Data-Synthesizer-V2</h4>
-<span class="px-1.5 py-0.5 rounded text-[10px] bg-yellow-500/20 text-yellow-400 font-medium border border-yellow-500/20">PAUSED</span>
-</div>
-<p class="text-white/40 text-sm flex items-center gap-2 mt-0.5">
-<span class="material-symbols-outlined text-[14px]">code_blocks</span>
-                                    Repo: dev-branch
-                                </p>
-</div>
-</div>
-</div>
-</div>
-<!-- Traces Category -->
-<div class="px-2 pt-2 pb-2">
-<h3 class="px-4 text-xs font-semibold text-white/40 tracking-wider uppercase mb-2">Recent Traces</h3>
-<!-- Result Item -->
-<div class="group flex items-center justify-between px-4 py-3 mx-2 rounded-lg hover:bg-white/5 cursor-pointer mb-1 transition-colors">
-<div class="flex items-center gap-4">
-<div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-white/40 group-hover:text-white/60">
-<span class="material-symbols-outlined">timeline</span>
-</div>
-<div>
-<div class="flex items-center gap-2">
-<h4 class="text-white/80 group-hover:text-white font-medium font-mono">Trace #8921-X</h4>
-<span class="px-1.5 py-0.5 rounded text-[10px] bg-red-500/20 text-red-400 font-medium border border-red-500/20">FAILED</span>
-</div>
-<p class="text-white/40 text-sm mt-0.5">12ms ago • Network Timeout</p>
-</div>
-</div>
-<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-<button class="p-1.5 rounded hover:bg-white/10 text-white/60" title="Copy ID">
-<span class="material-symbols-outlined text-lg">content_copy</span>
-</button>
-</div>
-</div>
-<!-- Result Item -->
-<div class="group flex items-center justify-between px-4 py-3 mx-2 rounded-lg hover:bg-white/5 cursor-pointer mb-1 transition-colors">
-<div class="flex items-center gap-4">
-<div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-white/40 group-hover:text-white/60">
-<span class="material-symbols-outlined">timeline</span>
-</div>
-<div>
-<div class="flex items-center gap-2">
-<h4 class="text-white/80 group-hover:text-white font-medium font-mono">Trace #8840-B</h4>
-<span class="px-1.5 py-0.5 rounded text-[10px] bg-green-500/20 text-green-400 font-medium border border-green-500/20">SUCCESS</span>
-</div>
-<p class="text-white/40 text-sm mt-0.5">45s ago • Completed in 2.1s</p>
-</div>
-</div>
-</div>
-</div>
-<!-- Datasets Category -->
-<div class="px-2 pt-2 pb-4">
-<h3 class="px-4 text-xs font-semibold text-white/40 tracking-wider uppercase mb-2">Datasets</h3>
-<!-- Result Item -->
-<div class="group flex items-center justify-between px-4 py-3 mx-2 rounded-lg hover:bg-white/5 cursor-pointer mb-1 transition-colors">
-<div class="flex items-center gap-4">
-<div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-white/40 group-hover:text-white/60">
-<span class="material-symbols-outlined">database</span>
-</div>
-<div>
-<div class="flex items-center gap-2">
-<h4 class="text-white/80 group-hover:text-white font-medium">Global-Financial-Q3</h4>
-</div>
-<p class="text-white/40 text-sm mt-0.5">Source: S3 Bucket • Updated 2h ago</p>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Right: Details / Recent / Context Panel -->
-<div class="w-80 hidden md:flex flex-col bg-surface-darker/30 backdrop-blur-md">
-<!-- Quick Preview of Selected Item (Orchestrator-Alpha) -->
-<div class="p-6 border-b border-white/10">
-<div class="flex items-start justify-between mb-4">
-<div class="w-14 h-14 rounded-xl bg-primary/20 flex items-center justify-center text-primary border border-primary/30 shadow-[0_0_15px_-3px_rgba(127,19,236,0.3)]">
-<span class="material-symbols-outlined text-3xl">smart_toy</span>
-</div>
-<div class="flex gap-2">
-<button class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 transition-colors" title="Star">
-<span class="material-symbols-outlined text-lg">star</span>
-</button>
-<button class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 transition-colors" title="Settings">
-<span class="material-symbols-outlined text-lg">settings</span>
-</button>
-</div>
-</div>
-<h2 class="text-xl font-bold text-white mb-1">Orchestrator-Alpha</h2>
-<p class="text-white/50 text-sm mb-4">Primary agent for handling inbound user requests and routing to sub-agents.</p>
-<div class="grid grid-cols-2 gap-4 mb-6">
-<div class="bg-white/5 rounded p-3">
-<div class="text-xs text-white/40 uppercase tracking-wide mb-1">Status</div>
-<div class="text-green-400 font-medium flex items-center gap-1.5">
-<div class="w-2 h-2 rounded-full bg-green-500"></div> Live
-                            </div>
-</div>
-<div class="bg-white/5 rounded p-3">
-<div class="text-xs text-white/40 uppercase tracking-wide mb-1">Version</div>
-<div class="text-white font-mono text-sm">v2.4.1-rc</div>
-</div>
-</div>
-<div class="space-y-2">
-<button class="w-full py-2.5 px-4 rounded-lg bg-primary hover:bg-primary/90 text-white font-medium text-sm transition-colors flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
-                            Open Dashboard
-                            <span class="material-symbols-outlined text-lg">open_in_new</span>
-</button>
-<button class="w-full py-2.5 px-4 rounded-lg bg-white/5 hover:bg-white/10 text-white font-medium text-sm transition-colors flex items-center justify-center gap-2 border border-white/5">
-                            View Logs
-                        </button>
-</div>
-</div>
-<!-- Recent Searches Section -->
-<div class="flex-1 p-6 overflow-y-auto">
-<h3 class="text-xs font-semibold text-white/40 tracking-wider uppercase mb-3">Recent Searches</h3>
-<ul class="space-y-1">
-<li>
-<button class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left group transition-colors">
-<div class="flex items-center gap-3">
-<span class="material-symbols-outlined text-white/20 text-lg group-hover:text-white/40">history</span>
-<span class="text-white/60 text-sm group-hover:text-white">Trace #999-Error</span>
-</div>
-</button>
-</li>
-<li>
-<button class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left group transition-colors">
-<div class="flex items-center gap-3">
-<span class="material-symbols-outlined text-white/20 text-lg group-hover:text-white/40">history</span>
-<span class="text-white/60 text-sm group-hover:text-white">Dataset: User-Behavior</span>
-</div>
-</button>
-</li>
-<li>
-<button class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left group transition-colors">
-<div class="flex items-center gap-3">
-<span class="material-symbols-outlined text-white/20 text-lg group-hover:text-white/40">history</span>
-<span class="text-white/60 text-sm group-hover:text-white">Agent Beta Config</span>
-</div>
-</button>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<!-- Footer / Keyboard Legend -->
-<div class="border-t border-white/10 bg-surface-darker/80 px-6 py-3 flex items-center justify-between text-xs text-white/40">
-<div class="flex items-center gap-6">
-<div class="flex items-center gap-2">
-<span class="px-1.5 py-0.5 rounded bg-white/10 border border-white/5 font-mono text-[10px] text-white/70">↵</span>
-<span>to select</span>
-</div>
-<div class="flex items-center gap-2">
-<span class="px-1.5 py-0.5 rounded bg-white/10 border border-white/5 font-mono text-[10px] text-white/70">↑</span>
-<span class="px-1.5 py-0.5 rounded bg-white/10 border border-white/5 font-mono text-[10px] text-white/70">↓</span>
-<span>to navigate</span>
-</div>
-<div class="flex items-center gap-2">
-<span class="px-1.5 py-0.5 rounded bg-white/10 border border-white/5 font-mono text-[10px] text-white/70">esc</span>
-<span>to close</span>
-</div>
-</div>
-<div class="hidden sm:flex items-center gap-2">
-<span>Reach Control Plane</span>
-<div class="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-</div>
-</div>
-</div>
-</body></html>
+              </li>
+              <li>
+                <button
+                  class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left group transition-colors"
+                >
+                  <div class="flex items-center gap-3">
+                    <span
+                      class="material-symbols-outlined text-white/20 text-lg group-hover:text-white/40"
+                      >history</span
+                    >
+                    <span class="text-white/60 text-sm group-hover:text-white"
+                      >Dataset: User-Behavior</span
+                    >
+                  </div>
+                </button>
+              </li>
+              <li>
+                <button
+                  class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left group transition-colors"
+                >
+                  <div class="flex items-center gap-3">
+                    <span
+                      class="material-symbols-outlined text-white/20 text-lg group-hover:text-white/40"
+                      >history</span
+                    >
+                    <span class="text-white/60 text-sm group-hover:text-white"
+                      >Agent Beta Config</span
+                    >
+                  </div>
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <!-- Footer / Keyboard Legend -->
+      <div
+        class="border-t border-white/10 bg-surface-darker/80 px-6 py-3 flex items-center justify-between text-xs text-white/40"
+      >
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-2">
+            <span
+              class="px-1.5 py-0.5 rounded bg-white/10 border border-white/5 font-mono text-[10px] text-white/70"
+              >↵</span
+            >
+            <span>to select</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span
+              class="px-1.5 py-0.5 rounded bg-white/10 border border-white/5 font-mono text-[10px] text-white/70"
+              >↑</span
+            >
+            <span
+              class="px-1.5 py-0.5 rounded bg-white/10 border border-white/5 font-mono text-[10px] text-white/70"
+              >↓</span
+            >
+            <span>to navigate</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span
+              class="px-1.5 py-0.5 rounded bg-white/10 border border-white/5 font-mono text-[10px] text-white/70"
+              >esc</span
+            >
+            <span>to close</span>
+          </div>
+        </div>
+        <div class="hidden sm:flex items-center gap-2">
+          <span>Reach Control Plane</span>
+          <div class="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

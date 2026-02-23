@@ -43,6 +43,7 @@ tenantID := tenant.DEFAULT_TENANT
 ### Replacing Billing Tier Checks
 
 **Before:**
+
 ```go
 if billing.Allows(plan, billing.FeatureSSO) {
     // enable SSO
@@ -50,6 +51,7 @@ if billing.Allows(plan, billing.FeatureSSO) {
 ```
 
 **After:**
+
 ```go
 import "reach/core/config/features"
 
@@ -110,6 +112,7 @@ tenantID := tenant.DEFAULT_TENANT
 ### Replacing Billing Tier Checks
 
 **Before:**
+
 ```go
 if billing.Allows(plan, billing.FeatureSSO) {
     // enable SSO
@@ -117,6 +120,7 @@ if billing.Allows(plan, billing.FeatureSSO) {
 ```
 
 **After:**
+
 ```go
 import "reach/core/config/features"
 
@@ -133,4 +137,3 @@ if features.IsEnabled(features.SSO) {
 ## Questions
 
 See the [OSS_REFINEMENT_PLAN.md](../../plans/OSS_REFINEMENT_PLAN.md) for the full context and roadmap.
-

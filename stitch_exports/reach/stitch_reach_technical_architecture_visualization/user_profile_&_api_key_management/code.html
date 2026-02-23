@@ -1,387 +1,708 @@
-<!DOCTYPE html>
+<!doctype html>
 
-<html class="dark" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>User Profile &amp; API Key Management - Reach Agentic Orchestration</title>
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
-<!-- Material Symbols -->
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<!-- Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<!-- Tailwind Config -->
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#7f13ec",
-                        "background-light": "#f7f6f8",
-                        "background-dark": "#191022",
-                    },
-                    fontFamily: {
-                        "display": ["Inter", "sans-serif"],
-                        "mono": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"]
-                    },
-                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
-                },
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>
+      User Profile &amp; API Key Management - Reach Agentic Orchestration
+    </title>
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap"
+      rel="stylesheet"
+    />
+    <!-- Material Symbols -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Tailwind Config -->
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#7f13ec",
+              "background-light": "#f7f6f8",
+              "background-dark": "#191022",
             },
-        }
+            fontFamily: {
+              display: ["Inter", "sans-serif"],
+              mono: [
+                "ui-monospace",
+                "SFMono-Regular",
+                "Menlo",
+                "Monaco",
+                "Consolas",
+                "Liberation Mono",
+                "Courier New",
+                "monospace",
+              ],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
     </script>
-<style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Custom scrollbar for dark theme */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #191022; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #332d41; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #473b54; 
-        }
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      /* Custom scrollbar for dark theme */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #191022;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #332d41;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #473b54;
+      }
     </style>
-</head>
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased overflow-hidden">
-<div class="relative flex h-screen w-full bg-background-light dark:bg-background-dark overflow-hidden">
-<!-- Sidebar -->
-<aside class="flex w-64 flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-[#141118] transition-all">
-<div class="flex h-16 items-center px-6 border-b border-slate-200 dark:border-slate-800">
-<div class="flex items-center gap-2 text-primary font-bold text-xl tracking-tight">
-<span class="material-symbols-outlined text-3xl">hub</span>
-                    Reach Agentic
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased overflow-hidden"
+  >
+    <div
+      class="relative flex h-screen w-full bg-background-light dark:bg-background-dark overflow-hidden"
+    >
+      <!-- Sidebar -->
+      <aside
+        class="flex w-64 flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-[#141118] transition-all"
+      >
+        <div
+          class="flex h-16 items-center px-6 border-b border-slate-200 dark:border-slate-800"
+        >
+          <div
+            class="flex items-center gap-2 text-primary font-bold text-xl tracking-tight"
+          >
+            <span class="material-symbols-outlined text-3xl">hub</span>
+            Reach Agentic
+          </div>
+        </div>
+        <div class="flex-1 overflow-y-auto py-6 px-3">
+          <div class="flex flex-col gap-1">
+            <p
+              class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2"
+            >
+              Account
+            </p>
+            <a
+              class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
+              href="#"
+            >
+              <span class="material-symbols-outlined text-[20px]">person</span>
+              <span class="text-sm font-medium">Profile</span>
+            </a>
+            <a
+              class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary transition-colors"
+              href="#"
+            >
+              <span class="material-symbols-outlined text-[20px] fill-1"
+                >vpn_key</span
+              >
+              <span class="text-sm font-medium">API Keys</span>
+            </a>
+            <a
+              class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
+              href="#"
+            >
+              <span class="material-symbols-outlined text-[20px]">shield</span>
+              <span class="text-sm font-medium">Security</span>
+            </a>
+            <a
+              class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
+              href="#"
+            >
+              <span class="material-symbols-outlined text-[20px]"
+                >credit_card</span
+              >
+              <span class="text-sm font-medium">Billing</span>
+            </a>
+          </div>
+          <div class="mt-8 flex flex-col gap-1">
+            <p
+              class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2"
+            >
+              System
+            </p>
+            <a
+              class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
+              href="#"
+            >
+              <span class="material-symbols-outlined text-[20px]"
+                >notifications</span
+              >
+              <span class="text-sm font-medium">Notifications</span>
+            </a>
+            <a
+              class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
+              href="#"
+            >
+              <span class="material-symbols-outlined text-[20px]">history</span>
+              <span class="text-sm font-medium">Audit Log</span>
+            </a>
+          </div>
+        </div>
+        <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+          <div class="flex items-center gap-3 mb-4">
+            <div
+              class="bg-center bg-no-repeat bg-cover rounded-full h-10 w-10 ring-2 ring-primary/20"
+              data-alt="User avatar small"
+              style="
+                background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuByRxdPhmJ0zmNCI1KrT31jagucKvb6EYYPErjC7XAjx7wJHBvFTVOjUcSNcdZw8FBhLsIIadLuJWQwb6LkC-Sk3bJtUZQIcsppnbYPhF-gfGrInfuCLNMATcQ3kpsGc85Df3pa3SE1EII5z9wn4-ollIx1N2C0JPG6IUe13_K7Kdtf92bduT_rFxkKLBEPtUgWX9hm1Dz2fiYsv37xxxL8VwU5rW6CZ4rRb1knoBQmEKPbkHuF7Ci3CjI9g-7LFiVVerwJLaqYm9i7&quot;);
+              "
+            ></div>
+            <div class="flex flex-col overflow-hidden">
+              <p class="text-sm font-medium truncate dark:text-white">
+                John Doe
+              </p>
+              <p class="text-xs text-slate-500 truncate">john@acme.corp</p>
+            </div>
+          </div>
+          <button
+            class="flex w-full items-center justify-center gap-2 rounded-lg h-9 px-4 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400 text-sm font-medium transition-colors"
+          >
+            <span class="material-symbols-outlined text-[18px]">logout</span>
+            Logout
+          </button>
+        </div>
+      </aside>
+      <!-- Main Content -->
+      <main
+        class="flex-1 h-full overflow-y-auto bg-background-light dark:bg-background-dark scroll-smooth"
+      >
+        <div class="container mx-auto max-w-6xl px-6 py-8">
+          <!-- Page Header -->
+          <div class="flex flex-col gap-2 mb-8">
+            <div class="flex items-center gap-2 text-sm text-slate-500 mb-1">
+              <span>Settings</span>
+              <span class="material-symbols-outlined text-[12px]"
+                >chevron_right</span
+              >
+              <span class="text-slate-900 dark:text-slate-100">API Keys</span>
+            </div>
+            <h1
+              class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
+            >
+              User Profile &amp; API Keys
+            </h1>
+            <p class="text-slate-500 dark:text-slate-400 max-w-2xl">
+              Manage your personal account details, developer access tokens, and
+              security preferences for the Reach Orchestration Plane.
+            </p>
+          </div>
+          <!-- Top Grid: Profile & Usage -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Profile Card -->
+            <div
+              class="lg:col-span-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1e1a24] p-6 shadow-sm"
+            >
+              <div
+                class="flex flex-col sm:flex-row gap-6 items-start sm:items-center h-full"
+              >
+                <div class="relative">
+                  <div
+                    class="h-24 w-24 rounded-full bg-cover bg-center ring-4 ring-slate-100 dark:ring-[#2d2636]"
+                    data-alt="User profile picture"
+                    style="
+                      background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuBs1fpVEevvrjpWEUF25WpNxtPkIKTztES3r3OhcEQ5UZzjb7rlo2lXMZCwFwgmhQMy9vlvTnJRBjK7oOXg0Ga0r1al3QMEZhqrlA7fcjFUnRgjif-LD-RREVn-hNq8GKFx2omwZIZT5eFxmaCE05XFamVZZ2m4yJURC2LHexXmKdNvw1cTnRTLSWE0OrAeyWG0YnXTzVTaSXyYKL7mFUVx3-FgxbCu9moofw7A-4Ty_j7XUdfA9_JHdt8q0Hpsb-F0Qw6dvhsYvqJL&quot;);
+                    "
+                  ></div>
+                  <div
+                    class="absolute bottom-0 right-0 h-6 w-6 rounded-full bg-emerald-500 border-4 border-white dark:border-[#1e1a24]"
+                  ></div>
                 </div>
-</div>
-<div class="flex-1 overflow-y-auto py-6 px-3">
-<div class="flex flex-col gap-1">
-<p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Account</p>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group" href="#">
-<span class="material-symbols-outlined text-[20px]">person</span>
-<span class="text-sm font-medium">Profile</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary transition-colors" href="#">
-<span class="material-symbols-outlined text-[20px] fill-1">vpn_key</span>
-<span class="text-sm font-medium">API Keys</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group" href="#">
-<span class="material-symbols-outlined text-[20px]">shield</span>
-<span class="text-sm font-medium">Security</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group" href="#">
-<span class="material-symbols-outlined text-[20px]">credit_card</span>
-<span class="text-sm font-medium">Billing</span>
-</a>
-</div>
-<div class="mt-8 flex flex-col gap-1">
-<p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">System</p>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group" href="#">
-<span class="material-symbols-outlined text-[20px]">notifications</span>
-<span class="text-sm font-medium">Notifications</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group" href="#">
-<span class="material-symbols-outlined text-[20px]">history</span>
-<span class="text-sm font-medium">Audit Log</span>
-</a>
-</div>
-</div>
-<div class="p-4 border-t border-slate-200 dark:border-slate-800">
-<div class="flex items-center gap-3 mb-4">
-<div class="bg-center bg-no-repeat bg-cover rounded-full h-10 w-10 ring-2 ring-primary/20" data-alt="User avatar small" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuByRxdPhmJ0zmNCI1KrT31jagucKvb6EYYPErjC7XAjx7wJHBvFTVOjUcSNcdZw8FBhLsIIadLuJWQwb6LkC-Sk3bJtUZQIcsppnbYPhF-gfGrInfuCLNMATcQ3kpsGc85Df3pa3SE1EII5z9wn4-ollIx1N2C0JPG6IUe13_K7Kdtf92bduT_rFxkKLBEPtUgWX9hm1Dz2fiYsv37xxxL8VwU5rW6CZ4rRb1knoBQmEKPbkHuF7Ci3CjI9g-7LFiVVerwJLaqYm9i7");'></div>
-<div class="flex flex-col overflow-hidden">
-<p class="text-sm font-medium truncate dark:text-white">John Doe</p>
-<p class="text-xs text-slate-500 truncate">john@acme.corp</p>
-</div>
-</div>
-<button class="flex w-full items-center justify-center gap-2 rounded-lg h-9 px-4 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400 text-sm font-medium transition-colors">
-<span class="material-symbols-outlined text-[18px]">logout</span>
-                    Logout
-                </button>
-</div>
-</aside>
-<!-- Main Content -->
-<main class="flex-1 h-full overflow-y-auto bg-background-light dark:bg-background-dark scroll-smooth">
-<div class="container mx-auto max-w-6xl px-6 py-8">
-<!-- Page Header -->
-<div class="flex flex-col gap-2 mb-8">
-<div class="flex items-center gap-2 text-sm text-slate-500 mb-1">
-<span>Settings</span>
-<span class="material-symbols-outlined text-[12px]">chevron_right</span>
-<span class="text-slate-900 dark:text-slate-100">API Keys</span>
-</div>
-<h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">User Profile &amp; API Keys</h1>
-<p class="text-slate-500 dark:text-slate-400 max-w-2xl">Manage your personal account details, developer access tokens, and security preferences for the Reach Orchestration Plane.</p>
-</div>
-<!-- Top Grid: Profile & Usage -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-<!-- Profile Card -->
-<div class="lg:col-span-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1e1a24] p-6 shadow-sm">
-<div class="flex flex-col sm:flex-row gap-6 items-start sm:items-center h-full">
-<div class="relative">
-<div class="h-24 w-24 rounded-full bg-cover bg-center ring-4 ring-slate-100 dark:ring-[#2d2636]" data-alt="User profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBs1fpVEevvrjpWEUF25WpNxtPkIKTztES3r3OhcEQ5UZzjb7rlo2lXMZCwFwgmhQMy9vlvTnJRBjK7oOXg0Ga0r1al3QMEZhqrlA7fcjFUnRgjif-LD-RREVn-hNq8GKFx2omwZIZT5eFxmaCE05XFamVZZ2m4yJURC2LHexXmKdNvw1cTnRTLSWE0OrAeyWG0YnXTzVTaSXyYKL7mFUVx3-FgxbCu9moofw7A-4Ty_j7XUdfA9_JHdt8q0Hpsb-F0Qw6dvhsYvqJL");'></div>
-<div class="absolute bottom-0 right-0 h-6 w-6 rounded-full bg-emerald-500 border-4 border-white dark:border-[#1e1a24]"></div>
-</div>
-<div class="flex flex-col gap-1">
-<div class="flex items-center gap-3 flex-wrap">
-<h2 class="text-xl font-bold text-slate-900 dark:text-white">John Doe</h2>
-<span class="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">
-                                        Senior DevOps Engineer
-                                    </span>
-</div>
-<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
-<span class="material-symbols-outlined text-[18px]">business</span>
-<span>Primary Org: <span class="text-slate-900 dark:text-slate-200 font-medium">Acme Corp</span></span>
-</div>
-<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm mt-1">
-<span class="material-symbols-outlined text-[18px]">mail</span>
-<span>john.doe@acme.corp</span>
-</div>
-</div>
-<div class="sm:ml-auto mt-4 sm:mt-0">
-<button class="text-sm font-medium text-primary hover:text-primary/80 transition-colors">Edit Profile</button>
-</div>
-</div>
-</div>
-<!-- Usage Stats -->
-<div class="flex flex-col gap-4">
-<div class="flex-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1e1a24] p-5 shadow-sm relative overflow-hidden group">
-<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-<span class="material-symbols-outlined text-6xl text-primary">token</span>
-</div>
-<p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Token Consumption (Monthly)</p>
-<div class="flex items-baseline gap-2">
-<span class="text-2xl font-bold text-slate-900 dark:text-white">450,230</span>
-<span class="text-xs font-medium text-emerald-500 flex items-center">
-<span class="material-symbols-outlined text-[14px]">arrow_upward</span>
-                                    12%
-                                </span>
-</div>
-<div class="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full mt-3 overflow-hidden">
-<div class="bg-primary h-1.5 rounded-full" style="width: 65%"></div>
-</div>
-</div>
-<div class="flex-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1e1a24] p-5 shadow-sm relative overflow-hidden group">
-<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-<span class="material-symbols-outlined text-6xl text-primary">payments</span>
-</div>
-<p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Estimated Cost</p>
-<div class="flex items-baseline gap-2">
-<span class="text-2xl font-bold text-slate-900 dark:text-white">$12.50</span>
-<span class="text-xs font-medium text-emerald-500 flex items-center">
-<span class="material-symbols-outlined text-[14px]">arrow_upward</span>
-                                    5%
-                                </span>
-</div>
-</div>
-</div>
-</div>
-<!-- API Keys Section -->
-<div class="mb-8 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1e1a24] shadow-sm overflow-hidden">
-<div class="border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-<div>
-<h2 class="text-lg font-semibold text-slate-900 dark:text-white">Personal API Keys</h2>
-<p class="text-sm text-slate-500 dark:text-slate-400">Manage API keys for accessing the Reach platform via CLI or SDK.</p>
-</div>
-<button class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary transition-all">
-<span class="material-symbols-outlined text-[20px] mr-2">add</span>
-                            Generate New Key
+                <div class="flex flex-col gap-1">
+                  <div class="flex items-center gap-3 flex-wrap">
+                    <h2
+                      class="text-xl font-bold text-slate-900 dark:text-white"
+                    >
+                      John Doe
+                    </h2>
+                    <span
+                      class="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20"
+                    >
+                      Senior DevOps Engineer
+                    </span>
+                  </div>
+                  <div
+                    class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm"
+                  >
+                    <span class="material-symbols-outlined text-[18px]"
+                      >business</span
+                    >
+                    <span
+                      >Primary Org:
+                      <span
+                        class="text-slate-900 dark:text-slate-200 font-medium"
+                        >Acme Corp</span
+                      ></span
+                    >
+                  </div>
+                  <div
+                    class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm mt-1"
+                  >
+                    <span class="material-symbols-outlined text-[18px]"
+                      >mail</span
+                    >
+                    <span>john.doe@acme.corp</span>
+                  </div>
+                </div>
+                <div class="sm:ml-auto mt-4 sm:mt-0">
+                  <button
+                    class="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Edit Profile
+                  </button>
+                </div>
+              </div>
+            </div>
+            <!-- Usage Stats -->
+            <div class="flex flex-col gap-4">
+              <div
+                class="flex-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1e1a24] p-5 shadow-sm relative overflow-hidden group"
+              >
+                <div
+                  class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
+                >
+                  <span class="material-symbols-outlined text-6xl text-primary"
+                    >token</span
+                  >
+                </div>
+                <p
+                  class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1"
+                >
+                  Token Consumption (Monthly)
+                </p>
+                <div class="flex items-baseline gap-2">
+                  <span
+                    class="text-2xl font-bold text-slate-900 dark:text-white"
+                    >450,230</span
+                  >
+                  <span
+                    class="text-xs font-medium text-emerald-500 flex items-center"
+                  >
+                    <span class="material-symbols-outlined text-[14px]"
+                      >arrow_upward</span
+                    >
+                    12%
+                  </span>
+                </div>
+                <div
+                  class="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full mt-3 overflow-hidden"
+                >
+                  <div
+                    class="bg-primary h-1.5 rounded-full"
+                    style="width: 65%"
+                  ></div>
+                </div>
+              </div>
+              <div
+                class="flex-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1e1a24] p-5 shadow-sm relative overflow-hidden group"
+              >
+                <div
+                  class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"
+                >
+                  <span class="material-symbols-outlined text-6xl text-primary"
+                    >payments</span
+                  >
+                </div>
+                <p
+                  class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1"
+                >
+                  Estimated Cost
+                </p>
+                <div class="flex items-baseline gap-2">
+                  <span
+                    class="text-2xl font-bold text-slate-900 dark:text-white"
+                    >$12.50</span
+                  >
+                  <span
+                    class="text-xs font-medium text-emerald-500 flex items-center"
+                  >
+                    <span class="material-symbols-outlined text-[14px]"
+                      >arrow_upward</span
+                    >
+                    5%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- API Keys Section -->
+          <div
+            class="mb-8 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1e1a24] shadow-sm overflow-hidden"
+          >
+            <div
+              class="border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+            >
+              <div>
+                <h2
+                  class="text-lg font-semibold text-slate-900 dark:text-white"
+                >
+                  Personal API Keys
+                </h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                  Manage API keys for accessing the Reach platform via CLI or
+                  SDK.
+                </p>
+              </div>
+              <button
+                class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary transition-all"
+              >
+                <span class="material-symbols-outlined text-[20px] mr-2"
+                  >add</span
+                >
+                Generate New Key
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead
+                  class="bg-slate-50 dark:bg-[#25202b] text-slate-500 dark:text-slate-400 uppercase text-xs font-semibold tracking-wider"
+                >
+                  <tr>
+                    <th class="px-6 py-4" scope="col">Key Name</th>
+                    <th class="px-6 py-4" scope="col">Scope</th>
+                    <th class="px-6 py-4" scope="col">Created</th>
+                    <th class="px-6 py-4" scope="col">Last Used</th>
+                    <th class="px-6 py-4 text-right" scope="col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+                  <!-- Row 1 -->
+                  <tr
+                    class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                  >
+                    <td class="px-6 py-4">
+                      <div class="flex flex-col">
+                        <span class="font-medium text-slate-900 dark:text-white"
+                          >Production Runner 01</span
+                        >
+                        <div class="flex items-center gap-2 mt-1">
+                          <code
+                            class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-black/30 text-xs font-mono text-slate-600 dark:text-slate-300"
+                            >sk_live_...4f9a</code
+                          >
+                          <button
+                            class="text-slate-400 hover:text-primary transition-colors"
+                          >
+                            <span class="material-symbols-outlined text-[16px]"
+                              >content_copy</span
+                            >
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <span
+                        class="inline-flex items-center rounded-md bg-blue-400/10 px-2 py-1 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/20"
+                        >Runner Trigger</span
+                      >
+                    </td>
+                    <td class="px-6 py-4 text-slate-500 dark:text-slate-400">
+                      Oct 20, 2023
+                    </td>
+                    <td class="px-6 py-4">
+                      <span class="text-slate-900 dark:text-slate-200"
+                        >2 mins ago</span
+                      >
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                      <div class="flex justify-end items-center gap-2">
+                        <button
+                          class="p-1 rounded text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                          title="Rotate Key"
+                        >
+                          <span class="material-symbols-outlined text-[20px]"
+                            >sync</span
+                          >
                         </button>
-</div>
-<div class="overflow-x-auto">
-<table class="w-full text-left text-sm">
-<thead class="bg-slate-50 dark:bg-[#25202b] text-slate-500 dark:text-slate-400 uppercase text-xs font-semibold tracking-wider">
-<tr>
-<th class="px-6 py-4" scope="col">Key Name</th>
-<th class="px-6 py-4" scope="col">Scope</th>
-<th class="px-6 py-4" scope="col">Created</th>
-<th class="px-6 py-4" scope="col">Last Used</th>
-<th class="px-6 py-4 text-right" scope="col">Actions</th>
-</tr>
-</thead>
-<tbody class="divide-y divide-slate-200 dark:divide-slate-800">
-<!-- Row 1 -->
-<tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-<td class="px-6 py-4">
-<div class="flex flex-col">
-<span class="font-medium text-slate-900 dark:text-white">Production Runner 01</span>
-<div class="flex items-center gap-2 mt-1">
-<code class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-black/30 text-xs font-mono text-slate-600 dark:text-slate-300">sk_live_...4f9a</code>
-<button class="text-slate-400 hover:text-primary transition-colors">
-<span class="material-symbols-outlined text-[16px]">content_copy</span>
-</button>
-</div>
-</div>
-</td>
-<td class="px-6 py-4">
-<span class="inline-flex items-center rounded-md bg-blue-400/10 px-2 py-1 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/20">Runner Trigger</span>
-</td>
-<td class="px-6 py-4 text-slate-500 dark:text-slate-400">
-                                        Oct 20, 2023
-                                    </td>
-<td class="px-6 py-4">
-<span class="text-slate-900 dark:text-slate-200">2 mins ago</span>
-</td>
-<td class="px-6 py-4 text-right">
-<div class="flex justify-end items-center gap-2">
-<button class="p-1 rounded text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-white/5 transition-colors" title="Rotate Key">
-<span class="material-symbols-outlined text-[20px]">sync</span>
-</button>
-<button class="p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors" title="Revoke Key">
-<span class="material-symbols-outlined text-[20px]">delete</span>
-</button>
-</div>
-</td>
-</tr>
-<!-- Row 2 -->
-<tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-<td class="px-6 py-4">
-<div class="flex flex-col">
-<span class="font-medium text-slate-900 dark:text-white">CI/CD Pipeline Read</span>
-<div class="flex items-center gap-2 mt-1">
-<code class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-black/30 text-xs font-mono text-slate-600 dark:text-slate-300">sk_live_...9b2x</code>
-<button class="text-slate-400 hover:text-primary transition-colors">
-<span class="material-symbols-outlined text-[16px]">content_copy</span>
-</button>
-</div>
-</div>
-</td>
-<td class="px-6 py-4">
-<span class="inline-flex items-center rounded-md bg-emerald-400/10 px-2 py-1 text-xs font-medium text-emerald-400 ring-1 ring-inset ring-emerald-400/20">Read Only</span>
-</td>
-<td class="px-6 py-4 text-slate-500 dark:text-slate-400">
-                                        Sep 15, 2023
-                                    </td>
-<td class="px-6 py-4">
-<span class="text-slate-900 dark:text-slate-200">5 days ago</span>
-</td>
-<td class="px-6 py-4 text-right">
-<div class="flex justify-end items-center gap-2">
-<button class="p-1 rounded text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-white/5 transition-colors" title="Rotate Key">
-<span class="material-symbols-outlined text-[20px]">sync</span>
-</button>
-<button class="p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors" title="Revoke Key">
-<span class="material-symbols-outlined text-[20px]">delete</span>
-</button>
-</div>
-</td>
-</tr>
-<!-- Row 3 -->
-<tr class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-<td class="px-6 py-4">
-<div class="flex flex-col">
-<span class="font-medium text-slate-900 dark:text-white">Admin Dashboard Local</span>
-<div class="flex items-center gap-2 mt-1">
-<code class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-black/30 text-xs font-mono text-slate-600 dark:text-slate-300">sk_test_...1z8q</code>
-<button class="text-slate-400 hover:text-primary transition-colors">
-<span class="material-symbols-outlined text-[16px]">content_copy</span>
-</button>
-</div>
-</div>
-</td>
-<td class="px-6 py-4">
-<span class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">Admin</span>
-</td>
-<td class="px-6 py-4 text-slate-500 dark:text-slate-400">
-                                        Nov 02, 2023
-                                    </td>
-<td class="px-6 py-4">
-<span class="text-slate-900 dark:text-slate-200">Never</span>
-</td>
-<td class="px-6 py-4 text-right">
-<div class="flex justify-end items-center gap-2">
-<button class="p-1 rounded text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-white/5 transition-colors" title="Rotate Key">
-<span class="material-symbols-outlined text-[20px]">sync</span>
-</button>
-<button class="p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors" title="Revoke Key">
-<span class="material-symbols-outlined text-[20px]">delete</span>
-</button>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<!-- Security Settings -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-<!-- MFA -->
-<div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1e1a24] p-6 shadow-sm">
-<div class="flex items-start justify-between mb-4">
-<div class="flex items-center gap-3">
-<div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
-<span class="material-symbols-outlined">lock</span>
-</div>
-<div>
-<h3 class="text-base font-semibold text-slate-900 dark:text-white">Multi-Factor Authentication</h3>
-<p class="text-sm text-slate-500 dark:text-slate-400">Add an extra layer of security to your account.</p>
-</div>
-</div>
-<label class="relative inline-flex items-center cursor-pointer">
-<input checked="" class="sr-only peer" type="checkbox" value=""/>
-<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/20 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
-</label>
-</div>
-<div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/50">
-<div class="flex items-center justify-between text-sm">
-<span class="text-slate-600 dark:text-slate-300">Status</span>
-<span class="text-emerald-500 font-medium flex items-center gap-1">
-<span class="material-symbols-outlined text-[16px]">check_circle</span>
-                                    Enabled
-                                </span>
-</div>
-<div class="flex items-center justify-between text-sm mt-2">
-<span class="text-slate-600 dark:text-slate-300">Method</span>
-<span class="text-slate-900 dark:text-white font-medium">Authenticator App</span>
-</div>
-</div>
-</div>
-<!-- Active Sessions -->
-<div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1e1a24] p-6 shadow-sm">
-<div class="flex items-center gap-3 mb-4">
-<div class="p-2 rounded-lg bg-orange-500/10 text-orange-500">
-<span class="material-symbols-outlined">devices</span>
-</div>
-<div>
-<h3 class="text-base font-semibold text-slate-900 dark:text-white">Active Sessions</h3>
-<p class="text-sm text-slate-500 dark:text-slate-400">Manage devices logged into your account.</p>
-</div>
-</div>
-<div class="space-y-4">
-<!-- Session 1 -->
-<div class="flex items-center justify-between">
-<div class="flex items-center gap-3">
-<span class="material-symbols-outlined text-slate-400 text-2xl">laptop_mac</span>
-<div>
-<p class="text-sm font-medium text-slate-900 dark:text-white">Chrome on macOS</p>
-<p class="text-xs text-slate-500">San Francisco, US • <span class="text-emerald-500">Current Session</span></p>
-</div>
-</div>
-<button class="text-xs font-medium text-slate-400 cursor-not-allowed" disabled="">Revoke</button>
-</div>
-<!-- Session 2 -->
-<div class="flex items-center justify-between">
-<div class="flex items-center gap-3">
-<span class="material-symbols-outlined text-slate-400 text-2xl">desktop_windows</span>
-<div>
-<p class="text-sm font-medium text-slate-900 dark:text-white">Firefox on Windows</p>
-<p class="text-xs text-slate-500">London, UK • Active 2 days ago</p>
-</div>
-</div>
-<button class="text-xs font-medium text-red-500 hover:text-red-400 transition-colors">Revoke</button>
-</div>
-</div>
-</div>
-</div>
-</div>
-</main>
-</div>
-</body></html>
+                        <button
+                          class="p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                          title="Revoke Key"
+                        >
+                          <span class="material-symbols-outlined text-[20px]"
+                            >delete</span
+                          >
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <!-- Row 2 -->
+                  <tr
+                    class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                  >
+                    <td class="px-6 py-4">
+                      <div class="flex flex-col">
+                        <span class="font-medium text-slate-900 dark:text-white"
+                          >CI/CD Pipeline Read</span
+                        >
+                        <div class="flex items-center gap-2 mt-1">
+                          <code
+                            class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-black/30 text-xs font-mono text-slate-600 dark:text-slate-300"
+                            >sk_live_...9b2x</code
+                          >
+                          <button
+                            class="text-slate-400 hover:text-primary transition-colors"
+                          >
+                            <span class="material-symbols-outlined text-[16px]"
+                              >content_copy</span
+                            >
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <span
+                        class="inline-flex items-center rounded-md bg-emerald-400/10 px-2 py-1 text-xs font-medium text-emerald-400 ring-1 ring-inset ring-emerald-400/20"
+                        >Read Only</span
+                      >
+                    </td>
+                    <td class="px-6 py-4 text-slate-500 dark:text-slate-400">
+                      Sep 15, 2023
+                    </td>
+                    <td class="px-6 py-4">
+                      <span class="text-slate-900 dark:text-slate-200"
+                        >5 days ago</span
+                      >
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                      <div class="flex justify-end items-center gap-2">
+                        <button
+                          class="p-1 rounded text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                          title="Rotate Key"
+                        >
+                          <span class="material-symbols-outlined text-[20px]"
+                            >sync</span
+                          >
+                        </button>
+                        <button
+                          class="p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                          title="Revoke Key"
+                        >
+                          <span class="material-symbols-outlined text-[20px]"
+                            >delete</span
+                          >
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <!-- Row 3 -->
+                  <tr
+                    class="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                  >
+                    <td class="px-6 py-4">
+                      <div class="flex flex-col">
+                        <span class="font-medium text-slate-900 dark:text-white"
+                          >Admin Dashboard Local</span
+                        >
+                        <div class="flex items-center gap-2 mt-1">
+                          <code
+                            class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-black/30 text-xs font-mono text-slate-600 dark:text-slate-300"
+                            >sk_test_...1z8q</code
+                          >
+                          <button
+                            class="text-slate-400 hover:text-primary transition-colors"
+                          >
+                            <span class="material-symbols-outlined text-[16px]"
+                              >content_copy</span
+                            >
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <span
+                        class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20"
+                        >Admin</span
+                      >
+                    </td>
+                    <td class="px-6 py-4 text-slate-500 dark:text-slate-400">
+                      Nov 02, 2023
+                    </td>
+                    <td class="px-6 py-4">
+                      <span class="text-slate-900 dark:text-slate-200"
+                        >Never</span
+                      >
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                      <div class="flex justify-end items-center gap-2">
+                        <button
+                          class="p-1 rounded text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                          title="Rotate Key"
+                        >
+                          <span class="material-symbols-outlined text-[20px]"
+                            >sync</span
+                          >
+                        </button>
+                        <button
+                          class="p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                          title="Revoke Key"
+                        >
+                          <span class="material-symbols-outlined text-[20px]"
+                            >delete</span
+                          >
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Security Settings -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- MFA -->
+            <div
+              class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1e1a24] p-6 shadow-sm"
+            >
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="p-2 rounded-lg bg-emerald-500/10 text-emerald-500"
+                  >
+                    <span class="material-symbols-outlined">lock</span>
+                  </div>
+                  <div>
+                    <h3
+                      class="text-base font-semibold text-slate-900 dark:text-white"
+                    >
+                      Multi-Factor Authentication
+                    </h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">
+                      Add an extra layer of security to your account.
+                    </p>
+                  </div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input
+                    checked=""
+                    class="sr-only peer"
+                    type="checkbox"
+                    value=""
+                  />
+                  <div
+                    class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/20 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"
+                  ></div>
+                </label>
+              </div>
+              <div
+                class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/50"
+              >
+                <div class="flex items-center justify-between text-sm">
+                  <span class="text-slate-600 dark:text-slate-300">Status</span>
+                  <span
+                    class="text-emerald-500 font-medium flex items-center gap-1"
+                  >
+                    <span class="material-symbols-outlined text-[16px]"
+                      >check_circle</span
+                    >
+                    Enabled
+                  </span>
+                </div>
+                <div class="flex items-center justify-between text-sm mt-2">
+                  <span class="text-slate-600 dark:text-slate-300">Method</span>
+                  <span class="text-slate-900 dark:text-white font-medium"
+                    >Authenticator App</span
+                  >
+                </div>
+              </div>
+            </div>
+            <!-- Active Sessions -->
+            <div
+              class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1e1a24] p-6 shadow-sm"
+            >
+              <div class="flex items-center gap-3 mb-4">
+                <div class="p-2 rounded-lg bg-orange-500/10 text-orange-500">
+                  <span class="material-symbols-outlined">devices</span>
+                </div>
+                <div>
+                  <h3
+                    class="text-base font-semibold text-slate-900 dark:text-white"
+                  >
+                    Active Sessions
+                  </h3>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Manage devices logged into your account.
+                  </p>
+                </div>
+              </div>
+              <div class="space-y-4">
+                <!-- Session 1 -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <span
+                      class="material-symbols-outlined text-slate-400 text-2xl"
+                      >laptop_mac</span
+                    >
+                    <div>
+                      <p
+                        class="text-sm font-medium text-slate-900 dark:text-white"
+                      >
+                        Chrome on macOS
+                      </p>
+                      <p class="text-xs text-slate-500">
+                        San Francisco, US •
+                        <span class="text-emerald-500">Current Session</span>
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    class="text-xs font-medium text-slate-400 cursor-not-allowed"
+                    disabled=""
+                  >
+                    Revoke
+                  </button>
+                </div>
+                <!-- Session 2 -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <span
+                      class="material-symbols-outlined text-slate-400 text-2xl"
+                      >desktop_windows</span
+                    >
+                    <div>
+                      <p
+                        class="text-sm font-medium text-slate-900 dark:text-white"
+                      >
+                        Firefox on Windows
+                      </p>
+                      <p class="text-xs text-slate-500">
+                        London, UK • Active 2 days ago
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    class="text-xs font-medium text-red-500 hover:text-red-400 transition-colors"
+                  >
+                    Revoke
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

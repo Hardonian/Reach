@@ -1,5 +1,11 @@
 // @ts-nocheck
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
 const API_VERSION = "1.0.0";
@@ -10,7 +16,9 @@ function repoRootFromCwd(): string {
     const candidate = join(current, "package.json");
     if (existsSync(candidate)) {
       try {
-        const pkg = JSON.parse(readFileSync(candidate, "utf8")) as { name?: string };
+        const pkg = JSON.parse(readFileSync(candidate, "utf8")) as {
+          name?: string;
+        };
         if (pkg.name === "zeo") return current;
       } catch {
         // continue walking
@@ -23,7 +31,13 @@ function repoRootFromCwd(): string {
   return resolve(process.cwd(), "../..");
 }
 
-type Capability = "registerDecisionType" | "registerPolicy" | "registerEvidenceExtractor" | "registerRenderer" | "registerRetriever" | "registerAnalyzePrAnalyzer";
+type Capability =
+  | "registerDecisionType"
+  | "registerPolicy"
+  | "registerEvidenceExtractor"
+  | "registerRenderer"
+  | "registerRetriever"
+  | "registerAnalyzePrAnalyzer";
 
 interface PluginManifest {
   id: string;
@@ -47,19 +61,28 @@ function pluginsRoots(): string[] {
     resolve(process.cwd(), "plugins"),
     resolve(process.cwd(), ".zeo", "plugins"),
   ];
-  if (process.env.ZEO_PLUGIN_PATH) roots.push(resolve(process.cwd(), process.env.ZEO_PLUGIN_PATH));
+  if (process.env.ZEO_PLUGIN_PATH)
+    roots.push(resolve(process.cwd(), process.env.ZEO_PLUGIN_PATH));
   return roots;
 }
 
-function loadPluginManifests(): Array<{ root: string; manifest: PluginManifest }> {
+function loadPluginManifests(): Array<{
+  root: string;
+  manifest: PluginManifest;
+}> {
   const manifests: Array<{ root: string; manifest: PluginManifest }> = [];
   for (const root of pluginsRoots()) {
     if (!existsSync(root)) continue;
-    const dirs = readdirSync(root, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort();
+    const dirs = readdirSync(root, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => d.name)
+      .sort();
     for (const dir of dirs) {
       const manifestPath = join(root, dir, "plugin.json");
       if (!existsSync(manifestPath)) continue;
-      const raw = JSON.parse(readFileSync(manifestPath, "utf8")) as PluginManifest;
+      const raw = JSON.parse(
+        readFileSync(manifestPath, "utf8"),
+      ) as PluginManifest;
       manifests.push({ root: join(root, dir), manifest: raw });
     }
   }
@@ -67,7 +90,8 @@ function loadPluginManifests(): Array<{ root: string; manifest: PluginManifest }
 }
 
 export function parsePluginsArgs(argv: string[]): PluginsArgs {
-  if (argv[0] === "init-analyzer") return { command: "init-analyzer", name: argv[1] };
+  if (argv[0] === "init-analyzer")
+    return { command: "init-analyzer", name: argv[1] };
   const command = argv[0] === "list" || argv[0] === "doctor" ? argv[0] : null;
   return { command };
 }
@@ -92,26 +116,34 @@ function initAnalyzer(name: string | undefined): number {
     capabilities: ["registerAnalyzePrAnalyzer"],
     entry: "index.js",
   };
-  writeFileSync(join(pluginDir, "plugin.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
-  writeFileSync(join(pluginDir, "index.js"), [
-    "module.exports = {",
-    "  register() {",
-    "    return {",
-    "      analyzers: [",
-    "        {",
-    "          id: \"sample-analyzer\",",
-    "          category: \"performance\",",
-    "          deterministic: true,",
-    "          analyze(_input) {",
-    "            return [];",
-    "          }",
-    "        }",
-    "      ]",
-    "    };",
-    "  }",
-    "};",
-    "",
-  ].join("\n"), "utf8");
+  writeFileSync(
+    join(pluginDir, "plugin.json"),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+    "utf8",
+  );
+  writeFileSync(
+    join(pluginDir, "index.js"),
+    [
+      "module.exports = {",
+      "  register() {",
+      "    return {",
+      "      analyzers: [",
+      "        {",
+      '          id: "sample-analyzer",',
+      '          category: "performance",',
+      "          deterministic: true,",
+      "          analyze(_input) {",
+      "            return [];",
+      "          }",
+      "        }",
+      "      ]",
+      "    };",
+      "  }",
+      "};",
+      "",
+    ].join("\n"),
+    "utf8",
+  );
   console.log(`Initialized analyzer plugin: ${pluginDir}`);
   return 0;
 }
@@ -126,7 +158,9 @@ export async function runPluginsCommand(args: PluginsArgs): Promise<number> {
 
   if (args.command === "list") {
     for (const item of manifests) {
-      console.log(`${item.manifest.id}@${item.manifest.version} api=${item.manifest.apiVersion} deterministic=${item.manifest.deterministic}`);
+      console.log(
+        `${item.manifest.id}@${item.manifest.version} api=${item.manifest.apiVersion} deterministic=${item.manifest.deterministic}`,
+      );
     }
     return 0;
   }
@@ -134,11 +168,18 @@ export async function runPluginsCommand(args: PluginsArgs): Promise<number> {
   let hasErrors = false;
   for (const item of manifests) {
     const errors: string[] = [];
-    if (item.manifest.apiVersion !== API_VERSION) errors.push(`apiVersion mismatch expected=${API_VERSION} actual=${item.manifest.apiVersion}`);
-    if (!item.manifest.deterministic) errors.push("plugin must declare deterministic=true");
-    if (item.manifest.permissions.network) errors.push("plugin network permission disabled by default");
-    if (!existsSync(join(item.root, item.manifest.entry))) errors.push(`entry not found: ${item.manifest.entry}`);
-    if (item.manifest.capabilities.length === 0) errors.push("at least one capability required");
+    if (item.manifest.apiVersion !== API_VERSION)
+      errors.push(
+        `apiVersion mismatch expected=${API_VERSION} actual=${item.manifest.apiVersion}`,
+      );
+    if (!item.manifest.deterministic)
+      errors.push("plugin must declare deterministic=true");
+    if (item.manifest.permissions.network)
+      errors.push("plugin network permission disabled by default");
+    if (!existsSync(join(item.root, item.manifest.entry)))
+      errors.push(`entry not found: ${item.manifest.entry}`);
+    if (item.manifest.capabilities.length === 0)
+      errors.push("at least one capability required");
 
     if (errors.length > 0) {
       hasErrors = true;
@@ -153,4 +194,3 @@ export async function runPluginsCommand(args: PluginsArgs): Promise<number> {
 }
 
 export const __private__ = { loadPluginManifests, pluginsRoots };
-

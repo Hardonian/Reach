@@ -8,10 +8,14 @@ export interface CacheCliArgs {
 }
 
 export function parseCacheArgs(argv: string[]): CacheCliArgs {
-  const command = argv[0] === "list" || argv[0] === "prune" || argv[0] === "gc" ? argv[0] : null;
+  const command =
+    argv[0] === "list" || argv[0] === "prune" || argv[0] === "gc"
+      ? argv[0]
+      : null;
   let maxMb = 100;
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === "--max-mb" && argv[i + 1]) maxMb = Math.max(1, Number.parseInt(argv[i + 1], 10));
+    if (argv[i] === "--max-mb" && argv[i + 1])
+      maxMb = Math.max(1, Number.parseInt(argv[i + 1], 10));
   }
   return { command, maxMb };
 }
@@ -45,7 +49,19 @@ export async function runCacheCommand(args: CacheCliArgs): Promise<number> {
   const dir = cacheDir();
   const files = walkFiles(dir);
   if (args.command === "list") {
-    console.log(JSON.stringify({ dir, entries: files.length, totalBytes: totalSize(files), createdAt: new Date().toISOString(), schemaVersion: "zeo.cache.v1" }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          dir,
+          entries: files.length,
+          totalBytes: totalSize(files),
+          createdAt: new Date().toISOString(),
+          schemaVersion: "zeo.cache.v1",
+        },
+        null,
+        2,
+      ),
+    );
     return 0;
   }
 
@@ -63,7 +79,9 @@ export async function runCacheCommand(args: CacheCliArgs): Promise<number> {
   }
 
   const budget = args.maxMb * 1024 * 1024;
-  const sorted = files.map((f) => ({ f, st: statSync(f) })).sort((a, b) => a.st.mtimeMs - b.st.mtimeMs);
+  const sorted = files
+    .map((f) => ({ f, st: statSync(f) }))
+    .sort((a, b) => a.st.mtimeMs - b.st.mtimeMs);
   let size = totalSize(files);
   let removed = 0;
   for (const item of sorted) {
@@ -75,4 +93,3 @@ export async function runCacheCommand(args: CacheCliArgs): Promise<number> {
   console.log(`gc removed ${removed} entries, size=${size}`);
   return 0;
 }
-

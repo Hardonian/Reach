@@ -1,8 +1,8 @@
-import { MasterNavigation } from '@/components/stitch/console/pages/MasterNavigation';
-import { ConsoleLayout } from '@/components/stitch/console/ConsoleLayout';
+import { MasterNavigation } from "@/components/stitch/console/pages/MasterNavigation";
+import { ConsoleLayout } from "@/components/stitch/console/ConsoleLayout";
 
 export const metadata = {
-  title: 'Master Navigation | ReadyLayer Console',
+  title: "Master Navigation | ReadyLayer Console",
 };
 
 export default function NavPage() {

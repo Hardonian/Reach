@@ -1,7 +1,7 @@
 # Development Docker Compose for Reach
 # Usage: docker-compose -f docker-compose.dev.yml up -d
 
-version: '3.8'
+version: "3.8"
 
 services:
   # Main Reach server
@@ -20,7 +20,18 @@ services:
       - ./services/runner:/app/services/runner
       - ./pack-devkit:/app/pack-devkit
     working_dir: /app/services/runner
-    command: ["go", "run", "./cmd/reach-serve", "--bind", "0.0.0.0", "--port", "8787", "--data", "/data"]
+    command:
+      [
+        "go",
+        "run",
+        "./cmd/reach-serve",
+        "--bind",
+        "0.0.0.0",
+        "--port",
+        "8787",
+        "--data",
+        "/data",
+      ]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8787/health"]
       interval: 30s
@@ -59,12 +70,12 @@ services:
       - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
-      - '--web.enable-lifecycle'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--storage.tsdb.retention.time=200h"
+      - "--web.enable-lifecycle"
     networks:
       - reach-network
     depends_on:

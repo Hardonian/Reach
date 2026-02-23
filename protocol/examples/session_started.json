@@ -10,8 +10,8 @@
     "status": "started",
     "startedAt": "2026-02-17T06:00:20Z",
     "members": [
-      {"id": "ios-user", "role": "viewer"},
-      {"id": "android-user", "role": "operator"}
+      { "id": "ios-user", "role": "viewer" },
+      { "id": "android-user", "role": "operator" }
     ]
   }
 }

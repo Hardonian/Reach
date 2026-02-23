@@ -18,7 +18,10 @@ function readPkg() {
 }
 
 function run(cmd, args) {
-  const res = spawnSync(cmd, args, { stdio: "inherit", shell: process.platform === "win32" });
+  const res = spawnSync(cmd, args, {
+    stdio: "inherit",
+    shell: process.platform === "win32",
+  });
   return res.status ?? 0;
 }
 

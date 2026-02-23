@@ -1,5 +1,9 @@
 import { createHash } from "node:crypto";
-import type { DecisionSpec, EvidenceEvent, FinalizedDecisionTranscript } from "@zeo/contracts";
+import type {
+  DecisionSpec,
+  EvidenceEvent,
+  FinalizedDecisionTranscript,
+} from "@zeo/contracts";
 // @ts-ignore - resolve missing core module
 import { executeDecision, verifyDecisionTranscript } from "@zeo/core";
 
@@ -40,13 +44,37 @@ function makeNegotiationSpec(): DecisionSpec {
       { id: "counterparty", name: "Counterparty", role: "counterparty" },
     ],
     actions: [
-      { id: "verify_terms", label: "Verify Terms", actorId: "self", kind: "verify" },
-      { id: "commit_now", label: "Commit Now", actorId: "self", kind: "commit" },
+      {
+        id: "verify_terms",
+        label: "Verify Terms",
+        actorId: "self",
+        kind: "verify",
+      },
+      {
+        id: "commit_now",
+        label: "Commit Now",
+        actorId: "self",
+        kind: "commit",
+      },
     ],
-    constraints: [{ id: "deadline", name: "deadline", value: "7d", status: "assumption" }],
+    constraints: [
+      { id: "deadline", name: "deadline", value: "7d", status: "assumption" },
+    ],
     assumptions: [
-      { id: "timeline_pressure", text: "Timeline is strict", status: "assumption", confidence: "medium", tags: [] },
-      { id: "counterparty_trust", text: "Counterparty follows through", status: "assumption", confidence: "medium", tags: [] },
+      {
+        id: "timeline_pressure",
+        text: "Timeline is strict",
+        status: "assumption",
+        confidence: "medium",
+        tags: [],
+      },
+      {
+        id: "counterparty_trust",
+        text: "Counterparty follows through",
+        status: "assumption",
+        confidence: "medium",
+        tags: [],
+      },
     ],
     objectives: [{ id: "obj1", metric: "robustness", weight: 1 }],
   };
@@ -58,8 +86,20 @@ function makeOpsSpec(): DecisionSpec {
     id: "ops-v1",
     title: "Ops Example",
     assumptions: [
-      { id: "incident_scope", text: "Scope remains bounded", status: "assumption", confidence: "medium", tags: [] },
-      { id: "rollback_window", text: "Rollback window remains open", status: "assumption", confidence: "medium", tags: [] },
+      {
+        id: "incident_scope",
+        text: "Scope remains bounded",
+        status: "assumption",
+        confidence: "medium",
+        tags: [],
+      },
+      {
+        id: "rollback_window",
+        text: "Rollback window remains open",
+        status: "assumption",
+        confidence: "medium",
+        tags: [],
+      },
     ],
   };
 }
@@ -72,17 +112,27 @@ function resolveSpec(example?: unknown): DecisionSpec {
   return example === "ops" ? makeOpsSpec() : makeNegotiationSpec();
 }
 
-function envelope(spec: DecisionSpec, whatWouldChange: string[]): Record<string, unknown> {
+function envelope(
+  spec: DecisionSpec,
+  whatWouldChange: string[],
+): Record<string, unknown> {
   return {
     schemaVersion: "zeo.v1",
     assumptions: spec.assumptions.map((a: any) => a.id),
-    limits: ["deterministic synthetic example", "not medical or legal advice", "llm proposals are untrusted inputs"],
-    decisionBoundary: "Action ordering is stable while modeled assumption intervals remain unchanged.",
+    limits: [
+      "deterministic synthetic example",
+      "not medical or legal advice",
+      "llm proposals are untrusted inputs",
+    ],
+    decisionBoundary:
+      "Action ordering is stable while modeled assumption intervals remain unchanged.",
     whatWouldChange,
   };
 }
 
-function deriveFlipDistances(spec: DecisionSpec): Array<{ variableId: string; flipDistance: number; newTopAction: string }> {
+function deriveFlipDistances(
+  spec: DecisionSpec,
+): Array<{ variableId: string; flipDistance: number; newTopAction: string }> {
   return spec.assumptions
     .map((a: any, idx: number) => ({
       variableId: a.id,
@@ -92,24 +142,36 @@ function deriveFlipDistances(spec: DecisionSpec): Array<{ variableId: string; fl
     .sort((a: any, b: any) => a.flipDistance - b.flipDistance);
 }
 
-function deriveVoiRankings(spec: DecisionSpec, minEvoi: number): Array<{ actionId: string; evoi: number; recommendation: string; rationale: string[] }> {
-  return spec.assumptions.map((assumption: any, idx: number) => {
-    const evoi = Number((1 / (idx + 1.25)).toFixed(6));
-    const recommendation = evoi > minEvoi * 2 ? "do_now" : evoi > minEvoi ? "plan_later" : "defer";
-    return {
-      actionId: `evidence_${assumption.id}`,
-      evoi,
-      recommendation,
-      rationale: [
-        `Assumption ${assumption.id} has estimated sensitivity rank ${idx + 1}`,
-        `Cost-adjusted information gain is ${evoi.toFixed(4)}`,
-      ],
-    };
-  }).sort((a: any, b: any) => b.evoi - a.evoi);
+function deriveVoiRankings(
+  spec: DecisionSpec,
+  minEvoi: number,
+): Array<{
+  actionId: string;
+  evoi: number;
+  recommendation: string;
+  rationale: string[];
+}> {
+  return spec.assumptions
+    .map((assumption: any, idx: number) => {
+      const evoi = Number((1 / (idx + 1.25)).toFixed(6));
+      const recommendation =
+        evoi > minEvoi * 2 ? "do_now" : evoi > minEvoi ? "plan_later" : "defer";
+      return {
+        actionId: `evidence_${assumption.id}`,
+        evoi,
+        recommendation,
+        rationale: [
+          `Assumption ${assumption.id} has estimated sensitivity rank ${idx + 1}`,
+          `Cost-adjusted information gain is ${evoi.toFixed(4)}`,
+        ],
+      };
+    })
+    .sort((a: any, b: any) => b.evoi - a.evoi);
 }
 
-
-function createTranscriptForContext(context: ZeoliteContext): FinalizedDecisionTranscript {
+function createTranscriptForContext(
+  context: ZeoliteContext,
+): FinalizedDecisionTranscript {
   const { transcript } = executeDecision({
     spec: context.spec,
     evidence: context.evidence,
@@ -129,16 +191,25 @@ function requireContext(contextId: string): ZeoliteContext {
   return created;
 }
 
-export function executeZeoliteOperation(operation: ZeoliteOperation, params: Record<string, unknown>): Record<string, unknown> {
+export function executeZeoliteOperation(
+  operation: ZeoliteOperation,
+  params: Record<string, unknown>,
+): Record<string, unknown> {
   if (operation === "load_context") {
     const spec = resolveSpec(params.example);
     const depth = params.depth === 3 ? 3 : 2;
-    const seed = typeof params.seed === "string" && params.seed.trim().length > 0
-      ? params.seed
-      : deterministicSeed(spec.id, depth);
-    const contextId = stableId(JSON.stringify({ specId: spec.id, depth, seed }));
+    const seed =
+      typeof params.seed === "string" && params.seed.trim().length > 0
+        ? params.seed
+        : deterministicSeed(spec.id, depth);
+    const contextId = stableId(
+      JSON.stringify({ specId: spec.id, depth, seed }),
+    );
 
-    const whatWouldChange = spec.assumptions.map((a: any, idx: number) => `${a.id}: threshold shift ${(idx + 1) * 10}% can alter ranking`);
+    const whatWouldChange = spec.assumptions.map(
+      (a: any, idx: number) =>
+        `${a.id}: threshold shift ${(idx + 1) * 10}% can alter ranking`,
+    );
     contexts.set(contextId, { id: contextId, spec, evidence: [] });
 
     return {
@@ -158,10 +229,15 @@ export function executeZeoliteOperation(operation: ZeoliteOperation, params: Rec
     if (!sourceId || !claim) throw new Error("sourceId and claim are required");
 
     const evidence: EvidenceEvent = {
-      id: stableId(`${contextId}:${sourceId}:${claim}:${context.evidence.length}`),
+      id: stableId(
+        `${contextId}:${sourceId}:${claim}:${context.evidence.length}`,
+      ),
       type: "document",
       sourceId,
-      capturedAt: typeof params.capturedAt === "string" ? params.capturedAt : "1970-01-01T00:00:00.000Z",
+      capturedAt:
+        typeof params.capturedAt === "string"
+          ? params.capturedAt
+          : "1970-01-01T00:00:00.000Z",
       checksum: stableId(claim),
       observations: [claim],
       claims: [],
@@ -173,7 +249,11 @@ export function executeZeoliteOperation(operation: ZeoliteOperation, params: Rec
       contextId,
       evidenceId: evidence.id,
       evidenceCount: context.evidence.length,
-      provenance: { sourceId: evidence.sourceId, capturedAt: evidence.capturedAt, checksum: evidence.checksum },
+      provenance: {
+        sourceId: evidence.sourceId,
+        capturedAt: evidence.capturedAt,
+        checksum: evidence.checksum,
+      },
       ...envelope(context.spec, []),
     };
   }
@@ -183,7 +263,13 @@ export function executeZeoliteOperation(operation: ZeoliteOperation, params: Rec
     return {
       contextId,
       counterfactuals,
-      ...envelope(context.spec, counterfactuals.map((cf) => `${cf.variableId} within ±${cf.flipDistance.toFixed(3)} can alter ranking`)),
+      ...envelope(
+        context.spec,
+        counterfactuals.map(
+          (cf) =>
+            `${cf.variableId} within ±${cf.flipDistance.toFixed(3)} can alter ranking`,
+        ),
+      ),
     };
   }
 
@@ -193,22 +279,35 @@ export function executeZeoliteOperation(operation: ZeoliteOperation, params: Rec
     return {
       contextId,
       rankings,
-      ...envelope(context.spec, rankings.slice(0, 3).map((r) => `${r.actionId} with VOI ${r.evoi.toFixed(4)}`)),
+      ...envelope(
+        context.spec,
+        rankings
+          .slice(0, 3)
+          .map((r) => `${r.actionId} with VOI ${r.evoi.toFixed(4)}`),
+      ),
     };
   }
 
   if (operation === "generate_regret_bounded_plan") {
-    const horizon = typeof params.horizon === "number" ? Math.max(1, Math.min(5, Math.floor(params.horizon))) : 3;
+    const horizon =
+      typeof params.horizon === "number"
+        ? Math.max(1, Math.min(5, Math.floor(params.horizon)))
+        : 3;
     const minEvoi = typeof params.minEvoi === "number" ? params.minEvoi : 0.5;
     const rankings = deriveVoiRankings(context.spec, minEvoi);
-    const selected = rankings.filter((r) => r.recommendation === "do_now").slice(0, horizon);
+    const selected = rankings
+      .filter((r) => r.recommendation === "do_now")
+      .slice(0, horizon);
 
     return {
       contextId,
       plan: {
         id: stableId(`${contextId}:${horizon}:${minEvoi}`),
         decisionId: context.spec.id,
-        actions: selected.map((s) => ({ id: s.actionId, rationale: s.rationale })),
+        actions: selected.map((s) => ({
+          id: s.actionId,
+          rationale: s.rationale,
+        })),
         boundedHorizon: horizon,
       },
       stopConditions: [
@@ -216,9 +315,17 @@ export function executeZeoliteOperation(operation: ZeoliteOperation, params: Rec
         `No remaining evidence above minEvoi (${minEvoi})`,
         "No non-dominated evidence actions remain",
       ],
-      monotonicImprovement: selected.every((item, index) => index === 0 || item.evoi <= selected[index - 1].evoi),
+      monotonicImprovement: selected.every(
+        (item, index) => index === 0 || item.evoi <= selected[index - 1].evoi,
+      ),
       terminatedEarly: selected.length < horizon,
-      ...envelope(context.spec, selected.map((s) => `${s.actionId} below threshold would change recommendation order`)),
+      ...envelope(
+        context.spec,
+        selected.map(
+          (s) =>
+            `${s.actionId} below threshold would change recommendation order`,
+        ),
+      ),
     };
   }
 
@@ -231,13 +338,26 @@ export function executeZeoliteOperation(operation: ZeoliteOperation, params: Rec
         topAction: context.spec.actions[0]?.id ?? "unknown",
         nearestFlips: flip.slice(0, 2),
       },
-      ...envelope(context.spec, flip.slice(0, 2).map((cf) => `${cf.variableId} at ${cf.flipDistance.toFixed(3)} changes top action`)),
+      ...envelope(
+        context.spec,
+        flip
+          .slice(0, 2)
+          .map(
+            (cf) =>
+              `${cf.variableId} at ${cf.flipDistance.toFixed(3)} changes top action`,
+          ),
+      ),
     };
   }
 
   if (operation === "export_transcript") {
     const transcript = createTranscriptForContext(context);
-    return { contextId, transcriptId: transcript.transcript_id, transcriptHash: transcript.transcript_hash, transcript };
+    return {
+      contextId,
+      transcriptId: transcript.transcript_id,
+      transcriptHash: transcript.transcript_hash,
+      transcript,
+    };
   }
 
   if (operation === "verify_transcript") {
@@ -252,12 +372,16 @@ export function executeZeoliteOperation(operation: ZeoliteOperation, params: Rec
     const transcriptId = String(params.transcriptId ?? "").trim();
     const transcript = transcripts.get(transcriptId);
     if (!transcript) throw new Error(`Unknown transcriptId: ${transcriptId}`);
-    const replayed = executeDecision({ spec: transcript.inputs.decision_spec, logicalTimestamp: transcript.timestamp });
+    const replayed = executeDecision({
+      spec: transcript.inputs.decision_spec,
+      logicalTimestamp: transcript.timestamp,
+    });
     return {
       contextId,
       transcriptId,
       replay: {
-        sameHash: replayed.transcript.transcript_hash === transcript.transcript_hash,
+        sameHash:
+          replayed.transcript.transcript_hash === transcript.transcript_hash,
         originalHash: transcript.transcript_hash,
         replayHash: replayed.transcript.transcript_hash,
       },
@@ -265,16 +389,22 @@ export function executeZeoliteOperation(operation: ZeoliteOperation, params: Rec
   }
 
   const proposal = (params.proposal ?? {}) as Record<string, unknown>;
-  const boundary = executeZeoliteOperation("explain_decision_boundary", { contextId, agentClaim: proposal.claim });
+  const boundary = executeZeoliteOperation("explain_decision_boundary", {
+    contextId,
+    agentClaim: proposal.claim,
+  });
   return {
     contextId,
     adjudication: {
-      accepted: proposal.claim === (boundary.zeoBoundary as Record<string, unknown>).topAction,
+      accepted:
+        proposal.claim ===
+        (boundary.zeoBoundary as Record<string, unknown>).topAction,
       agentClaim: proposal.claim ?? null,
       zeoBoundary: boundary.zeoBoundary,
       diff: {
         agentClaim: proposal.claim ?? null,
-        zeoBoundary: (boundary.zeoBoundary as Record<string, unknown>).topAction,
+        zeoBoundary: (boundary.zeoBoundary as Record<string, unknown>)
+          .topAction,
         whatWouldChange: boundary.whatWouldChange,
       },
     },

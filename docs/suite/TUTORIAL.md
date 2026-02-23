@@ -25,6 +25,7 @@ reachctl tutorial explain <mission>  # Get detailed help
 ## Mission Structure
 
 Each mission includes:
+
 - Name and description
 - Step-by-step instructions
 - Hints (optional)
@@ -50,6 +51,7 @@ Each mission includes:
 ## Progress Tracking
 
 Progress is stored in `data/tutorial_progress.json` and includes:
+
 - Current mission
 - Completed missions
 - Total XP earned

@@ -5,6 +5,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 ---
 
 ## 1. web_search
+
 - **Description:** Searches the public web via indexed search engines.
 - **Inputs Schema:** `{ query: string, count: number, offset: number }`
 - **Tool Requirements:** Bing/Google/Serper API key.
@@ -14,6 +15,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 1.2.0
 
 ## 2. browse_url
+
 - **Description:** Fetches and extracts content from a specific URL.
 - **Inputs Schema:** `{ url: string, mode: 'text' | 'markdown' | 'screenshot' }`
 - **Tool Requirements:** Headless browser (Puppeteer/Playwright).
@@ -23,6 +25,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 2.1.0
 
 ## 3. write_file
+
 - **Description:** Writes text content to a path within a guarded directory.
 - **Inputs Schema:** `{ path: string, content: string, overwrite: boolean }`
 - **Tool Requirements:** Local filesystem access with restricted base path.
@@ -32,6 +35,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 1.0.1
 
 ## 4. read_file
+
 - **Description:** Reads and returns the content of a file.
 - **Inputs Schema:** `{ path: string, encoding: 'utf8' | 'base64' }`
 - **Tool Requirements:** Local filesystem access.
@@ -41,6 +45,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 1.0.1
 
 ## 5. list_directory
+
 - **Description:** Lists contents of a directory.
 - **Inputs Schema:** `{ path: string, depth: number }`
 - **Tool Requirements:** Local filesystem access.
@@ -50,6 +55,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 1.0.0
 
 ## 6. execute_command
+
 - **Description:** Runs a shell command in a restricted environment.
 - **Inputs Schema:** `{ command: string, args: string[], timeout_ms: number }`
 - **Tool Requirements:** Sandboxed shell execution.
@@ -59,6 +65,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 1.1.0
 
 ## 7. query_database
+
 - **Description:** Executes a SQL/NoSQL query.
 - **Inputs Schema:** `{ query: string, params: object, type: 'sql' | 'mongodb' }`
 - **Tool Requirements:** DB connection strings (read-only recommended).
@@ -68,6 +75,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 1.0.0
 
 ## 8. send_email
+
 - **Description:** Sends an email notification.
 - **Inputs Schema:** `{ to: string, subject: string, body: string, attachments: string[] }`
 - **Tool Requirements:** SMTP server or SendGrid/Postmark API.
@@ -77,6 +85,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 1.0.0
 
 ## 9. slack_notify
+
 - **Description:** Posts a message to a Slack channel.
 - **Inputs Schema:** `{ channel: string, message: string, blocks: object[] }`
 - **Tool Requirements:** Slack Webhook or Bot Token.
@@ -86,6 +95,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 1.0.2
 
 ## 10. github_pr_review
+
 - **Description:** Comments on and reviews a GitHub Pull Request.
 - **Inputs Schema:** `{ owner: string, repo: string, pr_number: number, comment: string, event: 'APPROVE' | 'REQUEST_CHANGES' }`
 - **Tool Requirements:** GitHub App or PAT with repo scope.
@@ -95,6 +105,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 1.1.0
 
 ## 11. stripe_refund
+
 - **Description:** Processes a refund for a Stripe transaction.
 - **Inputs Schema:** `{ charge_id: string, amount: number, reason: string }`
 - **Tool Requirements:** Stripe Restricted API Key.
@@ -104,6 +115,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 1.0.0
 
 ## 12. calendly_list_events
+
 - **Description:** Lists upcoming events from Calendly.
 - **Inputs Schema:** `{ user_uri: string, min_start_time: string }`
 - **Tool Requirements:** Calendly OAuth2 token.
@@ -113,6 +125,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 1.0.0
 
 ## 13. weather_lookup
+
 - **Description:** Gets current weather information for a location.
 - **Inputs Schema:** `{ location: string, units: 'metric' | 'imperial' }`
 - **Tool Requirements:** OpenWeatherMap/WeatherStack API.
@@ -122,6 +135,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 1.0.0
 
 ## 14. crypto_price_feed
+
 - **Description:** Fetches real-time price for a crypto asset.
 - **Inputs Schema:** `{ symbol: string, currency: string }`
 - **Tool Requirements:** CoinGecko/CoinMarketCap API.
@@ -131,6 +145,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 1.0.3
 
 ## 15. translate_text
+
 - **Description:** Translates text between languages.
 - **Inputs Schema:** `{ text: string, target_lang: string, source_lang?: string }`
 - **Tool Requirements:** DeepL/Google Translate API.
@@ -140,6 +155,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 1.0.0
 
 ## 16. summarize_document
+
 - **Description:** Distills long content into an executive summary.
 - **Inputs Schema:** `{ content: string, format: 'bullets' | 'paragraph', maxLength: number }`
 - **Tool Requirements:** LLM context window > 32k.
@@ -149,6 +165,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 1.5.0
 
 ## 17. extract_pii
+
 - **Description:** Identifies and classifies PII in a block of text.
 - **Inputs Schema:** `{ text: string, scrub: boolean }`
 - **Tool Requirements:** NLP-based PII detector.
@@ -158,6 +175,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 2.0.0
 
 ## 18. generate_image
+
 - **Description:** Generates an image from a description.
 - **Inputs Schema:** `{ prompt: string, size: '1024x1024' | '512x512' }`
 - **Tool Requirements:** DALL-E 3 / Midjourney API.
@@ -167,6 +185,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 1.0.0
 
 ## 19. audio_to_text
+
 - **Description:** Transcribes audio files to text.
 - **Inputs Schema:** `{ audio_url: string, format: string, language?: string }`
 - **Tool Requirements:** Whisper v3 / AssemblyAI.
@@ -176,6 +195,7 @@ This document serves as the canonical source of truth for the 20 core skills sup
 - **Version:** 1.2.0
 
 ## 20. ocr_extract
+
 - **Description:** Extracts text and tables from images/PDFs.
 - **Inputs Schema:** `{ file_url: string, mode: 'fast' | 'high_accuracy' }`
 - **Tool Requirements:** Tesseract / AWS Textract / Google Vision.

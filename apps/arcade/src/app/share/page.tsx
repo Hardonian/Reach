@@ -1,6 +1,6 @@
-import { Pack } from '@/lib/packs';
-import Link from 'next/link';
-import { TimelineEvent } from '@/components/ExecutionTimeline';
+import { Pack } from "@/lib/packs";
+import Link from "next/link";
+import { TimelineEvent } from "@/components/ExecutionTimeline";
 
 interface SharePayload {
   pack: Pack;
@@ -23,17 +23,17 @@ export default async function SharePage({
       const json = atob(token);
       data = JSON.parse(json);
     } catch {
-      error = 'Invalid share token.';
+      error = "Invalid share token.";
     }
   } else {
-    error = 'No token provided.';
+    error = "No token provided.";
   }
 
   if (error || !data) {
     return (
       <div className="container center-screen">
         <h1 className="font-bold mb-2 text-error">Error</h1>
-        <p className="text-secondary mb-6">{error || 'Unknown error'}</p>
+        <p className="text-secondary mb-6">{error || "Unknown error"}</p>
         <Link href="/" className="btn-primary">
           Return to Arcade
         </Link>
@@ -53,7 +53,10 @@ export default async function SharePage({
           </Link>
         </div>
         <div className="font-mono text-xs text-tertiary">
-          Run ID: {timeline.find(e => e.type === 'Initializing')?.timestamp || 'unknown'} • {new Date(timestamp).toLocaleString()}
+          Run ID:{" "}
+          {timeline.find((e) => e.type === "Initializing")?.timestamp ||
+            "unknown"}{" "}
+          • {new Date(timestamp).toLocaleString()}
         </div>
       </header>
 
@@ -65,24 +68,27 @@ export default async function SharePage({
           {timeline.map((ev, i) => (
             <div key={i} className="timeline-log-entry">
               <div className="flex gap-2">
-                <span className={ev.status === 'failed' ? 'text-error' : 'text-success'}>
-                   {ev.type}
+                <span
+                  className={
+                    ev.status === "failed" ? "text-error" : "text-success"
+                  }
+                >
+                  {ev.type}
                 </span>
                 <span className="text-tertiary">
-                  {ev.timestamp ? `(${ev.timestamp - timestamp}ms)` : ''}
+                  {ev.timestamp ? `(${ev.timestamp - timestamp}ms)` : ""}
                 </span>
               </div>
-              {ev.details && <div className="text-secondary mt-1">{ev.details}</div>}
+              {ev.details && (
+                <div className="text-secondary mt-1">{ev.details}</div>
+              )}
             </div>
           ))}
         </div>
       </div>
 
       <div className="text-center">
-        <Link
-          href="/"
-          className="btn-primary btn-large"
-        >
+        <Link href="/" className="btn-primary btn-large">
           PLAY THIS PACK
         </Link>
       </div>

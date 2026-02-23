@@ -7,16 +7,16 @@ export async function runBenchmarkCommand(): Promise<number> {
 
   // Cold start
   const coldStart = performance.now();
-  spawnSync('node', ['dist/index.js', '--version']);
+  spawnSync("node", ["dist/index.js", "--version"]);
   const coldEnd = performance.now();
   const coldDuration = coldEnd - coldStart;
 
   // Warm start (simulated by repeated execution in same process if possible, but CLI is often fresh)
   // For CLI, "warm" usually means cache hits or persistent process.
   // We'll simulate by running twice and taking the second.
-  spawnSync('node', ['dist/index.js', '--version']); // warm up
+  spawnSync("node", ["dist/index.js", "--version"]); // warm up
   const warmStart = performance.now();
-  spawnSync('node', ['dist/index.js', '--version']);
+  spawnSync("node", ["dist/index.js", "--version"]);
   const warmEnd = performance.now();
   const warmDuration = warmEnd - warmStart;
 
@@ -33,4 +33,3 @@ export async function runBenchmarkCommand(): Promise<number> {
 
   return 0;
 }
-

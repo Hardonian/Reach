@@ -2,7 +2,12 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-export type LlmProviderName = "openai" | "anthropic" | "openrouter" | "ollama" | "custom";
+export type LlmProviderName =
+  | "openai"
+  | "anthropic"
+  | "openrouter"
+  | "ollama"
+  | "custom";
 
 export interface LlmConfig {
   provider: LlmProviderName;
@@ -27,7 +32,8 @@ export function parseLlmArgs(argv: string[]): DoctorArgs {
   for (let i = 1; i < argv.length; i += 1) {
     const arg = argv[i];
     const next = argv[i + 1];
-    if ((arg === "--provider" || arg === "-p") && next) args.provider = next as LlmProviderName;
+    if ((arg === "--provider" || arg === "-p") && next)
+      args.provider = next as LlmProviderName;
     if (arg === "--model" && next) args.model = next;
     if (arg === "--base-url" && next) args.baseUrl = next;
     if (arg === "--api-key" && next) args.apiKey = next;
@@ -46,30 +52,34 @@ export function resolveLlmConfig(args: DoctorArgs): LlmConfig {
   const localConfig = readJson(resolve(root, ".zeo/config.local.json"));
   const env = process.env;
 
-  const provider = args.provider
-    ?? (localConfig.llm as any)?.provider
-    ?? (projectConfig.llm as any)?.provider
-    ?? env.ZEO_LLM_PROVIDER
-    ?? "openai";
+  const provider =
+    args.provider ??
+    (localConfig.llm as any)?.provider ??
+    (projectConfig.llm as any)?.provider ??
+    env.ZEO_LLM_PROVIDER ??
+    "openai";
 
-  const model = args.model
-    ?? (localConfig.llm as any)?.model
-    ?? (projectConfig.llm as any)?.model
-    ?? env.ZEO_LLM_MODEL
-    ?? "gpt-4.1-mini";
+  const model =
+    args.model ??
+    (localConfig.llm as any)?.model ??
+    (projectConfig.llm as any)?.model ??
+    env.ZEO_LLM_MODEL ??
+    "gpt-4.1-mini";
 
-  const baseUrl = args.baseUrl
-    ?? (localConfig.llm as any)?.baseUrl
-    ?? (projectConfig.llm as any)?.baseUrl
-    ?? env.ZEO_LLM_BASE_URL;
+  const baseUrl =
+    args.baseUrl ??
+    (localConfig.llm as any)?.baseUrl ??
+    (projectConfig.llm as any)?.baseUrl ??
+    env.ZEO_LLM_BASE_URL;
 
-  const apiKey = args.apiKey
-    ?? (localConfig.llm as any)?.apiKey
-    ?? (projectConfig.llm as any)?.apiKey
-    ?? env.ZEO_LLM_API_KEY
-    ?? env.OPENAI_API_KEY
-    ?? env.ANTHROPIC_API_KEY
-    ?? env.OPENROUTER_API_KEY;
+  const apiKey =
+    args.apiKey ??
+    (localConfig.llm as any)?.apiKey ??
+    (projectConfig.llm as any)?.apiKey ??
+    env.ZEO_LLM_API_KEY ??
+    env.OPENAI_API_KEY ??
+    env.ANTHROPIC_API_KEY ??
+    env.OPENROUTER_API_KEY;
 
   const temperature = 0;
   const seed = Number(env.ZEO_LLM_SEED ?? "7");
@@ -80,18 +90,33 @@ export function resolveLlmConfig(args: DoctorArgs): LlmConfig {
   }
 
   if (!["ollama"].includes(normalized) && !apiKey) {
-    throw new Error(`Missing API key for provider ${normalized}. Set via --api-key or env/config.`);
+    throw new Error(
+      `Missing API key for provider ${normalized}. Set via --api-key or env/config.`,
+    );
   }
 
   if ((projectConfig.llm as any)?.apiKey || (localConfig.llm as any)?.apiKey) {
-    throw new Error("API keys in .zeo/config*.json are forbidden. Use environment variables or --api-key at runtime.");
+    throw new Error(
+      "API keys in .zeo/config*.json are forbidden. Use environment variables or --api-key at runtime.",
+    );
   }
 
-  return { provider: normalized as LlmProviderName, model, baseUrl, apiKey, temperature, seed };
+  return {
+    provider: normalized as LlmProviderName,
+    model,
+    baseUrl,
+    apiKey,
+    temperature,
+    seed,
+  };
 }
 
-async function providerHealth(config: LlmConfig): Promise<{ reachable: boolean; modelAvailable: boolean; details: string }> {
-  const headers: Record<string, string> = { "content-type": "application/json" };
+async function providerHealth(
+  config: LlmConfig,
+): Promise<{ reachable: boolean; modelAvailable: boolean; details: string }> {
+  const headers: Record<string, string> = {
+    "content-type": "application/json",
+  };
   let url = "";
 
   if (config.provider === "openai") {
@@ -109,14 +134,25 @@ async function providerHealth(config: LlmConfig): Promise<{ reachable: boolean; 
   }
 
   const response = await fetch(url, { method: "GET", headers });
-  if (!response.ok) return { reachable: false, modelAvailable: false, details: `HTTP ${response.status}` };
-  const payload = await response.json() as Record<string, unknown>;
+  if (!response.ok)
+    return {
+      reachable: false,
+      modelAvailable: false,
+      details: `HTTP ${response.status}`,
+    };
+  const payload = (await response.json()) as Record<string, unknown>;
   const serialized = JSON.stringify(payload);
-  return { reachable: true, modelAvailable: serialized.includes(config.model), details: "ok" };
+  return {
+    reachable: true,
+    modelAvailable: serialized.includes(config.model),
+    details: "ok",
+  };
 }
 
 function printHelp(): void {
-  console.log("\nZeo LLM Commands\n\nUsage:\n  zeo llm doctor [--provider <name>] [--model <id>] [--base-url <url>]\n");
+  console.log(
+    "\nZeo LLM Commands\n\nUsage:\n  zeo llm doctor [--provider <name>] [--model <id>] [--base-url <url>]\n",
+  );
 }
 
 export async function runLlmCommand(args: DoctorArgs): Promise<number> {
@@ -128,24 +164,35 @@ export async function runLlmCommand(args: DoctorArgs): Promise<number> {
   const config = resolveLlmConfig(args);
   const health = await providerHealth(config);
   if (!health.reachable) {
-    console.error(`[LLM_DOCTOR_FAILED] Provider unreachable: ${health.details}`);
+    console.error(
+      `[LLM_DOCTOR_FAILED] Provider unreachable: ${health.details}`,
+    );
     return 2;
   }
   if (!health.modelAvailable) {
-    console.error(`[LLM_DOCTOR_FAILED] Model '${config.model}' unavailable for provider '${config.provider}'.`);
+    console.error(
+      `[LLM_DOCTOR_FAILED] Model '${config.model}' unavailable for provider '${config.provider}'.`,
+    );
     return 3;
   }
   if (config.temperature !== 0) {
-    console.error("[LLM_DOCTOR_FAILED] Non-deterministic temperature; must be 0.");
+    console.error(
+      "[LLM_DOCTOR_FAILED] Non-deterministic temperature; must be 0.",
+    );
     return 4;
   }
 
-  console.log(JSON.stringify({
-    status: "ok",
-    provider: config.provider,
-    model: config.model,
-    deterministic: { temperature: config.temperature, seed: config.seed },
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        status: "ok",
+        provider: config.provider,
+        model: config.model,
+        deterministic: { temperature: config.temperature, seed: config.seed },
+      },
+      null,
+      2,
+    ),
+  );
   return 0;
 }
-

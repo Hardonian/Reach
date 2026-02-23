@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
-import { ROUTES } from '@/lib/routes';
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/lib/routes";
 
 export default function MarketplacePage() {
   redirect(ROUTES.LIBRARY);

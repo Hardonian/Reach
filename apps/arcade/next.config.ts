@@ -14,10 +14,14 @@ const nextConfig: NextConfig = {
   },
   trailingSlash: true,
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: process.env.NODE_ENV === "production",
   },
   experimental: {
-    optimizePackageImports: ['@heroicons/react', 'lucide-react', 'framer-motion'],
+    optimizePackageImports: [
+      "@heroicons/react",
+      "lucide-react",
+      "framer-motion",
+    ],
   },
 };
 

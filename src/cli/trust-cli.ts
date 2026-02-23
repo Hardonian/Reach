@@ -26,7 +26,10 @@ export function parseTrustArgs(argv: string[]): TrustCliArgs {
   };
 }
 
-export async function runTrustReplayCommand(runId: string, json: boolean): Promise<number> {
+export async function runTrustReplayCommand(
+  runId: string,
+  json: boolean,
+): Promise<number> {
   const { replayRun, formatReplayResult } = await import("@zeo/core");
 
   try {
@@ -43,7 +46,11 @@ export async function runTrustReplayCommand(runId: string, json: boolean): Promi
   }
 }
 
-export async function runDiffCommand(runIdA: string, runIdB: string, json: boolean): Promise<number> {
+export async function runDiffCommand(
+  runIdA: string,
+  runIdB: string,
+  json: boolean,
+): Promise<number> {
   const { diffRuns, formatRunDiff } = await import("@zeo/core");
 
   try {
@@ -60,7 +67,10 @@ export async function runDiffCommand(runIdA: string, runIdB: string, json: boole
   }
 }
 
-export async function runExplainCommand(runId: string, json: boolean): Promise<number> {
+export async function runExplainCommand(
+  runId: string,
+  json: boolean,
+): Promise<number> {
   const { loadSnapshot } = await import("@zeo/core");
 
   const snapshot = loadSnapshot(runId);
@@ -71,27 +81,33 @@ export async function runExplainCommand(runId: string, json: boolean): Promise<n
   }
 
   if (json) {
-    console.log(JSON.stringify({
-      runId: snapshot.runId,
-      createdAt: snapshot.createdAt,
-      deterministic: snapshot.deterministic,
-      seed: snapshot.seed,
-      inputHash: snapshot.inputHash,
-      outputHash: snapshot.outputHash,
-      chainHash: snapshot.chainHash,
-      durationMs: snapshot.durationMs,
-      spec: {
-        title: snapshot.input.spec.title,
-        context: snapshot.input.spec.context,
-        actions: snapshot.input.spec.actions.length,
-        assumptions: snapshot.input.spec.assumptions.length,
-      },
-      evaluations: snapshot.output?.evaluations.map(e => ({
-        lens: e.lens,
-        robustActions: e.robustActions.length,
-        fragileAssumptions: e.fragileAssumptions.length,
-      })),
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          runId: snapshot.runId,
+          createdAt: snapshot.createdAt,
+          deterministic: snapshot.deterministic,
+          seed: snapshot.seed,
+          inputHash: snapshot.inputHash,
+          outputHash: snapshot.outputHash,
+          chainHash: snapshot.chainHash,
+          durationMs: snapshot.durationMs,
+          spec: {
+            title: snapshot.input.spec.title,
+            context: snapshot.input.spec.context,
+            actions: snapshot.input.spec.actions.length,
+            assumptions: snapshot.input.spec.assumptions.length,
+          },
+          evaluations: snapshot.output?.evaluations.map((e) => ({
+            lens: e.lens,
+            robustActions: e.robustActions.length,
+            fragileAssumptions: e.fragileAssumptions.length,
+          })),
+        },
+        null,
+        2,
+      ),
+    );
   } else {
     console.log(`\n=== Run Explanation: ${snapshot.runId} ===`);
     console.log(`Created: ${snapshot.createdAt}`);
@@ -111,7 +127,9 @@ export async function runExplainCommand(runId: string, json: boolean): Promise<n
       console.log("");
       console.log("Evaluations:");
       for (const evaluation of snapshot.output.evaluations) {
-        console.log(`  [${evaluation.lens}] Robust: ${evaluation.robustActions.length}, Fragile: ${evaluation.fragileAssumptions.length}`);
+        console.log(
+          `  [${evaluation.lens}] Robust: ${evaluation.robustActions.length}, Fragile: ${evaluation.fragileAssumptions.length}`,
+        );
       }
 
       if (snapshot.output.explanation) {
@@ -134,7 +152,10 @@ export async function runExplainCommand(runId: string, json: boolean): Promise<n
   return 0;
 }
 
-export async function runTraceCommand(runId: string, json: boolean): Promise<number> {
+export async function runTraceCommand(
+  runId: string,
+  json: boolean,
+): Promise<number> {
   const { loadSnapshot } = await import("@zeo/core");
 
   const snapshot = loadSnapshot(runId);
@@ -146,7 +167,12 @@ export async function runTraceCommand(runId: string, json: boolean): Promise<num
   // Build trace from snapshot data
   const trace = {
     runId: snapshot.runId,
-    steps: [] as Array<{ step: number; phase: string; detail: string; outputHash: string }>,
+    steps: [] as Array<{
+      step: number;
+      phase: string;
+      detail: string;
+      outputHash: string;
+    }>,
   };
 
   let stepNum = 0;
@@ -225,26 +251,39 @@ export async function runSnapshotsCommand(json: boolean): Promise<number> {
 
   const ids = listSnapshots();
   if (ids.length === 0) {
-    console.log("No snapshots found. Run a decision with --deterministic to create snapshots.");
+    console.log(
+      "No snapshots found. Run a decision with --deterministic to create snapshots.",
+    );
     return 0;
   }
 
   if (json) {
-    const snapshots = ids.map(id => {
-      const s = loadSnapshot(id);
-      return s ? { runId: s.runId, createdAt: s.createdAt, deterministic: s.deterministic, inputHash: s.inputHash, outputHash: s.outputHash } : null;
-    }).filter(Boolean);
+    const snapshots = ids
+      .map((id) => {
+        const s = loadSnapshot(id);
+        return s
+          ? {
+              runId: s.runId,
+              createdAt: s.createdAt,
+              deterministic: s.deterministic,
+              inputHash: s.inputHash,
+              outputHash: s.outputHash,
+            }
+          : null;
+      })
+      .filter(Boolean);
     console.log(JSON.stringify(snapshots, null, 2));
   } else {
     console.log(`\nSnapshots (${ids.length}):\n`);
     for (const id of ids) {
       const s = loadSnapshot(id);
       if (s) {
-        console.log(`  ${s.runId} | ${s.createdAt} | ${s.deterministic ? "deterministic" : "non-deterministic"} | ${s.durationMs}ms`);
+        console.log(
+          `  ${s.runId} | ${s.createdAt} | ${s.deterministic ? "deterministic" : "non-deterministic"} | ${s.durationMs}ms`,
+        );
       }
     }
   }
 
   return 0;
 }
-

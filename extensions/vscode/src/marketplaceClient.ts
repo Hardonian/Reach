@@ -1,5 +1,5 @@
 export type MarketplaceItem = {
-  kind: 'connector' | 'template' | 'policy';
+  kind: "connector" | "template" | "policy";
   id: string;
   name: string;
   publisher: { name: string; verified: boolean };
@@ -35,20 +35,28 @@ export class MarketplaceClient {
 
   async search(query: string): Promise<MarketplaceItem[]> {
     const base = this.getBaseUrl();
-    const response = await fetch(`${base}/v1/marketplace/catalog?q=${encodeURIComponent(query)}&page=1&page_size=20`);
+    const response = await fetch(
+      `${base}/v1/marketplace/catalog?q=${encodeURIComponent(query)}&page=1&page_size=20`,
+    );
     if (!response.ok) {
-      throw new Error(`marketplace catalog request failed with ${response.status}`);
+      throw new Error(
+        `marketplace catalog request failed with ${response.status}`,
+      );
     }
     const body = (await response.json()) as CatalogResponse;
     return body.items ?? [];
   }
 
-  async installIntent(kind: string, id: string, version?: string): Promise<InstallIntentResponse> {
+  async installIntent(
+    kind: string,
+    id: string,
+    version?: string,
+  ): Promise<InstallIntentResponse> {
     const base = this.getBaseUrl();
     const response = await fetch(`${base}/v1/marketplace/install-intent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ kind, id, version })
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind, id, version }),
     });
     if (!response.ok) {
       const err = await response.text();
@@ -57,38 +65,50 @@ export class MarketplaceClient {
     return (await response.json()) as InstallIntentResponse;
   }
 
-  async install(kind: string, id: string, version: string, idempotencyKey: string, acceptedCapabilities: string[]): Promise<void> {
+  async install(
+    kind: string,
+    id: string,
+    version: string,
+    idempotencyKey: string,
+    acceptedCapabilities: string[],
+  ): Promise<void> {
     const base = this.getBaseUrl();
     const result = await fetch(`${base}/v1/marketplace/install`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         kind,
         id,
         version,
         idempotency_key: idempotencyKey,
         accepted_capabilities: acceptedCapabilities,
-        accepted_risk: true
-      })
+        accepted_risk: true,
+      }),
     });
     if (!result.ok) {
       throw new Error(`install failed: ${await result.text()}`);
     }
   }
 
-  async update(kind: string, id: string, version: string, idempotencyKey: string, acceptedCapabilities: string[]): Promise<void> {
+  async update(
+    kind: string,
+    id: string,
+    version: string,
+    idempotencyKey: string,
+    acceptedCapabilities: string[],
+  ): Promise<void> {
     const base = this.getBaseUrl();
     const result = await fetch(`${base}/v1/marketplace/update`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         kind,
         id,
         version,
         idempotency_key: idempotencyKey,
         accepted_capabilities: acceptedCapabilities,
-        accepted_risk: true
-      })
+        accepted_risk: true,
+      }),
     });
     if (!result.ok) {
       throw new Error(`update failed: ${await result.text()}`);

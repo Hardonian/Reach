@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * reach-compat CLI
- * 
+ *
  * Commands:
  *   reach-compat run          Run compatibility test suite
  *   reach-compat verify       Verify spec conformance
@@ -21,17 +21,17 @@ const commands = {
   run() {
     console.log("Running Reach Protocol Compatibility Suite...\n");
     const suitePath = path.join(repoRoot, "compat", "compat-suite.mjs");
-    
+
     try {
       execSync(`node "${suitePath}"`, { stdio: "inherit", cwd: repoRoot });
     } catch (error) {
       process.exit(error.status || 1);
     }
   },
-  
+
   verify() {
     console.log("Verifying spec conformance...\n");
-    
+
     // Verify schemas exist and are valid
     const schemaDir = path.join(repoRoot, "spec", "schema");
     const schemas = [
@@ -39,11 +39,11 @@ const commands = {
       "event.schema.json",
       "pack.schema.json",
       "capsule.schema.json",
-      "error.schema.json"
+      "error.schema.json",
     ];
-    
+
     let allValid = true;
-    
+
     for (const schema of schemas) {
       const schemaPath = path.join(schemaDir, schema);
       if (!fs.existsSync(schemaPath)) {
@@ -51,10 +51,12 @@ const commands = {
         allValid = false;
         continue;
       }
-      
+
       try {
         const content = JSON.parse(fs.readFileSync(schemaPath, "utf8"));
-        if (content.$schema !== "https://json-schema.org/draft/2020-12/schema") {
+        if (
+          content.$schema !== "https://json-schema.org/draft/2020-12/schema"
+        ) {
           console.error(`✗ ${schema}: Must declare draft 2020-12`);
           allValid = false;
         } else {
@@ -65,7 +67,7 @@ const commands = {
         allValid = false;
       }
     }
-    
+
     // Verify spec document exists
     const specPath = path.join(repoRoot, "spec", "REACH_PROTOCOL_v1.md");
     if (fs.existsSync(specPath)) {
@@ -74,7 +76,7 @@ const commands = {
       console.error(`✗ Missing spec document`);
       allValid = false;
     }
-    
+
     // Run compatibility suite
     console.log("\nRunning compatibility tests...");
     try {
@@ -83,7 +85,7 @@ const commands = {
     } catch (error) {
       allValid = false;
     }
-    
+
     if (allValid) {
       console.log("\n✓ All verifications passed");
       process.exit(0);
@@ -92,23 +94,23 @@ const commands = {
       process.exit(1);
     }
   },
-  
+
   validate(schemaName, filePath) {
     if (!schemaName || !filePath) {
       console.error("Usage: reach-compat validate <schema-name> <file-path>");
       console.error("  schema-name: run.schema.json, event.schema.json, etc.");
       process.exit(1);
     }
-    
+
     if (!fs.existsSync(filePath)) {
       console.error(`File not found: ${filePath}`);
       process.exit(1);
     }
-    
+
     try {
       const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
       const errors = validateAgainstSchema(data, schemaName);
-      
+
       if (errors.length === 0) {
         console.log(`✓ Valid against ${schemaName}`);
         process.exit(0);
@@ -124,7 +126,7 @@ const commands = {
       process.exit(1);
     }
   },
-  
+
   help() {
     console.log(`
 reach-compat - Reach Protocol Compatibility Tool
@@ -146,7 +148,7 @@ Examples:
   node reach-compat.mjs verify
   node reach-compat.mjs validate run.schema.json ./my-run.json
 `);
-  }
+  },
 };
 
 // Main

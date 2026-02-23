@@ -1,8 +1,8 @@
-import { DatasetManagement } from '@/components/stitch/console/pages/DatasetManagement';
-import { ConsoleLayout } from '@/components/stitch/console/ConsoleLayout';
+import { DatasetManagement } from "@/components/stitch/console/pages/DatasetManagement";
+import { ConsoleLayout } from "@/components/stitch/console/ConsoleLayout";
 
 export const metadata = {
-  title: 'Dataset & RAG Management | ReadyLayer Console',
+  title: "Dataset & RAG Management | ReadyLayer Console",
 };
 
 export default function DatasetsPage() {

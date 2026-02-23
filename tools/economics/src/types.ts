@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const ConfigSchema = z.object({
   version: z.string(),
@@ -11,10 +11,12 @@ export const ConfigSchema = z.object({
     cost_per_byte_month: z.number(),
     description: z.string().optional(),
   }),
-  models: z.record(z.object({
-    input_1k: z.number(),
-    output_1k: z.number(),
-  })),
+  models: z.record(
+    z.object({
+      input_1k: z.number(),
+      output_1k: z.number(),
+    }),
+  ),
 });
 
 export type EconomicsConfig = z.infer<typeof ConfigSchema>;
@@ -28,5 +30,5 @@ export interface LedgerEntry {
   tokens_in: number;
   tokens_out: number;
   duration_ms: number;
-  status: 'success' | 'failure';
+  status: "success" | "failure";
 }

@@ -12,12 +12,14 @@ reach pack doctor my-pack
 ```
 
 ### 2. Test Thoroughly ```bash
+
 # Run lint checks reach pack lint my-pack
 
 # Run conformance tests reach pack test my-pack
 
 # Full health check reach pack doctor my-pack --json
-```
+
+````
 
 ### 3. Generate PR Bundle ```bash
 # Generate publishing bundle reach pack publish my-pack --registry https://github.com/reach/registry
@@ -26,29 +28,35 @@ reach pack doctor my-pack
 # "pack": "my-pack", # "version": "1.0.0",
 # "bundle_path": "my-pack/publish-bundle", # "branch_name": "add-pack-my-pack-1.0.0",
 # "instructions": "my-pack/publish-bundle/PR_INSTRUCTIONS.md" # }
-```
+````
 
 ### 4. Submit PR The bundle contains:
+
 - `bundle.json`: Machine-readable bundle metadata
 - `PR_INSTRUCTIONS.md`: Human-readable instructions
 - `registry/my-pack.json`: Registry entry
 - `packs/my-pack/1.0.0/pack.json`: Pack content
 
 #### Option A: Using GitHub CLI ```bash
+
 cd my-pack/publish-bundle
 cat PR_INSTRUCTIONS.md
 
 # Follow the instructions to: # 1. Clone the registry
+
 # 2. Create a branch # 3. Copy files
+
 # 4. Submit PR git clone https://github.com/reach/registry
+
 cd registry
 git checkout -b add-pack-my-pack-1.0.0
-cp -r ../my-pack/publish-bundle/* .
+cp -r ../my-pack/publish-bundle/\* .
 git add .
 git commit -m "Add pack: my-pack v1.0.0"
 git push origin add-pack-my-pack-1.0.0
 gh pr create --title "Add pack: my-pack v1.0.0"
-```
+
+````
 
 #### Option B: Manual PR 1. Fork the registry repository
 2. Create a new branch
@@ -78,7 +86,7 @@ gh pr create --title "Add pack: my-pack v1.0.0"
     "verified_at": "2024-01-01T00:00:00Z"
   }
 }
-```
+````
 
 ## Verification Requirements Before a pack is accepted to the registry:
 
@@ -109,6 +117,7 @@ jobs:
 ```
 
 ## Best Practices 1. **Version properly**: Use semantic versioning
+
 2. **Sign your packs**: Required for governed packs
 3. **Test thoroughly**: Run all conformance tests
 4. **Document clearly**: Write helpful descriptions
@@ -122,12 +131,17 @@ jobs:
 ```
 
 ### Missing Files Ensure your pack has:
+
 - `pack.json` (required)
 - `README.md` (required)
 - `policy.rego` (if governed)
 
 ### Signing Issues ```bash
+
 # Generate signing key reach pack generate-key --output signing.key
 
 # Sign the pack reach pack sign my-pack --key signing.key
+
+```
+
 ```

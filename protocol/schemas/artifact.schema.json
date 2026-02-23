@@ -5,9 +5,9 @@
     "Diff": {
       "type": "object",
       "properties": {
-        "path": {"type": "string"},
-        "before": {"type": "string"},
-        "after": {"type": "string"}
+        "path": { "type": "string" },
+        "before": { "type": "string" },
+        "after": { "type": "string" }
       },
       "required": ["path", "before", "after"],
       "additionalProperties": false
@@ -17,7 +17,7 @@
       "properties": {
         "diffs": {
           "type": "array",
-          "items": {"$ref": "#/$defs/Diff"}
+          "items": { "$ref": "#/$defs/Diff" }
         }
       },
       "required": ["diffs"],

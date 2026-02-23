@@ -12,7 +12,14 @@ import { performance } from "node:perf_hooks";
  * - Storage pressure
  */
 
-import { readFileSync, existsSync, mkdirSync, statSync, readdirSync, writeFileSync } from "node:fs";
+import {
+  readFileSync,
+  existsSync,
+  mkdirSync,
+  statSync,
+  readdirSync,
+  writeFileSync,
+} from "node:fs";
 import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
@@ -22,8 +29,12 @@ import { execSync } from "node:child_process";
 // Try to import VERSION_INFO from @zeo/core, with fallback for dev
 let VERSION_INFO: { version: string; gitSha: string; timestamp: string };
 try {
-  const core = await import("@zeo/core") as any;
-  VERSION_INFO = core.VERSION_INFO || { version: "dev", gitSha: "unknown", timestamp: new Date().toISOString() };
+  const core = (await import("@zeo/core")) as any;
+  VERSION_INFO = core.VERSION_INFO || {
+    version: "dev",
+    gitSha: "unknown",
+    timestamp: new Date().toISOString(),
+  };
 } catch {
   // Fallback for development without full build
   VERSION_INFO = {
@@ -80,7 +91,11 @@ export interface StorageStats {
   newestRun: string | null;
 }
 
-export function parseDoctorArgs(argv: string[]): { json: boolean; fix: boolean; perf: boolean } {
+export function parseDoctorArgs(argv: string[]): {
+  json: boolean;
+  fix: boolean;
+  perf: boolean;
+} {
   const result = { json: false, fix: false, perf: false };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -95,7 +110,11 @@ export function parseDoctorArgs(argv: string[]): { json: boolean; fix: boolean; 
   return result;
 }
 
-export async function runDoctorCommand(args: { json: boolean; fix: boolean; perf: boolean }): Promise<number> {
+export async function runDoctorCommand(args: {
+  json: boolean;
+  fix: boolean;
+  perf: boolean;
+}): Promise<number> {
   console.log("\n=== Zeo Doctor ===\n");
 
   const checks: DoctorCheck[] = [];
@@ -203,12 +222,18 @@ export async function runDoctorCommand(args: { json: boolean; fix: boolean; perf
   checks.push(policyCheck);
 
   // 21. Enterprise Connectivity Check (Supabase)
-  const { runEnterpriseConnectivityCheck } = await import("./doctor-dek-checks.js");
+  const { runEnterpriseConnectivityCheck } =
+    await import("./doctor-dek-checks.js");
   const enterpriseCheck = await runEnterpriseConnectivityCheck();
   checks.push(enterpriseCheck);
 
   // Compute overall status
-  const overall = errorCodes.length > 0 ? "critical" : warnings.length > 0 ? "warning" : "healthy";
+  const overall =
+    errorCodes.length > 0
+      ? "critical"
+      : warnings.length > 0
+        ? "warning"
+        : "healthy";
 
   // Build support payload
   const determinismStamp = {
@@ -281,17 +306,22 @@ export async function runDoctorCommand(args: { json: boolean; fix: boolean; perf
   return overall === "healthy" ? 0 : 1;
 }
 
-
 function runPerfDiagnostics() {
   const t0 = performance.now();
   const coldStartMs = Math.round(performance.now() - t0);
   const warmStartMs = Math.round((performance.now() - t0) / 2);
-  const memoryPeakMb = Math.round((process.memoryUsage().rss / (1024 * 1024)) * 100) / 100;
+  const memoryPeakMb =
+    Math.round((process.memoryUsage().rss / (1024 * 1024)) * 100) / 100;
   const cacheDir = resolve(__dirname, "../../.zeo-cache");
   const cacheHitRate = existsSync(cacheDir) ? 0.5 : 0;
-  return { coldStartMs, warmStartMs, memoryPeakMb, cacheHitRate, timestamp: new Date().toISOString() };
+  return {
+    coldStartMs,
+    warmStartMs,
+    memoryPeakMb,
+    cacheHitRate,
+    timestamp: new Date().toISOString(),
+  };
 }
-
 
 function runDeterminismCheck(): DoctorCheck {
   try {
@@ -305,7 +335,8 @@ function runDeterminismCheck(): DoctorCheck {
         name: "Determinism Check",
         status: "fail",
         message: "Hash computation is not deterministic",
-        remediation: "Check random seed implementation and canonical JSON serialization",
+        remediation:
+          "Check random seed implementation and canonical JSON serialization",
       };
     }
 
@@ -406,7 +437,7 @@ function runScenarioStoreCheck(): DoctorCheck {
 
   try {
     const files = readdirSync(scenariosDir);
-    const validScenarios = files.filter(f => f.endsWith(".json"));
+    const validScenarios = files.filter((f) => f.endsWith(".json"));
 
     if (validScenarios.length === 0) {
       return {
@@ -473,7 +504,8 @@ function runStoragePressureCheck(): DoctorCheck {
         name: "Storage Pressure",
         status: "warning",
         message: `Storage usage: ${sizeMB.toFixed(2)} MB`,
-        remediation: "Consider pruning old runs with 'zeo warehouse prune --older-than 30d'",
+        remediation:
+          "Consider pruning old runs with 'zeo warehouse prune --older-than 30d'",
         details: { sizeBytes: stats.size },
       };
     }
@@ -591,7 +623,13 @@ function computeStorageStats(): StorageStats {
   const warehouseDir = resolve(__dirname, "../../.zeo/warehouse");
 
   if (!existsSync(warehouseDir)) {
-    return { runsCount: 0, eventsCount: 0, cacheSizeBytes: 0, oldestRun: null, newestRun: null };
+    return {
+      runsCount: 0,
+      eventsCount: 0,
+      cacheSizeBytes: 0,
+      oldestRun: null,
+      newestRun: null,
+    };
   }
 
   let runsCount = 0;
@@ -610,10 +648,14 @@ function computeStorageStats(): StorageStats {
           runsCount += files.length;
           if (files.length > 0) {
             // Extract timestamps from filenames
-            const timestamps = files.map(f => f.replace(".json", "").slice(0, 24));
+            const timestamps = files.map((f) =>
+              f.replace(".json", "").slice(0, 24),
+            );
             timestamps.sort();
-            if (!oldestRun || timestamps[0] < oldestRun) oldestRun = timestamps[0];
-            if (!newestRun || timestamps[timestamps.length - 1] > newestRun) newestRun = timestamps[timestamps.length - 1];
+            if (!oldestRun || timestamps[0] < oldestRun)
+              oldestRun = timestamps[0];
+            if (!newestRun || timestamps[timestamps.length - 1] > newestRun)
+              newestRun = timestamps[timestamps.length - 1];
           }
         }
       }
@@ -655,13 +697,23 @@ async function runFixes(checks: DoctorCheck[]): Promise<void> {
         break;
 
       case "scenarios": {
-        const scenariosDir = resolve(__dirname, "../../external/examples/scenarios");
+        const scenariosDir = resolve(
+          __dirname,
+          "../../external/examples/scenarios",
+        );
         if (!existsSync(scenariosDir)) {
           console.log(`  Creating scenarios directory: ${scenariosDir}`);
           mkdirSync(scenariosDir, { recursive: true });
           // Add a sample scenario
-          const sample = { id: "sample", name: "Sample Scenario", steps: [] as any[] };
-          writeFileSync(join(scenariosDir, "sample.json"), JSON.stringify(sample, null, 2));
+          const sample = {
+            id: "sample",
+            name: "Sample Scenario",
+            steps: [] as any[],
+          };
+          writeFileSync(
+            join(scenariosDir, "sample.json"),
+            JSON.stringify(sample, null, 2),
+          );
         }
         break;
       }
@@ -669,7 +721,9 @@ async function runFixes(checks: DoctorCheck[]): Promise<void> {
       case "llm":
         if (!process.env.OPENAI_API_KEY && !process.env.ANTHROPIC_API_KEY) {
           console.log("  Warning: No LLM API keys found in environment.");
-          console.log("  Action: Please set OPENAI_API_KEY or ANTHROPIC_API_KEY.");
+          console.log(
+            "  Action: Please set OPENAI_API_KEY or ANTHROPIC_API_KEY.",
+          );
         }
         break;
 
@@ -709,65 +763,135 @@ function generateRequestId(): string {
 
 function formatStatus(status: string): string {
   switch (status) {
-    case "healthy": return "✓ Healthy";
-    case "warning": return "⚠ Warning";
-    case "critical": return "✗ Critical";
-    default: return status;
+    case "healthy":
+      return "✓ Healthy";
+    case "warning":
+      return "⚠ Warning";
+    case "critical":
+      return "✗ Critical";
+    default:
+      return status;
   }
 }
 
 function formatCheckStatus(status: string): string {
   switch (status) {
-    case "pass": return "✓";
-    case "warning": return "⚠";
-    case "fail": return "✗";
-    default: return "?";
+    case "pass":
+      return "✓";
+    case "warning":
+      return "⚠";
+    case "fail":
+      return "✗";
+    default:
+      return "?";
   }
 }
 
-
 function runLlmConfigCheck(): DoctorCheck {
-  const hasConfig = existsSync(resolve(process.cwd(), ".zeo", "config.json")) || Boolean(process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY || process.env.OPENROUTER_API_KEY);
+  const hasConfig =
+    existsSync(resolve(process.cwd(), ".zeo", "config.json")) ||
+    Boolean(
+      process.env.OPENAI_API_KEY ||
+      process.env.ANTHROPIC_API_KEY ||
+      process.env.OPENROUTER_API_KEY,
+    );
   return hasConfig
-    ? { id: "llm", name: "LLM Config", status: "pass", message: "LLM configuration present" }
-    : { id: "llm", name: "LLM Config", status: "warning", message: "No LLM config detected (optional)", remediation: "Run 'zeo llm doctor' or set .zeo/config.json" };
+    ? {
+        id: "llm",
+        name: "LLM Config",
+        status: "pass",
+        message: "LLM configuration present",
+      }
+    : {
+        id: "llm",
+        name: "LLM Config",
+        status: "warning",
+        message: "No LLM config detected (optional)",
+        remediation: "Run 'zeo llm doctor' or set .zeo/config.json",
+      };
 }
 
 function runSigningKeyCheck(): DoctorCheck {
   const keyPath = resolve(process.cwd(), ".zeo", "keys", "id_ed25519.pem");
   if (!existsSync(keyPath)) {
-    return { id: "signing-key", name: "Signing Key", status: "warning", message: "No signing key found", remediation: "Run 'zeo keygen --out .zeo/keys/id_ed25519.pem'" };
+    return {
+      id: "signing-key",
+      name: "Signing Key",
+      status: "warning",
+      message: "No signing key found",
+      remediation: "Run 'zeo keygen --out .zeo/keys/id_ed25519.pem'",
+    };
   }
   const stat = statSync(keyPath);
-  return { id: "signing-key", name: "Signing Key", status: "pass", message: `Signing key present (${stat.mode.toString(8)})` };
+  return {
+    id: "signing-key",
+    name: "Signing Key",
+    status: "pass",
+    message: `Signing key present (${stat.mode.toString(8)})`,
+  };
 }
 
 function runKeyringCheck(): DoctorCheck {
   const keyring = resolve(process.cwd(), ".zeo", "keyring");
-  if (!existsSync(keyring)) return { id: "keyring", name: "Keyring", status: "warning", message: "Keyring directory missing", remediation: "Use 'zeo keys add <pubkey>'" };
+  if (!existsSync(keyring))
+    return {
+      id: "keyring",
+      name: "Keyring",
+      status: "warning",
+      message: "Keyring directory missing",
+      remediation: "Use 'zeo keys add <pubkey>'",
+    };
   const files = readdirSync(keyring).filter((f) => f.endsWith(".json"));
-  return { id: "keyring", name: "Keyring", status: "pass", message: `${files.length} keyring entries found` };
+  return {
+    id: "keyring",
+    name: "Keyring",
+    status: "pass",
+    message: `${files.length} keyring entries found`,
+  };
 }
 
 function runTrustProfileIntegrityCheck(): DoctorCheck {
   const trustDir = resolve(process.cwd(), ".zeo", "trust");
-  if (!existsSync(trustDir)) return { id: "trust", name: "Trust Profiles", status: "warning", message: "No trust profiles recorded yet" };
+  if (!existsSync(trustDir))
+    return {
+      id: "trust",
+      name: "Trust Profiles",
+      status: "warning",
+      message: "No trust profiles recorded yet",
+    };
   try {
     const files = readdirSync(trustDir).filter((f) => f.endsWith(".json"));
-    for (const file of files.slice(0, 5)) JSON.parse(readFileSync(join(trustDir, file), "utf8"));
-    return { id: "trust", name: "Trust Profiles", status: "pass", message: `${files.length} trust profile file(s) valid` };
+    for (const file of files.slice(0, 5))
+      JSON.parse(readFileSync(join(trustDir, file), "utf8"));
+    return {
+      id: "trust",
+      name: "Trust Profiles",
+      status: "pass",
+      message: `${files.length} trust profile file(s) valid`,
+    };
   } catch (err) {
-    return { id: "trust", name: "Trust Profiles", status: "fail", message: `Invalid trust profile JSON: ${(err as Error).message}`, remediation: "Repair or remove invalid files in .zeo/trust" };
+    return {
+      id: "trust",
+      name: "Trust Profiles",
+      status: "fail",
+      message: `Invalid trust profile JSON: ${(err as Error).message}`,
+      remediation: "Repair or remove invalid files in .zeo/trust",
+    };
   }
 }
 
 function runSnapshotIntegrityCheck(): DoctorCheck {
   const snapshotsDir = resolve(process.cwd(), ".zeo", "snapshots");
   if (!existsSync(snapshotsDir)) {
-    return { id: "snapshots", name: "Snapshot Integrity", status: "pass", message: "No snapshots directory (clean state)" };
+    return {
+      id: "snapshots",
+      name: "Snapshot Integrity",
+      status: "pass",
+      message: "No snapshots directory (clean state)",
+    };
   }
   try {
-    const files = readdirSync(snapshotsDir).filter(f => f.endsWith(".json"));
+    const files = readdirSync(snapshotsDir).filter((f) => f.endsWith(".json"));
     let corrupt = 0;
     for (const file of files.slice(0, 5)) {
       try {
@@ -779,44 +903,106 @@ function runSnapshotIntegrityCheck(): DoctorCheck {
       }
     }
     if (corrupt > 0) {
-      return { id: "snapshots", name: "Snapshot Integrity", status: "warning", message: `${corrupt} corrupt snapshot(s) found`, remediation: "Remove invalid files from .zeo/snapshots/" };
+      return {
+        id: "snapshots",
+        name: "Snapshot Integrity",
+        status: "warning",
+        message: `${corrupt} corrupt snapshot(s) found`,
+        remediation: "Remove invalid files from .zeo/snapshots/",
+      };
     }
-    return { id: "snapshots", name: "Snapshot Integrity", status: "pass", message: `${files.length} snapshot(s) valid` };
+    return {
+      id: "snapshots",
+      name: "Snapshot Integrity",
+      status: "pass",
+      message: `${files.length} snapshot(s) valid`,
+    };
   } catch (err) {
-    return { id: "snapshots", name: "Snapshot Integrity", status: "warning", message: `Cannot check snapshots: ${(err as Error).message}` };
+    return {
+      id: "snapshots",
+      name: "Snapshot Integrity",
+      status: "warning",
+      message: `Cannot check snapshots: ${(err as Error).message}`,
+    };
   }
 }
 
 async function runMcpHandshakeCheck(): Promise<DoctorCheck> {
   try {
     // Validate MCP tool definitions schema
-    const { validateMcpToolDefinitions } = await import("./mcp-cli.js") as unknown as { validateMcpToolDefinitions: () => string[] };
+    const { validateMcpToolDefinitions } =
+      (await import("./mcp-cli.js")) as unknown as {
+        validateMcpToolDefinitions: () => string[];
+      };
     const issues = validateMcpToolDefinitions();
     if (issues.length > 0) {
-      return { id: "mcp-handshake", name: "MCP Handshake", status: "warning", message: `Schema issues: ${issues.join("; ")}`, remediation: "Check MCP tool definitions" };
+      return {
+        id: "mcp-handshake",
+        name: "MCP Handshake",
+        status: "warning",
+        message: `Schema issues: ${issues.join("; ")}`,
+        remediation: "Check MCP tool definitions",
+      };
     }
-    return { id: "mcp-handshake", name: "MCP Handshake", status: "pass", message: "MCP tool schema valid" };
+    return {
+      id: "mcp-handshake",
+      name: "MCP Handshake",
+      status: "pass",
+      message: "MCP tool schema valid",
+    };
   } catch {
-    return { id: "mcp-handshake", name: "MCP Handshake", status: "pass", message: "MCP module not loaded (ok for CLI-only)" };
+    return {
+      id: "mcp-handshake",
+      name: "MCP Handshake",
+      status: "pass",
+      message: "MCP module not loaded (ok for CLI-only)",
+    };
   }
 }
 
 function runEvidenceGraphCheck(): DoctorCheck {
   const graphPath = resolve(process.cwd(), ".zeo", "evidence-graph.json");
   if (!existsSync(graphPath)) {
-    return { id: "evidence-graph", name: "Evidence Graph", status: "pass", message: "No evidence graph (clean state)" };
+    return {
+      id: "evidence-graph",
+      name: "Evidence Graph",
+      status: "pass",
+      message: "No evidence graph (clean state)",
+    };
   }
   try {
     const content = readFileSync(graphPath, "utf8");
     const graph = JSON.parse(content);
     if (!graph.version || !Array.isArray(graph.nodes)) {
-      return { id: "evidence-graph", name: "Evidence Graph", status: "warning", message: "Invalid evidence graph schema", remediation: "Delete and recreate .zeo/evidence-graph.json" };
+      return {
+        id: "evidence-graph",
+        name: "Evidence Graph",
+        status: "warning",
+        message: "Invalid evidence graph schema",
+        remediation: "Delete and recreate .zeo/evidence-graph.json",
+      };
     }
-    const staleCount = graph.nodes.filter((n: { confidenceScore: number }) => n.confidenceScore < 0.3).length;
+    const staleCount = graph.nodes.filter(
+      (n: { confidenceScore: number }) => n.confidenceScore < 0.3,
+    ).length;
     const msg = `${graph.nodes.length} node(s)${staleCount > 0 ? `, ${staleCount} stale` : ""}`;
-    return { id: "evidence-graph", name: "Evidence Graph", status: staleCount > 0 ? "warning" : "pass", message: msg, remediation: staleCount > 0 ? "Run 'zeo refresh-evidence' to update scores" : undefined };
+    return {
+      id: "evidence-graph",
+      name: "Evidence Graph",
+      status: staleCount > 0 ? "warning" : "pass",
+      message: msg,
+      remediation:
+        staleCount > 0
+          ? "Run 'zeo refresh-evidence' to update scores"
+          : undefined,
+    };
   } catch (err) {
-    return { id: "evidence-graph", name: "Evidence Graph", status: "warning", message: `Error reading: ${(err as Error).message}` };
+    return {
+      id: "evidence-graph",
+      name: "Evidence Graph",
+      status: "warning",
+      message: `Error reading: ${(err as Error).message}`,
+    };
   }
 }
 
@@ -848,11 +1034,18 @@ function runSecretScanningCheck(): DoctorCheck {
     if (existsSync(path)) {
       const content = readFileSync(path, "utf8");
       for (const key of sensitiveKeys) {
-        if (content.toLowerCase().includes(key) && !content.includes("REDACTED")) {
+        if (
+          content.toLowerCase().includes(key) &&
+          !content.includes("REDACTED")
+        ) {
           // Check if it's actually a secret or just a key name
           const lines = content.split("\n");
           for (const line of lines) {
-            if (line.toLowerCase().includes(key) && line.includes("=") && line.split("=")[1].trim().length > 10) {
+            if (
+              line.toLowerCase().includes(key) &&
+              line.includes("=") &&
+              line.split("=")[1].trim().length > 10
+            ) {
               findings.push(`${file}:${key}`);
             }
           }
@@ -867,7 +1060,8 @@ function runSecretScanningCheck(): DoctorCheck {
       name: "Secret Scanning",
       status: "fail",
       message: `Potential secrets found in: ${findings.join(", ")}`,
-      remediation: "Redact secrets or add files to .gitignore. Use placeholder values for development.",
+      remediation:
+        "Redact secrets or add files to .gitignore. Use placeholder values for development.",
     };
   }
 
@@ -882,35 +1076,65 @@ function runSecretScanningCheck(): DoctorCheck {
 function runEnvCheck(): DoctorCheck {
   const result = safeValidateEnv();
   if (!result.success) {
-    const issues = ("errors" in result ? result.errors : []).map((e) => `${e.path.join(".")}: ${e.message}`).join(", ");
-    return { id: "env", name: "Environment Check", status: "fail", message: `Invalid env: ${issues}`, remediation: "Check .env file and required variables" };
+    const issues = ("errors" in result ? result.errors : [])
+      .map((e) => `${e.path.join(".")}: ${e.message}`)
+      .join(", ");
+    return {
+      id: "env",
+      name: "Environment Check",
+      status: "fail",
+      message: `Invalid env: ${issues}`,
+      remediation: "Check .env file and required variables",
+    };
   }
-  return { id: "env", name: "Environment Check", status: "pass", message: "Environment variables valid" };
+  return {
+    id: "env",
+    name: "Environment Check",
+    status: "pass",
+    message: "Environment variables valid",
+  };
 }
 
 function runPnpmCheck(): DoctorCheck {
   try {
     const output = execSync("pnpm -v", { encoding: "utf8" }).trim();
     if (output.startsWith("9.")) {
-      return { id: "pnpm", name: "PNPM Version", status: "pass", message: `pnpm version ${output} (aligned)` };
+      return {
+        id: "pnpm",
+        name: "PNPM Version",
+        status: "pass",
+        message: `pnpm version ${output} (aligned)`,
+      };
     }
-    return { id: "pnpm", name: "PNPM Version", status: "warning", message: `pnpm version ${output} (expected 9.x)`, remediation: "Install pnpm@9 via corepack or npm" };
+    return {
+      id: "pnpm",
+      name: "PNPM Version",
+      status: "warning",
+      message: `pnpm version ${output} (expected 9.x)`,
+      remediation: "Install pnpm@9 via corepack or npm",
+    };
   } catch {
-    return { id: "pnpm", name: "PNPM Version", status: "fail", message: "pnpm not found", remediation: "Install pnpm globally" };
+    return {
+      id: "pnpm",
+      name: "PNPM Version",
+      status: "fail",
+      message: "pnpm not found",
+      remediation: "Install pnpm globally",
+    };
   }
 }
 
 function runStructuralIntegrityCheck(): DoctorCheck {
   const rootDir = resolve(__dirname, "../../");
   const guardScript = join(rootDir, "tools/guard-structure.ps1");
-  
+
   if (!existsSync(guardScript)) {
     return {
       id: "structural_guard",
       name: "Structural Guard Check",
       status: "warning",
       message: "Structural guard script missing at tools/guard-structure.ps1",
-      remediation: "Re-run structural normalization to restore guards."
+      remediation: "Re-run structural normalization to restore guards.",
     };
   }
 
@@ -920,7 +1144,8 @@ function runStructuralIntegrityCheck(): DoctorCheck {
       id: "structural_guard",
       name: "Structural Guard Check",
       status: "pass",
-      message: "Root directory matches registered baseline. No entropy detected."
+      message:
+        "Root directory matches registered baseline. No entropy detected.",
     };
   } catch {
     return {
@@ -928,7 +1153,8 @@ function runStructuralIntegrityCheck(): DoctorCheck {
       name: "Structural Guard Check",
       status: "fail",
       message: "Unexpected files detected in root directory.",
-      remediation: "Move root files to appropriate subdirectories or update the guard script baseline."
+      remediation:
+        "Move root files to appropriate subdirectories or update the guard script baseline.",
     };
   }
 }
@@ -964,7 +1190,7 @@ function runPathAliasCheck(): DoctorCheck {
         name: "Path Alias Check",
         status: "fail",
         message: `Broken path aliases detected: ${missingPaths.join(", ")}`,
-        remediation: "Update tsconfig.json paths to match the new src/ layout."
+        remediation: "Update tsconfig.json paths to match the new src/ layout.",
       };
     }
 
@@ -972,7 +1198,8 @@ function runPathAliasCheck(): DoctorCheck {
       id: "path_alias_health",
       name: "Path Alias Check",
       status: "pass",
-      message: "All tsconfig path aliases correctly resolve to filesystem locations."
+      message:
+        "All tsconfig path aliases correctly resolve to filesystem locations.",
     };
   } catch (e) {
     return {
@@ -980,7 +1207,7 @@ function runPathAliasCheck(): DoctorCheck {
       name: "Path Alias Check",
       status: "warning",
       message: "Could not parse tsconfig.json for path validation.",
-      details: { error: e.message }
+      details: { error: e.message },
     };
   }
 }

@@ -34,16 +34,20 @@ export function parsePlanArgs(argv: string[]): PlanCliArgs {
     const arg = argv[i];
     const next = argv[i + 1];
 
-    if (arg === "--budget" && next) { result.budget = parseInt(next, 10); i++; }
-    else if (arg === "--flip") result.showFlip = true;
+    if (arg === "--budget" && next) {
+      result.budget = parseInt(next, 10);
+      i++;
+    } else if (arg === "--flip") result.showFlip = true;
     else if (arg === "--voi") result.showVoi = true;
     else if (arg === "--deltas") result.showDeltas = true;
     else if (arg === "--json") result.json = true;
     else if (arg === "--example" && next) {
       if (next === "negotiation" || next === "ops") result.example = next;
       i++;
+    } else if (arg === "--depth" && next) {
+      result.depth = parseInt(next, 10);
+      i++;
     }
-    else if (arg === "--depth" && next) { result.depth = parseInt(next, 10); i++; }
   }
 
   return result;
@@ -52,7 +56,10 @@ export function parsePlanArgs(argv: string[]): PlanCliArgs {
 export async function runPlanCommand(args: PlanCliArgs): Promise<number> {
   const core = await import("@zeo/core");
 
-  const spec = args.example === "ops" ? core.makeOpsExample() : core.makeNegotiationExample();
+  const spec =
+    args.example === "ops"
+      ? core.makeOpsExample()
+      : core.makeNegotiationExample();
   const result = core.runDecision(spec, { depth: args.depth === 3 ? 3 : 2 });
 
   const showAll = !args.showFlip && !args.showVoi && !args.showDeltas;
@@ -78,7 +85,9 @@ export async function runPlanCommand(args: PlanCliArgs): Promise<number> {
       console.log("Value of Information Rankings:\n");
       for (const v of voi) {
         console.log(`  [VOI=${v.voiScore.toFixed(2)}] ${v.evidencePrompt}`);
-        console.log(`    Benefit: ${(v.benefitScore * 100).toFixed(1)}% | Cost: ${(v.costScore * 100).toFixed(1)}%`);
+        console.log(
+          `    Benefit: ${(v.benefitScore * 100).toFixed(1)}% | Cost: ${(v.costScore * 100).toFixed(1)}%`,
+        );
         console.log("");
       }
     }
@@ -110,4 +119,3 @@ export async function runPlanCommand(args: PlanCliArgs): Promise<number> {
 
   return 0;
 }
-
