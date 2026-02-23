@@ -139,11 +139,11 @@ export default function Governance() {
   >("policies");
 
   const handleEditPolicy = (id: string) => {
-    console.log("Edit policy:", id);
+    // TODO: Implement edit policy
   };
 
   const handleDeletePolicy = (id: string) => {
-    console.log("Delete policy:", id);
+    // TODO: Implement delete policy
   };
 
   return (
@@ -198,7 +198,7 @@ export default function Governance() {
                 description="Create your first policy to enforce compliance rules across your agents."
                 action={{
                   label: "Create Policy",
-                  onClick: () => console.log("Create policy"),
+                  onClick: () => { /* TODO: Implement create policy */ },
                 }}
               />
             )}
