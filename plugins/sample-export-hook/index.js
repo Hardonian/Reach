@@ -114,7 +114,7 @@ module.exports = {
               total_events: events.length,
               total_evidence_items: evidence.length,
               event_type_breakdown: Object.entries(eventTypes)
-                .sort((a, b) => a[0].localeCompare(b[0]))
+                .sort((a, b) => a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 : 0))
                 .reduce((obj, [key, val]) => {
                   obj[key] = val;
                   return obj;
@@ -174,7 +174,7 @@ module.exports = {
             }
 
             // Sort by type for determinism
-            return refs.sort((a, b) => a.type.localeCompare(b.type));
+            return refs.sort((a, b) => a.type < b.type ? -1 : (a.type > b.type ? 1 : 0));
           },
         },
 

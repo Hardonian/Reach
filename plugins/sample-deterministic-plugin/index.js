@@ -55,7 +55,7 @@ module.exports = {
                 value: options.length,
                 description: `Selected from ${options.length} options`,
               },
-            ].sort((a, b) => a.type.localeCompare(b.type));
+            ].sort((a, b) => a.type < b.type ? -1 : (a.type > b.type ? 1 : 0));
 
             return {
               selected,
@@ -109,7 +109,7 @@ module.exports = {
               const sorted = [...input.options].sort((a, b) => {
                 const aStr = JSON.stringify(a);
                 const bStr = JSON.stringify(b);
-                return aStr.localeCompare(bStr);
+                return aStr < bStr ? -1 : (aStr > bStr ? 1 : 0);
               });
               const original = JSON.stringify(input.options);
               const sortedStr = JSON.stringify(sorted);
@@ -125,7 +125,7 @@ module.exports = {
               }
             }
 
-            return findings.sort((a, b) => a.message.localeCompare(b.message));
+            return findings.sort((a, b) => a.message < b.message ? -1 : (a.message > b.message ? 1 : 0));
           },
         },
       ],

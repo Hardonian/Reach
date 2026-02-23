@@ -104,7 +104,7 @@ module.exports = {
                 ...option,
                 score: Math.round(score * 100) / 100,
                 confidence: Math.round(confidence * 100) / 100,
-                evidence: evidence.sort((a, b) => a.type.localeCompare(b.type)),
+                evidence: evidence.sort((a, b) => a.type < b.type ? -1 : (a.type > b.type ? 1 : 0)),
               };
             });
 
