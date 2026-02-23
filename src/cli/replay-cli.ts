@@ -7,6 +7,7 @@
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { resolve, join } from "node:path";
+import { createHash } from "node:crypto";
 import type { ReplayDataset, ReplayResult, DecisionSpec } from "@zeo/contracts";
 import { assertReplayDataset } from "@zeo/contracts";
 
