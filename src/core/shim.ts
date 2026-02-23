@@ -40,8 +40,16 @@ export function deactivateDeterministicMode(): void {
 // Core decision execution
 // ---------------------------------------------------------------------------
 
-function hashInput(input: unknown): string {
-  return createHash("sha256").update(JSON.stringify(input)).digest("hex");
+function hashInput(input: any): string {
+  // Hash only decision-stable fields; exclude logicalTimestamp and opts
+  // which change between runs but don't alter the decision outcome.
+  const stablePayload = {
+    spec: input?.spec,
+    evidence: input?.evidence,
+    dependsOn: input?.dependsOn,
+    informs: input?.informs,
+  };
+  return createHash("sha256").update(JSON.stringify(stablePayload)).digest("hex");
 }
 
 export function executeDecision(input: any): { result: any; transcript: any } {

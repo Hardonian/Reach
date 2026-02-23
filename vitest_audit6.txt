@@ -1,0 +1,323 @@
+Failed to parse tsconfig.json for vitest aliases SyntaxError: Expected ':' after property name in JSON at position 417 (line 15 column 14)
+    at JSON.parse (<anonymous>)
+    at Object.<anonymous> (C:\Users\scott\Documents\GitHub\Reach\vitest.config.ts:52:21)
+    at Module._compile (node:internal/modules/cjs/loader:1803:14)
+    at _require.extensions.<computed> [as .js] (file:///C:/Users/scott/node_modules/vitest/node_modules/vite/dist/node/chunks/config.js:35919:44)
+    at Module.load (node:internal/modules/cjs/loader:1524:32)
+    at Module._load (node:internal/modules/cjs/loader:1326:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1547:12)
+    at require (node:internal/modules/helpers:152:16)
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/Users/scott/Documents/GitHub/Reach[39m
+
+[90mstdout[2m | src/cli/agents-cli.test.ts[2m > [22m[2magents permissions[2m > [22m[2mrequires explicit acceptance on add
+[22m[39mAgent local-agent requests permissions fs=false network=false. Re-run with --accept.
+
+[90mstdout[2m | src/cli/agents-cli.test.ts[2m > [22m[2magents permissions[2m > [22m[2mrequires explicit acceptance on add
+[22m[39madded local-agent
+
+[90mstdout[2m | src/cli/agents-cli.test.ts[2m > [22m[2magents permissions[2m > [22m[2mrecommends agents deterministically for a task
+[22m[39madded extractor-agent
+
+[90mstdout[2m | src/cli/agents-cli.test.ts[2m > [22m[2magents permissions[2m > [22m[2mrecommends agents deterministically for a task
+[22m[39madded cost-agent
+
+ [32mΓ£ô[39m src/cli/plugins-cli.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32mΓ£ô[39m src/cli/agents-cli.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32mΓ£ô[39m src/cli/analyze-pr-cli.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32mΓ£ô[39m src/lib/llm-provider.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+{
+  "key_path": "C:\\Users\\scott\\AppData\\Local\\Temp\\zeo-cli-transcript-mPsOS9\\.zeo\\keys\\id.pem",
+  "fingerprint": "91f8271f2677b9cf",
+  "public_key": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAdyvUOetb1izqoA7R2uRVrKGJptdIwVKIkR5gm2mPh68=\n-----END PUBLIC KEY-----\n"
+}
+ [32mΓ£ô[39m src/lib/dashboard-viewmodel.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32mΓ£ô[39m src/core/zeolite-core.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 7[2mms[22m[39m
+-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAdyvUOetb1izqoA7R2uRVrKGJptdIwVKIkR5gm2mPh68=
+-----END PUBLIC KEY-----
+Started decision 'Hiring decision' (dec_8d054d04e259)
+{
+  "fingerprint": "c24837ef6e6ed2f2",
+  "label": "c24837ef6e6ed2f2"
+}
+Added evidence ev_a15bf097af: Candidate has domain expertise
+{
+  "out": "C:\\Users\\scott\\AppData\\Local\\Temp\\zeo-cli-transcript-mPsOS9\\e.json",
+  "transcript_hash": "d93bfb74c8b5445798b6033b07fc1e77be6dfbdb7a56f94247fae8ce92439ce3",
+  "signatures": 1
+}
+stderr | src/index.test.ts > DecisionEngine > evaluateDecision returns result (async)
+WARN: WASM module not found at '../pkg/decision_engine_rs.js'. Using fallback.
+
+stderr | src/index.test.ts > DecisionEngine > DecisionEngine can be manually initialized
+WARN: WASM module not found at '../pkg/decision_engine_rs.js'. Using fallback.
+
+stderr | src/index.test.ts > DecisionEngine > falls back to TS implementation if WASM is missing
+WARN: WASM module not found at '../pkg/decision_engine_rs.js'. Using fallback.
+
+ [32mΓ£ô[39m src/index.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+[90mstdout[2m | src/cli/workflow-cli.test.ts[2m > [22m[2mworkflow cli[2m > [22m[2mcreates deterministic result card from same transcript
+[22m[39mNo signing key found. Transcript unsigned.
+
+{
+  "ok": true,
+  "signerFingerprints": [
+    "91f8271f2677b9cf"
+  ]
+}
+=== Zeo Result Card ===
+Recommended action: No robust actions found. Gather more evidence.
+Decision boundary: Flip dist Infinity; 1 tasks; decay: 0 issues.
+Flip distance: 100
+Fragility: Stable
+Decay: fresh=0 aging=0 stale=0 expired=0 unknown=1
+Top evidence:
+  1. Candidate has domain expertise (time=5m risk=low decay=unknown)
+Regret-bounded plan:
+Depends on: none
+Informs: none
+Transcript hash: 1de8501113e4867b6b6ea1748be693952ad8b6c6ed38f3d2278daa6ba3fe9618
+Signature: unsigned
+Health: 63/100 ΓÇó Evidence 50 ΓÇó Policy 0 ΓÇó Replay 100 ΓÇó Volatility 0
+Set review horizon: zeo review weekly --decision dec_8d054d04e259
+Export bundle: zeo export decision dec_8d054d04e259 --format zip
+[90mstdout[2m | src/cli/workflow-cli.test.ts[2m > [22m[2mworkflow cli[2m > [22m[2mcreates deterministic result card from same transcript
+[22m[39mNo signing key found. Transcript unsigned.
+
+=== Zeo Result Card ===
+Recommended action: No robust actions found. Gather more evidence.
+Decision boundary: Flip dist Infinity; 1 tasks; decay: 0 issues.
+Flip distance: 100
+Fragility: Stable
+Decay: fresh=0 aging=0 stale=0 expired=0 unknown=1
+Top evidence:
+  1. Candidate has domain expertise (time=5m risk=low decay=unknown)
+Regret-bounded plan:
+Depends on: none
+Informs: none
+Transcript hash: 2f2e5daa81df979d4566d3f2cb1021e3460c2019be67468d5827f12631b71035
+Signature: unsigned
+Health: 38/100 ΓÇó Evidence 50 ΓÇó Policy 0 ΓÇó Replay 0 ΓÇó Volatility 0
+Set review horizon: zeo review weekly --decision dec_8d054d04e259
+Export bundle: zeo export decision dec_8d054d04e259 --format zip
+[
+  {
+    "subject_type": "key",
+    "subject_id": "91f8271f2677b9cf",
+    "pass_count": 1,
+    "fail_count": 0
+  }
+]
+[
+  {
+    "subject_type": "key",
+    "subject_id": "91f8271f2677b9cf",
+    "pass_count": 1,
+    "fail_count": 0,
+    "tier": "unknown"
+  }
+]
+ [32mΓ£ô[39m src/cli/transcript-cli.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 130[2mms[22m[39m
+Started decision 'Decay decision' (dec_9cc689de1c25)
+Added evidence ev_0f118ab083: Old note
+[90mstdout[2m | src/cli/workflow-cli.test.ts[2m > [22m[2mworkflow cli[2m > [22m[2mclassifies evidence decay deterministically
+[22m[39mNo signing key found. Transcript unsigned.
+
+Started decision 'Graph decision' (dec_cadd796240e9)
+Added evidence ev_77b06095c1: Signal
+[90mstdout[2m | src/cli/workflow-cli.test.ts[2m > [22m[2mworkflow cli[2m > [22m[2mdetects graph cycles
+[22m[39mNo signing key found. Transcript unsigned.
+
+=== Zeo Result Card ===
+Recommended action: No robust actions found. Gather more evidence.
+Decision boundary: Flip dist Infinity; 1 tasks; decay: 0 issues.
+Flip distance: 100
+Fragility: Stable
+Decay: fresh=0 aging=0 stale=0 expired=0 unknown=1
+Top evidence:
+  1. Signal (time=5m risk=low decay=unknown)
+Regret-bounded plan:
+Depends on: a
+Informs: a
+Transcript hash: 00a6de217ac2b4f577b0684c34dcd28b230fec213194f6e1e27d46177203d9d4
+Signature: unsigned
+Health: 63/100 ΓÇó Evidence 50 ΓÇó Policy 0 ΓÇó Replay 100 ΓÇó Volatility 0
+Set review horizon: zeo review weekly --decision dec_cadd796240e9
+Export bundle: zeo export decision dec_cadd796240e9 --format zip
+Started decision 'Lens decision' (dec_54df2d211f3a)
+Added evidence ev_3a3dbb8fa3: Constraint one
+[90mstdout[2m | src/cli/workflow-cli.test.ts[2m > [22m[2mworkflow cli[2m > [22m[2mrenders deterministic lens views
+[22m[39mNo signing key found. Transcript unsigned.
+
+=== Zeo Result Card ===
+Recommended action: No robust actions found. Gather more evidence.
+Decision boundary: Flip dist Infinity; 1 tasks; decay: 0 issues.
+Flip distance: 100
+Fragility: Stable
+Decay: fresh=0 aging=0 stale=0 expired=0 unknown=1
+Top evidence:
+  1. Constraint one (time=5m risk=low decay=unknown)
+Regret-bounded plan:
+Depends on: none
+Informs: none
+Transcript hash: c2f7ba17135c2b6b12068426bd80852f4c6fa59430d5c3ec9505ad9f845f6da6
+Signature: unsigned
+Health: 63/100 ΓÇó Evidence 50 ΓÇó Policy 0 ΓÇó Replay 100 ΓÇó Volatility 0
+Set review horizon: zeo review weekly --decision dec_54df2d211f3a
+Export bundle: zeo export decision dec_54df2d211f3a --format zip
+Started decision 'Review decision' (dec_dbd39a91e28f)
+Added evidence ev_a267073a51: Note
+[90mstdout[2m | src/cli/workflow-cli.test.ts[2m > [22m[2mworkflow cli[2m > [22m[2mweekly review is reproducible
+[22m[39mNo signing key found. Transcript unsigned.
+
+=== Zeo Result Card ===
+Recommended action: No robust actions found. Gather more evidence.
+Decision boundary: Flip dist Infinity; 1 tasks; decay: 1 issues.
+Flip distance: 100
+Fragility: Stable
+Decay: fresh=0 aging=0 stale=0 expired=1 unknown=0
+Top evidence:
+  1. Note (time=5m risk=low decay=expired)
+Regret-bounded plan:
+Depends on: none
+Informs: none
+Transcript hash: 538a0c3b25ad05eeabbfa53b3b39b793ce8f89b3c07c70f35e97631be172954a
+Signature: unsigned
+Health: 59/100 ΓÇó Evidence 50 ΓÇó Policy 0 ΓÇó Replay 100 ΓÇó Volatility 15
+Set review horizon: zeo review weekly --decision dec_dbd39a91e28f
+Export bundle: zeo export decision dec_dbd39a91e28f --format zip
+ [32mΓ£ô[39m src/cli/render-cli.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 267[2mms[22m[39m
+Started decision 'Security posture' (dec_664b3b92c3bb)
+Added evidence ev_d60e8aadb8: Threat model approved
+[90mstdout[2m | src/cli/workflow-cli.test.ts[2m > [22m[2mworkflow cli[2m > [22m[2mexplain output is deterministic and cited
+[22m[39mNo signing key found. Transcript unsigned.
+
+=== Zeo Result Card ===
+Recommended action: No robust actions found. Gather more evidence.
+Decision boundary: Flip dist Infinity; 1 tasks; decay: 0 issues.
+Flip distance: 100
+Fragility: Stable
+Decay: fresh=1 aging=0 stale=0 expired=0 unknown=0
+Top evidence:
+  1. Threat model approved (time=5m risk=low decay=fresh)
+Regret-bounded plan:
+Depends on: none
+Informs: none
+Transcript hash: 94f4ecfff4ceed36d648cc51d42e7f65832c3c317297e15f3adf339a52406ed9
+Signature: unsigned
+Health: 63/100 ΓÇó Evidence 50 ΓÇó Policy 0 ΓÇó Replay 100 ΓÇó Volatility 0
+Set review horizon: zeo review weekly --decision dec_664b3b92c3bb
+Export bundle: zeo export decision dec_664b3b92c3bb --format zip
+Started decision 'Eng Decision' (dec_941e56eb92dd)
+Started decision 'Sec Decision' (dec_9a9ef8e70057)
+Started decision 'Launch decision' (dec_62b2c955345b)
+Added evidence ev_aae87e8db1: Collect customer incident logs
+[90mstdout[2m | src/cli/workflow-cli.test.ts[2m > [22m[2mworkflow cli[2m > [22m[2mexports md/ics/bundle with deterministic names
+[22m[39mNo signing key found. Transcript unsigned.
+
+=== Zeo Result Card ===
+Recommended action: No robust actions found. Gather more evidence.
+Decision boundary: Flip dist Infinity; 1 tasks; decay: 0 issues.
+Flip distance: 100
+Fragility: Stable
+Decay: fresh=0 aging=0 stale=0 expired=0 unknown=1
+Top evidence:
+  1. Collect customer incident logs (time=5m risk=low decay=unknown)
+Regret-bounded plan:
+Depends on: none
+Informs: none
+Transcript hash: ec4e0b258e9bfc32fcc96cf08a036fab45d05c2d2a1da5208c7e33d36fa0cb2a
+Signature: unsigned
+Health: 63/100 ΓÇó Evidence 50 ΓÇó Policy 0 ΓÇó Replay 100 ΓÇó Volatility 0
+Set review horizon: zeo review weekly --decision dec_62b2c955345b
+Export bundle: zeo export decision dec_62b2c955345b --format zip
+C:\Users\scott\AppData\Local\Temp\zeo-workflow-PGTvkh\exports\ec4e0b258e9bfc32.md
+C:\Users\scott\AppData\Local\Temp\zeo-workflow-PGTvkh\exports\ec4e0b258e9bfc32.ics
+C:\Users\scott\AppData\Local\Temp\zeo-workflow-PGTvkh\exports\ec4e0b258e9bfc32
+Started decision 'Health decision' (dec_9268ddb124ca)
+Added evidence ev_54229e28cf: Security review complete
+[90mstdout[2m | src/cli/workflow-cli.test.ts[2m > [22m[2mworkflow cli[2m > [22m[2memits decision health and ROI/drift reports
+[22m[39mNo signing key found. Transcript unsigned.
+
+=== Zeo Result Card ===
+Recommended action: No robust actions found. Gather more evidence.
+Decision boundary: Flip dist Infinity; 1 tasks; decay: 1 issues.
+Flip distance: 100
+Fragility: Stable
+Decay: fresh=0 aging=0 stale=0 expired=1 unknown=0
+Top evidence:
+  1. Security review complete (time=5m risk=low decay=expired)
+Regret-bounded plan:
+Depends on: none
+Informs: none
+Transcript hash: b2ff53cb835de200a2b84667a1ddfe20198fa317df906f3a6ac752e31618e2c9
+Signature: unsigned
+Health: 59/100 ΓÇó Evidence 50 ΓÇó Policy 0 ΓÇó Replay 100 ΓÇó Volatility 15
+Set review horizon: zeo review weekly --decision dec_9268ddb124ca
+Export bundle: zeo export decision dec_9268ddb124ca --format zip
+Started decision 'Bundle decision' (dec_185b3e3183ea)
+Added evidence ev_26aa2c7c4c: Customer impact validated
+[90mstdout[2m | src/cli/workflow-cli.test.ts[2m > [22m[2mworkflow cli[2m > [22m[2mexports portable decision bundle and verify detects tamper
+[22m[39mNo signing key found. Transcript unsigned.
+
+=== Zeo Result Card ===
+Recommended action: No robust actions found. Gather more evidence.
+Decision boundary: Flip dist Infinity; 1 tasks; decay: 0 issues.
+Flip distance: 100
+Fragility: Stable
+Decay: fresh=0 aging=0 stale=0 expired=0 unknown=1
+Top evidence:
+  1. Customer impact validated (time=5m risk=low decay=unknown)
+Regret-bounded plan:
+Depends on: none
+Informs: none
+Transcript hash: 293980a77fcde6c11921bd6ef06661c3d669ef3f699a542662223e4c2a1c48f1
+Signature: unsigned
+Health: 63/100 ΓÇó Evidence 50 ΓÇó Policy 0 ΓÇó Replay 100 ΓÇó Volatility 0
+Set review horizon: zeo review weekly --decision dec_185b3e3183ea
+Export bundle: zeo export decision dec_185b3e3183ea --format zip
+Started decision 'Overdue Review' (dec_ed00a66dbcb0) from template security-review. reviewAt=2026-03-02
+[90mstdout[2m | src/cli/workflow-cli.test.ts[2m > [22m[2mworkflow cli[2m > [22m[2mrecords review_overdue drift and degrades health when reviewAt has passed
+[22m[39mNo signing key found. Transcript unsigned.
+
+ [31mΓ¥»[39m src/cli/workflow-cli.test.ts [2m([22m[2m12 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 503[2mms[22m[39m
+[31m     [31m├ù[31m creates deterministic result card from same transcript[39m[32m 74[2mms[22m[39m
+     [32mΓ£ô[39m classifies evidence decay deterministically[32m 31[2mms[22m[39m
+     [32mΓ£ô[39m detects graph cycles[32m 42[2mms[22m[39m
+     [32mΓ£ô[39m renders deterministic lens views[32m 46[2mms[22m[39m
+     [32mΓ£ô[39m weekly review is reproducible[32m 42[2mms[22m[39m
+     [32mΓ£ô[39m explain output is deterministic and cited[32m 41[2mms[22m[39m
+     [32mΓ£ô[39m summary by decision type is deterministic[32m 16[2mms[22m[39m
+     [32mΓ£ô[39m exports md/ics/bundle with deterministic names[32m 45[2mms[22m[39m
+     [32mΓ£ô[39m emits decision health and ROI/drift reports[32m 39[2mms[22m[39m
+     [32mΓ£ô[39m exports portable decision bundle and verify detects tamper[32m 69[2mms[22m[39m
+     [32mΓ£ô[39m lists templates and creates decisions from template with review horizon[32m 15[2mms[22m[39m
+     [32mΓ£ô[39m records review_overdue drift and degrades health when reviewAt has passed[32m 41[2mms[22m[39m
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/cli/workflow-cli.test.ts > workflow cli > creates deterministic result card from same transcript
+AssertionError: expected '1de8501113e4867b6b6ea1748be693952ad8bΓÇª' to be '2f2e5daa81df979d4566d3f2cb1021e3460c2ΓÇª' // Object.is equality
+
+Expected: "2f2e5daa81df979d4566d3f2cb1021e3460c2019be67468d5827f12631b71035"
+Received: "1de8501113e4867b6b6ea1748be693952ad8b6c6ed38f3d2278daa6ba3fe9618"
+
+ Γ¥» src/cli/workflow-cli.test.ts:39:39
+     37|     const ws = JSON.parse(readFileSync(join(process.cwd(), ".zeo", "deΓÇª
+     38|     expect(ws.runs).toHaveLength(2);
+     39|     expect(ws.runs[0].transcriptHash).toBe(ws.runs[1].transcriptHash);
+       |                                       ^
+     40|   });
+     41| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m9 passed[39m[22m[90m (10)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m42 passed[39m[22m[90m (43)[39m
+[2m   Start at [22m 09:21:22
+[2m   Duration [22m 1.02s[2m (transform 1.28s, setup 0ms, import 2.17s, tests 1.03s, environment 2ms)[22m
+

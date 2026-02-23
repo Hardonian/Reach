@@ -548,7 +548,7 @@ async function runDecisionInWorkspace(
     // Real evidence events would be separate. For now, we map workspace evidence to assumptions.
     dependsOn,
     informs,
-    logicalTimestamp: process.env.ZEO_FIXED_TIME ? Date.parse(process.env.ZEO_FIXED_TIME) : Date.now()
+    logicalTimestamp: process.env.ZEO_FIXED_TIME ? Date.parse(process.env.ZEO_FIXED_TIME) : Date.parse(asOfDate)
   });
 
   if (process.env.ZEO_FIXED_TIME) {
@@ -1049,6 +1049,13 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
     }
     const report = { robust, invalidatedEarly, retired };
     writeJsonOrText(args, report, `robust=${robust.join(",") || "none"}\ninvalidated_early=${invalidatedEarly.join(",") || "none"}\nretire=${retired.join(",") || "none"}`);
+    return 0;
+  }
+
+  if (args.command === "summary") {
+    const audience = args.audience ?? "engineer";
+    const summary = buildTypeSummary(args.type, audience);
+    writeJsonOrText(args, { audience, type: args.type ?? null, rows: summary.rows }, summary.text);
     return 0;
   }
 
