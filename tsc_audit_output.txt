@@ -1,9 +1,0 @@
-src/lib/dashboard-viewmodel.test.ts(5,61): error TS2307: Cannot find module './dashboard/generateViewModel.js' or its corresponding type declarations.
-src/lib/dashboard-viewmodel.test.ts(30,37): error TS7006: Parameter 'node' implicitly has an 'any' type.
-src/lib/dashboard-viewmodel.test.ts(31,28): error TS7006: Parameter 'cta' implicitly has an 'any' type.
-src/lib/dashboard-viewmodel.test.ts(31,75): error TS7006: Parameter 'cta' implicitly has an 'any' type.
-src/lib/generateViewModel.ts(180,9): error TS2739: Type '{ schemaVersion: string; id: string; generatedAt: string; persona: DashboardPersona; verificationStatus: { verified: boolean; reason: string; }; fingerprint: { zeoVersion: string; configHash: string; policyHash: string | null; inputsHash: string; artifactsHash: string; }; ... 5 more ...; ctas: never[]; }' is missing the following properties from type 'DashboardViewModel': nodes, edges
-src/lib/generateViewModel.ts(233,9): error TS2322: Type 'DashboardPersona | "exec"' is not assignable to type 'DashboardPersona'.
-  Type 'string' is not assignable to type 'DashboardPersona'.
-src/lib/llm-provider.test.ts(5,32): error TS2307: Cannot find module './llm-cli.js' or its corresponding type declarations.
-src/lib/llm-provider.ts(1,49): error TS2307: Cannot find module './llm-cli.js' or its corresponding type declarations.
