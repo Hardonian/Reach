@@ -12,7 +12,7 @@ input source — its output is always verified, never blindly executed.
 
 ## 1. Architecture Position
 
-```
+```text
 ┌──────────────────────────────┐
 │     User / Agent             │
 │     (non-deterministic)      │
@@ -99,13 +99,13 @@ to a purely deterministic computation path.
 
 ### Fallback Implementations
 
-| Algorithm         | File                     | Deterministic | Notes                      |
-| :---------------- | :----------------------- | :------------ | :------------------------- |
-| Minimax Regret    | `src/lib/fallback.ts`    | YES           | Float tie-break concern    |
-| Maximin           | `src/lib/fallback.ts`    | YES           | Same float tie-break       |
-| Weighted Sum      | `src/lib/fallback.ts`    | YES           | Weight normalization safe  |
-| Zeolite Operations| `src/core/zeolite-core.ts`| YES          | All ops are deterministic  |
-| Core Shim         | `src/core/shim.ts`       | YES           | Deterministic mode toggle  |
+| Algorithm          | File                      | Deterministic | Notes                     |
+| :----------------- | :------------------------ | :------------ | :------------------------ |
+| Minimax Regret     | `src/lib/fallback.ts`     | YES           | Float tie-break concern   |
+| Maximin            | `src/lib/fallback.ts`     | YES           | Same float tie-break      |
+| Weighted Sum       | `src/lib/fallback.ts`     | YES           | Weight normalization safe |
+| Zeolite Operations | `src/core/zeolite-core.ts` | YES          | All ops are deterministic |
+| Core Shim          | `src/core/shim.ts`        | YES           | Deterministic mode toggle |
 
 ### Fallback Activation
 
@@ -123,6 +123,7 @@ deactivateDeterministicMode();
 ### Fallback Invariant
 
 If `activateDeterministicMode()` is called:
+
 - `resolveTimestamp()` returns epoch zero (or the `ZEO_FIXED_TIME` env value).
 - No LLM calls are made.
 - All computations use the seeded PRNG if randomness is needed.
@@ -136,7 +137,7 @@ If `activateDeterministicMode()` is called:
 
 LLM output enters the system as a **proposal**. The flow is:
 
-```
+```text
 1. LLM returns JSON response
 2. Response is parsed (tryParseJsonObject)
 3. Response is schema-validated (validateJsonSchema)
@@ -185,12 +186,12 @@ comparison path to evaluate.
 
 ## 5. Trust Levels for AI Output
 
-| Trust Level   | Meaning                                               |
-| :------------ | :---------------------------------------------------- |
-| `untrusted`   | Raw LLM output, schema-validated but not adjudicated  |
-| `adjudicated` | Engine has compared claim against decision boundary    |
-| `accepted`    | Engine agrees with the AI's recommendation            |
-| `rejected`    | Engine disagrees; AI recommendation diverges from math |
+| Trust Level    | Meaning                                                |
+| :------------- | :----------------------------------------------------- |
+| `untrusted`    | Raw LLM output, schema-validated but not adjudicated   |
+| `adjudicated`  | Engine has compared claim against decision boundary    |
+| `accepted`     | Engine agrees with the AI's recommendation             |
+| `rejected`     | Engine disagrees; AI recommendation diverges from math |
 
 ### Trust Erosion
 
@@ -198,12 +199,12 @@ If an AI provider consistently produces claims that the engine rejects,
 the trust profile system (`shim.ts → recordTrustEvent`) records this.
 The `deriveTrustTier()` function classifies providers:
 
-| Tier           | Criteria                          |
-| :------------- | :-------------------------------- |
-| `unknown`      | < 3 pass events                   |
-| `provisional`  | 3–9 pass events, 0 failures      |
-| `established`  | ≥ 10 pass events, 0 failures     |
-| `untrusted`    | Any failure event recorded        |
+| Tier          | Criteria                         |
+| :------------ | :------------------------------- |
+| `unknown`     | < 3 pass events                  |
+| `provisional` | 3–9 pass events, 0 failures     |
+| `established` | ≥ 10 pass events, 0 failures    |
+| `untrusted`   | Any failure event recorded       |
 
 ---
 
@@ -212,6 +213,7 @@ The `deriveTrustTier()` function classifies providers:
 ### Problem
 
 If a decision involved an AI proposal, replaying that decision requires:
+
 1. The same decision spec (deterministic).
 2. The same evidence (deterministic).
 3. The same AI proposal (non-deterministic — the AI may give a different answer).
@@ -219,6 +221,7 @@ If a decision involved an AI proposal, replaying that decision requires:
 ### Solution
 
 The transcript records the **exact AI proposal** that was made. During replay:
+
 - The original AI proposal is loaded from the transcript.
 - The engine re-adjudicates using the recorded proposal.
 - The adjudication is deterministic because it depends on the spec + evidence.
@@ -249,12 +252,12 @@ decisions.
 
 ## 8. Formal Invariants
 
-| ID      | Invariant                                               | Status |
-| :------ | :------------------------------------------------------ | :----- |
-| PLN-01  | LLM output is always schema-validated before use        | HOLDS  |
-| PLN-02  | temperature=0 and seed enforced for deterministic mode  | HOLDS  |
-| PLN-03  | Fallback mode produces identical output for same input  | HOLDS  |
-| PLN-04  | Replay never re-queries the LLM                         | HOLDS  |
-| PLN-05  | AI proposals are hashed at entry for provenance         | HOLDS  |
-| PLN-06  | Adjudication is deterministic (depends on spec+evidence)| HOLDS  |
-| PLN-07  | No dynamic eval of LLM output                          | HOLDS  |
+| ID     | Invariant                                                | Status |
+| :----- | :------------------------------------------------------- | :----- |
+| PLN-01 | LLM output is always schema-validated before use         | HOLDS  |
+| PLN-02 | temperature=0 and seed enforced for deterministic mode   | HOLDS  |
+| PLN-03 | Fallback mode produces identical output for same input   | HOLDS  |
+| PLN-04 | Replay never re-queries the LLM                          | HOLDS  |
+| PLN-05 | AI proposals are hashed at entry for provenance          | HOLDS  |
+| PLN-06 | Adjudication is deterministic (depends on spec+evidence) | HOLDS  |
+| PLN-07 | No dynamic eval of LLM output                           | HOLDS  |

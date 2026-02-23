@@ -125,11 +125,15 @@ case "$cmd" in
         ;;
     esac
     ;;
+  version|--version|-v)
+    (cd services/runner && ./reachctl version "$@")
+    ;;
   help|--help|-h)
     echo "Reach - Deterministic Execution Fabric"
     echo ""
     echo "QUICK START"
     echo "  ./reach doctor              Check system health"
+    echo "  ./reach version             Show version information"
     echo "  ./reach report demo         Generate demo report"
     echo ""
     echo "CORE COMMANDS"
@@ -179,7 +183,7 @@ case "$cmd" in
     echo "            4=policy blocked, 5=verification failed"
     ;;
   *)
-    echo "usage: reach doctor|audit|eval|release-check|serve|federation|support|arcade|transcript|proof|graph|packs|init|explain|operator|pack|wizard|run|share|delegate|verify-proof|cost|metrics|gate|report" >&2
+    echo "usage: reach doctor|version|audit|eval|release-check|serve|federation|support|arcade|transcript|proof|graph|packs|init|explain|operator|pack|wizard|run|share|delegate|verify-proof|cost|metrics|gate|report" >&2
     echo "       reach help for more info" >&2
     exit 1
     ;;

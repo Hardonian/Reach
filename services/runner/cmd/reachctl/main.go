@@ -4170,43 +4170,88 @@ Examples:
 `)
 }
 
+// version info (set at build time)
+var (
+	version   = "dev"
+	commit    = "unknown"
+	buildDate = "unknown"
+)
+
+// runVersion prints version information
+func runVersion(out io.Writer) int {
+	fmt.Fprintf(out, "Reach Deterministic Execution Fabric\n")
+	fmt.Fprintf(out, "  Version:    %s\n", version)
+	fmt.Fprintf(out, "  Commit:     %s\n", commit)
+	fmt.Fprintf(out, "  Build Date: %s\n", buildDate)
+	fmt.Fprintf(out, "  Go Version: %s\n", runtime.Version())
+	fmt.Fprintf(out, "  Platform:   %s/%s\n", runtime.GOOS, runtime.GOARCH)
+	return 0
+}
+
 func usage(out io.Writer) {
-	_, _ = io.WriteString(out, `usage: reach <command> [options]
+	_, _ = io.WriteString(out, `Reach - Deterministic Execution Fabric
 
-Core Commands:
-  doctor                          Check local environment health
-  init pack --governed            Initialize a new governed pack
-  run <pack>                      Quick run a pack locally
-  replay <runId|capsule>          Replay a run for verification
-  explain <runId>                 Explain a run's failure or outcome
-  explain-failure <runId>         Alias for explain
-  operator                        View local operator dashboard
-  data-dir                        Show current data directory path
-  benchmark                       Benchmark pack performance
+USAGE:
+  reach <command> [options]
 
-Advanced Commands:
-  diff-run <runA> <runB>          Compare two execution runs
-  verify-determinism              Execute identical trials to verify stability
-  capsule <command>               Manage signed execution capsules
-  proof <command>                 Verify execution proofs
-  graph <command>                 Export or view execution graphs
+CORE COMMANDS:
+  doctor                Check local environment health
+  version               Show version information
+  init pack --governed  Initialize a new governed pack
+  run <pack>            Quick run a pack locally
+  replay <runId>        Replay a run for verification
+  explain <runId>       Explain a run's failure or outcome
+  operator              View local operator dashboard
+  data-dir              Show current data directory path
 
-Evidence-First Commands (V2):
-  steps <runId>                   List steps with proof hashes
-  proof <runId> [--step <id>]     Show proof chain for a run
-  checkpoint create <runId>       Create a checkpoint at current state
-  checkpoint list <runId>         List checkpoints for a run
-  rewind <checkpointId>           Rewind to a checkpoint
-  simulate <pipelineId>           Simulate run against history
-  chaos <runId> --level <1-5>     Run chaos testing
-  provenance <runId>              Show provenance information
-  trust <runId>                   Calculate trust score
-  assistant <on|off|suggest|help> Copilot mode
+CAPSULE COMMANDS:
+  capsule create <runId>    Export run to portable capsule
+  capsule verify <file>     Verify capsule integrity
+  capsule replay <file>     Replay capsule locally
+  export <runId>            Alias for capsule create
+  import <file>             Alias for capsule replay
 
-Global Flags:
-  --trace-determinism             Enable internal trace logging for hashing
+VERIFICATION COMMANDS:
+  proof verify <runId>      Verify execution proof
+  verify-proof <runId>      Verify proof with detailed output
+  verify-determinism        Execute identical trials to verify stability
 
-See 'reach <command> --help' for details on specific commands.
+ADVANCED COMMANDS:
+  diff-run <runA> <runB>    Compare two execution runs
+  benchmark                 Benchmark pack performance
+  graph <command>           Export or view execution graphs
+  steps <runId>             List steps with proof hashes
+  trust <runId>             Calculate trust score
+
+GLOBAL FLAGS:
+  --trace-determinism       Enable internal trace logging for hashing
+  -v, --version             Show version information
+  -h, --help                Show this help message
+
+EXAMPLES:
+  # Check system health
+  $ reach doctor
+
+  # Run a pack and export capsule
+  $ reach run my-pack
+  $ reach capsule create <run-id>
+
+  # Verify and replay
+  $ reach capsule verify my-run.capsule.json
+  $ reach capsule replay my-run.capsule.json
+
+  # Show version
+  $ reach version
+
+EXIT CODES:
+  0  Success
+  1  General failure
+  2  Invalid input / usage error
+  3  Resource not found
+  4  Policy blocked
+  5  Verification failed
+
+For more help: https://github.com/reach/reach/docs
 `)
 }
 
