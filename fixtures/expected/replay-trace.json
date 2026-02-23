@@ -1,0 +1,90 @@
+{
+  "_fixture": {
+    "id": "replay-trace",
+    "description": "Execution trace format for replay verification",
+    "created": "2026-02-23",
+    "schema_version": "1.0.0"
+  },
+  "trace_id": "trace_20260223_195246_xyz789",
+  "run_id": "run_20260223_195246_abc123",
+  "schema_version": "1.0.0",
+  "deterministic": true,
+  "steps": [
+    {
+      "step": 0,
+      "type": "input_received",
+      "timestamp": 1740335566100,
+      "data_hash": "a3f5c8e2d9b1470e6f8a2c5d7e9b1f4a",
+      "details": {
+        "actions_count": 2,
+        "scenarios_count": 2,
+        "outcomes_count": 4
+      }
+    },
+    {
+      "step": 1,
+      "type": "policy_check",
+      "timestamp": 1740335566105,
+      "policy_id": "strict-safe-mode",
+      "result": "passed",
+      "checks": 12,
+      "violations": 0
+    },
+    {
+      "step": 2,
+      "type": "evaluation_start",
+      "timestamp": 1740335566110,
+      "algorithm": "expected_utility"
+    },
+    {
+      "step": 3,
+      "type": "action_evaluated",
+      "timestamp": 1740335566112,
+      "action_id": "scale_up",
+      "expected_utility": 120.0,
+      "calculation": {
+        "high_load": {"utility": 150, "probability": 0.7, "contribution": 105},
+        "normal_load": {"utility": 50, "probability": 0.3, "contribution": 15}
+      }
+    },
+    {
+      "step": 4,
+      "type": "action_evaluated",
+      "timestamp": 1740335566114,
+      "action_id": "optimize",
+      "expected_utility": 102.5,
+      "calculation": {
+        "high_load": {"utility": 80, "probability": 0.7, "contribution": 56},
+        "normal_load": {"utility": 155, "probability": 0.3, "contribution": 46.5}
+      }
+    },
+    {
+      "step": 5,
+      "type": "decision_made",
+      "timestamp": 1740335566116,
+      "selected_action": "scale_up",
+      "confidence": 0.92,
+      "reason": "highest_expected_utility"
+    },
+    {
+      "step": 6,
+      "type": "output_generated",
+      "timestamp": 1740335566120,
+      "output_hash": "f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4c6",
+      "fingerprint": "9f86d081884c7d659a2feaa0c55ad015"
+    },
+    {
+      "step": 7,
+      "type": "evidence_persisted",
+      "timestamp": 1740335566142,
+      "storage_location": "data/replays/trace_20260223_195246_xyz789.json",
+      "integrity_hash": "edba97b11d6ebe861b8053f753458ad2"
+    }
+  ],
+  "summary": {
+    "total_steps": 8,
+    "duration_ms": 42,
+    "determinism_score": 1.0,
+    "replayable": true
+  }
+}
