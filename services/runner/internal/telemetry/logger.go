@@ -219,11 +219,14 @@ func (b *LogBuilder) Error(msg string) {
 	b.logger.log(LevelError, msg, b.err, b.fields)
 }
 
-// Default logger instance.
-var defaultLogger = NewLogger(os.Stderr, LevelInfo)
+// defaultLogger is the package-level logger instance, initialized lazily.
+var defaultLogger *Logger
+var loggerInitOnce sync.Once
 
-// SetDefaultLevel sets the default logger level from environment.
-func SetDefaultLevel() {
+// initDefaultLogger initializes the default logger with environment configuration.
+// This is called lazily on first use to reduce startup overhead.
+func initDefaultLogger() {
+	defaultLogger = NewLogger(os.Stderr, LevelInfo)
 	level := os.Getenv("REACH_LOG_LEVEL")
 	switch level {
 	case "debug":
@@ -239,15 +242,34 @@ func SetDefaultLevel() {
 	}
 }
 
-func init() {
-	SetDefaultLevel()
+// Default returns the default logger, initializing it on first use.
+func Default() *Logger {
+	loggerInitOnce.Do(initDefaultLogger)
+	return defaultLogger
 }
 
-// Default returns the default logger.
-func Default() *Logger { return defaultLogger }
-
 // L is a shorthand for Default().
-func L() *Logger { return defaultLogger }
+func L() *Logger { return Default() }
+
+// SetDefaultLevel sets the default logger level from environment.
+// Deprecated: Logger is now initialized lazily. Set REACH_LOG_LEVEL before first log call.
+func SetDefaultLevel() {
+	if defaultLogger != nil {
+		level := os.Getenv("REACH_LOG_LEVEL")
+		switch level {
+		case "debug":
+			defaultLogger.level = LevelDebug
+		case "info":
+			defaultLogger.level = LevelInfo
+		case "warn":
+			defaultLogger.level = LevelWarn
+		case "error":
+			defaultLogger.level = LevelError
+		case "fatal":
+			defaultLogger.level = LevelFatal
+		}
+	}
+}
 
 // LogFilePath returns the default log file path.
 func LogFilePath() string {
