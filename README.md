@@ -1,42 +1,71 @@
-# Reach: The Deterministic Spine for Agentic Intelligence
+# Reach
 
 [![CI Status](https://github.com/reach/reach/actions/workflows/ci.yml/badge.svg)](https://github.com/reach/reach/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-0.3.1-blue.svg)](VERSION)
 
-Reach is a high-performance, deterministic decision engine designed for autonomous agents and complex workflows. Built with a Rust core for precision and a TypeScript wrapper for flexibility, Reach provides the cryptographic provenance and bit-identical replayability required for production-grade agentic systems.
+Reach is a high-performance, deterministic decision engine for autonomous agents and complex workflows. It provides the cryptographic provenance and bit-identical replayability required to build production-grade, auditable AI systems.
 
 ---
 
-## 🚀 Start Here (2 Minutes)
+## ⚡ 60-Second Quickstart
+
+Get Reach running locally in under a minute:
 
 ```bash
-# Clone and setup
+# 1. Clone the repository
 git clone https://github.com/reach/reach.git
 cd reach
-npm install
 
-# Run your first example
-node examples/01-quickstart-local/run.js
+# 2. Install dependencies
+pnpm install
 
-# Check system health
-./reach doctor
+# 3. Next steps
+./reachctl doctor
 ```
 
-## 📚 Where to Start
+## 💻 CLI Example
 
-| Goal | Go To |
-|------|-------|
-| **See it in action** | [examples/01-quickstart-local/](examples/01-quickstart-local/) |
-| **Understand the workflow** | [examples/04-action-plan-execute-safe/](examples/04-action-plan-execute-safe/) |
-| **Try policy governance** | [policy-packs/README.md](policy-packs/README.md) |
-| **Create an extension** | [plugins/template/](plugins/template/) |
-| **Full tutorial** | Run examples 01-06 in order |
+Reach verifies decisions deterministically. Here is an example of running a decision workflow:
 
-### Quick Examples
+```console
+$ reachctl explain decision-01.json
+✔ Workflow parsed successfully
+✔ Deterministic evaluation verified (Hash: 9f86d081884c7d659a2feaa0c55ad015)
+✔ Policy checks passed
+
+Result: Approved
+Confidence: 0.98
+Execution Time: 14ms
+```
+
+## 🌐 Web Demo
+
+Experience the deterministic visualization of decisions and evidence chains.
+
+1. Start the web simulator:
+   ```bash
+   pnpm run demo
+   ```
+2. Open [http://localhost:3000](http://localhost:3000) to view the execution graph.
+
+*(For a live hosted environment, check out our [Playground](docs/PLAYGROUND.md))*
+
+## 🧠 How It Works
+
+Reach removes unpredictable AI loops by enforcing a structured lifecycle:
+
+1. **Input**: Data is ingested and fingerprinted.
+2. **Policy Verification**: Rules (like budget limits or safety checks) evaluate the input before execution.
+3. **Execution**: The underlying decision engine evaluates all possible branches systematically. 
+4. **Evidence Chain**: Every outcome is cryptographically linked back to its policy, input, and exact evaluation state, making it mathematically provable and replayable.
+
+## 🚀 Demo Flow Instructions
+
+Want to see Reach’s full capabilities without writing code? We have a complete adoption walkthrough:
 
 ```bash
-# Run all 6 adoption examples
+# Run all core examples to see Reach in action:
 node examples/01-quickstart-local/run.js
 node examples/02-diff-and-explain/run.js
 node examples/03-junction-to-decision/run.js
@@ -45,117 +74,31 @@ node examples/05-export-verify-replay/run.js
 node examples/06-retention-compact-safety/run.js
 ```
 
-## 🧠 Core Concepts
-
-- **Deterministic Execution** - Same input → same output, always
-- **Evidence Chain** - Cryptographically linked: Input → Policy → Execution → Output
-- **Fingerprint** - SHA-256 hash for verification and replay
-- **Junction** - Decision point with multiple evaluated options
-- **Policy Pack** - Reusable governance rules (safety, cost, quality)
-- **Plugin** - Safe extensions for custom analyzers and renderers
-
-## 📖 Documentation
-
-- [Examples Library](examples/README.md) - 6 hands-on tutorials
-- [Policy Packs](policy-packs/README.md) - 8 governance presets
-- [Plugin Development](plugins/README.md) - Extension guide
-- [Documentation Index](docs/README.md)
-- [Architecture & Design](docs/architecture.md)
-- [CLI Reference](docs/cli.md)
-- [Troubleshooting](docs/troubleshooting.md)
-
-## 🛠️ Installation
-
-### Requirements
-
-- **Node.js** 18+ (for tooling and examples)
-- **Go** 1.23+ (for backend services)
-- **Rust** stable (for core engine)
-- **SQLite** 3.35+ (database)
-
-### Quick Install
-
-```bash
-# Verify dependencies
-./reach doctor
-
-# Run full verification
-npm run verify:full
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed setup.
-
 ## 🤝 Contributing
 
-We welcome contributions! Here's how to get started:
+We actively welcome community contributions! Please review our [Contribution Guide](CONTRIBUTING.md) to learn how to:
+- Set up your local development environment
+- Run the test suite
+- Submit Pull Requests
+- Follow our coding standards
 
-### Quick Contribution Path
+## 💬 Feedback & Discussions
 
-1. **Run examples** - Try `examples/01-quickstart-local/`
-2. **Find an issue** - Look for `good-first-issue` labels
-3. **Make a change** - Follow our [CONTRIBUTING.md](CONTRIBUTING.md)
-4. **Submit PR** - Use our PR template
+- **Found a bug?** Submit a [Bug Report](../../issues/new?template=bug_report.yml).
+- **Have an idea?** Submit a [Feature Request](../../issues/new?template=feature_request.yml).
+- **Need help?** Start a thread in our [GitHub Discussions](../../discussions).
 
-### What to Contribute
+## 🗺️ Stability & Roadmap Transparency
 
-- **Examples** - Add real-world use cases to `examples/`
-- **Policy Packs** - Create governance presets in `policy-packs/`
-- **Plugins** - Build extensions in `plugins/`
-- **Docs** - Fix typos, clarify explanations
-- **Tests** - Improve coverage
+Reach is currently in **Beta (0.3.x)**.
+- **Core Engine**: The Rust deterministic evaluate loop is stable.
+- **APIs**: Minor structural changes may occur prior to 1.0. 
+- **Backwards Compatibility**: State migrations are provided for all breaking changes.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for:
-- Development setup
-- Code style guidelines
-- Where to add examples/policy packs/plugins
-- Good first issues
-
-## 💬 Getting Help / Feedback
-
-### Questions & Discussion
-
-- **GitHub Discussions** - For questions, ideas, and general discussion
-- **Examples** - Check [`examples/`](examples/) for working code patterns
-
-### Issues & Bugs
-
-- [Bug Report](../../issues/new?template=bug_report.yml)
-- [Feature Request](../../issues/new?template=feature_request.yml)
-- [Doc Improvement](../../issues/new?template=doc_improvement.yml)
-
-### Response Times
-
-- Bugs: 48 hours acknowledgment
-- Features: 1 week triage
-- PRs: 48 hours initial review
-
-## 🛡️ Security
-
-Security is paramount. Please review our [SECURITY.md](SECURITY.md) for:
-- Reporting vulnerabilities
-- Threat model
-- Security best practices
-
-Reach includes a built-in dependency firewall to ensure ecosystem integrity.
-
-## 📦 Project Structure
-
-```
-reach/
-├── examples/          # 6 hands-on tutorials
-├── policy-packs/      # 8 reusable governance presets
-├── plugins/           # Extension template + 3 samples
-├── src/               # TypeScript source
-├── services/runner/   # Go backend
-├── crates/            # Rust engine
-├── docs/              # Documentation
-└── tests/             # Integration tests
-```
-
-## 📝 License
-
-MIT - See [LICENSE](LICENSE)
+View our public roadmap and upcoming milestones in the [GitHub Projects Board](../../projects).
 
 ---
 
-_Reach: Reducing entropy in autonomous systems._
+## 📝 License
+
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
