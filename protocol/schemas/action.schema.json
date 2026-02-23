@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://reach.sh/schemas/action.json",
+  "title": "Action Plan Schema",
+  "description": "Schema for Action Plans and Executions in the Reach system",
+  "type": "object",
+  "required": ["id", "decisionId", "actionId", "status", "steps", "riskSummary"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique action plan identifier (UUID)"
+    },
+    "decisionId": {
+      "type": "string",
+      "description": "ID of the decision that generated this action"
+    },
+    "actionId": {
+      "type": "string",
+      "description": "ID of the action being planned"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "PENDING_APPROVAL", "APPROVED", "EXECUTING", "COMPLETED", "FAILED", "ROLLED_BACK"],
+      "description": "Current status of the action"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when plan was created"
+    },
+    "approvedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when plan was approved"
+    },
+    "executedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when execution completed"
+    },
+    "steps": {
+      "type": "array",
+      "description": "Ordered execution steps",
+      "items": {
+        "type": "object",
+        "properties": {
+          "order": { "type": "integer" },
+          "operation": { "type": "string" },
+          "target": { "type": "string" },
+          "payload": { "type": "object" },
+          "rollbackPayload": { "type": "object" },
+          "status": { "type": "string", "enum": ["PENDING", "RUNNING", "SUCCESS", "FAILED", "SKIPPED"] },
+          "startedAt": { "type": "string", "format": "date-time" },
+          "completedAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "riskSummary": {
+      "type": "object",
+      "description": "Risk assessment summary",
+      "properties": {
+        "overallRisk": { "type": "number", "minimum": 0, "maximum": 100 },
+        "riskFactors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "factor": { "type": "string" },
+              "contribution": { "type": "number" }
+            }
+          }
+        },
+        "mitigations": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "journal": {
+      "type": "array",
+      "description": "Execution journal with all operations",
+      "items": {
+        "type": "object",
+        "properties": {
+          "timestamp": { "type": "string", "format": "date-time" },
+          "level": { "type": "string", "enum": ["INFO", "WARN", "ERROR"] },
+          "message": { "type": "string" },
+          "data": { "type": "object" }
+        }
+      }
+    }
+  }
+}

@@ -1,6 +1,16 @@
-import type { LlmConfig, LlmProviderName } from "./llm-cli.js";
-// @ts-ignore
-import { LlmCli } from "./llm-cli.js";
+// LLM Provider types and interfaces
+// Note: LlmCli is in src/cli/llm-cli.ts
+
+export interface LlmConfig {
+  provider: string;
+  model?: string;
+  apiKey?: string;
+  baseUrl?: string;
+  temperature?: number;
+  seed?: number;
+}
+
+export type LlmProviderName = "openai" | "anthropic" | "openrouter" | "ollama";
 
 export interface LlmMessage {
   role: "system" | "user" | "assistant";
@@ -245,10 +255,10 @@ export function validateJsonSchema(value: unknown, schema?: Record<string, unkno
 
 export function createProvider(config: LlmConfig): LlmProvider {
   return {
-    async chat(messages, jsonSchema, seed = config.seed, temperature = 0) {
+    async chat(messages, jsonSchema, seed = config.seed ?? 0, temperature = 0) {
       validateDeterminism(seed, temperature);
-      const provider = config.provider === "custom" ? "ollama" : config.provider;
-      const req = buildRequest(provider, config, messages, jsonSchema, seed, temperature);
+      const providerName = (config.provider === "custom" ? "ollama" : config.provider) as LlmProviderName;
+      const req = buildRequest(providerName, config, messages, jsonSchema, seed, temperature);
       const response = await fetch(req.url, {
         method: "POST",
         headers: req.headers,
@@ -259,7 +269,7 @@ export function createProvider(config: LlmConfig): LlmProvider {
         throw new Error(`Provider request failed with status ${response.status}: ${detail}`);
       }
       const payload = await response.json() as Record<string, unknown>;
-      const parsed = parseProviderResponse(provider, payload);
+      const parsed = parseProviderResponse(providerName, payload);
       validateJsonSchema(parsed.json, jsonSchema);
       return parsed;
     },

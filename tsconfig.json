@@ -10,8 +10,8 @@
     "declaration": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@zeo/core": ["./src/core/shim.ts"],
-      "@zeo/contracts": ["./sdk/ts/src/index.ts"],
+      "@zeo/core": ["./packages/core/src/index.ts"],
+      "@zeo/contracts": ["./packages/contracts/src/index.ts"],
       "@zeo/*": ["./src/*"]
     }
   },

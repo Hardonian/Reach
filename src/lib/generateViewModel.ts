@@ -181,7 +181,7 @@ function fromAnalyzePrArtifact(id: string, persona: DashboardPersona): Dashboard
     schemaVersion: "dashboard.viewmodel.v1",
     id,
     generatedAt: now,
-    persona,
+    persona: persona as DashboardPersona,
     verificationStatus: { verified: Boolean(manifest.manifest_hash), reason: manifest.manifest_hash ? "manifest hash present" : "manifest hash missing" },
     fingerprint: {
       zeoVersion: "1.0.0",
@@ -216,6 +216,15 @@ function fromAnalyzePrArtifact(id: string, persona: DashboardPersona): Dashboard
         { from: `decision:${id}`, to: outcomeNode.id, type: "supports" as const, weight: Math.max(0.2, 1 - riskScore / 120) },
       ].sort((a, b) => a.from.localeCompare(b.from) || a.to.localeCompare(b.to)),
     },
+    nodes: graphNodes.map((node) => ({ ...node, meta: { ...(("meta" in node && node.meta) ? node.meta : {}), position: positions[node.id] } })),
+    edges: [
+      ...sortedFindings
+        .slice(0, 10)
+        .map((finding) => ({ from: `finding:${finding.id}`, to: `decision:${id}`, type: finding.severity >= 5 ? "violates" as const : "supports" as const, weight: finding.severity / 5 })),
+      ...policyNodes.map((policy) => ({ from: policy.id, to: `decision:${id}`, type: "constrains" as const, weight: policy.severity / 5 })),
+      ...assumptionNodes.map((node) => ({ from: node.id, to: `decision:${id}`, type: "depends_on" as const, weight: (node.severity ?? 1) / 5 })),
+      { from: `decision:${id}`, to: outcomeNode.id, type: "supports" as const, weight: Math.max(0.2, 1 - riskScore / 120) },
+    ].sort((a, b) => a.from.localeCompare(b.from) || a.to.localeCompare(b.to)),
     lists: {
       findings: sortedFindings,
       evidence,
@@ -230,7 +239,7 @@ function fromAnalyzePrArtifact(id: string, persona: DashboardPersona): Dashboard
 }
 
 export function generateDashboardViewModel(options: GenerateDashboardOptions): DashboardViewModel {
-  const persona: DashboardPersona = options.persona ?? "exec";
+  const persona = (options.persona ?? "exec") as DashboardPersona;
   const model = fromAnalyzePrArtifact(options.id, persona);
   if (!model) {
     throw new Error(`Dashboard source not found for id '${options.id}'. Expected .zeo/analyze-pr/${options.id}/ manifest + findings + summary artifacts.`);

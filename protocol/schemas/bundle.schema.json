@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://reach.sh/schemas/bundle.json",
+  "title": "Export Bundle Schema",
+  "description": "Schema for Export Bundles in the Reach system",
+  "type": "object",
+  "required": ["id", "createdAt", "manifest"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique bundle identifier (UUID)"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when bundle was created"
+    },
+    "workspaceId": {
+      "type": "string",
+      "description": "Workspace this bundle belongs to"
+    },
+    "runId": {
+      "type": "string",
+      "description": "Run ID this bundle represents"
+    },
+    "manifest": {
+      "type": "object",
+      "description": "Bundle manifest",
+      "properties": {
+        "version": { "type": "string" },
+        "engineVersion": { "type": "string" },
+        "events": {
+          "type": "array",
+          "items": { "$ref": "event.json" }
+        },
+        "junctions": {
+          "type": "array",
+          "items": { "$ref": "junction.json" }
+        },
+        "decisions": {
+          "type": "array",
+          "items": { "$ref": "decision.json" }
+        },
+        "actions": {
+          "type": "array",
+          "items": { "$ref": "action.json" }
+        },
+        "vitals": { "$ref": "vitals.json" }
+      }
+    },
+    "files": {
+      "type": "array",
+      "description": "Files included in the bundle",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" },
+          "size": { "type": "integer" },
+          "hash": { "type": "string" }
+        }
+      }
+    },
+    "fingerprint": {
+      "type": "string",
+      "description": "SHA-256 hash of bundle contents for verification"
+    },
+    "signature": {
+      "type": "string",
+      "description": "Digital signature (if Enterprise)"
+    },
+    "verificationStatus": {
+      "type": "string",
+      "enum": ["UNVERIFIED", "VERIFIED", "INVALID"],
+      "description": "Verification status of the bundle"
+    },
+    "verifiedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of verification"
+    }
+  }
+}

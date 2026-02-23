@@ -105,7 +105,7 @@ export default function DecisionsPage() {
               <ol className="text-sm text-gray-600 list-decimal list-inside space-y-1">
                 <li>Configure junction triggers in your pipeline</li>
                 <li>Run a scan with <code className="bg-gray-100 px-1 rounded">reach junctions scan --since 7d</code></li>
-                <li>Evaluate a junction with <code className="bg-gray-100 px-1 rounded">reach decide evaluate --junction <id></code></li>
+                <li>Evaluate a junction with <code className="bg-gray-100 px-1 rounded">reach decide evaluate --junction &#60;id&#62;</code></li>
               </ol>
             </div>
           </div>

@@ -3,7 +3,7 @@
  * Provides a unified interface for decision evaluation engines with support for TS fallback and WASM engine.
  */
 
-import { DecisionInput, DecisionOutput } from '../fallback';
+import { DecisionInput, DecisionOutput } from '../lib/fallback.js';
 
 export interface DecisionEngine {
   evaluate(input: DecisionInput): Promise<DecisionOutput>;
@@ -16,7 +16,7 @@ export interface DecisionEngine {
 export class TsReferenceEngine implements DecisionEngine {
   async evaluate(input: DecisionInput): Promise<DecisionOutput> {
     // Import dynamically to allow tree-shaking
-    const { evaluateDecisionFallback } = await import('../fallback');
+    const { evaluateDecisionFallback } = await import('../lib/fallback.js');
     return evaluateDecisionFallback(input);
   }
 }

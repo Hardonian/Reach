@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://reach.sh/schemas/junction.json",
+  "title": "Junction Schema",
+  "description": "Schema for Junction events in the Reach system",
+  "type": "object",
+  "required": ["id", "type", "timestamp", "severity", "triggerTrace", "policyRefs"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique junction identifier (UUID)"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["DRIFT", "POLICY_VIOLATION", "ANOMALY", "THRESHOLD_BREACH", "MANUAL_TRIGGER"],
+      "description": "Type of junction detected"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of junction detection"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["INFO", "WARNING", "CRITICAL"],
+      "description": "Junction severity level"
+    },
+    "triggerTrace": {
+      "type": "array",
+      "description": "Ordered list of events that led to this junction",
+      "items": {
+        "type": "object",
+        "properties": {
+          "eventId": { "type": "string" },
+          "eventType": { "type": "string" },
+          "timestamp": { "type": "string" },
+          "payload": { "type": "object" }
+        }
+      }
+    },
+    "policyRefs": {
+      "type": "array",
+      "description": "Policies that triggered this junction",
+      "items": { "type": "string" }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional junction metadata",
+      "properties": {
+        "source": { "type": "string" },
+        "workspaceId": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

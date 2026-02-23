@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
-import { createProvider, validateJsonSchema, __internal, SUPPORTED_PROVIDER_FIXTURE_NAMES } from "./llm-provider.js";
-import type { LlmConfig } from "./llm-cli.js";
+import { createProvider, validateJsonSchema, __internal, SUPPORTED_PROVIDER_FIXTURE_NAMES, LlmConfig } from "./llm-provider.js";
 
 const baseConfig: LlmConfig = {
   provider: "openai",
