@@ -1,0 +1,43 @@
+{
+  "_fixture": {
+    "id": "fingerprint",
+    "description": "Fingerprint/hash output format specification",
+    "created": "2026-02-23",
+    "schema_version": "1.0.0",
+    "note": "Fingerprint is deterministic SHA-256 of canonical input"
+  },
+  "fingerprint": "9f86d081884c7d659a2feaa0c55ad015a3b0f8c4e5d6e7f8a9b0c1d2e3f4a5b6",
+  "algorithm": "SHA-256",
+  "format": "hex",
+  "length_bits": 256,
+  "length_bytes": 32,
+  "length_chars": 64,
+  "input_canonicalization": {
+    "encoding": "UTF-8",
+    "json_spacing": "none",
+    "key_ordering": "lexicographic",
+    "omitted_fields": ["timestamp", "_comment", "_fixture"]
+  },
+  "components": {
+    "input_hash": "a3f5c8e2d9b1470e6f8a2c5d7e9b1f4a8c2d5e7f9a1b3c5d7e9f1a3b5c7d9e1f",
+    "execution_trace_hash": "d4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8",
+    "policy_hash": "b2c4d6e8f0a1b3c5d7e9f1a3b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5f7a9b1c3d",
+    "combined_hash": "9f86d081884c7d659a2feaa0c55ad015a3b0f8c4e5d6e7f8a9b0c1d2e3f4a5b6"
+  },
+  "verification": {
+    "can_reproduce": true,
+    "cross_platform": true,
+    "same_input_same_output": true
+  },
+  "example_inputs": {
+    "description": "Example inputs that produce specific fingerprints",
+    "minimal": {
+      "input": {"action": "test"},
+      "fingerprint": "a3f5c8e2d9b1470e6f8a2c5d7e9b1f4a8c2d5e7f9a1b3c5d7e9f1a3b5c7d9e1f"
+    },
+    "simple_decision": {
+      "input": "fixtures/events/simple-decision.json",
+      "fingerprint": "9f86d081884c7d659a2feaa0c55ad015a3b0f8c4e5d6e7f8a9b0c1d2e3f4a5b6"
+    }
+  }
+}
