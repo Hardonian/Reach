@@ -20,7 +20,9 @@
     "docs:check": "npx tsx tools/docs/drift/run.ts",
     "docs:index:check": "npx tsx scripts/validate-docs-index.ts",
     "health:check": "npx tsx scripts/repo-health.ts",
-    "verify:fast": "npm run typecheck && npm run lint:structure && npm run format:check && npm run docs:index:check && npm run health:check && npm test",
+    "gates:reality": "npx tsx scripts/check-v0.1-gates.ts",
+    "gates:terminology": "npx tsx scripts/check-terminology.ts",
+    "verify:fast": "npm run typecheck && npm run lint:structure && npm run format:check && npm run docs:index:check && npm run health:check && npm run gates:reality && npm run gates:terminology && npm test",
     "verify": "npm run verify:fast && npm run build",
     "verify:full": "npm run verify"
   },
