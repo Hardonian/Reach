@@ -32,7 +32,7 @@
   "example_inputs": {
     "description": "Example inputs that produce specific fingerprints",
     "minimal": {
-      "input": {"action": "test"},
+      "input": { "action": "test" },
       "fingerprint": "a3f5c8e2d9b1470e6f8a2c5d7e9b1f4a8c2d5e7f9a1b3c5d7e9f1a3b5c7d9e1f"
     },
     "simple_decision": {

@@ -43,8 +43,12 @@
       "action_id": "scale_up",
       "expected_utility": 120.0,
       "calculation": {
-        "high_load": {"utility": 150, "probability": 0.7, "contribution": 105},
-        "normal_load": {"utility": 50, "probability": 0.3, "contribution": 15}
+        "high_load": {
+          "utility": 150,
+          "probability": 0.7,
+          "contribution": 105
+        },
+        "normal_load": { "utility": 50, "probability": 0.3, "contribution": 15 }
       }
     },
     {
@@ -54,8 +58,12 @@
       "action_id": "optimize",
       "expected_utility": 102.5,
       "calculation": {
-        "high_load": {"utility": 80, "probability": 0.7, "contribution": 56},
-        "normal_load": {"utility": 155, "probability": 0.3, "contribution": 46.5}
+        "high_load": { "utility": 80, "probability": 0.7, "contribution": 56 },
+        "normal_load": {
+          "utility": 155,
+          "probability": 0.3,
+          "contribution": 46.5
+        }
       }
     },
     {
