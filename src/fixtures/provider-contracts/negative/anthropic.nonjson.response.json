@@ -1,0 +1,16 @@
+{
+  "provider": "anthropic",
+  "payload": {
+    "id": "msg_test",
+    "type": "message",
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "this is not json"
+      }
+    ],
+    "model": "claude-3-opus"
+  },
+  "expectedError": "Provider 'anthropic' returned non-JSON content"
+}

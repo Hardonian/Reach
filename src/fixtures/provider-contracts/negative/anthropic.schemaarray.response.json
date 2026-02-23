@@ -1,0 +1,12 @@
+{
+  "provider": "anthropic",
+  "payload": {
+    "content": [
+      {
+        "type": "text",
+        "text": "[1, 2, 3]"
+      }
+    ]
+  },
+  "expectedSchemaError": "expected object"
+}

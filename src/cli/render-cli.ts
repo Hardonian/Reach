@@ -285,16 +285,120 @@ function copyDir(src: string, dest: string): void {
 }
 
 function zipDirectory(dir: string, outZip: string): void {
-  const script = `import os, zipfile
-root = r"${dir}"
-out = r"${outZip}"
-with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
-    for base, _, files in os.walk(root):
-        for name in sorted(files):
-            path = os.path.join(base, name)
-            z.write(path, os.path.relpath(path, os.path.dirname(root)))
-`;
-  execFileSync("python3", ["-c", script], { stdio: "ignore" });
+  // Use Node.js built-in approach - create a simple zip using child_process zip command
+  // Fallback to a simple synchronous implementation using execFileSync
+  try {
+    // Try using zip command on Unix-like systems
+    execFileSync("zip", ["-r", "-q", outZip, "."], { cwd: dir, stdio: "ignore" });
+  } catch {
+    // Fallback: create a minimal zip manually (store mode, no compression)
+    // This is a simplified implementation for CI environments without zip/python
+    const files = getAllFiles(dir);
+    const chunks: Buffer[] = [];
+    const localFileHeaders: Buffer[] = [];
+    const centralDirectory: Buffer[] = [];
+    let offset = 0;
+    
+    for (const file of files) {
+      const content = readFileSync(file);
+      const relativePath = file.slice(dir.length + 1).replace(/\\/g, "/");
+      const fileName = Buffer.from(relativePath, "utf8");
+      
+      // Local file header (simplified - store mode)
+      const localHeader = Buffer.alloc(30 + fileName.length);
+      localHeader.writeUInt32LE(0x04034b50, 0); // signature
+      localHeader.writeUInt16LE(10, 4); // version needed
+      localHeader.writeUInt16LE(0, 6); // flags
+      localHeader.writeUInt16LE(0, 8); // store mode (no compression)
+      localHeader.writeUInt16LE(0, 10); // time
+      localHeader.writeUInt16LE(0, 12); // date
+      localHeader.writeUInt32LE(crc32(content), 14); // crc32
+      localHeader.writeUInt32LE(content.length, 18); // compressed size
+      localHeader.writeUInt32LE(content.length, 22); // uncompressed size
+      localHeader.writeUInt16LE(fileName.length, 26); // filename length
+      localHeader.writeUInt16LE(0, 28); // extra field length
+      fileName.copy(localHeader, 30);
+      
+      localFileHeaders.push(localHeader);
+      localFileHeaders.push(content);
+      
+      // Central directory header
+      const centralHeader = Buffer.alloc(46 + fileName.length);
+      centralHeader.writeUInt32LE(0x02014b50, 0); // signature
+      centralHeader.writeUInt16LE(20, 4); // version made by
+      centralHeader.writeUInt16LE(10, 6); // version needed
+      centralHeader.writeUInt16LE(0, 8); // flags
+      centralHeader.writeUInt16LE(0, 10); // store mode
+      centralHeader.writeUInt16LE(0, 12); // time
+      centralHeader.writeUInt16LE(0, 14); // date
+      centralHeader.writeUInt32LE(crc32(content), 16); // crc32
+      centralHeader.writeUInt32LE(content.length, 20); // compressed size
+      centralHeader.writeUInt32LE(content.length, 24); // uncompressed size
+      centralHeader.writeUInt16LE(fileName.length, 28); // filename length
+      centralHeader.writeUInt16LE(0, 30); // extra field length
+      centralHeader.writeUInt16LE(0, 32); // comment length
+      centralHeader.writeUInt16LE(0, 34); // disk number
+      centralHeader.writeUInt16LE(0, 36); // internal attributes
+      centralHeader.writeUInt32LE(0, 38); // external attributes
+      centralHeader.writeUInt32LE(offset, 42); // relative offset of local header
+      fileName.copy(centralHeader, 46);
+      
+      centralDirectory.push(centralHeader);
+      offset += localHeader.length + content.length;
+    }
+    
+    const centralDirStart = offset;
+    const centralDirData = Buffer.concat(centralDirectory);
+    const centralDirEnd = centralDirStart + centralDirData.length;
+    
+    // End of central directory
+    const eocd = Buffer.alloc(22);
+    eocd.writeUInt32LE(0x06054b50, 0); // signature
+    eocd.writeUInt16LE(0, 4); // disk number
+    eocd.writeUInt16LE(0, 6); // disk with central dir
+    eocd.writeUInt16LE(files.length, 8); // entries on this disk
+    eocd.writeUInt16LE(files.length, 10); // total entries
+    eocd.writeUInt32LE(centralDirData.length, 12); // central dir size
+    eocd.writeUInt32LE(centralDirStart, 16); // central dir offset
+    eocd.writeUInt16LE(0, 20); // comment length
+    
+    writeFileSync(outZip, Buffer.concat([...localFileHeaders, centralDirData, eocd]));
+  }
+}
+
+function getAllFiles(dir: string): string[] {
+  const files: string[] = [];
+  const entries = readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...getAllFiles(path));
+    } else {
+      files.push(path);
+    }
+  }
+  return files;
+}
+
+function crc32(data: Buffer): number {
+  let crc = 0xffffffff;
+  const table = getCrc32Table();
+  for (let i = 0; i < data.length; i++) {
+    crc = (crc >>> 8) ^ table[(crc ^ data[i]) & 0xff];
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function getCrc32Table(): Uint32Array {
+  const table = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let j = 0; j < 8; j++) {
+      c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+    }
+    table[i] = c;
+  }
+  return table;
 }
 
 export async function runDemoCommand(argv: string[]): Promise<number> {

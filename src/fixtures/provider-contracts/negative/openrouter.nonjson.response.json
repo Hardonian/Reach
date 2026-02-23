@@ -1,0 +1,13 @@
+{
+  "provider": "openrouter",
+  "payload": {
+    "choices": [
+      {
+        "message": {
+          "content": "this is not json"
+        }
+      }
+    ]
+  },
+  "expectedError": "Provider 'openrouter' returned non-JSON content"
+}

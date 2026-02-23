@@ -1,0 +1,14 @@
+{
+  "provider": "openai",
+  "payload": {
+    "id": "chatcmpl-test",
+    "choices": [
+      {
+        "message": {
+          "content": "this is not json"
+        }
+      }
+    ]
+  },
+  "expectedError": "Provider 'openai' returned non-JSON content"
+}

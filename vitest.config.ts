@@ -10,7 +10,6 @@ let tsconfig: any = {};
 if (fs.existsSync(tsconfigPath)) {
   try {
     const raw = fs.readFileSync(tsconfigPath, "utf-8");
-    // Strip comments if any
     const clean = raw.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '$1');
     tsconfig = JSON.parse(clean);
   } catch (e) {
@@ -36,7 +35,7 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "test/integration/**/*.test.ts"],
     exclude: ["node_modules", "dist", ".git", ".github"],
   },
 });

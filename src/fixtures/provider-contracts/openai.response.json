@@ -1,0 +1,27 @@
+{
+  "provider": "openai",
+  "payload": {
+    "id": "chatcmpl-test",
+    "object": "chat.completion",
+    "created": 1234567890,
+    "model": "gpt-4",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"verdict\": \"ok\"}"
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 10,
+      "completion_tokens": 5
+    }
+  },
+  "expected": {
+    "json": {"verdict": "ok"},
+    "usage": {"inputTokens": 10, "outputTokens": 5}
+  }
+}

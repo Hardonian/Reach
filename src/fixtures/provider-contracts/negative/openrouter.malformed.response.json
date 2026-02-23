@@ -1,0 +1,5 @@
+{
+  "provider": "openrouter",
+  "payload": "not a valid json object",
+  "expectedError": "Malformed openrouter response"
+}

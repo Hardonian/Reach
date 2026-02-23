@@ -8,8 +8,10 @@
   ],
   "scripts": {
     "build": "echo 'Build handled by individual language compilers'",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "vitest run src",
+    "test:watch": "vitest src",
+    "test:system": "vitest run test/integration",
+    "test:system:watch": "vitest test/integration",
     "lint": "eslint src",
     "lint:structure": "powershell ./tools/guard-structure.ps1",
     "typecheck": "tsc --noEmit",
@@ -23,9 +25,12 @@
     "verify:full": "npm run verify"
   },
   "devDependencies": {
+    "@types/node": "^25.3.0",
+    "eslint": "^9.39.3",
     "prettier": "^3.8.1",
     "tsx": "^4.21.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   },
   "engines": {
     "node": ">=18.0.0"

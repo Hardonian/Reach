@@ -1,0 +1,5 @@
+{
+  "provider": "ollama",
+  "payload": "not a valid json object",
+  "expectedError": "Malformed ollama response"
+}

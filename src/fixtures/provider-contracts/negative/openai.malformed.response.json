@@ -1,0 +1,5 @@
+{
+  "provider": "openai",
+  "payload": "not a valid json object",
+  "expectedError": "Malformed openai response"
+}

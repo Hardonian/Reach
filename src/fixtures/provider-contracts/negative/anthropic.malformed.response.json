@@ -1,0 +1,8 @@
+{
+  "provider": "anthropic",
+  "payload": {
+    "id": "msg_test",
+    "type": "message"
+  },
+  "expectedError": "Malformed anthropic response"
+}

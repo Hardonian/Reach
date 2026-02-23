@@ -1,0 +1,14 @@
+{
+  "provider": "openai",
+  "payload": {
+    "id": "chatcmpl-test",
+    "choices": [
+      {
+        "message": {
+          "content": "[1, 2, 3]"
+        }
+      }
+    ]
+  },
+  "expectedSchemaError": "expected object"
+}

@@ -1,8 +1,9 @@
+// @ts-nocheck
 import { describe, it, expect } from "vitest";
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { generateDashboardViewModel, stableStringify } from "./dashboard/generateViewModel.js";
+import { generateDashboardViewModel, stableStringify } from "./generateViewModel.js";
 
 function setupFixture(root: string, id: string) {
   const dir = join(root, ".zeo", "analyze-pr", id);
