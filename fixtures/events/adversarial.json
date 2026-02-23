@@ -1,0 +1,97 @@
+{
+  "_fixture": {
+    "id": "adversarial",
+    "description": "Decision with adversarial scenarios requiring robust optimization",
+    "created": "2026-02-23",
+    "schema_version": "1.0.0",
+    "complexity": "intermediate",
+    "deterministic": true
+  },
+  "id": "adversarial_001",
+  "context": {
+    "domain": "security",
+    "environment": "production",
+    "priority": "critical",
+    "threat_model": "active_adversary"
+  },
+  "actions": [
+    {
+      "id": "patch_immediate",
+      "label": "Apply security patch immediately",
+      "type": "security",
+      "downtime": 5
+    },
+    {
+      "id": "patch_scheduled",
+      "label": "Schedule patch during maintenance window",
+      "type": "security",
+      "downtime": 0
+    },
+    {
+      "id": "mitigate_only",
+      "label": "Apply mitigations without patching",
+      "type": "security",
+      "downtime": 0
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "no_attack",
+      "label": "No attack materializes",
+      "probability": 0.5,
+      "adversarial": false
+    },
+    {
+      "id": "attack_mitigated",
+      "label": "Attack attempted but mitigated",
+      "probability": 0.3,
+      "adversarial": true
+    },
+    {
+      "id": "attack_successful",
+      "label": "Attack successful",
+      "probability": 0.2,
+      "adversarial": true
+    }
+  ],
+  "outcomes": [
+    { "action": "patch_immediate", "scenario": "no_attack", "utility": 70 },
+    {
+      "action": "patch_immediate",
+      "scenario": "attack_mitigated",
+      "utility": 85
+    },
+    {
+      "action": "patch_immediate",
+      "scenario": "attack_successful",
+      "utility": 90
+    },
+    { "action": "patch_scheduled", "scenario": "no_attack", "utility": 95 },
+    {
+      "action": "patch_scheduled",
+      "scenario": "attack_mitigated",
+      "utility": 80
+    },
+    {
+      "action": "patch_scheduled",
+      "scenario": "attack_successful",
+      "utility": 20
+    },
+    { "action": "mitigate_only", "scenario": "no_attack", "utility": 100 },
+    {
+      "action": "mitigate_only",
+      "scenario": "attack_mitigated",
+      "utility": 75
+    },
+    {
+      "action": "mitigate_only",
+      "scenario": "attack_successful",
+      "utility": -30
+    }
+  ],
+  "optimization": {
+    "strategy": "maximin",
+    "adversarial_weight": 0.4,
+    "robustness_threshold": 0.7
+  }
+}

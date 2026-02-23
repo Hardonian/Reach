@@ -1,0 +1,52 @@
+{
+  "_fixture": {
+    "id": "strict-policy",
+    "description": "Pack with strict policy enforcement enabled",
+    "created": "2026-02-23",
+    "schema_version": "1.0.0",
+    "complexity": "intermediate"
+  },
+  "id": "strict-policy-demo",
+  "version": "1.0.0",
+  "name": "Strict Policy Demo",
+  "description": "Demonstrates strict policy enforcement with all safety checks",
+  "deterministic": true,
+  "entry": {
+    "type": "analysis",
+    "action": "security_review"
+  },
+  "policies": [
+    "policy-packs/strict-safe-mode.json"
+  ],
+  "policy_config": {
+    "enforce_all": true,
+    "fail_closed": true,
+    "audit_mode": false
+  },
+  "capabilities": {
+    "allowed_tools": [
+      "file_read",
+      "file_list",
+      "json_parse"
+    ],
+    "blocked_tools": [
+      "shell_exec",
+      "network_request",
+      "file_write"
+    ],
+    "max_iterations": 100,
+    "max_execution_time_ms": 5000
+  },
+  "output": {
+    "format": "json",
+    "include_evidence": true,
+    "include_fingerprint": true,
+    "include_policy_decisions": true
+  },
+  "metadata": {
+    "category": "demo",
+    "complexity": "intermediate",
+    "estimated_duration": "5s",
+    "policies_applied": ["strict-safe-mode"]
+  }
+}

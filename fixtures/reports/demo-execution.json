@@ -1,0 +1,62 @@
+{
+  "_fixture": {
+    "id": "demo-execution",
+    "description": "Typical execution report for documentation",
+    "created": "2026-02-23",
+    "schema_version": "1.0.0"
+  },
+  "report_type": "execution",
+  "generated_at": "2026-02-23T19:52:46.292Z",
+  "reach_version": "0.3.1",
+  "environment": {
+    "node": "v25.5.0",
+    "platform": "win32",
+    "arch": "x64",
+    "go": "go1.25.6"
+  },
+  "execution": {
+    "run_id": "run_20260223_195246",
+    "pack_id": "quickstart-local",
+    "input_hash": "a3f5c8e2d9b1470e6f8a2c5d7e9b1f4a",
+    "status": "completed",
+    "duration_ms": 142,
+    "fingerprint": "9f86d081884c7d659a2feaa0c55ad015a3b0f8c4e5d6e7f8a9b0c1d2e3f4a5b6"
+  },
+  "decision": {
+    "action_selected": "scale_up",
+    "confidence": 0.92,
+    "expected_utility": 125.5,
+    "alternatives_considered": 2,
+    "scenarios_evaluated": 2
+  },
+  "evidence": {
+    "items_collected": 5,
+    "input_snapshot": true,
+    "policy_checks": [
+      {
+        "policy": "strict-safe-mode",
+        "result": "passed",
+        "checks_run": 12,
+        "violations": 0
+      }
+    ],
+    "execution_trace": {
+      "steps": 8,
+      "branches_explored": 4,
+      "determinism_verified": true
+    }
+  },
+  "policies_applied": [
+    {
+      "id": "strict-safe-mode",
+      "version": "1.0.0",
+      "enforced": true
+    }
+  ],
+  "audit": {
+    "verifiable": true,
+    "replay_available": true,
+    "signature_valid": true,
+    "integrity_hash": "edba97b11d6ebe861b8053f753458ad2"
+  }
+}

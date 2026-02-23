@@ -1,0 +1,67 @@
+{
+  "_fixture": {
+    "id": "tie-break",
+    "description": "Equal expected utility requiring deterministic tie-breaking",
+    "created": "2026-02-23",
+    "schema_version": "1.0.0",
+    "complexity": "advanced",
+    "deterministic": true,
+    "note": "Both actions have identical expected utility (50.0)"
+  },
+  "id": "tie_break_001",
+  "context": {
+    "domain": "resource_allocation",
+    "environment": "production",
+    "priority": "medium"
+  },
+  "actions": [
+    {
+      "id": "option_a",
+      "label": "Allocate to Team A",
+      "metadata": {
+        "team": "alpha",
+        "created_at": "2026-01-01T00:00:00Z"
+      }
+    },
+    {
+      "id": "option_b",
+      "label": "Allocate to Team B",
+      "metadata": {
+        "team": "beta",
+        "created_at": "2026-01-01T00:00:00Z"
+      }
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "success",
+      "label": "Project succeeds",
+      "probability": 0.5,
+      "adversarial": false
+    },
+    {
+      "id": "partial",
+      "label": "Partial success",
+      "probability": 0.5,
+      "adversarial": false
+    }
+  ],
+  "outcomes": [
+    {"action": "option_a", "scenario": "success", "utility": 100},
+    {"action": "option_a", "scenario": "partial", "utility": 0},
+    {"action": "option_b", "scenario": "success", "utility": 100},
+    {"action": "option_b", "scenario": "partial", "utility": 0}
+  ],
+  "tie_breaker": {
+    "method": "lexicographic",
+    "field": "id",
+    "direction": "ascending"
+  },
+  "expected": {
+    "winner": "option_a",
+    "expected_utility": {
+      "option_a": 50.0,
+      "option_b": 50.0
+    }
+  }
+}

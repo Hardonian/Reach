@@ -1,0 +1,52 @@
+{
+  "_fixture": {
+    "id": "federation-ready",
+    "description": "Multi-node federation pack with mesh networking",
+    "created": "2026-02-23",
+    "schema_version": "1.0.0",
+    "complexity": "advanced"
+  },
+  "id": "federation-ready",
+  "version": "1.0.0",
+  "name": "Federation Ready",
+  "description": "Pack configured for distributed execution across federation mesh",
+  "deterministic": true,
+  "entry": {
+    "type": "distributed_analysis",
+    "action": "federated_query"
+  },
+  "policies": [
+    "policy-packs/strict-safe-mode.json",
+    "policy-packs/federation-mesh.json"
+  ],
+  "federation": {
+    "enabled": true,
+    "strategy": "quorum",
+    "min_nodes": 3,
+    "max_nodes": 7,
+    "consensus_threshold": 0.67,
+    "timeout_ms": 30000,
+    "retry_policy": {
+      "max_retries": 3,
+      "backoff_ms": 1000
+    }
+  },
+  "verification": {
+    "require_quorum_signature": true,
+    "require_replay_consistency": true,
+    "challenge_response": true
+  },
+  "output": {
+    "format": "json",
+    "include_evidence": true,
+    "include_fingerprint": true,
+    "include_quorum_signatures": true,
+    "include_node_attestations": true
+  },
+  "metadata": {
+    "category": "federation",
+    "complexity": "advanced",
+    "estimated_duration": "30s",
+    "network_requirements": "federation-mesh"
+  }
+}

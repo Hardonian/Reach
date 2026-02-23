@@ -1,0 +1,28 @@
+{
+  "_fixture": {
+    "id": "minimal-valid",
+    "description": "Smallest valid Reach pack - for testing and validation",
+    "created": "2026-02-23",
+    "schema_version": "1.0.0",
+    "complexity": "beginner"
+  },
+  "id": "minimal-valid",
+  "version": "1.0.0",
+  "name": "Minimal Valid Pack",
+  "description": "The smallest possible valid Reach pack for testing",
+  "deterministic": true,
+  "entry": {
+    "type": "decision",
+    "action": "evaluate"
+  },
+  "output": {
+    "format": "json",
+    "include_evidence": true,
+    "include_fingerprint": true
+  },
+  "metadata": {
+    "category": "test",
+    "complexity": "minimal",
+    "estimated_duration": "1s"
+  }
+}

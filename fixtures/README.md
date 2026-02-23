@@ -88,41 +88,41 @@ Use in CI/CD pipelines:
 
 Small, canonical event streams representing different scenarios:
 
-| File | Description | Complexity |
-|------|-------------|------------|
-| `simple-decision.json` | Basic 2-action, 2-scenario decision | Beginner |
-| `multi-action.json` | 5 actions, 3 scenarios with weights | Intermediate |
-| `adversarial.json` | Decision with adversarial flag set | Intermediate |
-| `tie-break.json` | Equal utility requiring tie-breaker | Advanced |
+| File                   | Description                         | Complexity   |
+| ---------------------- | ----------------------------------- | ------------ |
+| `simple-decision.json` | Basic 2-action, 2-scenario decision | Beginner     |
+| `multi-action.json`    | 5 actions, 3 scenarios with weights | Intermediate |
+| `adversarial.json`     | Decision with adversarial flag set  | Intermediate |
+| `tie-break.json`       | Equal utility requiring tie-breaker | Advanced     |
 
 ### Bundles (`fixtures/bundles/`)
 
 Valid pack manifests for different use cases:
 
-| File | Description | Policies |
-|------|-------------|----------|
-| `minimal-valid.json` | Smallest valid pack | None |
-| `strict-policy.json` | Full policy enforcement | strict-safe-mode |
-| `federation-ready.json` | Multi-node federation | strict + mesh |
+| File                    | Description             | Policies         |
+| ----------------------- | ----------------------- | ---------------- |
+| `minimal-valid.json`    | Smallest valid pack     | None             |
+| `strict-policy.json`    | Full policy enforcement | strict-safe-mode |
+| `federation-ready.json` | Multi-node federation   | strict + mesh    |
 
 ### Reports (`fixtures/reports/`)
 
 Example report outputs for documentation:
 
-| File | Description | Use Case |
-|------|-------------|----------|
-| `demo-execution.json` | Typical execution report | Documentation |
-| `verification-audit.json` | Full audit trail | Compliance |
+| File                      | Description              | Use Case      |
+| ------------------------- | ------------------------ | ------------- |
+| `demo-execution.json`     | Typical execution report | Documentation |
+| `verification-audit.json` | Full audit trail         | Compliance    |
 
 ### Expected (`fixtures/expected/`)
 
 Canonical outputs for regression testing:
 
-| File | Description | Verified |
-|------|-------------|----------|
-| `decision-output.json` | Standard decision result | Yes |
-| `replay-trace.json` | Execution trace format | Yes |
-| `fingerprint.json` | Hash output format | Yes |
+| File                   | Description              | Verified |
+| ---------------------- | ------------------------ | -------- |
+| `decision-output.json` | Standard decision result | Yes      |
+| `replay-trace.json`    | Execution trace format   | Yes      |
+| `fingerprint.json`     | Hash output format       | Yes      |
 
 ---
 

@@ -1,0 +1,104 @@
+{
+  "_fixture": {
+    "id": "multi-action",
+    "description": "5 actions, 3 scenarios with weighted outcomes",
+    "created": "2026-02-23",
+    "schema_version": "1.0.0",
+    "complexity": "intermediate",
+    "deterministic": true
+  },
+  "id": "multi_001",
+  "context": {
+    "domain": "deployment",
+    "environment": "staging",
+    "priority": "medium",
+    "tags": ["ci-cd", "automation"]
+  },
+  "actions": [
+    {
+      "id": "deploy_canary",
+      "label": "Canary deployment (5%)",
+      "type": "deployment",
+      "risk": "low",
+      "rollback_time": 30
+    },
+    {
+      "id": "deploy_rolling",
+      "label": "Rolling deployment (25%)",
+      "type": "deployment",
+      "risk": "medium",
+      "rollback_time": 120
+    },
+    {
+      "id": "deploy_bluegreen",
+      "label": "Blue-green deployment",
+      "type": "deployment",
+      "risk": "low",
+      "rollback_time": 60
+    },
+    {
+      "id": "deploy_all",
+      "label": "Full deployment",
+      "type": "deployment",
+      "risk": "high",
+      "rollback_time": 300
+    },
+    {
+      "id": "hold",
+      "label": "Hold deployment",
+      "type": "deployment",
+      "risk": "none",
+      "rollback_time": 0
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "smooth_rollout",
+      "label": "No issues detected",
+      "probability": 0.75,
+      "adversarial": false
+    },
+    {
+      "id": "minor_issues",
+      "label": "Minor issues requiring rollback",
+      "probability": 0.2,
+      "adversarial": false
+    },
+    {
+      "id": "major_failure",
+      "label": "Critical failure",
+      "probability": 0.05,
+      "adversarial": true
+    }
+  ],
+  "outcomes": [
+    { "action": "deploy_canary", "scenario": "smooth_rollout", "utility": 85 },
+    { "action": "deploy_canary", "scenario": "minor_issues", "utility": 70 },
+    { "action": "deploy_canary", "scenario": "major_failure", "utility": 60 },
+    { "action": "deploy_rolling", "scenario": "smooth_rollout", "utility": 95 },
+    { "action": "deploy_rolling", "scenario": "minor_issues", "utility": 50 },
+    { "action": "deploy_rolling", "scenario": "major_failure", "utility": 10 },
+    {
+      "action": "deploy_bluegreen",
+      "scenario": "smooth_rollout",
+      "utility": 90
+    },
+    { "action": "deploy_bluegreen", "scenario": "minor_issues", "utility": 80 },
+    {
+      "action": "deploy_bluegreen",
+      "scenario": "major_failure",
+      "utility": 75
+    },
+    { "action": "deploy_all", "scenario": "smooth_rollout", "utility": 100 },
+    { "action": "deploy_all", "scenario": "minor_issues", "utility": 30 },
+    { "action": "deploy_all", "scenario": "major_failure", "utility": -50 },
+    { "action": "hold", "scenario": "smooth_rollout", "utility": 40 },
+    { "action": "hold", "scenario": "minor_issues", "utility": 60 },
+    { "action": "hold", "scenario": "major_failure", "utility": 80 }
+  ],
+  "weights": {
+    "utility": 0.6,
+    "risk": 0.3,
+    "rollback_speed": 0.1
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "_fixture": {
+    "id": "simple-decision",
+    "description": "Basic 2-action, 2-scenario decision for beginners",
+    "created": "2026-02-23",
+    "schema_version": "1.0.0",
+    "complexity": "beginner",
+    "deterministic": true
+  },
+  "id": "simple_001",
+  "context": {
+    "domain": "infrastructure",
+    "environment": "production",
+    "priority": "high"
+  },
+  "actions": [
+    {
+      "id": "scale_up",
+      "label": "Scale up compute resources",
+      "type": "infrastructure",
+      "cost": 100
+    },
+    {
+      "id": "optimize",
+      "label": "Optimize existing resources",
+      "type": "infrastructure",
+      "cost": 50
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "high_load",
+      "label": "High traffic period",
+      "probability": 0.7,
+      "adversarial": false
+    },
+    {
+      "id": "normal_load",
+      "label": "Normal operations",
+      "probability": 0.3,
+      "adversarial": false
+    }
+  ],
+  "outcomes": [
+    {
+      "action": "scale_up",
+      "scenario": "high_load",
+      "utility": 150,
+      "confidence": 0.9
+    },
+    {
+      "action": "scale_up",
+      "scenario": "normal_load",
+      "utility": 50,
+      "confidence": 0.8
+    },
+    {
+      "action": "optimize",
+      "scenario": "high_load",
+      "utility": 80,
+      "confidence": 0.7
+    },
+    {
+      "action": "optimize",
+      "scenario": "normal_load",
+      "utility": 120,
+      "confidence": 0.95
+    }
+  ],
+  "constraints": {
+    "max_cost": 200,
+    "min_confidence": 0.6
+  }
+}
