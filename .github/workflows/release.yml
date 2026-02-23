@@ -1,39 +1,219 @@
-name: release
+name: Release
 
 on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  # Build matrix for all supported platforms
+  build-matrix:
+    strategy:
+      matrix:
+        include:
+          # Linux AMD64
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+            binary: reachctl-linux-amd64
+          # Linux ARM64
+          - os: ubuntu-latest
+            goos: linux
+            goarch: arm64
+            binary: reachctl-linux-arm64
+          # macOS AMD64
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
+            binary: reachctl-darwin-amd64
+          # macOS ARM64 (Apple Silicon)
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
+            binary: reachctl-darwin-arm64
+          # Windows AMD64
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+            binary: reachctl-windows-amd64.exe
+
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-go@v5
         with:
           go-version: "1.22.7"
           cache: true
-      - name: build release artifacts
-        run: ./tools/release/build.sh "${GITHUB_REF_NAME#v}"
-      - name: upload build artifacts
+
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build binary
+        shell: bash
+        run: |
+          # Build with version info and stripped symbols
+          LDFLAGS="-s -w -X main.version=${{ steps.version.outputs.VERSION }} -X main.commit=${GITHUB_SHA::8} -X main.buildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} \
+            go build -ldflags "$LDFLAGS" \
+            -o dist/${{ matrix.binary }} \
+            ./services/runner/cmd/reachctl
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: reach-release
-          path: dist/*
+          name: ${{ matrix.binary }}
+          path: dist/${{ matrix.binary }}
+          retention-days: 1
 
-  publish:
+  # Build wrapper script and additional artifacts
+  build-extras:
     runs-on: ubuntu-latest
-    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare extras
+        run: |
+          mkdir -p dist
+          cp reach dist/reach
+          cp README.md dist/README.md
+          cp LICENSE dist/LICENSE
+          cp VERSION dist/VERSION
+
+      - name: Create install script
+        run: |
+          cat > dist/install.sh << 'EOF'
+          #!/usr/bin/env bash
+          # Reach Installation Script
+          set -e
+
+          VERSION=$(cat VERSION)
+          INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
+
+          detect_platform() {
+            local os=$(uname -s | tr '[:upper:]' '[:lower:]')
+            local arch=$(uname -m)
+            case "$arch" in
+              x86_64) arch="amd64" ;;
+              aarch64|arm64) arch="arm64" ;;
+              *) echo "Unsupported architecture: $arch"; exit 1 ;;
+            esac
+            echo "${os}-${arch}"
+          }
+
+          PLATFORM=$(detect_platform)
+          BINARY="reachctl-${PLATFORM}"
+
+          echo "Installing Reach v${VERSION} for ${PLATFORM}..."
+          echo "Download URL: https://github.com/reach/reach/releases/download/v${VERSION}/${BINARY}"
+
+          # Download binary
+          curl -L -o "${INSTALL_DIR}/reachctl" "https://github.com/reach/reach/releases/download/v${VERSION}/${BINARY}"
+          chmod +x "${INSTALL_DIR}/reachctl"
+
+          # Install wrapper script
+          curl -L -o "${INSTALL_DIR}/reach" "https://github.com/reach/reach/releases/download/v${VERSION}/reach"
+          chmod +x "${INSTALL_DIR}/reach"
+
+          echo "Reach v${VERSION} installed to ${INSTALL_DIR}"
+          echo "Run 'reach version' to verify"
+          EOF
+          chmod +x dist/install.sh
+
+      - name: Upload extras
+        uses: actions/upload-artifact@v4
+        with:
+          name: extras
+          path: dist/*
+          retention-days: 1
+
+  # Test all binaries work
+  test-binaries:
+    needs: [build-matrix, build-extras]
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            binary: reachctl-linux-amd64
+          - os: macos-latest
+            binary: reachctl-darwin-amd64
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: reach-release
+          name: ${{ matrix.binary }}
           path: dist
-      - name: publish github release
+
+      - name: Test binary
+        run: |
+          chmod +x dist/${{ matrix.binary }}
+          ./dist/${{ matrix.binary }} version
+
+  # Create GitHub Release and publish artifacts
+  publish:
+    runs-on: ubuntu-latest
+    needs: [build-matrix, build-extras, test-binaries]
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: "reachctl-*"
+          merge-multiple: true
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: extras
+          path: artifacts
+
+      - name: List artifacts
+        run: ls -la artifacts/
+
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          files: artifacts/*
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref, '-rc') || contains(github.ref, '-beta') || contains(github.ref, '-alpha') }}
+
+  # Verify release
+  verify-release:
+    runs-on: ubuntu-latest
+    needs: publish
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Verify release assets
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "Verifying release v${VERSION}..."
+
+          # Check all expected assets exist
+          ASSETS=(
+            "reachctl-linux-amd64"
+            "reachctl-linux-arm64"
+            "reachctl-darwin-amd64"
+            "reachctl-darwin-arm64"
+            "reachctl-windows-amd64.exe"
+            "reach"
+            "install.sh"
+          )
+
+          for asset in "${ASSETS[@]}"; do
+            URL="https://github.com/reach/reach/releases/download/v${VERSION}/${asset}"
+            echo "Checking: $URL"
+            curl -sI "$URL" | grep -q "200 OK" || (echo "Missing: $asset" && exit 1)
+          done
+
+          echo "All release assets verified!"

@@ -18,7 +18,7 @@ all system boundaries. It builds on the existing threat model
 The hash chain is the primary integrity mechanism. Each layer of the system
 produces a hash that chains to the next:
 
-```
+```text
 Input Hash ──→ Event Log Hash ──→ Output Hash ──→ Fingerprint
     │                │                  │               │
     │                │                  │               ▼
@@ -33,22 +33,22 @@ Input Hash ──→ Event Log Hash ──→ Output Hash ──→ Fingerprint
 
 ### Hash Contributors
 
-| Hash            | What It Covers                              | Algorithm |
-| :-------------- | :------------------------------------------ | :-------- |
-| `inputHash`     | Spec + evidence + dependency graph          | SHA-256   |
-| `outputHash`    | Engine evaluation result                    | SHA-256   |
-| `transcript_hash` | Full transcript including inputs + outputs | SHA-256   |
-| `pipelineHash`  | Combined hash of input + output + pipeline  | SHA-256   |
-| `chainHash`     | Cumulative chain across runs                | SHA-256   |
-| `fingerprint`   | Final run-level integrity marker            | SHA-256   |
+| Hash               | What It Covers                             | Algorithm |
+| :----------------- | :----------------------------------------- | :-------- |
+| `inputHash`        | Spec + evidence + dependency graph         | SHA-256   |
+| `outputHash`       | Engine evaluation result                   | SHA-256   |
+| `transcript_hash`  | Full transcript including inputs + outputs | SHA-256   |
+| `pipelineHash`     | Combined hash of input + output + pipeline | SHA-256   |
+| `chainHash`        | Cumulative chain across runs               | SHA-256   |
+| `fingerprint`      | Final run-level integrity marker           | SHA-256   |
 
 ### Hashing Implementation
 
-| Language   | Function                   | Notes                            |
-| :--------- | :------------------------- | :------------------------------- |
-| TypeScript | `hashString()`, `HashStream`, `combineHashes()` | `node:crypto` SHA-256 |
-| Go         | `Hash()`, `CanonicalJSON()` | `crypto/sha256`                 |
-| Rust       | `canonical_hash()`         | FNV-1a (replay hot path only)   |
+| Language   | Function                                             | Notes                       |
+| :--------- | :--------------------------------------------------- | :-------------------------- |
+| TypeScript | `hashString()`, `HashStream`, `combineHashes()`      | `node:crypto` SHA-256       |
+| Go         | `Hash()`, `CanonicalJSON()`                          | `crypto/sha256`             |
+| Rust       | `canonical_hash()`                                   | FNV-1a (replay hot path)    |
 
 ---
 
@@ -56,17 +56,17 @@ Input Hash ──→ Event Log Hash ──→ Output Hash ──→ Fingerprint
 
 ### What Is Covered
 
-| Component                | Hashed | Verified on Replay | Notes                      |
-| :----------------------- | :----- | :----------------- | :------------------------- |
-| Decision spec            | YES    | YES                | Part of `inputHash`        |
-| Evidence events          | YES    | YES                | Part of `inputHash`        |
-| Dependency graph         | YES    | YES                | `dependsOn` + `informs`   |
-| Engine output            | YES    | YES                | `outputHash`               |
-| Event log ordering       | YES    | YES                | By auto-increment ID       |
-| Transcript metadata      | YES    | YES                | `transcript_hash`          |
-| Plugin output            | NO     | NO                 | Gap: see Risk section      |
-| Artifact blob content    | PARTIAL| NO                 | `content_hash` in sqlite.go schema but not populated |
-| Timestamps               | NO     | NO                 | Excluded from hash by design |
+| Component             | Hashed  | Verified on Replay | Notes                                                    |
+| :-------------------- | :------ | :----------------- | :------------------------------------------------------- |
+| Decision spec         | YES     | YES                | Part of `inputHash`                                      |
+| Evidence events       | YES     | YES                | Part of `inputHash`                                      |
+| Dependency graph      | YES     | YES                | `dependsOn` + `informs`                                  |
+| Engine output         | YES     | YES                | `outputHash`                                             |
+| Event log ordering    | YES     | YES                | By auto-increment ID                                     |
+| Transcript metadata   | YES     | YES                | `transcript_hash`                                        |
+| Plugin output         | NO      | NO                 | Gap: see Risk section                                    |
+| Artifact blob content | PARTIAL | NO                 | `content_hash` in sqlite.go schema but not populated     |
+| Timestamps            | NO      | NO                 | Excluded from hash by design                             |
 
 ### Gap: Artifact Content Hash
 
@@ -93,6 +93,7 @@ plugins are not yet used in production paths.
 ### Bundle Structure
 
 Export bundles (`.reach.zip`) contain:
+
 - `logs/events.ndjson` — the event log
 - Transcript metadata
 - The canonical fingerprint
@@ -100,6 +101,7 @@ Export bundles (`.reach.zip`) contain:
 ### Integrity on Export
 
 The export process:
+
 1. Serializes all events to NDJSON.
 2. Includes the `transcript_hash` in the bundle.
 3. Optionally signs the bundle (Ed25519 envelope).
@@ -107,6 +109,7 @@ The export process:
 ### Integrity on Import
 
 The import process:
+
 1. Extracts the events.
 2. Replays them to compute the hash.
 3. Compares with the embedded `transcript_hash`.
@@ -148,25 +151,25 @@ but does not enforce chain integrity across multiple transcripts.
 
 ### Available Verify Commands
 
-| Command               | What It Verifies                             | Status   |
-| :-------------------- | :------------------------------------------- | :------- |
-| `reachctl replay`     | Replay produces same fingerprint             | REAL     |
-| `reachctl diff-run`   | Two runs compared structurally               | REAL     |
-| `reachctl verify-determinism` | N-trial hash comparison             | REAL     |
-| `reachctl proof`      | Envelope signature verification              | REAL     |
-| `reachctl explain`    | Human-readable run explanation               | REAL     |
-| `reachctl trace`      | Step-by-step execution trace                 | REAL     |
-| `zeo verify_transcript` | Transcript hash verification              | REAL     |
+| Command                       | What It Verifies                 | Status |
+| :---------------------------- | :------------------------------- | :----- |
+| `reachctl replay`             | Replay produces same fingerprint | REAL   |
+| `reachctl diff-run`           | Two runs compared structurally   | REAL   |
+| `reachctl verify-determinism` | N-trial hash comparison          | REAL   |
+| `reachctl proof`              | Envelope signature verification  | REAL   |
+| `reachctl explain`            | Human-readable run explanation   | REAL   |
+| `reachctl trace`              | Step-by-step execution trace     | REAL   |
+| `zeo verify_transcript`       | Transcript hash verification     | REAL   |
 
 ### What Is NOT Verified
 
-| Gap                         | Risk                                      |
-| :-------------------------- | :---------------------------------------- |
-| Cross-language hash match   | TS and Go could produce different hashes  |
-| Artifact blob integrity     | Blobs not hash-verified on read           |
-| Plugin output replay safety | No hash for plugin outputs                |
-| Chain continuity             | `verifyTranscriptChain` is a stub         |
-| Snapshot state integrity    | No hash on snapshot `state_payload`       |
+| Gap                        | Risk                                     |
+| :------------------------- | :--------------------------------------- |
+| Cross-language hash match  | TS and Go could produce different hashes |
+| Artifact blob integrity    | Blobs not hash-verified on read          |
+| Plugin output replay safety| No hash for plugin outputs               |
+| Chain continuity           | `verifyTranscriptChain` is a stub        |
+| Snapshot state integrity   | No hash on snapshot `state_payload`      |
 
 ---
 
@@ -229,15 +232,15 @@ This is informational only and does not affect cryptographic verification.
 
 ## 6. Formal Invariants
 
-| ID      | Invariant                                               | Status    |
-| :------ | :------------------------------------------------------ | :-------- |
-| TRU-01  | Replay detects any event modification                   | HOLDS     |
-| TRU-02  | Replay detects event insertion                          | HOLDS     |
-| TRU-03  | Replay detects event deletion                           | HOLDS     |
-| TRU-04  | Envelope signature covers transcript hash               | HOLDS     |
-| TRU-05  | Keyring tracks signer fingerprints                      | HOLDS     |
-| TRU-06  | Clock manipulation does not affect hash chain            | HOLDS     |
-| TRU-07  | Artifact blobs are integrity-verified on read           | **NO**    |
-| TRU-08  | Transcript chain is verified across envelopes           | **STUB**  |
-| TRU-09  | Snapshot state is integrity-verified                    | **NO**    |
-| TRU-10  | `runs.fingerprint` + `events` can be tampered together  | RISK      |
+| ID     | Invariant                                              | Status   |
+| :----- | :----------------------------------------------------- | :------- |
+| TRU-01 | Replay detects any event modification                  | HOLDS    |
+| TRU-02 | Replay detects event insertion                         | HOLDS    |
+| TRU-03 | Replay detects event deletion                          | HOLDS    |
+| TRU-04 | Envelope signature covers transcript hash              | HOLDS    |
+| TRU-05 | Keyring tracks signer fingerprints                     | HOLDS    |
+| TRU-06 | Clock manipulation does not affect hash chain          | HOLDS    |
+| TRU-07 | Artifact blobs are integrity-verified on read          | **NO**   |
+| TRU-08 | Transcript chain is verified across envelopes          | **STUB** |
+| TRU-09 | Snapshot state is integrity-verified                   | **NO**   |
+| TRU-10 | `runs.fingerprint` + `events` can be tampered together | RISK     |

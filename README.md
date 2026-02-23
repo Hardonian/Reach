@@ -16,18 +16,64 @@ Reach is a high-performance, deterministic decision engine for autonomous agents
 - What is explicitly removed: Mesh networking, consensus simulation, and poee theatre have been purged.
 - What is intentionally out-of-scope for OSS: Multi-tenant operations and deep telemetry integrations.
 
-## ⚡ 60-Second Quickstart
+## 📦 Installation
+
+### Pre-built Binaries
+
+Download pre-built binaries for your platform from the [releases page](https://github.com/reach/reach/releases):
 
 ```bash
-# 1. Clone the repository
+# Linux/macOS - Using install script
+curl -sSL https://github.com/reach/reach/releases/latest/download/install.sh | bash
+
+# Or manually download and install
+VERSION=$(curl -s https://raw.githubusercontent.com/reach/reach/main/VERSION)
+curl -L -o reachctl https://github.com/reach/reach/releases/download/v${VERSION}/reachctl-linux-amd64
+curl -L -o reach https://github.com/reach/reach/releases/download/v${VERSION}/reach
+chmod +x reachctl reach
+sudo mv reachctl reach /usr/local/bin/
+```
+
+### Build from Source
+
+Requirements: Go 1.22+, Node.js 18+
+
+```bash
+# Clone the repository
 git clone https://github.com/reach/reach.git
 cd reach
 
-# 2. Install dependencies
-pnpm install
+# Build using Make
+make build
 
-# 3. Next steps
-./reachctl doctor
+# Or install to system
+sudo make install
+
+# Verify installation
+reach version
+```
+
+### Platform Support
+
+| Platform | Architecture | Status |
+|----------|-------------|--------|
+| Linux    | AMD64       | ✅ Supported |
+| Linux    | ARM64       | ✅ Supported |
+| macOS    | AMD64       | ✅ Supported |
+| macOS    | ARM64       | ✅ Supported (Apple Silicon) |
+| Windows  | AMD64       | ✅ Supported |
+
+## ⚡ 60-Second Quickstart
+
+```bash
+# 1. Check installation
+reach doctor
+
+# 2. Run quick demo
+make demo
+
+# 3. Or run examples directly
+node examples/01-quickstart-local/run.js
 ```
 
 ## 💻 CLI Example
