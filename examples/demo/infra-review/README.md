@@ -155,19 +155,19 @@ Create organization-specific policies:
 ```typescript
 // policies/require-encryption.ts
 export const requireEncryptionPolicy: Policy = {
-  id: 'require-encryption',
+  id: "require-encryption",
   evaluate(plan: InfraPlan): PolicyResult {
     const unencrypted = plan.resources.filter(
-      r => r.type === 'aws_ebs_volume' && !r.encrypted
+      (r) => r.type === "aws_ebs_volume" && !r.encrypted,
     );
     return {
       pass: unencrypted.length === 0,
-      violations: unencrypted.map(r => ({
+      violations: unencrypted.map((r) => ({
         resource: r.id,
-        message: 'EBS volume must be encrypted'
-      }))
+        message: "EBS volume must be encrypted",
+      })),
     };
-  }
+  },
 };
 ```
 

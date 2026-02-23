@@ -9,7 +9,7 @@
       "rule": {
         "field": "confidence",
         "operator": ">=",
-        "value": 0.70
+        "value": 0.7
       },
       "description": "Only consider options with at least 70% confidence"
     },

@@ -49,7 +49,7 @@ Experience the deterministic visualization of decisions and evidence chains.
    ```
 2. Open [http://localhost:3000](http://localhost:3000) to view the execution graph.
 
-*(For a live hosted environment, check out our [Playground](docs/PLAYGROUND.md))*
+_(For a live hosted environment, check out our [Playground](docs/PLAYGROUND.md))_
 
 ## 🧠 How It Works
 
@@ -57,7 +57,7 @@ Reach removes unpredictable AI loops by enforcing a structured lifecycle:
 
 1. **Input**: Data is ingested and fingerprinted.
 2. **Policy Verification**: Rules (like budget limits or safety checks) evaluate the input before execution.
-3. **Execution**: The underlying decision engine evaluates all possible branches systematically. 
+3. **Execution**: The underlying decision engine evaluates all possible branches systematically.
 4. **Evidence Chain**: Every outcome is cryptographically linked back to its policy, input, and exact evaluation state, making it mathematically provable and replayable.
 
 ## 🚀 Demo Flow Instructions
@@ -77,6 +77,7 @@ node examples/06-retention-compact-safety/run.js
 ## 🤝 Contributing
 
 We actively welcome community contributions! Please review our [Contribution Guide](CONTRIBUTING.md) to learn how to:
+
 - Set up your local development environment
 - Run the test suite
 - Submit Pull Requests
@@ -91,8 +92,9 @@ We actively welcome community contributions! Please review our [Contribution Gui
 ## 🗺️ Stability & Roadmap Transparency
 
 Reach is currently in **Beta (0.3.x)**.
+
 - **Core Engine**: The Rust deterministic evaluate loop is stable.
-- **APIs**: Minor structural changes may occur prior to 1.0. 
+- **APIs**: Minor structural changes may occur prior to 1.0.
 - **Backwards Compatibility**: State migrations are provided for all breaking changes.
 
 View our public roadmap and upcoming milestones in the [GitHub Projects Board](../../projects).

@@ -66,7 +66,13 @@ module.exports = {
             ].sort((a, b) => a.name.localeCompare(b.name));
 
             if (content) {
-              for (const { name, pattern, description, severity, context } of secretPatterns) {
+              for (const {
+                name,
+                pattern,
+                description,
+                severity,
+                context,
+              } of secretPatterns) {
                 if (pattern.test(content)) {
                   // Additional context check if specified
                   if (context && !context.test(content)) {
@@ -88,7 +94,11 @@ module.exports = {
               const dangerousFunctions = [
                 { name: "eval", pattern: /\beval\s*\(/, severity: "high" },
                 { name: "exec", pattern: /\bexec\s*\(/, severity: "medium" },
-                { name: "system", pattern: /\bsystem\s*\(/, severity: "medium" },
+                {
+                  name: "system",
+                  pattern: /\bsystem\s*\(/,
+                  severity: "medium",
+                },
               ].sort((a, b) => a.name.localeCompare(b.name));
 
               for (const { name, pattern, severity } of dangerousFunctions) {
@@ -110,7 +120,9 @@ module.exports = {
               findings.push(...checkWorkspaceSecurity(workspace));
             }
 
-            return findings.sort((a, b) => severityRank(b.severity) - severityRank(a.severity));
+            return findings.sort(
+              (a, b) => severityRank(b.severity) - severityRank(a.severity),
+            );
           },
         },
 
@@ -127,7 +139,9 @@ module.exports = {
 
             // Verify artifact hashes
             if (artifacts && expectedHashes) {
-              for (const [name, expectedHash] of Object.entries(expectedHashes).sort()) {
+              for (const [name, expectedHash] of Object.entries(
+                expectedHashes,
+              ).sort()) {
                 const artifact = artifacts[name];
 
                 if (!artifact) {
@@ -148,7 +162,11 @@ module.exports = {
                     message: `Hash mismatch for ${name}: expected ${expectedHash.slice(0, 8)}..., got ${actualHash.slice(0, 8)}...`,
                     severity: "high",
                     rule: "verified-artifacts-only",
-                    details: { artifact: name, expected: expectedHash, actual: actualHash },
+                    details: {
+                      artifact: name,
+                      expected: expectedHash,
+                      actual: actualHash,
+                    },
                   });
                 } else {
                   findings.push({
@@ -175,7 +193,9 @@ module.exports = {
               }
             }
 
-            return findings.sort((a, b) => severityRank(b.severity) - severityRank(a.severity));
+            return findings.sort(
+              (a, b) => severityRank(b.severity) - severityRank(a.severity),
+            );
           },
         },
       ],
@@ -235,7 +255,9 @@ module.exports = {
             }
 
             // Sort items for determinism
-            evidence.items.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+            evidence.items.sort((a, b) =>
+              JSON.stringify(a).localeCompare(JSON.stringify(b)),
+            );
 
             return evidence;
           },

@@ -9,6 +9,7 @@ Interactive HTML visualizations for Reach execution data.
 Visualizes execution events with timing and metadata.
 
 **Features:**
+
 - Chronological event display
 - Event type color coding
 - Timing information
@@ -16,6 +17,7 @@ Visualizes execution events with timing and metadata.
 - Stats summary
 
 **Usage:**
+
 ```bash
 # Generate timeline from run
 cat run.json | reach viz timeline > timeline.html
@@ -29,6 +31,7 @@ open web/visualizations/event-timeline.html
 Multi-criteria decision analysis visualization.
 
 **Features:**
+
 - Ranked decision cards
 - Score visualization
 - Criteria breakdown
@@ -36,6 +39,7 @@ Multi-criteria decision analysis visualization.
 - Interactive selection
 
 **Usage:**
+
 ```bash
 reach viz ranking --input decisions.json > ranking.html
 ```
@@ -45,6 +49,7 @@ reach viz ranking --input decisions.json > ranking.html
 Compare original execution with replay.
 
 **Features:**
+
 - Side-by-side comparison
 - Fingerprint verification
 - Drift detection
@@ -52,6 +57,7 @@ Compare original execution with replay.
 - Match/error/drift indicators
 
 **Usage:**
+
 ```bash
 reach replay run.reach --export-diff diff.html
 ```
@@ -59,6 +65,7 @@ reach replay run.reach --export-diff diff.html
 ## Embedding in Applications
 
 These visualizations are standalone HTML files that can be:
+
 - Opened directly in browsers
 - Embedded in iframes
 - Served from static file servers

@@ -30,6 +30,7 @@ See `template/README.md` for details.
 ## Sample Plugins (3 Included)
 
 ### 1. Sample Summarizer
+
 **Location:** `plugins/sample-summarizer/`  
 **Capability:** Evidence extraction  
 **Safety:** ✅ Read-only, no side effects
@@ -44,18 +45,20 @@ Summarizes evidence metadata for quick overview.
 ```
 
 **Output:**
+
 ```json
 {
   "summary": "Evidence collection with 5 items",
   "count": 5,
-  "categories": [{"name": "metrics", "count": 3}],
-  "confidence": {"average": 0.82, "min": 0.65, "max": 0.95}
+  "categories": [{ "name": "metrics", "count": 3 }],
+  "confidence": { "average": 0.82, "min": 0.65, "max": 0.95 }
 }
 ```
 
 ---
 
 ### 2. Sample Junction Rule
+
 **Location:** `plugins/sample-junction-rule/`  
 **Capability:** Decision types  
 **Safety:** ✅ Deterministic, no external state
@@ -67,7 +70,7 @@ Adds deployment strategy junction template.
 const junction = plugin.createJunction({
   service: "api-gateway",
   risk_tolerance: "low",
-  traffic_pattern: "spiky"
+  traffic_pattern: "spiky",
 });
 
 // Returns ranked options: blue-green, canary, rolling
@@ -83,6 +86,7 @@ const junction = plugin.createJunction({
 ---
 
 ### 3. Sample Export Hook
+
 **Location:** `plugins/sample-export-hook/`  
 **Capability:** Rendering  
 **Safety:** ✅ Deterministic output
@@ -100,12 +104,14 @@ reach export <run-id> --format zip
 ```
 
 **Files Added:**
+
 - `plugin-metadata.json` - Statistics, tags, cross-references
 - `README.txt` - Human-readable summary
 
 ---
 
 ### 4. Sample Deterministic Plugin
+
 **Location:** `plugins/sample-deterministic-plugin/`  
 **Capability:** Decision types, analyzers  
 **Safety:** ✅ Fully deterministic
@@ -116,7 +122,7 @@ Demonstrates deterministic decision making and determinism checking.
 // Make deterministic choice
 plugin.decide({
   seed: "my-seed",
-  options: ["a", "b", "c"]
+  options: ["a", "b", "c"],
 });
 
 // Check code for determinism issues
@@ -129,10 +135,12 @@ plugin.analyze({ code: "Math.random()" });
 ## Example Plugins (3 Included)
 
 ### Analyzer Example
+
 **Location:** `plugins/analyzer-example/`  
 **Capabilities:** Code quality and security analysis
 
 Analyzes code for:
+
 - Function complexity
 - TODO/FIXME comments
 - console.log usage
@@ -142,10 +150,12 @@ Analyzes code for:
 ---
 
 ### Renderer Example
+
 **Location:** `plugins/renderer-example/`  
 **Capabilities:** Output formatting
 
 Renderers:
+
 - `json-compact` - Minified JSON
 - `json-pretty` - Formatted JSON
 - `markdown` - Markdown tables
@@ -154,10 +164,12 @@ Renderers:
 ---
 
 ### Retriever Example
+
 **Location:** `plugins/retriever-example/`  
 **Capabilities:** Data fetching
 
 Retrievers:
+
 - `weather` - Mock weather data
 - `pricing` - Cloud pricing info
 - `exchange-rate` - Currency rates
@@ -167,16 +179,19 @@ Retrievers:
 ## Pack Plugins (3 Included)
 
 ### Pack: Drift Hunter
+
 **Location:** `plugins/pack-drift-hunter/`  
 **Pack:** `packs/drift-hunter/`
 
 Detects configuration drift between runs.
 
 **Recipes:**
+
 - `drift-scan` - Scan for configuration changes
 - `diff-runs` - Compare two runs
 
 **Usage:**
+
 ```bash
 reach run pack.json --recipe drift-scan
 ```
@@ -184,16 +199,19 @@ reach run pack.json --recipe drift-scan
 ---
 
 ### Pack: Replay-First CI
+
 **Location:** `plugins/pack-replay-first-ci/`  
 **Pack:** `packs/replay-first-ci/`
 
 Deterministic CI with replay verification.
 
 **Recipes:**
+
 - `replay-verify` - Verify run reproducibility
 - `ci-check` - Check CI readiness
 
 **Usage:**
+
 ```bash
 reach run pack.json --recipe replay-verify
 ```
@@ -201,16 +219,19 @@ reach run pack.json --recipe replay-verify
 ---
 
 ### Pack: Security Basics
+
 **Location:** `plugins/pack-security-basics/`  
 **Pack:** `packs/security-basics/`
 
 Essential security checks.
 
 **Recipes:**
+
 - `security-scan` - Scan for security issues
 - `integrity-check` - Verify artifact integrity
 
 **Usage:**
+
 ```bash
 reach run pack.json --recipe security-scan
 ```
@@ -255,19 +276,23 @@ cd plugins/my-plugin
 module.exports = {
   register() {
     return {
-      analyzers: [{
-        id: "my-analyzer",
-        deterministic: true,
-        analyze(input) {
-          return [{
-            type: "suggestion",
-            message: "Analysis result",
-            severity: "info"
-          }];
-        }
-      }]
+      analyzers: [
+        {
+          id: "my-analyzer",
+          deterministic: true,
+          analyze(input) {
+            return [
+              {
+                type: "suggestion",
+                message: "Analysis result",
+                severity: "info",
+              },
+            ];
+          },
+        },
+      ],
     };
-  }
+  },
 };
 ```
 
@@ -285,14 +310,14 @@ reach plugins list
 
 ## Capabilities
 
-| Capability | Purpose |
-|------------|---------|
+| Capability                  | Purpose               |
+| --------------------------- | --------------------- |
 | `registerAnalyzePrAnalyzer` | Analyze PRs/decisions |
-| `registerDecisionType` | Custom decision logic |
-| `registerPolicy` | Custom policies |
-| `registerEvidenceExtractor` | Extract evidence |
-| `registerRenderer` | Format output |
-| `registerRetriever` | Fetch external data |
+| `registerDecisionType`      | Custom decision logic |
+| `registerPolicy`            | Custom policies       |
+| `registerEvidenceExtractor` | Extract evidence      |
+| `registerRenderer`          | Format output         |
+| `registerRetriever`         | Fetch external data   |
 
 ## Determinism Requirements
 
@@ -305,6 +330,7 @@ Plugins used in replay must be deterministic:
 - No external state
 
 Mark in manifest:
+
 ```json
 {
   "deterministic": true
@@ -316,9 +342,9 @@ Mark in manifest:
 ```json
 {
   "permissions": {
-    "network": false,      // HTTP requests
-    "filesystem": false,   // File access outside plugin dir
-    "env": false           // Environment variables
+    "network": false, // HTTP requests
+    "filesystem": false, // File access outside plugin dir
+    "env": false // Environment variables
   }
 }
 ```
@@ -326,13 +352,15 @@ Mark in manifest:
 ## Plugin Locations
 
 Reach loads plugins from (in order):
+
 1. `./plugins/` - Project-local plugins
-2. `~/.reach/plugins/` - User plugins  
+2. `~/.reach/plugins/` - User plugins
 3. Built-in plugins
 
 ## Validation
 
 Plugins are validated for:
+
 - Manifest schema compliance
 - Determinism declaration
 - Entry point exists
@@ -353,6 +381,7 @@ See `plugin-schema.json` for complete manifest schema.
 ## Contributing
 
 To share your plugin:
+
 1. Ensure it passes `reach plugins doctor`
 2. Include comprehensive README
 3. Add to examples if applicable

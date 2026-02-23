@@ -11,7 +11,7 @@
       "condition": {
         "field": "decision.confidence",
         "operator": "greater_than_or_equal",
-        "value": 0.60
+        "value": 0.6
       },
       "message": "Consider gathering more evidence (advisory only)",
       "suggestion": "For critical decisions, switch to high-signal-junctions policy"
@@ -40,7 +40,7 @@
   "config": {
     "min_confidence": {
       "type": "number",
-      "default": 0.60,
+      "default": 0.6,
       "description": "Minimum confidence threshold (lower for speed)"
     },
     "min_evidence_sources": {

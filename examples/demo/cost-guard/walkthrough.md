@@ -28,6 +28,7 @@ reach demo cost-guard --budget 0.50 --task analysis --complexity high
 ```
 
 Expected output:
+
 ```
 [reach] Budget: $0.50
 [reach] Task complexity: high
@@ -44,6 +45,7 @@ reach demo cost-guard --show-routing-table
 ```
 
 Output:
+
 ```
 Tier       Max Cost    Models
 ─────────────────────────────────────────
@@ -68,6 +70,7 @@ reach demo cost-guard --budget 0.01
 ```
 
 Expected:
+
 ```
 [reach] ❌ Budget too low
 [reach] Minimum required: $0.05
@@ -76,12 +79,12 @@ Expected:
 
 ## CLI Flags Reference
 
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--budget <n>` | Budget in USD | 1.00 |
-| `--task <type>` | Task type for estimation | generic |
-| `--complexity <level>` | low/medium/high | medium |
-| `--show-routing-table` | Display tier mappings | - |
-| `--export-report` | Save cost analysis | - |
-| `--override` | Allow budget override | false |
-| `--override-reason` | Justify override | - |
+| Flag                   | Description              | Default |
+| ---------------------- | ------------------------ | ------- |
+| `--budget <n>`         | Budget in USD            | 1.00    |
+| `--task <type>`        | Task type for estimation | generic |
+| `--complexity <level>` | low/medium/high          | medium  |
+| `--show-routing-table` | Display tier mappings    | -       |
+| `--export-report`      | Save cost analysis       | -       |
+| `--override`           | Allow budget override    | false   |
+| `--override-reason`    | Justify override         | -       |

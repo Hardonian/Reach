@@ -5,6 +5,7 @@ Deterministic CI with replay verification and proof generation.
 ## Part of Pack
 
 This plugin is part of the `replay-first-ci` pack:
+
 - **Pack**: `packs/replay-first-ci/`
 - **Recipes**: `replay-verify`, `ci-check`
 - **Rules**: `determinism-required`, `frozen-artifacts`
@@ -43,6 +44,7 @@ Verifies that a run can be replayed with identical results.
 Checks if a configuration is ready for CI.
 
 Checks for:
+
 - `deterministic: true` flag
 - `frozen_artifacts` setting
 - Required fields (name, version, steps)
@@ -74,6 +76,7 @@ JSON format for programmatic consumption.
 ## Determinism
 
 All operations are deterministic:
+
 - Sorted object keys
 - Sorted arrays
 - Consistent severity ranking

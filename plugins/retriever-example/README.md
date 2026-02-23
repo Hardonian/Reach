@@ -5,6 +5,7 @@ Demonstrates fetching external data within Reach executions.
 ## ⚠️ Important Note
 
 This plugin requires `network: true` permission. Real implementations should:
+
 - Handle network failures gracefully
 - Respect rate limits
 - Cache responses appropriately
@@ -90,6 +91,7 @@ All retrievers support caching:
 ```
 
 Reach automatically caches results to:
+
 - Reduce API calls
 - Improve performance
 - Ensure deterministic replay

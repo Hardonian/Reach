@@ -26,6 +26,7 @@ reach analyze-pr --with-plugin analyzer-example
 ### complexity-check
 
 Checks for:
+
 - Functions over 50 lines
 - TODO/FIXME comments
 - console.log statements
@@ -33,6 +34,7 @@ Checks for:
 ### security-check
 
 Checks for:
+
 - Hardcoded passwords
 - Hardcoded API keys
 - Hardcoded secrets

@@ -9,13 +9,13 @@
 
 Created 5 comprehensive example scenarios:
 
-| Example | Level | Focus | Files |
-|---------|-------|-------|-------|
-| `hello-world` | Beginner | Basic deterministic execution | pack.json, README.md, seed.ts, walkthrough.md |
-| `drift-detection` | Intermediate | Execution drift monitoring | pack.json, README.md, seed.ts, walkthrough.md |
-| `infra-review` | Intermediate | Policy-based infrastructure decisions | pack.json, README.md, seed.ts, walkthrough.md |
-| `cost-guard` | Advanced | Budget-aware model routing | pack.json, README.md, seed.ts, walkthrough.md |
-| `multi-step-reasoning` | Advanced | Evidence chains & VOI | pack.json, README.md, seed.ts, walkthrough.md |
+| Example                | Level        | Focus                                 | Files                                         |
+| ---------------------- | ------------ | ------------------------------------- | --------------------------------------------- |
+| `hello-world`          | Beginner     | Basic deterministic execution         | pack.json, README.md, seed.ts, walkthrough.md |
+| `drift-detection`      | Intermediate | Execution drift monitoring            | pack.json, README.md, seed.ts, walkthrough.md |
+| `infra-review`         | Intermediate | Policy-based infrastructure decisions | pack.json, README.md, seed.ts, walkthrough.md |
+| `cost-guard`           | Advanced     | Budget-aware model routing            | pack.json, README.md, seed.ts, walkthrough.md |
+| `multi-step-reasoning` | Advanced     | Evidence chains & VOI                 | pack.json, README.md, seed.ts, walkthrough.md |
 
 **Total:** 20 new files
 
@@ -23,16 +23,16 @@ Created 5 comprehensive example scenarios:
 
 Created 7 policy configurations:
 
-| Policy | Type | Severity | Description |
-|--------|------|----------|-------------|
-| `cost-ceiling-1k` | infrastructure | blocking | $1K monthly spend limit |
-| `require-tags` | infrastructure | blocking | Mandatory resource tags |
-| `security-no-high-severity` | infrastructure | blocking | Block high-severity issues |
-| `cost-hard-ceiling` | cost | blocking | Hard budget enforcement |
-| `model-tier-routing` | cost | advisory | Auto model selection |
-| `no-secrets-in-output` | security | blocking | Secret leak prevention |
-| `min-confidence-0.7` | quality | blocking | Minimum confidence threshold |
-| `drift-detection-default` | quality | warning | Baseline drift detection |
+| Policy                      | Type           | Severity | Description                  |
+| --------------------------- | -------------- | -------- | ---------------------------- |
+| `cost-ceiling-1k`           | infrastructure | blocking | $1K monthly spend limit      |
+| `require-tags`              | infrastructure | blocking | Mandatory resource tags      |
+| `security-no-high-severity` | infrastructure | blocking | Block high-severity issues   |
+| `cost-hard-ceiling`         | cost           | blocking | Hard budget enforcement      |
+| `model-tier-routing`        | cost           | advisory | Auto model selection         |
+| `no-secrets-in-output`      | security       | blocking | Secret leak prevention       |
+| `min-confidence-0.7`        | quality        | blocking | Minimum confidence threshold |
+| `drift-detection-default`   | quality        | warning  | Baseline drift detection     |
 
 **Plus:** JSON Schema for policy validation (`schema.json`)
 
@@ -42,11 +42,11 @@ Created 7 policy configurations:
 
 Created plugin metadata schema and 3 example plugins:
 
-| Plugin | Capability | Description |
-|--------|------------|-------------|
-| `analyzer-example` | registerAnalyzePrAnalyzer | PR/code quality analyzer |
-| `renderer-example` | registerRenderer | Output formatters (JSON, Markdown, HTML) |
-| `retriever-example` | registerRetriever | Data retriever with caching |
+| Plugin              | Capability                | Description                              |
+| ------------------- | ------------------------- | ---------------------------------------- |
+| `analyzer-example`  | registerAnalyzePrAnalyzer | PR/code quality analyzer                 |
+| `renderer-example`  | registerRenderer          | Output formatters (JSON, Markdown, HTML) |
+| `retriever-example` | registerRetriever         | Data retriever with caching              |
 
 **Plus:** Plugin schema validation (`plugin-schema.json`)
 
@@ -56,12 +56,12 @@ Created plugin metadata schema and 3 example plugins:
 
 Created scaffolding system with templates:
 
-| Template | Description |
-|----------|-------------|
-| `pack/minimal` | Bare minimum pack structure |
-| `pack/standard` | Full-featured pack with policies |
-| `plugin/analyzer` | Analyzer plugin starter |
-| `config` | Project configuration file |
+| Template          | Description                      |
+| ----------------- | -------------------------------- |
+| `pack/minimal`    | Bare minimum pack structure      |
+| `pack/standard`   | Full-featured pack with policies |
+| `plugin/analyzer` | Analyzer plugin starter          |
+| `config`          | Project configuration file       |
 
 **Plus:** New CLI command (`src/cli/scaffold-cli.ts`)
 
@@ -71,11 +71,11 @@ Created scaffolding system with templates:
 
 Created 3 interactive HTML visualizations:
 
-| Visualization | Purpose | Features |
-|---------------|---------|----------|
-| `event-timeline.html` | Execution events | Timeline, filtering, stats |
+| Visualization           | Purpose            | Features                         |
+| ----------------------- | ------------------ | -------------------------------- |
+| `event-timeline.html`   | Execution events   | Timeline, filtering, stats       |
 | `decision-ranking.html` | MCDA visualization | Ranked cards, criteria breakdown |
-| `replay-diff.html` | Replay comparison | Diff view, fingerprint check |
+| `replay-diff.html`      | Replay comparison  | Diff view, fingerprint check     |
 
 **Total:** 4 new files
 
@@ -83,16 +83,16 @@ Created 3 interactive HTML visualizations:
 
 ## Summary Statistics
 
-| Metric | Count |
-|--------|-------|
-| New Directories | 23 |
-| New Files | 51 |
-| Example Scenarios | 5 |
-| Policy Packs | 7 (+ schema) |
-| Example Plugins | 3 (+ schema) |
-| Templates | 4 |
-| Web Visualizations | 3 |
-| Lines of Code | ~3,500+ |
+| Metric             | Count        |
+| ------------------ | ------------ |
+| New Directories    | 23           |
+| New Files          | 51           |
+| Example Scenarios  | 5            |
+| Policy Packs       | 7 (+ schema) |
+| Example Plugins    | 3 (+ schema) |
+| Templates          | 4            |
+| Web Visualizations | 3            |
+| Lines of Code      | ~3,500+      |
 
 ---
 

@@ -12,6 +12,7 @@ A safe, read-only plugin that summarizes evidence metadata for quick overview.
 ## Safety
 
 This plugin is completely safe:
+
 - ✅ Read-only (no mutations)
 - ✅ No network access
 - ✅ No filesystem access

@@ -24,6 +24,7 @@ reach demo infra-review --plan .plans/expensive.plan.json
 ```
 
 Expected: ❌ Cost policy violation
+
 ```
 Estimated: $1,847.92/month
 Ceiling: $1,000.00/month
@@ -37,6 +38,7 @@ reach demo infra-review --plan .plans/insecure.plan.json
 ```
 
 Expected: ❌ Security policy violation
+
 ```
 High severity: S3 bucket allows public access
 Resource: aws_s3_bucket_public_access_block.data
@@ -53,13 +55,13 @@ cat review-result.json | jq '.recommendation, .confidence'
 
 ## Policy Flags
 
-| Flag | Description |
-|------|-------------|
-| `--plan <path>` | Path to Terraform plan JSON |
-| `--policies <list>` | Comma-separated policy IDs |
-| `--strict` | Fail on ANY violation (including low) |
-| `--export-report` | Save detailed results |
-| `--explain` | Show policy decision reasoning |
+| Flag                | Description                           |
+| ------------------- | ------------------------------------- |
+| `--plan <path>`     | Path to Terraform plan JSON           |
+| `--policies <list>` | Comma-separated policy IDs            |
+| `--strict`          | Fail on ANY violation (including low) |
+| `--export-report`   | Save detailed results                 |
+| `--explain`         | Show policy decision reasoning        |
 
 ## CI Integration
 

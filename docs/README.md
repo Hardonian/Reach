@@ -1,8 +1,8 @@
 # Reach Documentation Index
 
-Welcome to the Reach Documentation. This directory contains the externally-facing reference material for operating, configuring, and deploying Reach. 
+Welcome to the Reach Documentation. This directory contains the externally-facing reference material for operating, configuring, and deploying Reach.
 
-*(Note: Internal architecture specifications and planning documents have been moved to `docs/internal/` and are not required reading for standard usage).*
+_(Note: Internal architecture specifications and planning documents have been moved to `docs/internal/` and are not required reading for standard usage)._
 
 ## 🚀 Getting Started
 
@@ -37,4 +37,5 @@ Welcome to the Reach Documentation. This directory contains the externally-facin
 - [Benchmarking](BENCHMARKING.md) - Performance measurement methodologies.
 
 ---
+
 _Reach: Reducing entropy in autonomous systems._

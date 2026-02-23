@@ -22,6 +22,7 @@ node examples/05-export-verify-replay/run.js
 ## The Capsule Concept
 
 A capsule is a signed, portable bundle containing:
+
 - **Manifest** - Run metadata and configuration
 - **Event Log** - Ordered execution events
 - **Fingerprints** - SHA-256 hashes for verification
@@ -60,12 +61,12 @@ Certificate:
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `source-run.json` | Original run to export |
-| `verify-config.json` | Verification settings |
+| File                   | Purpose                 |
+| ---------------------- | ----------------------- |
+| `source-run.json`      | Original run to export  |
+| `verify-config.json`   | Verification settings   |
 | `expected-parity.json` | Expected parity results |
-| `run.js` | Full workflow runner |
+| `run.js`               | Full workflow runner    |
 
 ## Workflow
 

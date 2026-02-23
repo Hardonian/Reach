@@ -11,7 +11,7 @@
       "condition": {
         "field": "decision.confidence",
         "operator": "greater_than_or_equal",
-        "value": 0.80
+        "value": 0.8
       },
       "message": "Decisions require minimum 80% confidence with high-signal-junctions",
       "suggestion": "Gather more evidence or reduce option complexity"
@@ -49,7 +49,7 @@
   "config": {
     "min_confidence": {
       "type": "number",
-      "default": 0.80,
+      "default": 0.8,
       "description": "Minimum confidence threshold for decisions"
     },
     "min_evidence_sources": {

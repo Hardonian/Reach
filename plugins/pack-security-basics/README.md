@@ -5,6 +5,7 @@ Essential security checks for workspace integrity.
 ## Part of Pack
 
 This plugin is part of the `security-basics` pack:
+
 - **Pack**: `packs/security-basics/`
 - **Recipes**: `security-scan`, `integrity-check`
 - **Rules**: `no-secrets-in-logs`, `verified-artifacts-only`
@@ -16,6 +17,7 @@ This plugin is part of the `security-basics` pack:
 Scans for common security issues.
 
 Detects:
+
 - AWS credentials
 - Private keys
 - Hardcoded passwords
@@ -64,6 +66,7 @@ Verifies artifact and workspace integrity.
 ## Evidence Extractor
 
 Collects security-relevant evidence:
+
 - Platform info
 - Environment variables
 - File permissions
@@ -71,6 +74,7 @@ Collects security-relevant evidence:
 ## Determinism
 
 All operations are deterministic:
+
 - Sorted pattern matching
 - Sorted object keys
 - Consistent severity ranking

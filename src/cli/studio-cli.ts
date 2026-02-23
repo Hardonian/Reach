@@ -210,7 +210,7 @@ export async function runExportReportCommand(argv: string[]): Promise<number> {
       replay: replayData,
       evidence: evidenceNodes,
       tools: toolRegistry.tools,
-      signature: "", // Placeholder
+      signature: "", // Computed below
     };
 
     // Compute signature

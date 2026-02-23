@@ -11,14 +11,15 @@ Adds extra metadata files to export bundles deterministically.
 
 ## Files Added to Bundle
 
-| File | Purpose |
-|------|---------|
+| File                   | Purpose                                      |
+| ---------------------- | -------------------------------------------- |
 | `plugin-metadata.json` | Structured metadata, statistics, audit entry |
-| `README.txt` | Human-readable summary |
+| `README.txt`           | Human-readable summary                       |
 
 ## Safety
 
 This plugin is safe and deterministic:
+
 - ✅ Read-only (only reads run data)
 - ✅ No network access
 - ✅ No filesystem modifications
@@ -61,6 +62,7 @@ reach export <run-id> --format zip
 ## Determinism
 
 All operations are deterministic:
+
 - Object keys sorted alphabetically
 - Arrays sorted before processing
 - No timestamps in output (except audit)

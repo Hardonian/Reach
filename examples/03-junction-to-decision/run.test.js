@@ -25,7 +25,7 @@ describe("03-junction-to-decision", () => {
   test("junction options have required fields", () => {
     const content = readFileSync(resolve(EXAMPLE_DIR, "junction.json"), "utf8");
     const parsed = JSON.parse(content);
-    
+
     for (const option of parsed.options) {
       expect(option).toHaveProperty("id");
       expect(option).toHaveProperty("name");
@@ -53,7 +53,7 @@ describe("03-junction-to-decision", () => {
     const parsed = JSON.parse(content);
     expect(parsed).toHaveProperty("policies");
     expect(Array.isArray(parsed.policies)).toBe(true);
-    
+
     for (const policy of parsed.policies) {
       expect(policy).toHaveProperty("id");
       expect(policy).toHaveProperty("rule");

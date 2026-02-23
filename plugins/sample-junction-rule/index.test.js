@@ -15,7 +15,7 @@ describe("sample-junction-rule plugin", () => {
     test("creates junction with options", () => {
       const result = plugin.register();
       const decisionType = result.decisionTypes[0];
-      
+
       const context = {
         service: "api-gateway",
         current_version: "1.0.0",
@@ -33,15 +33,15 @@ describe("sample-junction-rule plugin", () => {
     test("ranks options by score", () => {
       const result = plugin.register();
       const decisionType = result.decisionTypes[0];
-      
+
       const context = {
         service: "api",
         risk_tolerance: "low",
       };
 
       const junction = decisionType.createJunction(context);
-      const scores = junction.options.map(o => o.score);
-      
+      const scores = junction.options.map((o) => o.score);
+
       // Scores should be descending
       for (let i = 1; i < scores.length; i++) {
         expect(scores[i]).toBeLessThanOrEqual(scores[i - 1]);
@@ -51,9 +51,9 @@ describe("sample-junction-rule plugin", () => {
     test("all options have required fields", () => {
       const result = plugin.register();
       const decisionType = result.decisionTypes[0];
-      
+
       const junction = decisionType.createJunction({});
-      
+
       for (const option of junction.options) {
         expect(option).toHaveProperty("id");
         expect(option).toHaveProperty("name");
@@ -66,7 +66,7 @@ describe("sample-junction-rule plugin", () => {
     test("evaluate returns valid result", () => {
       const result = plugin.register();
       const decisionType = result.decisionTypes[0];
-      
+
       const junction = {
         options: [
           { id: "opt1", confidence: 0.9 },

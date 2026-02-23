@@ -4,7 +4,15 @@
   "title": "Reach Plugin Manifest Schema",
   "description": "Schema for Reach plugin manifests",
   "type": "object",
-  "required": ["id", "version", "apiVersion", "deterministic", "permissions", "capabilities", "entry"],
+  "required": [
+    "id",
+    "version",
+    "apiVersion",
+    "deterministic",
+    "permissions",
+    "capabilities",
+    "entry"
+  ],
   "properties": {
     "id": {
       "type": "string",

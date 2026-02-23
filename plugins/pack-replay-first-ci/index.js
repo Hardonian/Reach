@@ -16,7 +16,8 @@ module.exports = {
           name: "Replay Verifier",
           category: "quality",
           deterministic: true,
-          description: "Verifies that a run can be replayed with identical results",
+          description:
+            "Verifies that a run can be replayed with identical results",
 
           analyze(input) {
             const { original, replay } = input;
@@ -47,7 +48,8 @@ module.exports = {
             } else {
               findings.push({
                 type: "success",
-                message: "Fingerprints match - deterministic execution verified",
+                message:
+                  "Fingerprints match - deterministic execution verified",
                 severity: "low",
               });
             }
@@ -67,7 +69,10 @@ module.exports = {
 
             // Compare event sequence (deterministic)
             if (original.events && replay.events) {
-              const eventDiffs = compareEventSequences(original.events, replay.events);
+              const eventDiffs = compareEventSequences(
+                original.events,
+                replay.events,
+              );
               if (eventDiffs.length > 0) {
                 findings.push({
                   type: "warning",
@@ -82,7 +87,9 @@ module.exports = {
             const proof = generateProof(original, replay);
 
             return [
-              ...findings.sort((a, b) => severityRank(b.severity) - severityRank(a.severity)),
+              ...findings.sort(
+                (a, b) => severityRank(b.severity) - severityRank(a.severity),
+              ),
               {
                 type: "info",
                 message: "Replay verification complete",
@@ -119,7 +126,8 @@ module.exports = {
             if (!config.frozen_artifacts) {
               findings.push({
                 type: "warning",
-                message: "Artifact versions should be pinned (frozen_artifacts)",
+                message:
+                  "Artifact versions should be pinned (frozen_artifacts)",
                 severity: "medium",
                 rule: "frozen-artifacts",
                 suggestion: "Pin all dependency versions",
@@ -130,7 +138,8 @@ module.exports = {
             if (!config.stable_output) {
               findings.push({
                 type: "info",
-                message: "Consider enabling stable_output for consistent results",
+                message:
+                  "Consider enabling stable_output for consistent results",
                 severity: "low",
               });
             }
@@ -159,7 +168,9 @@ module.exports = {
               }
             }
 
-            return findings.sort((a, b) => severityRank(b.severity) - severityRank(a.severity));
+            return findings.sort(
+              (a, b) => severityRank(b.severity) - severityRank(a.severity),
+            );
           },
         },
       ],
@@ -182,9 +193,15 @@ module.exports = {
             ];
 
             if (data.proof) {
-              lines.push(`✓ Proof: ${data.proof.verified ? "VALID" : "INVALID"}`);
-              lines.push(`  Original: ${data.proof.original_fingerprint?.slice(0, 16)}...`);
-              lines.push(`  Replay:   ${data.proof.replay_fingerprint?.slice(0, 16)}...`);
+              lines.push(
+                `✓ Proof: ${data.proof.verified ? "VALID" : "INVALID"}`,
+              );
+              lines.push(
+                `  Original: ${data.proof.original_fingerprint?.slice(0, 16)}...`,
+              );
+              lines.push(
+                `  Replay:   ${data.proof.replay_fingerprint?.slice(0, 16)}...`,
+              );
               lines.push(`  Match:    ${data.proof.match ? "YES" : "NO"}`);
             }
 
@@ -196,10 +213,17 @@ module.exports = {
               lines.push("");
               lines.push("## Findings");
               for (const finding of data.findings.sort(
-                (a, b) => severityRank(b.severity) - severityRank(a.severity)
+                (a, b) => severityRank(b.severity) - severityRank(a.severity),
               )) {
-                const icon = finding.severity === "high" ? "✗" : finding.severity === "medium" ? "⚠" : "✓";
-                lines.push(`  ${icon} [${finding.severity.toUpperCase()}] ${finding.message}`);
+                const icon =
+                  finding.severity === "high"
+                    ? "✗"
+                    : finding.severity === "medium"
+                      ? "⚠"
+                      : "✓";
+                lines.push(
+                  `  ${icon} [${finding.severity.toUpperCase()}] ${finding.message}`,
+                );
               }
             }
 

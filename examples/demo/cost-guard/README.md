@@ -13,11 +13,11 @@ Demonstrates Reach's adaptive routing based on budget constraints.
 
 Reach automatically selects the appropriate model tier based on your budget:
 
-| Budget | Tier | Models | Est. Cost/1K tokens |
-|--------|------|--------|---------------------|
-| $0.10 | minimal | gpt-3.5-turbo | $0.0015 |
-| $1.00 | standard | gpt-4, claude-3-sonnet | $0.015-0.03 |
-| $10.00 | premium | gpt-4-turbo, claude-3-opus | $0.03-0.06 |
+| Budget | Tier     | Models                     | Est. Cost/1K tokens |
+| ------ | -------- | -------------------------- | ------------------- |
+| $0.10  | minimal  | gpt-3.5-turbo              | $0.0015             |
+| $1.00  | standard | gpt-4, claude-3-sonnet     | $0.015-0.03         |
+| $10.00 | premium  | gpt-4-turbo, claude-3-opus | $0.03-0.06          |
 
 ## Running It
 
@@ -76,6 +76,7 @@ reach demo cost-guard --budget 10.00
 ### 1. Task Complexity Assessment
 
 Reach analyzes the task to estimate:
+
 - Token count (input + output)
 - Required reasoning depth
 - Quality requirements
@@ -87,7 +88,7 @@ const estimate = {
   inputTokens: estimateTokens(task.input),
   outputTokens: estimateTokens(task.output) * 2, // Conservative
   modelRate: MODEL_RATES[selectedModel],
-  total: inputCost + outputCost
+  total: inputCost + outputCost,
 };
 ```
 
@@ -103,6 +104,7 @@ if (estimate.total > budget * 0.5) {
 ### 4. Execution with Monitoring
 
 Real-time cost tracking during execution:
+
 - Stop if approaching budget limit
 - Allow overrides for critical operations
 - Alert on unexpected spend
@@ -133,13 +135,13 @@ For complex workflows, budget is allocated per-step:
 
 ```typescript
 const workflowBudget = {
-  total: 5.00,
+  total: 5.0,
   steps: {
-    "analyze": 1.00,    // 20%
-    "synthesize": 2.50, // 50%
-    "verify": 1.00,     // 20%
-    "reserve": 0.50     // 10% buffer
-  }
+    analyze: 1.0, // 20%
+    synthesize: 2.5, // 50%
+    verify: 1.0, // 20%
+    reserve: 0.5, // 10% buffer
+  },
 };
 ```
 
@@ -148,14 +150,14 @@ const workflowBudget = {
 Connect to your billing system:
 
 ```typescript
-import { costTracker } from '@reach/cost';
+import { costTracker } from "@reach/cost";
 
 costTracker.onSpend((event) => {
   // Send to your analytics
-  analytics.track('reach_spend', {
+  analytics.track("reach_spend", {
     amount: event.cost,
     model: event.model,
-    tenant: event.tenantId
+    tenant: event.tenantId,
   });
 });
 ```

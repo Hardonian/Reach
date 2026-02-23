@@ -1,6 +1,6 @@
 /**
  * Template Plugin
- * 
+ *
  * Minimal scaffold for creating Reach plugins.
  * Copy this file and modify for your use case.
  */
@@ -19,7 +19,7 @@ module.exports = {
           name: "Template Analyzer",
           category: "example",
           deterministic: true,
-          
+
           /**
            * Analyze function
            * @param {Object} input - Input to analyze
@@ -27,35 +27,35 @@ module.exports = {
            */
           analyze(input) {
             const results = [];
-            
+
             // Example: Check for a condition
             if (input && input.example) {
               results.push({
                 type: "suggestion",
                 message: "Example condition detected",
                 severity: "info",
-                data: { example: input.example }
+                data: { example: input.example },
               });
             }
-            
+
             return results;
-          }
-        }
+          },
+        },
       ],
-      
+
       // Add other capability registrations here
       // policies: [...]
       // renderers: [...]
       // retrievers: [...]
     };
   },
-  
+
   /**
    * Optional: Plugin metadata for documentation
    */
   metadata: {
     name: "Template Plugin",
     version: "0.1.0",
-    description: "Minimal plugin scaffold"
-  }
+    description: "Minimal plugin scaffold",
+  },
 };

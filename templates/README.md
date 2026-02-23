@@ -19,19 +19,19 @@ reach scaffold config
 
 ### Pack Templates
 
-| Template | Description |
-|----------|-------------|
-| `minimal` | Bare minimum pack structure |
+| Template   | Description                  |
+| ---------- | ---------------------------- |
+| `minimal`  | Bare minimum pack structure  |
 | `standard` | Pack with policies and tests |
-| `governed` | Full governance-ready pack |
+| `governed` | Full governance-ready pack   |
 
 ### Plugin Templates
 
-| Template | Description |
-|----------|-------------|
-| `analyzer` | PR/code analyzer plugin |
-| `renderer` | Output formatter plugin |
-| `retriever` | Data retriever plugin |
+| Template    | Description             |
+| ----------- | ----------------------- |
+| `analyzer`  | PR/code analyzer plugin |
+| `renderer`  | Output formatter plugin |
+| `retriever` | Data retriever plugin   |
 
 ## Template Structure
 

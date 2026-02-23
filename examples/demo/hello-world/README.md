@@ -50,7 +50,12 @@ reach demo hello-world --export ./my-first-run.reach
   "execution_graph": {
     "steps": [
       { "id": "greet", "tool": "echo", "input": "Welcome to Reach! 👋" },
-      { "id": "explain", "tool": "echo", "input": "...", "depends_on": ["greet"] }
+      {
+        "id": "explain",
+        "tool": "echo",
+        "input": "...",
+        "depends_on": ["greet"]
+      }
     ]
   },
   "deterministic": true
@@ -58,6 +63,7 @@ reach demo hello-world --export ./my-first-run.reach
 ```
 
 Key points:
+
 - `spec_version` ensures compatibility
 - `deterministic: true` enables replay verification
 - Steps declare dependencies for ordered execution

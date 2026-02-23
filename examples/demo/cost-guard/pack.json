@@ -9,7 +9,13 @@
     "created": "2024-01-15T00:00:00Z",
     "tags": ["advanced", "cost", "routing", "optimization"]
   },
-  "declared_tools": ["echo", "estimate_cost", "route_model", "execute", "report"],
+  "declared_tools": [
+    "echo",
+    "estimate_cost",
+    "route_model",
+    "execute",
+    "report"
+  ],
   "declared_permissions": ["cost:read", "model:select"],
   "model_requirements": {
     "tier": "adaptive"
@@ -46,9 +52,12 @@
   "policies": ["cost-hard-ceiling", "model-tier-routing"],
   "routing_config": {
     "budget_tiers": {
-      "minimal": { "max_cost": 0.10, "models": ["gpt-3.5-turbo"] },
-      "standard": { "max_cost": 1.00, "models": ["gpt-4", "claude-3-sonnet"] },
-      "premium": { "max_cost": 10.00, "models": ["gpt-4-turbo", "claude-3-opus"] }
+      "minimal": { "max_cost": 0.1, "models": ["gpt-3.5-turbo"] },
+      "standard": { "max_cost": 1.0, "models": ["gpt-4", "claude-3-sonnet"] },
+      "premium": {
+        "max_cost": 10.0,
+        "models": ["gpt-4-turbo", "claude-3-opus"]
+      }
     }
   },
   "signature_hash": ""

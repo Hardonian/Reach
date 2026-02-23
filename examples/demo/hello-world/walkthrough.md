@@ -7,6 +7,7 @@ reach doctor
 ```
 
 Expected output:
+
 ```
 [✓] reachctl binary
 [✓] Node.js >= 18
@@ -20,6 +21,7 @@ reach demo hello-world
 ```
 
 You'll see:
+
 - Pack loading confirmation
 - Step-by-step execution
 - Final fingerprint
@@ -51,19 +53,21 @@ The replay produces the same output as the original run.
 
 ## CLI Flags Reference
 
-| Flag | Description |
-|------|-------------|
-| `--verbose` | Show detailed execution info |
-| `--json` | Output machine-readable JSON |
-| `--export <path>` | Save run capsule |
-| `--dry-run` | Validate without executing |
+| Flag              | Description                  |
+| ----------------- | ---------------------------- |
+| `--verbose`       | Show detailed execution info |
+| `--json`          | Output machine-readable JSON |
+| `--export <path>` | Save run capsule             |
+| `--dry-run`       | Validate without executing   |
 
 ## Troubleshooting
 
 **"Pack not found"**
+
 - Ensure you're in the repository root
 - Verify the examples are present: `ls examples/demo/`
 
 **"Determinism check failed"**
+
 - Some systems may have timezone differences
 - Check that your system clock is accurate

@@ -17,6 +17,7 @@ node examples/06-retention-compact-safety/run.js
 ## Examples Index
 
 ### [Example 01: Quickstart Local](./01-quickstart-local/)
+
 **Level:** Beginner | **Time:** 2 min
 
 Minimal local run producing evidence output. Fastest way to see Reach in action.
@@ -30,6 +31,7 @@ node examples/01-quickstart-local/run.js
 ---
 
 ### [Example 02: Diff and Explain](./02-diff-and-explain/)
+
 **Level:** Beginner | **Time:** 3 min
 
 Create two runs, generate diff, show explain output. Learn change detection.
@@ -43,6 +45,7 @@ node examples/02-diff-and-explain/run.js
 ---
 
 ### [Example 03: Junction to Decision](./03-junction-to-decision/)
+
 **Level:** Intermediate | **Time:** 4 min
 
 Generate junction, evaluate decision, show trace. Learn the junction-decision workflow.
@@ -56,6 +59,7 @@ node examples/03-junction-to-decision/run.js
 ---
 
 ### [Example 04: Action Plan Execute (Safe)](./04-action-plan-execute-safe/)
+
 **Level:** Intermediate | **Time:** 5 min
 
 Accept decision → plan → approve → execute SAFE action → journal → events.
@@ -69,6 +73,7 @@ node examples/04-action-plan-execute-safe/run.js
 ---
 
 ### [Example 05: Export Verify Replay](./05-export-verify-replay/)
+
 **Level:** Advanced | **Time:** 5 min
 
 Export bundle → verify → replay → show parity summary. Learn capsule portability.
@@ -82,6 +87,7 @@ node examples/05-export-verify-replay/run.js
 ---
 
 ### [Example 06: Retention Compact Safety](./06-retention-compact-safety/)
+
 **Level:** Advanced | **Time:** 4 min
 
 Retention status → compact (safe mode) → verify integrity. Learn data lifecycle.
@@ -152,6 +158,7 @@ The following examples are also available for specific integrations:
 ## Contributing
 
 When adding new examples:
+
 1. Follow the existing directory structure
 2. Include comprehensive README
 3. Add seed scripts for reproducibility

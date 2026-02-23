@@ -107,10 +107,10 @@ VOI tells you which evidence would most improve your decision:
 const voi = {
   evidence: "traffic-pattern-analysis",
   currentConfidence: 0.78,
-  expectedConfidence: 0.91,  // After acquiring
+  expectedConfidence: 0.91, // After acquiring
   improvement: 0.13,
   costToAcquire: 50,
-  valuePerDollar: 0.0026     // 0.13 / 50
+  valuePerDollar: 0.0026, // 0.13 / 50
 };
 ```
 
@@ -118,13 +118,13 @@ const voi = {
 
 Confidence evolves as evidence accumulates:
 
-| Step | Confidence | Source |
-|------|------------|--------|
-| Initial | 0.33 | Uniform prior |
-| +Latency | 0.45 | Evidence A |
-| +Cost | 0.53 | Evidence B |
-| +Reliability | 0.71 | Evidence C |
-| Final | 0.78 | Synthesis |
+| Step         | Confidence | Source        |
+| ------------ | ---------- | ------------- |
+| Initial      | 0.33       | Uniform prior |
+| +Latency     | 0.45       | Evidence A    |
+| +Cost        | 0.53       | Evidence B    |
+| +Reliability | 0.71       | Evidence C    |
+| Final        | 0.78       | Synthesis     |
 
 ## Policy: Minimum Confidence
 
@@ -134,13 +134,14 @@ The pack includes a confidence threshold policy:
 {
   "policy": "min-confidence-0.7",
   "rule": {
-    "min_confidence": 0.70,
+    "min_confidence": 0.7,
     "action": "require_more_evidence"
   }
 }
 ```
 
 If confidence < 0.7, Reach will:
+
 1. Calculate VOI for remaining evidence
 2. Recommend data acquisition
 3. Defer decision until threshold met
@@ -152,6 +153,7 @@ reach demo multi-step-reasoning --explore-evidence
 ```
 
 This interactive mode lets you:
+
 - See what evidence is available
 - Calculate VOI for each
 - Simulate "what if" scenarios
@@ -171,13 +173,13 @@ Generates a visual representation of the evidence chain.
 Save decisions for later review:
 
 ```typescript
-import { decisionRegistry } from '@reach/decisions';
+import { decisionRegistry } from "@reach/decisions";
 
-const decision = await reachDemo('multi-step-reasoning');
+const decision = await reachDemo("multi-step-reasoning");
 decisionRegistry.register({
   ...decision,
-  context: 'cloud-migration-q1',
-  reviewer: 'platform-team'
+  context: "cloud-migration-q1",
+  reviewer: "platform-team",
 });
 ```
 

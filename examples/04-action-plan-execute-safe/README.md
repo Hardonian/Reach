@@ -55,6 +55,7 @@ Fingerprint: <sha256>
 ## Safe Actions Only
 
 This example uses only SAFE actions (no side effects):
+
 - `validate_resources` - Read-only validation
 - `check_quotas` - Read-only quota check
 - `scale_replicas (dry-run)` - Simulation mode
@@ -62,13 +63,13 @@ This example uses only SAFE actions (no side effects):
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `decision.json` | Decision to execute |
-| `plan.json` | Action plan with steps |
-| `actions/` | Safe action definitions |
+| File                   | Purpose                  |
+| ---------------------- | ------------------------ |
+| `decision.json`        | Decision to execute      |
+| `plan.json`            | Action plan with steps   |
+| `actions/`             | Safe action definitions  |
 | `expected-events.json` | Expected event structure |
-| `run.js` | Workflow runner |
+| `run.js`               | Workflow runner          |
 
 ## What To Try Next
 

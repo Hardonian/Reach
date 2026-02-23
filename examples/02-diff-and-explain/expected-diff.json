@@ -34,7 +34,7 @@
     {
       "path": "input.alerts",
       "old": [],
-      "new": [{"severity": "warning", "message": "string"}],
+      "new": [{ "severity": "warning", "message": "string" }],
       "change_type": "added"
     }
   ],

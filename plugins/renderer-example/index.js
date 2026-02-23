@@ -86,7 +86,9 @@ module.exports = {
 
               for (let i = 0; i < data.evidence.length; i++) {
                 const ev = data.evidence[i];
-                lines.push(`| ${i + 1} | ${ev.source} | ${ev.confidence || "N/A"} |`);
+                lines.push(
+                  `| ${i + 1} | ${ev.source} | ${ev.confidence || "N/A"} |`,
+                );
               }
 
               lines.push("");
@@ -120,7 +122,7 @@ module.exports = {
               "<!DOCTYPE html>",
               "<html>",
               "<head>",
-              "  <meta charset=\"UTF-8\">",
+              '  <meta charset="UTF-8">',
               "  <title>Reach Execution Result</title>",
               "  <style>",
               "    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2em auto; padding: 0 1em; }",
@@ -134,13 +136,16 @@ module.exports = {
               "  </style>",
               "</head>",
               "<body>",
-              "  <div class=\"header\">",
+              '  <div class="header">',
               "    <h1>🎯 Reach Execution Result</h1>",
             ];
 
             if (data.status) {
-              const statusClass = data.status === "success" ? "status-success" : "status-failure";
-              parts.push(`    <p>Status: <span class=\"${statusClass}\">${escapeHtml(data.status)}</span></p>`);
+              const statusClass =
+                data.status === "success" ? "status-success" : "status-failure";
+              parts.push(
+                `    <p>Status: <span class=\"${statusClass}\">${escapeHtml(data.status)}</span></p>`,
+              );
             }
 
             if (data.id) {
@@ -148,14 +153,20 @@ module.exports = {
             }
 
             if (data.fingerprint) {
-              parts.push(`    <p>Fingerprint: <code>${escapeHtml(data.fingerprint)}</code></p>`);
+              parts.push(
+                `    <p>Fingerprint: <code>${escapeHtml(data.fingerprint)}</code></p>`,
+              );
             }
 
             parts.push("  </div>");
 
             if (data.outputs) {
               parts.push("  <h2>Outputs</h2>");
-              parts.push("  <pre>" + escapeHtml(JSON.stringify(data.outputs, null, 2)) + "</pre>");
+              parts.push(
+                "  <pre>" +
+                  escapeHtml(JSON.stringify(data.outputs, null, 2)) +
+                  "</pre>",
+              );
             }
 
             if (data.evidence && data.evidence.length > 0) {
@@ -164,7 +175,9 @@ module.exports = {
               parts.push("    <tr><th>Source</th><th>Confidence</th></tr>");
 
               for (const ev of data.evidence) {
-                parts.push(`    <tr><td>${escapeHtml(ev.source)}</td><td>${escapeHtml(ev.confidence || "N/A")}</td></tr>`);
+                parts.push(
+                  `    <tr><td>${escapeHtml(ev.source)}</td><td>${escapeHtml(ev.confidence || "N/A")}</td></tr>`,
+                );
               }
 
               parts.push("  </table>");

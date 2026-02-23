@@ -32,6 +32,7 @@ Fixes #(issue number) or Related to #(issue number)
 - [ ] Manual testing performed
 
 Run verification:
+
 ```bash
 npm run verify:full
 ```
@@ -39,6 +40,7 @@ npm run verify:full
 ## Determinism Check
 
 For changes affecting execution:
+
 - [ ] Verified identical inputs produce identical fingerprints
 - [ ] No `time.Now()` or `rand` in fingerprint paths
 - [ ] Map iterations are sorted

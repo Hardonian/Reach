@@ -29,16 +29,17 @@ reach run my-pack --format markdown
 ```
 
 Output:
-```markdown
+
+````markdown
 # Reach Execution Result
 
 ## Summary
 
-| Property    | Value                     |
-|-------------|---------------------------|
-| ID          | run_abc123                |
-| Status      | success                   |
-| Fingerprint | sha256:a3f7b2...          |
+| Property    | Value            |
+| ----------- | ---------------- |
+| ID          | run_abc123       |
+| Status      | success          |
+| Fingerprint | sha256:a3f7b2... |
 
 ## Outputs
 
@@ -48,7 +49,9 @@ Output:
   "confidence": 0.85
 }
 ```
-```
+````
+
+````
 
 ### html
 
@@ -56,7 +59,7 @@ Full HTML page with styling:
 
 ```bash
 reach run my-pack --format html --output result.html
-```
+````
 
 ## Usage
 

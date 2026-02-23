@@ -24,7 +24,7 @@ describe("04-action-plan-execute-safe", () => {
     const parsed = JSON.parse(content);
     expect(parsed).toHaveProperty("steps");
     expect(Array.isArray(parsed.steps)).toBe(true);
-    
+
     for (const step of parsed.steps) {
       expect(step).toHaveProperty("safe");
       expect(step.safe).toBe(true);
@@ -34,7 +34,7 @@ describe("04-action-plan-execute-safe", () => {
   test("all plan steps have dry_run or readonly", () => {
     const content = readFileSync(resolve(EXAMPLE_DIR, "plan.json"), "utf8");
     const parsed = JSON.parse(content);
-    
+
     for (const step of parsed.steps) {
       const isSafe = step.readonly === true || step.dry_run === true;
       expect(isSafe).toBe(true);

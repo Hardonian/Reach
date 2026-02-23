@@ -5,6 +5,7 @@ Detects configuration drift and unexpected changes between runs.
 ## Part of Pack
 
 This plugin is part of the `drift-hunter` pack:
+
 - **Pack**: `packs/drift-hunter/`
 - **Recipes**: `drift-scan`, `diff-runs`
 - **Rules**: `no-undeclared-changes`, `version-lock`
@@ -63,6 +64,7 @@ Collects workspace state and environment markers for drift detection.
 ## Determinism
 
 All operations are deterministic:
+
 - Object keys sorted before comparison
 - Arrays sorted before processing
 - Consistent severity ranking

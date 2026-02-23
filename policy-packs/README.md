@@ -20,6 +20,7 @@ reach run my-pack.json --policies policy-packs/strict-safe-mode.json
 ### Safety Policies
 
 #### 1. strict-safe-mode
+
 **File:** `policy-packs/strict-safe-mode.json`  
 **Severity:** Blocking  
 **Use When:** Maximum safety required, no side effects allowed
@@ -32,6 +33,7 @@ reach run my-pack.json --policies policy-packs/strict-safe-mode.json
 ```
 
 **Rules:**
+
 - All actions must have `safe: true`
 - No side effects allowed
 - Network access blocked
@@ -42,11 +44,13 @@ reach run my-pack.json --policies policy-packs/strict-safe-mode.json
 ---
 
 #### 2. balanced-ops
+
 **File:** `policy-packs/balanced-ops.json`  
 **Severity:** Warning  
 **Use When:** Typical operations, development and production
 
 **Rules:**
+
 - Warns on unsafe actions
 - Requires dry-run for mutations
 - Warns on high latency (>30s)
@@ -59,11 +63,13 @@ reach run my-pack.json --policies policy-packs/strict-safe-mode.json
 ### Decision Quality Policies
 
 #### 3. high-signal-junctions
+
 **File:** `policy-packs/high-signal-junctions.json`  
 **Severity:** Blocking  
 **Use When:** Critical decisions where wrong answers are costly
 
 **Rules:**
+
 - Minimum 80% confidence required
 - At least 2 evidence sources
 - Evidence must be <24 hours old
@@ -74,11 +80,13 @@ reach run my-pack.json --policies policy-packs/strict-safe-mode.json
 ---
 
 #### 4. low-noise-junctions
+
 **File:** `policy-packs/low-noise-junctions.json`  
 **Severity:** Advisory  
 **Use When:** Fast decisions, exploratory work, non-critical choices
 
 **Rules:**
+
 - 60% confidence threshold (relaxed)
 - Single evidence source acceptable
 - Fast timeout (<5s)
@@ -90,11 +98,13 @@ reach run my-pack.json --policies policy-packs/strict-safe-mode.json
 ### Trust & Security Policies
 
 #### 5. trust-gate-tight
+
 **File:** `policy-packs/trust-gate-tight.json`  
 **Severity:** Blocking  
 **Use When:** Strict access control, verified identities required
 
 **Rules:**
+
 - Signed attestations required
 - Verified identity mandatory
 - Full audit logging
@@ -105,11 +115,13 @@ reach run my-pack.json --policies policy-packs/strict-safe-mode.json
 ---
 
 #### 6. trust-gate-relaxed
+
 **File:** `policy-packs/trust-gate-relaxed.json`  
 **Severity:** Warning  
 **Use When:** Development, testing, local environments
 
 **Rules:**
+
 - Signing optional (advisory)
 - Identity optional
 - Basic audit logging
@@ -121,11 +133,13 @@ reach run my-pack.json --policies policy-packs/strict-safe-mode.json
 ### Data Lifecycle Policies
 
 #### 7. retention-conservative
+
 **File:** `policy-packs/compliance/retention-conservative.json`  
 **Severity:** Blocking  
 **Use When:** Compliance-heavy, audit-critical environments
 
 **Rules:**
+
 - 7+ year retention
 - Fingerprints never deleted
 - Backup required before compaction
@@ -136,11 +150,13 @@ reach run my-pack.json --policies policy-packs/strict-safe-mode.json
 ---
 
 #### 8. retention-aggressive
+
 **File:** `policy-packs/compliance/retention-aggressive.json`  
 **Severity:** Warning  
 **Use When:** Storage-constrained, high-volume, non-critical data
 
 **Rules:**
+
 - 90-day total retention
 - Early summarization (3 days)
 - Maximum compression
@@ -196,15 +212,16 @@ Multiple packs can be combined. More restrictive rules take precedence:
 
 ## Policy Severity Levels
 
-| Level | Effect | Use For |
-|-------|--------|---------|
-| **blocking** | Fails execution | Critical requirements |
-| **warning** | Logs but continues | Recommendations |
-| **advisory** | Suggestions only | Guidance |
+| Level        | Effect             | Use For               |
+| ------------ | ------------------ | --------------------- |
+| **blocking** | Fails execution    | Critical requirements |
+| **warning**  | Logs but continues | Recommendations       |
+| **advisory** | Suggestions only   | Guidance              |
 
 ## OSS vs Enterprise
 
 All packs in this directory are **OSS-safe**:
+
 - No cloud dependencies
 - No enterprise features required
 - Work with local SQLite storage

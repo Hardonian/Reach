@@ -4,9 +4,10 @@ Welcome! Reach is built on principles of determinism, accountability, and clarit
 
 ## ⚙️ Development Setup
 
-The Reach environment requires Node.js, Go, Rust, and SQLite. 
+The Reach environment requires Node.js, Go, Rust, and SQLite.
 
 ### Quick Start
+
 ```bash
 # 1. Clone the repository
 git clone https://github.com/reach/reach.git
@@ -44,7 +45,9 @@ pnpm run demo
 
 # Open your browser to http://localhost:3000
 ```
+
 Alternatively, test core scenarios via CLI using the example scripts:
+
 ```bash
 node examples/01-quickstart-local/run.js
 ```
@@ -52,10 +55,11 @@ node examples/01-quickstart-local/run.js
 ## 🚀 PR Guidelines
 
 To maintain our quality bar, all Pull Requests must adhere to the following rules:
+
 1. **Zero Entropy**: No non-deterministic logic (e.g., `time.Now()` or randomness without a seed) in core paths.
 2. **Minimal Diff**: Change only what is required to solve the problem. Avoid sweeping refactors in feature PRs.
 3. **Pass CI**: Ensure the GitHub Actions CI pipeline is green.
-4. **Description**: Clearly explain *what* you changed and *why*. Use the provided PR template.
+4. **Description**: Clearly explain _what_ you changed and _why_. Use the provided PR template.
 
 ## 📝 Commit Expectations
 

@@ -97,7 +97,7 @@ export function seed(): { success: boolean; message: string } {
   const baselineData = generateBaselineData("drift-demo-seed", 100);
   writeFileSync(
     resolve(baselineDir, "normal-baseline.json"),
-    JSON.stringify(baselineData, null, 2)
+    JSON.stringify(baselineData, null, 2),
   );
 
   // Generate drift scenario
@@ -111,14 +111,16 @@ export function seed(): { success: boolean; message: string } {
   });
   writeFileSync(
     resolve(baselineDir, "drift-scenario.json"),
-    JSON.stringify(driftData, null, 2)
+    JSON.stringify(driftData, null, 2),
   );
 
   console.log("✅ Generated baseline data:");
   console.log(`   Normal runs: ${baselineData.runs.length}`);
   console.log(`   Mean duration: ${baselineData.statistics.meanDuration}ms`);
   console.log(`   Std dev: ${baselineData.statistics.stdDevDuration}ms`);
-  console.log(`   Success rate: ${(baselineData.statistics.successRate * 100).toFixed(1)}%`);
+  console.log(
+    `   Success rate: ${(baselineData.statistics.successRate * 100).toFixed(1)}%`,
+  );
   console.log(`   Drift scenarios: ${driftData.runs.length}`);
 
   return { success: true, message: "Baseline data generated successfully" };

@@ -14,11 +14,17 @@ describe("02-diff-and-explain", () => {
   });
 
   test("seed files have different values", () => {
-    const v1 = JSON.parse(readFileSync(resolve(EXAMPLE_DIR, "seed-v1.json"), "utf8"));
-    const v2 = JSON.parse(readFileSync(resolve(EXAMPLE_DIR, "seed-v2.json"), "utf8"));
-    
+    const v1 = JSON.parse(
+      readFileSync(resolve(EXAMPLE_DIR, "seed-v1.json"), "utf8"),
+    );
+    const v2 = JSON.parse(
+      readFileSync(resolve(EXAMPLE_DIR, "seed-v2.json"), "utf8"),
+    );
+
     expect(v1.priority).not.toBe(v2.priority);
-    expect(v1.input.metrics.cpu_utilization).not.toBe(v2.input.metrics.cpu_utilization);
+    expect(v1.input.metrics.cpu_utilization).not.toBe(
+      v2.input.metrics.cpu_utilization,
+    );
     expect(v1.input.alerts.length).toBeLessThan(v2.input.alerts.length);
   });
 
@@ -35,7 +41,10 @@ describe("02-diff-and-explain", () => {
   });
 
   test("expected-diff.json is valid", () => {
-    const content = readFileSync(resolve(EXAMPLE_DIR, "expected-diff.json"), "utf8");
+    const content = readFileSync(
+      resolve(EXAMPLE_DIR, "expected-diff.json"),
+      "utf8",
+    );
     const parsed = JSON.parse(content);
     expect(parsed).toHaveProperty("fields_changed");
     expect(Array.isArray(parsed.fields_changed)).toBe(true);

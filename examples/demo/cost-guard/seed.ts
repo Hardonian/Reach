@@ -150,13 +150,13 @@ export function seed(): { success: boolean; message: string } {
   // Write scenarios
   writeFileSync(
     resolve(dataDir, "scenarios.json"),
-    JSON.stringify({ scenarios: SCENARIOS }, null, 2)
+    JSON.stringify({ scenarios: SCENARIOS }, null, 2),
   );
 
   // Write model rates
   writeFileSync(
     resolve(dataDir, "model-rates.json"),
-    JSON.stringify(MODEL_RATES, null, 2)
+    JSON.stringify(MODEL_RATES, null, 2),
   );
 
   // Generate routing table
@@ -169,7 +169,7 @@ export function seed(): { success: boolean; message: string } {
   };
   writeFileSync(
     resolve(dataDir, "routing-table.json"),
-    JSON.stringify(routingTable, null, 2)
+    JSON.stringify(routingTable, null, 2),
   );
 
   console.log("\n✅ Cost guard data generated:");
@@ -180,7 +180,7 @@ export function seed(): { success: boolean; message: string } {
   console.log("\n📊 Scenario Summary:");
   for (const s of SCENARIOS) {
     console.log(
-      `   ${s.name}: $${s.budget} budget → ${s.expectedTier} tier (${s.expectedModel})`
+      `   ${s.name}: $${s.budget} budget → ${s.expectedTier} tier (${s.expectedModel})`,
     );
   }
 

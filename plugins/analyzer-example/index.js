@@ -38,7 +38,9 @@ module.exports = {
               const line = lines[i];
 
               // Detect function start (simplified)
-              if (/^\\s*(function|const|let|var)\\s+\\w+\\s*[=\\(]/.test(line)) {
+              if (
+                /^\\s*(function|const|let|var)\\s+\\w+\\s*[=\\(]/.test(line)
+              ) {
                 inFunction = true;
                 functionLength = 1;
               } else if (inFunction) {
@@ -98,9 +100,18 @@ module.exports = {
 
             // Check for potential secrets
             const secretPatterns = [
-              { pattern: /password\\s*=\\s*["'][^"']+["']/i, desc: "Hardcoded password" },
-              { pattern: /api[_-]?key\\s*=\\s*["'][^"']+["']/i, desc: "Hardcoded API key" },
-              { pattern: /secret\\s*=\\s*["'][^"']+["']/i, desc: "Hardcoded secret" },
+              {
+                pattern: /password\\s*=\\s*["'][^"']+["']/i,
+                desc: "Hardcoded password",
+              },
+              {
+                pattern: /api[_-]?key\\s*=\\s*["'][^"']+["']/i,
+                desc: "Hardcoded API key",
+              },
+              {
+                pattern: /secret\\s*=\\s*["'][^"']+["']/i,
+                desc: "Hardcoded secret",
+              },
             ];
 
             for (const { pattern, desc } of secretPatterns) {

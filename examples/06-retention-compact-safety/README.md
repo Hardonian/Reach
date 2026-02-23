@@ -74,12 +74,12 @@ Compliance:
 
 ## Files
 
-| File | Purpose |
-|------|---------|
+| File                    | Purpose                       |
+| ----------------------- | ----------------------------- |
 | `retention-policy.json` | Retention rules configuration |
-| `mock-database.json` | Simulated run database |
-| `expected-compact.json` | Expected compaction results |
-| `run.js` | Retention workflow runner |
+| `mock-database.json`    | Simulated run database        |
+| `expected-compact.json` | Expected compaction results   |
+| `run.js`                | Retention workflow runner     |
 
 ## Safe Compaction Rules
 

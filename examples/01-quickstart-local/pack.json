@@ -8,9 +8,7 @@
     "type": "analysis",
     "action": "infrastructure_review"
   },
-  "policies": [
-    "policy-packs/strict-safe-mode.json"
-  ],
+  "policies": ["policy-packs/strict-safe-mode.json"],
   "output": {
     "format": "json",
     "include_evidence": true,

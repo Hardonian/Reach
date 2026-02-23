@@ -40,11 +40,11 @@ Evidence: 3 items collected
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `seed.json` | Deterministic input payload |
-| `pack.json` | Pack manifest defining the execution |
-| `run.js` | One-command runner script |
+| File            | Purpose                                    |
+| --------------- | ------------------------------------------ |
+| `seed.json`     | Deterministic input payload                |
+| `pack.json`     | Pack manifest defining the execution       |
+| `run.js`        | One-command runner script                  |
 | `expected.json` | Expected output structure for verification |
 
 ## What To Try Next

@@ -14,9 +14,7 @@
     "cpu_threshold": 75.0,
     "current_cpu": 82.3
   },
-  "policies": [
-    "policy-packs/strict-safe-mode.json"
-  ],
+  "policies": ["policy-packs/strict-safe-mode.json"],
   "approval_required": false,
   "safe_only": true,
   "estimated_impact": {

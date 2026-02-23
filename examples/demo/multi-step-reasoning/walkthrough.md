@@ -51,6 +51,7 @@ reach demo multi-step-reasoning --analyze-confidence
 ```
 
 Shows confidence progression:
+
 ```
 Confidence Evolution:
   Initial:     0.33 ▓▓▓░░░░░░░
@@ -61,11 +62,11 @@ Confidence Evolution:
 
 ## CLI Flags Reference
 
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--steps <n>` | Number of reasoning steps | 3 |
-| `--explore-evidence` | Show VOI calculations | false |
-| `--scenario <name>` | Select scenario | cloud-region |
-| `--export-graph` | Save graphviz DOT file | - |
-| `--analyze-confidence` | Show confidence progression | false |
-| `--min-confidence <n>` | Required confidence threshold | 0.7 |
+| Flag                   | Description                   | Default      |
+| ---------------------- | ----------------------------- | ------------ |
+| `--steps <n>`          | Number of reasoning steps     | 3            |
+| `--explore-evidence`   | Show VOI calculations         | false        |
+| `--scenario <name>`    | Select scenario               | cloud-region |
+| `--export-graph`       | Save graphviz DOT file        | -            |
+| `--analyze-confidence` | Show confidence progression   | false        |
+| `--min-confidence <n>` | Required confidence threshold | 0.7          |

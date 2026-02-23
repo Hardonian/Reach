@@ -11,11 +11,11 @@ Adds a new junction template for deployment strategy decisions.
 
 ## Deployment Options
 
-| Strategy | Best For | Downtime | Rollback |
-|----------|----------|----------|----------|
-| Blue-Green | Critical services, low risk tolerance | None | Instant |
-| Canary | Gradual rollout, monitoring | None | Fast |
-| Rolling | Simple services, speed | Minimal | Slow |
+| Strategy   | Best For                              | Downtime | Rollback |
+| ---------- | ------------------------------------- | -------- | -------- |
+| Blue-Green | Critical services, low risk tolerance | None     | Instant  |
+| Canary     | Gradual rollout, monitoring           | None     | Fast     |
+| Rolling    | Simple services, speed                | Minimal  | Slow     |
 
 ## Usage
 
@@ -26,7 +26,7 @@ const junction = plugin.createJunction({
   current_version: "2.1.0",
   target_version: "2.2.0",
   risk_tolerance: "low",
-  traffic_pattern: "spiky"
+  traffic_pattern: "spiky",
 });
 
 // Evaluate and decide
@@ -36,6 +36,7 @@ const result = plugin.evaluate(junction, policies);
 ## Determinism
 
 This plugin is fully deterministic:
+
 - Scoring algorithm uses only input context
 - Options sorted by score (stable sort)
 - Evidence sorted alphabetically

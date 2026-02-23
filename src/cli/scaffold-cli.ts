@@ -53,10 +53,10 @@ function loadTemplates(category: string): TemplateSet {
 
     try {
       const template: Template = JSON.parse(
-        readFileSync(templateJsonPath, "utf8")
+        readFileSync(templateJsonPath, "utf8"),
       );
       const files = readdirSyncSafe(join(categoryDir, dir)).filter(
-        (f) => f.endsWith(".template") || f === "template.json"
+        (f) => f.endsWith(".template") || f === "template.json",
       );
       templates[dir] = { template, files };
     } catch {
@@ -80,7 +80,7 @@ function readdirSyncSafe(dir: string): string[] {
 
 function substituteVariables(
   content: string,
-  variables: Record<string, string>
+  variables: Record<string, string>,
 ): string {
   let result = content;
   for (const [key, value] of Object.entries(variables)) {
@@ -88,10 +88,7 @@ function substituteVariables(
     result = result.replace(regex, value);
   }
   // Special variables
-  result = result.replace(
-    /\\{\\{now\\.iso\\}\\}/g,
-    new Date().toISOString()
-  );
+  result = result.replace(/\\{\\{now\\.iso\\}\\}/g, new Date().toISOString());
   return result;
 }
 
@@ -150,7 +147,7 @@ function scaffoldPack(name: string, templateName: string): number {
 function scaffoldPlugin(
   name: string,
   type: string,
-  _templateName: string
+  _templateName: string,
 ): number {
   const templates = loadTemplates("plugin");
   const selected = templates[type];
@@ -211,7 +208,7 @@ function scaffoldConfig(): number {
 
   const outputPath = resolve(
     process.cwd(),
-    selected.template.output || "reach.config.json"
+    selected.template.output || "reach.config.json",
   );
   if (existsSync(outputPath)) {
     console.error(`Config already exists: ${outputPath}`);
@@ -308,7 +305,9 @@ export async function runScaffoldCommand(args: ScaffoldArgs): Promise<number> {
         return 1;
       }
       if (!args.type) {
-        console.error("Error: --type is required (analyzer|renderer|retriever)");
+        console.error(
+          "Error: --type is required (analyzer|renderer|retriever)",
+        );
         return 1;
       }
       return scaffoldPlugin(args.name, args.type, args.template || "default");

@@ -71,7 +71,7 @@ Reach maintains a rolling window of execution metrics:
 
 ```typescript
 interface ExecutionBaseline {
-  windowSize: number;      // Number of runs to consider
+  windowSize: number; // Number of runs to consider
   metrics: {
     duration: Distribution;
     outputHash: Set<string>;
@@ -128,15 +128,15 @@ Create custom drift detectors:
 
 ```typescript
 // custom-drift-detector.ts
-import { DriftDetector } from '@reach/monitoring';
+import { DriftDetector } from "@reach/monitoring";
 
 export const customDetector: DriftDetector = {
-  name: 'custom-business-logic',
+  name: "custom-business-logic",
   detect(run: ExecutionRun): DriftResult {
     // Your custom logic here
     const driftScore = calculateMyMetric(run);
     return { driftDetected: driftScore > 0.5, score: driftScore };
-  }
+  },
 };
 ```
 

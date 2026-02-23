@@ -21,13 +21,17 @@ node examples/03-junction-to-decision/run.js
 ## Concepts
 
 ### Junction
+
 A junction represents a decision point with multiple possible paths:
+
 - Options with associated evidence
 - Policy constraints
 - Value of information calculations
 
 ### Decision
+
 A decision is the selected path from a junction:
+
 - Chosen option
 - Rejected alternatives with rationale
 - Evidence supporting the choice
@@ -54,12 +58,12 @@ Trace: junction → evaluate → decide → record
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `junction.json` | Junction definition with options |
-| `policies.json` | Policy constraints for evaluation |
-| `run.js` | Runner demonstrating workflow |
-| `expected-trace.json` | Expected decision trace |
+| File                  | Purpose                           |
+| --------------------- | --------------------------------- |
+| `junction.json`       | Junction definition with options  |
+| `policies.json`       | Policy constraints for evaluation |
+| `run.js`              | Runner demonstrating workflow     |
+| `expected-trace.json` | Expected decision trace           |
 
 ## Workflow Steps
 

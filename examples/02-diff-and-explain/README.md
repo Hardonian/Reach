@@ -61,22 +61,24 @@ Fingerprint Delta: <diff-hash>
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `seed-v1.json` | Baseline input (stable state) |
-| `seed-v2.json` | Modified input (alert state) |
-| `pack.json` | Pack manifest |
-| `run.js` | Automated two-run demo |
+| File                 | Purpose                       |
+| -------------------- | ----------------------------- |
+| `seed-v1.json`       | Baseline input (stable state) |
+| `seed-v2.json`       | Modified input (alert state)  |
+| `pack.json`          | Pack manifest                 |
+| `run.js`             | Automated two-run demo        |
 | `expected-diff.json` | Expected difference structure |
 
 ## Scenarios Covered
 
 ### Scenario 1: Infrastructure Degradation
+
 - V1: Healthy infrastructure (45% CPU, running)
 - V2: Degraded infrastructure (78% CPU, alerts)
 - Diff: Shows escalation from monitoring to action
 
 ### Scenario 2: Configuration Drift
+
 - Input context changes between runs
 - Policy evaluation differences
 - Evidence chain variations
