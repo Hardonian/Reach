@@ -2,7 +2,7 @@ import { loadConfig } from "../core/env.js";
 import { randomUUID } from "node:crypto";
 import { hashString } from "../determinism/index.js";
 
-export type RedactMode = "off" | "safe" | "strict";
+export type RedactMode = "none" | "safe" | "strict";
 
 export interface CliLogEvent {
   ts: string;
@@ -31,7 +31,7 @@ export function createRunContext() {
 }
 
 function redact(v: unknown, mode: RedactMode): unknown {
-  if (mode === "off") return v;
+  if (mode === "none") return v;
   if (typeof v === "string") return v.replace(EMAIL, "[REDACTED_EMAIL]");
   if (Array.isArray(v)) return v.map((x) => redact(x, mode));
   if (!v || typeof v !== "object") return v;
@@ -57,7 +57,7 @@ function redact(v: unknown, mode: RedactMode): unknown {
 }
 
 export function log(event: Omit<CliLogEvent, "ts" | "schema_version">): void {
-  const mode = (loadConfig().ZEO_LOG_REDACT) || "safe";
+  const mode = loadConfig().ZEO_LOG_REDACT;
   const payload = {
     ...event,
     ts: new Date().toISOString(),

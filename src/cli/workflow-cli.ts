@@ -1,6 +1,6 @@
 import { loadConfig } from "../core/env.js";
 // @ts-nocheck
-import { hashString } from "../determinism/index.js";
+import { hashString, hashBuffer } from "../determinism/index.js";
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, cpSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
@@ -352,7 +352,7 @@ function ensureWorkspaceRoot(): void {
 }
 
 function nowIso(): string {
-  return loadConfig().ZEO_FIXED_TIME;
+  return loadConfig().ZEO_FIXED_TIME || new Date().toISOString();
 }
 
 function clampScore(value: number): number {
@@ -506,7 +506,7 @@ function buildBundleManifest(
       const contents = readFileSync(join(bundleDir, path));
       return {
         path,
-        sha256: hashString(contents),
+        sha256: hashBuffer(contents),
         size: contents.byteLength,
       };
     })
@@ -676,7 +676,7 @@ async function runDecisionInWorkspace(
     dependsOn,
     informs,
     logicalTimestamp: loadConfig().ZEO_FIXED_TIME
-      ? Date.parse(loadConfig().ZEO_FIXED_TIME)
+      ? Date.parse(loadConfig().ZEO_FIXED_TIME!)
       : Date.parse(asOfDate),
   });
 
@@ -1444,7 +1444,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
         continue;
       }
       const contents = readFileSync(absolute);
-      const digest = hashString(contents);
+      const digest = hashBuffer(contents);
       if (digest !== file.sha256) mismatches.push(`${file.path}:hash_mismatch`);
       if (contents.byteLength !== file.size) mismatches.push(`${file.path}:size_mismatch`);
     }

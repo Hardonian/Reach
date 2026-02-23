@@ -46,7 +46,7 @@ export async function runStudioCommand(argv: string[]): Promise<number> {
 
   // Try to open dev server
   try {
-    const env = { ...process.env, PORT: loadConfig().PORT || port };
+    const env = { ...process.env, PORT: String(loadConfig().PORT || port) };
     let child: ChildProcess;
 
     const isWindows = process.platform === "win32";
