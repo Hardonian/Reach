@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://reach.sh/schemas/cli-output.json",
+  "title": "Reach CLI JSON Output Schema",
+  "description": "Standardized JSON output format for all Reach CLI commands",
+  "type": "object",
+  "required": ["ok", "schemaVersion", "engineVersion"],
+  "properties": {
+    "ok": {
+      "type": "boolean",
+      "description": "Indicates if the command succeeded"
+    },
+    "data": {
+      "type": "object",
+      "description": "The result data when ok is true"
+    },
+    "error": {
+      "type": "object",
+      "description": "Error details when ok is false",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Machine-readable error code"
+        },
+        "message": {
+          "type": "string",
+          "description": "Human-readable error message"
+        },
+        "details": {
+          "type": "object",
+          "description": "Additional error context"
+        }
+      },
+      "required": ["code", "message"]
+    },
+    "schemaVersion": {
+      "type": "string",
+      "description": "Version of this schema",
+      "const": "1.0.0"
+    },
+    "engineVersion": {
+      "type": "string",
+      "description": "Reach engine version"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "ok": { "const": true },
+        "data": { "type": "object" }
+      },
+      "required": ["ok", "data"]
+    },
+    {
+      "properties": {
+        "ok": { "const": false },
+        "error": { "type": "object" }
+      },
+      "required": ["ok", "error"]
+    }
+  ]
+}

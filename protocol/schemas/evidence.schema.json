@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://reach.sh/schemas/evidence.json",
+  "title": "Evidence Chain Schema",
+  "description": "Schema for Evidence Chain in the Reach system",
+  "type": "object",
+  "required": ["id", "runId", "timestamp", "chain"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique evidence chain identifier (UUID)"
+    },
+    "runId": {
+      "type": "string",
+      "description": "Run ID this evidence chain belongs to"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when evidence chain was created"
+    },
+    "chain": {
+      "type": "array",
+      "description": "Ordered evidence chain entries",
+      "items": {
+        "type": "object",
+        "properties": {
+          "order": { "type": "integer" },
+          "stage": {
+            "type": "string",
+            "enum": ["INPUT", "POLICY", "ARTIFACTS", "EXECUTION", "OUTPUT", "FINGERPRINT"]
+          },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "data": {
+            "type": "object",
+            "description": "Stage-specific data",
+            "properties": {
+              "inputHash": { "type": "string" },
+              "policyHash": { "type": "string" },
+              "artifactsHash": { "type": "string" },
+              "executionHash": { "type": "string" },
+              "outputHash": { "type": "string" }
+            }
+          },
+          "hash": { "type": "string", "description": "SHA-256 hash of this chain entry" }
+        }
+      }
+    },
+    "fingerprint": {
+      "type": "string",
+      "description": "Final SHA-256 hash of the entire evidence chain"
+    },
+    "verified": {
+      "type": "boolean",
+      "description": "Whether the evidence chain has been verified"
+    },
+    "verifiedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of verification"
+    },
+    "sourceRefs": {
+      "type": "array",
+      "description": "References to source data",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string" },
+          "id": { "type": "string" },
+          "path": { "type": "string" }
+        }
+      }
+    }
+  }
+}
