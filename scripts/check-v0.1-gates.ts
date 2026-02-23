@@ -29,7 +29,7 @@ const getFiles = () => {
 
 const runManualGrep = (pattern: RegExp) => {
   const files = getFiles();
-  let matched = [];
+  const matched = [];
   for (const f of files) {
     if (!fs.existsSync(f)) continue;
     const content = fs.readFileSync(f, "utf8");

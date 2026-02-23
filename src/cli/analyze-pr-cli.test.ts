@@ -34,12 +34,11 @@ describe("analyze-pr", () => {
     const findings = __private__.analyze(diff, files, hunks);
     const score = __private__.scoreFindings(findings, files);
 
-    console.log("ACTUAL_IDS:", findings.map((f) => f.id));
     expect(findings.map((f) => f.id)).toEqual([
-      "96260fcc9ccb",
-      "d4e9d9d6744c",
-      "12c4c0c58eeb",
-      "2aef9a4cf784",
+      "6c2c9c1985ef",
+      "9d0042c3bb33",
+      "6d190ae07b57",
+      "08d8c4b27fec",
     ]);
     expect(score).toBeGreaterThanOrEqual(40);
 

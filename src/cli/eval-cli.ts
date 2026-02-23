@@ -6,6 +6,7 @@
  */
 
 import { resolve } from "node:path";
+import { ErrorCodes, type ErrorCode } from "../core/errors.js";
 import { runEvalSuite, runDeterminismCheck, type EvalCommand } from "@zeo/eval";
 
 /**
@@ -50,7 +51,7 @@ export function parseEvalArgs(argv: string[]): EvalCliArgs {
       result.verbose = true;
     } else if (arg === "--help" || arg === "-h") {
       printEvalHelp();
-      process.exit(0);
+      process.exit(ErrorCodes.SUCCESS);
     }
   }
 
@@ -96,11 +97,11 @@ For more info, see docs/EVAL.md
 /**
  * Run eval command
  */
-export async function runEvalCommand(args: EvalCliArgs): Promise<number> {
+export async function runEvalCommand(args: EvalCliArgs): Promise<ErrorCode> {
   if (!args.suite) {
     console.error("[EVAL_ERROR] No evaluation suite specified. Use --suite <path>");
     console.error("Run 'zeo eval --help' for usage information.");
-    return 1;
+    return ErrorCodes.INVALID_INPUT;
   }
 
   const suitePath = resolve(process.cwd(), args.suite);
@@ -120,7 +121,7 @@ export async function runEvalCommand(args: EvalCliArgs): Promise<number> {
       console.log(`Second run: ${result.secondHash.slice(0, 16)}...`);
       console.log(`Identical:  ${result.identical ? "YES" : "NO"}`);
 
-      return result.identical ? 0 : 1;
+      return result.identical ? ErrorCodes.SUCCESS : ErrorCodes.DETERMINISM_VIOLATION;
     }
 
     // Run full evaluation suite
@@ -148,9 +149,9 @@ export async function runEvalCommand(args: EvalCliArgs): Promise<number> {
 
     console.log(`\nResults written to: ${outputDir}/eval-results.json`);
 
-    return result.overallSuccess ? 0 : 1;
+    return result.overallSuccess ? ErrorCodes.SUCCESS : ErrorCodes.VERIFICATION_FAILED;
   } catch (err) {
     console.error(`[EVAL_ERROR] ${err instanceof Error ? err.message : err}`);
-    return 1;
+    return ErrorCodes.GENERIC_FAILURE;
   }
 }

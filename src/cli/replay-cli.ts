@@ -1,13 +1,14 @@
-// @ts-nocheck
 /**
  * Replay CLI Module
  *
  * CLI commands for running replay datasets and generating calibration reports.
  */
 
+// @ts-nocheck
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { hashString } from "../determinism/index.js";
+import { ErrorCodes, type ErrorCode } from "../core/errors.js";
 import type { ReplayDataset, ReplayResult, DecisionSpec } from "@zeo/contracts";
 import { assertReplayDataset } from "@zeo/contracts";
 
@@ -116,7 +117,7 @@ export function parseReplayArgs(argv: string[]): ReplayCliArgs {
   return result;
 }
 
-export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
+export async function runReplayCommand(args: ReplayCliArgs): Promise<ErrorCode> {
   let replayMod: {
     replayCase: (item: unknown, opts: unknown) => Promise<ReplayResult>;
   };
@@ -219,7 +220,7 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
     console.error(
       "Next steps: run 'pnpm -r build' to compile workspace packages required by replay.",
     );
-    return 1;
+    return ErrorCodes.UNAVAILABLE;
   }
 
   const { replayCase } = replayMod;
@@ -239,7 +240,7 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
       files = readReproPackZip(buffer);
     } catch (err) {
       console.error(`Error reading pack: ${(err as Error).message}`);
-      return 1;
+      return ErrorCodes.FILE_READ_ERROR;
     }
 
     const pipeline = async (
@@ -319,14 +320,14 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
           console.error(`    Actual: ${JSON.stringify(d.actual)}`);
         });
       }
-      return 1;
+      return ErrorCodes.REPLAY_MISMATCH;
     }
   }
 
   // ─── Legacy Dataset Replay ────────────────────────────────────────────────
   if (!args.replay) {
     console.error("Error: --replay <path> or --pack <path> is required");
-    return 1;
+    return ErrorCodes.INVALID_INPUT;
   }
 
   // Initialize budget tracking — context is derived from replay path for idempotency
@@ -342,7 +343,7 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
     dataset = JSON.parse(content) as ReplayDataset;
   } catch (err) {
     console.error(`Error reading dataset: ${(err as Error).message}`);
-    return 1;
+    return ErrorCodes.FILE_READ_ERROR;
   }
 
   // Validate dataset
@@ -351,7 +352,7 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
   } catch (err) {
     console.error(`Validation error: ${(err as Error).message}`);
     if (args.strict) {
-      return 1;
+      return ErrorCodes.REPLAY_DATASET_INVALID;
     }
   }
 
@@ -360,7 +361,7 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
   if (!initialBudgetCheck.allowed) {
     console.error("Error: Budget constraints exceeded before starting");
     printBudgetIssues(initialBudgetCheck);
-    return 1;
+    return ErrorCodes.REPLAY_BUDGET_EXCEEDED;
   }
 
   console.log(`\nRunning replay: ${dataset.datasetId}`);
@@ -375,7 +376,7 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
 
   if (args.case && casesToRun.length === 0) {
     console.error(`Error: Case "${args.case}" not found in dataset`);
-    return 1;
+    return ErrorCodes.NOT_FOUND;
   }
 
   // Check budget for expected cases
@@ -383,7 +384,7 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
     console.error(`Error: Case budget exceeded (${casesToRun.length} cases requested)`);
     const budgetStatus = checkBudget(budgetContext);
     printBudgetIssues(budgetStatus);
-    return 1;
+    return ErrorCodes.REPLAY_BUDGET_EXCEEDED;
   }
 
   // Initialize job queue for async processing
@@ -434,7 +435,7 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
       console.error(`  Error: ${(err as Error).message}`);
       hasErrors = true;
       if (args.strict) {
-        return 1;
+        return ErrorCodes.REPLAY_CASE_FAILED;
       }
     }
   }
@@ -543,7 +544,7 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
   }
 
   console.log("");
-  return hasErrors ? 1 : 0;
+  return hasErrors ? ErrorCodes.REPLAY_CASE_FAILED : ErrorCodes.SUCCESS;
 }
 
 function printBudgetIssues(budgetCheck: BudgetCheckResult): void {
