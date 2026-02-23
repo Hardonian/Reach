@@ -135,6 +135,8 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runPacks(ctx, dataRoot, args[1:], out, errOut)
 	case "init":
 		return runInit(args[1:], out, errOut)
+	case "config":
+		return runConfig(args[1:], out, errOut)
 	case "explain":
 		return runExplain(ctx, dataRoot, args[1:], out, errOut)
 	case "operator":
@@ -5472,4 +5474,3 @@ func runByzantine(ctx context.Context, dataRoot string, args []string, out io.Wr
 	_, _ = fmt.Fprintf(out, "\nReport saved: %s\n", reportPath)
 	return 0
 }
-
