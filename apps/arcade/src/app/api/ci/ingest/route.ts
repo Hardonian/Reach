@@ -47,9 +47,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (data.gate_id) {
     try {
       const gates = listGates(ctx.tenantId);
-      const targetGate = gates.find(
-        (g) => g.id === data.gate_id && g.status === "enabled",
-      );
+      const targetGate = gates.find((g) => g.id === data.gate_id && g.status === "enabled");
       if (targetGate) {
         const gateRun = createGateRun(ctx.tenantId, targetGate.id, {
           trigger_type: "push",

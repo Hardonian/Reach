@@ -43,9 +43,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     // CSRF validation
     if (!code || !state || state !== storedState) {
-      return NextResponse.redirect(
-        new URL("/cloud/login?error=oauth_state_mismatch", req.url),
-      );
+      return NextResponse.redirect(new URL("/cloud/login?error=oauth_state_mismatch", req.url));
     }
 
     const clientId = env.GITHUB_CLIENT_ID;
@@ -57,29 +55,24 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     // Exchange code for token
-    const tokenRes = await fetch(
-      "https://github.com/login/oauth/access_token",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          client_id: clientId,
-          client_secret: clientSecret,
-          code,
-          redirect_uri: redirectUrl,
-        }),
+    const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
       },
-    );
+      body: JSON.stringify({
+        client_id: clientId,
+        client_secret: clientSecret,
+        code,
+        redirect_uri: redirectUrl,
+      }),
+    });
 
     const tokenData = (await tokenRes.json()) as GitHubTokenResponse;
     if (!tokenData.access_token) {
       logger.error("GitHub token exchange failed", tokenData);
-      return NextResponse.redirect(
-        new URL("/cloud/login?error=github_token_failed", req.url),
-      );
+      return NextResponse.redirect(new URL("/cloud/login?error=github_token_failed", req.url));
     }
 
     const accessToken = tokenData.access_token;
@@ -108,9 +101,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     if (!email) {
-      return NextResponse.redirect(
-        new URL("/cloud/login?error=github_no_email", req.url),
-      );
+      return NextResponse.redirect(new URL("/cloud/login?error=github_no_email", req.url));
     }
 
     // Create/find local user
@@ -137,9 +128,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         .toLowerCase()
         .replace(/[^a-z0-9-]/g, "-")
         .slice(0, 32);
-      const finalSlug = getTenantBySlug(baseSlug)
-        ? `${baseSlug}-${Date.now()}`
-        : baseSlug;
+      const finalSlug = getTenantBySlug(baseSlug) ? `${baseSlug}-${Date.now()}` : baseSlug;
 
       const createdUser = createUser(email, "", displayName);
       const tenant = createTenant(displayName, finalSlug);
@@ -169,8 +158,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return setSessionCookie(res, session.id);
   } catch (err) {
     logger.error("GitHub callback error", err);
-    return NextResponse.redirect(
-      new URL("/cloud/login?error=github_callback_error", req.url),
-    );
+    return NextResponse.redirect(new URL("/cloud/login?error=github_callback_error", req.url));
   }
 }

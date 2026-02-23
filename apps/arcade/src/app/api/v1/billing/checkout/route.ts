@@ -22,10 +22,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(CheckoutSchema, body);
   if ("errors" in parsed)
-    return cloudErrorResponse(
-      parsed.errors.issues[0]?.message ?? "Invalid input",
-      400,
-    );
+    return cloudErrorResponse(parsed.errors.issues[0]?.message ?? "Invalid input", 400);
 
   try {
     const ent = getEntitlement(ctx.tenantId);
@@ -43,8 +40,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       session_id: session.id,
     });
   } catch (err) {
-    if (err instanceof BillingDisabledError)
-      return cloudErrorResponse(err.message, 503);
+    if (err instanceof BillingDisabledError) return cloudErrorResponse(err.message, 503);
     logger.error("Failed to create checkout session", err);
     return cloudErrorResponse("Failed to create checkout session", 500);
   }

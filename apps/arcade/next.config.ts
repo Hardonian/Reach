@@ -17,11 +17,7 @@ const nextConfig: NextConfig = {
     removeConsole: process.env.NODE_ENV === "production",
   },
   experimental: {
-    optimizePackageImports: [
-      "@heroicons/react",
-      "lucide-react",
-      "framer-motion",
-    ],
+    optimizePackageImports: ["@heroicons/react", "lucide-react", "framer-motion"],
   },
 };
 

@@ -12,10 +12,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const ent = getEntitlement(ctx.tenantId);
   if (!ent?.stripe_customer_id) {
-    return cloudErrorResponse(
-      "No active subscription. Start a checkout session first.",
-      400,
-    );
+    return cloudErrorResponse("No active subscription. Start a checkout session first.", 400);
   }
 
   try {
@@ -26,8 +23,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const portal = await createPortalSession(ent.stripe_customer_id, returnUrl);
     return NextResponse.json({ portal_url: portal.url });
   } catch (err) {
-    if (err instanceof BillingDisabledError)
-      return cloudErrorResponse(err.message, 503);
+    if (err instanceof BillingDisabledError) return cloudErrorResponse(err.message, 503);
     logger.error("Failed to create portal session", err);
     return cloudErrorResponse("Failed to create portal session", 500);
   }

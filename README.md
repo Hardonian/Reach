@@ -3,6 +3,7 @@
 [![CI Status](https://github.com/reach/reach/actions/workflows/ci.yml/badge.svg)](https://github.com/reach/reach/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-0.3.1-blue.svg)](VERSION)
+[![Go Report Card](https://goreportcard.com/badge/github.com/reach/reach)](https://goreportcard.com/report/github.com/reach/reach)
 
 Reach is a high-performance, deterministic decision engine for autonomous agents and complex workflows. It provides the cryptographic provenance and bit-identical replayability required to build production-grade, auditable AI systems.
 
@@ -99,7 +100,7 @@ pnpm run docs:build   # Static export
 
 ## 🤝 Contributing
 
-We actively welcome community contributions! Please review our [Contribution Guide](CONTRIBUTING.md) to learn how to:
+We actively welcome community contributions! Please review our [Contribution Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) to learn how to:
 
 - Set up your local development environment
 - Run the test suite

@@ -6,11 +6,7 @@
  * Idempotency: upsertWebhookEvent deduplicates by stripe_event_id.
  */
 import { NextRequest, NextResponse } from "next/server";
-import {
-  constructWebhookEvent,
-  getPlanForPriceId,
-  BillingDisabledError,
-} from "@/lib/stripe";
+import { constructWebhookEvent, getPlanForPriceId, BillingDisabledError } from "@/lib/stripe";
 import {
   upsertWebhookEvent,
   markWebhookProcessed,
@@ -36,10 +32,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const rawBody = Buffer.from(await req.arrayBuffer());
   const sig = req.headers.get("stripe-signature");
   if (!sig) {
-    return NextResponse.json(
-      { error: "Missing stripe-signature header" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 });
   }
 
   // ── Verify signature ───────────────────────────────────────────────────
@@ -68,10 +61,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
     logger.error("Webhook handler error", err);
     // Return 200 to prevent Stripe from retrying (we've stored the event)
-    return NextResponse.json(
-      { ok: false, error: "Handler error, will retry" },
-      { status: 200 },
-    );
+    return NextResponse.json({ ok: false, error: "Handler error, will retry" }, { status: 200 });
   }
 }
 
@@ -131,9 +121,7 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     case "invoice.paid": {
       const invoice = data as unknown as Stripe.Invoice;
       const tenantId =
-        (invoice.parent?.subscription_details?.metadata?.[
-          "tenant_id"
-        ] as string) ?? "";
+        (invoice.parent?.subscription_details?.metadata?.["tenant_id"] as string) ?? "";
       if (tenantId) {
         // Reset monthly usage on successful invoice payment (new billing period)
         const { resetMonthlyUsage } = await import("@/lib/cloud-db");
@@ -146,9 +134,7 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     case "invoice.payment_failed": {
       const invoice = data as unknown as Stripe.Invoice;
       const tenantId =
-        (invoice.parent?.subscription_details?.metadata?.[
-          "tenant_id"
-        ] as string) ?? "";
+        (invoice.parent?.subscription_details?.metadata?.["tenant_id"] as string) ?? "";
       if (tenantId) {
         upsertEntitlement(tenantId, { status: "past_due" } as Parameters<
           typeof upsertEntitlement

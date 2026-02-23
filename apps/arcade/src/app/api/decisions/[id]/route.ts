@@ -5,10 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import {
-  decisionRepository,
-  actionIntentRepository,
-} from "../../../../lib/db/decisions";
+import { decisionRepository, actionIntentRepository } from "../../../../lib/db/decisions";
 
 function errorResponse(code: string, message: string, status: number = 400) {
   return NextResponse.json({ error: { code, message } }, { status });
@@ -17,10 +14,7 @@ function errorResponse(code: string, message: string, status: number = 400) {
 /**
  * GET /api/decisions/:id
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const decision = decisionRepository.getById(id);
@@ -46,10 +40,7 @@ export async function GET(
  * PUT /api/decisions/:id
  * Update decision status
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const body = await request.json();

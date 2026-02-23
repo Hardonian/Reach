@@ -17,10 +17,7 @@ export async function POST(req: NextRequest) {
     const { packId, inputs } = body;
 
     if (!packId || typeof packId !== "string") {
-      return NextResponse.json(
-        { error: "Invalid request: packId required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Invalid request: packId required" }, { status: 400 });
     }
 
     const pack = PACK_MAP.get(packId);
@@ -32,8 +29,7 @@ export async function POST(req: NextRequest) {
     if (!pack.arcadeSafe) {
       return NextResponse.json(
         {
-          error:
-            "Policy Violation: This pack is not authorized for Arcade execution.",
+          error: "Policy Violation: This pack is not authorized for Arcade execution.",
         },
         { status: 403 },
       );
@@ -46,8 +42,7 @@ export async function POST(req: NextRequest) {
         timestamp: Date.now(),
         type: "policy.gate.check",
         status: "success",
-        details:
-          "Allow policies: " + (pack.policyConstraints?.join(", ") || "none"),
+        details: "Allow policies: " + (pack.policyConstraints?.join(", ") || "none"),
       },
       {
         timestamp: Date.now() + 50,
@@ -97,9 +92,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(sanitizedPayload);
   } catch (error) {
     logger.error("Runner API error", error);
-    return NextResponse.json(
-      { error: "Internal Runner Error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal Runner Error" }, { status: 500 });
   }
 }

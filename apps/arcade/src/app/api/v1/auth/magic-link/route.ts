@@ -20,18 +20,12 @@ export const runtime = "nodejs";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const ip =
-    req.headers.get("x-forwarded-for") ??
-    req.headers.get("x-real-ip") ??
-    "unknown";
+  const ip = req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? "unknown";
 
   // Rate limit: 5 magic links / 15 minutes per IP
   const { success } = await checkRateLimit(ip, 5, 900);
   if (!success) {
-    return cloudErrorResponse(
-      "Too many requests. Try again in a few minutes.",
-      429,
-    );
+    return cloudErrorResponse("Too many requests. Try again in a few minutes.", 429);
   }
 
   try {
@@ -85,17 +79,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const email = url.searchParams.get("email");
 
     if (!token || !email) {
-      return NextResponse.redirect(
-        new URL("/cloud/login?error=invalid_link", req.url),
-      );
+      return NextResponse.redirect(new URL("/cloud/login?error=invalid_link", req.url));
     }
 
     // In production: verify token from DB, check expiry, mark as used
     const isDev = process.env.NODE_ENV !== "production";
     if (!isDev) {
-      return NextResponse.redirect(
-        new URL("/cloud/login?error=magic_link_unverified", req.url),
-      );
+      return NextResponse.redirect(new URL("/cloud/login?error=magic_link_unverified", req.url));
     }
 
     // Dev: create/login the user
@@ -142,8 +132,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return setSessionCookie(res, session.id);
   } catch (err) {
     logger.error("Magic link verify error", err);
-    return NextResponse.redirect(
-      new URL("/cloud/login?error=magic_link_error", req.url),
-    );
+    return NextResponse.redirect(new URL("/cloud/login?error=magic_link_error", req.url));
   }
 }

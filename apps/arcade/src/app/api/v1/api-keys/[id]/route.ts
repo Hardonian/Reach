@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  requireAuth,
-  cloudErrorResponse,
-  requireRole,
-  auditLog,
-} from "@/lib/cloud-auth";
+import { requireAuth, cloudErrorResponse, requireRole, auditLog } from "@/lib/cloud-auth";
 import { revokeApiKey } from "@/lib/cloud-db";
 
 export const runtime = "nodejs";
@@ -15,8 +10,7 @@ export async function DELETE(
 ): Promise<NextResponse> {
   const ctx = await requireAuth(req);
   if (ctx instanceof NextResponse) return ctx;
-  if (!requireRole(ctx, "admin"))
-    return cloudErrorResponse("Insufficient permissions", 403);
+  if (!requireRole(ctx, "admin")) return cloudErrorResponse("Insufficient permissions", 403);
   const { id } = await params;
   const ok = revokeApiKey(id, ctx.tenantId);
   if (!ok) return cloudErrorResponse("API key not found", 404);

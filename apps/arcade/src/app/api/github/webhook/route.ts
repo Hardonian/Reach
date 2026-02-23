@@ -30,10 +30,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     payload = JSON.parse(rawBody) as Record<string, unknown>;
   } catch {
-    return NextResponse.json(
-      { error: "Invalid JSON payload" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
   }
 
   // Only handle pull_request and push events
@@ -45,23 +42,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const repo = payload.repository as Record<string, unknown> | undefined;
-  const repoOwner = (repo?.owner as Record<string, unknown> | undefined)
-    ?.login as string | undefined;
+  const repoOwner = (repo?.owner as Record<string, unknown> | undefined)?.login as
+    | string
+    | undefined;
   const repoName = repo?.name as string | undefined;
 
   if (!repoOwner || !repoName) {
-    return NextResponse.json(
-      { error: "Missing repository information" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Missing repository information" }, { status: 400 });
   }
 
   // Extract commit SHA and PR number
   let commitSha: string | undefined;
   let prNumber: number | undefined;
   let branch: string | undefined;
-  const triggerType: "pr" | "push" =
-    eventType === "pull_request" ? "pr" : "push";
+  const triggerType: "pr" | "push" = eventType === "pull_request" ? "pr" : "push";
 
   if (eventType === "pull_request") {
     const pr = payload.pull_request as Record<string, unknown> | undefined;

@@ -43,9 +43,7 @@ const COMMAND_BUILDERS: Record<string, (runId?: string) => string[]> = {
 
 export async function listRunInventory(repoRoot: string): Promise<string[]> {
   const runsDir = path.join(repoRoot, "services", "runner", "data", "runs");
-  const entries = await fs
-    .readdir(runsDir, { withFileTypes: true })
-    .catch(() => []);
+  const entries = await fs.readdir(runsDir, { withFileTypes: true }).catch(() => []);
   return entries
     .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
     .map((entry) => entry.name.replace(/\.json$/u, ""))
@@ -108,8 +106,7 @@ export async function POST(request: Request) {
       command,
       ok: false,
       code: 1,
-      stderr:
-        "No run records available. Create a run before calling run-scoped commands.",
+      stderr: "No run records available. Create a run before calling run-scoped commands.",
       stdout: "",
       runId: "",
     });

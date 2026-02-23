@@ -6,10 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { decisionRepository } from "../../../lib/db/decisions";
-import {
-  getDefaultEngine,
-  DecisionInputSchema,
-} from "../../../lib/decision/engineAdapter";
+import { getDefaultEngine, DecisionInputSchema } from "../../../lib/decision/engineAdapter";
 
 /**
  * Standard error response
@@ -76,10 +73,7 @@ export async function POST(request: NextRequest) {
     // Validate input
     const parseResult = DecisionInputSchema.safeParse(body);
     if (!parseResult.success) {
-      return errorResponse(
-        "E_SCHEMA",
-        `Invalid input: ${parseResult.error.message}`,
-      );
+      return errorResponse("E_SCHEMA", `Invalid input: ${parseResult.error.message}`);
     }
 
     const input = parseResult.data;

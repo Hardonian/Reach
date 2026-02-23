@@ -18,13 +18,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const body = await req.json().catch(() => ({}));
     const parsed = parseBody(RegisterSchema, body);
     if ("errors" in parsed) {
-      return cloudErrorResponse(
-        parsed.errors.issues[0]?.message ?? "Invalid input",
-        400,
-      );
+      return cloudErrorResponse(parsed.errors.issues[0]?.message ?? "Invalid input", 400);
     }
-    const { email, password, displayName, tenantName, tenantSlug } =
-      parsed.data;
+    const { email, password, displayName, tenantName, tenantSlug } = parsed.data;
 
     if (getUserByEmail(email)) {
       return cloudErrorResponse("Email already registered", 409);

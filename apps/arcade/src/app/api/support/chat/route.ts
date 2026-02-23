@@ -20,10 +20,7 @@ const unsafePatterns = [
 ];
 
 function redactSecrets(input: string): string {
-  return input.replace(
-    /(api[_-]?key|token|secret)\s*[:=]\s*\S+/gi,
-    "$1=[REDACTED]",
-  );
+  return input.replace(/(api[_-]?key|token|secret)\s*[:=]\s*\S+/gi, "$1=[REDACTED]");
 }
 
 function isUnsafe(question: string): boolean {
@@ -42,13 +39,7 @@ function score(entry: KBEntry, q: string): number {
 }
 
 async function loadKB(): Promise<KBEntry[]> {
-  const kbPath = path.join(
-    process.cwd(),
-    "..",
-    "..",
-    "support",
-    "kb_index.json",
-  );
+  const kbPath = path.join(process.cwd(), "..", "..", "support", "kb_index.json");
   const raw = await fs.readFile(kbPath, "utf8");
   return JSON.parse(raw) as KBEntry[];
 }
@@ -72,18 +63,13 @@ export async function POST(request: Request) {
   try {
     kb = await loadKB();
   } catch {
-    return NextResponse.json(
-      { error: "Support service unavailable" },
-      { status: 503 },
-    );
+    return NextResponse.json({ error: "Support service unavailable" }, { status: 503 });
   }
   const ranked = kb
     .map((entry) => ({ entry, score: score(entry, question.toLowerCase()) }))
     .filter((r) => r.score > 0)
     .sort((a, b) =>
-      b.score === a.score
-        ? a.entry.id.localeCompare(b.entry.id)
-        : b.score - a.score,
+      b.score === a.score ? a.entry.id.localeCompare(b.entry.id) : b.score - a.score,
     );
   if (ranked.length === 0) {
     return NextResponse.json({

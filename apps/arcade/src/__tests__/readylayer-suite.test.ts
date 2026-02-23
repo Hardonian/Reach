@@ -16,19 +16,12 @@ describe("GitHub webhook signature validation", () => {
     return `sha256=${crypto.createHmac("sha256", secret).update(payload).digest("hex")}`;
   }
 
-  function verify(
-    payload: string,
-    signature: string,
-    secret?: string,
-  ): boolean {
+  function verify(payload: string, signature: string, secret?: string): boolean {
     const s = secret ?? SECRET;
     if (!s) return false;
     const expected = `sha256=${crypto.createHmac("sha256", s).update(payload).digest("hex")}`;
     try {
-      return crypto.timingSafeEqual(
-        Buffer.from(expected),
-        Buffer.from(signature),
-      );
+      return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
     } catch {
       return false;
     }

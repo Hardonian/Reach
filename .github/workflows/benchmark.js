@@ -8,9 +8,7 @@ const ACTIONS = 100;
 const STATES = 100;
 const ITERATIONS = 50;
 
-console.log(
-  `Generating ${ACTIONS}x${STATES} matrix (${ACTIONS * STATES} cells)...`,
-);
+console.log(`Generating ${ACTIONS}x${STATES} matrix (${ACTIONS * STATES} cells)...`);
 
 const actions = Array.from({ length: ACTIONS }, (_, i) => `action_${i}`);
 const states = Array.from({ length: STATES }, (_, i) => `state_${i}`);

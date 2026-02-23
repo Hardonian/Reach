@@ -37,13 +37,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const alertTriggered = shouldAlert(signal, value);
-  const monitorRun = createMonitorRun(
-    ctx.tenantId,
-    signal_id,
-    value,
-    metadata,
-    alertTriggered,
-  );
+  const monitorRun = createMonitorRun(ctx.tenantId, signal_id, value, metadata, alertTriggered);
 
   // Dispatch alerts asynchronously
   if (alertTriggered) {
