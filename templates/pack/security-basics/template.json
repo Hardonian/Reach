@@ -1,0 +1,45 @@
+{
+  "name": "Security Basics Pack",
+  "description": "Essential security checks for your workspace",
+  "variables": [
+    {
+      "name": "name",
+      "prompt": "Pack name (lowercase, no spaces)",
+      "required": true,
+      "validate": "^[a-z0-9-]+$",
+      "default": "my-security-checks"
+    },
+    {
+      "name": "description",
+      "prompt": "Short description",
+      "default": "Security checks for Reach workspace"
+    },
+    {
+      "name": "author",
+      "prompt": "Author name/organization",
+      "default": "local"
+    },
+    {
+      "name": "version",
+      "prompt": "Initial version",
+      "default": "1.0.0"
+    },
+    {
+      "name": "check_secrets",
+      "prompt": "Check for secrets in code?",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "name": "verify_artifacts",
+      "prompt": "Verify artifact integrity?",
+      "type": "boolean",
+      "default": true
+    }
+  ],
+  "output": {
+    "file": "pack.json",
+    "format": "json"
+  },
+  "extends": "packs/security-basics"
+}

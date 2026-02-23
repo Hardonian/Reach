@@ -29,8 +29,11 @@ See [AGENTS.md](AGENTS.md) for the complete governance contract.
 
 ---
 
-## Table of Contents - [Code of Conduct](#code-of-conduct)
+## Table of Contents
 
+- [Where to Start](#where-to-start)
+- [Getting Help / Feedback](#getting-help--feedback)
+- [Code of Conduct](#code-of-conduct)
 - [Getting Started](#getting-started)
 - [Development Setup](#development-setup)
 - [Project Structure](#project-structure)
@@ -38,11 +41,73 @@ See [AGENTS.md](AGENTS.md) for the complete governance contract.
 - [Code Style](#code-style)
 - [Testing](#testing)
 - [Documentation](#documentation)
+- [Adding Examples/Policy Packs/Plugins](#adding-examplespolicy-packsplugins)
+- [Good First Issues](#good-first-issues)
 - [Submitting Changes](#submitting-changes)
 - [Review Process](#review-process)
 - [Security](#security)
 - [Release Process](#release-process)
 
+## Where to Start
+
+New to Reach? Here's the fastest path to contribution:
+
+### 1. Run the Examples (5 minutes)
+
+`ash
+# Quickstart through all examples
+node examples/01-quickstart-local/run.js
+node examples/02-diff-and-explain/run.js
+node examples/03-junction-to-decision/run.js
+`
+
+### 2. Try Policy Packs (2 minutes)
+
+`ash
+# View available packs
+cat policy-packs/README.md
+
+# Try one in your pack
+cat policy-packs/balanced-ops.json
+`
+
+### 3. Create a Plugin (10 minutes)
+
+`ash
+# Copy template and modify
+cp -r plugins/template plugins/my-first-plugin
+cd plugins/my-first-plugin
+# Edit plugin.json and index.js
+reach plugins doctor
+`
+
+### 4. Find Your First Issue
+
+See [Good First Issues](#good-first-issues) below.
+
+---
+
+## Getting Help / Feedback
+
+### Quick Questions
+
+- **GitHub Discussions**: For questions, ideas, and general discussion
+- **Examples**: Check examples/ for working code
+
+### Bug Reports & Feature Requests
+
+- Use [GitHub Issues](../../issues) with our templates:
+  - ?? Bug Report
+  - ? Feature Request
+  - ?? Doc Improvement
+
+### Code Help
+
+- Review [examples/README.md](examples/README.md) for working patterns
+- Check [AGENTS.md](AGENTS.md) for architectural decisions
+- Look at existing [plugins/](plugins/) for extension patterns
+
+---
 ## Code of Conduct This project adheres to a code of conduct. By participating, you are expected to uphold this code:
 
 - Be respectful and inclusive
@@ -379,6 +444,99 @@ func (s *SQLiteStore) CreateRun(ctx context.Context, rec RunRecord) error
 
 - Update relevant ADRs in `docs/architecture/`
 
+## Adding Examples/Policy Packs/Plugins
+
+### Adding an Example
+
+1. Create directory: examples/XX-name/ (use next number)
+2. Add required files:
+   - README.md - Purpose, commands, expected output
+   - seed.json or input file
+   - pack.json - Pack manifest
+   - un.js - One-command runner
+   - expected.json - Expected output structure
+3. Update examples/README.md with your example
+4. Test: 
+ode examples/XX-name/run.js --verbose
+5. Submit PR
+
+See existing examples for templates.
+
+### Adding a Policy Pack
+
+1. Create JSON file: policy-packs/my-pack.json
+2. Follow schema in policy-packs/schema.json
+3. Include:
+   - Unique id
+   - Clear description
+   - Appropriate severity
+   - Meaningful ules
+4. Test with sample run
+5. Update policy-packs/README.md
+6. Submit PR
+
+Example structure:
+`json
+{
+  "": "./schema.json",
+  "id": "my-pack",
+  "version": "1.0.0",
+  "type": "quality",
+  "severity": "warning",
+  "rules": [...]
+}
+`
+
+### Adding a Plugin
+
+1. Copy template: cp -r plugins/template plugins/my-plugin
+2. Edit:
+   - plugin.json - Update id, name, capabilities
+   - index.js - Implement your logic
+   - README.md - Document usage
+3. Ensure deterministic: true if needed for replay
+4. Validate: each plugins doctor
+5. Test: each plugins list
+6. Submit PR
+
+---
+
+## Good First Issues
+
+Looking for your first contribution? Try these:
+
+### Documentation
+- Fix typos in READMEs
+- Clarify example descriptions
+- Add code comments
+- Improve error messages
+
+### Examples
+- Add a new example demonstrating a use case
+- Improve existing example runners
+- Add expected output fixtures
+
+### Policy Packs
+- Create a pack for a specific domain (testing, CI/CD, etc.)
+- Add config options to existing packs
+
+### Plugins
+- Create a simple analyzer
+- Add a new renderer format
+
+### Testing
+- Add unit tests for edge cases
+- Improve test coverage
+- Add integration tests
+
+### How to Find Issues
+
+- Look for issues labeled good-first-issue
+- Check examples/ for gaps
+- Review policy-packs/ for missing domains
+- See plugins/ for extension opportunities
+
+---
 ## Submitting Changes ### Before Submitting
 
 1. **Run verification:**

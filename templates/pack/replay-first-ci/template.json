@@ -1,0 +1,39 @@
+{
+  "name": "Replay-First CI Pack",
+  "description": "Deterministic CI pack with replay verification",
+  "variables": [
+    {
+      "name": "name",
+      "prompt": "Pack name (lowercase, no spaces)",
+      "required": true,
+      "validate": "^[a-z0-9-]+$",
+      "default": "my-ci-pipeline"
+    },
+    {
+      "name": "description",
+      "prompt": "Short description",
+      "default": "A deterministic CI pack with replay verification"
+    },
+    {
+      "name": "author",
+      "prompt": "Author name/organization",
+      "default": "local"
+    },
+    {
+      "name": "version",
+      "prompt": "Initial version",
+      "default": "1.0.0"
+    },
+    {
+      "name": "require_determinism",
+      "prompt": "Require deterministic execution?",
+      "type": "boolean",
+      "default": true
+    }
+  ],
+  "output": {
+    "file": "pack.json",
+    "format": "json"
+  },
+  "extends": "packs/replay-first-ci"
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "../plugin-schema.json",
+  "id": "pack-security-basics",
+  "version": "1.0.0",
+  "apiVersion": "1.0.0",
+  "name": "Security Basics Pack Plugin",
+  "description": "Essential security checks for workspace integrity",
+  "deterministic": true,
+  "permissions": {
+    "network": false,
+    "filesystem": true,
+    "env": false
+  },
+  "capabilities": ["registerAnalyzePrAnalyzer", "registerEvidenceExtractor"],
+  "entry": "index.js",
+  "author": "Reach OSS",
+  "license": "MIT"
+}

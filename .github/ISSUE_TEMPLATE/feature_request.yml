@@ -1,31 +1,73 @@
-name: Feature request
-description: Propose a new capability or improvement
-labels: [enhancement]
+name: Feature Request
+description: Suggest a new feature or enhancement
+title: "[FEATURE] "
+labels: ["enhancement", "triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Please describe the user problem first, then the proposed solution.
+        Thanks for suggesting a feature! Please describe your idea in detail.
+
   - type: textarea
     id: problem
     attributes:
-      label: Problem statement
-      description: What user workflow is blocked or painful today?
+      label: Problem Statement
+      description: What problem are you trying to solve?
+      placeholder: I'm always frustrated when...
     validations:
       required: true
+
   - type: textarea
-    id: proposal
+    id: solution
     attributes:
-      label: Proposed solution
-      description: Describe the desired behavior and API/UX impact.
+      label: Proposed Solution
+      description: Describe the solution you'd like
+      placeholder: It would be great if Reach could...
     validations:
       required: true
+
   - type: textarea
     id: alternatives
     attributes:
-      label: Alternatives considered
+      label: Alternatives Considered
+      description: What alternatives have you considered?
+      placeholder: I could also solve this by...
+    validations:
+      required: false
+
   - type: textarea
-    id: scope
+    id: usecase
     attributes:
-      label: Scope and impact
-      description: Which components are affected (mobile, runner, engine, protocol)?
+      label: Use Case
+      description: Describe your specific use case
+      placeholder: In my workflow, I need to...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this to you?
+      options:
+        - Nice to have
+        - Would make my life easier
+        - Blocking my work
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: verification
+    attributes:
+      label: Verification
+      options:
+        - label: I have searched existing issues to avoid duplicates
+          required: true
+        - label: This feature aligns with Reach's determinism principles
+          required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context or screenshots

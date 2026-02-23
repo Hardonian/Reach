@@ -2,75 +2,220 @@
 
 Extend Reach with custom analyzers, renderers, retrievers, and more.
 
-## What Are Plugins?
-
-Plugins are self-contained modules that add capabilities to Reach:
-
-- **Analyzers** - Process inputs and provide insights
-- **Renderers** - Format output for different contexts
-- **Retrievers** - Fetch external data sources
-- **Decision Types** - Custom decision logic
-- **Evidence Extractors** - Pull evidence from various sources
-
-## Quick Start
+## Quick Start (Copy-Paste)
 
 ```bash
-# List installed plugins
+# List all installed plugins
 reach plugins list
 
-# Validate plugin configuration
+# Validate all plugins
 reach plugins doctor
 
-# Create new analyzer plugin
-reach plugins init-analyzer my-analyzer
+# Create new plugin from template
+cp -r plugins/template plugins/my-plugin
 ```
 
-## Plugin Manifest
+## Plugin Template
 
-Every plugin requires a `plugin.json` manifest:
+Start with the template:
 
-```json
+```bash
+cp -r plugins/template plugins/my-plugin
+cd plugins/my-plugin
+# Edit plugin.json and index.js
+```
+
+See `template/README.md` for details.
+
+## Sample Plugins (3 Included)
+
+### 1. Sample Summarizer
+**Location:** `plugins/sample-summarizer/`  
+**Capability:** Evidence extraction  
+**Safety:** ✅ Read-only, no side effects
+
+Summarizes evidence metadata for quick overview.
+
+```javascript
+// Usage: Automatically registered as evidence extractor
 {
-  "id": "my-plugin",
-  "version": "1.0.0",
-  "apiVersion": "1.0.0",
-  "deterministic": true,
-  "permissions": {
-    "network": false
-  },
-  "capabilities": ["registerAnalyzePrAnalyzer"],
-  "entry": "index.js"
+  "plugins": ["plugins/sample-summarizer"]
 }
 ```
 
-## Available Capabilities
+**Output:**
+```json
+{
+  "summary": "Evidence collection with 5 items",
+  "count": 5,
+  "categories": [{"name": "metrics", "count": 3}],
+  "confidence": {"average": 0.82, "min": 0.65, "max": 0.95}
+}
+```
 
-| Capability | Description |
-|------------|-------------|
-| `registerDecisionType` | Add custom decision types |
-| `registerPolicy` | Register custom policies |
-| `registerEvidenceExtractor` | Extract evidence from sources |
-| `registerRenderer` | Format output |
-| `registerRetriever` | Fetch external data |
-| `registerAnalyzePrAnalyzer` | Analyze PRs/decisions |
+---
 
-## Plugin Locations
+### 2. Sample Junction Rule
+**Location:** `plugins/sample-junction-rule/`  
+**Capability:** Decision types  
+**Safety:** ✅ Deterministic, no external state
 
-Reach loads plugins from (in order):
-1. `./plugins/` - Project-local plugins
-2. `~/.reach/plugins/` - User plugins
-3. Built-in plugins (this directory)
+Adds deployment strategy junction template.
 
-## Example Plugins
+```javascript
+// Create a deployment decision
+const junction = plugin.createJunction({
+  service: "api-gateway",
+  risk_tolerance: "low",
+  traffic_pattern: "spiky"
+});
 
-### 1. analyzer-example
-A sample PR analyzer that checks for common issues.
+// Returns ranked options: blue-green, canary, rolling
+```
 
-### 2. renderer-example
-Custom output formatter for JSON and markdown.
+**Options:**
+| Strategy | Downtime | Rollback | Best For |
+|----------|----------|----------|----------|
+| Blue-Green | None | Instant | Critical services |
+| Canary | None | Fast | Gradual rollout |
+| Rolling | Minimal | Slow | Simple services |
 
-### 3. retriever-example
-Example data retriever from external APIs.
+---
+
+### 3. Sample Export Hook
+**Location:** `plugins/sample-export-hook/`  
+**Capability:** Rendering  
+**Safety:** ✅ Deterministic output
+
+Adds metadata files to export bundles.
+
+```bash
+# Export includes extra files
+reach export <run-id> --format zip
+
+# Bundle contents:
+# - manifest.json (standard)
+# - plugin-metadata.json (added by plugin)
+# - README.txt (added by plugin)
+```
+
+**Files Added:**
+- `plugin-metadata.json` - Statistics, tags, cross-references
+- `README.txt` - Human-readable summary
+
+---
+
+### 4. Sample Deterministic Plugin
+**Location:** `plugins/sample-deterministic-plugin/`  
+**Capability:** Decision types, analyzers  
+**Safety:** ✅ Fully deterministic
+
+Demonstrates deterministic decision making and determinism checking.
+
+```javascript
+// Make deterministic choice
+plugin.decide({
+  seed: "my-seed",
+  options: ["a", "b", "c"]
+});
+
+// Check code for determinism issues
+plugin.analyze({ code: "Math.random()" });
+// → Error: Math.random() detected
+```
+
+---
+
+## Example Plugins (3 Included)
+
+### Analyzer Example
+**Location:** `plugins/analyzer-example/`  
+**Capabilities:** Code quality and security analysis
+
+Analyzes code for:
+- Function complexity
+- TODO/FIXME comments
+- console.log usage
+- Hardcoded secrets
+- eval() usage
+
+---
+
+### Renderer Example
+**Location:** `plugins/renderer-example/`  
+**Capabilities:** Output formatting
+
+Renderers:
+- `json-compact` - Minified JSON
+- `json-pretty` - Formatted JSON
+- `markdown` - Markdown tables
+- `html` - Styled HTML report
+
+---
+
+### Retriever Example
+**Location:** `plugins/retriever-example/`  
+**Capabilities:** Data fetching
+
+Retrievers:
+- `weather` - Mock weather data
+- `pricing` - Cloud pricing info
+- `exchange-rate` - Currency rates
+
+---
+
+## Pack Plugins (3 Included)
+
+### Pack: Drift Hunter
+**Location:** `plugins/pack-drift-hunter/`  
+**Pack:** `packs/drift-hunter/`
+
+Detects configuration drift between runs.
+
+**Recipes:**
+- `drift-scan` - Scan for configuration changes
+- `diff-runs` - Compare two runs
+
+**Usage:**
+```bash
+reach run pack.json --recipe drift-scan
+```
+
+---
+
+### Pack: Replay-First CI
+**Location:** `plugins/pack-replay-first-ci/`  
+**Pack:** `packs/replay-first-ci/`
+
+Deterministic CI with replay verification.
+
+**Recipes:**
+- `replay-verify` - Verify run reproducibility
+- `ci-check` - Check CI readiness
+
+**Usage:**
+```bash
+reach run pack.json --recipe replay-verify
+```
+
+---
+
+### Pack: Security Basics
+**Location:** `plugins/pack-security-basics/`  
+**Pack:** `packs/security-basics/`
+
+Essential security checks.
+
+**Recipes:**
+- `security-scan` - Scan for security issues
+- `integrity-check` - Verify artifact integrity
+
+**Usage:**
+```bash
+reach run pack.json --recipe security-scan
+```
+
+---
 
 ## Creating a Plugin
 
@@ -81,44 +226,46 @@ mkdir plugins/my-plugin
 cd plugins/my-plugin
 ```
 
-### 2. Create Manifest
+### 2. Create Manifest (`plugin.json`)
 
 ```json
 {
+  "$schema": "../plugin-schema.json",
   "id": "my-plugin",
   "version": "1.0.0",
   "apiVersion": "1.0.0",
+  "name": "My Plugin",
+  "description": "What my plugin does",
   "deterministic": true,
-  "permissions": { "network": false },
+  "permissions": {
+    "network": false,
+    "filesystem": false,
+    "env": false
+  },
   "capabilities": ["registerAnalyzePrAnalyzer"],
-  "entry": "index.js"
+  "entry": "index.js",
+  "author": "Your Name",
+  "license": "MIT"
 }
 ```
 
-### 3. Implement Plugin
+### 3. Implement Entry (`index.js`)
 
 ```javascript
-// index.js
 module.exports = {
   register() {
     return {
-      analyzers: [
-        {
-          id: "my-analyzer",
-          category: "quality",
-          deterministic: true,
-          analyze(input) {
-            // Your analysis logic
-            return [
-              {
-                type: "suggestion",
-                message: "Consider improving this",
-                severity: "info"
-              }
-            ];
-          }
+      analyzers: [{
+        id: "my-analyzer",
+        deterministic: true,
+        analyze(input) {
+          return [{
+            type: "suggestion",
+            message: "Analysis result",
+            severity: "info"
+          }];
         }
-      ]
+      }]
     };
   }
 };
@@ -130,12 +277,66 @@ module.exports = {
 reach plugins doctor
 ```
 
-## Security
+### 5. Test
 
-- Plugins must declare `deterministic: true` for replay
-- Network access requires explicit permission
-- All plugins are sandboxed
-- Capabilities are explicitly granted
+```bash
+reach plugins list
+```
+
+## Capabilities
+
+| Capability | Purpose |
+|------------|---------|
+| `registerAnalyzePrAnalyzer` | Analyze PRs/decisions |
+| `registerDecisionType` | Custom decision logic |
+| `registerPolicy` | Custom policies |
+| `registerEvidenceExtractor` | Extract evidence |
+| `registerRenderer` | Format output |
+| `registerRetriever` | Fetch external data |
+
+## Determinism Requirements
+
+Plugins used in replay must be deterministic:
+
+- Same input → same output
+- No `Math.random()` without seed
+- No `Date.now()` in output paths
+- Sort map keys before iteration
+- No external state
+
+Mark in manifest:
+```json
+{
+  "deterministic": true
+}
+```
+
+## Permissions
+
+```json
+{
+  "permissions": {
+    "network": false,      // HTTP requests
+    "filesystem": false,   // File access outside plugin dir
+    "env": false           // Environment variables
+  }
+}
+```
+
+## Plugin Locations
+
+Reach loads plugins from (in order):
+1. `./plugins/` - Project-local plugins
+2. `~/.reach/plugins/` - User plugins  
+3. Built-in plugins
+
+## Validation
+
+Plugins are validated for:
+- Manifest schema compliance
+- Determinism declaration
+- Entry point exists
+- Capabilities valid
 
 ## Best Practices
 
@@ -145,6 +346,16 @@ reach plugins doctor
 4. **Version properly** - Use semantic versioning
 5. **Test thoroughly** - Include test cases
 
-## Plugin Schema
+## Schema
 
-See `plugin-schema.json` for the complete plugin manifest schema.
+See `plugin-schema.json` for complete manifest schema.
+
+## Contributing
+
+To share your plugin:
+1. Ensure it passes `reach plugins doctor`
+2. Include comprehensive README
+3. Add to examples if applicable
+4. Submit a PR
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.

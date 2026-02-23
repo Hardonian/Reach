@@ -1,37 +1,65 @@
-# Pull Request Template
+## Summary
 
-## Description
+Brief description of the changes
 
-<!-- Describe the changes and the motivation behind them. -->
+## Related Issues
 
-## Linked Issues
+Fixes #(issue number) or Related to #(issue number)
 
-<!-- Fixes #123 -->
+## Changes Made
+
+- [ ] Change 1
+- [ ] Change 2
+- [ ] Change 3
 
 ## Type of Change
 
-- [ ] 🐛 Bug fix (non-breaking change which fixes an issue)
-- [ ] ✨ New feature (non-breaking change which adds functionality)
-- [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] 🏗️ Infrastructure / Tooling
-- [ ] 📖 Documentation
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
+- [ ] Documentation update
+- [ ] Example/pack addition
+- [ ] Policy pack addition
+- [ ] Plugin addition
+- [ ] Refactoring
+- [ ] Performance improvement
 
-## Verification
+## Testing
 
-### Automated Checks
+- [ ] Unit tests added/updated
+- [ ] Integration tests pass
+- [ ] Example runs verified
+- [ ] Manual testing performed
 
-- [ ] `npm run verify` passes locally.
-- [ ] `npm run docs:doctor` reports no drift.
-- [ ] New tests added for the change.
+Run verification:
+```bash
+npm run verify:full
+```
 
-### Manual Verification
+## Determinism Check
 
-<!-- Describe the manual tests you performed to verify your changes. -->
+For changes affecting execution:
+- [ ] Verified identical inputs produce identical fingerprints
+- [ ] No `time.Now()` or `rand` in fingerprint paths
+- [ ] Map iterations are sorted
+
+## Documentation
+
+- [ ] Code comments updated
+- [ ] README updated (if applicable)
+- [ ] Examples updated (if applicable)
+- [ ] CHANGELOG.md updated (if user-facing)
 
 ## Checklist
 
-- [ ] My code follows the code style of this project.
-- [ ] I have updated the documentation accordingly.
-- [ ] My changes generate no new warnings.
-- [ ] I have added/updated tests that prove my fix is effective or that my feature works.
-- [ ] I have updated the `CHANGELOG.md` (if required).
+- [ ] Code follows project style guidelines
+- [ ] Self-review completed
+- [ ] Changes are focused and minimal
+- [ ] No breaking changes (or clearly documented)
+- [ ] All CI checks pass
+
+## Screenshots (if applicable)
+
+## Additional Notes
+
+Any other information reviewers should know

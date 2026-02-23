@@ -1,0 +1,38 @@
+{
+  "name": "Drift Hunter Pack",
+  "description": "Configuration drift detection pack with built-in recipes and rules",
+  "variables": [
+    {
+      "name": "name",
+      "prompt": "Pack name (lowercase, no spaces)",
+      "required": true,
+      "validate": "^[a-z0-9-]+$",
+      "default": "my-drift-detector"
+    },
+    {
+      "name": "description",
+      "prompt": "Short description",
+      "default": "A drift detection pack for Reach"
+    },
+    {
+      "name": "author",
+      "prompt": "Author name/organization",
+      "default": "local"
+    },
+    {
+      "name": "version",
+      "prompt": "Initial version",
+      "default": "1.0.0"
+    },
+    {
+      "name": "tracked_files",
+      "prompt": "Files to track for drift (comma-separated)",
+      "default": "package.json,reach.config.json"
+    }
+  ],
+  "output": {
+    "file": "pack.json",
+    "format": "json"
+  },
+  "extends": "packs/drift-hunter"
+}

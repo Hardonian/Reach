@@ -1,60 +1,100 @@
-name: 🐛 Bug report
-description: Report a reproducible defect in Reach
-labels: [bug, status:triage]
+name: Bug Report
+description: Report a bug in Reach
+title: "[BUG] "
+labels: ["bug", "triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting a bug. Please ensure you have redacted any secrets from your logs before submission.
+        Thanks for taking the time to report a bug! Please fill out the information below.
+
   - type: textarea
-    id: summary
+    id: description
     attributes:
-      label: Summary
-      description: What happened?
+      label: Description
+      description: A clear description of the bug
+      placeholder: When I run X, Y happens instead of Z
     validations:
       required: true
+
   - type: textarea
-    id: steps
+    id: reproduction
     attributes:
-      label: Steps to reproduce
-      description: Exact commands, inputs, and environment details.
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
       placeholder: |
-        1. ...
-        2. ...
-        3. ...
+        1. Run command '...'
+        2. With input '....'
+        3. See error
     validations:
       required: true
+
   - type: textarea
     id: expected
     attributes:
-      label: Expected vs Actual behavior
-      description: What did you expect to happen, and what happened instead?
+      label: Expected Behavior
+      description: What you expected to happen
+      placeholder: The command should output...
     validations:
       required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened
+      placeholder: Instead, it outputs...
+    validations:
+      required: true
+
   - type: textarea
     id: environment
     attributes:
-      label: Environment Details
-      description: OS version, Node/Go/Rust versions, and reach version.
+      label: Environment
+      description: Your environment details
       placeholder: |
-        OS: Windows 11
-        Node: v20.10.0
-        reach: v2.4.1
+        - OS: [e.g. macOS 14, Ubuntu 22.04, Windows 11]
+        - Reach Version: [e.g. 0.3.1]
+        - Node Version: [e.g. 18.17.0]
+        - Go Version: [e.g. 1.23.0]
+        - Rust Version: [e.g. 1.75.0]
     validations:
       required: true
+
   - type: textarea
     id: logs
     attributes:
-      label: Logs / Redacted Run Artifacts
-      description: Paste relevant logs or .artifacts content here. REMOVE SECRETS.
+      label: Logs/Screenshots
+      description: Any relevant logs or screenshots
+      render: shell
+
   - type: checkboxes
-    id: checks
+    id: verification
     attributes:
-      label: Pre-submission Checklist
+      label: Verification
+      description: Please verify the following
       options:
-        - label: I have run `./reach doctor` and confirmed my environment is healthy.
+        - label: I have searched existing issues to avoid duplicates
           required: true
-        - label: I have redacted all secrets (API keys, PII) from the logs provided.
+        - label: I can reproduce this with the latest version
           required: true
-        - label: I am using the latest version of the code.
-          required: true
+        - label: This is a bug in Reach (not my environment/configuration)
+          required: false
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which component is affected?
+      options:
+        - CLI (reach/reachctl)
+        - Core Engine
+        - SDK (TypeScript)
+        - SDK (Python)
+        - Plugins
+        - Policy Packs
+        - Examples
+        - Documentation
+        - Other
+    validations:
+      required: false
