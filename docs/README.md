@@ -110,6 +110,7 @@ _Reach: The Deterministic Spine for Agentic Intelligence._
 - [ReadyLayer Suite Runbook](READYLAYER_SUITE_RUNBOOK.md)
 - [Ready Layer Strategy](READY_LAYER_STRATEGY.md)
 - [Red Team Simulation](RED_TEAM_SIMULATION.md)
+- [Release Notes](RELEASE.md)
 - [Release Checklist](RELEASE_CHECKLIST.md)
 - [Replay Diff Spec](REPLAY_DIFF_SPEC.md)
 - [Replay Integrity Proof](REPLAY_INTEGRITY_PROOF.md)
