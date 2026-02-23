@@ -1,0 +1,27 @@
+[
+  {
+    "description": "Simple flat object",
+    "input": {"action": "deploy", "environment": "production"},
+    "expected_sha256": "c30b67fdb03e3e614ec69c7a7837c974fb5bead7476eeee6c23a7ec2ffdbe4ff"
+  },
+  {
+    "description": "Nested object with sorted keys",
+    "input": {"b": 2, "a": 1, "c": {"z": 26, "a": 1}},
+    "expected_sha256": "44d0a9b0b0dd87a9e337c5df56fc6001abbc8cc760a0aa8a53cd41b24e1e29b2"
+  },
+  {
+    "description": "Empty object",
+    "input": {},
+    "expected_sha256": "44136fa355b311bfa706c3cf3c82f48ab0be64adee2da4ab1af85e62e703e313"
+  },
+  {
+    "description": "Array with mixed types",
+    "input": {"items": [1, "two", true, null, {"nested": "value"}]},
+    "expected_sha256": "e3fd0d63aa1c63ccaf754e2d4d20e34b2acce91c03e1660f73f8b4f05804b4b6"
+  },
+  {
+    "description": "Unicode content",
+    "input": {"name": "日本語テスト", "emoji": "🎯"},
+    "expected_sha256": "98285f3b91e79ec58e32adab6c7e4c8f12e7c61e9ae3df03e8c18ce2e4ca19f3"
+  }
+]
