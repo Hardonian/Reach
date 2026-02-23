@@ -1,5 +1,5 @@
 import { loadConfig } from "../core/env.js";
-// @ts-nocheck
+import { ErrorCodes, type ErrorCode } from "../core/errors.js";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -148,27 +148,27 @@ function printHelp(): void {
   );
 }
 
-export async function runLlmCommand(args: DoctorArgs): Promise<number> {
+export async function runLlmCommand(args: DoctorArgs): Promise<ErrorCode> {
   if (!args.command) {
     printHelp();
-    return 1;
+    return ErrorCodes.INVALID_INPUT;
   }
 
   const config = resolveLlmConfig(args);
   const health = await providerHealth(config);
   if (!health.reachable) {
     console.error(`[LLM_DOCTOR_FAILED] Provider unreachable: ${health.details}`);
-    return 2;
+    return ErrorCodes.LLM_PROVIDER_UNREACHABLE;
   }
   if (!health.modelAvailable) {
     console.error(
       `[LLM_DOCTOR_FAILED] Model '${config.model}' unavailable for provider '${config.provider}'.`,
     );
-    return 3;
+    return ErrorCodes.LLM_MODEL_UNAVAILABLE;
   }
   if (config.temperature !== 0) {
     console.error("[LLM_DOCTOR_FAILED] Non-deterministic temperature; must be 0.");
-    return 4;
+    return ErrorCodes.LLM_NON_DETERMINISTIC;
   }
 
   console.log(
@@ -183,5 +183,5 @@ export async function runLlmCommand(args: DoctorArgs): Promise<number> {
       2,
     ),
   );
-  return 0;
+  return ErrorCodes.SUCCESS;
 }

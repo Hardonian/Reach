@@ -27,6 +27,13 @@ export interface ReachConfig {
   SUPABASE_URL?: string;
   SUPABASE_SERVICE_KEY?: string;
 
+  // LLM Configuration (for llm-cli.ts)
+  ZEO_LLM_PROVIDER?: string;
+  ZEO_LLM_MODEL?: string;
+  ZEO_LLM_BASE_URL?: string;
+  ZEO_LLM_API_KEY?: string;
+  ZEO_LLM_SEED?: string;
+
   // Control Plane routing
   ZEO_MODEL: string;
   ZEO_PROVIDER: string;
@@ -108,6 +115,13 @@ export function loadConfig(): ReachConfig {
     GITHUB_TOKEN: process.env.GITHUB_TOKEN,
     SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL,
     ZEO_PLUGIN_PATH: process.env.ZEO_PLUGIN_PATH,
+
+    // LLM Configuration (optional, for llm-cli.ts)
+    ZEO_LLM_PROVIDER: process.env.ZEO_LLM_PROVIDER,
+    ZEO_LLM_MODEL: process.env.ZEO_LLM_MODEL,
+    ZEO_LLM_BASE_URL: process.env.ZEO_LLM_BASE_URL,
+    ZEO_LLM_API_KEY: process.env.ZEO_LLM_API_KEY,
+    ZEO_LLM_SEED: process.env.ZEO_LLM_SEED,
   };
 
   // Fail fast validations
