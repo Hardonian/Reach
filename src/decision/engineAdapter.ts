@@ -3,7 +3,7 @@
  * Provides a unified interface for decision evaluation engines with support for TS fallback and WASM engine.
  */
 
-import { DecisionInput, DecisionOutput } from '../lib/fallback.js';
+import { DecisionInput, DecisionOutput } from "../lib/fallback";
 
 export interface DecisionEngine {
   evaluate(input: DecisionInput): Promise<DecisionOutput>;
@@ -16,7 +16,7 @@ export interface DecisionEngine {
 export class TsReferenceEngine implements DecisionEngine {
   async evaluate(input: DecisionInput): Promise<DecisionOutput> {
     // Import dynamically to allow tree-shaking
-    const { evaluateDecisionFallback } = await import('../lib/fallback.js');
+    const { evaluateDecisionFallback } = await import("../lib/fallback");
     return evaluateDecisionFallback(input);
   }
 }
@@ -28,7 +28,7 @@ export class TsReferenceEngine implements DecisionEngine {
 export class WasmEngine implements DecisionEngine {
   async evaluate(input: DecisionInput): Promise<DecisionOutput> {
     // TODO: Replace with actual WASM engine integration when available
-    throw new Error('WASM engine not available yet');
+    throw new Error("WASM engine not available yet");
   }
 }
 
@@ -37,12 +37,12 @@ export class WasmEngine implements DecisionEngine {
  * Returns the appropriate engine based on environment configuration.
  */
 export function createDecisionEngine(): DecisionEngine {
-  const engineType = process.env.DECISION_ENGINE || 'ts';
-  
+  const engineType = process.env.DECISION_ENGINE || "ts";
+
   switch (engineType.toLowerCase()) {
-    case 'wasm':
+    case "wasm":
       return new WasmEngine();
-    case 'ts':
+    case "ts":
     default:
       return new TsReferenceEngine();
   }
@@ -66,7 +66,9 @@ export function getDecisionEngine(): DecisionEngine {
 /**
  * Evaluate a decision using the configured engine
  */
-export async function evaluateDecision(input: DecisionInput): Promise<DecisionOutput> {
+export async function evaluateDecision(
+  input: DecisionInput,
+): Promise<DecisionOutput> {
   const engine = getDecisionEngine();
   return engine.evaluate(input);
 }
