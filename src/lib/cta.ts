@@ -62,5 +62,8 @@ export function generateCtas(
 
   return items
     .slice(0, 5)
-    .sort((a, b) => (Number(a.priority) || 0) - (Number(b.priority) || 0) || codePointCompare(a.label, b.label));
+    .sort(
+      (a, b) =>
+        (Number(a.priority) || 0) - (Number(b.priority) || 0) || codePointCompare(a.label, b.label),
+    );
 }

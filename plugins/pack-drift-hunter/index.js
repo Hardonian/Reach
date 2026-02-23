@@ -203,7 +203,11 @@ module.exports = {
             });
 
             // Sort for determinism
-            evidence.items.sort((a, b) => { let sa = JSON.stringify(a), sb = JSON.stringify(b); return sa < sb ? -1 : (sa > sb ? 1 : 0); });
+            evidence.items.sort((a, b) => {
+              let sa = JSON.stringify(a),
+                sb = JSON.stringify(b);
+              return sa < sb ? -1 : sa > sb ? 1 : 0;
+            });
 
             return evidence;
           },

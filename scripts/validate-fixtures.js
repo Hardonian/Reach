@@ -61,8 +61,13 @@ function validateFixture(filePath) {
     }
 
     // Validate complexity enum
-    if (fixture.complexity && !["beginner", "intermediate", "advanced"].includes(fixture.complexity)) {
-      errors.push(`Invalid complexity: "${fixture.complexity}" (must be beginner/intermediate/advanced)`);
+    if (
+      fixture.complexity &&
+      !["beginner", "intermediate", "advanced"].includes(fixture.complexity)
+    ) {
+      errors.push(
+        `Invalid complexity: "${fixture.complexity}" (must be beginner/intermediate/advanced)`,
+      );
     }
 
     return { valid: errors.length === 0, errors };

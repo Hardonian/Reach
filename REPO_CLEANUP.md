@@ -2,12 +2,12 @@
 
 ## Current State
 
-| Metric | Value |
-|--------|-------|
-| **.git directory** | ~238 MB |
+| Metric                    | Value                  |
+| ------------------------- | ---------------------- |
+| **.git directory**        | ~238 MB                |
 | **.exe files in history** | ~452 MB (uncompressed) |
-| **.zip files in history** | ~40 MB (uncompressed) |
-| **Total large blobs** | ~492 MB |
+| **.zip files in history** | ~40 MB (uncompressed)  |
+| **Total large blobs**     | ~492 MB                |
 
 ### Largest Files in History
 
@@ -28,11 +28,13 @@ Choose one of the following approaches:
 ### Option 1: git-filter-repo (Recommended - Fastest)
 
 Install:
+
 ```bash
 pip install git-filter-repo
 ```
 
 Run:
+
 ```bash
 bash scripts/shrink-repo.sh
 ```
@@ -40,11 +42,13 @@ bash scripts/shrink-repo.sh
 ### Option 2: BFG Repo-Cleaner (Easiest)
 
 Download:
+
 ```bash
 wget https://repo1.maven.org/maven2/com/madgag/bfg/1.14.0/bfg-1.14.0.jar
 ```
 
 Run:
+
 ```bash
 bash scripts/shrink-repo-bfg.sh
 ```
@@ -57,6 +61,7 @@ bash scripts/shrink-repo.sh
 ```
 
 Or on Windows:
+
 ```powershell
 .\scripts\shrink-repo.ps1
 ```
@@ -66,23 +71,28 @@ Or on Windows:
 ## ⚠️ Critical Warnings
 
 ### 1. Coordinate with Team
+
 ```
 This changes ALL commit hashes. Everyone must reclone or reset.
 ```
 
 ### 2. Create Backup First
+
 ```bash
 git branch backup-before-cleanup-$(date +%Y%m%d)
 ```
 
 ### 3. Force Push Required
+
 ```bash
 git push origin --force --all
 git push origin --force --tags
 ```
 
 ### 4. Team Member Update
+
 Everyone on the team must:
+
 ```bash
 # Option A: Reclone
 git clone <repo-url>
@@ -98,11 +108,11 @@ git reset --hard origin/main  # or main/master branch
 
 After cleanup:
 
-| Metric | Before | After (Est.) |
-|--------|--------|--------------|
-| .git size | ~238 MB | ~30-50 MB |
-| Clone time | Slow | Fast |
-| CI/CD time | Slow | Fast |
+| Metric     | Before  | After (Est.) |
+| ---------- | ------- | ------------ |
+| .git size  | ~238 MB | ~30-50 MB    |
+| Clone time | Slow    | Fast         |
+| CI/CD time | Slow    | Fast         |
 
 ---
 
@@ -113,6 +123,7 @@ After cleanup:
 - Any blob larger than 10 MB
 
 What stays:
+
 - Source code
 - Documentation
 - Small config files

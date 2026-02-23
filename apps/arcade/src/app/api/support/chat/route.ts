@@ -69,7 +69,13 @@ export async function POST(request: Request) {
     .map((entry) => ({ entry, score: score(entry, question.toLowerCase()) }))
     .filter((r) => r.score > 0)
     .sort((a, b) =>
-      b.score === a.score ? (a.entry.id < b.entry.id ? -1 : a.entry.id > b.entry.id ? 1 : 0) : b.score - a.score,
+      b.score === a.score
+        ? a.entry.id < b.entry.id
+          ? -1
+          : a.entry.id > b.entry.id
+            ? 1
+            : 0
+        : b.score - a.score,
     );
   if (ranked.length === 0) {
     return NextResponse.json({

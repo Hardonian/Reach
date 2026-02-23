@@ -55,13 +55,13 @@ reach version
 
 ### Platform Support
 
-| Platform | Architecture | Status |
-|----------|-------------|--------|
-| Linux    | AMD64       | ✅ Supported |
-| Linux    | ARM64       | ✅ Supported |
-| macOS    | AMD64       | ✅ Supported |
-| macOS    | ARM64       | ✅ Supported (Apple Silicon) |
-| Windows  | AMD64       | ✅ Supported |
+| Platform | Architecture | Status                       |
+| -------- | ------------ | ---------------------------- |
+| Linux    | AMD64        | ✅ Supported                 |
+| Linux    | ARM64        | ✅ Supported                 |
+| macOS    | AMD64        | ✅ Supported                 |
+| macOS    | ARM64        | ✅ Supported (Apple Silicon) |
+| Windows  | AMD64        | ✅ Supported                 |
 
 ## ⚡ 60-Second Quickstart
 

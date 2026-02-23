@@ -96,7 +96,9 @@ function main() {
   const capsulePath = resolve(EXAMPLE_DIR, `${runId}.capsule.json`);
 
   try {
-    const result = runCommand(`${reachCmd} capsule create ${runId} --output ${capsulePath}`, { stdio: "pipe" });
+    const result = runCommand(`${reachCmd} capsule create ${runId} --output ${capsulePath}`, {
+      stdio: "pipe",
+    });
     debug(result);
   } catch (e) {
     // Create capsule manually for demo

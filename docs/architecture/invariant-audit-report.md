@@ -134,111 +134,111 @@ refactoring and do not affect TypeScript/core determinism guarantees.
 
 ### Determinism Contract (DET)
 
-| ID     | Invariant                                      | Status       |
-| :----- | :--------------------------------------------- | :----------- |
-| DET-01 | Same input → same hash (TypeScript)            | HOLDS        |
-| DET-02 | Same input → same hash (Go)                    | HOLDS        |
-| DET-03 | Same input → same hash (Rust)                  | HOLDS        |
-| DET-04 | Canonical JSON key ordering is recursive       | HOLDS        |
-| DET-05 | DeterministicMap iterates in sorted key order  | HOLDS        |
-| DET-06 | SeededRandom produces identical sequence       | HOLDS        |
-| DET-07 | HashStream chunked == single update            | HOLDS        |
-| DET-08 | combineHashes is order-sensitive               | HOLDS        |
-| DET-09 | Replay produces identical transcript hash      | HOLDS        |
-| DET-10 | Cross-language hash equivalence                | **RESOLVED** |
-| DET-11 | Float encoding stability across platforms      | UNTESTED     |
-| DET-12 | Tie-break sorting is locale-independent        | **RESOLVED** |
+| ID     | Invariant                                     | Status       |
+| :----- | :-------------------------------------------- | :----------- |
+| DET-01 | Same input → same hash (TypeScript)           | HOLDS        |
+| DET-02 | Same input → same hash (Go)                   | HOLDS        |
+| DET-03 | Same input → same hash (Rust)                 | HOLDS        |
+| DET-04 | Canonical JSON key ordering is recursive      | HOLDS        |
+| DET-05 | DeterministicMap iterates in sorted key order | HOLDS        |
+| DET-06 | SeededRandom produces identical sequence      | HOLDS        |
+| DET-07 | HashStream chunked == single update           | HOLDS        |
+| DET-08 | combineHashes is order-sensitive              | HOLDS        |
+| DET-09 | Replay produces identical transcript hash     | HOLDS        |
+| DET-10 | Cross-language hash equivalence               | **RESOLVED** |
+| DET-11 | Float encoding stability across platforms     | UNTESTED     |
+| DET-12 | Tie-break sorting is locale-independent       | **RESOLVED** |
 
 ### Event Store Lifecycle (EVT)
 
-| ID     | Invariant                                     | Status       |
-| :----- | :-------------------------------------------- | :----------- |
-| EVT-01 | Events ordered by monotonic auto-increment    | HOLDS        |
-| EVT-02 | Snapshot state ≡ replay of events             | HOLDS        |
-| EVT-03 | Pruning requires snapshot coverage            | HOLDS        |
-| EVT-04 | Full replay hash == resumable replay hash     | ASSUMED      |
-| EVT-05 | Audit table is append-only                    | HOLDS        |
-| EVT-06 | WAL mode enabled for concurrency safety       | HOLDS        |
-| EVT-07 | Snapshot + prune is atomic                    | **RESOLVED** |
+| ID     | Invariant                                  | Status       |
+| :----- | :----------------------------------------- | :----------- |
+| EVT-01 | Events ordered by monotonic auto-increment | HOLDS        |
+| EVT-02 | Snapshot state ≡ replay of events          | HOLDS        |
+| EVT-03 | Pruning requires snapshot coverage         | HOLDS        |
+| EVT-04 | Full replay hash == resumable replay hash  | ASSUMED      |
+| EVT-05 | Audit table is append-only                 | HOLDS        |
+| EVT-06 | WAL mode enabled for concurrency safety    | HOLDS        |
+| EVT-07 | Snapshot + prune is atomic                 | **RESOLVED** |
 
 ### Planner Boundary (PLN)
 
-| ID     | Invariant                                     | Status |
-| :----- | :-------------------------------------------- | :----- |
-| PLN-01 | LLM output is schema-validated before use     | HOLDS  |
-| PLN-02 | temperature=0 and seed enforced               | HOLDS  |
-| PLN-03 | Fallback mode is deterministic                | HOLDS  |
-| PLN-04 | Replay never re-queries the LLM               | HOLDS  |
-| PLN-05 | AI proposals are hashed at entry              | HOLDS  |
-| PLN-06 | Adjudication is deterministic                 | HOLDS  |
-| PLN-07 | No dynamic eval of LLM output                 | HOLDS  |
+| ID     | Invariant                                 | Status |
+| :----- | :---------------------------------------- | :----- |
+| PLN-01 | LLM output is schema-validated before use | HOLDS  |
+| PLN-02 | temperature=0 and seed enforced           | HOLDS  |
+| PLN-03 | Fallback mode is deterministic            | HOLDS  |
+| PLN-04 | Replay never re-queries the LLM           | HOLDS  |
+| PLN-05 | AI proposals are hashed at entry          | HOLDS  |
+| PLN-06 | Adjudication is deterministic             | HOLDS  |
+| PLN-07 | No dynamic eval of LLM output             | HOLDS  |
 
 ### Trust Model (TRU)
 
-| ID     | Invariant                                     | Status       |
-| :----- | :-------------------------------------------- | :----------- |
-| TRU-01 | Replay detects event modification             | HOLDS        |
-| TRU-02 | Replay detects event insertion                | HOLDS        |
-| TRU-03 | Replay detects event deletion                 | HOLDS        |
-| TRU-04 | Envelope signature covers transcript hash     | HOLDS        |
-| TRU-05 | Keyring tracks signer fingerprints            | HOLDS        |
-| TRU-06 | Clock manipulation doesn't affect hash chain  | HOLDS        |
-| TRU-07 | Artifact blobs integrity-verified on read     | **RESOLVED** |
-| TRU-08 | Transcript chain verified across envelopes    | **RESOLVED** |
-| TRU-09 | Snapshot state integrity-verified             | **RESOLVED** |
-| TRU-10 | Combined fingerprint + events tamper risk     | RISK         |
+| ID     | Invariant                                    | Status       |
+| :----- | :------------------------------------------- | :----------- |
+| TRU-01 | Replay detects event modification            | HOLDS        |
+| TRU-02 | Replay detects event insertion               | HOLDS        |
+| TRU-03 | Replay detects event deletion                | HOLDS        |
+| TRU-04 | Envelope signature covers transcript hash    | HOLDS        |
+| TRU-05 | Keyring tracks signer fingerprints           | HOLDS        |
+| TRU-06 | Clock manipulation doesn't affect hash chain | HOLDS        |
+| TRU-07 | Artifact blobs integrity-verified on read    | **RESOLVED** |
+| TRU-08 | Transcript chain verified across envelopes   | **RESOLVED** |
+| TRU-09 | Snapshot state integrity-verified            | **RESOLVED** |
+| TRU-10 | Combined fingerprint + events tamper risk    | RISK         |
 
 ### Versioning Strategy (VER)
 
-| ID     | Invariant                                     | Status       |
-| :----- | :-------------------------------------------- | :----------- |
-| VER-01 | VERSION file and package.json synchronized    | HOLDS        |
-| VER-02 | Patch upgrades are replay-compatible          | HOLDS        |
-| VER-03 | Minor upgrades are forward-compatible         | HOLDS        |
-| VER-04 | Hash algorithm versioned in transcripts       | **RESOLVED** |
-| VER-05 | Database migrations are idempotent            | HOLDS        |
-| VER-06 | Schema migration tracking table exists        | HOLDS        |
-| VER-07 | Transcript migration functions exist          | HOLDS        |
-| VER-08 | Downgrade migrations exist                    | DEFERRED     |
+| ID     | Invariant                                  | Status       |
+| :----- | :----------------------------------------- | :----------- |
+| VER-01 | VERSION file and package.json synchronized | HOLDS        |
+| VER-02 | Patch upgrades are replay-compatible       | HOLDS        |
+| VER-03 | Minor upgrades are forward-compatible      | HOLDS        |
+| VER-04 | Hash algorithm versioned in transcripts    | **RESOLVED** |
+| VER-05 | Database migrations are idempotent         | HOLDS        |
+| VER-06 | Schema migration tracking table exists     | HOLDS        |
+| VER-07 | Transcript migration functions exist       | HOLDS        |
+| VER-08 | Downgrade migrations exist                 | DEFERRED     |
 
 ### Concurrency Safety (CON)
 
-| ID     | Invariant                                     | Status       |
-| :----- | :-------------------------------------------- | :----------- |
-| CON-01 | TypeScript is single-threaded                 | HOLDS        |
-| CON-02 | Go shared state is mutex-protected            | HOLDS        |
-| CON-03 | SQLite WAL prevents corruption                | HOLDS        |
-| CON-04 | Batch processing preserves ordering           | HOLDS        |
-| CON-05 | No cross-language concurrent DB access        | HOLDS        |
-| CON-06 | No deadlock potential from lock ordering      | UNVERIFIED   |
+| ID     | Invariant                                | Status     |
+| :----- | :--------------------------------------- | :--------- |
+| CON-01 | TypeScript is single-threaded            | HOLDS      |
+| CON-02 | Go shared state is mutex-protected       | HOLDS      |
+| CON-03 | SQLite WAL prevents corruption           | HOLDS      |
+| CON-04 | Batch processing preserves ordering      | HOLDS      |
+| CON-05 | No cross-language concurrent DB access   | HOLDS      |
+| CON-06 | No deadlock potential from lock ordering | UNVERIFIED |
 
 ---
 
 ## Scorecard
 
-| Category          | Total | HOLDS | RESOLVED | Open | Coverage |
-| :---------------- | :---- | :---- | :------- | :--- | :------- |
-| Determinism (DET) | 12    | 9     | 2        | 1    | 92%      |
-| Event Store (EVT) | 7     | 5     | 1        | 1    | 86%      |
-| Planner (PLN)     | 7     | 7     | 0        | 0    | 100%     |
-| Trust Model (TRU) | 10    | 6     | 3        | 1    | 90%      |
-| Versioning (VER)  | 8     | 5     | 1        | 2    | 75%      |
-| Concurrency (CON) | 6     | 5     | 0        | 1    | 83%      |
-| **TOTAL**         | **50**| **37**| **7**    | **6**| **88%**  |
+| Category          | Total  | HOLDS  | RESOLVED | Open  | Coverage |
+| :---------------- | :----- | :----- | :------- | :---- | :------- |
+| Determinism (DET) | 12     | 9      | 2        | 1     | 92%      |
+| Event Store (EVT) | 7      | 5      | 1        | 1     | 86%      |
+| Planner (PLN)     | 7      | 7      | 0        | 0     | 100%     |
+| Trust Model (TRU) | 10     | 6      | 3        | 1     | 90%      |
+| Versioning (VER)  | 8      | 5      | 1        | 2     | 75%      |
+| Concurrency (CON) | 6      | 5      | 0        | 1     | 83%      |
+| **TOTAL**         | **50** | **37** | **7**    | **6** | **88%**  |
 
 ---
 
 ## Changes Made During Remediation
 
-| File                                                 | Change                           |
-| :--------------------------------------------------- | :------------------------------- |
-| `src/lib/fallback.ts`                                | localeCompare → code-point       |
-| `src/core/shim.ts`                                   | Chain verification + hashVersion |
-| `src/go/sqlite.go`                                   | content_hash write + read verify |
-| `services/runner/internal/storage/storage.go`        | state_hash + SnapshotAndPrune    |
-| `services/runner/.../migrations/006_snapshot_hash.sql` | state_hash column              |
-| `src/determinism/crossLanguageHash.test.ts`          | Cross-language hash test         |
-| `src/go/cross_language_hash_test.go`                 | Go-side hash test                |
+| File                                                   | Change                           |
+| :----------------------------------------------------- | :------------------------------- |
+| `src/lib/fallback.ts`                                  | localeCompare → code-point       |
+| `src/core/shim.ts`                                     | Chain verification + hashVersion |
+| `src/go/sqlite.go`                                     | content_hash write + read verify |
+| `services/runner/internal/storage/storage.go`          | state_hash + SnapshotAndPrune    |
+| `services/runner/.../migrations/006_snapshot_hash.sql` | state_hash column                |
+| `src/determinism/crossLanguageHash.test.ts`            | Cross-language hash test         |
+| `src/go/cross_language_hash_test.go`                   | Go-side hash test                |
 
 ---
 

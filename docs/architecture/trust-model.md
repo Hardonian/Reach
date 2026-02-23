@@ -33,22 +33,22 @@ Input Hash ──→ Event Log Hash ──→ Output Hash ──→ Fingerprint
 
 ### Hash Contributors
 
-| Hash               | What It Covers                             | Algorithm |
-| :----------------- | :----------------------------------------- | :-------- |
-| `inputHash`        | Spec + evidence + dependency graph         | SHA-256   |
-| `outputHash`       | Engine evaluation result                   | SHA-256   |
-| `transcript_hash`  | Full transcript including inputs + outputs | SHA-256   |
-| `pipelineHash`     | Combined hash of input + output + pipeline | SHA-256   |
-| `chainHash`        | Cumulative chain across runs               | SHA-256   |
-| `fingerprint`      | Final run-level integrity marker           | SHA-256   |
+| Hash              | What It Covers                             | Algorithm |
+| :---------------- | :----------------------------------------- | :-------- |
+| `inputHash`       | Spec + evidence + dependency graph         | SHA-256   |
+| `outputHash`      | Engine evaluation result                   | SHA-256   |
+| `transcript_hash` | Full transcript including inputs + outputs | SHA-256   |
+| `pipelineHash`    | Combined hash of input + output + pipeline | SHA-256   |
+| `chainHash`       | Cumulative chain across runs               | SHA-256   |
+| `fingerprint`     | Final run-level integrity marker           | SHA-256   |
 
 ### Hashing Implementation
 
-| Language   | Function                                             | Notes                       |
-| :--------- | :--------------------------------------------------- | :-------------------------- |
-| TypeScript | `hashString()`, `HashStream`, `combineHashes()`      | `node:crypto` SHA-256       |
-| Go         | `Hash()`, `CanonicalJSON()`                          | `crypto/sha256`             |
-| Rust       | `canonical_hash()`                                   | FNV-1a (replay hot path)    |
+| Language   | Function                                        | Notes                    |
+| :--------- | :---------------------------------------------- | :----------------------- |
+| TypeScript | `hashString()`, `HashStream`, `combineHashes()` | `node:crypto` SHA-256    |
+| Go         | `Hash()`, `CanonicalJSON()`                     | `crypto/sha256`          |
+| Rust       | `canonical_hash()`                              | FNV-1a (replay hot path) |
 
 ---
 
@@ -56,17 +56,17 @@ Input Hash ──→ Event Log Hash ──→ Output Hash ──→ Fingerprint
 
 ### What Is Covered
 
-| Component             | Hashed  | Verified on Replay | Notes                                                    |
-| :-------------------- | :------ | :----------------- | :------------------------------------------------------- |
-| Decision spec         | YES     | YES                | Part of `inputHash`                                      |
-| Evidence events       | YES     | YES                | Part of `inputHash`                                      |
-| Dependency graph      | YES     | YES                | `dependsOn` + `informs`                                  |
-| Engine output         | YES     | YES                | `outputHash`                                             |
-| Event log ordering    | YES     | YES                | By auto-increment ID                                     |
-| Transcript metadata   | YES     | YES                | `transcript_hash`                                        |
-| Plugin output         | NO      | NO                 | Gap: see Risk section                                    |
-| Artifact blob content | PARTIAL | NO                 | `content_hash` in sqlite.go schema but not populated     |
-| Timestamps            | NO      | NO                 | Excluded from hash by design                             |
+| Component             | Hashed  | Verified on Replay | Notes                                                |
+| :-------------------- | :------ | :----------------- | :--------------------------------------------------- |
+| Decision spec         | YES     | YES                | Part of `inputHash`                                  |
+| Evidence events       | YES     | YES                | Part of `inputHash`                                  |
+| Dependency graph      | YES     | YES                | `dependsOn` + `informs`                              |
+| Engine output         | YES     | YES                | `outputHash`                                         |
+| Event log ordering    | YES     | YES                | By auto-increment ID                                 |
+| Transcript metadata   | YES     | YES                | `transcript_hash`                                    |
+| Plugin output         | NO      | NO                 | Gap: see Risk section                                |
+| Artifact blob content | PARTIAL | NO                 | `content_hash` in sqlite.go schema but not populated |
+| Timestamps            | NO      | NO                 | Excluded from hash by design                         |
 
 ### Gap: Artifact Content Hash
 
@@ -163,13 +163,13 @@ but does not enforce chain integrity across multiple transcripts.
 
 ### What Is NOT Verified
 
-| Gap                        | Risk                                     |
-| :------------------------- | :--------------------------------------- |
-| Cross-language hash match  | TS and Go could produce different hashes |
-| Artifact blob integrity    | Blobs not hash-verified on read          |
-| Plugin output replay safety| No hash for plugin outputs               |
-| Chain continuity           | `verifyTranscriptChain` is a stub        |
-| Snapshot state integrity   | No hash on snapshot `state_payload`      |
+| Gap                         | Risk                                     |
+| :-------------------------- | :--------------------------------------- |
+| Cross-language hash match   | TS and Go could produce different hashes |
+| Artifact blob integrity     | Blobs not hash-verified on read          |
+| Plugin output replay safety | No hash for plugin outputs               |
+| Chain continuity            | `verifyTranscriptChain` is a stub        |
+| Snapshot state integrity    | No hash on snapshot `state_payload`      |
 
 ---
 

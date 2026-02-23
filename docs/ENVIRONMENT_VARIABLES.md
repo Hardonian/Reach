@@ -6,15 +6,15 @@ Complete reference for all Reach environment variables.
 
 ## Quick Reference Table
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `REACH_DATA_DIR` | Data directory path | `./data` | No |
-| `REACH_BASE_URL` | API base URL | `http://127.0.0.1:8787` | No |
-| `REACH_LOG_LEVEL` | Logging level | `info` | No |
-| `REACH_RETENTION_DAYS` | Days to retain replay data | `7` | No |
-| `REACH_COMPACTION_ENABLED` | Enable data compaction | `true` | No |
-| `REACH_SESSION_COOKIE_NAME` | Session cookie name | `reach_session` | No |
-| `REACH_SESSION_TTL_HOURS` | Session TTL in hours | `24` | No |
+| Variable                    | Description                | Default                 | Required |
+| --------------------------- | -------------------------- | ----------------------- | -------- |
+| `REACH_DATA_DIR`            | Data directory path        | `./data`                | No       |
+| `REACH_BASE_URL`            | API base URL               | `http://127.0.0.1:8787` | No       |
+| `REACH_LOG_LEVEL`           | Logging level              | `info`                  | No       |
+| `REACH_RETENTION_DAYS`      | Days to retain replay data | `7`                     | No       |
+| `REACH_COMPACTION_ENABLED`  | Enable data compaction     | `true`                  | No       |
+| `REACH_SESSION_COOKIE_NAME` | Session cookie name        | `reach_session`         | No       |
+| `REACH_SESSION_TTL_HOURS`   | Session TTL in hours       | `24`                    | No       |
 
 ---
 
@@ -36,6 +36,7 @@ export REACH_DATA_DIR=./my-data
 ```
 
 **Notes:**
+
 - Directory is created automatically if it doesn't exist
 - Ensure the process has write permissions
 - Use absolute paths in production
@@ -58,6 +59,7 @@ export REACH_BASE_URL=https://reach-api.example.com
 ```
 
 **Notes:**
+
 - Must match the `--port` flag if using non-default port
 - No trailing slash
 
@@ -82,6 +84,7 @@ export REACH_LOG_LEVEL=error
 ```
 
 **Notes:**
+
 - Use `debug` for troubleshooting
 - Use `error` in production for reduced noise
 
@@ -102,6 +105,7 @@ export REACH_RETENTION_DAYS=0
 ```
 
 **Notes:**
+
 - Set to `0` to disable automatic cleanup
 - Manual cleanup still possible via `reach compact`
 
@@ -120,6 +124,7 @@ export REACH_COMPACTION_ENABLED=false
 ```
 
 **Notes:**
+
 - Compaction reduces storage usage
 - May impact performance during compaction runs
 - Disable only for debugging
@@ -138,6 +143,7 @@ export REACH_SESSION_COOKIE_NAME=my_app_session
 ```
 
 **Notes:**
+
 - Change for multi-tenant deployments
 - Must be unique per domain
 
@@ -156,6 +162,7 @@ export REACH_SESSION_TTL_HOURS=720
 ```
 
 **Notes:**
+
 - Shorter TTL = more secure
 - Longer TTL = better UX
 - Balance based on your security requirements
@@ -177,6 +184,7 @@ unset REACH_DEMO_MODE
 ```
 
 **Notes:**
+
 - Only for demonstrations and screenshots
 - Do not use in production
 
@@ -192,6 +200,7 @@ export REACH_ALLOW_UNSIGNED=true
 ```
 
 **Warnings:**
+
 - ⚠️ **Security risk**: Only use in development
 - Production packs should always be signed
 
@@ -207,6 +216,7 @@ export REACH_FROZEN_TIME=2026-02-23T12:00:00Z
 ```
 
 **Notes:**
+
 - Only affects `time.Now()` calls in demo mode
 - Useful for screenshots and documentation
 
@@ -244,6 +254,7 @@ export FEDERATION_INSECURE_SKIP_VERIFY=true
 ```
 
 **Warnings:**
+
 - ⚠️ **Major security risk**
 - Never use in production
 - Only for testing with self-signed certs
@@ -276,6 +287,7 @@ session:
 ```
 
 **Precedence:**
+
 1. Command-line flags (highest)
 2. Environment variables
 3. Config file
@@ -319,12 +331,14 @@ echo $REACH_DATA_DIR
 ### Common Issues
 
 **Issue:** `Permission denied` on data directory
+
 ```bash
 # Fix ownership
 sudo chown -R $(whoami) $REACH_DATA_DIR
 ```
 
 **Issue:** Changes not taking effect
+
 ```bash
 # Ensure variable is exported
 export REACH_LOG_LEVEL=debug

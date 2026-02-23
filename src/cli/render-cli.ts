@@ -382,9 +382,7 @@ export async function runDemoCommand(argv: string[]): Promise<number> {
 
   const bundleDir = join(outDir, "bundle");
   copyDir(resolve(process.cwd(), ".zeo", "analyze-pr", id), bundleDir);
-  const bundleHash = createHash("sha256")
-    .update(readFileSync(join(bundleDir, "manifest.json"), "utf8"))
-    .digest("hex");
+  const bundleHash = hashString(readFileSync(join(bundleDir, "manifest.json"), "utf8"));
   const bundleZip = join(outDir, "bundle.zip");
   zipDirectory(bundleDir, bundleZip);
 

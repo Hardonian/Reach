@@ -29,61 +29,61 @@ The Reach system has two concurrency domains:
 
 The runner service uses `sync.Mutex` in 19+ locations:
 
-| Package        | Struct               | Field           | Purpose                    |
-| :------------- | :------------------- | :-------------- | :------------------------- |
-| telemetry      | PackTelemetry        | mu_global       | Global file access lock    |
-| telemetry      | Logger               | mu              | Log buffer protection      |
-| performance    | Optimizer            | mu              | Optimizer state            |
-| mesh           | RateLimiter          | mu              | Rate limit counters        |
-| mesh           | Transport            | mu, writeMu     | Connection + write guards  |
-| mesh           | Handshake            | mu              | Handshake state            |
-| mesh           | DelegationManager    | mu              | Delegation registry        |
-| jobs           | DAGExecutor          | mu              | DAG execution state        |
-| jobs           | Store                | SpendMu         | Budget spend tracking      |
-| federation     | ReputationV2         | circuitMu       | Circuit breaker state      |
-| federation     | Reputation           | mu              | Reputation scores          |
-| backpressure   | Backpressure         | adjustmentMu    | Rate adjustments           |
-| api            | Metrics              | mu              | Metrics counters           |
-| api            | Registry             | mu              | Service registration       |
-| api            | Consensus            | mu              | Consensus state            |
-| gamification   | Gamification         | mu              | Achievement tracking       |
-| agents         | Activity             | mu              | Agent activity tracking    |
-| reach-serve    | main                 | rateLimitMu     | Request rate limiting      |
+| Package      | Struct            | Field        | Purpose                   |
+| :----------- | :---------------- | :----------- | :------------------------ |
+| telemetry    | PackTelemetry     | mu_global    | Global file access lock   |
+| telemetry    | Logger            | mu           | Log buffer protection     |
+| performance  | Optimizer         | mu           | Optimizer state           |
+| mesh         | RateLimiter       | mu           | Rate limit counters       |
+| mesh         | Transport         | mu, writeMu  | Connection + write guards |
+| mesh         | Handshake         | mu           | Handshake state           |
+| mesh         | DelegationManager | mu           | Delegation registry       |
+| jobs         | DAGExecutor       | mu           | DAG execution state       |
+| jobs         | Store             | SpendMu      | Budget spend tracking     |
+| federation   | ReputationV2      | circuitMu    | Circuit breaker state     |
+| federation   | Reputation        | mu           | Reputation scores         |
+| backpressure | Backpressure      | adjustmentMu | Rate adjustments          |
+| api          | Metrics           | mu           | Metrics counters          |
+| api          | Registry          | mu           | Service registration      |
+| api          | Consensus         | mu           | Consensus state           |
+| gamification | Gamification      | mu           | Achievement tracking      |
+| agents       | Activity          | mu           | Agent activity tracking   |
+| reach-serve  | main              | rateLimitMu  | Request rate limiting     |
 
 ### RWMutex Usage (sync.RWMutex)
 
 The runner uses `sync.RWMutex` in 50+ locations. Key patterns:
 
-| Package      | Struct            | Purpose                           |
-| :----------- | :---------------- | :-------------------------------- |
-| storage      | Storage           | Database connection pool          |
-| registry     | CapabilityStore   | Capability registration           |
-| policy       | Gate              | Policy cache                      |
-| performance  | Memory            | Memory tracking                   |
-| packloader   | Sandbox, Loader   | Plugin loading and isolation      |
-| mesh         | Peer, Router      | Peer management, routing tables   |
-| historical   | Manager, Baseline | Historical data access            |
-| determinism  | DriftMonitor      | Golden path tracking              |
-| backpressure | Circuit           | Circuit breaker state             |
-| api          | Server            | Metadata, autonomy, share state   |
-| agents       | Registry          | Agent registration                |
+| Package      | Struct            | Purpose                         |
+| :----------- | :---------------- | :------------------------------ |
+| storage      | Storage           | Database connection pool        |
+| registry     | CapabilityStore   | Capability registration         |
+| policy       | Gate              | Policy cache                    |
+| performance  | Memory            | Memory tracking                 |
+| packloader   | Sandbox, Loader   | Plugin loading and isolation    |
+| mesh         | Peer, Router      | Peer management, routing tables |
+| historical   | Manager, Baseline | Historical data access          |
+| determinism  | DriftMonitor      | Golden path tracking            |
+| backpressure | Circuit           | Circuit breaker state           |
+| api          | Server            | Metadata, autonomy, share state |
+| agents       | Registry          | Agent registration              |
 
 ### Goroutine Usage
 
 11 identified goroutine spawn sites:
 
-| Location                          | Pattern          | Risk Level |
-| :-------------------------------- | :--------------- | :--------- |
-| performance_test.go               | Test parallelism | LOW        |
-| memory.go                         | Background GC    | LOW        |
-| transport.go                      | Connection mgmt  | MEDIUM     |
-| reputation_v2.go                  | Async reputation | MEDIUM     |
-| determinism/stress_test.go        | Stress testing   | LOW        |
-| backpressure/semaphore.go         | Semaphore impl   | LOW        |
-| api/registry_test.go              | Test concurrency | LOW        |
-| agents/runtime_test.go (×2)       | Test concurrency | LOW        |
-| api/server.go                     | Request handling | MEDIUM     |
-| agents/bridge.go                  | Batch processing | LOW        |
+| Location                    | Pattern          | Risk Level |
+| :-------------------------- | :--------------- | :--------- |
+| performance_test.go         | Test parallelism | LOW        |
+| memory.go                   | Background GC    | LOW        |
+| transport.go                | Connection mgmt  | MEDIUM     |
+| reputation_v2.go            | Async reputation | MEDIUM     |
+| determinism/stress_test.go  | Stress testing   | LOW        |
+| backpressure/semaphore.go   | Semaphore impl   | LOW        |
+| api/registry_test.go        | Test concurrency | LOW        |
+| agents/runtime_test.go (×2) | Test concurrency | LOW        |
+| api/server.go               | Request handling | MEDIUM     |
+| agents/bridge.go            | Batch processing | LOW        |
 
 ---
 
@@ -220,18 +220,18 @@ database. No cross-language concurrent access identified.
 The following Go compilation errors exist in `services/runner/` and are
 pre-existing (not introduced by this audit):
 
-| File                | Error                                            |
-| :------------------ | :----------------------------------------------- |
-| capability_cmd.go   | Unused imports (time, storage)                   |
-| demo_cmd.go         | Unused imports (determinism, storage)             |
-| historical_cmd.go   | Unused import (encoding/json)                    |
-| main.go:221,223,225 | Undefined: runVerifyPeer, runConsensus, runPeer   |
-| retention_cmd.go    | Unused import (encoding/json)                    |
-| consensus.go:575    | Syntax error                                     |
-| baseline.go         | Unused import (strings)                          |
-| drift_detector.go   | Undefined: strings                               |
-| evidence_diff.go    | Unused import (math), undefined: now             |
-| manager.go          | Unused import (errors), unused var: now           |
+| File                | Error                                           |
+| :------------------ | :---------------------------------------------- |
+| capability_cmd.go   | Unused imports (time, storage)                  |
+| demo_cmd.go         | Unused imports (determinism, storage)           |
+| historical_cmd.go   | Unused import (encoding/json)                   |
+| main.go:221,223,225 | Undefined: runVerifyPeer, runConsensus, runPeer |
+| retention_cmd.go    | Unused import (encoding/json)                   |
+| consensus.go:575    | Syntax error                                    |
+| baseline.go         | Unused import (strings)                         |
+| drift_detector.go   | Undefined: strings                              |
+| evidence_diff.go    | Unused import (math), undefined: now            |
+| manager.go          | Unused import (errors), unused var: now         |
 
 These represent incomplete refactoring in the runner CLI and historical
 analysis modules. They do not affect the TypeScript/core determinism

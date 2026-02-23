@@ -66,10 +66,10 @@ interface LlmProvider {
 
 The provider enforces these constraints at the boundary:
 
-| Parameter     | Constraint              | Enforcement                    |
-| :------------ | :---------------------- | :----------------------------- |
-| `seed`        | Non-negative integer    | `validateDeterminism()` throws |
-| `temperature` | Must be exactly `0`     | `validateDeterminism()` throws |
+| Parameter     | Constraint           | Enforcement                    |
+| :------------ | :------------------- | :----------------------------- |
+| `seed`        | Non-negative integer | `validateDeterminism()` throws |
+| `temperature` | Must be exactly `0`  | `validateDeterminism()` throws |
 
 **Reality**: LLM providers do NOT guarantee deterministic output even with
 `temperature=0` and fixed `seed`. The OpenAI API documentation explicitly
@@ -99,13 +99,13 @@ to a purely deterministic computation path.
 
 ### Fallback Implementations
 
-| Algorithm          | File                      | Deterministic | Notes                     |
-| :----------------- | :------------------------ | :------------ | :------------------------ |
-| Minimax Regret     | `src/lib/fallback.ts`     | YES           | Float tie-break concern   |
-| Maximin            | `src/lib/fallback.ts`     | YES           | Same float tie-break      |
-| Weighted Sum       | `src/lib/fallback.ts`     | YES           | Weight normalization safe |
-| Zeolite Operations | `src/core/zeolite-core.ts` | YES          | All ops are deterministic |
-| Core Shim          | `src/core/shim.ts`        | YES           | Deterministic mode toggle |
+| Algorithm          | File                       | Deterministic | Notes                     |
+| :----------------- | :------------------------- | :------------ | :------------------------ |
+| Minimax Regret     | `src/lib/fallback.ts`      | YES           | Float tie-break concern   |
+| Maximin            | `src/lib/fallback.ts`      | YES           | Same float tie-break      |
+| Weighted Sum       | `src/lib/fallback.ts`      | YES           | Weight normalization safe |
+| Zeolite Operations | `src/core/zeolite-core.ts` | YES           | All ops are deterministic |
+| Core Shim          | `src/core/shim.ts`         | YES           | Deterministic mode toggle |
 
 ### Fallback Activation
 
@@ -186,12 +186,12 @@ comparison path to evaluate.
 
 ## 5. Trust Levels for AI Output
 
-| Trust Level    | Meaning                                                |
-| :------------- | :----------------------------------------------------- |
-| `untrusted`    | Raw LLM output, schema-validated but not adjudicated   |
-| `adjudicated`  | Engine has compared claim against decision boundary    |
-| `accepted`     | Engine agrees with the AI's recommendation             |
-| `rejected`     | Engine disagrees; AI recommendation diverges from math |
+| Trust Level   | Meaning                                                |
+| :------------ | :----------------------------------------------------- |
+| `untrusted`   | Raw LLM output, schema-validated but not adjudicated   |
+| `adjudicated` | Engine has compared claim against decision boundary    |
+| `accepted`    | Engine agrees with the AI's recommendation             |
+| `rejected`    | Engine disagrees; AI recommendation diverges from math |
 
 ### Trust Erosion
 
@@ -199,12 +199,12 @@ If an AI provider consistently produces claims that the engine rejects,
 the trust profile system (`shim.ts → recordTrustEvent`) records this.
 The `deriveTrustTier()` function classifies providers:
 
-| Tier          | Criteria                         |
-| :------------ | :------------------------------- |
-| `unknown`     | < 3 pass events                  |
-| `provisional` | 3–9 pass events, 0 failures     |
-| `established` | ≥ 10 pass events, 0 failures    |
-| `untrusted`   | Any failure event recorded       |
+| Tier          | Criteria                     |
+| :------------ | :--------------------------- |
+| `unknown`     | < 3 pass events              |
+| `provisional` | 3–9 pass events, 0 failures  |
+| `established` | ≥ 10 pass events, 0 failures |
+| `untrusted`   | Any failure event recorded   |
 
 ---
 
@@ -260,4 +260,4 @@ decisions.
 | PLN-04 | Replay never re-queries the LLM                          | HOLDS  |
 | PLN-05 | AI proposals are hashed at entry for provenance          | HOLDS  |
 | PLN-06 | Adjudication is deterministic (depends on spec+evidence) | HOLDS  |
-| PLN-07 | No dynamic eval of LLM output                           | HOLDS  |
+| PLN-07 | No dynamic eval of LLM output                            | HOLDS  |

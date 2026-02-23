@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { hashString } from "../determinism/index.js";
 import type { DecisionSpec, EvidenceEvent, FinalizedDecisionTranscript } from "@zeo/contracts";
 // @ts-ignore - resolve missing core module
 import { executeDecision, verifyDecisionTranscript } from "@zeo/core";
@@ -25,7 +25,7 @@ const contexts = new Map<string, ZeoliteContext>();
 const transcripts = new Map<string, FinalizedDecisionTranscript>();
 
 function stableId(input: string): string {
-  return createHash("sha256").update(input).digest("hex").slice(0, 16);
+  return hashString(input).slice(0, 16);
 }
 
 function makeNegotiationSpec(): DecisionSpec {

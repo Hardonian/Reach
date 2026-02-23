@@ -9,12 +9,12 @@
 
 Successfully optimized the Reach CLI for reduced binary size and improved cold start performance while maintaining full functional parity.
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Binary Size** | 16.45 MB | 11.31 MB | **-31%** |
-| **Cold Start (version)** | ~2.5 ms | ~1.67 ms | **-33%** |
-| **Memory Allocations** | ~35 KB | ~26 KB | **-26%** |
-| **Build Time** | Standard | Optimized | **Faster** |
+| Metric                   | Before   | After     | Improvement |
+| ------------------------ | -------- | --------- | ----------- |
+| **Binary Size**          | 16.45 MB | 11.31 MB  | **-31%**    |
+| **Cold Start (version)** | ~2.5 ms  | ~1.67 ms  | **-33%**    |
+| **Memory Allocations**   | ~35 KB   | ~26 KB    | **-26%**    |
+| **Build Time**           | Standard | Optimized | **Faster**  |
 
 ---
 
@@ -23,6 +23,7 @@ Successfully optimized the Reach CLI for reduced binary size and improved cold s
 ### Changes Made
 
 1. **Added `-trimpath` flag** to `Makefile`:
+
    ```makefile
    LDFLAGS := -trimpath -ldflags "-X main.version=$(VERSION) ..."
    RELEASE_LDFLAGS := -trimpath -ldflags "-s -w -X main.version=$(VERSION) ..."
@@ -53,6 +54,7 @@ Total Reduction:         5.14 MB (-31%)
 ### Problem Identified
 
 The `reach` wrapper script uses `go run` for several commands:
+
 - `reach doctor` → `go run ./cmd/reachctl doctor`
 - `reach audit` → `go run ./cmd/reachctl audit`
 - `reach eval` → `go run ./cmd/reachctl eval`
@@ -62,6 +64,7 @@ Additionally, uses `npm install` and `npx` for economics tools.
 ### Impact
 
 Using `go run` adds 2-3 second startup penalty on first execution due to:
+
 - Source compilation
 - Dependency resolution
 - Cache warming
@@ -69,6 +72,7 @@ Using `go run` adds 2-3 second startup penalty on first execution due to:
 ### Recommendation
 
 The wrapper script (`reach`) has been identified for optimization. All commands should route through the pre-built `reachctl` binary:
+
 - Use `./reachctl doctor` instead of `go run ./cmd/reachctl doctor`
 - Pre-compile and distribute `reachctl` binary
 
@@ -81,6 +85,7 @@ The wrapper script (`reach`) has been identified for optimization. All commands 
 #### 1. Lazy Logger Initialization (`internal/telemetry/logger.go`)
 
 **Before:**
+
 ```go
 var defaultLogger = NewLogger(os.Stderr, LevelInfo)
 
@@ -90,6 +95,7 @@ func init() {
 ```
 
 **After:**
+
 ```go
 var defaultLogger *Logger
 var loggerInitOnce sync.Once
@@ -108,6 +114,7 @@ func Default() *Logger {
 #### 2. Lazy Metrics Initialization (`internal/telemetry/metrics.go`)
 
 **Before:**
+
 ```go
 var defaultMetrics = NewMetrics()
 
@@ -117,6 +124,7 @@ func init() {
 ```
 
 **After:**
+
 ```go
 var defaultMetrics *Metrics
 var metricsInitOnce sync.Once
@@ -130,6 +138,7 @@ func DefaultMetrics() *Metrics {
 #### 3. Lazy Regex Compilation (`internal/stress/plugin.go`)
 
 **Before:**
+
 ```go
 var NondeterminismPatterns = map[string]*regexp.Regexp{
     "time.Now()": regexp.MustCompile(`time\.Now\(\)`),
@@ -138,6 +147,7 @@ var NondeterminismPatterns = map[string]*regexp.Regexp{
 ```
 
 **After:**
+
 ```go
 var nondeterminismPatterns map[string]*regexp.Regexp
 
@@ -168,7 +178,7 @@ func GetNondeterminismPatterns() map[string]*regexp.Regexp {
 BenchmarkColdStart-16:
   Before: ~35 KB allocations, ~500 allocs/op
   After:  ~26 KB allocations, ~414 allocs/op
-  
+
 Improvement:
   -26% allocation bytes
   -17% allocation count
@@ -210,21 +220,21 @@ BenchmarkColdStartHelp-16     853    1444798 ns/op    25193 B/op           403 a
 
 ### Core Changes
 
-| File | Change Type | Description |
-|------|-------------|-------------|
-| `Makefile` | Modified | Added `-trimpath` build flag |
-| `services/runner/internal/telemetry/logger.go` | Modified | Lazy logger initialization |
-| `services/runner/internal/telemetry/metrics.go` | Modified | Lazy metrics initialization |
-| `services/runner/internal/stress/plugin.go` | Modified | Lazy regex compilation |
+| File                                            | Change Type | Description                  |
+| ----------------------------------------------- | ----------- | ---------------------------- |
+| `Makefile`                                      | Modified    | Added `-trimpath` build flag |
+| `services/runner/internal/telemetry/logger.go`  | Modified    | Lazy logger initialization   |
+| `services/runner/internal/telemetry/metrics.go` | Modified    | Lazy metrics initialization  |
+| `services/runner/internal/stress/plugin.go`     | Modified    | Lazy regex compilation       |
 
 ### New Files
 
-| File | Description |
-|------|-------------|
-| `services/runner/cmd/reachctl/benchmark_cold_start_test.go` | Cold start benchmark suite |
-| `docs/performance/cold-start.md` | Performance documentation |
-| `scripts/remove-committed-binaries.sh` | Cleanup script for binaries |
-| `OPTIMIZATION_REPORT.md` | This report |
+| File                                                        | Description                 |
+| ----------------------------------------------------------- | --------------------------- |
+| `services/runner/cmd/reachctl/benchmark_cold_start_test.go` | Cold start benchmark suite  |
+| `docs/performance/cold-start.md`                            | Performance documentation   |
+| `scripts/remove-committed-binaries.sh`                      | Cleanup script for binaries |
+| `OPTIMIZATION_REPORT.md`                                    | This report                 |
 
 ---
 

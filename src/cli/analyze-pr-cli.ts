@@ -159,7 +159,7 @@ function resolvePolicyHash(policyPath?: string): string | null {
   if (!policyPath) return null;
   const resolved = resolve(process.cwd(), policyPath);
   if (!existsSync(resolved)) return null;
-  return createHash("sha256").update(readFileSync(resolved)).digest("hex");
+  return hashString(readFileSync(resolved));
 }
 
 function parseHunks(diff: string): DiffHunkRef[] {
@@ -174,7 +174,7 @@ function parseHunks(diff: string): DiffHunkRef[] {
       const removed = Number(m[2] || "1");
       const newStart = Number(m[3]);
       const added = Number(m[4] || "1");
-      const hash = createHash("sha1").update(`${currentFile}:${line}`).digest("hex").slice(0, 12);
+      const hash = hashString(`${currentFile}:${line}`).slice(0, 12);
       hunks.push({
         file: currentFile,
         oldStart,
@@ -284,7 +284,7 @@ function analyze(diff: string, files: string[], hunks: DiffHunkRef[]): Finding[]
     const evidence = finding.evidence ?? fileHunks.slice(0, 2).map((h) => `${h.file}#${h.hash}`);
     const idSource = `${finding.category}:${finding.file}:${finding.description}`;
     findings.push({
-      id: createHash("sha1").update(idSource).digest("hex").slice(0, 12),
+      id: hashString(idSource).slice(0, 12),
       evidence,
       ...finding,
     });
@@ -455,11 +455,11 @@ function writeArtifacts(result: AnalysisResult, explain: boolean): void {
     schemaVersion: result.schemaVersion,
     files: ["findings.json", "summary.json", ...(explain ? ["explain.json"] : [])],
     hashes: {
-      findings: createHash("sha256").update(JSON.stringify(result.findings)).digest("hex"),
-      summary: createHash("sha256").update(JSON.stringify(result.summary)).digest("hex"),
+      findings: hashString(JSON.stringify(result.findings)),
+      summary: hashString(JSON.stringify(result.summary)),
     },
   };
-  const manifestHash = createHash("sha256").update(JSON.stringify(manifest)).digest("hex");
+  const manifestHash = hashString(JSON.stringify(manifest));
   writeFileSync(
     join(dir, "manifest.json"),
     `${JSON.stringify({ ...manifest, manifest_hash: manifestHash }, null, 2)}\n`,
@@ -538,9 +538,7 @@ function toAnalysis(
 
   const suggestedEvidence = [...new Set(findings.map((f) => f.suggested_next_action))].sort();
   const diffHash = hashString(loaded.diff);
-  const manifestHash = createHash("sha256")
-    .update(JSON.stringify({ diffHash, findings }))
-    .digest("hex");
+  const manifestHash = hashString(JSON.stringify({ diffHash, findings }));
 
   return {
     schemaVersion: "2.0.0",

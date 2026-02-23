@@ -722,13 +722,15 @@ function computeSeed(): string {
     version: VERSION_INFO.version,
     gitSha: VERSION_INFO.gitSha,
   };
-  return createHash("sha256").update(JSON.stringify(inputs)).digest("hex");
+  return hashString(JSON.stringify(inputs));
 }
 
 function generateRequestId(): string {
   const timestamp = Date.now().toString(36);
-  const suffix = hashString(`${timestamp}-${VERSION_INFO.version}-${VERSION_INFO.gitSha}`)
-    .slice(0, 8);
+  const suffix = hashString(`${timestamp}-${VERSION_INFO.version}-${VERSION_INFO.gitSha}`).slice(
+    0,
+    8,
+  );
   return `req_${timestamp}_${suffix}`;
 }
 

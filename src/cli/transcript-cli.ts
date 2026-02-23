@@ -187,7 +187,8 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
       const objections = readObjections(envelope);
       objections.push({ signer, condition, statement });
       metadata.conditional_objections = objections.sort(
-        (a, b) => codePointCompare(a.signer, b.signer) || codePointCompare(a.condition, b.condition),
+        (a, b) =>
+          codePointCompare(a.signer, b.signer) || codePointCompare(a.condition, b.condition),
       );
       envelope.metadata = metadata;
       writeFileSync(resolve(out), `${JSON.stringify(envelope, null, 2)}\n`, "utf8");

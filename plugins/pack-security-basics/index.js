@@ -63,7 +63,7 @@ module.exports = {
                 description: "Token",
                 severity: "medium",
               },
-            ].sort((a, b) => a.name < b.name ? -1 : (a.name > b.name ? 1 : 0));
+            ].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
 
             if (content) {
               for (const { name, pattern, description, severity, context } of secretPatterns) {
@@ -93,7 +93,7 @@ module.exports = {
                   pattern: /\bsystem\s*\(/,
                   severity: "medium",
                 },
-              ].sort((a, b) => a.name < b.name ? -1 : (a.name > b.name ? 1 : 0));
+              ].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
 
               for (const { name, pattern, severity } of dangerousFunctions) {
                 if (pattern.test(content)) {
@@ -243,7 +243,11 @@ module.exports = {
             }
 
             // Sort items for determinism
-            evidence.items.sort((a, b) => { let sa = JSON.stringify(a), sb = JSON.stringify(b); return sa < sb ? -1 : (sa > sb ? 1 : 0); });
+            evidence.items.sort((a, b) => {
+              let sa = JSON.stringify(a),
+                sb = JSON.stringify(b);
+              return sa < sb ? -1 : sa > sb ? 1 : 0;
+            });
 
             return evidence;
           },

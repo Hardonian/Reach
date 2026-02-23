@@ -28,12 +28,12 @@ migrations/005_snapshots.sql     — snapshots table
 
 ### Core Tables
 
-| Table       | Purpose                                | Key Fields                          |
-| :---------- | :------------------------------------- | :---------------------------------- |
-| `runs`      | Run metadata and fingerprint           | id, tenant_id, status, fingerprint  |
-| `events`    | Ordered event stream per run           | id (auto), run_id, type, payload    |
-| `snapshots` | Compacted state at a point in time     | run_id, last_event_id, state_payload|
-| `audit`     | Immutable audit trail per tenant       | tenant_id, run_id, type, payload    |
+| Table       | Purpose                            | Key Fields                           |
+| :---------- | :--------------------------------- | :----------------------------------- |
+| `runs`      | Run metadata and fingerprint       | id, tenant_id, status, fingerprint   |
+| `events`    | Ordered event stream per run       | id (auto), run_id, type, payload     |
+| `snapshots` | Compacted state at a point in time | run_id, last_event_id, state_payload |
+| `audit`     | Immutable audit trail per tenant   | tenant_id, run_id, type, payload     |
 
 ### Event Ordering
 
@@ -100,12 +100,12 @@ storage.EventsStore.SaveSnapshot(ctx, SnapshotRecord) → (id, error)
 
 A snapshot captures the compacted state of a run at a specific event ID.
 
-| Field            | Description                                        |
-| :--------------- | :------------------------------------------------- |
-| `run_id`         | The run this snapshot belongs to                   |
-| `last_event_id`  | The ID of the last event included in this snapshot |
-| `state_payload`  | Serialized JSON of the compacted state             |
-| `created_at`     | Timestamp of snapshot creation                     |
+| Field           | Description                                        |
+| :-------------- | :------------------------------------------------- |
+| `run_id`        | The run this snapshot belongs to                   |
+| `last_event_id` | The ID of the last event included in this snapshot |
+| `state_payload` | Serialized JSON of the compacted state             |
+| `created_at`    | Timestamp of snapshot creation                     |
 
 **Invariant**: `state_payload` is the canonical JSON representation of the
 run state computed by replaying events `[1..last_event_id]`. If the same
@@ -254,12 +254,12 @@ for defense-in-depth.
 
 ## 9. Formal Invariants
 
-| ID      | Invariant                                             | Status   |
-| :------ | :---------------------------------------------------- | :------- |
-| EVT-01  | Events ordered by monotonic auto-increment ID         | HOLDS    |
-| EVT-02  | Snapshot state ≡ replay of events [1..last_event_id]  | HOLDS    |
-| EVT-03  | Pruning requires snapshot coverage                    | HOLDS    |
-| EVT-04  | Full replay hash == resumable replay hash             | ASSUMED  |
-| EVT-05  | Audit table is append-only (never pruned)             | HOLDS    |
-| EVT-06  | WAL mode enabled for concurrency safety               | HOLDS    |
-| EVT-07  | Snapshot + prune is atomic                            | **RISK** |
+| ID     | Invariant                                            | Status   |
+| :----- | :--------------------------------------------------- | :------- |
+| EVT-01 | Events ordered by monotonic auto-increment ID        | HOLDS    |
+| EVT-02 | Snapshot state ≡ replay of events [1..last_event_id] | HOLDS    |
+| EVT-03 | Pruning requires snapshot coverage                   | HOLDS    |
+| EVT-04 | Full replay hash == resumable replay hash            | ASSUMED  |
+| EVT-05 | Audit table is append-only (never pruned)            | HOLDS    |
+| EVT-06 | WAL mode enabled for concurrency safety              | HOLDS    |
+| EVT-07 | Snapshot + prune is atomic                           | **RISK** |

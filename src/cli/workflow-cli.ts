@@ -326,7 +326,7 @@ interface GraphEdge {
 }
 
 function hash(inputValue: unknown): string {
-  return createHash("sha256").update(JSON.stringify(inputValue)).digest("hex");
+  return hashString(JSON.stringify(inputValue));
 }
 
 function zeoRoot(): string {
@@ -510,10 +510,8 @@ function buildBundleManifest(
       };
     })
     .sort((a, b) => codePointCompare(a.path, b.path));
-  const treeHash = createHash("sha256")
-    .update(JSON.stringify(entries.map((entry) => [entry.path, entry.sha256])))
-    .digest("hex");
-  const manifestHash = createHash("sha256").update(JSON.stringify(entries)).digest("hex");
+  const treeHash = hashString(JSON.stringify(entries.map((entry) => [entry.path, entry.sha256])));
+  const manifestHash = hashString(JSON.stringify(entries));
   return { files: entries, manifestHash, treeHash };
 }
 
@@ -831,7 +829,9 @@ function collectGraph(_asOfDate: string): {
     nodes: [...nodes.values()].sort((a, b) => codePointCompare(a.transcriptHash, b.transcriptHash)),
     edges: edges.sort(
       (a, b) =>
-        codePointCompare(a.from, b.from) || codePointCompare(a.to, b.to) || codePointCompare(a.type, b.type),
+        codePointCompare(a.from, b.from) ||
+        codePointCompare(a.to, b.to) ||
+        codePointCompare(a.type, b.type),
     ),
   };
 }
@@ -1308,7 +1308,8 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
       .filter((event) => (args.driftType ? event.type === args.driftType : true))
       .sort(
         (a, b) =>
-          codePointCompare(a.detectedAt, b.detectedAt) || codePointCompare(a.decisionId, b.decisionId),
+          codePointCompare(a.detectedAt, b.detectedAt) ||
+          codePointCompare(a.decisionId, b.decisionId),
       );
     writeJsonOrText(
       args,
@@ -1451,11 +1452,8 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
       verified,
       method: manifest.verificationStatus?.method ?? "hash_only",
       manifestHash:
-        manifest.verificationStatus?.manifestHash ??
-        createHash("sha256").update(JSON.stringify(manifest.files)).digest("hex"),
-      treeHash: createHash("sha256")
-        .update(JSON.stringify(manifest.files.map((f) => [f.path, f.sha256])))
-        .digest("hex"),
+        manifest.verificationStatus?.manifestHash ?? hashString(JSON.stringify(manifest.files)),
+      treeHash: hashString(JSON.stringify(manifest.files.map((f) => [f.path, f.sha256]))),
       signatureValid: manifest.verificationStatus?.signatureValid ?? null,
       verifiedAt: nowIso(),
       drift: mismatches,
@@ -1532,7 +1530,8 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
         }))
         .sort(
           (a, b) =>
-            b.fragilityScore - a.fragilityScore || codePointCompare(a.transcriptHash, b.transcriptHash),
+            b.fragilityScore - a.fragilityScore ||
+            codePointCompare(a.transcriptHash, b.transcriptHash),
         );
       writeJsonOrText(
         args,
@@ -1788,7 +1787,9 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
     if (args.subcommand === "ics") {
       const timezone = args.timezone ?? DEFAULT_TIMEZONE;
       const dueDate = args.due;
-      const tasks = ws.tasks.filter((t) => !t.completed).sort((a, b) => codePointCompare(a.id, b.id));
+      const tasks = ws.tasks
+        .filter((t) => !t.completed)
+        .sort((a, b) => codePointCompare(a.id, b.id));
       const body = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",

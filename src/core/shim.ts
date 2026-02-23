@@ -1,3 +1,4 @@
+import { hashString } from "../determinism/index.js";
 /**
  * @zeo/core shim — deterministic fallback when the WASM/native core is unavailable.
  *
@@ -5,7 +6,7 @@
  * Every function is deterministic for same inputs unless explicitly documented otherwise.
  */
 
-import { createHash, generateKeyPairSync } from "node:crypto";
+import { generateKeyPairSync } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { canonicalJson } from "../determinism/canonicalJson.js";
@@ -69,7 +70,7 @@ function hashInput(input: any): string {
   };
   // Use canonicalJson for deterministic key ordering at all nesting levels.
   // Raw JSON.stringify relies on insertion order which is implementation-defined.
-  return createHash("sha256").update(canonicalJson(stablePayload)).digest("hex");
+  return hashString(canonicalJson(stablePayload));
 }
 
 export function executeDecision(input: any): { result: any; transcript: any } {
@@ -120,7 +121,7 @@ export function createEnvelope(
   transcript: Record<string, unknown>,
   metadata: Record<string, unknown>,
 ): Envelope {
-  const hash = createHash("sha256").update(canonicalJson(transcript)).digest("hex");
+  const hash = hashString(canonicalJson(transcript));
   return {
     transcript_hash: hash,
     transcript,
@@ -141,7 +142,7 @@ export function signEnvelopeWithEd25519(
   const signature = cryptoSign(null, data, passphrase ? { key: pem, passphrase } : pem).toString(
     "hex",
   );
-  const fingerprint = createHash("sha256").update(pem).digest("hex").slice(0, 16);
+  const fingerprint = hashString(pem).slice(0, 16);
   return {
     ...envelope,
     signatures: [...envelope.signatures, { signer_fingerprint: fingerprint, algorithm, signature }],
@@ -163,7 +164,7 @@ export function generateEd25519Keypair(
       : { type: "pkcs8", format: "pem" },
   });
   writeFileSync(resolve(keyPath), privateKey, "utf8");
-  const fingerprint = createHash("sha256").update(privateKey).digest("hex").slice(0, 16);
+  const fingerprint = hashString(privateKey).slice(0, 16);
   return { fingerprint, publicKeyPem: publicKey };
 }
 
@@ -240,7 +241,7 @@ export function verifyTranscriptChain(envelopes: Envelope[]): {
     const env = envelopes[i];
 
     // Verify the transcript_hash matches the actual transcript content
-    const computedHash = createHash("sha256").update(canonicalJson(env.transcript)).digest("hex");
+    const computedHash = hashString(canonicalJson(env.transcript));
     if (computedHash !== env.transcript_hash) {
       errors.push(
         `Envelope ${i}: transcript_hash mismatch (expected ${computedHash}, got ${env.transcript_hash})`,
@@ -280,7 +281,7 @@ export function addPublicKeyToKeyring(
   notes?: string,
 ): { fingerprint: string; label: string } {
   if (!existsSync(keyringDir)) mkdirSync(keyringDir, { recursive: true });
-  const fingerprint = createHash("sha256").update(pubPem).digest("hex").slice(0, 16);
+  const fingerprint = hashString(pubPem).slice(0, 16);
   const entry = {
     fingerprint,
     publicKey: pubPem,

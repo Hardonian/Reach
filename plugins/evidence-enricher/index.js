@@ -57,7 +57,11 @@ function extractEvidence(data, context) {
   // Deterministic: sort by ID for consistent ordering
   return evidence
     .map((e) => enrichEvidence(e, context.options))
-    .sort((a, b) => { let ia = a.id || "", ib = b.id || ""; return ia < ib ? -1 : (ia > ib ? 1 : 0); });
+    .sort((a, b) => {
+      let ia = a.id || "",
+        ib = b.id || "";
+      return ia < ib ? -1 : ia > ib ? 1 : 0;
+    });
 }
 
 module.exports = {

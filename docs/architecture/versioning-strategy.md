@@ -19,15 +19,15 @@ package.json:   0.3.1
 
 ### Versioned Components
 
-| Component        | Current Version  | Versioning Mechanism            |
-| :--------------- | :--------------- | :------------------------------ |
-| Monorepo         | 0.3.1            | `VERSION` file + `package.json` |
-| Schema (zeo.v1)  | v1               | `schemaVersion` field in output |
-| Rust Engine      | 0.3.1            | `Cargo.toml` in crates          |
-| Go Runner        | 0.3.1            | `go.mod` + embedded version     |
-| SQLite Schema    | Migration 005    | Sequential migration files      |
-| Protocol Schemas | v1               | `protocol/v1/` directory        |
-| Hash Algorithm   | sha256-cjson-v1  | `HASH_VERSION` in `shim.ts`     |
+| Component        | Current Version | Versioning Mechanism            |
+| :--------------- | :-------------- | :------------------------------ |
+| Monorepo         | 0.3.1           | `VERSION` file + `package.json` |
+| Schema (zeo.v1)  | v1              | `schemaVersion` field in output |
+| Rust Engine      | 0.3.1           | `Cargo.toml` in crates          |
+| Go Runner        | 0.3.1           | `go.mod` + embedded version     |
+| SQLite Schema    | Migration 005   | Sequential migration files      |
+| Protocol Schemas | v1              | `protocol/v1/` directory        |
+| Hash Algorithm   | sha256-cjson-v1 | `HASH_VERSION` in `shim.ts`     |
 
 ---
 
@@ -58,7 +58,10 @@ is embedded in the directory structure and in the output:
    functions in `shim.ts` handle version upgrades:
 
    ```typescript
-   export function migrateTranscript(content: unknown, _version: string): unknown {
+   export function migrateTranscript(
+     content: unknown,
+     _version: string,
+   ): unknown {
      return content; // Currently a passthrough — no migrations yet
    }
    ```
@@ -192,16 +195,16 @@ user base is small.
 
 ## 5. Version Invariants
 
-| ID      | Invariant                                                | Status    |
-| :------ | :------------------------------------------------------- | :-------- |
-| VER-01  | `VERSION` file and `package.json` are synchronized       | HOLDS     |
-| VER-02  | Patch upgrades are replay-compatible                     | HOLDS     |
-| VER-03  | Minor upgrades are forward-compatible                    | HOLDS     |
-| VER-04  | Hash algorithm is versioned in transcripts               | HOLDS     |
-| VER-05  | Database migrations are idempotent                       | HOLDS     |
-| VER-06  | Schema migration tracking table exists                   | **NO**    |
-| VER-07  | Transcript migration functions exist                     | HOLDS     |
-| VER-08  | Downgrade migrations exist                               | **NO**    |
+| ID     | Invariant                                          | Status |
+| :----- | :------------------------------------------------- | :----- |
+| VER-01 | `VERSION` file and `package.json` are synchronized | HOLDS  |
+| VER-02 | Patch upgrades are replay-compatible               | HOLDS  |
+| VER-03 | Minor upgrades are forward-compatible              | HOLDS  |
+| VER-04 | Hash algorithm is versioned in transcripts         | HOLDS  |
+| VER-05 | Database migrations are idempotent                 | HOLDS  |
+| VER-06 | Schema migration tracking table exists             | **NO** |
+| VER-07 | Transcript migration functions exist               | HOLDS  |
+| VER-08 | Downgrade migrations exist                         | **NO** |
 
 ---
 
