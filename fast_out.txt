@@ -117,3 +117,5 @@ dYs" Structural violation detected. Maintain normalized structure." -ForegroundC
 > prettier --check .
 
 Checking formatting...
+[warn] fixtures/expected/decision-output.json
+[warn] fixtures/expected/replay-trace.json
