@@ -7,7 +7,7 @@ Welcome to the Reach Documentation. This repository follows the **Antigravity** 
 - [Quickstart (Technical)](QUICKSTART_TECH.md) - Get up and running in 5 minutes.
 - [Install Guide](INSTALL.md) - Detailed installation for all platforms.
 - [CLI Reference](cli.md) - Mastery of `reachctl` and `./reach`.
-- [Troubleshooting](troubleshooting.md) - Resolve common issues.
+- [Troubleshooting](TROUBLESHOOTING.md) - Resolve common issues.
 
 ## 🏗️ Architecture & Core Concepts
 
@@ -38,7 +38,8 @@ Welcome to the Reach Documentation. This repository follows the **Antigravity** 
 - [PoEE (Proof of Execution Evidence)](../EXECUTION_PROTOCOL.md) - Formal proof specs.
 
 ---
-*Reach: The Deterministic Spine for Agentic Intelligence.*
+
+_Reach: The Deterministic Spine for Agentic Intelligence._
 
 ## 📂 Other Documentation
 
@@ -110,6 +111,8 @@ Welcome to the Reach Documentation. This repository follows the **Antigravity** 
 - [Ready Layer Strategy](READY_LAYER_STRATEGY.md)
 - [Red Team Simulation](RED_TEAM_SIMULATION.md)
 - [Release Checklist](RELEASE_CHECKLIST.md)
+- [Release Notes](RELEASE.md)
+- [Release Readiness Checklist](RELEASE_READINESS_CHECKLIST.md)
 - [Replay Diff Spec](REPLAY_DIFF_SPEC.md)
 - [Replay Integrity Proof](REPLAY_INTEGRITY_PROOF.md)
 - [Replay Protocol](REPLAY_PROTOCOL.md)

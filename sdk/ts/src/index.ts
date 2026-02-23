@@ -39,10 +39,7 @@ export interface ReplayResult {
   message?: string;
 }
 
-export interface DashboardPersona {
-  id: string;
-  name: string;
-}
+export type DashboardPersona = "exec" | "reviewer" | "operator";
 
 export interface DashboardViewModel {
   nodes: any[];
@@ -73,7 +70,7 @@ export interface ReachClientConfig {
 
 export interface Run {
   id: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+  status: "pending" | "running" | "completed" | "failed" | "cancelled";
   tier?: string;
   capabilities?: string[];
   created_at: string;
@@ -111,13 +108,13 @@ export interface Pack {
   repo: string;
   spec_version: string;
   signature?: string;
-  reproducibility?: 'A' | 'B' | 'C' | 'D' | 'F';
+  reproducibility?: "A" | "B" | "C" | "D" | "F";
   verified: boolean;
 }
 
 export interface FederationNode {
   node_id: string;
-  status: 'active' | 'inactive' | 'quarantined';
+  status: "active" | "inactive" | "quarantined";
   capabilities?: string[];
   latency_ms?: number;
   load_score?: number;
@@ -149,10 +146,10 @@ export class ReachErrorException extends Error {
     public readonly code: string,
     public readonly details?: Record<string, unknown>,
     public readonly remediation?: string,
-    public readonly statusCode?: number
+    public readonly statusCode?: number,
   ) {
     super(message);
-    this.name = 'ReachErrorException';
+    this.name = "ReachErrorException";
   }
 }
 
@@ -163,7 +160,10 @@ class ReachClient {
   private readonly fetchImpl: typeof fetch;
 
   constructor(config: ReachClientConfig = {}) {
-    this.baseUrl = (config.baseUrl ?? 'http://127.0.0.1:8787').replace(/\/$/, '');
+    this.baseUrl = (config.baseUrl ?? "http://127.0.0.1:8787").replace(
+      /\/$/,
+      "",
+    );
     this.timeout = config.timeout ?? 30000;
     this.fetchImpl = config.fetch ?? fetch;
   }
@@ -171,18 +171,18 @@ class ReachClient {
   private async request<T>(
     method: string,
     path: string,
-    body?: unknown
+    body?: unknown,
   ): Promise<T> {
     const url = `${this.baseUrl}${path}`;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
     const headers: Record<string, string> = {
-      'Accept': 'application/json',
+      Accept: "application/json",
     };
 
     if (body) {
-      headers['Content-Type'] = 'application/json';
+      headers["Content-Type"] = "application/json";
     }
 
     try {
@@ -196,42 +196,44 @@ class ReachClient {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({})) as Partial<ReachError>;
+        const errorData = (await response
+          .json()
+          .catch(() => ({}))) as Partial<ReachError>;
         throw new ReachErrorException(
           errorData.error ?? `HTTP ${response.status}`,
-          errorData.code ?? 'UNKNOWN_ERROR',
+          errorData.code ?? "UNKNOWN_ERROR",
           errorData.details,
           errorData.remediation,
-          response.status
+          response.status,
         );
       }
 
-      return await response.json() as T;
+      return (await response.json()) as T;
     } catch (error) {
       clearTimeout(timeoutId);
       if (error instanceof ReachErrorException) {
         throw error;
       }
-      if (error instanceof Error && error.name === 'AbortError') {
+      if (error instanceof Error && error.name === "AbortError") {
         throw new ReachErrorException(
-          'Request timeout',
-          'TIMEOUT',
+          "Request timeout",
+          "TIMEOUT",
           undefined,
-          'Increase timeout or check server availability'
+          "Increase timeout or check server availability",
         );
       }
       throw new ReachErrorException(
-        error instanceof Error ? error.message : 'Unknown error',
-        'NETWORK_ERROR',
+        error instanceof Error ? error.message : "Unknown error",
+        "NETWORK_ERROR",
         undefined,
-        'Check network connectivity and server status'
+        "Check network connectivity and server status",
       );
     }
   }
 
   // System
   async health(): Promise<{ status: string; version: string }> {
-    return this.request('GET', '/health');
+    return this.request("GET", "/health");
   }
 
   async version(): Promise<{
@@ -240,7 +242,7 @@ class ReachClient {
     compatibilityPolicy: string;
     supportedVersions: string[];
   }> {
-    return this.request('GET', '/version');
+    return this.request("GET", "/version");
   }
 
   // Runs
@@ -248,49 +250,49 @@ class ReachClient {
     capabilities?: string[];
     plan_tier?: string;
   }): Promise<Run> {
-    return this.request('POST', '/runs', params);
+    return this.request("POST", "/runs", params);
   }
 
   async getRun(id: string): Promise<Run> {
-    return this.request('GET', `/runs/${encodeURIComponent(id)}`);
+    return this.request("GET", `/runs/${encodeURIComponent(id)}`);
   }
 
   async getRunEvents(id: string, after?: number): Promise<{ events: Event[] }> {
-    const query = after ? `?after=${after}` : '';
-    return this.request('GET', `/runs/${encodeURIComponent(id)}/events${query}`);
+    const query = after ? `?after=${after}` : "";
+    return this.request(
+      "GET",
+      `/runs/${encodeURIComponent(id)}/events${query}`,
+    );
   }
 
   async streamRunEvents(
     id: string,
     onEvent: (event: Event) => void,
-    onError?: (error: Error) => void
+    onError?: (error: Error) => void,
   ): Promise<() => void> {
     const url = `${this.baseUrl}/runs/${encodeURIComponent(id)}/events`;
     const controller = new AbortController();
 
     try {
       const response = await this.fetchImpl(url, {
-        headers: { 'Accept': 'text/event-stream' },
+        headers: { Accept: "text/event-stream" },
         signal: controller.signal,
       });
 
       if (!response.ok) {
         throw new ReachErrorException(
           `HTTP ${response.status}`,
-          'STREAM_ERROR'
+          "STREAM_ERROR",
         );
       }
 
       const reader = response.body?.getReader();
       if (!reader) {
-        throw new ReachErrorException(
-          'No response body',
-          'STREAM_ERROR'
-        );
+        throw new ReachErrorException("No response body", "STREAM_ERROR");
       }
 
       const decoder = new TextDecoder();
-      let buffer = '';
+      let buffer = "";
 
       const processStream = async () => {
         try {
@@ -299,11 +301,11 @@ class ReachClient {
             if (done) break;
 
             buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop() ?? '';
+            const lines = buffer.split("\n");
+            buffer = lines.pop() ?? "";
 
             for (const line of lines) {
-              if (line.startsWith('data: ')) {
+              if (line.startsWith("data: ")) {
                 try {
                   const event = JSON.parse(line.slice(6)) as Event;
                   onEvent(event);
@@ -336,27 +338,29 @@ class ReachClient {
     steps: number;
     policy?: Record<string, unknown>;
   }> {
-    return this.request('POST', `/runs/${encodeURIComponent(id)}/replay`);
+    return this.request("POST", `/runs/${encodeURIComponent(id)}/replay`);
   }
 
   // Capsules
-  async createCapsule(runId: string): Promise<Capsule & { capsulePath: string }> {
-    return this.request('POST', '/capsules', { run_id: runId });
+  async createCapsule(
+    runId: string,
+  ): Promise<Capsule & { capsulePath: string }> {
+    return this.request("POST", "/capsules", { run_id: runId });
   }
 
   async verifyCapsule(path: string): Promise<VerificationResult> {
-    return this.request('POST', '/capsules/verify', { path });
+    return this.request("POST", "/capsules/verify", { path });
   }
 
   // Federation
   async getFederationStatus(): Promise<{ nodes: FederationNode[] }> {
-    return this.request('GET', '/federation/status');
+    return this.request("GET", "/federation/status");
   }
 
   // Packs
   async searchPacks(query?: string): Promise<{ results: Pack[] }> {
-    const q = query ? `?q=${encodeURIComponent(query)}` : '';
-    return this.request('GET', `/packs${q}`);
+    const q = query ? `?q=${encodeURIComponent(query)}` : "";
+    return this.request("GET", `/packs${q}`);
   }
 
   async installPack(name: string): Promise<{
@@ -364,11 +368,11 @@ class ReachClient {
     path: string;
     verified_badge: boolean;
   }> {
-    return this.request('POST', '/packs/install', { name });
+    return this.request("POST", "/packs/install", { name });
   }
 
   async verifyPack(name: string): Promise<VerificationResult> {
-    return this.request('POST', '/packs/verify', { name });
+    return this.request("POST", "/packs/verify", { name });
   }
 }
 
