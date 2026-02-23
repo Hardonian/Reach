@@ -1051,7 +1051,7 @@ function buildTypeSummary(
   return { rows, text };
 }
 
-function parseWorkflowArgs(argv: string[]): WorkflowArgs {
+export function parseWorkflowArgs(argv: string[]): WorkflowArgs {
   const command = argv[0] as WorkflowArgs["command"];
   const subcommand = argv[1] as WorkflowArgs["subcommand"];
 
