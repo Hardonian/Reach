@@ -11,15 +11,8 @@ const getFiles = () => {
       .toString()
       .split("\n")
       .filter(Boolean);
-    // exclude tests, docs, scripts
-    return filesMatch.filter(
-      (f) =>
-        !f.includes("test") &&
-        !f.includes("docs/") &&
-        !f.includes("scripts/") &&
-        !f.includes(".test.") &&
-        !f.includes(".spec."),
-    );
+    // exclude tests, docs, scripts, readmes
+    return filesMatch.filter(f => !f.includes('test') && !f.includes('docs/') && !f.includes('scripts/') && !f.includes('.test.') && !f.includes('.spec.') && !f.toLowerCase().includes('readme.md'));
   } catch {
     return [];
   }
