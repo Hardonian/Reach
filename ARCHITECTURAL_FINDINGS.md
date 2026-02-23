@@ -18,7 +18,7 @@
 5. **Determinism Logic**: `src/determinism` implements basic determinism primitives, but Next.js code implements its own similar primitives (e.g. nested in `apps/arcade/src/lib/decision/engineAdapter.ts` if true, or within the diff engines).
 
 ## Action Plan (Phase 1-4)
+
 - **Domain Realignment**: We will treat `src/core` (or a dedicated `src/engine`) as the sole canonical logic engine. `apps/arcade/src/lib` engine implementations will either be moved to `src/core` or adapted to be pure SDK clients.
 - **Concept Compression**: Unify types from `apps/arcade/src/lib/db/types.ts` into `src/contracts` or `src/core/types` and eliminate duplicate utility implementations.
 - **Boundary Hardening**: Update `apps/arcade` to rely on the centralized types/engine tools instead of redefining them locally.
-
