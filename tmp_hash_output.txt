@@ -1,5 +1,0 @@
-{"desc":"Simple flat object","canonical":"{\"action\":\"deploy\",\"environment\":\"production\"}","hash":"165b836d9d6e803d5ce1bb8b7a01437ff68928f549887360cf13a0d551a66e85"}
-{"desc":"Nested object with sorted keys","canonical":"{\"a\":1,\"b\":2,\"c\":{\"a\":1,\"z\":26}}","hash":"24e4db09ae0e40a93e391725f9290725f3a8ffd15d33ed0bb39c394319087492"}
-{"desc":"Empty object","canonical":"{}","hash":"44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"}
-{"desc":"Array with mixed types","canonical":"{\"items\":[1,\"two\",true,null,{\"nested\":\"value\"}]}","hash":"7f76a9a8e0bec70c5d327b1ee560378ec256372034993f7cb7b676c77992f5cc"}
-{"desc":"Unicode content","canonical":"{\"emoji\":\"≡ƒÄ»\",\"name\":\"µùÑµ£¼Φ¬₧πâåπé╣πâê\"}","hash":"124cab98f548209aa0b1ea432e5bbf239f2327d65f519a32420fa5f1a67433cc"}

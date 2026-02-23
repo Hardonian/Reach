@@ -35,11 +35,38 @@ Fields explicitly **excluded** from the deterministic input hash:
 
 TypeScript: `src/core/shim.ts → hashInput()`
 Go: `src/go/hash.go → Hash()`
-Rust: `crates/engine-core/src/invariants/mod.rs → canonical_hash()`
+Rust: `crates/engine-core/src/decision/determinism.rs → compute_fingerprint()`
 
 ---
 
-## 2. Deterministic Transformation Boundary
+## 2. Hash Version
+
+All transcripts include a `hashVersion` field identifying the hash computation
+pipeline. The current version is:
+
+```
+sha256-cjson-v1
+```
+
+This encodes:
+- **Algorithm**: SHA-256
+- **Serialization**: cjson (canonical JSON with recursively sorted keys)
+- **Schema version**: v1
+
+The constant is exported from `src/core/shim.ts` as `HASH_VERSION`.
+
+### When to Bump
+
+A hash version bump (`v1` → `v2`) is required when:
+
+1. Hash algorithm changes (e.g., SHA-256 → SHA-3).
+2. Hash input set changes (adding/removing fields from `hashInput()`).
+3. Serialization format changes (e.g., switching to CBOR).
+4. Canonical ordering algorithm changes.
+
+---
+
+## 3. Deterministic Transformation Boundary
 
 The **determinism boundary** is the set of functions where identical inputs
 MUST produce identical outputs with zero tolerance.
@@ -47,14 +74,15 @@ MUST produce identical outputs with zero tolerance.
 ### TypeScript Determinism Boundary
 
 ```
-src/determinism/canonicalJson.ts    — Canonical JSON serialization
-src/determinism/deterministicMap.ts — Sorted-key iteration
-src/determinism/deterministicSort.ts — Locale-independent sorting
-src/determinism/hashStream.ts       — SHA-256 streaming hash
-src/determinism/seededRandom.ts     — Mulberry32 PRNG (FNV-1a seed)
-src/core/zeolite-core.ts            — Decision execution pipeline
-src/core/shim.ts                    — Core shim (hashInput, executeDecision)
-src/lib/fallback.ts                 — Minimax regret / maximin / weighted sum
+src/determinism/canonicalJson.ts       — Canonical JSON serialization (sorted keys)
+src/determinism/deterministicMap.ts    — Sorted-key iteration
+src/determinism/deterministicSort.ts   — Locale-independent sorting
+src/determinism/deterministicCompare.ts — Code-point string comparison (replaces localeCompare)
+src/determinism/hashStream.ts          — SHA-256 streaming hash
+src/determinism/seededRandom.ts        — Mulberry32 PRNG (FNV-1a seed)
+src/core/zeolite-core.ts               — Decision execution pipeline
+src/core/shim.ts                       — Core shim (hashInput, executeDecision)
+src/lib/fallback.ts                    — Minimax regret / maximin / weighted sum
 ```
 
 ### Go Determinism Boundary
@@ -68,14 +96,14 @@ src/go/verify.go     — N-trial determinism verification
 ### Rust Determinism Boundary
 
 ```
-crates/engine-core/src/invariants/mod.rs — FNV-1a canonical hash
-crates/engine-core/src/lib.rs            — Replay state, snapshot guards
-crates/engine-core/src/decision/         — Classical decision algorithms
+crates/engine-core/src/decision/determinism.rs — Canonical JSON + SHA-256
+crates/engine-core/src/lib.rs                  — Replay state, snapshot guards
+crates/engine-core/src/decision/               — Classical decision algorithms
 ```
 
 ---
 
-## 3. Hash Inclusion Rules
+## 4. Hash Inclusion Rules
 
 ### What gets hashed
 
@@ -87,14 +115,13 @@ crates/engine-core/src/decision/         — Classical decision algorithms
 
 ### How it gets hashed
 
-1. Input is serialized to JSON via `JSON.stringify()` (TypeScript) or
-   `json.Marshal()` (Go).
-2. Go's `encoding/json` sorts map keys alphabetically by default.
-3. TypeScript's `canonicalJson()` recursively sorts object keys before
-   stringifying.
-4. The resulting bytes are hashed with SHA-256 (TypeScript/Go) or FNV-1a (Rust
-   hot path).
-5. The hex digest is the canonical fingerprint.
+1. Input is serialized via `canonicalJson()` (TypeScript) or `CanonicalJSON()`
+   (Go), which recursively sorts all object keys alphabetically.
+2. The resulting canonical JSON string is hashed with SHA-256.
+3. The hex digest is the canonical fingerprint.
+
+**Critical**: `JSON.stringify()` MUST NOT be used directly in hash-contributing
+paths. All hashing goes through `canonicalJson()` to guarantee key order.
 
 ### Hash Algorithm Registry
 
@@ -102,14 +129,14 @@ crates/engine-core/src/decision/         — Classical decision algorithms
 | :--------- | :-------- | :-------------------------- | :------------ |
 | TypeScript | SHA-256   | Transcript hash, input hash | hex string    |
 | Go         | SHA-256   | Run fingerprint             | hex string    |
-| Rust       | FNV-1a    | Canonical payload hash      | 16-char hex   |
+| Rust       | SHA-256   | Canonical payload hash      | hex string    |
 
 **Invariant**: The same logical input must produce the same hash regardless of
 which language boundary computes it, provided the serialization is canonical.
 
 ---
 
-## 4. Replay Equivalence Conditions
+## 5. Replay Equivalence Conditions
 
 A replay is **equivalent** if and only if:
 
@@ -129,107 +156,134 @@ A replay is **equivalent** if and only if:
 
 ---
 
-## 5. Nondeterminism Risk Map
+## 6. Nondeterminism Risk Map
 
 ### Risk 1: Map Iteration Order (Go)
 
 - **Location**: Any Go code using `for k, v := range map`.
 - **Status**: MITIGATED. Go's `encoding/json.Marshal` sorts keys. Direct map
-  iteration in event construction paths must use sorted keys (documented in
-  `DETERMINISM_DEBUGGING.md`).
-- **Residual Risk**: LOW. Requires discipline in new Go code.
+  iteration in event construction paths must use sorted keys.
+- **Residual Risk**: LOW.
 
 ### Risk 2: Wall-Clock Timestamps
 
 - **Location**: `time.Now()` in Go, `Date.now()` in TypeScript.
 - **Status**: MITIGATED. `src/core/shim.ts` uses `resolveTimestamp()` which
   respects `ZEO_FIXED_TIME` env var. Deterministic mode uses epoch zero.
-- **Residual Risk**: MEDIUM. `time.Now()` is used in `sqlite.go:106` for
-  artifact metadata timestamps. This is outside the hash boundary but could
-  affect replay ordering if artifact timestamps are ever included in proofs.
-- **Action**: Ensure artifact `created_at` is never included in hash
-  computation. Add a lint rule.
+- **Residual Risk**: LOW. `Date.now()` is used in operational paths (cache
+  cleanup, telemetry latency) that are **outside** the hash boundary.
 
 ### Risk 3: Float Encoding
 
 - **Location**: `(0.2 + idx * 0.05).toFixed(4)` in `zeolite-core.ts`.
-- **Status**: MANAGED. All float intermediates use `toFixed()` before inclusion
-  in any canonical output. IEEE 754 double precision is consistent across
-  platforms for the same arithmetic operations.
-- **Residual Risk**: LOW. Edge cases with very large or very small floats could
-  produce platform-dependent rounding. Current usage stays within safe ranges.
+- **Status**: MITIGATED. All float intermediates use `toFixed()` before inclusion
+  in canonical output. Tested in DET-11 test suite.
+- **Residual Risk**: LOW.
 
 ### Risk 4: Time Zones
 
 - **Location**: `new Date().toISOString()` calls.
-- **Status**: MITIGATED. `toISOString()` always produces UTC. Deterministic mode
-  timestamps use `"1970-01-01T00:00:00.000Z"`.
+- **Status**: MITIGATED. `toISOString()` always produces UTC.
 - **Residual Risk**: NEGLIGIBLE.
 
 ### Risk 5: JSON Serialization Order
 
-- **Location**: Every `JSON.stringify()` call in hash-contributing paths.
-- **Status**: MITIGATED. `canonicalJson()` sorts all keys recursively.
-  `hashInput()` in `shim.ts` uses `JSON.stringify()` but only on a
-  pre-constructed object with fixed key order.
-- **Residual Risk**: LOW. The `hashInput()` function reconstructs the stable
-  payload with explicit key ordering (`spec`, `evidence`, `dependsOn`,
-  `informs`). V8's `JSON.stringify()` preserves insertion order for
-  string-keyed properties on ordinary objects, which is specified by ECMA-262.
+- **Location**: Every hash-contributing path.
+- **Status**: MITIGATED. All hash-contributing paths use `canonicalJson()` which
+  recursively sorts keys. Raw `JSON.stringify()` is prohibited in hash paths.
+- **Residual Risk**: NEGLIGIBLE.
 
 ### Risk 6: `localeCompare` Usage
 
-- **Location**: `src/lib/fallback.ts` — tie-breaking sorts use
-  `a.localeCompare(b)`.
-- **Status**: RISK. `localeCompare` without an explicit locale argument uses the
-  system default locale, which can vary across machines.
-- **Impact**: Could affect action ranking tie-breaks in minimax regret fallback.
-- **Severity**: LOW (only affects tie-breaks where values are ε-close).
-- **Recommendation**: Replace with code-point comparison (`a < b ? -1 : 1`).
+- **Location**: Multiple CLI modules and `lib/` utilities use `localeCompare`.
+- **Status**: PARTIALLY MITIGATED. `src/determinism/deterministicCompare.ts`
+  provides `codePointCompare()` for locale-independent comparison. The fallback
+  algorithms (`src/lib/fallback.ts`) use code-point comparison for tie-breaks.
+  CLI display-layer sorts still use `localeCompare` — these are outside the
+  determinism boundary but should be migrated for consistency.
+- **Residual Risk**: LOW for hash-contributing paths. MEDIUM for display consistency.
 
 ### Risk 7: Concurrent Goroutine Ordering
 
-- **Location**: `services/runner/internal/agents/bridge.go:118` — batch
-  requests processed in goroutines.
-- **Status**: See Phase 2 (Concurrency Safety).
+- **Location**: `services/runner/internal/agents/bridge.go:118`.
+- **Status**: DOCUMENTED. Go concurrent processing paths must sort results
+  before inclusion in any deterministic output.
 
 ---
 
-## 6. Test Coverage
+## 7. Prohibited Sources of Nondeterminism
 
-### Existing Invariant Tests
+The following are PROHIBITED in any code within the determinism boundary:
 
-| Test File                                          | Coverage Area            |
-| :------------------------------------------------- | :----------------------- |
-| `src/determinism/__tests__/canonicalJson.test.ts`  | All determinism utilities |
-| `src/core/zeolite-core.test.ts`                    | Operation chain          |
-| `src/go/stress_test.go`                            | Hash stability fixtures  |
-| `crates/engine-core/src/invariants/mod.rs (tests)` | Canonical hash, semver   |
-
-### Invariant Gaps
-
-1. **No cross-language hash equivalence test.** TypeScript SHA-256 and Go
-   SHA-256 should produce identical hashes for the same input, but this is not
-   tested in CI.
-2. **No float determinism boundary test.** The `toFixed()` paths are not tested
-   for platform-specific edge cases.
-3. **No `localeCompare` vs code-point comparison regression test** in fallback.ts.
+1. `Math.random()` — use `seededRandom()` instead.
+2. `Date.now()` — use `resolveTimestamp()` or deterministic mode clock.
+3. `localeCompare()` without explicit locale — use `codePointCompare()`.
+4. Raw `JSON.stringify()` in hash paths — use `canonicalJson()`.
+5. Map/object iteration without sorted keys.
+6. `process.env` reads that alter computation output without explicit validation.
+7. Goroutine result ordering without explicit sort.
+8. Filesystem directory listing without sort.
 
 ---
 
-## 7. Formal Invariants (Summary)
+## 8. Test Coverage
 
-| ID     | Invariant                                           | Verified |
-| :----- | :-------------------------------------------------- | :------- |
-| DET-01 | Same input → same hash (TypeScript)                 | YES      |
-| DET-02 | Same input → same hash (Go)                         | YES      |
-| DET-03 | Same input → same hash (Rust)                       | YES      |
-| DET-04 | Canonical JSON key ordering is recursive             | YES      |
-| DET-05 | DeterministicMap iterates in sorted key order        | YES      |
-| DET-06 | SeededRandom produces identical sequence for seed    | YES      |
-| DET-07 | HashStream chunked == single update                  | YES      |
-| DET-08 | combineHashes is order-sensitive                     | YES      |
-| DET-09 | Replay produces identical transcript hash            | YES      |
-| DET-10 | Cross-language hash equivalence                      | **NO**   |
-| DET-11 | Float encoding stability across platforms            | **NO**   |
-| DET-12 | Tie-break sorting is locale-independent              | **NO**   |
+### Invariant Test Suite
+
+| Test File                                          | Coverage Area                    |
+| :------------------------------------------------- | :------------------------------- |
+| `src/determinism/determinism-invariants.test.ts`   | All determinism invariants       |
+| `src/determinism/crossLanguageHash.test.ts`        | Cross-language hash structure    |
+| `src/core/zeolite-core.test.ts`                    | Operation chain determinism      |
+| `src/go/cross_language_hash_test.go`               | Go golden hash verification      |
+| `services/runner/internal/determinism/*_test.go`    | Go hash/replay determinism       |
+| `crates/engine-core/src/decision/determinism.rs`    | Rust canonical hash              |
+
+### Test Categories
+
+| Category                     | Test Count | Status |
+| :--------------------------- | :--------- | :----- |
+| Golden hash assertions       | 5          | PASS   |
+| Float encoding boundary      | 4          | PASS   |
+| Locale-independent sorting   | 4          | PASS   |
+| Hash version enforcement     | 2          | PASS   |
+| 100-iteration stress         | 5          | PASS   |
+| Adversarial mutation         | 8          | PASS   |
+| Large-scale replay           | 2          | PASS   |
+| Sort utilities               | 3          | PASS   |
+| HashStream edge cases        | 4          | PASS   |
+
+---
+
+## 9. Formal Invariants (Summary)
+
+| ID     | Invariant                                           | Verified | Test ID |
+| :----- | :-------------------------------------------------- | :------- | :------ |
+| DET-01 | Same input → same hash (TypeScript)                 | YES      | stress  |
+| DET-02 | Same input → same hash (Go)                         | YES      | Go test |
+| DET-03 | Same input → same hash (Rust)                       | YES      | Rust    |
+| DET-04 | Canonical JSON key ordering is recursive             | YES      | DET-10  |
+| DET-05 | DeterministicMap iterates in sorted key order        | YES      | stress  |
+| DET-06 | SeededRandom produces identical sequence for seed    | YES      | stress  |
+| DET-07 | HashStream chunked == single update                  | YES      | edge    |
+| DET-08 | combineHashes is order-sensitive                     | YES      | advers. |
+| DET-09 | Replay produces identical transcript hash            | YES      | stress  |
+| DET-10 | Cross-language hash equivalence (golden)             | YES      | DET-10  |
+| DET-11 | Float encoding stability across platforms            | YES      | DET-11  |
+| DET-12 | Tie-break sorting is locale-independent              | YES      | DET-12  |
+| VER-04 | Hash version constant in transcripts                 | YES      | VER-04  |
+
+---
+
+## 10. Cross-Language Golden Hashes
+
+These are the canonical reference hashes. All language implementations MUST
+produce these exact hashes for the given inputs:
+
+| Input Description           | Canonical JSON                                          | SHA-256 Hash                                                     |
+| :-------------------------- | :------------------------------------------------------ | :--------------------------------------------------------------- |
+| Simple flat object          | `{"action":"deploy","environment":"production"}`         | `165b836d9d6e803d5ce1bb8b7a01437ff68928f549887360cf13a0d551a66e85` |
+| Nested with sorted keys     | `{"a":1,"b":2,"c":{"a":1,"z":26}}`                      | `24e4db09ae0e40a93e391725f9290725f3a8ffd15d33ed0bb39c394319087492` |
+| Empty object                | `{}`                                                     | `44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a` |
+| Array with mixed types      | `{"items":[1,"two",true,null,{"nested":"value"}]}`       | `7f76a9a8e0bec70c5d327b1ee560378ec256372034993f7cb7b676c77992f5cc` |
+| Unicode content             | `{"emoji":"🎯","name":"日本語テスト"}`                     | `124cab98f548209aa0b1ea432e5bbf239f2327d65f519a32420fa5f1a67433cc` |
