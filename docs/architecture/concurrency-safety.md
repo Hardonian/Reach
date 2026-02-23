@@ -83,13 +83,13 @@ The runner uses `sync.RWMutex` in 50+ locations. Key patterns:
 | api/registry_test.go              | Test concurrency | LOW        |
 | agents/runtime_test.go (×2)       | Test concurrency | LOW        |
 | api/server.go                     | Request handling | MEDIUM     |
-| agents/bridge.go                  | Batch processing | **HIGH**   |
+| agents/bridge.go                  | Batch processing | LOW        |
 
 ---
 
 ## 3. Risk Analysis
 
-### Risk 1: Batch Bridge Processing (HIGH)
+### ~~Risk 1: Batch Bridge Processing~~ (RESOLVED — False Positive)
 
 **Location**: `services/runner/internal/agents/bridge.go:118`
 
@@ -99,16 +99,12 @@ go func(idx int, br BatchRequest) {
 }(idx, br)
 ```
 
-**Risk**: Multiple goroutines processing batch requests concurrently. If
-batch results are collected into a shared slice or map without
-synchronization, ordering is nondeterministic.
+**Initial concern**: Multiple goroutines processing batch requests
+concurrently could lead to nondeterministic ordering.
 
-**Impact**: Could affect determinism if batch results contribute to a hash
-or decision output. The order in which results are collected depends on
-goroutine scheduling.
-
-**Mitigation needed**: Ensure results are collected into indexed positions
-(not appended), or use a channel with deterministic drain ordering.
+**Actual state**: Results are collected via an indexed channel
+(`indexedResult{idx: idx}`) and written by index (`results[ir.idx]`).
+Ordering is deterministic regardless of goroutine scheduling.
 
 ### Risk 2: DriftMonitor Race Window (MEDIUM)
 
@@ -213,9 +209,9 @@ database. No cross-language concurrent access identified.
 | CON-01 | TypeScript is single-threaded (no data races)       | HOLDS      |
 | CON-02 | Go shared state is mutex-protected                  | HOLDS      |
 | CON-03 | SQLite WAL prevents corruption under concurrency    | HOLDS      |
-| CON-04 | Batch processing preserves deterministic ordering   | **RISK**   |
+| CON-04 | Batch processing preserves deterministic ordering   | HOLDS      |
 | CON-05 | No cross-language concurrent database access        | HOLDS      |
-| CON-06 | Lock ordering is consistent (no deadlock potential) | **UNVERIFIED** |
+| CON-06 | Lock ordering is consistent (no deadlock potential) | UNVERIFIED |
 
 ---
 
@@ -224,18 +220,18 @@ database. No cross-language concurrent access identified.
 The following Go compilation errors exist in `services/runner/` and are
 pre-existing (not introduced by this audit):
 
-| File                    | Error                            |
-| :---------------------- | :------------------------------- |
-| capability_cmd.go       | Unused imports (time, storage)   |
-| demo_cmd.go             | Unused imports (determinism, storage) |
-| historical_cmd.go       | Unused import (encoding/json)    |
-| main.go:221,223,225     | Undefined: runVerifyPeer, runConsensus, runPeer |
-| retention_cmd.go        | Unused import (encoding/json)    |
-| consensus.go:575        | Syntax error                     |
-| baseline.go             | Unused import (strings)          |
-| drift_detector.go:608   | Undefined: strings               |
-| evidence_diff.go        | Unused import (math), undefined: now |
-| manager.go              | Unused import (errors), unused var: now |
+| File                | Error                                            |
+| :------------------ | :----------------------------------------------- |
+| capability_cmd.go   | Unused imports (time, storage)                   |
+| demo_cmd.go         | Unused imports (determinism, storage)             |
+| historical_cmd.go   | Unused import (encoding/json)                    |
+| main.go:221,223,225 | Undefined: runVerifyPeer, runConsensus, runPeer   |
+| retention_cmd.go    | Unused import (encoding/json)                    |
+| consensus.go:575    | Syntax error                                     |
+| baseline.go         | Unused import (strings)                          |
+| drift_detector.go   | Undefined: strings                               |
+| evidence_diff.go    | Unused import (math), undefined: now             |
+| manager.go          | Unused import (errors), unused var: now           |
 
 These represent incomplete refactoring in the runner CLI and historical
 analysis modules. They do not affect the TypeScript/core determinism
