@@ -10,6 +10,7 @@ const getFiles = () => {
     const filesMatch = execSync("git ls-files", { stdio: "pipe" })
       .toString()
       .split("\n")
+      .map((f) => f.trim())
       .filter(Boolean);
     // exclude tests, docs, scripts, readmes
     return filesMatch.filter(
