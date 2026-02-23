@@ -42,6 +42,7 @@ $AllowedFiles = @(
     "ADAPTIVE_ENGINE_SPEC.md",
     "AGENTS.md",
     "ARCHITECTURE.md",
+    "ARCHITECTURAL_FINDINGS.md",
     "AUDIT_REPORT.md",
     "AUTOPACK_SPEC.md",
     "CAPABILITY_REGISTRY.md",
