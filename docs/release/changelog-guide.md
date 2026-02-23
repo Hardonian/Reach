@@ -25,29 +25,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - New features
 
 ### Changed
+
 - Changes to existing functionality
 
 ### Deprecated
+
 - Soon-to-be removed features
 
 ### Removed
+
 - Removed features
 
 ### Fixed
+
 - Bug fixes
 
 ### Security
+
 - Security fixes
 
 ## [X.Y.Z] - YYYY-MM-DD
 
 ### Added
+
 - Feature description (#PR)
 
 ### Fixed
+
 - Bug fix description (#issue)
 ```
 
@@ -55,14 +63,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Entry Categories
 
-| Category | Use For | Example |
-|----------|---------|---------|
-| `Added` | New features | Added `--json` flag to export command |
-| `Changed` | Modifications to existing features | Improved replay performance by 30% |
-| `Deprecated` | Features marked for removal | Deprecated old policy syntax |
-| `Removed` | Deleted features | Removed v1 replay format support |
-| `Fixed` | Bug fixes | Fixed race condition in event ordering |
-| `Security` | Vulnerability fixes | Fixed potential injection in policy parser |
+| Category     | Use For                            | Example                                    |
+| ------------ | ---------------------------------- | ------------------------------------------ |
+| `Added`      | New features                       | Added `--json` flag to export command      |
+| `Changed`    | Modifications to existing features | Improved replay performance by 30%         |
+| `Deprecated` | Features marked for removal        | Deprecated old policy syntax               |
+| `Removed`    | Deleted features                   | Removed v1 replay format support           |
+| `Fixed`      | Bug fixes                          | Fixed race condition in event ordering     |
+| `Security`   | Vulnerability fixes                | Fixed potential injection in policy parser |
 
 ---
 
@@ -77,7 +85,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ```markdown
 ### Fixed
-- Replay now correctly handles out-of-order events. Previously, certain 
+
+- Replay now correctly handles out-of-order events. Previously, certain
   event sequences could cause divergence. (#1234)
 ```
 
@@ -89,7 +98,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ```markdown
 <!-- Bad -->
+
 ### Fixed
+
 - Fixed bug in RL-2001 handler
 - Updated config.go
 ```
@@ -106,7 +117,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- New `--dry-run` flag for `reach presets apply`. Preview changes 
+
+- New `--dry-run` flag for `reach presets apply`. Preview changes
   without applying them. (#567)
 ```
 
@@ -117,11 +129,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Step 1: Move Unreleased
 
 Change:
+
 ```markdown
 ## [Unreleased]
 ```
 
 To:
+
 ```markdown
 ## [0.3.1] - 2026-02-23
 ```
@@ -129,6 +143,7 @@ To:
 ### Step 2: Add Links
 
 At bottom of file:
+
 ```markdown
 [Unreleased]: https://github.com/reach/reach/compare/v0.3.1...HEAD
 [0.3.1]: https://github.com/reach/reach/compare/v0.3.0...v0.3.1
@@ -137,6 +152,7 @@ At bottom of file:
 ### Step 3: Create New Unreleased Section
 
 Add empty section for next release:
+
 ```markdown
 ## [Unreleased]
 
@@ -151,11 +167,11 @@ Add empty section for next release:
 
 ## Version Bump Mapping
 
-| Change Type | Version Bump | Example |
-|-------------|--------------|---------|
+| Change Type         | Version Bump            | Example               |
+| ------------------- | ----------------------- | --------------------- |
 | Breaking API change | MAJOR (X.y.z → X+1.0.0) | Replay format v1 → v2 |
-| New feature | MINOR (x.Y.z → x.Y+1.0) | Added preset support |
-| Bug fix | PATCH (x.y.Z → x.y.Z+1) | Fixed race condition |
+| New feature         | MINOR (x.Y.z → x.Y+1.0) | Added preset support  |
+| Bug fix             | PATCH (x.y.Z → x.y.Z+1) | Fixed race condition  |
 
 ---
 
@@ -169,9 +185,11 @@ For breaking changes, add a migration subsection:
 ## [1.0.0] - 2026-06-01
 
 ### Changed
+
 - **BREAKING**: New policy schema required. See migration guide.
 
 #### Migration
+
 1. Run `reach migrate policies`
 2. Update custom policies to v2 schema
 3. Verify with `reach validate-policy`
@@ -185,10 +203,12 @@ Security fixes get prominent placement:
 ## [0.3.1] - 2026-02-23
 
 ### Security
-- **CVE-2026-XXXX**: Fixed potential policy bypass. All users 
+
+- **CVE-2026-XXXX**: Fixed potential policy bypass. All users
   should upgrade immediately.
 
 ### Fixed
+
 - Other bug fixes...
 ```
 
@@ -231,21 +251,25 @@ Validate changelog is updated:
 ## [0.3.1] - 2026-02-23
 
 ### Added
-- `reach presets apply --dry-run` to preview configuration changes 
+
+- `reach presets apply --dry-run` to preview configuration changes
   without applying them. (#890)
 - Support for ARM64 Linux binaries. (#892)
 
 ### Changed
-- Improved replay verification speed by 40% through optimized 
+
+- Improved replay verification speed by 40% through optimized
   event batching. (#891)
 - Updated default policy bundle to v1.2. (#893)
 
 ### Fixed
+
 - Fixed potential deadlock during concurrent policy evaluation. (#894)
 - Corrected error message for missing policy files. (#895)
 
 ### Security
-- Updated dependency `github.com/foo/bar` to v2.3.1 to address 
+
+- Updated dependency `github.com/foo/bar` to v2.3.1 to address
   CVE-2026-1234. (#896)
 
 [Unreleased]: https://github.com/reach/reach/compare/v0.3.1...HEAD

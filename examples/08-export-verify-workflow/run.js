@@ -6,7 +6,13 @@
  */
 
 const { execSync } = require("child_process");
-const { writeFileSync, mkdirSync, existsSync, rmSync, statSync } = require("fs");
+const {
+  writeFileSync,
+  mkdirSync,
+  existsSync,
+  rmSync,
+  statSync,
+} = require("fs");
 const { join } = require("path");
 
 const EXAMPLES_DIR = __dirname;
@@ -57,7 +63,7 @@ function main() {
     step(1, "Running pack");
     const runOutput = run(
       `./reach run examples/01-quickstart-local/pack.json --input '{"action":"export-test","target":"workflow"}' --json`,
-      { ignoreError: true }
+      { ignoreError: true },
     );
 
     try {
@@ -78,11 +84,11 @@ function main() {
     try {
       const exportOutput = run(
         `./reach export ${runId} --output ${CAPSULE_FILE}`,
-        { ignoreError: true }
+        { ignoreError: true },
       );
       console.log(`   ${checkmark(true)} Export complete`);
       console.log(`   File: workflow.reach.zip`);
-      
+
       if (existsSync(CAPSULE_FILE)) {
         const stats = statSync(CAPSULE_FILE);
         console.log(`   Size: ${(stats.size / 1024).toFixed(1)} KB`);
@@ -96,31 +102,39 @@ function main() {
     // Step 3: Verify capsule
     step(3, "Verifying capsule");
     try {
-      const verifyOutput = run(
-        `./reach verify-proof ${CAPSULE_FILE}`,
-        { ignoreError: true }
+      const verifyOutput = run(`./reach verify-proof ${CAPSULE_FILE}`, {
+        ignoreError: true,
+      });
+      const isValid =
+        verifyOutput.includes("VALID") || verifyOutput.includes("valid");
+      console.log(
+        `   ${checkmark(isValid)} Integrity: ${isValid ? "VALID" : "CHECK FAILED"}`,
       );
-      const isValid = verifyOutput.includes("VALID") || verifyOutput.includes("valid");
-      console.log(`   ${checkmark(isValid)} Integrity: ${isValid ? "VALID" : "CHECK FAILED"}`);
-      console.log(`   ${checkmark(isValid)} Structure: ${isValid ? "VALID" : "CHECK FAILED"}`);
-      
+      console.log(
+        `   ${checkmark(isValid)} Structure: ${isValid ? "VALID" : "CHECK FAILED"}`,
+      );
+
       const eventMatch = verifyOutput.match(/Events?:\s*(\d+)/);
       if (eventMatch) {
         console.log(`   Events: ${eventMatch[1]}`);
       }
     } catch (e) {
-      console.log(`   ${checkmark(false)} Verification unavailable (demo mode)`);
+      console.log(
+        `   ${checkmark(false)} Verification unavailable (demo mode)`,
+      );
     }
 
     // Step 4: Simulate import
     step(4, "Simulating import");
     try {
-      const importOutput = run(
-        `./reach import ${CAPSULE_FILE}`,
-        { ignoreError: true }
+      const importOutput = run(`./reach import ${CAPSULE_FILE}`, {
+        ignoreError: true,
+      });
+      const imported =
+        importOutput.includes("Imported") || importOutput.includes("imported");
+      console.log(
+        `   ${checkmark(imported)} Import ${imported ? "successful" : "simulated"}`,
       );
-      const imported = importOutput.includes("Imported") || importOutput.includes("imported");
-      console.log(`   ${checkmark(imported)} Import ${imported ? "successful" : "simulated"}`);
       console.log(`   Location: ~/.reach/runs/${runId?.slice(0, 20)}.../`);
     } catch (e) {
       console.log(`   ${checkmark(true)} Import ready (simulated)`);
@@ -129,15 +143,19 @@ function main() {
     // Step 5: Replay verification
     step(5, "Replay verification");
     try {
-      const replayOutput = run(
-        `./reach replay ${runId} --verbose`,
-        { ignoreError: true }
+      const replayOutput = run(`./reach replay ${runId} --verbose`, {
+        ignoreError: true,
+      });
+      const verified =
+        replayOutput.includes("VERIFIED") || replayOutput.includes("verified");
+      console.log(
+        `   ${checkmark(verified)} REPLAY_${verified ? "VERIFIED" : "FAILED"}`,
       );
-      const verified = replayOutput.includes("VERIFIED") || replayOutput.includes("verified");
-      console.log(`   ${checkmark(verified)} REPLAY_${verified ? "VERIFIED" : "FAILED"}`);
-      
+
       if (replayOutput.includes("fingerprint")) {
-        const fpMatch = replayOutput.match(/fingerprint[:\s]+(sha256:[a-f0-9]+)/i);
+        const fpMatch = replayOutput.match(
+          /fingerprint[:\s]+(sha256:[a-f0-9]+)/i,
+        );
         if (fpMatch) {
           console.log(`   Fingerprint: ${fpMatch[1].slice(0, 40)}...`);
         }
@@ -161,7 +179,6 @@ function main() {
     console.log("  5. Replay to verify");
 
     console.log(`\nTemp files: ${TEMP_DIR}/`);
-
   } catch (error) {
     console.error("\nError:", error.message);
     process.exit(1);

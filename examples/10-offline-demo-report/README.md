@@ -40,6 +40,7 @@ Or manually:
 ```
 
 **Expected output:**
+
 ```
 Generating demo report in: demo-report/
 ✓ Demo report generated successfully
@@ -58,6 +59,7 @@ ls -la demo-report/
 ```
 
 **Output:**
+
 ```
 demo-report/
 ├── manifest.json      # Report metadata and integrity hash
@@ -75,6 +77,7 @@ cat demo-report/index.md
 ```
 
 **Contains:**
+
 - Report ID and generation timestamp
 - Environment details (versions, platform)
 - Integrity hash for verification
@@ -88,6 +91,7 @@ cat demo-report/index.md
 ```
 
 **Expected output:**
+
 ```
 ▶ Verifying demo report: demo-report/
 ✓ Manifest: VALID
@@ -130,6 +134,7 @@ Status: ✓ VERIFIED
 ### env.json
 
 Sanitized environment data suitable for sharing:
+
 - Node.js version
 - Platform and architecture
 - Go/Rust versions (if available)
@@ -138,6 +143,7 @@ Sanitized environment data suitable for sharing:
 ### timeline.json
 
 List of available examples with commands:
+
 ```json
 [
   {
@@ -153,10 +159,10 @@ List of available examples with commands:
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `run.js` | Automated report generation demo |
-| `expected-structure.json` | Expected report file structure |
+| File                      | Purpose                          |
+| ------------------------- | -------------------------------- |
+| `run.js`                  | Automated report generation demo |
+| `expected-structure.json` | Expected report file structure   |
 
 ---
 

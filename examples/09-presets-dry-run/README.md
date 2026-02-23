@@ -34,6 +34,7 @@ node examples/09-presets-dry-run/run.js
 ```
 
 **Expected output:**
+
 ```
 Available Presets:
 
@@ -63,6 +64,7 @@ Available Presets:
 ```
 
 **Expected output:**
+
 ```
 ▶ Preset: ci-cd-integration
   Mode: DRY RUN (no changes will be made)
@@ -99,6 +101,7 @@ Once you've reviewed the changes:
 ```
 
 **Expected output:**
+
 ```
 ▶ Preset: ci-cd-integration
   Backup: .reach/backups/preset-20240223-001/
@@ -116,9 +119,9 @@ Rollback: ./reach presets rollback ci-cd-integration
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `run.js` | Automated preset exploration script |
+| File                     | Purpose                             |
+| ------------------------ | ----------------------------------- |
+| `run.js`                 | Automated preset exploration script |
 | `preset-comparison.json` | Comparison of preset configurations |
 
 ---
@@ -167,13 +170,13 @@ Status: ✓ READY (review complete)
 
 ## Common Presets Reference
 
-| Preset | Use Case | Files Added |
-|--------|----------|-------------|
-| `ci-cd-integration` | GitHub Actions integration | Workflow files, CI config |
-| `security-review` | Security policy enforcement | Security policies, rules |
-| `compliance-audit` | Audit-ready configuration | Retention policies, logging |
-| `plugin-dev` | Plugin development setup | Scaffold files, templates |
-| `pack-drift-hunter` | Policy drift detection | Drift rules, monitoring |
+| Preset              | Use Case                    | Files Added                 |
+| ------------------- | --------------------------- | --------------------------- |
+| `ci-cd-integration` | GitHub Actions integration  | Workflow files, CI config   |
+| `security-review`   | Security policy enforcement | Security policies, rules    |
+| `compliance-audit`  | Audit-ready configuration   | Retention policies, logging |
+| `plugin-dev`        | Plugin development setup    | Scaffold files, templates   |
+| `pack-drift-hunter` | Policy drift detection      | Drift rules, monitoring     |
 
 ---
 
@@ -194,6 +197,7 @@ ls -la .reach/backups/
 ### Differential Preview
 
 The `--dry-run` flag shows:
+
 - Files that will be created
 - Files that will be modified
 - Files that will be deleted

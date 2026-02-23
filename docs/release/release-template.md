@@ -16,7 +16,7 @@ Example: `Reach v0.3.1 — Deterministic Replay Improvements`
 
 ## Release Notes Structure
 
-```markdown
+````markdown
 ## 🎯 Highlights
 
 - Major feature 1: Brief description
@@ -27,6 +27,7 @@ Example: `Reach v0.3.1 — Deterministic Replay Improvements`
 ## ✨ New Features
 
 ### Feature Category
+
 - **Feature name**: Description. ([docs](link))
 
 ---
@@ -45,10 +46,10 @@ Example: `Reach v0.3.1 — Deterministic Replay Improvements`
 
 ## 📊 Performance
 
-| Metric | Before | After | Change |
-|--------|--------|-------|--------|
-| Replay speed | 100ms | 75ms | -25% |
-| Memory usage | 50MB | 40MB | -20% |
+| Metric       | Before | After | Change |
+| ------------ | ------ | ----- | ------ |
+| Replay speed | 100ms  | 75ms  | -25%   |
+| Memory usage | 50MB   | 40MB  | -20%   |
 
 ---
 
@@ -58,6 +59,7 @@ Example: `Reach v0.3.1 — Deterministic Replay Improvements`
 # New command example
 reach new-command --flag value
 ```
+````
 
 ---
 
@@ -90,14 +92,14 @@ No security changes.
 
 ## 📦 Assets
 
-| Asset | Description |
-|-------|-------------|
-| reach-vX.Y.Z-linux-amd64.tar.gz | Linux x86_64 binary |
-| reach-vX.Y.Z-darwin-amd64.tar.gz | macOS x86_64 binary |
-| reach-vX.Y.Z-darwin-arm64.tar.gz | macOS Apple Silicon |
-| reach-vX.Y.Z-windows-amd64.zip | Windows x86_64 binary |
-| Source code (zip) | Source archive |
-| Source code (tar.gz) | Source archive |
+| Asset                            | Description           |
+| -------------------------------- | --------------------- |
+| reach-vX.Y.Z-linux-amd64.tar.gz  | Linux x86_64 binary   |
+| reach-vX.Y.Z-darwin-amd64.tar.gz | macOS x86_64 binary   |
+| reach-vX.Y.Z-darwin-arm64.tar.gz | macOS Apple Silicon   |
+| reach-vX.Y.Z-windows-amd64.zip   | Windows x86_64 binary |
+| Source code (zip)                | Source archive        |
+| Source code (tar.gz)             | Source archive        |
 
 ---
 
@@ -122,6 +124,7 @@ cosign verify --key release.pub reach-vX.Y.Z-linux-amd64.tar.gz
 ---
 
 **Full Changelog**: https://github.com/reach/reach/compare/vX.Y.Z-1...vX.Y.Z
+
 ```
 
 ---
@@ -160,3 +163,4 @@ Before publishing:
 - Remove beta warnings
 - Emphasize production readiness
 - Long-term support commitment
+```

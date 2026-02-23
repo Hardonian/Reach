@@ -11,6 +11,7 @@ Canonical terminology for Reach to ensure consistent communication across CLI, d
 A set of rules governing what actions are permitted during execution. Policies are evaluated before and during runs to enforce constraints.
 
 **Usage examples:**
+
 - "The `strict-default` Policy blocks unapproved tools."
 - "Apply a cost-limit Policy to prevent runaway spending."
 - CLI: `./reach presets apply strict-safe-mode`
@@ -22,6 +23,7 @@ A set of rules governing what actions are permitted during execution. Policies a
 A discrete unit of work within an execution. Tasks have inputs, outputs, and deterministic behavior.
 
 **Usage examples:**
+
 - "Each Task in the pack completed within 100ms."
 - "The `analyze-code` Task produced a vulnerability report."
 - CLI: `./reach run my-pack --input '{"task": "scan"}'`
@@ -33,6 +35,7 @@ A discrete unit of work within an execution. Tasks have inputs, outputs, and det
 The complete, ordered log of events from a run. The Transcript enables replay and verification.
 
 **Usage examples:**
+
 - "Export the Transcript for audit purposes."
 - "Replay verification compares Transcripts bit-for-bit."
 - CLI: `./reach logs <run-id>` displays the Transcript
@@ -44,6 +47,7 @@ The complete, ordered log of events from a run. The Transcript enables replay an
 A single entry in a Transcript. Events are timestamped, typed, and cryptographically chained.
 
 **Usage examples:**
+
 - "The `tool.invoked` Event recorded the function call."
 - "Event #42 in the Transcript shows the divergence."
 - CLI: `./reach replay <run-id> --verbose` shows per-Event details
@@ -54,14 +58,14 @@ A single entry in a Transcript. Events are timestamped, typed, and cryptographic
 
 Use the canonical terms above instead of these legacy/incorrect terms:
 
-| Avoid | Use Instead | Reason |
-|-------|-------------|--------|
-| "Run" (as a noun for the artifact) | **Transcript** or **Transcript** | "Run" describes the action; Transcript is the artifact |
-| "Decision" | **Task** or **Output** | Decisions are one type of Task output |
-| "Workflow" | **Pack** | Packs are the executable unit |
-| "Log" | **Transcript** | Transcript implies ordering and integrity guarantees |
-| "Record" | **Event** | Event is the precise term for Transcript entries |
-| "Chain" | **Transcript** or **Evidence chain** | Too vague; be specific |
+| Avoid                              | Use Instead                          | Reason                                                 |
+| ---------------------------------- | ------------------------------------ | ------------------------------------------------------ |
+| "Run" (as a noun for the artifact) | **Transcript** or **Transcript**     | "Run" describes the action; Transcript is the artifact |
+| "Decision"                         | **Task** or **Output**               | Decisions are one type of Task output                  |
+| "Workflow"                         | **Pack**                             | Packs are the executable unit                          |
+| "Log"                              | **Transcript**                       | Transcript implies ordering and integrity guarantees   |
+| "Record"                           | **Event**                            | Event is the precise term for Transcript entries       |
+| "Chain"                            | **Transcript** or **Evidence chain** | Too vague; be specific                                 |
 
 ---
 
@@ -84,13 +88,15 @@ Use the canonical terms above instead of these legacy/incorrect terms:
 
 ```markdown
 # Correct
+
 The Policy engine evaluates rules before each Task invocation.
 The Transcript contains Events in chronological order.
 
-# Incorrect  
-The policy engine evaluates rules before each task invocation.    # lowercase
-The transcript contains events in chronological order.            # lowercase
-The workflow generates a log of decisions.                        # legacy terms
+# Incorrect
+
+The policy engine evaluates rules before each task invocation. # lowercase
+The transcript contains events in chronological order. # lowercase
+The workflow generates a log of decisions. # legacy terms
 ```
 
 ### Code Comments

@@ -8,45 +8,45 @@ Guidelines for maintainers and contributors helping to categorize and respond to
 
 ### Type Labels
 
-| Label | Use When | Example |
-|-------|----------|---------|
-| `bug` | Unexpected behavior violating spec | Replay divergence, export failure |
-| `feature` | New capability request | New CLI flag, plugin hook |
-| `docs` | Documentation improvement | Missing examples, unclear guides |
-| `performance` | Speed or resource optimization | Slow replay, memory growth |
-| `security` | Vulnerability or hardening | Policy bypass, injection risk |
+| Label         | Use When                           | Example                           |
+| ------------- | ---------------------------------- | --------------------------------- |
+| `bug`         | Unexpected behavior violating spec | Replay divergence, export failure |
+| `feature`     | New capability request             | New CLI flag, plugin hook         |
+| `docs`        | Documentation improvement          | Missing examples, unclear guides  |
+| `performance` | Speed or resource optimization     | Slow replay, memory growth        |
+| `security`    | Vulnerability or hardening         | Policy bypass, injection risk     |
 
 ### Severity Labels
 
-| Label | Definition | Response Target |
-|-------|------------|-----------------|
-| `severity:critical` | Data loss, security breach, complete unusability | 24 hours |
-| `severity:high` | Core functionality broken, no workaround | 72 hours |
-| `severity:medium` | Feature impaired, workaround exists | 1 week |
-| `severity:low` | Cosmetic, edge case, documentation | Next release |
+| Label               | Definition                                       | Response Target |
+| ------------------- | ------------------------------------------------ | --------------- |
+| `severity:critical` | Data loss, security breach, complete unusability | 24 hours        |
+| `severity:high`     | Core functionality broken, no workaround         | 72 hours        |
+| `severity:medium`   | Feature impaired, workaround exists              | 1 week          |
+| `severity:low`      | Cosmetic, edge case, documentation               | Next release    |
 
 ### Status Labels
 
-| Label | Meaning | Next Action |
-|-------|---------|-------------|
-| `needs-triage` | New issue, awaiting review | Triage within 48 hours |
-| `needs-info` | Awaiting reporter clarification | Request specific diagnostics |
-| `accepted` | Approved for implementation | Await PR or assign developer |
-| `declined` | Not aligned with project goals | Explain why, close politely |
-| `duplicate` | Same issue exists | Link to original, close |
-| `help-wanted` | Community contributions welcome | Apply to good entry points |
-| `good first issue` | Suitable for newcomers | Clear description, mentor assigned |
+| Label              | Meaning                         | Next Action                        |
+| ------------------ | ------------------------------- | ---------------------------------- |
+| `needs-triage`     | New issue, awaiting review      | Triage within 48 hours             |
+| `needs-info`       | Awaiting reporter clarification | Request specific diagnostics       |
+| `accepted`         | Approved for implementation     | Await PR or assign developer       |
+| `declined`         | Not aligned with project goals  | Explain why, close politely        |
+| `duplicate`        | Same issue exists               | Link to original, close            |
+| `help-wanted`      | Community contributions welcome | Apply to good entry points         |
+| `good first issue` | Suitable for newcomers          | Clear description, mentor assigned |
 
 ### Component Labels
 
-| Label | Scope |
-|-------|-------|
-| `component:cli` | Command-line interface |
-| `component:engine` | Rust deterministic evaluation core |
-| `component:runner` | Go execution runner |
-| `component:policy` | Policy engine and rego rules |
-| `component:storage` | Data persistence and replay |
-| `component:docs` | Documentation and examples |
+| Label               | Scope                              |
+| ------------------- | ---------------------------------- |
+| `component:cli`     | Command-line interface             |
+| `component:engine`  | Rust deterministic evaluation core |
+| `component:runner`  | Go execution runner                |
+| `component:policy`  | Policy engine and rego rules       |
+| `component:storage` | Data persistence and replay        |
+| `component:docs`    | Documentation and examples         |
 
 ---
 
@@ -72,13 +72,13 @@ Ask these questions:
 
 ### Step 3: Routing
 
-| Issue Type | Destination |
-|------------|-------------|
+| Issue Type        | Destination                                       |
+| ----------------- | ------------------------------------------------- |
 | Critical security | Private security@ channel + public tracking issue |
-| Critical/High bug | Core maintainer Slack + assign immediately |
-| Feature request | Weekly triage meeting agenda |
-| Docs/examples | Any maintainer can approve |
-| Good first issue | Mark and advertise in discussions |
+| Critical/High bug | Core maintainer Slack + assign immediately        |
+| Feature request   | Weekly triage meeting agenda                      |
+| Docs/examples     | Any maintainer can approve                        |
+| Good first issue  | Mark and advertise in discussions                 |
 
 ---
 
@@ -87,6 +87,7 @@ Ask these questions:
 ### Initial Response Templates
 
 **Bug (sufficient info):**
+
 ```
 Thanks for the detailed report. I can reproduce this.
 
@@ -96,6 +97,7 @@ Target: v0.3.2
 ```
 
 **Bug (needs info):**
+
 ```
 Thanks for reporting. To help us reproduce this, could you provide:
 
@@ -107,6 +109,7 @@ Labels: bug, needs-info
 ```
 
 **Feature request:**
+
 ```
 Thanks for the suggestion. This aligns with [goal].
 
@@ -115,6 +118,7 @@ Labels: feature, needs-triage
 ```
 
 **Declined (with reason):**
+
 ```
 Thanks for the proposal. After review, we're declining this because [reason].
 
@@ -124,23 +128,25 @@ Closing, but happy to discuss further in discussions.
 
 ### Time-to-Response Targets
 
-| Severity | First Response | Status Update | Resolution |
-|----------|----------------|---------------|------------|
-| Critical | 4 hours | 12 hours | 24 hours |
-| High | 24 hours | 3 days | 1 week |
-| Medium | 48 hours | Weekly | Next minor release |
-| Low | 1 week | Monthly | Next major release |
+| Severity | First Response | Status Update | Resolution         |
+| -------- | -------------- | ------------- | ------------------ |
+| Critical | 4 hours        | 12 hours      | 24 hours           |
+| High     | 24 hours       | 3 days        | 1 week             |
+| Medium   | 48 hours       | Weekly        | Next minor release |
+| Low      | 1 week         | Monthly       | Next major release |
 
 ---
 
 ## Triage Meeting Agenda (Weekly)
 
 Review issues labeled:
+
 - `needs-triage` > 7 days old
 - `feature` without response
 - `help-wanted` without assignee
 
 Decisions to make:
+
 1. Accept/decline pending features
 2. Reassign stuck issues
 3. Update severity if impact changed
@@ -160,6 +166,7 @@ Decisions to make:
 ### Duplicate Detection
 
 Before marking duplicate:
+
 1. Verify root cause is identical
 2. Cross-link both issues
 3. Keep the issue with better reproduction steps
@@ -168,6 +175,7 @@ Before marking duplicate:
 ### Stale Issues
 
 Issues inactive for 30 days:
+
 1. Add `stale` label
 2. Comment: "Is this still relevant?"
 3. Close after 14 days if no response
@@ -177,6 +185,7 @@ Issues inactive for 30 days:
 ## Metrics
 
 Track monthly:
+
 - Time to first response (by severity)
 - Issues opened/closed ratio
 - `good first issue` resolution rate

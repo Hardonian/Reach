@@ -46,17 +46,17 @@ function main() {
     step(1, "Generating demo report");
     let reportId = null;
     let integrityHash = null;
-    
+
     try {
       const genOutput = run("./reach report demo", { ignoreError: true });
       console.log(`   ${checkmark(true)} Report generated`);
-      
+
       const idMatch = genOutput.match(/Report ID:\s*(demo-[\w-]+)/);
       const hashMatch = genOutput.match(/Integrity:\s*([a-f0-9]+)/);
-      
+
       reportId = idMatch?.[1] || "demo-unknown";
       integrityHash = hashMatch?.[1] || "unknown";
-      
+
       console.log(`   Location: ${REPORT_DIR}/`);
       console.log(`   Report ID: ${reportId}`);
       console.log(`   Integrity: ${integrityHash.slice(0, 16)}...`);
@@ -70,23 +70,25 @@ function main() {
     step(2, "Exploring generated files");
     const expectedFiles = [
       "manifest.json",
-      "timeline.json", 
+      "timeline.json",
       "env.json",
       "index.md",
-      "outputs/"
+      "outputs/",
     ];
-    
+
     if (existsSync(REPORT_DIR)) {
-      expectedFiles.forEach(file => {
+      expectedFiles.forEach((file) => {
         const filePath = join(REPORT_DIR, file);
         const exists = existsSync(filePath);
         const type = file.endsWith("/") ? "(directory)" : "(file)";
         console.log(`   ${checkmark(exists)} ${file.padEnd(15)} ${type}`);
       });
     } else {
-      expectedFiles.forEach(file => {
+      expectedFiles.forEach((file) => {
         const type = file.endsWith("/") ? "(directory)" : "(file)";
-        console.log(`   ${checkmark(true)} ${file.padEnd(15)} ${type} (expected)`);
+        console.log(
+          `   ${checkmark(true)} ${file.padEnd(15)} ${type} (expected)`,
+        );
       });
     }
 
@@ -115,10 +117,17 @@ function main() {
     // Step 4: Verify integrity
     step(4, "Verifying integrity");
     try {
-      const verifyOutput = run(`./reach report verify ${REPORT_DIR}/`, { ignoreError: true });
-      const isValid = verifyOutput.includes("VALID") || verifyOutput.includes("verified");
-      console.log(`   ${checkmark(isValid)} Manifest: ${isValid ? "VALID" : "FAILED"}`);
-      console.log(`   ${checkmark(isValid)} Hash: ${isValid ? "MATCH" : "MISMATCH"}`);
+      const verifyOutput = run(`./reach report verify ${REPORT_DIR}/`, {
+        ignoreError: true,
+      });
+      const isValid =
+        verifyOutput.includes("VALID") || verifyOutput.includes("verified");
+      console.log(
+        `   ${checkmark(isValid)} Manifest: ${isValid ? "VALID" : "FAILED"}`,
+      );
+      console.log(
+        `   ${checkmark(isValid)} Hash: ${isValid ? "MATCH" : "MISMATCH"}`,
+      );
       console.log(`   Status: ${isValid ? "VERIFIED" : "VERIFICATION FAILED"}`);
     } catch (e) {
       console.log(`   ${checkmark(true)} Manifest: VALID (demo)`);
@@ -131,7 +140,9 @@ function main() {
     console.log(`Offline capable: ✓ YES`);
     console.log(`Network required: ✗ NO`);
     console.log(`Report contents: Environment, examples, execution output`);
-    console.log(`Use case: Bug reports, system diagnostics, onboarding verification`);
+    console.log(
+      `Use case: Bug reports, system diagnostics, onboarding verification`,
+    );
 
     console.log("\n---");
     console.log("Generated files:");
@@ -140,7 +151,6 @@ function main() {
     console.log(`  ${REPORT_DIR}/env.json         - Environment snapshot`);
     console.log(`  ${REPORT_DIR}/index.md         - Human-readable summary`);
     console.log(`  ${REPORT_DIR}/outputs/         - Execution results`);
-
   } catch (error) {
     console.error("\nError:", error.message);
     process.exit(1);

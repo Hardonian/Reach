@@ -27,15 +27,16 @@ pnpm run verify:full
 
 Every code change must include appropriate tests:
 
-| Change Type | Test Requirement |
-|-------------|------------------|
-| **Bug fix** | Regression test that fails without the fix |
-| **New feature** | Unit tests + integration test |
-| **Performance** | Benchmark before/after with `reachctl benchmark` |
-| **Refactor** | Existing tests must pass; add tests for new abstractions |
-| **Documentation** | N/A (but verify with `./reach report demo`) |
+| Change Type       | Test Requirement                                         |
+| ----------------- | -------------------------------------------------------- |
+| **Bug fix**       | Regression test that fails without the fix               |
+| **New feature**   | Unit tests + integration test                            |
+| **Performance**   | Benchmark before/after with `reachctl benchmark`         |
+| **Refactor**      | Existing tests must pass; add tests for new abstractions |
+| **Documentation** | N/A (but verify with `./reach report demo`)              |
 
 **Test commands:**
+
 ```bash
 # Rust engine
 cd crates/engine && cargo test
@@ -57,12 +58,14 @@ Reach requires absolute determinism. Verify your changes:
 ```
 
 **Prohibited in core paths:**
+
 - `time.Now()` without deterministic seed
 - `math/rand` without seeded source
 - Unordered map iteration
 - Goroutine race conditions
 
 **Allowed with care:**
+
 - `time.Now()` for logging only (not logic)
 - `crypto/rand` for cryptographic operations
 - Ordered iteration via sort
@@ -78,19 +81,24 @@ Reach requires absolute determinism. Verify your changes:
 
 ## PR Description Template
 
-```markdown
+````markdown
 ## Summary
+
 One-sentence description of the change.
 
 ## Motivation
+
 Why is this change needed? Link to issue if applicable.
 
 ## Changes
+
 - [ ] Specific change 1
 - [ ] Specific change 2
 
 ## Testing
+
 <!-- Paste test output -->
+
 ```bash
 $ cargo test
 running 42 tests
@@ -99,14 +107,17 @@ test result: ok. 42 passed; 0 failed
 $ ./reach verify-determinism --n 5
 ✓ All 5 fingerprints match
 ```
+````
 
 ## Checklist
+
 - [ ] Tests added/updated
 - [ ] `./reach doctor` passes
 - [ ] `./reach report demo` completes
 - [ ] `pnpm run verify:full` passes
 - [ ] Determinism verified (5 runs)
 - [ ] Documentation updated (if needed)
+
 ```
 
 ---
@@ -175,3 +186,4 @@ A PR is ready to merge when:
 - [CI Setup](../internal/CI_SETUP.md) - Pipeline internals
 - [Determinism Spec](../internal/DETERMINISM_SPEC.md) - Entropy guidelines
 - [Error Codes](../ERROR_CODE_REGISTRY.md) - RL-XXXX reference
+```

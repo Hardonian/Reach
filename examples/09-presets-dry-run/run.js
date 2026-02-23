@@ -51,18 +51,21 @@ function main() {
     step(1, "Listing available presets");
     try {
       const listOutput = run("./reach presets list", { ignoreError: true });
-      const foundPresets = listOutput.toLowerCase().includes("preset") || 
-                          listOutput.includes("ci-cd") ||
-                          listOutput.includes("security");
+      const foundPresets =
+        listOutput.toLowerCase().includes("preset") ||
+        listOutput.includes("ci-cd") ||
+        listOutput.includes("security");
       console.log(`   ${checkmark(foundPresets)} Found preset categories`);
-      
+
       console.log("\n   Categories:");
-      presets.forEach(p => {
-        console.log(`   - ${p.id} (${p.count} preset${p.count !== 1 ? 's' : ''})`);
+      presets.forEach((p) => {
+        console.log(
+          `   - ${p.id} (${p.count} preset${p.count !== 1 ? "s" : ""})`,
+        );
       });
     } catch (e) {
       console.log(`   ${checkmark(true)} Preset categories (demo mode)`);
-      presets.forEach(p => {
+      presets.forEach((p) => {
         console.log(`   - ${p.id}`);
       });
     }
@@ -72,16 +75,26 @@ function main() {
     try {
       const dryRunOutput = run(
         "./reach presets apply ci-cd-integration --dry-run",
-        { ignoreError: true }
+        { ignoreError: true },
       );
-      const isDryRun = dryRunOutput.includes("DRY RUN") || 
-                       dryRunOutput.includes("dry run") ||
-                       dryRunOutput.includes("no changes");
+      const isDryRun =
+        dryRunOutput.includes("DRY RUN") ||
+        dryRunOutput.includes("dry run") ||
+        dryRunOutput.includes("no changes");
       console.log(`   Mode: DRY RUN`);
-      console.log(`   ${checkmark(isDryRun)} Preview complete, no changes made`);
-      
+      console.log(
+        `   ${checkmark(isDryRun)} Preview complete, no changes made`,
+      );
+
       if (dryRunOutput.includes("CREATE") || dryRunOutput.includes("files")) {
-        console.log(`   ${dryRunOutput.split("\n").find(l => l.includes("Files") || l.includes("files"))?.trim() || ""}`);
+        console.log(
+          `   ${
+            dryRunOutput
+              .split("\n")
+              .find((l) => l.includes("Files") || l.includes("files"))
+              ?.trim() || ""
+          }`,
+        );
       } else {
         console.log(`   Files created: 2`);
         console.log(`   Files modified: 1`);
@@ -98,7 +111,7 @@ function main() {
     try {
       const dryRunOutput = run(
         "./reach presets apply security-review --dry-run",
-        { ignoreError: true }
+        { ignoreError: true },
       );
       console.log(`   Mode: DRY RUN`);
       console.log(`   Files created: 3`);
@@ -129,7 +142,6 @@ function main() {
     console.log(`  ./reach presets list`);
     console.log(`  ./reach presets apply <name> --dry-run`);
     console.log(`  ./reach presets apply <name> --yes`);
-
   } catch (error) {
     console.error("\nError:", error.message);
     process.exit(1);

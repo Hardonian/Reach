@@ -35,6 +35,7 @@ node examples/07-verify-tamper-detection/run.js
 ```
 
 **Expected output:**
+
 ```
 ▶ Running pack 'quickstart-local'
   run_id: sha256:abc123...
@@ -52,6 +53,7 @@ Save the `run_id` for the next step.
 ```
 
 **Expected output:**
+
 ```
 ✓ Exported run sha256:abc123...
   → ./capsule-intact.reach.zip (1.2 MB)
@@ -65,6 +67,7 @@ Save the `run_id` for the next step.
 ```
 
 **Expected output:**
+
 ```
 ▶ Verifying capsule-intact.reach.zip
 ✓ Integrity: VALID
@@ -95,6 +98,7 @@ zip -r capsule-tampered.reach.zip tampered/
 ```
 
 **Expected output:**
+
 ```
 ▶ Verifying capsule-tampered.reach.zip
 ✗ Integrity: FAILED
@@ -108,11 +112,11 @@ zip -r capsule-tampered.reach.zip tampered/
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `run.js` | Automated demonstration script |
-| `pack.json` | Minimal pack for testing (references 01-quickstart-local) |
-| `expected.json` | Expected verification results |
+| File            | Purpose                                                   |
+| --------------- | --------------------------------------------------------- |
+| `run.js`        | Automated demonstration script                            |
+| `pack.json`     | Minimal pack for testing (references 01-quickstart-local) |
+| `expected.json` | Expected verification results                             |
 
 ---
 

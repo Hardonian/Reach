@@ -6,18 +6,18 @@ Reach provides two primary CLI interfaces: `reachctl` (the core binary) and the 
 
 The root `./reach` script is the entry point for most developer tasks. It manages dependencies and provides a unified interface for sub-tools.
 
-| Command      | Description                                                       |
-| :----------- | :---------------------------------------------------------------- |
-| `doctor`     | Perform a full system health check (Go, Node, Rust, SQLite).      |
-| `run <pack>` | Quickly execute a deterministic pack locally.                     |
-| `eval`       | Evaluate runs and check for regressions against golden fixtures.  |
-| `audit`      | Export and verify signed audit logs for compliance.               |
-| `transcript`    | Create or verify signed execution transcripts for long-term storage. |
-| `proof`      | Verify cryptographic execution proofs (Execution Proof).                     |
-| `gate`       | Manage repository and release gates for CI/CD integration.        |
-| `cost`       | View unit economics and cost analysis for model executions.       |
-| `metrics`    | View GTM and usage analytics for the local node.                  |
-| `wizard`     | Guided run wizard optimized for mobile/CLI interaction.           |
+| Command      | Description                                                          |
+| :----------- | :------------------------------------------------------------------- |
+| `doctor`     | Perform a full system health check (Go, Node, Rust, SQLite).         |
+| `run <pack>` | Quickly execute a deterministic pack locally.                        |
+| `eval`       | Evaluate runs and check for regressions against golden fixtures.     |
+| `audit`      | Export and verify signed audit logs for compliance.                  |
+| `transcript` | Create or verify signed execution transcripts for long-term storage. |
+| `proof`      | Verify cryptographic execution proofs (Execution Proof).             |
+| `gate`       | Manage repository and release gates for CI/CD integration.           |
+| `cost`       | View unit economics and cost analysis for model executions.          |
+| `metrics`    | View GTM and usage analytics for the local node.                     |
+| `wizard`     | Guided run wizard optimized for mobile/CLI interaction.              |
 
 ### Usage Example
 

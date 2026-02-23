@@ -10,27 +10,37 @@ Describe the problem before proposing solutions.
 
 ```markdown
 ## Problem Statement
+
 <!-- What are you trying to achieve? -->
+
 I need to [goal] because [reason].
 
 Currently, [current behavior/limitation] prevents this.
 
 ## Context
+
 <!-- Who is affected and how? -->
+
 - **User type**: [e.g., CI/CD engineer, auditor, plugin developer]
 - **Frequency**: [e.g., daily, per release, once per audit]
 - **Workaround**: [current workaround if any]
 
 ## Desired Outcome
+
 <!-- What does success look like? -->
+
 [Clear description of the end state]
 
 ## Proposed Solution (Optional)
+
 <!-- If you have ideas, share them -->
+
 I think we could [approach].
 
 ## Alternatives Considered
+
 <!-- What else did you try? -->
+
 - [Alternative 1]: [why it didn't work]
 - [Alternative 2]: [why it didn't work]
 ```
@@ -45,16 +55,19 @@ Well-specified features include acceptance criteria using the **Given/When/Then*
 ### Acceptance Criteria
 
 **Scenario: Basic functionality**
+
 - Given [precondition]
 - When [action]
 - Then [expected result]
 
 **Scenario: Error handling**
+
 - Given [invalid input]
 - When [action]
 - Then [specific error with RL-XXXX code]
 
 **Scenario: Edge case**
+
 - Given [edge condition]
 - When [action]
 - Then [expected behavior]
@@ -67,6 +80,7 @@ Well-specified features include acceptance criteria using the **Given/When/Then*
 ### CLI Features
 
 Focus on:
+
 - Command naming consistency with existing verbs (`run`, `replay`, `export`)
 - JSON output for automation (`--json` flag)
 - Exit codes (0=success, non-zero=specific failure)
@@ -74,6 +88,7 @@ Focus on:
 ### Policy/Governance Features
 
 Focus on:
+
 - Backward compatibility with existing policy bundles
 - Audit trail completeness
 - Performance impact on evaluation
@@ -81,6 +96,7 @@ Focus on:
 ### Plugin System Features
 
 Focus on:
+
 - Determinism guarantees
 - Manifest schema versioning
 - Capability sandbox boundaries
@@ -88,6 +104,7 @@ Focus on:
 ### Documentation/Examples
 
 Focus on:
+
 - Target audience (beginner, intermediate, advanced)
 - Prerequisites and dependencies
 - Verification steps
@@ -96,12 +113,12 @@ Focus on:
 
 ## What Makes a Good Feature Request
 
-| Quality | Good Example | Poor Example |
-|---------|--------------|--------------|
-| **Specific** | "Add `--since` flag to `reach list`" | "Improve the list command" |
-| **Motivated** | "Our CI generates 1000+ runs daily; filtering by date would reduce query time" | "Would be nice to have" |
-| **Scoped** | "Support for custom retention policies per pack" | "Complete storage overhaul" |
-| **Testable** | "Export should complete in <5 seconds for runs <100MB" | "Make exports faster" |
+| Quality       | Good Example                                                                   | Poor Example                |
+| ------------- | ------------------------------------------------------------------------------ | --------------------------- |
+| **Specific**  | "Add `--since` flag to `reach list`"                                           | "Improve the list command"  |
+| **Motivated** | "Our CI generates 1000+ runs daily; filtering by date would reduce query time" | "Would be nice to have"     |
+| **Scoped**    | "Support for custom retention policies per pack"                               | "Complete storage overhaul" |
+| **Testable**  | "Export should complete in <5 seconds for runs <100MB"                         | "Make exports faster"       |
 
 ---
 
@@ -125,6 +142,7 @@ Submitted → Triage → Accepted/Declined → Design → Implementation → Rel
 ```
 
 **Status labels:**
+
 - `needs-triage` - Awaiting initial review
 - `accepted` - Approved for implementation
 - `design-needed` - Needs specification before coding

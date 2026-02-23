@@ -45,6 +45,7 @@ node examples/08-export-verify-workflow/run.js
 ```
 
 **Expected output:**
+
 ```
 ✓ Exported run sha256:abc123...
   → ./my-workflow.reach.zip (1.2 MB)
@@ -58,6 +59,7 @@ node examples/08-export-verify-workflow/run.js
 ```
 
 **Expected output:**
+
 ```
 ▶ Verifying my-workflow.reach.zip
 ✓ Integrity: VALID
@@ -76,6 +78,7 @@ On the destination machine:
 ```
 
 **Expected output:**
+
 ```
 ✓ Imported run sha256:abc123...
   Stored at: ~/.reach/runs/sha256:abc123/
@@ -89,6 +92,7 @@ On the destination machine:
 ```
 
 **Expected output:**
+
 ```
 ▶ Replaying run sha256:abc123
 ✓ REPLAY_VERIFIED
@@ -115,10 +119,10 @@ On the destination machine:
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `run.js` | Full workflow automation |
-| `source-run.json` | Sample run configuration |
+| File                    | Purpose                   |
+| ----------------------- | ------------------------- |
+| `run.js`                | Full workflow automation  |
+| `source-run.json`       | Sample run configuration  |
 | `expected-results.json` | Expected workflow outputs |
 
 ---

@@ -16,13 +16,13 @@ Always run this first:
 
 ### Interpreting Doctor Output
 
-| Section | Purpose | When to Worry |
-|---------|---------|---------------|
-| **Toolchain Checks** | Verifies git, node, go, python, cargo | FAIL blocks development |
-| **Docker Check** | Validates container runtime | WARN ok; FAIL if using containers |
-| **Configuration Check** | .env file presence | WARN triggers --fix to create defaults |
-| **Registry/Source Checks** | Internal source code validation | FAIL indicates repo corruption |
-| **Architecture Boundaries** | Import path validation | FAIL blocks builds |
+| Section                     | Purpose                               | When to Worry                          |
+| --------------------------- | ------------------------------------- | -------------------------------------- |
+| **Toolchain Checks**        | Verifies git, node, go, python, cargo | FAIL blocks development                |
+| **Docker Check**            | Validates container runtime           | WARN ok; FAIL if using containers      |
+| **Configuration Check**     | .env file presence                    | WARN triggers --fix to create defaults |
+| **Registry/Source Checks**  | Internal source code validation       | FAIL indicates repo corruption         |
+| **Architecture Boundaries** | Import path validation                | FAIL blocks builds                     |
 
 ---
 
@@ -31,9 +31,11 @@ Always run this first:
 ### 1. Installation Issues
 
 #### Symptom: `reach: command not found` or `reachctl: command not found`
+
 **Likely Cause:** CLI not in PATH or not built
 
 **Diagnose:**
+
 ```bash
 # Check if binary exists
 ls -la ./reachctl* 2>/dev/null || echo "Binary not found"
@@ -44,6 +46,7 @@ ls reachctl.exe 2>/dev/null && echo "Windows build present"
 ```
 
 **Fix:**
+
 ```bash
 # Option 1: Use local binary directly
 ./reachctl doctor
@@ -60,9 +63,11 @@ $env:PATH += ";$(Get-Location)"
 ---
 
 #### Symptom: `cannot execute binary file: Exec format error`
+
 **Likely Cause:** Binary architecture mismatch (e.g., ARM binary on x86)
 
 **Diagnose:**
+
 ```bash
 # Check system architecture
 uname -m  # Linux/macOS
@@ -77,6 +82,7 @@ readelf -h reachctl | grep Machine
 ```
 
 **Fix:**
+
 ```bash
 # Rebuild from source for your architecture
 go build -o reachctl ./services/runner/cmd/reachctl
@@ -90,9 +96,11 @@ go build -o reachctl ./services/runner/cmd/reachctl
 ### 2. Build Cache Issues
 
 #### Symptom: Build fails with "module not found" or stale dependency errors
+
 **Likely Cause:** Corrupted node_modules or Go build cache
 
 **Diagnose:**
+
 ```bash
 # Check node_modules age
 ls -la node_modules/.package-lock.json 2>/dev/null || echo "No lockfile"
@@ -106,6 +114,7 @@ cd services/runner && go mod verify && cd ../..
 ```
 
 **Fix:**
+
 ```bash
 # Nuclear option: Clean everything
 rm -rf node_modules
@@ -126,9 +135,11 @@ pnpm install
 ---
 
 #### Symptom: `Error: Cannot find module './dist/...'` after build
+
 **Likely Cause:** Build artifacts missing or partial build
 
 **Diagnose:**
+
 ```bash
 # Check for dist directories
 find . -name "dist" -type d -not -path "*/node_modules/*" | head -10
@@ -138,6 +149,7 @@ pnpm run build 2>&1 | grep -i error | head -10
 ```
 
 **Fix:**
+
 ```bash
 # Full rebuild
 pnpm run clean 2>/dev/null || rm -rf dist
@@ -153,9 +165,11 @@ cat tsconfig.json | grep -A5 "compilerOptions"
 ### 3. Database Path Permission Issues
 
 #### Symptom: `Permission denied` when writing to data directory
+
 **Likely Cause:** REACH_DATA_DIR has incorrect permissions
 
 **Diagnose:**
+
 ```bash
 # Check current data directory
 echo "REACH_DATA_DIR: ${REACH_DATA_DIR:-./data}"
@@ -172,6 +186,7 @@ touch "${REACH_DATA_DIR:-./data}/.write_test" 2>&1 && rm "${REACH_DATA_DIR:-./da
 ```
 
 **Fix:**
+
 ```bash
 # Fix permissions (Unix)
 mkdir -p ~/.reach/data
@@ -195,9 +210,11 @@ mkdir -p $REACH_DATA_DIR
 ---
 
 #### Symptom: `STORAGE_WRITE_FAILED` or `STORAGE_READ_FAILED` errors
+
 **Likely Cause:** Database corruption or locked by another process
 
 **Diagnose:**
+
 ```bash
 # Check if database is locked (SQLite)
 fuser data/reach.db 2>/dev/null || echo "Not locked by process"
@@ -210,6 +227,7 @@ ps aux | grep -E "reach|node" | grep -v grep | wc -l
 ```
 
 **Fix:**
+
 ```bash
 # Stop all Reach processes
 pkill -f reachctl
@@ -232,9 +250,11 @@ mkdir -p $REACH_DATA_DIR
 ### 4. Missing Environment Variables
 
 #### Symptom: `CONFIG_MISSING` or `Invalid configuration` errors
+
 **Likely Cause:** Required environment variables not set
 
 **Diagnose:**
+
 ```bash
 # Check which env vars are set
 echo "REACH_DATA_DIR: ${REACH_DATA_DIR:-<not set>}"
@@ -250,6 +270,7 @@ cat .env 2>/dev/null | grep -v "^#" | grep -v "^$" | head -10
 ```
 
 **Fix:**
+
 ```bash
 # Auto-create default .env
 ./reach doctor --fix
@@ -268,9 +289,11 @@ export $(cat .env | grep -v "^#" | xargs)
 ---
 
 #### Symptom: `POLICY_INVALID_SIGNATURE` in production mode
+
 **Likely Cause:** Missing signing keys for production
 
 **Diagnose:**
+
 ```bash
 # Check for signing keys
 ls -la keys/ 2>/dev/null || echo "No keys directory"
@@ -281,6 +304,7 @@ cat policy-packs/strict-safe-mode.json | grep -i signature
 ```
 
 **Fix:**
+
 ```bash
 # Generate development keys (DO NOT USE IN PRODUCTION)
 mkdir -p keys
@@ -294,9 +318,11 @@ openssl genrsa -out keys/dev.key 2048 2>/dev/null || echo "OpenSSL not available
 ### 5. Port Conflicts
 
 #### Symptom: `Port already in use` or `EADDRINUSE`
+
 **Likely Cause:** Another process using Reach's default port (8787)
 
 **Diagnose:**
+
 ```bash
 # Find process using port 8787
 lsof -i :8787 2>/dev/null || netstat -ano | grep 8787 2>/dev/null || echo "Port check tool not available"
@@ -309,6 +335,7 @@ curl -s http://localhost:8787/health 2>/dev/null && echo "Port 8787 is active"
 ```
 
 **Fix:**
+
 ```bash
 # Option 1: Use different port
 ./reach serve --port 8788
@@ -327,9 +354,11 @@ PORT=$(python3 -c "import socket; s=socket.socket(); s.bind(('',0)); print(s.get
 ### 6. Corrupted Bundle/Pack
 
 #### Symptom: `REGISTRY_INVALID_MANIFEST` or `Pack verification failed`
+
 **Likely Cause:** Corrupted or manually edited pack.json
 
 **Diagnose:**
+
 ```bash
 # Validate JSON syntax
 node -e "JSON.parse(require('fs').readFileSync('pack.json'))" && echo "JSON valid"
@@ -342,6 +371,7 @@ cat pack.json | python3 -c "import json,sys; d=json.load(sys.stdin); print('id:'
 ```
 
 **Fix:**
+
 ```bash
 # Re-download or regenerate pack
 # Option 1: Use example packs
@@ -367,9 +397,11 @@ EOF
 ---
 
 #### Symptom: `Signature verification failed` for packs
+
 **Likely Cause:** Pack was modified after signing or wrong key
 
 **Diagnose:**
+
 ```bash
 # Check signature field
 cat pack.json | grep -A5 signature
@@ -382,6 +414,7 @@ cat pack.json | python3 -c "import json,sys,hashlib; d=json.load(sys.stdin); d.p
 ```
 
 **Fix:**
+
 ```bash
 # Re-sign the pack (if you have the key)
 ./reach sign-pack --key keys/dev.key pack.json
@@ -395,9 +428,11 @@ export REACH_ALLOW_UNSIGNED=true  # Only for development!
 ### 7. Verify/Determinism Failures
 
 #### Symptom: `REPLAY_MISMATCH` or fingerprints differ between runs
+
 **Likely Cause:** Non-deterministic input or environment differences
 
 **Diagnose:**
+
 ```bash
 # Run 3 times and compare fingerprints
 for i in 1 2 3; do
@@ -411,6 +446,7 @@ cat seed.json | python3 -c "import json,sys; d=json.load(sys.stdin); print('Has 
 ```
 
 **Fix:**
+
 ```bash
 # Remove timestamps from input
 jq 'del(.timestamp, .created_at, .request_time)' seed.json > seed_clean.json
@@ -426,9 +462,11 @@ export REACH_DETERMINISTIC_MODE=strict
 ---
 
 #### Symptom: `./reach verify-determinism` fails after code changes
+
 **Likely Cause:** Changes introduced entropy (time.Now(), random, map iteration)
 
 **Diagnose:**
+
 ```bash
 # Check for common entropy sources
 grep -r "time.Now()" src/ crates/ services/ --include="*.go" --include="*.rs" --include="*.ts" | grep -v test | head -10
@@ -442,6 +480,7 @@ go test -race ./services/runner/... 2>&1 | grep -i "race\|WARNING"
 ```
 
 **Fix:**
+
 ```bash
 # Review docs/internal/DETERMINISM_SPEC.md
 
@@ -459,9 +498,11 @@ go test -race ./services/runner/... 2>&1 | grep -i "race\|WARNING"
 ### 8. Replay Engine Issues
 
 #### Symptom: `REPLAY_NOT_FOUND` or cannot replay previous run
+
 **Likely Cause:** Replay data expired or was compacted
 
 **Diagnose:**
+
 ```bash
 # Check if replay data exists
 ls -la data/replays/ 2>/dev/null || echo "No replays directory"
@@ -476,6 +517,7 @@ grep -r "RETENTION" .env 2>/dev/null
 ```
 
 **Fix:**
+
 ```bash
 # Run with longer retention
 export REACH_RETENTION_DAYS=30
@@ -488,9 +530,11 @@ export REACH_COMPACTION_ENABLED=false
 ---
 
 #### Symptom: `REPLAY_CORRUPT` - replay data exists but won't load
+
 **Likely Cause:** Storage corruption or version mismatch
 
 **Diagnose:**
+
 ```bash
 # Check file integrity
 file data/replays/run_*.json 2>/dev/null | head -5
@@ -503,6 +547,7 @@ cat data/replays/run_*.json 2>/dev/null | head -1 | python3 -c "import json,sys;
 ```
 
 **Fix:**
+
 ```bash
 # Clear corrupted replays (WARNING: loses history)
 rm -rf data/replays/
@@ -517,9 +562,11 @@ mkdir -p data/replays
 ### 9. Federation/Mesh Issues
 
 #### Symptom: `FEDERATION_NODE_UNREACHABLE` or `FEDERATION_HANDSHAKE_FAILED`
+
 **Likely Cause:** Network connectivity or certificate issues between nodes
 
 **Diagnose:**
+
 ```bash
 # Check target node health
 curl -s http://<node-ip>:8787/health 2>/dev/null || echo "Node unreachable"
@@ -533,6 +580,7 @@ openssl s_client -connect <node-ip>:8787 2>&1 | head -10
 ```
 
 **Fix:**
+
 ```bash
 # Option 1: Skip certificate validation (dev only)
 export FEDERATION_INSECURE_SKIP_VERIFY=true
@@ -547,9 +595,11 @@ export FEDERATION_INSECURE_SKIP_VERIFY=true
 ---
 
 #### Symptom: `FEDERATION_REPLAY_MISMATCH` during verification
+
 **Likely Cause:** Different Reach versions or different policy packs
 
 **Diagnose:**
+
 ```bash
 # Compare versions
 ./reach version
@@ -561,6 +611,7 @@ curl -s http://<remote-node>:8787/policy-hash
 ```
 
 **Fix:**
+
 ```bash
 # Sync to same version
 git pull origin main
@@ -575,9 +626,11 @@ git pull origin main
 ### 10. Policy Engine Issues
 
 #### Symptom: `POLICY_DENIED` but policy looks correct
+
 **Likely Cause:** Wrong policy being applied or precedence issue
 
 **Diagnose:**
+
 ```bash
 # Check which policies are active
 ./reach policy-list
@@ -591,6 +644,7 @@ grep -r "precedence\|priority" policy-packs/ --include="*.json" | head -5
 ```
 
 **Fix:**
+
 ```bash
 # Check policy syntax
 ./reach validate-policy policy-packs/strict-safe-mode.json
@@ -602,9 +656,11 @@ grep -r "precedence\|priority" policy-packs/ --include="*.json" | head -5
 ---
 
 #### Symptom: `POLICY_UNDECLARED_TOOL` - tool used but not in policy
+
 **Likely Cause:** Pack uses tools not declared in policy
 
 **Diagnose:**
+
 ```bash
 # List tools in pack
 ./reach pack-inspect pack.json | grep tools
@@ -614,6 +670,7 @@ cat policy-packs/strict-safe-mode.json | python3 -c "import json,sys; d=json.loa
 ```
 
 **Fix:**
+
 ```bash
 # Add tool to policy
 cat > /tmp/tool_patch.json << 'EOF'
@@ -629,9 +686,11 @@ EOF
 ### 11. Execution Timeout Issues
 
 #### Symptom: `EXECUTION_TIMEOUT` or `SANDBOX_TIMEOUT`
+
 **Likely Cause:** Infinite loop or resource-intensive operation
 
 **Diagnose:**
+
 ```bash
 # Check resource usage
 top -p $(pgrep -f reach | tr '\n' ',') 2>/dev/null || tasklist | findstr reach
@@ -644,6 +703,7 @@ grep -r "while.*true\|for.*:" pack/ src/ 2>/dev/null | head -5
 ```
 
 **Fix:**
+
 ```bash
 # Increase timeout
 ./reach run pack.json --timeout 5m
@@ -661,9 +721,11 @@ EOF
 ### 12. Docker Issues
 
 #### Symptom: Docker-related checks fail in `reach doctor`
+
 **Likely Cause:** Docker not installed or daemon not running
 
 **Diagnose:**
+
 ```bash
 # Check Docker
 docker --version
@@ -675,6 +737,7 @@ docker info 2>&1 | head -5
 ```
 
 **Fix:**
+
 ```bash
 # Start Docker Desktop
 # Or on Linux:
@@ -688,15 +751,18 @@ sudo usermod -aG docker $USER
 ---
 
 #### Symptom: Container builds fail with "no space left on device"
+
 **Likely Cause:** Docker image cache full
 
 **Diagnose:**
+
 ```bash
 docker system df
 docker images | wc -l
 ```
 
 **Fix:**
+
 ```bash
 # Clean up
 docker system prune -f
@@ -711,9 +777,11 @@ docker rmi $(docker images -q)
 ### 13. Demo Report Failures
 
 #### Symptom: `./reach report demo` fails or produces incomplete output
+
 **Likely Cause:** Missing examples or environment issues
 
 **Diagnose:**
+
 ```bash
 # Check examples exist
 ls examples/01-quickstart-local/run.js
@@ -727,6 +795,7 @@ ls demo-report/
 ```
 
 **Fix:**
+
 ```bash
 # Restore examples from git
 git checkout examples/
@@ -744,9 +813,11 @@ rm -rf demo-report/
 ### 14. Git Repository Issues
 
 #### Symptom: `reach doctor` fails with git-related errors
+
 **Likely Cause:** Not in a git repository or corrupted git state
 
 **Diagnose:**
+
 ```bash
 # Check git status
 git status 2>&1 | head -5
@@ -757,6 +828,7 @@ git diff --stat | head -5
 ```
 
 **Fix:**
+
 ```bash
 # Initialize if needed
 git init
@@ -773,9 +845,11 @@ git fsck
 ### 15. Network/Proxy Issues
 
 #### Symptom: Registry downloads fail or timeout
+
 **Likely Cause:** Corporate proxy or firewall blocking requests
 
 **Diagnose:**
+
 ```bash
 # Test connectivity
 curl -I https://registry.reach.dev 2>/dev/null || echo "Registry unreachable"
@@ -787,6 +861,7 @@ echo "NO_PROXY: ${NO_PROXY:-<not set>}"
 ```
 
 **Fix:**
+
 ```bash
 # Configure proxy
 export HTTP_PROXY=http://proxy.company.com:8080
@@ -836,6 +911,7 @@ If issues persist:
 4. **Submit issue:** Include diagnostics.json and reproduction steps
 
 See also:
+
 - [Error Codes Reference](../ERROR_CODES.md)
 - [Determinism Debugging](../DETERMINISM_DEBUGGING.md)
 - [Bug Reporting Guide](../contrib/bug-reporting.md)

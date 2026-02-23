@@ -23,6 +23,7 @@ Every bug report must include output from these two commands:
 ```
 
 **Expected output:**
+
 ```
 Reach Doctor
 ─────────────────────────────
@@ -39,6 +40,7 @@ Reach Doctor
 ```
 
 This generates a shareable artifact at `demo-report/` containing:
+
 - Environment snapshot (versions, platform)
 - Available examples timeline
 - Example execution output (sanitized)
@@ -54,29 +56,37 @@ Use this structure when filing an issue:
 
 ```markdown
 ## Summary
+
 One-sentence description of the bug.
 
 ## Environment
+
 <!-- Paste ./reach doctor output here -->
 
 ## Steps to Reproduce
+
 1. Run `reach ...`
 2. Observe ...
 3. Error occurs
 
 ## Expected Behavior
+
 What should have happened.
 
 ## Actual Behavior
+
 What actually happened.
 
 ## Diagnostics
+
 <!-- Attach demo-report/manifest.json -->
+
 - Report ID: demo-xxx-yyy
 - Integrity Hash: abc123...
 
 ## Additional Context
-- Does it reproduce consistently? 
+
+- Does it reproduce consistently?
 - Any workarounds discovered?
 ```
 
@@ -84,12 +94,12 @@ What actually happened.
 
 ## Severity Rubric
 
-| Severity | Definition | Example | Response Target |
-|----------|------------|---------|-----------------|
-| **Critical** | Data loss, security breach, or complete unusability | Corrupted replay artifacts, policy bypass | 24 hours |
-| **High** | Core functionality broken with no workaround | Replay divergence in production, export failures | 72 hours |
-| **Medium** | Feature impaired but workaround exists | Non-deterministic ordering in specific packs | 1 week |
-| **Low** | Cosmetic, documentation, or edge case | Typos in CLI output, help text errors | Next release |
+| Severity     | Definition                                          | Example                                          | Response Target |
+| ------------ | --------------------------------------------------- | ------------------------------------------------ | --------------- |
+| **Critical** | Data loss, security breach, or complete unusability | Corrupted replay artifacts, policy bypass        | 24 hours        |
+| **High**     | Core functionality broken with no workaround        | Replay divergence in production, export failures | 72 hours        |
+| **Medium**   | Feature impaired but workaround exists              | Non-deterministic ordering in specific packs     | 1 week          |
+| **Low**      | Cosmetic, documentation, or edge case               | Typos in CLI output, help text errors            | Next release    |
 
 ---
 
