@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import type { DashboardGraphNode, DashboardPersona, DashboardViewModel } from "@zeo/contracts";
 import { generateCtas } from "./cta.js";
+import { codePointCompare } from "../determinism/deterministicCompare.js";
 
 type AnyRecord = Record<string, unknown>;
 
@@ -24,7 +25,7 @@ function stableValue(value: unknown): unknown {
   if (!value || typeof value !== "object") return value;
   const objectValue = value as AnyRecord;
   return Object.keys(objectValue)
-    .sort((a, b) => a.localeCompare(b))
+    .sort((a, b) => codePointCompare(a, b))
     .reduce<AnyRecord>((acc, key) => {
       acc[key] = stableValue(objectValue[key]);
       return acc;
@@ -51,7 +52,7 @@ function deterministicNodeLayout(
     outcome: [] as DashboardGraphNode[],
   };
   let decision: DashboardGraphNode | null = null;
-  for (const node of [...nodes].sort((a, b) => a.id.localeCompare(b.id))) {
+  for (const node of [...nodes].sort((a, b) => codePointCompare(a.id, b.id))) {
     if (node.type === "decision") decision = node;
     else if (node.type === "policy") groups.policy.push(node);
     else if (node.type === "evidence") groups.evidence.push(node);
@@ -102,15 +103,15 @@ function fromAnalyzePrArtifact(id: string, persona: DashboardPersona): Dashboard
         file: typeof finding.file === "string" ? finding.file : undefined,
         rationaleRefs: (Array.isArray(finding.evidence) ? finding.evidence : [])
           .map((entry) => String(entry))
-          .sort((a, b) => a.localeCompare(b)),
+          .sort((a, b) => codePointCompare(a, b)),
       };
     })
     .sort(
       (a, b) =>
         b.severity - a.severity ||
-        a.category.localeCompare(b.category) ||
-        (a.file ?? "").localeCompare(b.file ?? "") ||
-        a.id.localeCompare(b.id),
+        codePointCompare(a.category, b.category) ||
+        codePointCompare(a.file ?? "", b.file ?? "") ||
+        codePointCompare(a.id, b.id),
     );
 
   const riskScore = Number(summary.risk_score ?? 0);
@@ -133,7 +134,7 @@ function fromAnalyzePrArtifact(id: string, persona: DashboardPersona): Dashboard
       ageDays: idx * 6,
       expiresAt: idx > 8 ? "1970-01-01" : undefined,
     }))
-    .sort((a, b) => b.qualityScore - a.qualityScore || a.id.localeCompare(b.id));
+    .sort((a, b) => b.qualityScore - a.qualityScore || codePointCompare(a.id, b.id));
 
   const policies = [
     ...new Set(
@@ -151,7 +152,7 @@ function fromAnalyzePrArtifact(id: string, persona: DashboardPersona): Dashboard
       severity: idx === 0 ? 5 : 3,
       rationaleRefs: [idValue],
     }))
-    .sort((a, b) => b.severity - a.severity || a.id.localeCompare(b.id));
+    .sort((a, b) => b.severity - a.severity || codePointCompare(a.id, b.id));
 
   const now = "1970-01-01T00:00:00.000Z";
   const trajectory = [0, 1, 2, 3, 4].map((step) => ({
@@ -168,7 +169,7 @@ function fromAnalyzePrArtifact(id: string, persona: DashboardPersona): Dashboard
       severity: Math.min(5, Math.max(1, finding.severity)) as 1 | 2 | 3 | 4 | 5,
       refId: finding.id,
     }))
-    .sort((a, b) => b.severity - a.severity || a.refId.localeCompare(b.refId));
+    .sort((a, b) => b.severity - a.severity || codePointCompare(a.refId, b.refId));
 
   const assumptionFlips = sortedFindings
     .slice(0, 4)
@@ -179,7 +180,7 @@ function fromAnalyzePrArtifact(id: string, persona: DashboardPersona): Dashboard
       to: finding.severity >= 5 ? "fail" : "warn",
       severity: Math.min(5, Math.max(1, finding.severity)) as 1 | 2 | 3 | 4 | 5,
     }))
-    .sort((a, b) => b.severity - a.severity || a.assumptionId.localeCompare(b.assumptionId));
+    .sort((a, b) => b.severity - a.severity || codePointCompare(a.assumptionId, b.assumptionId));
 
   const assumptionNodes = sortedFindings.slice(0, 8).map((finding, idx) => {
     const state = idx % 5 === 0 ? "expired" : finding.severity >= 5 ? "volatile" : "stable";
@@ -228,7 +229,7 @@ function fromAnalyzePrArtifact(id: string, persona: DashboardPersona): Dashboard
     ...policyNodes,
     ...assumptionNodes,
     outcomeNode,
-  ].sort((a, b) => a.id.localeCompare(b.id));
+  ].sort((a, b) => codePointCompare(a.id, b.id));
 
   const positions = deterministicNodeLayout(graphNodes);
 
@@ -300,7 +301,7 @@ function fromAnalyzePrArtifact(id: string, persona: DashboardPersona): Dashboard
           type: "supports" as const,
           weight: Math.max(0.2, 1 - riskScore / 120),
         },
-      ].sort((a, b) => a.from.localeCompare(b.from) || a.to.localeCompare(b.to)),
+      ].sort((a, b) => codePointCompare(a.from, b.from) || codePointCompare(a.to, b.to)),
     },
     lists: {
       findings: sortedFindings,

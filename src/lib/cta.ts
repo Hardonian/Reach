@@ -1,4 +1,5 @@
 import type { DashboardPersona, DashboardViewModel } from "@zeo/contracts";
+import { codePointCompare } from "../determinism/deterministicCompare.js";
 
 export interface CtaContext {
   includeVerify?: boolean;
@@ -6,7 +7,7 @@ export interface CtaContext {
 }
 
 function missingEvidenceCount(model: DashboardViewModel): number {
-  return model.lists.findings.filter((finding: any) => finding.severity >= 4).length;
+  return model.lists.findings.filter((finding) => Number(finding.severity) >= 4).length;
 }
 
 export function generateCtas(
@@ -61,5 +62,5 @@ export function generateCtas(
 
   return items
     .slice(0, 5)
-    .sort((a: any, b: any) => a.priority - b.priority || a.label.localeCompare(b.label));
+    .sort((a, b) => (Number(a.priority) || 0) - (Number(b.priority) || 0) || codePointCompare(a.label, b.label));
 }

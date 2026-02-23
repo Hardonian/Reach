@@ -800,7 +800,7 @@ function collectWorkspaces(): DecisionWorkspace[] {
     .map((entry) => loadWorkspace(entry.name));
 }
 
-function collectGraph(asOfDate: string): {
+function collectGraph(_asOfDate: string): {
   nodes: GraphNode[];
   edges: GraphEdge[];
 } {
@@ -1250,7 +1250,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
       .toISOString()
       .slice(0, 10);
     const evidence = template.requiredEvidence
-      .map((value, index) =>
+      .map((value, _index) =>
         parseNoteToEvidence(
           `template evidence requirement: ${value}`,
           createdAt.slice(0, 10),
@@ -1262,7 +1262,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
         id: `ev_${hash({ decisionId, index, summary: proposal.summary }).slice(0, 10)}`,
       }));
     const assumptions = template.requiredAssumptions
-      .map((value, index) =>
+      .map((value, _index) =>
         parseNoteToEvidence(`template assumption: ${value}`, createdAt.slice(0, 10), reviewAt),
       )
       .map((proposal, index) => ({
