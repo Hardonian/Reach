@@ -1,3 +1,4 @@
+import { loadConfig } from "../core/env.js";
 // @ts-nocheck
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -56,7 +57,7 @@ function pluginsRoots(): string[] {
     resolve(process.cwd(), "plugins"),
     resolve(process.cwd(), ".zeo", "plugins"),
   ];
-  if (process.env.ZEO_PLUGIN_PATH) roots.push(resolve(process.cwd(), process.env.ZEO_PLUGIN_PATH));
+  if (loadConfig().ZEO_PLUGIN_PATH) roots.push(resolve(process.cwd(), loadConfig().ZEO_PLUGIN_PATH));
   return roots;
 }
 

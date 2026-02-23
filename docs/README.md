@@ -29,6 +29,7 @@ _(Note: Internal architecture specifications and planning documents have been mo
 ## ⚙️ Operations & Configuration
 
 - [Configuration as Code](config-as-code.md) - Managing Reach setup declaratively.
+- [Environment Variables](ENVIRONMENT_VARIABLES.md) - Configuration variables for system tuning.
 - [Role-Based Access Control](rbac.md) - Security and permissions (RBAC) setup.
 - [Traceability](traceability.md) - Understanding logging and execution provenance.
 - [Error Codes](ERROR_CODES.md) - Explanation of system error classifications.

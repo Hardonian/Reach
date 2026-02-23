@@ -1,3 +1,4 @@
+import { loadConfig } from "../core/env.js";
 import { randomUUID } from "node:crypto";
 import { hashString } from "../determinism/index.js";
 
@@ -56,14 +57,14 @@ function redact(v: unknown, mode: RedactMode): unknown {
 }
 
 export function log(event: Omit<CliLogEvent, "ts" | "schema_version">): void {
-  const mode = (process.env.ZEO_LOG_REDACT as RedactMode) || "safe";
+  const mode = (loadConfig().ZEO_LOG_REDACT) || "safe";
   const payload = {
     ...event,
     ts: new Date().toISOString(),
     schema_version: "zeo.log.v1",
   } as CliLogEvent;
   const safe = redact(payload, mode);
-  const asJson = process.env.ZEO_LOG_FORMAT === "json" || process.env.CI === "true";
+  const asJson = loadConfig().ZEO_LOG_FORMAT === "json" || loadConfig().CI;
   if (asJson) {
     process.stderr.write(`${JSON.stringify(safe).slice(0, 8192)}\n`);
   } else {

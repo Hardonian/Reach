@@ -1,3 +1,4 @@
+import { loadConfig } from "../core/env.js";
 // @ts-nocheck
 import { hashString } from "../determinism/index.js";
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, cpSync } from "node:fs";
@@ -351,7 +352,7 @@ function ensureWorkspaceRoot(): void {
 }
 
 function nowIso(): string {
-  return process.env.ZEO_FIXED_TIME || new Date().toISOString();
+  return loadConfig().ZEO_FIXED_TIME;
 }
 
 function clampScore(value: number): number {
@@ -359,7 +360,7 @@ function clampScore(value: number): number {
 }
 
 function defaultWorkspaceId(): string {
-  return process.env.ZEO_WORKSPACE_ID?.trim() || "default";
+  return loadConfig().ZEO_WORKSPACE_ID;
 }
 
 function parseDurationToDays(input?: string): number {
@@ -654,13 +655,13 @@ async function runDecisionInWorkspace(
   dependsOn: string[],
   informs: string[],
 ): Promise<RunResult> {
-  if (process.env.ZEO_FIXED_TIME) {
+  if (loadConfig().ZEO_FIXED_TIME) {
     const seed = hashString(ws.decisionId);
     core.activateDeterministicMode({
       seed,
       clock: {
-        now: () => process.env.ZEO_FIXED_TIME!,
-        timestamp: () => Date.parse(process.env.ZEO_FIXED_TIME!),
+        now: () => loadConfig().ZEO_FIXED_TIME!,
+        timestamp: () => Date.parse(loadConfig().ZEO_FIXED_TIME!),
       },
     });
   }
@@ -674,12 +675,12 @@ async function runDecisionInWorkspace(
     // Real evidence events would be separate. For now, we map workspace evidence to assumptions.
     dependsOn,
     informs,
-    logicalTimestamp: process.env.ZEO_FIXED_TIME
-      ? Date.parse(process.env.ZEO_FIXED_TIME)
+    logicalTimestamp: loadConfig().ZEO_FIXED_TIME
+      ? Date.parse(loadConfig().ZEO_FIXED_TIME)
       : Date.parse(asOfDate),
   });
 
-  if (process.env.ZEO_FIXED_TIME) {
+  if (loadConfig().ZEO_FIXED_TIME) {
     core.deactivateDeterministicMode();
   }
 
@@ -1135,7 +1136,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
   if (!args.command) return 1;
 
   if (args.fixedTime) {
-    process.env.ZEO_FIXED_TIME = args.fixedTime;
+    loadConfig().ZEO_FIXED_TIME = args.fixedTime;
   }
 
   if (args.command === "help") {
@@ -1866,7 +1867,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
       const manifest = buildBundleManifest(folder, bundleFiles);
       let signatureValid: boolean | null = null;
       if (args.signed) {
-        const signingKey = process.env.ZEO_SIGNING_HMAC_KEY;
+        const signingKey = loadConfig().ZEO_SIGNING_HMAC_KEY;
         if (signingKey) {
           const signature = hashString(`${manifest.manifestHash}:${signingKey}`);
           writeFileSync(

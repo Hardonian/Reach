@@ -21,8 +21,21 @@ interface ZeoliteContext {
   evidence: EvidenceEvent[];
 }
 
-const contexts = new Map<string, ZeoliteContext>();
-const transcripts = new Map<string, FinalizedDecisionTranscript>();
+class BoundedMap<K, V> extends Map<K, V> {
+  constructor(private maxSize: number) {
+    super();
+  }
+  set(key: K, value: V): this {
+    if (this.size >= this.maxSize && !this.has(key)) {
+      const firstKey = this.keys().next().value;
+      if (firstKey !== undefined) this.delete(firstKey);
+    }
+    return super.set(key, value);
+  }
+}
+
+const contexts = new BoundedMap<string, ZeoliteContext>(1000);
+const transcripts = new BoundedMap<string, FinalizedDecisionTranscript>(1000);
 
 function stableId(input: string): string {
   return hashString(input).slice(0, 16);

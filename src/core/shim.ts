@@ -1,3 +1,4 @@
+import { loadConfig } from "../core/env.js";
 import { hashString } from "../determinism/index.js";
 /**
  * @zeo/core shim — deterministic fallback when the WASM/native core is unavailable.
@@ -27,7 +28,7 @@ export const HASH_VERSION = "sha256-cjson-v1" as const;
 // ---------------------------------------------------------------------------
 
 function resolveTimestamp(): number {
-  const fixed = process.env.ZEO_FIXED_TIME;
+  const fixed = loadConfig().ZEO_FIXED_TIME;
   if (fixed) {
     const parsed = Date.parse(fixed);
     if (!Number.isNaN(parsed)) return parsed;

@@ -1,3 +1,4 @@
+import { loadConfig } from "../core/env.js";
 // @ts-nocheck
 import { hashString } from "../determinism/index.js";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -263,7 +264,7 @@ export async function runShareCommand(argv: string[]): Promise<number> {
   }
 
   if (channel === "github") {
-    const token = process.env.GITHUB_TOKEN;
+    const token = loadConfig().GITHUB_TOKEN;
     const repo = parseFlag(argv, "--repo");
     const pr = parseFlag(argv, "--pr");
     if (!token || !repo || !pr) {
@@ -292,7 +293,7 @@ export async function runShareCommand(argv: string[]): Promise<number> {
     return 0;
   }
 
-  const webhook = process.env.SLACK_WEBHOOK_URL;
+  const webhook = loadConfig().SLACK_WEBHOOK_URL;
   if (!webhook) {
     console.log("Slack webhook missing; print-first fallback:\n");
     process.stdout.write(`${scanned.redacted}\n`);

@@ -1,3 +1,4 @@
+import { loadConfig } from "../core/env.js";
 // @ts-nocheck
 // DEK-specific checks
 import { readFileSync, existsSync, readdirSync } from "node:fs";
@@ -185,7 +186,7 @@ export function runPolicySchemaCheck(): DoctorCheck {
 }
 
 export async function runEnterpriseConnectivityCheck(): Promise<DoctorCheck> {
-  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseUrl = loadConfig().SUPABASE_URL;
 
   if (!supabaseUrl) {
     return {
@@ -197,7 +198,7 @@ export async function runEnterpriseConnectivityCheck(): Promise<DoctorCheck> {
     };
   }
 
-  const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+  const supabaseKey = loadConfig().SUPABASE_SERVICE_KEY;
   if (!supabaseKey) {
     return {
       id: "enterprise",

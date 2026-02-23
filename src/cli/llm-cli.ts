@@ -1,3 +1,4 @@
+import { loadConfig } from "../core/env.js";
 // @ts-nocheck
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -44,7 +45,7 @@ export function resolveLlmConfig(args: DoctorArgs): LlmConfig {
   const root = process.cwd();
   const projectConfig = readJson(resolve(root, ".zeo/config.json"));
   const localConfig = readJson(resolve(root, ".zeo/config.local.json"));
-  const env = process.env;
+  const env = loadConfig();
 
   const provider =
     args.provider ??

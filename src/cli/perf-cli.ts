@@ -1,3 +1,4 @@
+import { loadConfig } from "../core/env.js";
 // @ts-nocheck
 /**
  * Performance CLI Module
@@ -796,7 +797,7 @@ export async function runPerfCommand(args: PerfCliArgs): Promise<number> {
   } catch (err) {
     const zeError = ZeoError.from(err);
     console.error(`[${zeError.code}] ${zeError.message}`);
-    if (process.env.DEBUG && zeError.details) {
+    if (loadConfig().DEBUG && zeError.details) {
       console.error("Details:", JSON.stringify(zeError.details, null, 2));
     }
     return 1;

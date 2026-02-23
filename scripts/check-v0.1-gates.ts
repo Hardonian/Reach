@@ -19,7 +19,7 @@ const getFiles = () => {
         !f.includes("scripts/") &&
         !f.includes(".test.") &&
         !f.includes(".spec.") &&
-        !f.toLowerCase().includes("readme.md"),
+        !f.toLowerCase().endsWith(".md"),
     );
   } catch {
     return [];

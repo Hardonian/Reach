@@ -1,3 +1,4 @@
+import { loadConfig } from "../core/env.js";
 // @ts-nocheck
 import { hashString } from "../determinism/index.js";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
@@ -216,23 +217,23 @@ function collectRoutingDecisions(): Array<{
   return [
     {
       module: "zeo",
-      model: process.env.ZEO_MODEL || "gpt-4o-mini",
-      provider: process.env.ZEO_PROVIDER || "openai",
+      model: loadConfig().ZEO_MODEL,
+      provider: loadConfig().ZEO_PROVIDER,
     },
     {
       module: "keys",
-      model: process.env.KEYS_MODEL || "local-default",
-      provider: process.env.KEYS_PROVIDER || "local",
+      model: loadConfig().KEYS_MODEL,
+      provider: loadConfig().KEYS_PROVIDER,
     },
     {
       module: "readylayer",
-      model: process.env.READYLAYER_MODEL || "local-default",
-      provider: process.env.READYLAYER_PROVIDER || "local",
+      model: loadConfig().READYLAYER_MODEL,
+      provider: loadConfig().READYLAYER_PROVIDER,
     },
     {
       module: "settler",
-      model: process.env.SETTLER_MODEL || "local-default",
-      provider: process.env.SETTLER_PROVIDER || "local",
+      model: loadConfig().SETTLER_MODEL,
+      provider: loadConfig().SETTLER_PROVIDER,
     },
   ].sort((a, b) => codePointCompare(a.module, b.module));
 }

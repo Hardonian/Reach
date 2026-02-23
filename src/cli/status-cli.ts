@@ -1,3 +1,4 @@
+import { loadConfig } from "../core/env.js";
 // @ts-nocheck
 import { listRecentArtifacts } from "@zeo/ledger";
 import { performance } from "node:perf_hooks";
@@ -23,8 +24,8 @@ export async function runStatusCommand(): Promise<number> {
   });
 
   console.log("\nConfig Summary:");
-  console.log(`- NODE_ENV: ${process.env.NODE_ENV}`);
-  console.log(`- ZE0_STRICT: ${process.env.ZE0_STRICT || "0"}`);
+  console.log(`- NODE_ENV: ${loadConfig().NODE_ENV}`);
+  console.log(`- ZE0_STRICT: ${loadConfig().ZEO_STRICT}`);
 
   // MCP Health check - dummy implementation for now as per instructions "no new heavy deps"
   // If mcp package exists, we could check it.

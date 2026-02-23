@@ -1,3 +1,4 @@
+import { loadConfig } from "../core/env.js";
 // @ts-nocheck
 import { performance } from "node:perf_hooks";
 /**
@@ -694,7 +695,7 @@ async function runFixes(checks: DoctorCheck[]): Promise<void> {
       }
 
       case "llm":
-        if (!process.env.OPENAI_API_KEY && !process.env.ANTHROPIC_API_KEY) {
+        if (!loadConfig().OPENAI_API_KEY && !loadConfig().ANTHROPIC_API_KEY) {
           console.log("  Warning: No LLM API keys found in environment.");
           console.log("  Action: Please set OPENAI_API_KEY or ANTHROPIC_API_KEY.");
         }
@@ -764,7 +765,7 @@ function runLlmConfigCheck(): DoctorCheck {
   const hasConfig =
     existsSync(resolve(process.cwd(), ".zeo", "config.json")) ||
     Boolean(
-      process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY || process.env.OPENROUTER_API_KEY,
+      loadConfig().OPENAI_API_KEY || loadConfig().ANTHROPIC_API_KEY || loadConfig().OPENROUTER_API_KEY,
     );
   return hasConfig
     ? {

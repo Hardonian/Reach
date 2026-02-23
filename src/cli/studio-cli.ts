@@ -1,3 +1,4 @@
+import { loadConfig } from "../core/env.js";
 // @ts-nocheck
 /**
  * Studio CLI Module
@@ -45,7 +46,7 @@ export async function runStudioCommand(argv: string[]): Promise<number> {
 
   // Try to open dev server
   try {
-    const env = { ...process.env, PORT: port };
+    const env = { ...process.env, PORT: loadConfig().PORT || port };
     let child: ChildProcess;
 
     const isWindows = process.platform === "win32";
