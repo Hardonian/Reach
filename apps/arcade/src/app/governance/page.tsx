@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { PolicyRow } from "@/components/PolicyRow";
 import { EmptyState } from "@/components/EmptyState";
 import { StatusIndicator } from "@/components/StatusIndicator";
