@@ -3,30 +3,74 @@
  * Quickstart Local Example Runner
  *
  * One-command execution of the quickstart demo.
- * Usage: node run.js [--verbose]
+ * Demonstrates basic Reach CLI usage and deterministic execution.
+ *
+ * @module examples/01-quickstart-local/run
+ * @requires child_process
+ * @requires fs
+ * @requires path
+ *
+ * @example
+ * // Run the demo
+ * node run.js
+ *
+ * @example
+ * // Run with debug output
+ * node run.js --verbose
  */
 
 const { execSync } = require("child_process");
 const { readFileSync, existsSync } = require("fs");
 const { resolve } = require("path");
 
+/** @constant {boolean} */
 const VERBOSE = process.argv.includes("--verbose");
+
+/** @constant {string} */
 const EXAMPLE_DIR = __dirname;
+
+/** @constant {string} */
 const REPO_ROOT = resolve(EXAMPLE_DIR, "../..");
 
+/**
+ * Logs a message to stdout.
+ * @param {...any} args - Messages to log
+ * @returns {void}
+ */
 function log(...args) {
   console.log(...args);
 }
 
+/**
+ * Logs debug messages only when verbose mode is enabled.
+ * @param {...any} args - Debug messages to log
+ * @returns {void}
+ */
 function debug(...args) {
   if (VERBOSE) console.log("[DEBUG]", ...args);
 }
 
+/**
+ * Logs error messages. Uses stdout to avoid non-zero exit codes in demo mode.
+ * @param {...any} args - Error messages to log
+ * @returns {void}
+ */
 function error(...args) {
   // Only log errors, don't use console.error to avoid non-zero exit codes in demo
   console.log("[ERROR]", ...args);
 }
 
+/**
+ * Executes a shell command in the repository root.
+ *
+ * @param {string} cmd - The command to execute
+ * @param {Object} [options={}] - Options for child_process.execSync
+ * @param {string} [options.cwd=REPO_ROOT] - Working directory
+ * @param {string} [options.encoding='utf8'] - Output encoding
+ * @param {string} [options.stdio] - Stdio configuration
+ * @returns {string} Command output
+ * @throws {Error} If the command fails
+ */
 function runCommand(cmd, options = {}) {
   debug(`Running: ${cmd}`);
   try {
@@ -43,6 +87,18 @@ function runCommand(cmd, options = {}) {
   }
 }
 
+/**
+ * Main entry point for the quickstart demo.
+ *
+ * This function:
+ * 1. Locates the Reach CLI (reachctl.exe or reach script)
+ * 2. Loads the seed input from seed.json
+ * 3. Runs `reach doctor` to verify the environment
+ * 4. Displays next steps for the user
+ *
+ * @returns {void}
+ * @throws {Error} If Reach CLI is not found or seed file is missing
+ */
 function main() {
   log("=== Reach Example 01: Quickstart Local ===\n");
 
@@ -107,6 +163,7 @@ function main() {
   }
 }
 
+// Run main if executed directly
 if (require.main === module) {
   main();
 }

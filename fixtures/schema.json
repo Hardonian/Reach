@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://reach.dev/schemas/fixture.json",
+  "title": "Reach Fixture",
+  "description": "Schema for Reach fixture files used in testing and validation",
+  "type": "object",
+  "required": ["_fixture"],
+  "properties": {
+    "_fixture": {
+      "type": "object",
+      "description": "Metadata about the fixture",
+      "required": ["id", "description", "created", "schema_version"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "description": "Unique identifier for the fixture"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 10,
+          "description": "Human-readable description of the fixture"
+        },
+        "created": {
+          "type": "string",
+          "format": "date",
+          "description": "Creation date in YYYY-MM-DD format"
+        },
+        "schema_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Schema version following semver"
+        },
+        "complexity": {
+          "type": "string",
+          "enum": ["beginner", "intermediate", "advanced"],
+          "description": "Complexity level of the fixture"
+        },
+        "deterministic": {
+          "type": "boolean",
+          "description": "Whether this fixture produces deterministic output"
+        },
+        "note": {
+          "type": "string",
+          "description": "Additional notes about the fixture"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true,
+  "definitions": {
+    "action": {
+      "type": "object",
+      "required": ["id", "label"],
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "type": { "type": "string" },
+        "cost": { "type": "number" },
+        "risk": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "required": ["id", "probability"],
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "probability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "adversarial": { "type": "boolean" }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "required": ["action", "scenario", "utility"],
+      "properties": {
+        "action": { "type": "string" },
+        "scenario": { "type": "string" },
+        "utility": { "type": "number" },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    }
+  }
+}

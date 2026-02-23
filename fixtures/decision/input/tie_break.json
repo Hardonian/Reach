@@ -1,4 +1,12 @@
 {
+  "_fixture": {
+    "id": "tie-break",
+    "description": "Decision with tied scores to test lexicographic tie-breaking",
+    "created": "2026-02-23",
+    "schema_version": "1.0.0",
+    "complexity": "advanced",
+    "deterministic": true
+  },
   "id": "fixture_002_tie_break",
   "description": "Decision with tied scores to test lexicographic tie-breaking",
   "input": {

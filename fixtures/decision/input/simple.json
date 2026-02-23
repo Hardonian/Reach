@@ -1,4 +1,12 @@
 {
+  "_fixture": {
+    "id": "simple",
+    "description": "Simple decision with 2 actions and 2 scenarios for basic testing",
+    "created": "2026-02-23",
+    "schema_version": "1.0.0",
+    "complexity": "beginner",
+    "deterministic": true
+  },
   "id": "fixture_001_simple",
   "description": "Simple decision with 2 actions and 2 scenarios",
   "input": {

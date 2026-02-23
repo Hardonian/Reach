@@ -1,4 +1,12 @@
 {
+  "_fixture": {
+    "id": "float-noise",
+    "description": "Decision with float noise to test normalization (0.1 + 0.2 should equal 0.3)",
+    "created": "2026-02-23",
+    "schema_version": "1.0.0",
+    "complexity": "intermediate",
+    "deterministic": true
+  },
   "id": "fixture_003_float_noise",
   "description": "Decision with float noise to test normalization (0.1 + 0.2 should equal 0.3)",
   "input": {
