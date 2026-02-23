@@ -198,7 +198,9 @@ export default function Governance() {
                 description="Create your first policy to enforce compliance rules across your agents."
                 action={{
                   label: "Create Policy",
-                  onClick: () => { /* TODO: Implement create policy */ },
+                  onClick: () => {
+                    /* TODO: Implement create policy */
+                  },
                 }}
               />
             )}
