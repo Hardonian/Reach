@@ -1,0 +1,18 @@
+{
+  "spec_version": "1.0",
+  "name": "minimal-policy-pack",
+  "description": "Minimal pack demonstrating policy enforcement",
+  "deterministic": true,
+  "policy": {
+    "enabled": true,
+    "rules": ["check_action_allowed"]
+  },
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "action": { "type": "string" },
+      "value": { "type": "number" }
+    },
+    "required": ["action"]
+  }
+}

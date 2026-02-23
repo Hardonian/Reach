@@ -19,15 +19,15 @@ package.json:   0.3.1
 
 ### Versioned Components
 
-| Component        | Current Version | Versioning Mechanism              |
-| :--------------- | :-------------- | :-------------------------------- |
-| Monorepo         | 0.3.1           | `VERSION` file + `package.json`   |
-| Schema (zeo.v1)  | v1              | `schemaVersion` field in output   |
-| Rust Engine      | 0.3.1           | `Cargo.toml` in crates            |
-| Go Runner        | 0.3.1           | `go.mod` + embedded version       |
-| SQLite Schema    | Migration 005   | Sequential migration files        |
-| Protocol Schemas | v1              | `protocol/v1/` directory          |
-| Hash Algorithm   | SHA-256 + FNV-1a | Implicit (not versioned)         |
+| Component        | Current Version  | Versioning Mechanism            |
+| :--------------- | :--------------- | :------------------------------ |
+| Monorepo         | 0.3.1            | `VERSION` file + `package.json` |
+| Schema (zeo.v1)  | v1               | `schemaVersion` field in output |
+| Rust Engine      | 0.3.1            | `Cargo.toml` in crates          |
+| Go Runner        | 0.3.1            | `go.mod` + embedded version     |
+| SQLite Schema    | Migration 005    | Sequential migration files      |
+| Protocol Schemas | v1               | `protocol/v1/` directory        |
+| Hash Algorithm   | SHA-256 + FNV-1a | Implicit (not versioned)        |
 
 ---
 
