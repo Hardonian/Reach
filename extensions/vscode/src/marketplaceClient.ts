@@ -39,19 +39,13 @@ export class MarketplaceClient {
       `${base}/v1/marketplace/catalog?q=${encodeURIComponent(query)}&page=1&page_size=20`,
     );
     if (!response.ok) {
-      throw new Error(
-        `marketplace catalog request failed with ${response.status}`,
-      );
+      throw new Error(`marketplace catalog request failed with ${response.status}`);
     }
     const body = (await response.json()) as CatalogResponse;
     return body.items ?? [];
   }
 
-  async installIntent(
-    kind: string,
-    id: string,
-    version?: string,
-  ): Promise<InstallIntentResponse> {
+  async installIntent(kind: string, id: string, version?: string): Promise<InstallIntentResponse> {
     const base = this.getBaseUrl();
     const response = await fetch(`${base}/v1/marketplace/install-intent`, {
       method: "POST",

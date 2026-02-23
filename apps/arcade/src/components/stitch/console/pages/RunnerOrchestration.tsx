@@ -62,17 +62,13 @@ export function RunnerOrchestration() {
               className="bg-[#161b22] border border-[#30363d] rounded-2xl p-6 relative overflow-hidden group"
             >
               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                <span className="material-symbols-outlined text-4xl text-white">
-                  {kpi.icon}
-                </span>
+                <span className="material-symbols-outlined text-4xl text-white">{kpi.icon}</span>
               </div>
               <p className="text-[#9da6b9] text-[10px] font-black uppercase tracking-widest mb-1">
                 {kpi.label}
               </p>
               <div className="flex items-baseline gap-2">
-                <h3 className="text-3xl font-black text-white tracking-tight">
-                  {kpi.val}
-                </h3>
+                <h3 className="text-3xl font-black text-white tracking-tight">{kpi.val}</h3>
                 <span
                   className={`text-${kpi.color}-400 text-[10px] font-bold uppercase tracking-widest`}
                 >
@@ -133,10 +129,7 @@ export function RunnerOrchestration() {
                         c: "slate",
                       },
                     ].map((r) => (
-                      <tr
-                        key={r.id}
-                        className="hover:bg-white/5 transition-colors"
-                      >
+                      <tr key={r.id} className="hover:bg-white/5 transition-colors">
                         <td className="px-8 py-6">
                           <div className="flex items-center gap-3">
                             <div className="w-2 h-2 rounded-full bg-[#135bec] animate-pulse"></div>
@@ -160,9 +153,7 @@ export function RunnerOrchestration() {
                             ></div>
                           </div>
                         </td>
-                        <td className="px-8 py-6 text-right font-mono text-slate-500">
-                          {r.t}
-                        </td>
+                        <td className="px-8 py-6 text-right font-mono text-slate-500">{r.t}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -252,9 +243,7 @@ export function RunnerOrchestration() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-                      <span className="material-symbols-outlined text-sm">
-                        schedule
-                      </span>
+                      <span className="material-symbols-outlined text-sm">schedule</span>
                       <span>{job.time}</span>
                     </div>
                   </div>
@@ -264,9 +253,7 @@ export function RunnerOrchestration() {
 
             <div className="p-8 rounded-2xl bg-[#7f1d1d]/10 border border-red-900/30 flex flex-col gap-6">
               <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-red-500">
-                  dangerous
-                </span>
+                <span className="material-symbols-outlined text-red-500">dangerous</span>
                 <h3 className="text-white font-black text-xs uppercase tracking-widest">
                   Recent Failures
                 </h3>
@@ -284,10 +271,7 @@ export function RunnerOrchestration() {
                     runner: "runner-beta-2",
                   },
                 ].map((err) => (
-                  <div
-                    key={err.id}
-                    className="text-[10px] font-bold uppercase tracking-widest"
-                  >
+                  <div key={err.id} className="text-[10px] font-bold uppercase tracking-widest">
                     <div className="flex justify-between text-red-400 mb-1">
                       <span>{err.id}</span>
                       <span>{err.err}</span>

@@ -2,13 +2,7 @@ import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
 
-const FORBIDDEN_SDK_IMPORTS = [
-  "stripe",
-  "auth0",
-  "@google-cloud",
-  "aws-sdk",
-  "azure-sdk",
-];
+const FORBIDDEN_SDK_IMPORTS = ["stripe", "auth0", "@google-cloud", "aws-sdk", "azure-sdk"];
 
 const OSS_PATHS = ["core", "services/runner", "protocol"];
 
@@ -32,9 +26,7 @@ function validate() {
           encoding: "utf8",
         });
         if (output) {
-          console.error(
-            `[PURITY ERROR] Cloud SDK '${sdk}' found in OSS path: ${ossPath}`,
-          );
+          console.error(`[PURITY ERROR] Cloud SDK '${sdk}' found in OSS path: ${ossPath}`);
           console.error(output);
           hasError = true;
         }
@@ -45,9 +37,7 @@ function validate() {
   }
 
   if (hasError) {
-    console.error(
-      "FAIL: OSS purity check failed. Cloud dependencies detected in OSS-only paths.",
-    );
+    console.error("FAIL: OSS purity check failed. Cloud dependencies detected in OSS-only paths.");
     process.exit(1);
   }
 

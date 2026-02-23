@@ -17,8 +17,7 @@ export async function previewAndApplyDiff(diffText: string): Promise<void> {
   const edit = new vscode.WorkspaceEdit();
 
   for (const patch of patches) {
-    const relativePath =
-      patch.newPath === "/dev/null" ? patch.oldPath : patch.newPath;
+    const relativePath = patch.newPath === "/dev/null" ? patch.oldPath : patch.newPath;
     const targetUri = vscode.Uri.joinPath(workspaceFolder.uri, relativePath);
     const originalDocument = await vscode.workspace.openTextDocument(targetUri);
     const patchedText = applyPatchToText(originalDocument.getText(), patch);

@@ -32,27 +32,15 @@ export function GlobalActivityMap({ className = "" }: GlobalActivityMapProps) {
   }, []);
 
   // Active points for rendering connections
-  const activePoints = React.useMemo(
-    () => gridPoints.filter((p) => p.active),
-    [gridPoints],
-  );
+  const activePoints = React.useMemo(() => gridPoints.filter((p) => p.active), [gridPoints]);
 
   return (
     <div
       className={`relative w-full h-64 md:h-80 bg-surface/50 rounded-xl overflow-hidden border border-border ${className}`}
     >
-      <svg
-        className="w-full h-full"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="xMidYMid slice"
-      >
+      <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
         <defs>
-          <pattern
-            id="grid"
-            width="5"
-            height="10"
-            patternUnits="userSpaceOnUse"
-          >
+          <pattern id="grid" width="5" height="10" patternUnits="userSpaceOnUse">
             <path
               d="M 5 0 L 0 0 0 10"
               fill="none"
@@ -96,13 +84,7 @@ export function GlobalActivityMap({ className = "" }: GlobalActivityMapProps) {
         ))}
 
         {/* Region nodes - static positions for major regions */}
-        <circle
-          cx="20"
-          cy="35"
-          r="2"
-          fill="#10B981"
-          className="animate-pulse"
-        />
+        <circle cx="20" cy="35" r="2" fill="#10B981" className="animate-pulse" />
         <circle cx="15" cy="40" r="2" fill="#10B981" />
         <circle cx="48" cy="32" r="2" fill="#10B981" />
         <circle cx="51" cy="35" r="2" fill="#F59E0B" />

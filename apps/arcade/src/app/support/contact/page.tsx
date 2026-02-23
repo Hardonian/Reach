@@ -2,8 +2,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Contact Support | ReadyLayer",
-  description:
-    "ReadyLayer out to our support and engineering teams for assistance.",
+  description: "ReadyLayer out to our support and engineering teams for assistance.",
 };
 
 export default function ContactSupportPage() {
@@ -15,18 +14,15 @@ export default function ContactSupportPage() {
             Contact <span className="text-gradient">Support</span>
           </h1>
           <p className="text-gray-400">
-            Submit a support ticket and our engineering team will get back to
-            you based on your service tier.
+            Submit a support ticket and our engineering team will get back to you based on your
+            service tier.
           </p>
         </header>
 
         <form className="space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label
-                htmlFor="name"
-                className="text-sm font-medium text-gray-300"
-              >
+              <label htmlFor="name" className="text-sm font-medium text-gray-300">
                 Name
               </label>
               <input
@@ -39,10 +35,7 @@ export default function ContactSupportPage() {
               />
             </div>
             <div className="space-y-2">
-              <label
-                htmlFor="email"
-                className="text-sm font-medium text-gray-300"
-              >
+              <label htmlFor="email" className="text-sm font-medium text-gray-300">
                 Email Address
               </label>
               <input
@@ -72,10 +65,7 @@ export default function ContactSupportPage() {
           </div>
 
           <div className="space-y-2">
-            <label
-              htmlFor="subject"
-              className="text-sm font-medium text-gray-300"
-            >
+            <label htmlFor="subject" className="text-sm font-medium text-gray-300">
               Subject
             </label>
             <input
@@ -89,10 +79,7 @@ export default function ContactSupportPage() {
           </div>
 
           <div className="space-y-2">
-            <label
-              htmlFor="message"
-              className="text-sm font-medium text-gray-300"
-            >
+            <label htmlFor="message" className="text-sm font-medium text-gray-300">
               Message
             </label>
             <textarea
@@ -105,10 +92,7 @@ export default function ContactSupportPage() {
             ></textarea>
           </div>
 
-          <button
-            type="submit"
-            className="btn-primary w-full py-4 font-bold text-lg"
-          >
+          <button type="submit" className="btn-primary w-full py-4 font-bold text-lg">
             Submit Support Request
           </button>
         </form>
@@ -116,10 +100,9 @@ export default function ContactSupportPage() {
         <div className="mt-12 p-6 bg-white/5 rounded-2xl border border-white/10 text-xs text-gray-500 flex items-start gap-4">
           <span className="text-xl">🛡️</span>
           <p>
-            By submitting this form, you acknowledge that support requests are
-            processed according to your organization&apos;s active SLA. Data
-            submitted via this form is transient and protected under our
-            production security policy.
+            By submitting this form, you acknowledge that support requests are processed according
+            to your organization&apos;s active SLA. Data submitted via this form is transient and
+            protected under our production security policy.
           </p>
         </div>
       </div>

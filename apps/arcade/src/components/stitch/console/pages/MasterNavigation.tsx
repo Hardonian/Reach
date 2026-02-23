@@ -179,9 +179,7 @@ export function MasterNavigation() {
 
       <header className="h-16 border-b border-[#283039] bg-[#101922]/80 backdrop-blur flex items-center justify-between px-10 shrink-0 z-20">
         <div className="flex items-center gap-2">
-          <span className="text-[#9dabb9] text-sm font-bold uppercase tracking-widest">
-            System
-          </span>
+          <span className="text-[#9dabb9] text-sm font-bold uppercase tracking-widest">System</span>
           <span className="text-[#9dabb9] text-sm">/</span>
           <span className="text-[#137fec] text-sm font-black uppercase tracking-widest">
             Master Navigation Map
@@ -201,14 +199,12 @@ export function MasterNavigation() {
         <div className="max-w-[1600px] mx-auto flex flex-col gap-12">
           <div className="border-b border-[#283039] pb-8">
             <h1 className="text-white text-4xl font-black tracking-tighter uppercase mb-4">
-              Master Navigation Map{" "}
-              <span className="text-[#283039] mx-4">//</span> System
+              Master Navigation Map <span className="text-[#283039] mx-4">//</span> System
               Architecture
             </h1>
             <p className="text-[#9dabb9] text-lg font-medium max-w-3xl leading-relaxed">
-              Unified interface for the ReadyLayer ecosystem. Access control
-              planes, governance modules, and data artifacts across the
-              platform.
+              Unified interface for the ReadyLayer ecosystem. Access control planes, governance
+              modules, and data artifacts across the platform.
             </p>
           </div>
 

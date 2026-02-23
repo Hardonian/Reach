@@ -9,12 +9,7 @@
  *   - security_status defaults to 'pending' until review
  */
 import { NextRequest, NextResponse } from "next/server";
-import {
-  requireAuth,
-  cloudErrorResponse,
-  requireRole,
-  auditLog,
-} from "@/lib/cloud-auth";
+import { requireAuth, cloudErrorResponse, requireRole, auditLog } from "@/lib/cloud-auth";
 import { createPack, publishPackVersion, getPackBySlug } from "@/lib/cloud-db";
 import { PackManifestSchema, parseBody } from "@/lib/cloud-schemas";
 
@@ -32,8 +27,7 @@ const HIGH_RISK_TOOLS = new Set([
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const ctx = await requireAuth(req);
   if (ctx instanceof NextResponse) return ctx;
-  if (!requireRole(ctx, "member"))
-    return cloudErrorResponse("Insufficient permissions", 403);
+  if (!requireRole(ctx, "member")) return cloudErrorResponse("Insufficient permissions", 403);
 
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(PackManifestSchema, body);
@@ -62,35 +56,24 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         `Tools ${riskyTools.join(", ")} require dataHandling: processed or significant`,
       );
     }
-    warnings.push(
-      `High-risk tools detected: ${riskyTools.join(", ")}. Security review required.`,
-    );
+    warnings.push(`High-risk tools detected: ${riskyTools.join(", ")}. Security review required.`);
   }
 
   if (!manifest.readme || manifest.readme.length < 50) {
-    warnings.push(
-      "README is very short. Consider adding usage examples and security notes.",
-    );
+    warnings.push("README is very short. Consider adding usage examples and security notes.");
   }
 
   if (manifest.permissions.length === 0 && manifest.tools.length > 0) {
-    warnings.push(
-      "No permissions declared. Add explicit permission declarations.",
-    );
+    warnings.push("No permissions declared. Add explicit permission declarations.");
   }
 
   // Check slug availability
   if (getPackBySlug(manifest.slug)) {
-    errors.push(
-      `Slug "${manifest.slug}" is already taken. Choose a unique slug.`,
-    );
+    errors.push(`Slug "${manifest.slug}" is already taken. Choose a unique slug.`);
   }
 
   if (errors.length > 0) {
-    return NextResponse.json(
-      { valid: false, errors, warnings },
-      { status: 422 },
-    );
+    return NextResponse.json({ valid: false, errors, warnings }, { status: 422 });
   }
 
   // ── Create pack + version ─────────────────────────────────────────────
@@ -98,8 +81,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     name: manifest.name,
     slug: manifest.slug,
     description: manifest.description,
-    shortDescription:
-      manifest.shortDescription || manifest.description.slice(0, 160),
+    shortDescription: manifest.shortDescription || manifest.description.slice(0, 160),
     category: manifest.category,
     visibility: manifest.visibility,
     tools: manifest.tools,

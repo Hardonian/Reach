@@ -79,9 +79,7 @@ export const decisionRepository = {
    */
   getById(id: string): DecisionReport | null {
     const db = getDB();
-    const stmt = db.prepare(
-      "SELECT * FROM decision_reports WHERE id = ? AND deleted_at IS NULL",
-    );
+    const stmt = db.prepare("SELECT * FROM decision_reports WHERE id = ? AND deleted_at IS NULL");
     const row = stmt.get(id) as DecisionReport | undefined;
     return row || null;
   },
@@ -122,9 +120,7 @@ export const decisionRepository = {
     const offset = options.offset || 0;
 
     // Get total count
-    const countStmt = db.prepare(
-      `SELECT COUNT(*) as count FROM decision_reports WHERE ${where}`,
-    );
+    const countStmt = db.prepare(`SELECT COUNT(*) as count FROM decision_reports WHERE ${where}`);
     const { count } = countStmt.get(...params) as { count: number };
 
     // Get paginated results (sorted by created_at desc for deterministic order)
@@ -363,9 +359,7 @@ export const junctionRepository = {
    */
   getById(id: string): Junction | null {
     const db = getDB();
-    const stmt = db.prepare(
-      "SELECT * FROM junctions WHERE id = ? AND deleted_at IS NULL",
-    );
+    const stmt = db.prepare("SELECT * FROM junctions WHERE id = ? AND deleted_at IS NULL");
     const row = stmt.get(id) as Junction | undefined;
     return row || null;
   },
@@ -406,9 +400,7 @@ export const junctionRepository = {
     const offset = options.offset || 0;
 
     // Get total count
-    const countStmt = db.prepare(
-      `SELECT COUNT(*) as count FROM junctions WHERE ${where}`,
-    );
+    const countStmt = db.prepare(`SELECT COUNT(*) as count FROM junctions WHERE ${where}`);
     const { count } = countStmt.get(...params) as { count: number };
 
     // Get paginated results (sorted by severity desc, then created_at desc)
@@ -478,9 +470,7 @@ export const junctionRepository = {
    */
   setCooldown(id: string, cooldownMinutes: number): Junction | null {
     const db = getDB();
-    const cooldownUntil = new Date(
-      Date.now() + cooldownMinutes * 60 * 1000,
-    ).toISOString();
+    const cooldownUntil = new Date(Date.now() + cooldownMinutes * 60 * 1000).toISOString();
 
     const stmt = db.prepare(`
       UPDATE junctions SET cooldown_until = ?
@@ -500,11 +490,7 @@ export const actionIntentRepository = {
   /**
    * Create action intent (when user accepts a decision)
    */
-  create(data: {
-    decisionId: string;
-    actionId: string;
-    notes?: string;
-  }): ActionIntent {
+  create(data: { decisionId: string; actionId: string; notes?: string }): ActionIntent {
     const db = getDB();
     const id = generateId("act");
     const createdAt = now();

@@ -9,13 +9,7 @@
     "created": "2024-01-15T00:00:00Z",
     "tags": ["advanced", "cost", "routing", "optimization"]
   },
-  "declared_tools": [
-    "echo",
-    "estimate_cost",
-    "route_model",
-    "execute",
-    "report"
-  ],
+  "declared_tools": ["echo", "estimate_cost", "route_model", "execute", "report"],
   "declared_permissions": ["cost:read", "model:select"],
   "model_requirements": {
     "tier": "adaptive"

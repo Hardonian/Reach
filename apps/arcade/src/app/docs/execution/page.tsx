@@ -9,24 +9,21 @@ export default function ExecutionDocsPage() {
     <div className="prose prose-invert max-w-none">
       <h1>Execution Graph</h1>
       <p>
-        Every run produces a full execution graph. The graph captures the
-        complete flow from input through skill execution, tool invocations,
-        provider routing, evaluation, and output.
+        Every run produces a full execution graph. The graph captures the complete flow from input
+        through skill execution, tool invocations, provider routing, evaluation, and output.
       </p>
 
       <h2>Graph Structure</h2>
       <p>Each graph contains:</p>
       <ul>
         <li>
-          <strong>Nodes</strong> — Input, Skill, Tool, Provider, Evaluation,
-          Output
+          <strong>Nodes</strong> — Input, Skill, Tool, Provider, Evaluation, Output
         </li>
         <li>
           <strong>Edges</strong> — Directed connections between nodes
         </li>
         <li>
-          <strong>Tool Invocations</strong> — Detailed log of each tool call
-          with timing
+          <strong>Tool Invocations</strong> — Detailed log of each tool call with timing
         </li>
         <li>
           <strong>Provider Info</strong> — Which provider/model was used and why
@@ -41,9 +38,9 @@ export default function ExecutionDocsPage() {
 
       <h2>Visibility</h2>
       <p>
-        The execution graph is hidden by default in the Playground. Users can
-        expand it via &ldquo;View execution details&rdquo; to see the full
-        graph, tool log, token usage, and artifacts.
+        The execution graph is hidden by default in the Playground. Users can expand it via
+        &ldquo;View execution details&rdquo; to see the full graph, tool log, token usage, and
+        artifacts.
       </p>
 
       <h2>Artifacts</h2>

@@ -16,9 +16,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   const bridgeClient = new BridgeClient({
     getUrl: () =>
-      vscode.workspace
-        .getConfiguration("reach")
-        .get<string>("bridgeUrl", "ws://localhost:8787"),
+      vscode.workspace.getConfiguration("reach").get<string>("bridgeUrl", "ws://localhost:8787"),
     onStatusChange: (connected) => {
       vscode.window.setStatusBarMessage(
         connected ? "Reach bridge connected" : "Reach bridge disconnected",
@@ -79,10 +77,7 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
     vscode.commands.registerCommand("reach.listConnectors", async () => {
       const cfg = vscode.workspace.getConfiguration("reach");
-      const url = cfg.get<string>(
-        "connectorRegistryUrl",
-        "http://localhost:8092",
-      );
+      const url = cfg.get<string>("connectorRegistryUrl", "http://localhost:8092");
       try {
         const response = await fetch(`${url}/v1/connectors`);
         if (!response.ok) {
@@ -102,60 +97,43 @@ export function activate(context: vscode.ExtensionContext): void {
           return;
         }
         const lines = connectors.map(
-          (c) =>
-            `${c.id} (${c.provider}) v${c.pinned_version} verified=${c.verified}`,
+          (c) => `${c.id} (${c.provider}) v${c.pinned_version} verified=${c.verified}`,
         );
         void vscode.window.showQuickPick(lines, {
           title: "Installed Reach Connectors",
         });
       } catch (error) {
-        void vscode.window.showErrorMessage(
-          `Failed to list connectors: ${String(error)}`,
-        );
+        void vscode.window.showErrorMessage(`Failed to list connectors: ${String(error)}`);
       }
     }),
     vscode.commands.registerCommand("reach.marketplaceSearch", async () => {
       try {
         await runMarketplaceSearch(marketplaceClient);
       } catch (error) {
-        void vscode.window.showErrorMessage(
-          `Marketplace search failed: ${String(error)}`,
-        );
+        void vscode.window.showErrorMessage(`Marketplace search failed: ${String(error)}`);
       }
     }),
     vscode.commands.registerCommand("reach.marketplaceInstall", async () => {
       try {
         await runMarketplaceInstall(marketplaceClient);
       } catch (error) {
-        void vscode.window.showErrorMessage(
-          `Marketplace install failed: ${String(error)}`,
-        );
+        void vscode.window.showErrorMessage(`Marketplace install failed: ${String(error)}`);
       }
     }),
-    vscode.commands.registerCommand(
-      "reach.marketplaceListInstalled",
-      async () => {
-        try {
-          await runMarketplaceInstalled(marketplaceClient);
-        } catch (error) {
-          void vscode.window.showErrorMessage(
-            `Marketplace installed list failed: ${String(error)}`,
-          );
-        }
-      },
-    ),
-    vscode.commands.registerCommand(
-      "reach.marketplaceUpdateInstalled",
-      async () => {
-        try {
-          await runMarketplaceUpdate(marketplaceClient);
-        } catch (error) {
-          void vscode.window.showErrorMessage(
-            `Marketplace update failed: ${String(error)}`,
-          );
-        }
-      },
-    ),
+    vscode.commands.registerCommand("reach.marketplaceListInstalled", async () => {
+      try {
+        await runMarketplaceInstalled(marketplaceClient);
+      } catch (error) {
+        void vscode.window.showErrorMessage(`Marketplace installed list failed: ${String(error)}`);
+      }
+    }),
+    vscode.commands.registerCommand("reach.marketplaceUpdateInstalled", async () => {
+      try {
+        await runMarketplaceUpdate(marketplaceClient);
+      } catch (error) {
+        void vscode.window.showErrorMessage(`Marketplace update failed: ${String(error)}`);
+      }
+    }),
 
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration("reach.bridgeUrl")) {
@@ -170,10 +148,7 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.commands.registerCommand("reach.autonomousStop", () => {
       bridgeClient.send({ type: "autonomous.stop" });
-      vscode.window.setStatusBarMessage(
-        "Reach autonomous stop requested",
-        3000,
-      );
+      vscode.window.setStatusBarMessage("Reach autonomous stop requested", 3000);
     }),
   );
 }

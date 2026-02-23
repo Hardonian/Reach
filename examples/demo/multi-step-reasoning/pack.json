@@ -9,13 +9,7 @@
     "created": "2024-01-15T00:00:00Z",
     "tags": ["advanced", "reasoning", "evidence", "voi"]
   },
-  "declared_tools": [
-    "echo",
-    "gather_evidence",
-    "evaluate_hypothesis",
-    "compute_voi",
-    "synthesize"
-  ],
+  "declared_tools": ["echo", "gather_evidence", "evaluate_hypothesis", "compute_voi", "synthesize"],
   "declared_permissions": ["evidence:read", "voi:compute"],
   "model_requirements": {
     "tier": "standard"

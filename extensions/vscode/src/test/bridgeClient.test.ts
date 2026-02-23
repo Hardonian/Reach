@@ -10,16 +10,10 @@ class FakeSocket implements WebSocketLike {
   private handlers: Record<string, SocketHandler[]> = {};
 
   on(event: "open", listener: () => void): void;
-  on(
-    event: "message",
-    listener: (data: string | Buffer | ArrayBuffer | Buffer[]) => void,
-  ): void;
+  on(event: "message", listener: (data: string | Buffer | ArrayBuffer | Buffer[]) => void): void;
   on(event: "close", listener: () => void): void;
   on(event: "error", listener: (error: Error) => void): void;
-  on(
-    event: "open" | "message" | "close" | "error",
-    listener: SocketHandler,
-  ): void {
+  on(event: "open" | "message" | "close" | "error", listener: SocketHandler): void {
     this.handlers[event] = this.handlers[event] ?? [];
     this.handlers[event].push(listener);
   }

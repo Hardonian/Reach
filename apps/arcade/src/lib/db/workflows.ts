@@ -3,11 +3,7 @@ import { newId } from "./helpers";
 import { type Project, type Workflow, type WorkflowRun } from "./types";
 
 // Projects
-export function createProject(
-  tenantId: string,
-  name: string,
-  description: string,
-): Project {
+export function createProject(tenantId: string, name: string, description: string): Project {
   const db = getDB();
   const id = newId("prj");
   const now = new Date().toISOString();
@@ -20,9 +16,7 @@ export function createProject(
 export function getProject(id: string, tenantId: string): Project | undefined {
   const db = getDB();
   return db
-    .prepare(
-      "SELECT * FROM projects WHERE id=? AND tenant_id=? AND deleted_at IS NULL",
-    )
+    .prepare("SELECT * FROM projects WHERE id=? AND tenant_id=? AND deleted_at IS NULL")
     .get(id, tenantId) as Project | undefined;
 }
 
@@ -50,29 +44,14 @@ export function createWorkflow(
   db.prepare(
     `INSERT INTO workflows (id, tenant_id, project_id, name, description, graph_json, version, status, created_by, created_at, updated_at)
     VALUES (?,?,?,?,?,?,1,'draft',?,?,?)`,
-  ).run(
-    id,
-    tenantId,
-    projectId ?? null,
-    name,
-    description,
-    graphJson,
-    createdBy,
-    now,
-    now,
-  );
+  ).run(id, tenantId, projectId ?? null, name, description, graphJson, createdBy, now, now);
   return getWorkflow(id, tenantId)!;
 }
 
-export function getWorkflow(
-  id: string,
-  tenantId: string,
-): Workflow | undefined {
+export function getWorkflow(id: string, tenantId: string): Workflow | undefined {
   const db = getDB();
   return db
-    .prepare(
-      "SELECT * FROM workflows WHERE id=? AND tenant_id=? AND deleted_at IS NULL",
-    )
+    .prepare("SELECT * FROM workflows WHERE id=? AND tenant_id=? AND deleted_at IS NULL")
     .get(id, tenantId) as Workflow | undefined;
 }
 
@@ -106,10 +85,7 @@ export function updateWorkflow(
   return true;
 }
 
-export function listWorkflows(
-  tenantId: string,
-  projectId?: string,
-): Workflow[] {
+export function listWorkflows(tenantId: string, projectId?: string): Workflow[] {
   const db = getDB();
   if (projectId) {
     return db
@@ -141,14 +117,11 @@ export function createWorkflowRun(
   return getWorkflowRun(id, tenantId)!;
 }
 
-export function getWorkflowRun(
-  id: string,
-  tenantId: string,
-): WorkflowRun | undefined {
+export function getWorkflowRun(id: string, tenantId: string): WorkflowRun | undefined {
   const db = getDB();
-  return db
-    .prepare("SELECT * FROM workflow_runs WHERE id=? AND tenant_id=?")
-    .get(id, tenantId) as WorkflowRun | undefined;
+  return db.prepare("SELECT * FROM workflow_runs WHERE id=? AND tenant_id=?").get(id, tenantId) as
+    | WorkflowRun
+    | undefined;
 }
 
 export function updateWorkflowRun(
@@ -175,11 +148,7 @@ export function updateWorkflowRun(
   );
 }
 
-export function listWorkflowRuns(
-  tenantId: string,
-  workflowId?: string,
-  limit = 50,
-): WorkflowRun[] {
+export function listWorkflowRuns(tenantId: string, workflowId?: string, limit = 50): WorkflowRun[] {
   const db = getDB();
   if (workflowId) {
     return db
@@ -189,8 +158,6 @@ export function listWorkflowRuns(
       .all(tenantId, workflowId, limit) as WorkflowRun[];
   }
   return db
-    .prepare(
-      "SELECT * FROM workflow_runs WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?",
-    )
+    .prepare("SELECT * FROM workflow_runs WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?")
     .all(tenantId, limit) as WorkflowRun[];
 }

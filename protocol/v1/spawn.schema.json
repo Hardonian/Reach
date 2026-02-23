@@ -3,14 +3,7 @@
   "$id": "https://reach.dev/protocol/v1/spawn.schema.json",
   "title": "Spawn",
   "type": "object",
-  "required": [
-    "schemaVersion",
-    "spawnId",
-    "sessionId",
-    "goal",
-    "depth",
-    "status"
-  ],
+  "required": ["schemaVersion", "spawnId", "sessionId", "goal", "depth", "status"],
   "properties": {
     "schemaVersion": { "const": "1.0.0" },
     "spawnId": { "type": "string", "minLength": 1 },

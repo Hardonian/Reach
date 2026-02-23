@@ -3,11 +3,7 @@ import { newId } from "./helpers";
 import { type AuditEvent } from "./types";
 
 // --- Analytics ---
-export function appendEvent(
-  event: string,
-  properties: Record<string, unknown>,
-  ts: string,
-): void {
+export function appendEvent(event: string, properties: Record<string, unknown>, ts: string): void {
   try {
     const db = getDB();
     db.prepare(
@@ -70,11 +66,7 @@ export function appendAudit(
   );
 }
 
-export function listAuditEvents(
-  tenantId: string,
-  limit = 100,
-  offset = 0,
-): AuditEvent[] {
+export function listAuditEvents(tenantId: string, limit = 100, offset = 0): AuditEvent[] {
   const db = getDB();
   return db
     .prepare(
@@ -97,21 +89,13 @@ export function upsertWebhookEvent(
   db.prepare(
     `INSERT INTO webhook_events (id, stripe_event_id, type, payload_json, processed, created_at)
     VALUES (?,?,?,?,0,?)`,
-  ).run(
-    newId("whe"),
-    stripeEventId,
-    type,
-    payloadJson,
-    new Date().toISOString(),
-  );
+  ).run(newId("whe"), stripeEventId, type, payloadJson, new Date().toISOString());
   return true;
 }
 
 export function markWebhookProcessed(stripeEventId: string): void {
   const db = getDB();
-  db.prepare(
-    "UPDATE webhook_events SET processed=1 WHERE stripe_event_id=?",
-  ).run(stripeEventId);
+  db.prepare("UPDATE webhook_events SET processed=1 WHERE stripe_event_id=?").run(stripeEventId);
 }
 
 // --- Onboarding ---

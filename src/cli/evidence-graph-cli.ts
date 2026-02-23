@@ -95,9 +95,7 @@ export function parseEvidenceGraphArgs(argv: string[]): EvidenceGraphCliArgs {
   return result;
 }
 
-export async function runEvidenceGraphCommand(
-  args: EvidenceGraphCliArgs,
-): Promise<number> {
+export async function runEvidenceGraphCommand(args: EvidenceGraphCliArgs): Promise<number> {
   const core = await import("@zeo/core");
 
   if (!args.command) {
@@ -113,8 +111,7 @@ export async function runEvidenceGraphCommand(
 
       if (args.stale) nodes = core.filterStale(graph, args.threshold);
       else if (args.tag) nodes = core.filterByTag(graph, args.tag);
-      else if (args.decision)
-        nodes = core.filterByDecision(graph, args.decision);
+      else if (args.decision) nodes = core.filterByDecision(graph, args.decision);
       else if (args.highRegret) nodes = core.filterHighRegret(graph);
 
       if (args.json) {
@@ -147,18 +144,14 @@ export async function runEvidenceGraphCommand(
       } else {
         console.log(`Registered: ${node.id}`);
         console.log(`  Claim: ${node.claim}`);
-        console.log(
-          `  Confidence: ${(node.confidenceScore * 100).toFixed(1)}%`,
-        );
+        console.log(`  Confidence: ${(node.confidenceScore * 100).toFixed(1)}%`);
       }
       return 0;
     }
 
     case "mark": {
       if (!args.evidenceId || !args.outcome) {
-        console.error(
-          "Usage: zeo evidence mark <evidence_id> --outcome positive|negative",
-        );
+        console.error("Usage: zeo evidence mark <evidence_id> --outcome positive|negative");
         return 1;
       }
 

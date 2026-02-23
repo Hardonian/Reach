@@ -134,9 +134,7 @@ const mockPermissions = [
 ];
 
 export default function Governance() {
-  const [activeTab, setActiveTab] = useState<
-    "policies" | "audit" | "permissions"
-  >("policies");
+  const [activeTab, setActiveTab] = useState<"policies" | "audit" | "permissions">("policies");
 
   const handleEditPolicy = (id: string) => {
     // TODO: Implement edit policy
@@ -151,9 +149,7 @@ export default function Governance() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Governance & Compliance</h1>
-        <p className="text-gray-400">
-          Manage policies, audit trails, and access control
-        </p>
+        <p className="text-gray-400">Manage policies, audit trails, and access control</p>
       </div>
 
       {/* Tabs */}
@@ -163,9 +159,7 @@ export default function Governance() {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 rounded-md text-sm font-medium capitalize transition-colors ${
-              activeTab === tab
-                ? "bg-accent text-white"
-                : "text-gray-400 hover:text-white"
+              activeTab === tab ? "bg-accent text-white" : "text-gray-400 hover:text-white"
             }`}
           >
             {tab}
@@ -228,24 +222,12 @@ export default function Governance() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border text-left">
-                    <th className="pb-3 text-sm font-medium text-gray-500">
-                      Timestamp
-                    </th>
-                    <th className="pb-3 text-sm font-medium text-gray-500">
-                      Actor
-                    </th>
-                    <th className="pb-3 text-sm font-medium text-gray-500">
-                      Action
-                    </th>
-                    <th className="pb-3 text-sm font-medium text-gray-500">
-                      Resource
-                    </th>
-                    <th className="pb-3 text-sm font-medium text-gray-500">
-                      Status
-                    </th>
-                    <th className="pb-3 text-sm font-medium text-gray-500">
-                      Details
-                    </th>
+                    <th className="pb-3 text-sm font-medium text-gray-500">Timestamp</th>
+                    <th className="pb-3 text-sm font-medium text-gray-500">Actor</th>
+                    <th className="pb-3 text-sm font-medium text-gray-500">Action</th>
+                    <th className="pb-3 text-sm font-medium text-gray-500">Resource</th>
+                    <th className="pb-3 text-sm font-medium text-gray-500">Status</th>
+                    <th className="pb-3 text-sm font-medium text-gray-500">Details</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -274,9 +256,7 @@ export default function Governance() {
                           size="sm"
                         />
                       </td>
-                      <td className="py-4 text-sm text-gray-500">
-                        {entry.details}
-                      </td>
+                      <td className="py-4 text-sm text-gray-500">{entry.details}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -304,18 +284,10 @@ export default function Governance() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border text-left">
-                  <th className="pb-3 text-sm font-medium text-gray-500">
-                    Role
-                  </th>
-                  <th className="pb-3 text-sm font-medium text-gray-500 text-center">
-                    Deploy
-                  </th>
-                  <th className="pb-3 text-sm font-medium text-gray-500 text-center">
-                    Configure
-                  </th>
-                  <th className="pb-3 text-sm font-medium text-gray-500 text-center">
-                    Audit
-                  </th>
+                  <th className="pb-3 text-sm font-medium text-gray-500">Role</th>
+                  <th className="pb-3 text-sm font-medium text-gray-500 text-center">Deploy</th>
+                  <th className="pb-3 text-sm font-medium text-gray-500 text-center">Configure</th>
+                  <th className="pb-3 text-sm font-medium text-gray-500 text-center">Audit</th>
                   <th className="pb-3 text-sm font-medium text-gray-500 text-center">
                     Manage Users
                   </th>
@@ -372,20 +344,12 @@ export default function Governance() {
           <div className="mt-6 p-4 bg-surface/50 rounded-lg border border-border">
             <h3 className="font-bold mb-2">Permission Guidelines</h3>
             <ul className="text-sm text-gray-400 space-y-1">
+              <li>• Admin: Full access to all platform features and user management</li>
+              <li>• Developer: Can deploy and configure agents, view audit logs</li>
               <li>
-                • Admin: Full access to all platform features and user
-                management
+                • Operator: Can deploy agents and view audit logs, cannot modify configurations
               </li>
-              <li>
-                • Developer: Can deploy and configure agents, view audit logs
-              </li>
-              <li>
-                • Operator: Can deploy agents and view audit logs, cannot modify
-                configurations
-              </li>
-              <li>
-                • Viewer: Read-only access to audit logs and configurations
-              </li>
+              <li>• Viewer: Read-only access to audit logs and configurations</li>
             </ul>
           </div>
         </div>

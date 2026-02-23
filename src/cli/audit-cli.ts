@@ -42,9 +42,7 @@ export async function runAuditCommand(argv: string[]): Promise<number> {
     for (const res of results) {
       console.log(`\n📄 ${res.file}`);
       for (const secret of res.secrets) {
-        console.log(
-          `   - [${secret.match.length} chars] ${secret.kind} at index ${secret.index}`,
-        );
+        console.log(`   - [${secret.match.length} chars] ${secret.kind} at index ${secret.index}`);
         count++;
       }
     }

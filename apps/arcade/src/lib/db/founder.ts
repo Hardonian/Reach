@@ -44,9 +44,7 @@ export function getFounderMetrics(): FounderMetrics {
   ).count;
   const signups = (
     db
-      .prepare(
-        "SELECT COUNT(*) as count FROM users WHERE created_at > date('now', '-7 days')",
-      )
+      .prepare("SELECT COUNT(*) as count FROM users WHERE created_at > date('now', '-7 days')")
       .get() as any
   ).count;
   const firstPasses = (
@@ -75,22 +73,16 @@ export function getFounderMetrics(): FounderMetrics {
   // Adoption
   const tenantsWithGates = (
     db
-      .prepare(
-        "SELECT COUNT(DISTINCT tenant_id) as count FROM gates WHERE status = 'enabled'",
-      )
+      .prepare("SELECT COUNT(DISTINCT tenant_id) as count FROM gates WHERE status = 'enabled'")
       .get() as any
   ).count;
   const tenantsWithMonitoring = (
     db
-      .prepare(
-        "SELECT COUNT(DISTINCT tenant_id) as count FROM signals WHERE status = 'enabled'",
-      )
+      .prepare("SELECT COUNT(DISTINCT tenant_id) as count FROM signals WHERE status = 'enabled'")
       .get() as any
   ).count;
   const tenantsWithSimulation = (
-    db
-      .prepare("SELECT COUNT(DISTINCT tenant_id) as count FROM scenarios")
-      .get() as any
+    db.prepare("SELECT COUNT(DISTINCT tenant_id) as count FROM scenarios").get() as any
   ).count;
 
   return {
@@ -171,7 +163,5 @@ export function createDecisionProposal(proposal: {
 
 export function getDecisions() {
   const db = getDB();
-  return db
-    .prepare("SELECT * FROM founder_decisions ORDER BY created_at DESC")
-    .all();
+  return db.prepare("SELECT * FROM founder_decisions ORDER BY created_at DESC").all();
 }

@@ -2,9 +2,7 @@ import { z } from "zod";
 
 const envSchema = z.object({
   // Base
-  NODE_ENV: z
-    .enum(["development", "test", "production"])
-    .default("development"),
+  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 
   // Reach Cloud Features
   REACH_CLOUD_ENABLED: z
@@ -64,8 +62,7 @@ export const env = envSchema.parse({
   BILLING_ENABLED: process.env.BILLING_ENABLED,
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
-    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   STRIPE_PRICE_PRO: process.env.STRIPE_PRICE_PRO,
   STRIPE_PRICE_TEAM: process.env.STRIPE_PRICE_TEAM,
   STRIPE_PRICE_ENTERPRISE: process.env.STRIPE_PRICE_ENTERPRISE,
@@ -81,6 +78,5 @@ export const env = envSchema.parse({
   SMTP_PORT: process.env.SMTP_PORT,
   SMTP_USER: process.env.SMTP_USER,
   SMTP_PASS: process.env.SMTP_PASS,
-  REACH_ENTERPRISE_MAX_SPAWN_DEPTH:
-    process.env.REACH_ENTERPRISE_MAX_SPAWN_DEPTH,
+  REACH_ENTERPRISE_MAX_SPAWN_DEPTH: process.env.REACH_ENTERPRISE_MAX_SPAWN_DEPTH,
 });

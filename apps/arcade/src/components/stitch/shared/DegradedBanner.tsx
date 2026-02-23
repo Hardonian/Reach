@@ -12,12 +12,8 @@ export function DegradedBanner({ title, message }: DegradedBannerProps) {
           warning
         </span>
         <div>
-          <h3 className="text-sm font-bold text-yellow-700 dark:text-yellow-400">
-            {title}
-          </h3>
-          <p className="text-sm text-yellow-700/80 dark:text-yellow-400/80 mt-0.5">
-            {message}
-          </p>
+          <h3 className="text-sm font-bold text-yellow-700 dark:text-yellow-400">{title}</h3>
+          <p className="text-sm text-yellow-700/80 dark:text-yellow-400/80 mt-0.5">{message}</p>
         </div>
       </div>
       <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0 relative z-10">

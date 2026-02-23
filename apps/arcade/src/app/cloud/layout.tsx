@@ -15,11 +15,7 @@ const NAV_ITEMS = [
   { href: "/cloud/audit", label: "Audit Log", icon: "📋" },
 ];
 
-export default function CloudLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function CloudLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -31,9 +27,7 @@ export default function CloudLayout({
       >
         <div className="flex items-center justify-between p-4 border-b border-border">
           {sidebarOpen && (
-            <span className="text-sm font-semibold text-accent">
-              ReadyLayer Cloud
-            </span>
+            <span className="text-sm font-semibold text-accent">ReadyLayer Cloud</span>
           )}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -46,8 +40,7 @@ export default function CloudLayout({
         <nav className="flex-1 py-4">
           {NAV_ITEMS.map((item) => {
             const active =
-              pathname === item.href ||
-              (item.href !== "/cloud" && pathname.startsWith(item.href));
+              pathname === item.href || (item.href !== "/cloud" && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.href}

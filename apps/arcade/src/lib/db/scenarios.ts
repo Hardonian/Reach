@@ -41,9 +41,9 @@ export function createSignal(tenantId: string, input: Partial<Signal>): Signal {
 
 export function getSignal(id: string, tenantId: string): Signal | undefined {
   const db = getDB();
-  const row = db
-    .prepare("SELECT * FROM signals WHERE id=? AND tenant_id=?")
-    .get(id, tenantId) as Record<string, unknown> | undefined;
+  const row = db.prepare("SELECT * FROM signals WHERE id=? AND tenant_id=?").get(id, tenantId) as
+    | Record<string, unknown>
+    | undefined;
   return row ? parseSignal(row) : undefined;
 }
 
@@ -55,11 +55,7 @@ export function listSignals(tenantId: string): Signal[] {
   return rows.map(parseSignal);
 }
 
-export function updateSignal(
-  id: string,
-  tenantId: string,
-  patch: Partial<Signal>,
-): boolean {
+export function updateSignal(id: string, tenantId: string, patch: Partial<Signal>): boolean {
   const db = getDB();
   const existing = getSignal(id, tenantId);
   if (!existing) return false;
@@ -79,9 +75,7 @@ export function updateSignal(
 
 export function deleteSignal(id: string, tenantId: string): boolean {
   const db = getDB();
-  const res = db
-    .prepare("DELETE FROM signals WHERE id=? AND tenant_id=?")
-    .run(id, tenantId);
+  const res = db.prepare("DELETE FROM signals WHERE id=? AND tenant_id=?").run(id, tenantId);
   return res.changes > 0;
 }
 
@@ -99,15 +93,7 @@ export function createMonitorRun(
   db.prepare(
     `INSERT INTO monitor_runs (id, tenant_id, signal_id, value, metadata_json, alert_triggered, created_at)
     VALUES (?,?,?,?,?,?,?)`,
-  ).run(
-    id,
-    tenantId,
-    signalId,
-    value,
-    JSON.stringify(metadata),
-    alertTriggered ? 1 : 0,
-    now,
-  );
+  ).run(id, tenantId, signalId, value, JSON.stringify(metadata), alertTriggered ? 1 : 0, now);
   return {
     id,
     tenant_id: tenantId,
@@ -119,11 +105,7 @@ export function createMonitorRun(
   };
 }
 
-export function listMonitorRuns(
-  tenantId: string,
-  signalId?: string,
-  limit = 100,
-): MonitorRun[] {
+export function listMonitorRuns(tenantId: string, signalId?: string, limit = 100): MonitorRun[] {
   const db = getDB();
   const rows = signalId
     ? (db
@@ -132,9 +114,7 @@ export function listMonitorRuns(
         )
         .all(tenantId, signalId, limit) as Record<string, unknown>[])
     : (db
-        .prepare(
-          "SELECT * FROM monitor_runs WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?",
-        )
+        .prepare("SELECT * FROM monitor_runs WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?")
         .all(tenantId, limit) as Record<string, unknown>[]);
   return rows.map(
     (r) =>
@@ -154,9 +134,9 @@ export function getMonitorHealth(tenantId: string): {
   const db = getDB();
   const since = new Date(Date.now() - 86400000).toISOString();
   const total = (
-    db
-      .prepare("SELECT COUNT(*) as c FROM monitor_runs WHERE tenant_id=?")
-      .get(tenantId) as { c: number }
+    db.prepare("SELECT COUNT(*) as c FROM monitor_runs WHERE tenant_id=?").get(tenantId) as {
+      c: number;
+    }
   ).c;
   const alerts_today = (
     db
@@ -174,10 +154,7 @@ export function getMonitorHealth(tenantId: string): {
 }
 
 // Alert Rules
-export function createAlertRule(
-  tenantId: string,
-  input: Partial<AlertRule>,
-): AlertRule {
+export function createAlertRule(tenantId: string, input: Partial<AlertRule>): AlertRule {
   const db = getDB();
   const id = newId("alr");
   const now = new Date().toISOString();
@@ -194,17 +171,13 @@ export function createAlertRule(
     now,
     now,
   );
-  return db
-    .prepare("SELECT * FROM alert_rules WHERE id=?")
-    .get(id) as AlertRule;
+  return db.prepare("SELECT * FROM alert_rules WHERE id=?").get(id) as AlertRule;
 }
 
 export function listAlertRules(tenantId: string): AlertRule[] {
   const db = getDB();
   return db
-    .prepare(
-      "SELECT * FROM alert_rules WHERE tenant_id=? ORDER BY created_at DESC",
-    )
+    .prepare("SELECT * FROM alert_rules WHERE tenant_id=? ORDER BY created_at DESC")
     .all(tenantId) as AlertRule[];
 }
 
@@ -223,22 +196,13 @@ export function updateAlertRule(
     .prepare(
       `UPDATE alert_rules SET name=COALESCE(?,name), destination=COALESCE(?,destination), status=COALESCE(?,status), updated_at=? WHERE id=? AND tenant_id=?`,
     )
-    .run(
-      patch.name ?? null,
-      patch.destination ?? null,
-      patch.status ?? null,
-      now,
-      id,
-      tenantId,
-    );
+    .run(patch.name ?? null, patch.destination ?? null, patch.status ?? null, now, id, tenantId);
   return res.changes > 0;
 }
 
 export function deleteAlertRule(id: string, tenantId: string): boolean {
   const db = getDB();
-  const res = db
-    .prepare("DELETE FROM alert_rules WHERE id=? AND tenant_id=?")
-    .run(id, tenantId);
+  const res = db.prepare("DELETE FROM alert_rules WHERE id=? AND tenant_id=?").run(id, tenantId);
   return res.changes > 0;
 }
 
@@ -251,10 +215,7 @@ function parseScenario(row: Record<string, unknown>): Scenario {
   } as Scenario;
 }
 
-export function createScenario(
-  tenantId: string,
-  input: Partial<Scenario>,
-): Scenario {
+export function createScenario(tenantId: string, input: Partial<Scenario>): Scenario {
   const db = getDB();
   const id = newId("scn");
   const now = new Date().toISOString();
@@ -274,23 +235,18 @@ export function createScenario(
   return getScenario(id, tenantId)!;
 }
 
-export function getScenario(
-  id: string,
-  tenantId: string,
-): Scenario | undefined {
+export function getScenario(id: string, tenantId: string): Scenario | undefined {
   const db = getDB();
-  const row = db
-    .prepare("SELECT * FROM scenarios WHERE id=? AND tenant_id=?")
-    .get(id, tenantId) as Record<string, unknown> | undefined;
+  const row = db.prepare("SELECT * FROM scenarios WHERE id=? AND tenant_id=?").get(id, tenantId) as
+    | Record<string, unknown>
+    | undefined;
   return row ? parseScenario(row) : undefined;
 }
 
 export function listScenarios(tenantId: string): Scenario[] {
   const db = getDB();
   const rows = db
-    .prepare(
-      "SELECT * FROM scenarios WHERE tenant_id=? ORDER BY updated_at DESC",
-    )
+    .prepare("SELECT * FROM scenarios WHERE tenant_id=? ORDER BY updated_at DESC")
     .all(tenantId) as Record<string, unknown>[];
   return rows.map(parseScenario);
 }
@@ -319,17 +275,11 @@ export function updateScenario(
 
 export function deleteScenario(id: string, tenantId: string): boolean {
   const db = getDB();
-  const res = db
-    .prepare("DELETE FROM scenarios WHERE id=? AND tenant_id=?")
-    .run(id, tenantId);
+  const res = db.prepare("DELETE FROM scenarios WHERE id=? AND tenant_id=?").run(id, tenantId);
   return res.changes > 0;
 }
 
-export function listScenarioRuns(
-  tenantId: string,
-  scenarioId?: string,
-  limit = 50,
-): ScenarioRun[] {
+export function listScenarioRuns(tenantId: string, scenarioId?: string, limit = 50): ScenarioRun[] {
   const db = getDB();
   const rows = scenarioId
     ? (db
@@ -338,9 +288,7 @@ export function listScenarioRuns(
         )
         .all(tenantId, scenarioId, limit) as Record<string, unknown>[])
     : (db
-        .prepare(
-          "SELECT * FROM scenario_runs WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?",
-        )
+        .prepare("SELECT * FROM scenario_runs WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?")
         .all(tenantId, limit) as Record<string, unknown>[]);
   return rows.map(parseScenarioRun);
 }
@@ -353,10 +301,7 @@ function parseScenarioRun(row: Record<string, unknown>): ScenarioRun {
   } as ScenarioRun;
 }
 
-export function createScenarioRun(
-  tenantId: string,
-  scenarioId: string,
-): ScenarioRun {
+export function createScenarioRun(tenantId: string, scenarioId: string): ScenarioRun {
   const db = getDB();
   const id = newId("scr");
   const now = new Date().toISOString();
@@ -367,10 +312,7 @@ export function createScenarioRun(
   return getScenarioRun(id, tenantId)!;
 }
 
-export function getScenarioRun(
-  id: string,
-  tenantId: string,
-): ScenarioRun | undefined {
+export function getScenarioRun(id: string, tenantId: string): ScenarioRun | undefined {
   const db = getDB();
   const row = db
     .prepare("SELECT * FROM scenario_runs WHERE id=? AND tenant_id=?")
@@ -378,11 +320,7 @@ export function getScenarioRun(
   return row ? parseScenarioRun(row) : undefined;
 }
 
-export function updateScenarioRun(
-  id: string,
-  tenantId: string,
-  patch: Partial<ScenarioRun>,
-): void {
+export function updateScenarioRun(id: string, tenantId: string, patch: Partial<ScenarioRun>): void {
   const db = getDB();
   const now = new Date().toISOString();
   db.prepare(
@@ -410,9 +348,7 @@ export function createReportShare(
   const id = newId("rsh");
   const slug = crypto.randomBytes(16).toString("base64url");
   const now = new Date().toISOString();
-  const expiresAt = expiresIn
-    ? new Date(Date.now() + expiresIn * 1000).toISOString()
-    : null;
+  const expiresAt = expiresIn ? new Date(Date.now() + expiresIn * 1000).toISOString() : null;
   db.prepare(
     `INSERT INTO report_shares (id, tenant_id, resource_type, resource_id, slug, expires_at, created_at)
     VALUES (?,?,?,?,?,?,?)`,
@@ -431,9 +367,7 @@ export function createReportShare(
 export function getReportShareBySlug(slug: string): ReportShare | undefined {
   const db = getDB();
   const row = db
-    .prepare(
-      "SELECT * FROM report_shares WHERE slug=? AND (expires_at IS NULL OR expires_at > ?)",
-    )
+    .prepare("SELECT * FROM report_shares WHERE slug=? AND (expires_at IS NULL OR expires_at > ?)")
     .get(slug, new Date().toISOString()) as ReportShare | undefined;
   return row;
 }

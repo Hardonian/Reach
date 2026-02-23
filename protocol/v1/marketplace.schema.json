@@ -38,13 +38,7 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": [
-          "version",
-          "published_at",
-          "sha256",
-          "signed",
-          "signature_key_id"
-        ],
+        "required": ["version", "published_at", "sha256", "signed", "signature_key_id"],
         "properties": {
           "version": { "type": "string", "minLength": 1 },
           "published_at": { "type": "string" },

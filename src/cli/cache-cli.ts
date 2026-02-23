@@ -8,10 +8,7 @@ export interface CacheCliArgs {
 }
 
 export function parseCacheArgs(argv: string[]): CacheCliArgs {
-  const command =
-    argv[0] === "list" || argv[0] === "prune" || argv[0] === "gc"
-      ? argv[0]
-      : null;
+  const command = argv[0] === "list" || argv[0] === "prune" || argv[0] === "gc" ? argv[0] : null;
   let maxMb = 100;
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--max-mb" && argv[i + 1])

@@ -24,8 +24,7 @@ const mockAgents = [
   {
     id: "agent-2",
     name: "Data Pipeline Orchestrator",
-    description:
-      "Automated ETL workflows with error handling and retry logic for data pipelines.",
+    description: "Automated ETL workflows with error handling and retry logic for data pipelines.",
     author: "DataFlow Inc",
     version: "1.4.2",
     trustScore: 94,
@@ -38,8 +37,7 @@ const mockAgents = [
   {
     id: "agent-3",
     name: "Code Review Assistant",
-    description:
-      "AI-powered code review with security scanning and best practice recommendations.",
+    description: "AI-powered code review with security scanning and best practice recommendations.",
     author: "DevTools Co",
     version: "3.0.0",
     trustScore: 96,
@@ -52,8 +50,7 @@ const mockAgents = [
   {
     id: "agent-4",
     name: "Analytics Aggregator",
-    description:
-      "Collect and aggregate analytics from multiple sources with real-time dashboards.",
+    description: "Collect and aggregate analytics from multiple sources with real-time dashboards.",
     author: "Analytics Pro",
     version: "1.2.5",
     trustScore: 89,
@@ -66,8 +63,7 @@ const mockAgents = [
   {
     id: "agent-5",
     name: "Notification Router",
-    description:
-      "Smart notification routing with priority handling and channel optimization.",
+    description: "Smart notification routing with priority handling and channel optimization.",
     author: "ReadyLayer Team",
     version: "2.0.1",
     trustScore: 97,
@@ -80,8 +76,7 @@ const mockAgents = [
   {
     id: "agent-6",
     name: "Document Processor",
-    description:
-      "Extract data from documents with OCR, classification, and entity recognition.",
+    description: "Extract data from documents with OCR, classification, and entity recognition.",
     author: "DocuMind AI",
     version: "1.8.3",
     trustScore: 92,
@@ -206,9 +201,7 @@ export default function LibraryPage() {
                   </div>
                 </div>
                 <h3 className="font-bold mb-1 text-lg">{template.name}</h3>
-                <p className="text-sm text-gray-400 mb-6 flex-1 line-clamp-2">
-                  {template.tagline}
-                </p>
+                <p className="text-sm text-gray-400 mb-6 flex-1 line-clamp-2">{template.tagline}</p>
                 <Link
                   href={`${ROUTES.PLAYGROUND}?template=${template.id}`}
                   className="btn-primary text-sm text-center w-full py-2.5"
@@ -236,9 +229,7 @@ export default function LibraryPage() {
                   )}
                 </div>
                 <h3 className="font-bold mb-1 text-lg">{agent.name}</h3>
-                <div className="text-xs text-gray-500 mb-3">
-                  by {agent.author}
-                </div>
+                <div className="text-xs text-gray-500 mb-3">by {agent.author}</div>
                 <p className="text-sm text-gray-400 mb-6 flex-1 line-clamp-2">
                   {agent.description}
                 </p>
@@ -257,14 +248,11 @@ export default function LibraryPage() {
       </div>
 
       {/* Empty State */}
-      {(activeTab === "templates" ? filteredTemplates : filteredAgents)
-        .length === 0 && (
+      {(activeTab === "templates" ? filteredTemplates : filteredAgents).length === 0 && (
         <div className="py-20 text-center">
           <div className="text-4xl mb-4">🔍</div>
           <h3 className="text-xl font-bold mb-2">No results found</h3>
-          <p className="text-gray-400">
-            Try adjusting your search terms or filters.
-          </p>
+          <p className="text-gray-400">Try adjusting your search terms or filters.</p>
         </div>
       )}
     </div>

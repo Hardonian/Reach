@@ -27,9 +27,7 @@ const envExampleContent = fs.readFileSync(ENV_EXAMPLE_PATH, "utf8");
 
 // Simple regex to find keys in Zod object
 // Matches keys followed by a colon and z. something
-const keysInTs = [...envTsContent.matchAll(/^\s+([A-Z0-9_]+):/gm)].map(
-  (m) => m[1],
-);
+const keysInTs = [...envTsContent.matchAll(/^\s+([A-Z0-9_]+):/gm)].map((m) => m[1]);
 
 console.log(`Checking ${keysInTs.length} keys from env.ts...\n`);
 
@@ -45,9 +43,7 @@ for (const key of keysInTs) {
 if (missingKeys.length > 0) {
   console.error("❌ Missing keys in .env.example:");
   missingKeys.forEach((k) => console.error(`   - ${k}`));
-  console.error(
-    "\nConsistency check failed. Please update .env.example with the missing keys.",
-  );
+  console.error("\nConsistency check failed. Please update .env.example with the missing keys.");
   process.exit(1);
 } else {
   console.log("✅ All environment keys are documented in .env.example.");

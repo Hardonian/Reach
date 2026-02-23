@@ -3,14 +3,7 @@
   "$id": "https://reach.dev/protocol/v1/session.schema.json",
   "title": "Session",
   "type": "object",
-  "required": [
-    "schemaVersion",
-    "sessionId",
-    "tenantId",
-    "status",
-    "startedAt",
-    "members"
-  ],
+  "required": ["schemaVersion", "sessionId", "tenantId", "status", "startedAt", "members"],
   "properties": {
     "schemaVersion": { "const": "1.0.0" },
     "sessionId": { "type": "string", "minLength": 1 },

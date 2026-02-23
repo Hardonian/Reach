@@ -36,9 +36,7 @@ export function NavBar() {
             <div className="w-8 h-8 rounded-lg flex items-center justify-center logo-gradient">
               <span className="text-white font-bold text-lg">R</span>
             </div>
-            <span className="font-bold text-xl text-gradient">
-              {BRAND_NAME}
-            </span>
+            <span className="font-bold text-xl text-gradient">{BRAND_NAME}</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -48,8 +46,7 @@ export function NavBar() {
                 key={item.href}
                 href={item.href}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  pathname === item.href ||
-                  pathname?.startsWith(item.href + "/")
+                  pathname === item.href || pathname?.startsWith(item.href + "/")
                     ? "text-white bg-accent/20"
                     : "text-gray-400 hover:text-white hover:bg-white/5"
                 }`}
@@ -70,9 +67,7 @@ export function NavBar() {
             <Link
               href={ROUTES.PLAYGROUND}
               className="btn-primary text-sm py-2 px-4"
-              onClick={() =>
-                track("cta_clicked", { source: "navbar", cta: "run_demo" })
-              }
+              onClick={() => track("cta_clicked", { source: "navbar", cta: "run_demo" })}
             >
               Run demo (free)
             </Link>
@@ -84,12 +79,7 @@ export function NavBar() {
             className="md:hidden p-2 rounded-lg hover:bg-white/5"
             aria-label="Toggle menu"
           >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {isOpen ? (
                 <path
                   strokeLinecap="round"
@@ -119,8 +109,7 @@ export function NavBar() {
                   href={item.href}
                   onClick={() => setIsOpen(false)}
                   className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                    pathname === item.href ||
-                    pathname?.startsWith(item.href + "/")
+                    pathname === item.href || pathname?.startsWith(item.href + "/")
                       ? "text-white bg-accent/20"
                       : "text-gray-400 hover:text-white hover:bg-white/5"
                   }`}
@@ -129,16 +118,10 @@ export function NavBar() {
                 </Link>
               ))}
               <div className="mt-4 pt-4 border-t border-border flex flex-col gap-2">
-                <Link
-                  href={ROUTES.LOGIN}
-                  className="btn-secondary text-center text-sm py-2"
-                >
+                <Link href={ROUTES.LOGIN} className="btn-secondary text-center text-sm py-2">
                   Sign in
                 </Link>
-                <Link
-                  href={ROUTES.PLAYGROUND}
-                  className="btn-primary text-center text-sm py-2"
-                >
+                <Link href={ROUTES.PLAYGROUND} className="btn-primary text-center text-sm py-2">
                   Run demo (free)
                 </Link>
               </div>

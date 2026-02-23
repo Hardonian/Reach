@@ -18,16 +18,10 @@ export const runtime = "nodejs";
 
 export async function POST(_req: NextRequest): Promise<NextResponse> {
   if (process.env.NODE_ENV === "production") {
-    return NextResponse.json(
-      { error: "Seed endpoint disabled in production" },
-      { status: 403 },
-    );
+    return NextResponse.json({ error: "Seed endpoint disabled in production" }, { status: 403 });
   }
   if (process.env.REACH_CLOUD_ENABLED !== "true") {
-    return NextResponse.json(
-      { error: "REACH_CLOUD_ENABLED not set" },
-      { status: 503 },
-    );
+    return NextResponse.json({ error: "REACH_CLOUD_ENABLED not set" }, { status: 503 });
   }
 
   try {
@@ -38,8 +32,7 @@ export async function POST(_req: NextRequest): Promise<NextResponse> {
       {
         name: "Web Research Agent",
         slug: "web-research-agent",
-        description:
-          "Automated web research with intelligent citations and source verification.",
+        description: "Automated web research with intelligent citations and source verification.",
         shortDescription: "Automated web research with citations",
         category: "research" as const,
         visibility: "public" as const,
@@ -58,8 +51,7 @@ export async function POST(_req: NextRequest): Promise<NextResponse> {
       {
         name: "Data Analysis Pack",
         slug: "data-analysis-pack",
-        description:
-          "Comprehensive CSV/Excel analysis with automated chart generation.",
+        description: "Comprehensive CSV/Excel analysis with automated chart generation.",
         shortDescription: "CSV/Excel analysis with charts",
         category: "data" as const,
         visibility: "public" as const,
@@ -69,8 +61,7 @@ export async function POST(_req: NextRequest): Promise<NextResponse> {
         dataHandling: "processed" as const,
         authorName: "DataFlow Inc",
         version: "3.2.1",
-        readme:
-          "# Data Analysis Pack\n\nAnalyze your data with AI-powered insights.",
+        readme: "# Data Analysis Pack\n\nAnalyze your data with AI-powered insights.",
         changelog: "Fixed Excel parsing",
         reputationScore: 94,
         downloads: 8930,
@@ -89,8 +80,7 @@ export async function POST(_req: NextRequest): Promise<NextResponse> {
         dataHandling: "minimal" as const,
         authorName: "DevTools Co",
         version: "4.0.2",
-        readme:
-          "# Code Review Agent\n\nAI-powered code review for modern development teams.",
+        readme: "# Code Review Agent\n\nAI-powered code review for modern development teams.",
         changelog: "Added multi-language support",
         reputationScore: 96,
         downloads: 12300,
@@ -111,9 +101,7 @@ export async function POST(_req: NextRequest): Promise<NextResponse> {
         // @ts-ignore
         const { default: Database } = await import("better-sqlite3");
         const path = await import("path");
-        const dbPath =
-          process.env.CLOUD_DB_PATH ??
-          path.join(process.cwd(), "reach-cloud.db");
+        const dbPath = process.env.CLOUD_DB_PATH ?? path.join(process.cwd(), "reach-cloud.db");
         const db = new Database(dbPath);
         db.prepare(
           "UPDATE packs SET reputation_score=?, downloads=?, security_status=?, verified=1 WHERE id=?",
@@ -128,10 +116,7 @@ export async function POST(_req: NextRequest): Promise<NextResponse> {
       ok: true,
       tenant: { id: tenant.id, slug: tenant.slug, name: tenant.name },
       user: { id: user.id, email: user.email },
-      api_key:
-        rawApiKey === "ALREADY_SEEDED"
-          ? "[already seeded - check existing key]"
-          : rawApiKey,
+      api_key: rawApiKey === "ALREADY_SEEDED" ? "[already seeded - check existing key]" : rawApiKey,
       note:
         rawApiKey === "ALREADY_SEEDED"
           ? "Tenant already seeded."

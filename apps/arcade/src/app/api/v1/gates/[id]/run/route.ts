@@ -16,16 +16,12 @@ export async function POST(
   const { id } = await params;
   const gate = getGate(id, ctx.tenantId);
   if (!gate) return cloudErrorResponse("Gate not found", 404);
-  if (gate.status === "disabled")
-    return cloudErrorResponse("Gate is disabled", 400);
+  if (gate.status === "disabled") return cloudErrorResponse("Gate is disabled", 400);
 
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(TriggerGateRunSchema, body);
   if ("errors" in parsed)
-    return cloudErrorResponse(
-      parsed.errors.issues[0]?.message ?? "Invalid input",
-      400,
-    );
+    return cloudErrorResponse(parsed.errors.issues[0]?.message ?? "Invalid input", 400);
 
   const gateRun = createGateRun(ctx.tenantId, id, parsed.data);
   auditLog(

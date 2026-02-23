@@ -43,9 +43,7 @@ function formatLog(entry: LogEntry): { msg: string; args: unknown[] } {
       error: "\x1b[31m", // Red
     }[entry.level];
     const reset = "\x1b[0m";
-    const ctxStr = sanitizedContext
-      ? ` ${JSON.stringify(sanitizedContext)}`
-      : "";
+    const ctxStr = sanitizedContext ? ` ${JSON.stringify(sanitizedContext)}` : "";
     const errStr = entry.error
       ? `\n${entry.error instanceof Error ? entry.error.stack : String(entry.error)}`
       : "";
@@ -115,10 +113,6 @@ export const logger = {
     log("info", msg, ctx, undefined, corrId),
   warn: (msg: string, ctx?: Record<string, unknown>, corrId?: string) =>
     log("warn", msg, ctx, undefined, corrId),
-  error: (
-    msg: string,
-    error?: unknown,
-    ctx?: Record<string, unknown>,
-    corrId?: string,
-  ) => log("error", msg, ctx, error, corrId),
+  error: (msg: string, error?: unknown, ctx?: Record<string, unknown>, corrId?: string) =>
+    log("error", msg, ctx, error, corrId),
 };

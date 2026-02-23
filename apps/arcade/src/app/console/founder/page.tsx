@@ -9,17 +9,13 @@ export default async function FounderDashboardPage() {
     <div className="p-8 space-y-8 max-w-7xl mx-auto">
       <header className="flex justify-between items-end border-b border-arcade-border pb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">
-            Founder Control System
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight text-white">Founder Control System</h1>
           <p className="text-arcade-text-secondary mt-1">
             Status: Operational · Anti-Entropy Active
           </p>
         </div>
         <div className="text-right">
-          <div className="text-xs font-mono text-arcade-text-tertiary uppercase">
-            Next Audit In
-          </div>
+          <div className="text-xs font-mono text-arcade-text-tertiary uppercase">Next Audit In</div>
           <div className="text-xl font-bold text-arcade-accent">42:15:08</div>
         </div>
       </header>
@@ -64,39 +60,17 @@ export default async function FounderDashboardPage() {
             Entropy & Complexity Drift
           </h2>
           <div className="space-y-4">
-            <DriftSignal
-              label="Route Bloat"
-              value="12/15"
-              limit="15"
-              status="warning"
-            />
-            <DriftSignal
-              label="UI Action Density"
-              value="2.8"
-              limit="3.0"
-              status="good"
-            />
-            <DriftSignal
-              label="Paragraph Violations"
-              value="0"
-              limit="0"
-              status="good"
-            />
-            <DriftSignal
-              label="Orphan Routes"
-              value="1"
-              limit="0"
-              status="warning"
-            />
+            <DriftSignal label="Route Bloat" value="12/15" limit="15" status="warning" />
+            <DriftSignal label="UI Action Density" value="2.8" limit="3.0" status="good" />
+            <DriftSignal label="Paragraph Violations" value="0" limit="0" status="good" />
+            <DriftSignal label="Orphan Routes" value="1" limit="0" status="warning" />
           </div>
 
           <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-lg">
-            <h3 className="text-red-400 font-bold text-sm uppercase">
-              Active Alert
-            </h3>
+            <h3 className="text-red-400 font-bold text-sm uppercase">Active Alert</h3>
             <p className="text-xs text-arcade-text-secondary mt-1">
-              "Orphan Route Found: `/console/ecosystem/repo-sync`. Deprecation
-              recommended by Friday."
+              "Orphan Route Found: `/console/ecosystem/repo-sync`. Deprecation recommended by
+              Friday."
             </p>
           </div>
         </div>
@@ -105,34 +79,23 @@ export default async function FounderDashboardPage() {
         <div className="lg:col-span-2 space-y-6">
           <h2 className="text-xl font-bold flex justify-between items-center">
             Founder Decision Framework
-            <button className="btn-secondary text-xs px-3 py-1">
-              New Proposal
-            </button>
+            <button className="btn-secondary text-xs px-3 py-1">New Proposal</button>
           </h2>
           <div className="bg-arcade-surface border border-arcade-border rounded-xl overflow-hidden">
             <table className="w-full text-left text-sm">
               <thead className="bg-arcade-surface-hover border-b border-arcade-border">
                 <tr>
-                  <th className="px-4 py-3 font-medium text-arcade-text-secondary">
-                    Proposal
-                  </th>
+                  <th className="px-4 py-3 font-medium text-arcade-text-secondary">Proposal</th>
                   <th className="px-4 py-3 font-medium text-arcade-text-secondary text-center">
                     Score
                   </th>
-                  <th className="px-4 py-3 font-medium text-arcade-text-secondary">
-                    Alignment
-                  </th>
-                  <th className="px-4 py-3 font-medium text-arcade-text-secondary">
-                    Verdict
-                  </th>
+                  <th className="px-4 py-3 font-medium text-arcade-text-secondary">Alignment</th>
+                  <th className="px-4 py-3 font-medium text-arcade-text-secondary">Verdict</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-arcade-border">
                 {decisions.map((dec: any) => (
-                  <tr
-                    key={dec.id}
-                    className="hover:bg-arcade-surface-hover transition-colors"
-                  >
+                  <tr key={dec.id} className="hover:bg-arcade-surface-hover transition-colors">
                     <td className="px-4 py-4">
                       <div className="font-bold text-white">{dec.title}</div>
                       <div className="text-xs text-arcade-text-tertiary truncate max-w-xs">
@@ -148,13 +111,9 @@ export default async function FounderDashboardPage() {
                     </td>
                     <td className="px-4 py-4">
                       {dec.strategic_align ? (
-                        <span className="text-emerald-400 text-xs">
-                          ✓ Aligned
-                        </span>
+                        <span className="text-emerald-400 text-xs">✓ Aligned</span>
                       ) : (
-                        <span className="text-red-500/50 text-xs italic">
-                          ⚠ Drift Potential
-                        </span>
+                        <span className="text-red-500/50 text-xs italic">⚠ Drift Potential</span>
                       )}
                     </td>
                     <td className="px-4 py-4 text-xs font-bold uppercase">
@@ -184,19 +143,11 @@ export default async function FounderDashboardPage() {
 function MetricCard({ label, value, sub, trend, status }: any) {
   return (
     <div className="bg-arcade-surface border border-arcade-border p-5 rounded-xl space-y-2 group hover:border-arcade-primary/50 transition-all">
-      <div className="text-xs font-mono text-arcade-text-secondary uppercase">
-        {label}
-      </div>
-      <div className="text-3xl font-bold tracking-tighter text-white">
-        {value}
-      </div>
+      <div className="text-xs font-mono text-arcade-text-secondary uppercase">{label}</div>
+      <div className="text-3xl font-bold tracking-tighter text-white">{value}</div>
       <div className="flex justify-between items-center text-[10px] font-medium">
         <span className="text-arcade-text-tertiary">{sub}</span>
-        <span
-          className={
-            status === "good" ? "text-emerald-400" : "text-arcade-accent"
-          }
-        >
+        <span className={status === "good" ? "text-emerald-400" : "text-arcade-accent"}>
           {trend}
         </span>
       </div>
@@ -210,11 +161,7 @@ function DriftSignal({ label, value, limit, status }: any) {
     <div className="space-y-1.5">
       <div className="flex justify-between text-xs font-medium">
         <span className="text-arcade-text-secondary">{label}</span>
-        <span
-          className={
-            status === "warning" ? "text-arcade-accent" : "text-emerald-400"
-          }
-        >
+        <span className={status === "warning" ? "text-arcade-accent" : "text-emerald-400"}>
           {value} / {limit}
         </span>
       </div>

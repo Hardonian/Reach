@@ -48,13 +48,8 @@ function DiffViewer({ diffs }: { diffs: SnapshotDiff[] }) {
         </thead>
         <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
           {diffs.map((d) => (
-            <tr
-              key={d.path}
-              className="hover:bg-slate-50 dark:hover:bg-slate-800/50"
-            >
-              <td className="px-3 py-2 font-mono text-slate-700 dark:text-slate-300">
-                {d.path}
-              </td>
+            <tr key={d.path} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+              <td className="px-3 py-2 font-mono text-slate-700 dark:text-slate-300">{d.path}</td>
               <td className="px-3 py-2 font-mono text-red-600 dark:text-red-400 break-all">
                 {JSON.stringify(d.oldValue)}
               </td>
@@ -133,8 +128,7 @@ export default function ConfigAsCodePage() {
             Configuration Snapshot
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Export or import system configuration as versioned JSON. Version:{" "}
-            {SNAPSHOT_VERSION}
+            Export or import system configuration as versioned JSON. Version: {SNAPSHOT_VERSION}
           </p>
         </div>
 
@@ -145,17 +139,14 @@ export default function ConfigAsCodePage() {
               Export Current Config
             </h2>
             <p className="text-sm text-slate-500 mb-4">
-              Download the current configuration as a JSON snapshot. No secrets
-              are included.
+              Download the current configuration as a JSON snapshot. No secrets are included.
             </p>
             <button
               type="button"
               onClick={handleExport}
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#135bec] text-white text-sm font-semibold rounded-lg hover:bg-[#135bec]/90 transition-colors"
             >
-              <span className="material-symbols-outlined text-[18px]">
-                download
-              </span>
+              <span className="material-symbols-outlined text-[18px]">download</span>
               Export JSON
             </button>
           </section>
@@ -177,8 +168,7 @@ export default function ConfigAsCodePage() {
 
             {importError && (
               <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
-                <span className="font-semibold">Validation Error:</span>{" "}
-                {importError}
+                <span className="font-semibold">Validation Error:</span> {importError}
               </div>
             )}
 
@@ -196,9 +186,7 @@ export default function ConfigAsCodePage() {
                     disabled={applied}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    <span className="material-symbols-outlined text-[18px]">
-                      check_circle
-                    </span>
+                    <span className="material-symbols-outlined text-[18px]">check_circle</span>
                     {applied ? "Applied (local)" : "Apply to Local Storage"}
                   </button>
                   {applied && (

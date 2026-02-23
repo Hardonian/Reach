@@ -21,9 +21,7 @@ export interface DiffEvidence {
 /**
  * Evaluate diff evidence for critical junction
  */
-export function evaluateDiffCritical(
-  evidence: DiffEvidence,
-): JunctionTemplateResult {
+export function evaluateDiffCritical(evidence: DiffEvidence): JunctionTemplateResult {
   const traces: string[] = [];
 
   // Calculate severity based on critical files and risk

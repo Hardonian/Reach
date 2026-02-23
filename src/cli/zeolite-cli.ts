@@ -1,10 +1,7 @@
 // @ts-nocheck
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import {
-  executeZeoliteOperation,
-  type ZeoliteOperation,
-} from "../core/zeolite-core.js";
+import { executeZeoliteOperation, type ZeoliteOperation } from "../core/zeolite-core.js";
 
 export interface ZeoliteCliArgs {
   operation: ZeoliteOperation | null;
@@ -24,13 +21,10 @@ const OPERATIONS: ZeoliteOperation[] = [
 
 export function parseZeoliteArgs(argv: string[]): ZeoliteCliArgs {
   const op = argv[0];
-  const operation = OPERATIONS.includes(op as ZeoliteOperation)
-    ? (op as ZeoliteOperation)
-    : null;
+  const operation = OPERATIONS.includes(op as ZeoliteOperation) ? (op as ZeoliteOperation) : null;
 
   const inputIdx = argv.indexOf("--input");
-  const inputPath =
-    inputIdx >= 0 && argv[inputIdx + 1] ? argv[inputIdx + 1] : null;
+  const inputPath = inputIdx >= 0 && argv[inputIdx + 1] ? argv[inputIdx + 1] : null;
 
   return { operation, inputPath, referee: argv.includes("--referee") };
 }
@@ -79,9 +73,7 @@ export async function runZeoliteCommand(args: ZeoliteCliArgs): Promise<number> {
     return 0;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    process.stderr.write(
-      JSON.stringify({ error: { code: "ZEO_OP_FAILED", message } }) + "\n",
-    );
+    process.stderr.write(JSON.stringify({ error: { code: "ZEO_OP_FAILED", message } }) + "\n");
     return 1;
   }
 }

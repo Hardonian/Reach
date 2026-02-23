@@ -41,17 +41,13 @@ export function parseMeshArgs(argv: string[]): MeshCliArgs {
 
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--port" && argv[i + 1]) args.port = Number(argv[i + 1]);
-    if (argv[i]?.startsWith("--port="))
-      args.port = Number(argv[i].split("=")[1]);
+    if (argv[i]?.startsWith("--port=")) args.port = Number(argv[i].split("=")[1]);
     if (argv[i] === "--mode" && argv[i + 1]) args.mode = argv[i + 1];
     if (argv[i]?.startsWith("--mode=")) args.mode = argv[i].split("=")[1];
     if (argv[i] === "--count" && argv[i + 1]) args.count = Number(argv[i + 1]);
-    if (argv[i]?.startsWith("--count="))
-      args.count = Number(argv[i].split("=")[1]);
-    if (argv[i] === "--concurrency" && argv[i + 1])
-      args.concurrency = Number(argv[i + 1]);
-    if (argv[i]?.startsWith("--concurrency="))
-      args.concurrency = Number(argv[i].split("=")[1]);
+    if (argv[i]?.startsWith("--count=")) args.count = Number(argv[i].split("=")[1]);
+    if (argv[i] === "--concurrency" && argv[i + 1]) args.concurrency = Number(argv[i + 1]);
+    if (argv[i]?.startsWith("--concurrency=")) args.concurrency = Number(argv[i].split("=")[1]);
     if (argv[i] === "--json") args.json = true;
     if (argv[i] === "--out" && argv[i + 1]) args.out = argv[i + 1];
     if (argv[i]?.startsWith("--out=")) args.out = argv[i].split("=")[1];
@@ -181,9 +177,7 @@ async function cmdVerifyEnvelope(args: MeshCliArgs): Promise<number> {
       return 1;
     }
   } else {
-    console.error(
-      "Unknown envelope type. Expected envelope_version or result_version field.",
-    );
+    console.error("Unknown envelope type. Expected envelope_version or result_version field.");
     return 1;
   }
 
@@ -223,14 +217,8 @@ async function cmdMeshStatus(args: MeshCliArgs): Promise<number> {
     if (status.workers.length > 0) {
       console.log("\nWorkers:");
       for (const w of status.workers) {
-        const state = w.circuitOpen
-          ? "CIRCUIT_OPEN"
-          : w.healthy
-            ? "healthy"
-            : "unhealthy";
-        console.log(
-          `  ${w.id}: ${w.url} [${state}] jobs=${w.totalJobsHandled}`,
-        );
+        const state = w.circuitOpen ? "CIRCUIT_OPEN" : w.healthy ? "healthy" : "unhealthy";
+        console.log(`  ${w.id}: ${w.url} [${state}] jobs=${w.totalJobsHandled}`);
       }
     }
   }
@@ -246,9 +234,7 @@ async function cmdMeshBatch(args: MeshCliArgs): Promise<number> {
   const count = args.count ?? 5;
   const concurrency = args.concurrency ?? 4;
 
-  console.log(
-    `Running ${count} jobs in ${mode} mode (concurrency: ${concurrency})...`,
-  );
+  console.log(`Running ${count} jobs in ${mode} mode (concurrency: ${concurrency})...`);
 
   const orch = new MeshOrchestrator({
     mode,
@@ -345,13 +331,9 @@ async function cmdMeshBatch(args: MeshCliArgs): Promise<number> {
     console.log(`Retried:       ${result.stats.retried}`);
     console.log(`Fallbacks:     ${result.stats.fallback_local}`);
     console.log(`Duration:      ${duration.toFixed(2)}ms`);
-    console.log(
-      `Throughput:    ${(count / (duration / 1000)).toFixed(1)} jobs/sec`,
-    );
+    console.log(`Throughput:    ${(count / (duration / 1000)).toFixed(1)} jobs/sec`);
     console.log(`Avg per job:   ${(duration / count).toFixed(2)}ms`);
-    console.log(
-      `Memory:        ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1)}MB`,
-    );
+    console.log(`Memory:        ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1)}MB`);
   }
 
   return result.stats.failed > 0 ? 1 : 0;

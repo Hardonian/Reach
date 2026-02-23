@@ -63,9 +63,7 @@ function VerdictBanner({
   return (
     <div
       className={`flex items-center gap-4 p-5 rounded-2xl border ${
-        passed
-          ? "border-green-500/30 bg-green-500/5"
-          : "border-orange-500/30 bg-orange-500/5"
+        passed ? "border-green-500/30 bg-green-500/5" : "border-orange-500/30 bg-orange-500/5"
       }`}
     >
       <span
@@ -74,9 +72,7 @@ function VerdictBanner({
         {passed ? "check_circle" : "warning"}
       </span>
       <div>
-        <p
-          className={`text-base font-bold ${passed ? "text-green-400" : "text-orange-400"}`}
-        >
+        <p className={`text-base font-bold ${passed ? "text-green-400" : "text-orange-400"}`}>
           {passed ? "PASSED" : "NEEDS ATTENTION"}
         </p>
         <p className="text-sm text-gray-300 mt-0.5">{summary}</p>
@@ -173,14 +169,10 @@ export default function ReportPage() {
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">
               {report.type === "gate_run" ? "Gate Report" : "Simulation Report"}
             </p>
-            <h1 className="text-xl font-bold text-white font-mono">
-              {id.slice(0, 20)}…
-            </h1>
+            <h1 className="text-xl font-bold text-white font-mono">{id.slice(0, 20)}…</h1>
             {report.status === "running" && (
               <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                <span className="animate-spin material-symbols-outlined text-[14px]">
-                  sync
-                </span>{" "}
+                <span className="animate-spin material-symbols-outlined text-[14px]">sync</span>{" "}
                 Running…
               </p>
             )}
@@ -193,9 +185,7 @@ export default function ReportPage() {
                   onClick={() => navigator.clipboard.writeText(shareLink)}
                   className="text-gray-400 hover:text-white"
                 >
-                  <span className="material-symbols-outlined text-[16px]">
-                    content_copy
-                  </span>
+                  <span className="material-symbols-outlined text-[16px]">content_copy</span>
                 </button>
               </div>
             ) : (
@@ -204,9 +194,7 @@ export default function ReportPage() {
                 disabled={sharing}
                 className="flex items-center gap-1.5 px-3 py-2 text-sm border border-border rounded-lg text-gray-400 hover:text-white disabled:opacity-50"
               >
-                <span className="material-symbols-outlined text-[16px]">
-                  share
-                </span>
+                <span className="material-symbols-outlined text-[16px]">share</span>
                 {sharing ? "Sharing…" : "Share"}
               </button>
             )}
@@ -216,10 +204,7 @@ export default function ReportPage() {
         {/* Gate Run report */}
         {report.type === "gate_run" && report.status !== "running" && (
           <>
-            <VerdictBanner
-              verdict={report.report.verdict}
-              summary={report.report.summary}
-            />
+            <VerdictBanner verdict={report.report.verdict} summary={report.report.summary} />
 
             <div className="grid grid-cols-3 gap-3 my-4">
               <div className="p-3 rounded-lg border border-border bg-surface text-center">
@@ -238,9 +223,7 @@ export default function ReportPage() {
               </div>
               <div className="p-3 rounded-lg border border-border bg-surface text-center">
                 <p className="text-xs text-gray-400">Trigger</p>
-                <p className="text-sm font-medium text-white mt-0.5">
-                  {report.trigger_type}
-                </p>
+                <p className="text-sm font-medium text-white mt-0.5">{report.trigger_type}</p>
               </div>
             </div>
 
@@ -265,9 +248,7 @@ export default function ReportPage() {
                         >
                           {f.severity === "error" ? "error" : "warning"}
                         </span>
-                        <p className="text-sm font-medium text-white">
-                          {f.rule}
-                        </p>
+                        <p className="text-sm font-medium text-white">{f.rule}</p>
                       </div>
                       <p className="text-sm text-gray-300 mb-2">{f.message}</p>
                       <p className="text-xs text-gray-400">
@@ -283,16 +264,11 @@ export default function ReportPage() {
             {report.commit_sha && (
               <div className="mt-4 text-xs text-gray-500">
                 Commit:{" "}
-                <code className="font-mono text-gray-400">
-                  {report.commit_sha.slice(0, 8)}
-                </code>
+                <code className="font-mono text-gray-400">{report.commit_sha.slice(0, 8)}</code>
                 {report.branch && (
                   <>
                     {" "}
-                    · Branch:{" "}
-                    <code className="font-mono text-gray-400">
-                      {report.branch}
-                    </code>
+                    · Branch: <code className="font-mono text-gray-400">{report.branch}</code>
                   </>
                 )}
                 {report.pr_number && <> · PR #{report.pr_number}</>}
@@ -313,27 +289,20 @@ export default function ReportPage() {
               <table className="w-full text-sm">
                 <thead className="border-b border-border">
                   <tr>
-                    {["Variant", "Status", "Pass rate", "Latency", "Cost"].map(
-                      (h) => (
-                        <th
-                          key={h}
-                          className={`py-3 px-4 text-xs font-medium text-gray-400 ${h === "Variant" ? "text-left" : "text-right"}`}
-                        >
-                          {h}
-                        </th>
-                      ),
-                    )}
+                    {["Variant", "Status", "Pass rate", "Latency", "Cost"].map((h) => (
+                      <th
+                        key={h}
+                        className={`py-3 px-4 text-xs font-medium text-gray-400 ${h === "Variant" ? "text-left" : "text-right"}`}
+                      >
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
                   {report.results.map((r) => (
-                    <tr
-                      key={r.variant_id}
-                      className="border-b border-border/50 last:border-0"
-                    >
-                      <td className="py-3 px-4 text-white font-medium">
-                        {r.variant_label}
-                      </td>
+                    <tr key={r.variant_id} className="border-b border-border/50 last:border-0">
+                      <td className="py-3 px-4 text-white font-medium">{r.variant_label}</td>
                       <td className="py-2 px-4 text-right">
                         <span
                           className={`px-2 py-0.5 rounded text-xs ${
@@ -348,9 +317,7 @@ export default function ReportPage() {
                       <td className="py-2 px-4 text-right text-gray-300">
                         {(r.pass_rate * 100).toFixed(0)}%
                       </td>
-                      <td className="py-2 px-4 text-right text-gray-300">
-                        {r.latency_ms}ms
-                      </td>
+                      <td className="py-2 px-4 text-right text-gray-300">{r.latency_ms}ms</td>
                       <td className="py-2 px-4 text-right text-gray-300">
                         ${r.cost_usd.toFixed(4)}
                       </td>
@@ -364,9 +331,7 @@ export default function ReportPage() {
 
         {report.status === "running" && (
           <div className="flex items-center justify-center py-20 text-gray-400 text-sm gap-2">
-            <span className="animate-spin material-symbols-outlined text-[20px]">
-              sync
-            </span>
+            <span className="animate-spin material-symbols-outlined text-[20px]">sync</span>
             Report is being generated…
           </div>
         )}

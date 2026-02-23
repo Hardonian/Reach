@@ -2,8 +2,7 @@ import Link from "next/link";
 
 export const metadata = {
   title: "Tool Registry — ReadyLayer Docs",
-  description:
-    "Executable capabilities with permissions, scope, and audit trails.",
+  description: "Executable capabilities with permissions, scope, and audit trails.",
 };
 
 export default function ToolsDocsPage() {
@@ -11,8 +10,8 @@ export default function ToolsDocsPage() {
     <div className="prose prose-invert max-w-none">
       <h1>Tool Registry</h1>
       <p>
-        Tools are executable capabilities that skills invoke. Each tool has
-        permissions, scope, audit trail, and can be bound to one or more skills.
+        Tools are executable capabilities that skills invoke. Each tool has permissions, scope,
+        audit trail, and can be bound to one or more skills.
       </p>
 
       <h2>Tool Types</h2>
@@ -82,8 +81,8 @@ export default function ToolsDocsPage() {
 
       <h2>Scope</h2>
       <p>
-        Tools can be scoped globally or to a specific tenant/project. Global
-        tools are available to all skills.
+        Tools can be scoped globally or to a specific tenant/project. Global tools are available to
+        all skills.
       </p>
 
       <h2>API</h2>

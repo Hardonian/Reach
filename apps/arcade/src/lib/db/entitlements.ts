@@ -40,15 +40,12 @@ export const PLAN_LIMITS: Record<
 
 export function getEntitlement(tenantId: string): Entitlement | undefined {
   const db = getDB();
-  return db
-    .prepare("SELECT * FROM entitlements WHERE tenant_id=?")
-    .get(tenantId) as Entitlement | undefined;
+  return db.prepare("SELECT * FROM entitlements WHERE tenant_id=?").get(tenantId) as
+    | Entitlement
+    | undefined;
 }
 
-export function upsertEntitlement(
-  tenantId: string,
-  patch: Partial<Entitlement>,
-): void {
+export function upsertEntitlement(tenantId: string, patch: Partial<Entitlement>): void {
   const db = getDB();
   const now = new Date().toISOString();
   const existing = getEntitlement(tenantId);
@@ -129,7 +126,5 @@ export function incrementRunUsage(tenantId: string): void {
 
 export function resetMonthlyUsage(tenantId: string): void {
   const db = getDB();
-  db.prepare(
-    "UPDATE entitlements SET runs_used_this_month=0 WHERE tenant_id=?",
-  ).run(tenantId);
+  db.prepare("UPDATE entitlements SET runs_used_this_month=0 WHERE tenant_id=?").run(tenantId);
 }

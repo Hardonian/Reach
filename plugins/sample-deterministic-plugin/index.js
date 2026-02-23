@@ -16,8 +16,7 @@ module.exports = {
         {
           id: "deterministic-choice",
           name: "Deterministic Choice",
-          description:
-            "Makes choices based on seeded random for reproducibility",
+          description: "Makes choices based on seeded random for reproducibility",
           deterministic: true,
 
           /**
@@ -84,14 +83,10 @@ module.exports = {
             const content = JSON.stringify(input);
 
             // Check for Date.now() usage
-            if (
-              content.includes("Date.now()") ||
-              content.includes("new Date()")
-            ) {
+            if (content.includes("Date.now()") || content.includes("new Date()")) {
               findings.push({
                 type: "warning",
-                message:
-                  "Date.now() or new Date() detected - may affect determinism",
+                message: "Date.now() or new Date() detected - may affect determinism",
                 severity: "medium",
                 rule: "avoid-date-now",
                 suggestion: "Use a fixed timestamp or pass date as parameter",
@@ -122,8 +117,7 @@ module.exports = {
               if (original !== sortedStr) {
                 findings.push({
                   type: "info",
-                  message:
-                    "Options array not sorted - consider sorting for determinism",
+                  message: "Options array not sorted - consider sorting for determinism",
                   severity: "low",
                   rule: "sort-options",
                   suggestion: "Sort options before processing",

@@ -157,11 +157,7 @@ export async function runToolsCommand(argv: string[]): Promise<number> {
     console.log("\n=== Zeo Tools Status ===\n");
     for (const h of healthResults) {
       const statusStr =
-        h.status === "READY"
-          ? "READY  "
-          : h.status === "TIMEOUT"
-            ? "TIMEOUT"
-            : "ERROR  ";
+        h.status === "READY" ? "READY  " : h.status === "TIMEOUT" ? "TIMEOUT" : "ERROR  ";
       const latency = h.latencyMs !== undefined ? ` (${h.latencyMs}ms)` : "";
       console.log(`  [${statusStr}] ${h.name}${latency}`);
       if (h.error) console.log(`           ${h.error}`);
@@ -169,8 +165,6 @@ export async function runToolsCommand(argv: string[]): Promise<number> {
     console.log("");
   }
 
-  const hasErrors = healthResults.some(
-    (h) => h.status === "ERROR" || h.status === "TIMEOUT",
-  );
+  const hasErrors = healthResults.some((h) => h.status === "ERROR" || h.status === "TIMEOUT");
   return hasErrors ? 1 : 0;
 }

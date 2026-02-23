@@ -99,8 +99,6 @@ export function federationReadModel(nodes: FederationNode[]) {
   const total = nodes.length;
   const quarantined = nodes.filter((n) => n.quarantined).length;
   const avgTrust =
-    total === 0
-      ? 0
-      : Math.round(nodes.reduce((sum, n) => sum + n.trustScore, 0) / total);
+    total === 0 ? 0 : Math.round(nodes.reduce((sum, n) => sum + n.trustScore, 0) / total);
   return { total, quarantined, avgTrust };
 }

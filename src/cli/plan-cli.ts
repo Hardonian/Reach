@@ -56,10 +56,7 @@ export function parsePlanArgs(argv: string[]): PlanCliArgs {
 export async function runPlanCommand(args: PlanCliArgs): Promise<number> {
   const core = await import("@zeo/core");
 
-  const spec =
-    args.example === "ops"
-      ? core.makeOpsExample()
-      : core.makeNegotiationExample();
+  const spec = args.example === "ops" ? core.makeOpsExample() : core.makeNegotiationExample();
   const result = core.runDecision(spec, { depth: args.depth === 3 ? 3 : 2 });
 
   const showAll = !args.showFlip && !args.showVoi && !args.showDeltas;

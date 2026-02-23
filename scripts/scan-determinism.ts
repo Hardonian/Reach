@@ -34,8 +34,7 @@ const TS_PATTERNS: Pattern[] = [
     regex: /\bDate\.now\(\)/g,
     risk: "CRITICAL",
     description: "Date.now() produces nondeterministic timestamps",
-    remedy:
-      "Accept timestamp as a parameter or use src/determinism/seededRandom.ts",
+    remedy: "Accept timestamp as a parameter or use src/determinism/seededRandom.ts",
   },
   {
     id: "MATH_RANDOM",
@@ -48,27 +47,21 @@ const TS_PATTERNS: Pattern[] = [
     id: "OBJECT_KEYS_UNSORTED",
     regex: /Object\.keys\s*\([^)]+\)(?!\s*\.sort\s*\()/g,
     risk: "MEDIUM",
-    description:
-      "Object.keys() without .sort() has undefined iteration order in hashing paths",
-    remedy:
-      "Use Object.keys(x).sort() or canonicalJson() from src/determinism/canonicalJson.ts",
+    description: "Object.keys() without .sort() has undefined iteration order in hashing paths",
+    remedy: "Use Object.keys(x).sort() or canonicalJson() from src/determinism/canonicalJson.ts",
   },
   {
     id: "JSON_STRINGIFY_NON_CANONICAL",
-    regex:
-      /JSON\.stringify\s*\([^)]+\)(?!\s*(?:\/\/\s*canonical|;\s*\/\/\s*canonical))/g,
+    regex: /JSON\.stringify\s*\([^)]+\)(?!\s*(?:\/\/\s*canonical|;\s*\/\/\s*canonical))/g,
     risk: "MEDIUM",
-    description:
-      "JSON.stringify without canonicalization may produce unstable key ordering",
+    description: "JSON.stringify without canonicalization may produce unstable key ordering",
     remedy: "Use canonicalJson() from src/determinism/canonicalJson.ts",
   },
   {
     id: "LOCALE_FORMAT",
-    regex:
-      /\.toLocaleDateString\s*\(|\.toLocaleTimeString\s*\(|\.toLocaleString\s*\(/g,
+    regex: /\.toLocaleDateString\s*\(|\.toLocaleTimeString\s*\(|\.toLocaleString\s*\(/g,
     risk: "MEDIUM",
-    description:
-      "Locale-sensitive formatting varies across environments and platforms",
+    description: "Locale-sensitive formatting varies across environments and platforms",
     remedy: "Use .toISOString() or fixed-locale Intl.DateTimeFormat",
   },
   {
@@ -76,10 +69,8 @@ const TS_PATTERNS: Pattern[] = [
     regex:
       /process\.env(?:\[["'`][^"'`]+["'`]\]|\.[A-Z_]+)(?!\s*(?:\?\?|!==|===|==|&&|\|\|)\s*["'`])/g,
     risk: "LOW",
-    description:
-      "Implicit environment reads may vary across machines without validation",
-    remedy:
-      "Validate env vars at startup; document required vars in .env.example",
+    description: "Implicit environment reads may vary across machines without validation",
+    remedy: "Validate env vars at startup; document required vars in .env.example",
   },
 ];
 
@@ -88,8 +79,7 @@ const GO_PATTERNS: Pattern[] = [
     id: "TIME_NOW",
     regex: /\btime\.Now\s*\(\)/g,
     risk: "CRITICAL",
-    description:
-      "time.Now() in fingerprint-contributing paths breaks determinism",
+    description: "time.Now() in fingerprint-contributing paths breaks determinism",
     remedy: "Pass time as a parameter or use a fixed epoch anchor",
   },
   {
@@ -97,8 +87,7 @@ const GO_PATTERNS: Pattern[] = [
     regex: /\brand\s*\.\s*(?:Int|Float|Intn|Int63|Read|Shuffle)\s*\(/g,
     risk: "CRITICAL",
     description: "math/rand without explicit seeding is nondeterministic",
-    remedy:
-      "Remove from proof-contributing paths or use a deterministic seed derived from inputs",
+    remedy: "Remove from proof-contributing paths or use a deterministic seed derived from inputs",
   },
   {
     id: "UUID_V4",
@@ -111,19 +100,15 @@ const GO_PATTERNS: Pattern[] = [
     id: "MAP_ITERATION_UNSORTED",
     regex: /for\s+\w+(?:\s*,\s*\w+)?\s*:=\s*range\s+(\w+)\s*\{/g,
     risk: "MEDIUM",
-    description:
-      "Go map iteration order is randomized by the runtime — sort keys first",
-    remedy:
-      "Extract keys, sort.Strings(keys), then iterate. See determinism.CanonicalJSON",
+    description: "Go map iteration order is randomized by the runtime — sort keys first",
+    remedy: "Extract keys, sort.Strings(keys), then iterate. See determinism.CanonicalJSON",
   },
   {
     id: "JSON_MARSHAL_MAP",
     regex: /json\.Marshal\s*\(\s*(?:map\[|&?[a-z]\w*)\s*/g,
     risk: "LOW",
-    description:
-      "json.Marshal on maps may produce unstable ordering across Go versions",
-    remedy:
-      "Use determinism.CanonicalJSON() for proof-contributing serialization",
+    description: "json.Marshal on maps may produce unstable ordering across Go versions",
+    remedy: "Use determinism.CanonicalJSON() for proof-contributing serialization",
   },
 ];
 
@@ -238,10 +223,7 @@ function walkDir(dir: string, extensions: string[]): string[] {
       if (!shouldSkipDir(entry.name)) {
         files.push(...walkDir(fullPath, extensions));
       }
-    } else if (
-      extensions.some((ext) => entry.name.endsWith(ext)) &&
-      !shouldSkipFile(fullPath)
-    ) {
+    } else if (extensions.some((ext) => entry.name.endsWith(ext)) && !shouldSkipFile(fullPath)) {
       files.push(fullPath);
     }
   }
@@ -276,10 +258,7 @@ function scanFile(filePath: string, patterns: Pattern[]): Finding[] {
       }
 
       // Inline-comment check: skip if line contains suppression marker
-      if (
-        line.includes("// determinism:ok") ||
-        line.includes("// nondeterministic:ok")
-      ) {
+      if (line.includes("// determinism:ok") || line.includes("// nondeterministic:ok")) {
         continue;
       }
 
@@ -338,16 +317,12 @@ function generateReport(repoRoot: string): AuditReport {
   const critical = findings.filter((f) => f.risk === "CRITICAL").length;
   const medium = findings.filter((f) => f.risk === "MEDIUM").length;
   const low = findings.filter((f) => f.risk === "LOW").length;
-  const proofHashRisks = findings.filter(
-    (f) => f.affectsProofHash && f.risk === "CRITICAL",
-  ).length;
+  const proofHashRisks = findings.filter((f) => f.affectsProofHash && f.risk === "CRITICAL").length;
 
   // Stable scan ID derived from findings (deterministic)
   const scanId = crypto
     .createHash("sha256")
-    .update(
-      JSON.stringify(findings.map((f) => `${f.file}:${f.line}:${f.id}`).sort()),
-    )
+    .update(JSON.stringify(findings.map((f) => `${f.file}:${f.line}:${f.id}`).sort()))
     .digest("hex")
     .substring(0, 16);
 
@@ -390,9 +365,7 @@ function generateMarkdown(report: AuditReport): string {
   if (report.summary.critical > 0) {
     lines.push("## 🔴 Critical Findings");
     lines.push("");
-    lines.push(
-      "These findings may directly compromise proof hash stability. Fix before merging.",
-    );
+    lines.push("These findings may directly compromise proof hash stability. Fix before merging.");
     lines.push("");
     const critical = report.findings.filter((f) => f.risk === "CRITICAL");
     for (const f of critical) {
@@ -405,9 +378,7 @@ function generateMarkdown(report: AuditReport): string {
       lines.push(f.snippet);
       lines.push("```");
       lines.push(`**Remedy:** ${f.remedy}`);
-      lines.push(
-        `**Affects Proof Hash:** ${f.affectsProofHash ? "⚠️ Yes" : "No"}`,
-      );
+      lines.push(`**Affects Proof Hash:** ${f.affectsProofHash ? "⚠️ Yes" : "No"}`);
       lines.push("");
     }
   }
@@ -451,13 +422,9 @@ function generateMarkdown(report: AuditReport): string {
   lines.push("");
   lines.push("## Suppression");
   lines.push("");
-  lines.push(
-    "To suppress a known-acceptable finding, add `// determinism:ok` on the same line:",
-  );
+  lines.push("To suppress a known-acceptable finding, add `// determinism:ok` on the same line:");
   lines.push("```typescript");
-  lines.push(
-    "const ts = Date.now(); // determinism:ok — used only for logging",
-  );
+  lines.push("const ts = Date.now(); // determinism:ok — used only for logging");
   lines.push("```");
 
   return lines.join("\n");

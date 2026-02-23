@@ -63,22 +63,14 @@ export function CostOptimization() {
                 className="bg-[#1c1f2b] border border-[#2e3646] rounded-xl p-6 relative overflow-hidden group"
               >
                 <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <span className="material-symbols-outlined text-4xl text-white">
-                    {kpi.icon}
-                  </span>
+                  <span className="material-symbols-outlined text-4xl text-white">{kpi.icon}</span>
                 </div>
                 <p className="text-[#9da6b9] text-[10px] font-bold uppercase tracking-widest mb-1">
                   {kpi.label}
                 </p>
                 <div className="flex items-baseline gap-2">
-                  <h3 className="text-2xl font-black text-white tracking-tight">
-                    {kpi.val}
-                  </h3>
-                  <span
-                    className={`text-${kpi.color}-400 text-[10px] font-bold`}
-                  >
-                    {kpi.trend}
-                  </span>
+                  <h3 className="text-2xl font-black text-white tracking-tight">{kpi.val}</h3>
+                  <span className={`text-${kpi.color}-400 text-[10px] font-bold`}>{kpi.trend}</span>
                 </div>
                 <div
                   className={`absolute bottom-0 left-0 h-1 bg-${kpi.color}-500 w-full opacity-30`}
@@ -101,10 +93,7 @@ export function CostOptimization() {
                     </p>
                   </div>
                   <div className="flex bg-[#111318] p-1 rounded-lg border border-white/5 text-[10px] font-bold uppercase tracking-widest">
-                    <button
-                      type="button"
-                      className="px-4 py-2 rounded-md bg-[#135bec] text-white"
-                    >
+                    <button type="button" className="px-4 py-2 rounded-md bg-[#135bec] text-white">
                       Daily
                     </button>
                     <button
@@ -145,9 +134,7 @@ export function CostOptimization() {
               <div className="p-8 rounded-xl bg-[#1c1f2b] border border-[#2e3646] shadow-sm">
                 <div className="flex items-center gap-3 mb-8">
                   <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
-                    <span className="material-symbols-outlined">
-                      swap_horiz
-                    </span>
+                    <span className="material-symbols-outlined">swap_horiz</span>
                   </div>
                   <div>
                     <h3 className="text-white font-black text-sm uppercase tracking-widest">
@@ -165,18 +152,12 @@ export function CostOptimization() {
                         Current Model
                       </label>
                       <div className="p-4 bg-[#111318] border border-white/5 rounded-xl flex items-center justify-between">
-                        <span className="text-white font-bold text-sm">
-                          GPT-4-Turbo
-                        </span>
-                        <span className="text-[#9da6b9] font-mono text-xs">
-                          $10.00/1M
-                        </span>
+                        <span className="text-white font-bold text-sm">GPT-4-Turbo</span>
+                        <span className="text-[#9da6b9] font-mono text-xs">$10.00/1M</span>
                       </div>
                     </div>
                     <div className="flex items-center justify-center text-slate-700">
-                      <span className="material-symbols-outlined">
-                        expand_more
-                      </span>
+                      <span className="material-symbols-outlined">expand_more</span>
                     </div>
                     <div>
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">
@@ -192,9 +173,7 @@ export function CostOptimization() {
                     <span className="text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-2">
                       Projected Monthly Savings
                     </span>
-                    <span className="text-4xl font-black text-white mb-2">
-                      $1,245.00
-                    </span>
+                    <span className="text-4xl font-black text-white mb-2">$1,245.00</span>
                     <p className="text-emerald-400/80 text-[10px] font-bold uppercase tracking-wide">
                       ~32% Reduction in OPEX
                     </p>
@@ -232,9 +211,7 @@ export function CostOptimization() {
                       <span className="bg-[#111318] px-3 py-1.5 rounded border border-white/5">
                         GPT-4
                       </span>
-                      <span className="material-symbols-outlined text-[12px]">
-                        arrow_forward
-                      </span>
+                      <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
                       <span className="bg-[#111318] px-3 py-1.5 rounded border border-white/5">
                         Llama
                       </span>
@@ -245,9 +222,7 @@ export function CostOptimization() {
 
               <div className="p-8 rounded-xl bg-[#1c1f2b] border border-[#2e3646] shadow-sm">
                 <div className="flex items-center gap-2 mb-6">
-                  <span className="material-symbols-outlined text-rose-500">
-                    gpp_maybe
-                  </span>
+                  <span className="material-symbols-outlined text-rose-500">gpp_maybe</span>
                   <h3 className="text-white font-black text-sm uppercase tracking-widest">
                     Circuit Breakers
                   </h3>
@@ -292,23 +267,16 @@ export function CostOptimization() {
                     { name: "SupportBot-Main", val: "$28.90", clr: "orange" },
                     { name: "Summarizer-X", val: "$12.50", clr: "yellow" },
                   ].map((item) => (
-                    <div
-                      key={item.name}
-                      className="flex items-center justify-between"
-                    >
+                    <div key={item.name} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div
                           className={`w-8 h-8 rounded bg-${item.clr}-500/10 text-${item.clr}-500 flex items-center justify-center font-black text-[10px]`}
                         >
                           {item.name[0]}
                         </div>
-                        <span className="text-white text-xs font-bold">
-                          {item.name}
-                        </span>
+                        <span className="text-white text-xs font-bold">{item.name}</span>
                       </div>
-                      <span
-                        className={`text-${item.clr}-400 font-mono font-bold text-xs`}
-                      >
+                      <span className={`text-${item.clr}-400 font-mono font-bold text-xs`}>
                         {item.val}
                       </span>
                     </div>

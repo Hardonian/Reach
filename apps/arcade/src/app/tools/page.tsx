@@ -4,22 +4,14 @@ import { useState } from "react";
 import { getAllTools, TOOL_TYPE_META } from "@/lib/runtime";
 import type { ToolDefinition, ToolType } from "@/lib/runtime";
 
-const ALL_TYPES: ToolType[] = [
-  "http",
-  "github",
-  "file",
-  "webhook",
-  "local-cli",
-  "vector-db",
-];
+const ALL_TYPES: ToolType[] = ["http", "github", "file", "webhook", "local-cli", "vector-db"];
 
 export default function ToolsPage() {
   const tools = getAllTools();
   const [filterType, setFilterType] = useState<ToolType | "all">("all");
   const [selectedTool, setSelectedTool] = useState<ToolDefinition | null>(null);
 
-  const filtered =
-    filterType === "all" ? tools : tools.filter((t) => t.type === filterType);
+  const filtered = filterType === "all" ? tools : tools.filter((t) => t.type === filterType);
 
   return (
     <div className="section-container py-12">
@@ -27,8 +19,7 @@ export default function ToolsPage() {
       <div className="max-w-3xl mx-auto mb-10 text-center">
         <h1 className="text-4xl font-bold mb-3">Tools</h1>
         <p className="text-gray-400 max-w-lg mx-auto">
-          Executable capabilities with permissions, scope, and audit trails.
-          Bind tools to skills.
+          Executable capabilities with permissions, scope, and audit trails. Bind tools to skills.
         </p>
       </div>
 
@@ -89,14 +80,10 @@ export default function ToolsPage() {
                       </div>
                       <div>
                         <h3 className="font-bold text-sm">{tool.name}</h3>
-                        <span className="text-xs text-gray-500">
-                          {meta.label}
-                        </span>
+                        <span className="text-xs text-gray-500">{meta.label}</span>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-400 mb-2">
-                      {tool.description}
-                    </p>
+                    <p className="text-xs text-gray-400 mb-2">{tool.description}</p>
                     <div className="flex items-center gap-2 text-xs text-gray-600">
                       <span>
                         {tool.permissions.length} permission
@@ -135,9 +122,7 @@ export default function ToolsPage() {
                   </div>
                 </div>
 
-                <p className="text-sm text-gray-400 mb-4">
-                  {selectedTool.description}
-                </p>
+                <p className="text-sm text-gray-400 mb-4">{selectedTool.description}</p>
 
                 {/* Permissions */}
                 <div className="mb-4">
@@ -147,18 +132,12 @@ export default function ToolsPage() {
                   <div className="space-y-1">
                     {selectedTool.permissions.map((p, i) => (
                       <div key={i} className="flex items-center gap-2 text-xs">
-                        <span
-                          className={
-                            p.granted ? "text-emerald-400" : "text-red-400"
-                          }
-                        >
+                        <span className={p.granted ? "text-emerald-400" : "text-red-400"}>
                           {p.granted ? "✓" : "✕"}
                         </span>
                         <span className="text-gray-400">{p.action}</span>
                         <span className="text-gray-600">on</span>
-                        <code className="font-mono text-gray-300">
-                          {p.resource}
-                        </code>
+                        <code className="font-mono text-gray-300">{p.resource}</code>
                       </div>
                     ))}
                   </div>
@@ -166,9 +145,7 @@ export default function ToolsPage() {
 
                 {/* Scope */}
                 <div className="mb-4">
-                  <h3 className="text-xs text-gray-500 uppercase tracking-wide mb-2">
-                    Scope
-                  </h3>
+                  <h3 className="text-xs text-gray-500 uppercase tracking-wide mb-2">Scope</h3>
                   <span
                     className={`status-pill ${selectedTool.scope.global ? "online" : "pending"}`}
                   >
@@ -198,9 +175,7 @@ export default function ToolsPage() {
                 {/* Config */}
                 {Object.keys(selectedTool.config).length > 0 && (
                   <div className="mb-4">
-                    <h3 className="text-xs text-gray-500 uppercase tracking-wide mb-2">
-                      Config
-                    </h3>
+                    <h3 className="text-xs text-gray-500 uppercase tracking-wide mb-2">Config</h3>
                     <div className="p-2 rounded bg-black/20 border border-white/5 overflow-x-auto">
                       <pre className="text-xs text-gray-400 font-mono whitespace-pre">
                         {JSON.stringify(selectedTool.config, null, 2)}

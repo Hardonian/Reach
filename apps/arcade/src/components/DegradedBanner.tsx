@@ -9,10 +9,7 @@ interface DegradedBannerProps {
  * Consistent Degraded Mode banner for the console.
  * Shows when system health is impaired — controls become read-only.
  */
-export function DegradedBanner({
-  message,
-  visible = true,
-}: DegradedBannerProps) {
+export function DegradedBanner({ message, visible = true }: DegradedBannerProps) {
   if (!visible) return null;
 
   return (

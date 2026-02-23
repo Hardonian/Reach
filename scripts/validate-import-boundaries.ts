@@ -36,10 +36,9 @@ function validate() {
     // Use ripgrep to find forbidden imports
     for (const pattern of rule.forbidden) {
       try {
-        const output = execSync(
-          `rg "import.*${pattern}" ${fullPath} --vimgrep`,
-          { encoding: "utf8" },
-        );
+        const output = execSync(`rg "import.*${pattern}" ${fullPath} --vimgrep`, {
+          encoding: "utf8",
+        });
         if (output) {
           console.error(`[VIOLATION] ${rule.reason}:`);
           console.error(output);

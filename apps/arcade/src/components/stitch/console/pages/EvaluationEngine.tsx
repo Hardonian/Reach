@@ -78,9 +78,7 @@ export function EvaluationEngine() {
                   >
                     {item.version} {item.active && "(Current)"}
                   </span>
-                  <span className="text-slate-500 text-[10px]">
-                    {item.time}
-                  </span>
+                  <span className="text-slate-500 text-[10px]">{item.time}</span>
                 </div>
                 <p
                   className={`${item.active ? "text-white" : "text-slate-300"} text-sm font-medium mb-1`}
@@ -104,8 +102,7 @@ export function EvaluationEngine() {
                 Metric Governance
               </h1>
               <p className="text-[#9da6b9] text-base">
-                Manage scoring governance and drift control for your agentic
-                workflows.
+                Manage scoring governance and drift control for your agentic workflows.
               </p>
             </div>
             <div className="flex gap-3">
@@ -113,18 +110,14 @@ export function EvaluationEngine() {
                 type="button"
                 className="flex items-center justify-center rounded-lg h-10 px-4 bg-slate-800 border border-slate-700 text-white text-xs font-bold hover:bg-slate-700 transition-all"
               >
-                <span className="material-symbols-outlined text-sm mr-2">
-                  history
-                </span>
+                <span className="material-symbols-outlined text-sm mr-2">history</span>
                 Compare Versions
               </button>
               <button
                 type="button"
                 className="flex items-center justify-center rounded-lg h-10 px-4 bg-white text-slate-900 text-xs font-black hover:bg-slate-200 transition-all shadow-xl shadow-white/5 uppercase tracking-widest"
               >
-                <span className="material-symbols-outlined text-sm mr-2">
-                  play_arrow
-                </span>
+                <span className="material-symbols-outlined text-sm mr-2">play_arrow</span>
                 Run Synthetic Eval
               </button>
             </div>
@@ -170,9 +163,7 @@ export function EvaluationEngine() {
                   ].map((field) => (
                     <div key={field.key} className="flex items-center gap-6">
                       <div className="w-32 shrink-0">
-                        <p className="text-white text-sm font-bold">
-                          {field.label}
-                        </p>
+                        <p className="text-white text-sm font-bold">{field.label}</p>
                         <p className="text-slate-500 text-[10px] uppercase font-medium tracking-wide">
                           {field.sub}
                         </p>
@@ -190,18 +181,13 @@ export function EvaluationEngine() {
                         className="flex-1 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#135bec]"
                       />
                       <div className="w-16 shrink-0 bg-[#0f1218] border border-slate-700 rounded px-2 py-1.5 text-right text-white text-xs font-mono font-bold">
-                        {(
-                          weights[field.key as keyof typeof weights] / 100
-                        ).toFixed(2)}
+                        {(weights[field.key as keyof typeof weights] / 100).toFixed(2)}
                       </div>
                     </div>
                   ))}
                 </div>
                 <div className="px-8 py-4 bg-[#161b28] border-t border-slate-700 flex justify-end gap-3 text-xs font-bold uppercase tracking-widest">
-                  <button
-                    type="button"
-                    className="text-slate-400 hover:text-white px-3 py-2"
-                  >
+                  <button type="button" className="text-slate-400 hover:text-white px-3 py-2">
                     Reset
                   </button>
                   <button
@@ -226,12 +212,10 @@ export function EvaluationEngine() {
                   </div>
                   <div className="flex gap-4">
                     <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                      <span className="w-2 h-2 rounded-full bg-[#135bec]"></span>{" "}
-                      Production
+                      <span className="w-2 h-2 rounded-full bg-[#135bec]"></span> Production
                     </span>
                     <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                      <span className="w-2 h-2 rounded-full bg-purple-500"></span>{" "}
-                      Synthetic
+                      <span className="w-2 h-2 rounded-full bg-purple-500"></span> Synthetic
                     </span>
                   </div>
                 </div>
@@ -296,8 +280,7 @@ export function EvaluationEngine() {
                       Agent Output
                     </span>
                     <div className="bg-[#0f1218] rounded border border-slate-700 p-4 text-xs text-slate-300 font-mono leading-relaxed min-h-[120px]">
-                      The retail sector saw a 4.5% increase in revenue
-                      year-over-year...
+                      The retail sector saw a 4.5% increase in revenue year-over-year...
                     </div>
                     <div className="absolute bottom-4 right-4 bg-slate-900/90 backdrop-blur border border-slate-700 rounded-xl p-3 flex flex-col items-center shadow-2xl">
                       <span className="text-[8px] text-slate-500 uppercase font-bold">
@@ -368,9 +351,7 @@ export function EvaluationEngine() {
                           <td className="px-6 py-4 text-right font-mono font-bold text-slate-300">
                             {row.s}
                           </td>
-                          <td
-                            className={`px-6 py-4 text-right font-mono font-bold ${row.c}`}
-                          >
+                          <td className={`px-6 py-4 text-right font-mono font-bold ${row.c}`}>
                             {row.d}
                           </td>
                         </tr>

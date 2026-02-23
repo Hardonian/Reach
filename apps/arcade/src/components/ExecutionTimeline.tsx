@@ -14,10 +14,7 @@ interface ExecutionTimelineProps {
   isRunning: boolean;
 }
 
-export function ExecutionTimeline({
-  events,
-  isRunning,
-}: ExecutionTimelineProps) {
+export function ExecutionTimeline({ events, isRunning }: ExecutionTimelineProps) {
   const endRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom
@@ -65,13 +62,9 @@ export function ExecutionTimeline({
               {/* Content */}
               <div className={`timeline-content ${isFailed ? "failed" : ""}`}>
                 <div className="flex justify-between items-center mb-1">
-                  <span className="font-mono font-bold text-sm">
-                    {event.type}
-                  </span>
+                  <span className="font-mono font-bold text-sm">{event.type}</span>
                   <span className="text-2xs font-mono text-tertiary">
-                    {event.timestamp
-                      ? new Date(event.timestamp).toLocaleTimeString()
-                      : ""}
+                    {event.timestamp ? new Date(event.timestamp).toLocaleTimeString() : ""}
                   </span>
                 </div>
 
@@ -80,15 +73,11 @@ export function ExecutionTimeline({
                     {event.details}
                   </div>
                 )}
-                <span className="sr-only">
-                  Status: {event.status || "completed"}
-                </span>
+                <span className="sr-only">Status: {event.status || "completed"}</span>
               </div>
 
               {/* Connector Line Fill for active step */}
-              {isActive && (
-                <div className="timeline-connector" aria-hidden="true" />
-              )}
+              {isActive && <div className="timeline-connector" aria-hidden="true" />}
             </li>
           );
         })}
@@ -96,17 +85,11 @@ export function ExecutionTimeline({
 
       {/* Loading Indicator */}
       {isRunning && (
-        <div
-          className="timeline-event animate-pulse"
-          role="status"
-          aria-label="Processing"
-        >
+        <div className="timeline-event animate-pulse" role="status" aria-label="Processing">
           <div className="timeline-node node-transparent" aria-hidden="true">
             {/* Simple loader or just empty space */}⏳
           </div>
-          <div className="p-2 text-xs text-tertiary font-mono">
-            Processing...
-          </div>
+          <div className="p-2 text-xs text-tertiary font-mono">Processing...</div>
         </div>
       )}
 

@@ -4,12 +4,7 @@
   "title": "IDE Context",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "workspace_root",
-    "open_files",
-    "active_file",
-    "selection_range"
-  ],
+  "required": ["workspace_root", "open_files", "active_file", "selection_range"],
   "properties": {
     "workspace_root": {
       "type": "string",

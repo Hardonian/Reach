@@ -19,20 +19,10 @@ export async function POST(
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(ReviewSchema, body);
   if ("errors" in parsed)
-    return cloudErrorResponse(
-      parsed.errors.issues[0]?.message ?? "Invalid input",
-      400,
-    );
+    return cloudErrorResponse(parsed.errors.issues[0]?.message ?? "Invalid input", 400);
 
   addReview(pack.id, ctx.userId, parsed.data.rating, parsed.data.body);
-  auditLog(
-    ctx,
-    "pack.review",
-    "pack",
-    pack.id,
-    { rating: parsed.data.rating },
-    req,
-  );
+  auditLog(ctx, "pack.review", "pack", pack.id, { rating: parsed.data.rating }, req);
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }

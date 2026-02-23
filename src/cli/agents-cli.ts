@@ -37,28 +37,18 @@ function readManifest(path: string): AgentManifest {
   return {
     id: raw.id,
     version: raw.version,
-    capabilities: Array.isArray(raw.capabilities)
-      ? raw.capabilities.map(String)
-      : [],
-    requiredTools: Array.isArray(raw.requiredTools)
-      ? raw.requiredTools.map(String)
-      : [],
-    requiredEnvVars: Array.isArray(raw.requiredEnvVars)
-      ? raw.requiredEnvVars.map(String)
-      : [],
+    capabilities: Array.isArray(raw.capabilities) ? raw.capabilities.map(String) : [],
+    requiredTools: Array.isArray(raw.requiredTools) ? raw.requiredTools.map(String) : [],
+    requiredEnvVars: Array.isArray(raw.requiredEnvVars) ? raw.requiredEnvVars.map(String) : [],
     permissions: {
       fs: Boolean((raw.permissions as Record<string, unknown> | undefined)?.fs),
-      network: Boolean(
-        (raw.permissions as Record<string, unknown> | undefined)?.network,
-      ),
+      network: Boolean((raw.permissions as Record<string, unknown> | undefined)?.network),
     },
   };
 }
 
 export function parseAgentsArgs(argv: string[]): AgentsArgs {
-  const command = ["list", "add", "remove", "inspect", "recommend"].includes(
-    argv[0] ?? "",
-  )
+  const command = ["list", "add", "remove", "inspect", "recommend"].includes(argv[0] ?? "")
     ? (argv[0] as AgentsArgs["command"])
     : null;
   const taskIdx = argv.indexOf("--task");
@@ -85,23 +75,12 @@ export async function runAgentsCommand(args: AgentsArgs): Promise<number> {
 
   if (args.command === "recommend") {
     const task = args.value ?? "generic";
-    const dirs = readdirSync(agentsRoot(), { withFileTypes: true }).filter(
-      (d) => d.isDirectory(),
-    );
+    const dirs = readdirSync(agentsRoot(), { withFileTypes: true }).filter((d) => d.isDirectory());
     const recommendations = dirs
       .map((dir) => {
-        const manifest = readManifest(
-          resolve(agentsRoot(), dir.name, "zeo.agent.json"),
-        );
-        const capabilityMatches = manifest.capabilities.filter((cap) =>
-          cap.includes(task),
-        ).length;
-        const trustPath = resolve(
-          process.cwd(),
-          ".zeo",
-          "trust",
-          "profiles.json",
-        );
+        const manifest = readManifest(resolve(agentsRoot(), dir.name, "zeo.agent.json"));
+        const capabilityMatches = manifest.capabilities.filter((cap) => cap.includes(task)).length;
+        const trustPath = resolve(process.cwd(), ".zeo", "trust", "profiles.json");
         let acceptanceRatio = 0;
         if (existsSync(trustPath)) {
           const raw = JSON.parse(readFileSync(trustPath, "utf8")) as Record<
@@ -109,26 +88,20 @@ export async function runAgentsCommand(args: AgentsArgs): Promise<number> {
             {
               accepted?: number;
               rejected?: number;
-              byCapability?: Record<
-                string,
-                { accepted: number; rejected: number }
-              >;
+              byCapability?: Record<string, { accepted: number; rejected: number }>;
             }
           >;
           const entry = raw[manifest.id];
           if (entry?.byCapability && entry.byCapability[task]) {
             const cap = entry.byCapability[task];
             acceptanceRatio =
-              (cap.accepted ?? 0) /
-              Math.max(1, (cap.accepted ?? 0) + (cap.rejected ?? 0));
+              (cap.accepted ?? 0) / Math.max(1, (cap.accepted ?? 0) + (cap.rejected ?? 0));
           } else if (entry) {
             acceptanceRatio =
-              (entry.accepted ?? 0) /
-              Math.max(1, (entry.accepted ?? 0) + (entry.rejected ?? 0));
+              (entry.accepted ?? 0) / Math.max(1, (entry.accepted ?? 0) + (entry.rejected ?? 0));
           }
         }
-        const score =
-          capabilityMatches * 100 + Math.round(acceptanceRatio * 100);
+        const score = capabilityMatches * 100 + Math.round(acceptanceRatio * 100);
         return {
           agent: manifest.id,
           capabilityMatches,
@@ -137,21 +110,14 @@ export async function runAgentsCommand(args: AgentsArgs): Promise<number> {
         };
       })
       .sort((a, b) => b.score - a.score || a.agent.localeCompare(b.agent));
-    if (args.json)
-      process.stdout.write(
-        `${JSON.stringify({ task, recommendations }, null, 2)}\n`,
-      );
+    if (args.json) process.stdout.write(`${JSON.stringify({ task, recommendations }, null, 2)}\n`);
     else
       for (const rec of recommendations)
-        console.log(
-          `${rec.agent} score=${rec.score} acceptance=${rec.acceptanceRatio}`,
-        );
+        console.log(`${rec.agent} score=${rec.score} acceptance=${rec.acceptanceRatio}`);
     return 0;
   }
   if (args.command === "list") {
-    const dirs = readdirSync(agentsRoot(), { withFileTypes: true }).filter(
-      (d) => d.isDirectory(),
-    );
+    const dirs = readdirSync(agentsRoot(), { withFileTypes: true }).filter((d) => d.isDirectory());
     for (const dir of dirs) console.log(dir.name);
     return 0;
   }
@@ -160,8 +126,7 @@ export async function runAgentsCommand(args: AgentsArgs): Promise<number> {
     if (!args.value) throw new Error("add requires local path");
     const source = resolve(process.cwd(), args.value);
     const manifestPath = resolve(source, "zeo.agent.json");
-    if (!existsSync(manifestPath))
-      throw new Error("Missing zeo.agent.json in agent source");
+    if (!existsSync(manifestPath)) throw new Error("Missing zeo.agent.json in agent source");
     const manifest = readManifest(manifestPath);
     const permissions = {
       fs: manifest.permissions.fs,
@@ -202,19 +167,12 @@ export async function runAgentsCommand(args: AgentsArgs): Promise<number> {
   }
 
   if (!args.value) throw new Error("inspect requires agent id");
-  const manifestPath = resolve(
-    agentsRoot(),
-    basename(args.value),
-    "zeo.agent.json",
-  );
+  const manifestPath = resolve(agentsRoot(), basename(args.value), "zeo.agent.json");
   const manifest = readManifest(manifestPath);
   const trustPath = resolve(process.cwd(), ".zeo", "trust", "profiles.json");
   let trust = { accepted: 0, rejected: 0 };
   if (existsSync(trustPath)) {
-    const raw = JSON.parse(readFileSync(trustPath, "utf8")) as Record<
-      string,
-      unknown
-    >;
+    const raw = JSON.parse(readFileSync(trustPath, "utf8")) as Record<string, unknown>;
     const entry = raw[manifest.id] as Record<string, unknown> | undefined;
     if (entry)
       trust = {
@@ -225,11 +183,7 @@ export async function runAgentsCommand(args: AgentsArgs): Promise<number> {
   const inspection = { ...manifest, toolCalls: manifest.requiredTools, trust };
   console.log(JSON.stringify(inspection, null, 2));
 
-  const lockPath = resolve(
-    agentsRoot(),
-    basename(args.value),
-    "zeo.agent.lock.json",
-  );
+  const lockPath = resolve(agentsRoot(), basename(args.value), "zeo.agent.lock.json");
   writeFileSync(
     lockPath,
     `${JSON.stringify(

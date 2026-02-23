@@ -1,12 +1,6 @@
 // @ts-nocheck
 import { createHash } from "node:crypto";
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { runDecision } from "@zeo/core";
 import { nanoid } from "nanoid";
@@ -34,9 +28,10 @@ interface PackManifest {
 const PACKS_DIR = resolve(process.cwd(), "packs");
 
 function parsePackManifest(packDir: string): PackManifest {
-  const raw = JSON.parse(
-    readFileSync(join(packDir, "pack.json"), "utf8"),
-  ) as Record<string, unknown>;
+  const raw = JSON.parse(readFileSync(join(packDir, "pack.json"), "utf8")) as Record<
+    string,
+    unknown
+  >;
   return {
     id: String(raw.id),
     version: String(raw.version),
@@ -103,9 +98,7 @@ function describePack(packId: string | undefined): number {
   }
   const manifest = parsePackManifest(dir);
   const hash = hashPack(dir);
-  const raw = JSON.parse(
-    readFileSync(join(dir, "pack.json"), "utf8"),
-  ) as Record<string, unknown>;
+  const raw = JSON.parse(readFileSync(join(dir, "pack.json"), "utf8")) as Record<string, unknown>;
   process.stdout.write(`${JSON.stringify({ manifest, hash, raw }, null, 2)}\n`);
   return 0;
 }
@@ -150,11 +143,7 @@ function exportPacks(): number {
     const manifest = parsePackManifest(dir);
     return { manifest, hash: hashPack(dir) };
   });
-  writeFileSync(
-    out,
-    `${JSON.stringify({ schema_version: "1.0.0", bundles }, null, 2)}\n`,
-    "utf8",
-  );
+  writeFileSync(out, `${JSON.stringify({ schema_version: "1.0.0", bundles }, null, 2)}\n`, "utf8");
   console.log(`Exported pack index: ${out}`);
   return 0;
 }
@@ -260,9 +249,7 @@ export async function runPackCommand(args: PackCliArgs): Promise<number> {
   if (args.command === "describe") return describePack(args.value);
 
   if (!args.spec || !args.out) {
-    console.error(
-      "Error: --spec <path> and --out <path> are required for legacy pack build",
-    );
+    console.error("Error: --spec <path> and --out <path> are required for legacy pack build");
     return 1;
   }
   return runLegacyPack(args.spec, args.out);

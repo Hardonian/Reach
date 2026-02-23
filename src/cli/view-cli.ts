@@ -2,10 +2,7 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { execSync } from "node:child_process";
-import {
-  loadOrGenerateDashboardViewModel,
-  stableStringify,
-} from "../lib/generateViewModel.js";
+import { loadOrGenerateDashboardViewModel, stableStringify } from "../lib/generateViewModel.js";
 import type { DashboardPersona } from "@zeo/contracts";
 
 export interface ViewCliArgs {
@@ -87,9 +84,7 @@ export async function runViewCommand(args: ViewCliArgs): Promise<number> {
 
   console.log(`Dashboard ViewModel: ${modelPath}`);
   console.log(`Dashboard Viewer: ${staticPath}`);
-  console.log(
-    `Dashboard Route: http://localhost:3000/view/${args.id}?persona=${persona}`,
-  );
+  console.log(`Dashboard Route: http://localhost:3000/view/${args.id}?persona=${persona}`);
 
   if (args.open) openPath(staticPath);
   return 0;

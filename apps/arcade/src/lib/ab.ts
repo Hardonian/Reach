@@ -39,9 +39,7 @@ export function resolveVariant(
  */
 export function getClientVariant(): Variant {
   if (typeof document === "undefined") return "A";
-  const match = document.cookie.match(
-    new RegExp(`(?:^|; )${VARIANT_COOKIE}=([AB])`),
-  );
+  const match = document.cookie.match(new RegExp(`(?:^|; )${VARIANT_COOKIE}=([AB])`));
   if (match) return match[1] as Variant;
 
   // Assign randomly (50/50) and persist for 30 days

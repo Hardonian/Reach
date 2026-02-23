@@ -2,11 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerAuth } from "@/lib/cloud-auth";
 import { ROUTES } from "@/lib/routes";
 
-export default async function ConsoleRootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function ConsoleRootLayout({ children }: { children: React.ReactNode }) {
   const auth = await getServerAuth();
 
   if (!auth) {

@@ -23,9 +23,7 @@ export interface PolicyViolationEvidence {
 /**
  * Evaluate policy evidence for violation junction
  */
-export function evaluatePolicyViolation(
-  evidence: PolicyViolationEvidence,
-): JunctionTemplateResult {
+export function evaluatePolicyViolation(evidence: PolicyViolationEvidence): JunctionTemplateResult {
   const traces: string[] = [];
 
   // Calculate average severity
@@ -76,10 +74,7 @@ export function evaluatePolicyViolation(
   return result;
 }
 
-function generateFingerprint(
-  type: string,
-  evidence: PolicyViolationEvidence,
-): string {
+function generateFingerprint(type: string, evidence: PolicyViolationEvidence): string {
   const rules = [...new Set(evidence.violations.map((v) => v.rule))].sort();
   const canonical = JSON.stringify({
     type,

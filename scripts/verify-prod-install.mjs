@@ -63,12 +63,8 @@ try {
   });
   console.log("  ✅ SDK builds successfully\n");
 } catch (error) {
-  console.error(
-    "  ⚠️  SDK build failed (may require dev deps for TypeScript compilation)",
-  );
-  console.log(
-    "  ℹ️  This is expected if SDK uses TypeScript compiler from devDependencies\n",
-  );
+  console.error("  ⚠️  SDK build failed (may require dev deps for TypeScript compilation)");
+  console.log("  ℹ️  This is expected if SDK uses TypeScript compiler from devDependencies\n");
 }
 
 // Step 4: Verify Go services build (no npm deps needed)
@@ -86,6 +82,4 @@ try {
 }
 
 console.log("✅ Production install verification passed!");
-console.log(
-  "   The runtime has no toxic dependencies and is ready for deployment.\n",
-);
+console.log("   The runtime has no toxic dependencies and is ready for deployment.\n");

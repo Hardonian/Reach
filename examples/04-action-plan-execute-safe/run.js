@@ -22,12 +22,8 @@ async function main() {
   log("=== Reach Example 04: Action Plan Execute (Safe) ===\n");
 
   // Load files
-  const decision = JSON.parse(
-    readFileSync(resolve(EXAMPLE_DIR, "decision.json"), "utf8"),
-  );
-  const plan = JSON.parse(
-    readFileSync(resolve(EXAMPLE_DIR, "plan.json"), "utf8"),
-  );
+  const decision = JSON.parse(readFileSync(resolve(EXAMPLE_DIR, "decision.json"), "utf8"));
+  const plan = JSON.parse(readFileSync(resolve(EXAMPLE_DIR, "plan.json"), "utf8"));
   const expectedEvents = JSON.parse(
     readFileSync(resolve(EXAMPLE_DIR, "expected-events.json"), "utf8"),
   );
@@ -38,9 +34,7 @@ async function main() {
   log(`Description: ${decision.description}`);
   log(`Confidence: ${decision.confidence}`);
   log(`Safe only: ${decision.safe_only ? "YES" : "NO"}`);
-  log(
-    `Approval required: ${decision.approval_required ? "YES" : "AUTO-APPROVE"}`,
-  );
+  log(`Approval required: ${decision.approval_required ? "YES" : "AUTO-APPROVE"}`);
   log();
 
   // Phase 2: Plan
@@ -158,9 +152,7 @@ async function main() {
 
 function hashInput(input) {
   // Simplified hash for demonstration
-  return (
-    "sha256:" + Buffer.from(JSON.stringify(input)).toString("hex").slice(0, 32)
-  );
+  return "sha256:" + Buffer.from(JSON.stringify(input)).toString("hex").slice(0, 32);
 }
 
 function generateFingerprint(journal) {

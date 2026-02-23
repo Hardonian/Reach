@@ -2,13 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Template Bundle",
   "type": "object",
-  "required": [
-    "id",
-    "version",
-    "required_capabilities",
-    "side_effect_types",
-    "risk_level"
-  ],
+  "required": ["id", "version", "required_capabilities", "side_effect_types", "risk_level"],
   "properties": {
     "kind": { "const": "template_bundle" },
     "id": { "type": "string" },

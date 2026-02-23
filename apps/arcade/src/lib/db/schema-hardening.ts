@@ -15,9 +15,7 @@ import crypto from "crypto";
 /**
  * Semantic version schema for versioned entities.
  */
-export const SemVerSchema = z
-  .string()
-  .regex(/^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?$/);
+export const SemVerSchema = z.string().regex(/^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?$/);
 export type SemVer = z.infer<typeof SemVerSchema>;
 
 /**
@@ -69,10 +67,7 @@ export function createAuditMetadata(userId: string): AuditMetadata {
 /**
  * Updates audit metadata for an existing entity.
  */
-export function updateAuditMetadata(
-  existing: AuditMetadata,
-  userId: string,
-): AuditMetadata {
+export function updateAuditMetadata(existing: AuditMetadata, userId: string): AuditMetadata {
   return {
     ...existing,
     updated_at: new Date().toISOString(),
@@ -376,10 +371,7 @@ export interface SoftDeletable {
 /**
  * Applies soft delete to an entity.
  */
-export function applySoftDelete<T extends SoftDeletable>(
-  entity: T,
-  deletedBy: string,
-): T {
+export function applySoftDelete<T extends SoftDeletable>(entity: T, deletedBy: string): T {
   return {
     ...entity,
     deleted_at: new Date().toISOString(),

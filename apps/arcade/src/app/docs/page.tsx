@@ -11,15 +11,13 @@ export default function DocsPage() {
   const categories = [
     {
       title: "Getting Started",
-      description:
-        "Go from zero to a fully deterministic execution in 5 minutes.",
+      description: "Go from zero to a fully deterministic execution in 5 minutes.",
       href: "/docs/getting-started",
       icon: "🚀",
     },
     {
       title: "Architecture",
-      description:
-        "Deep dive into the core engine, signed packs, and capability firewalls.",
+      description: "Deep dive into the core engine, signed packs, and capability firewalls.",
       href: "/docs/architecture",
       icon: "🏗️",
     },
@@ -31,8 +29,7 @@ export default function DocsPage() {
     },
     {
       title: "API Reference",
-      description:
-        "Explore the gRPC and REST interfaces for ReadyLayer services.",
+      description: "Explore the gRPC and REST interfaces for ReadyLayer services.",
       href: "/docs/api",
       icon: "📚",
     },
@@ -58,8 +55,8 @@ export default function DocsPage() {
             ReadyLayer <span className="text-gradient">Documentation</span>
           </h1>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            Everything you need to build, deploy, and govern deterministic
-            agentic workloads at global scale.
+            Everything you need to build, deploy, and govern deterministic agentic workloads at
+            global scale.
           </p>
         </header>
 
@@ -77,9 +74,7 @@ export default function DocsPage() {
                 <h2 className="text-xl font-bold mb-2 text-white group-hover:text-accent transition-colors">
                   {category.title}
                 </h2>
-                <p className="text-sm text-gray-400 leading-relaxed">
-                  {category.description}
-                </p>
+                <p className="text-sm text-gray-400 leading-relaxed">{category.description}</p>
               </div>
               <div className="mt-auto pt-4 text-accent text-xs font-bold tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
                 Explore Documentation <span>→</span>
@@ -91,12 +86,10 @@ export default function DocsPage() {
         <div className="mt-20 p-1 bg-linear-to-r from-accent/20 via-border to-accent/20 rounded-3xl">
           <div className="bg-[#0A0A0B] rounded-[calc(1.5rem-1px)] p-12 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="max-w-md">
-              <h2 className="text-3xl font-bold mb-4">
-                Enterprise Grade Support
-              </h2>
+              <h2 className="text-3xl font-bold mb-4">Enterprise Grade Support</h2>
               <p className="text-gray-400 mb-6">
-                Looking for SLAs, mission-critical response times, or custom
-                integration assistance? Our team is here to help.
+                Looking for SLAs, mission-critical response times, or custom integration assistance?
+                Our team is here to help.
               </p>
               <div className="flex gap-4">
                 <Link href="/support" className="btn-primary py-3 px-8">

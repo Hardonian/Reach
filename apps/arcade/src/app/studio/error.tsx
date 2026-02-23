@@ -30,9 +30,7 @@ export default function StudioError({
           </a>
         </div>
         {error.digest && (
-          <p className="mt-8 text-xs text-gray-600 font-mono">
-            Error ID: {error.digest}
-          </p>
+          <p className="mt-8 text-xs text-gray-600 font-mono">Error ID: {error.digest}</p>
         )}
       </div>
     </div>

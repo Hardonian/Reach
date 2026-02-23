@@ -34,9 +34,7 @@ export function AgentTable({ agents }: AgentTableProps) {
               >
                 <div className="flex items-center gap-1">
                   Agent Name{" "}
-                  <span className="material-symbols-outlined text-[14px]">
-                    arrow_downward
-                  </span>
+                  <span className="material-symbols-outlined text-[14px]">arrow_downward</span>
                 </div>
               </th>
               <th
@@ -75,10 +73,7 @@ export function AgentTable({ agents }: AgentTableProps) {
               >
                 State
               </th>
-              <th
-                className="relative px-6 py-3 border-b border-slate-800"
-                scope="col"
-              >
+              <th className="relative px-6 py-3 border-b border-slate-800" scope="col">
                 <span className="sr-only">Actions</span>
               </th>
             </tr>
@@ -94,14 +89,10 @@ export function AgentTable({ agents }: AgentTableProps) {
                     <div
                       className={`shrink-0 h-9 w-9 bg-${agent.iconColor}-500/20 rounded-lg flex items-center justify-center text-${agent.iconColor}-400 border border-${agent.iconColor}-500/30`}
                     >
-                      <span className="material-symbols-outlined text-[20px]">
-                        {agent.icon}
-                      </span>
+                      <span className="material-symbols-outlined text-[20px]">{agent.icon}</span>
                     </div>
                     <div className="ml-4">
-                      <div className="text-sm font-medium text-white">
-                        {agent.name}
-                      </div>
+                      <div className="text-sm font-medium text-white">{agent.name}</div>
                       <div className="text-xs text-slate-500">{agent.org}</div>
                     </div>
                   </div>
@@ -112,9 +103,7 @@ export function AgentTable({ agents }: AgentTableProps) {
                       className="text-xs text-[#135bec] hover:underline flex items-center gap-1"
                       href="#"
                     >
-                      <span className="material-symbols-outlined text-[12px]">
-                        code
-                      </span>
+                      <span className="material-symbols-outlined text-[12px]">code</span>
                       {agent.repo}
                     </a>
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-300 w-fit">
@@ -195,9 +184,7 @@ export function AgentTable({ agents }: AgentTableProps) {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex flex-col">
-                    <span className="text-xs text-slate-300">
-                      {agent.lastRun}
-                    </span>
+                    <span className="text-xs text-slate-300">{agent.lastRun}</span>
                     <TracePill traceId={agent.lastRunId} />
                   </div>
                 </td>
@@ -220,18 +207,14 @@ export function AgentTable({ agents }: AgentTableProps) {
                       className="text-slate-400 hover:text-white p-1"
                       title="View Audit Trail"
                     >
-                      <span className="material-symbols-outlined text-[18px]">
-                        history
-                      </span>
+                      <span className="material-symbols-outlined text-[18px]">history</span>
                     </button>
                     <button
                       type="button"
                       className="text-slate-400 hover:text-white p-1"
                       title="More Actions"
                     >
-                      <span className="material-symbols-outlined text-[18px]">
-                        more_vert
-                      </span>
+                      <span className="material-symbols-outlined text-[18px]">more_vert</span>
                     </button>
                   </div>
                 </td>

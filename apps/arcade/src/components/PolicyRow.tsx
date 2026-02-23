@@ -5,12 +5,7 @@ import { StatusIndicator } from "./StatusIndicator";
 
 export type Severity = "critical" | "high" | "medium" | "low";
 export type PolicyStatus = "active" | "draft" | "archived";
-export type PolicyType =
-  | "data-residency"
-  | "rate-limit"
-  | "pii"
-  | "model-restriction"
-  | string;
+export type PolicyType = "data-residency" | "rate-limit" | "pii" | "model-restriction" | string;
 
 interface PolicyRowProps {
   id: string;
@@ -27,10 +22,7 @@ interface PolicyRowProps {
   onDelete?: (id: string) => void;
 }
 
-const severityConfig: Record<
-  Severity,
-  { bg: string; text: string; label: string }
-> = {
+const severityConfig: Record<Severity, { bg: string; text: string; label: string }> = {
   critical: { bg: "bg-red-500/20", text: "text-red-400", label: "Critical" },
   high: { bg: "bg-amber-500/20", text: "text-amber-400", label: "High" },
   medium: { bg: "bg-blue-500/20", text: "text-blue-400", label: "Medium" },
@@ -40,9 +32,7 @@ const severityConfig: Record<
 function SeverityBadge({ severity }: { severity: Severity }) {
   const config = severityConfig[severity];
   return (
-    <span
-      className={`px-2 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}
-    >
+    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
       {config.label}
     </span>
   );
@@ -62,8 +52,7 @@ export function PolicyRow({
   onEdit,
   onDelete,
 }: PolicyRowProps) {
-  const statusVariant =
-    status === "active" ? "online" : status === "draft" ? "pending" : "offline";
+  const statusVariant = status === "active" ? "online" : status === "draft" ? "pending" : "offline";
 
   return (
     <div className="card">
@@ -76,9 +65,7 @@ export function PolicyRow({
           </div>
           <p className="text-gray-400 text-sm mb-3">{description}</p>
           <div className="flex flex-wrap gap-2 text-xs">
-            <span className="px-2 py-1 rounded bg-surface-hover text-gray-500">
-              Type: {type}
-            </span>
+            <span className="px-2 py-1 rounded bg-surface-hover text-gray-500">Type: {type}</span>
             {regions && regions.length > 0 && (
               <span className="px-2 py-1 rounded bg-surface-hover text-gray-500">
                 Regions: {regions.join(", ")}

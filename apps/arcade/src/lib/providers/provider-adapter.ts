@@ -32,11 +32,7 @@ export type ProviderId =
 /**
  * Provider health status.
  */
-export type ProviderHealthStatus =
-  | "healthy"
-  | "degraded"
-  | "unhealthy"
-  | "offline";
+export type ProviderHealthStatus = "healthy" | "degraded" | "unhealthy" | "offline";
 
 /**
  * Standardized request to any provider.
@@ -49,11 +45,7 @@ export interface ProviderRequest {
   max_tokens?: number;
   stop_sequences?: string[];
   tools?: ProviderTool[];
-  tool_choice?:
-    | "auto"
-    | "none"
-    | "required"
-    | { type: "function"; name: string };
+  tool_choice?: "auto" | "none" | "required" | { type: "function"; name: string };
   metadata?: Record<string, unknown>;
   stream?: boolean;
 }
@@ -192,10 +184,7 @@ export function defaultProviderHealth(provider: ProviderId): ProviderHealth {
 /**
  * Updates health metrics after a successful request.
  */
-export function recordSuccess(
-  health: ProviderHealth,
-  latencyMs: number,
-): ProviderHealth {
+export function recordSuccess(health: ProviderHealth, latencyMs: number): ProviderHealth {
   const total = health.total_requests + 1;
   const errors = health.total_errors;
   const errorRate = errors / total;
@@ -205,23 +194,15 @@ export function recordSuccess(
   const p50 =
     health.latency_p50_ms === 0
       ? latencyMs
-      : Math.round(
-          health.latency_p50_ms + alpha * (latencyMs - health.latency_p50_ms),
-        );
+      : Math.round(health.latency_p50_ms + alpha * (latencyMs - health.latency_p50_ms));
   const p95 =
     health.latency_p95_ms === 0
       ? latencyMs
-      : Math.round(
-          health.latency_p95_ms +
-            alpha * 1.5 * (latencyMs - health.latency_p95_ms),
-        );
+      : Math.round(health.latency_p95_ms + alpha * 1.5 * (latencyMs - health.latency_p95_ms));
   const p99 =
     health.latency_p99_ms === 0
       ? latencyMs
-      : Math.round(
-          health.latency_p99_ms +
-            alpha * 2 * (latencyMs - health.latency_p99_ms),
-        );
+      : Math.round(health.latency_p99_ms + alpha * 2 * (latencyMs - health.latency_p99_ms));
 
   // Health score calculation
   const latencyScore = Math.max(0, 1 - p95 / 10000); // Penalize if p95 > 10s
@@ -253,10 +234,7 @@ export function recordSuccess(
 /**
  * Updates health metrics after a failed request.
  */
-export function recordFailure(
-  health: ProviderHealth,
-  _error: Error,
-): ProviderHealth {
+export function recordFailure(health: ProviderHealth, _error: Error): ProviderHealth {
   const total = health.total_requests + 1;
   const errors = health.total_errors + 1;
   const errorRate = errors / total;
@@ -308,24 +286,14 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
   initial_delay_ms: 1000,
   max_delay_ms: 30000,
   backoff_multiplier: 2,
-  retryable_errors: [
-    "rate_limit",
-    "timeout",
-    "overloaded",
-    "server_error",
-    "connection_error",
-  ],
+  retryable_errors: ["rate_limit", "timeout", "overloaded", "server_error", "connection_error"],
 };
 
 /**
  * Calculates delay for a retry attempt with exponential backoff.
  */
-export function calculateRetryDelay(
-  attempt: number,
-  config: RetryConfig,
-): number {
-  const delay =
-    config.initial_delay_ms * Math.pow(config.backoff_multiplier, attempt);
+export function calculateRetryDelay(attempt: number, config: RetryConfig): number {
+  const delay = config.initial_delay_ms * Math.pow(config.backoff_multiplier, attempt);
   const jitter = Math.random() * 0.1 * delay; // Add 10% jitter
   return Math.min(delay + jitter, config.max_delay_ms);
 }
@@ -336,9 +304,7 @@ export function calculateRetryDelay(
 export function isRetryableError(error: Error, config: RetryConfig): boolean {
   const errorStr = error.message.toLowerCase();
   return config.retryable_errors.some(
-    (re) =>
-      errorStr.includes(re.toLowerCase()) ||
-      errorStr.includes(re.replace("_", " ")),
+    (re) => errorStr.includes(re.toLowerCase()) || errorStr.includes(re.replace("_", " ")),
   );
 }
 
@@ -376,10 +342,7 @@ export interface ProviderAdapter {
   /**
    * Execute a request to this provider.
    */
-  execute(
-    request: ProviderRequest,
-    options?: ExecutionOptions,
-  ): Promise<ProviderResponse>;
+  execute(request: ProviderRequest, options?: ExecutionOptions): Promise<ProviderResponse>;
 
   /**
    * Check if this provider is available.
@@ -424,10 +387,7 @@ export class ProviderRouter {
 
   register(adapter: ProviderAdapter): void {
     this.adapters.set(adapter.providerId, adapter);
-    this.health.set(
-      adapter.providerId,
-      defaultProviderHealth(adapter.providerId),
-    );
+    this.health.set(adapter.providerId, defaultProviderHealth(adapter.providerId));
     logger.info("Provider registered", { provider: adapter.providerId });
   }
 
@@ -438,10 +398,7 @@ export class ProviderRouter {
     this.defaultProvider = provider;
   }
 
-  async execute(
-    request: ProviderRequest,
-    options?: ExecutionOptions,
-  ): Promise<ProviderResponse> {
+  async execute(request: ProviderRequest, options?: ExecutionOptions): Promise<ProviderResponse> {
     const providers = this.getProviderCascade(options?.fallback);
     let lastError: Error | null = null;
 
@@ -457,10 +414,7 @@ export class ProviderRouter {
 
       try {
         const response = await this.executeWithRetry(adapter, request, options);
-        this.health.set(
-          providerId,
-          recordSuccess(health!, response.latency_ms),
-        );
+        this.health.set(providerId, recordSuccess(health!, response.latency_ms));
         return response;
       } catch (error) {
         lastError = error as Error;
@@ -613,25 +567,16 @@ export const MODEL_PRICING: ModelPricing[] = [
 /**
  * Calculates cost for a request/response.
  */
-export function calculateCost(
-  provider: ProviderId,
-  model: string,
-  usage: ProviderUsage,
-): number {
-  const pricing = MODEL_PRICING.find(
-    (p) => p.provider === provider && p.model === model,
-  );
+export function calculateCost(provider: ProviderId, model: string, usage: ProviderUsage): number {
+  const pricing = MODEL_PRICING.find((p) => p.provider === provider && p.model === model);
 
   if (!pricing) {
     // Default fallback pricing
-    return (
-      (usage.prompt_tokens * 0.001 + usage.completion_tokens * 0.002) / 1000
-    );
+    return (usage.prompt_tokens * 0.001 + usage.completion_tokens * 0.002) / 1000;
   }
 
   const inputCost = (usage.prompt_tokens / 1000) * pricing.input_cost_per_1k;
-  const outputCost =
-    (usage.completion_tokens / 1000) * pricing.output_cost_per_1k;
+  const outputCost = (usage.completion_tokens / 1000) * pricing.output_cost_per_1k;
 
   return Math.round((inputCost + outputCost) * 100000) / 100000;
 }
@@ -684,9 +629,7 @@ export const CostOptimizedFallbackStrategy: FallbackStrategy = {
       .filter((p) => p.provider !== primary)
       .sort(
         (a, b) =>
-          a.input_cost_per_1k +
-          a.output_cost_per_1k -
-          (b.input_cost_per_1k + b.output_cost_per_1k),
+          a.input_cost_per_1k + a.output_cost_per_1k - (b.input_cost_per_1k + b.output_cost_per_1k),
       )
       .map((p) => p.provider);
   },
@@ -774,15 +717,7 @@ export const ProviderRequestSchema = z.object({
 
 export const ProviderResponseSchema = z.object({
   id: z.string(),
-  provider: z.enum([
-    "openai",
-    "anthropic",
-    "google",
-    "mistral",
-    "cohere",
-    "meta",
-    "custom",
-  ]),
+  provider: z.enum(["openai", "anthropic", "google", "mistral", "cohere", "meta", "custom"]),
   model: z.string(),
   choices: z.array(
     z.object({
@@ -801,13 +736,7 @@ export const ProviderResponseSchema = z.object({
   }),
   latency_ms: z.number(),
   cost_usd: z.number(),
-  finish_reason: z.enum([
-    "stop",
-    "length",
-    "tool_calls",
-    "content_filter",
-    "error",
-  ]),
+  finish_reason: z.enum(["stop", "length", "tool_calls", "content_filter", "error"]),
   created_at: z.string().datetime(),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });

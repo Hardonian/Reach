@@ -45,9 +45,7 @@ function verify(reportDir: string): boolean {
   // Load manifest
   let manifest: Manifest;
   try {
-    manifest = JSON.parse(
-      readFileSync(join(resolvedDir, "manifest.json"), "utf8"),
-    );
+    manifest = JSON.parse(readFileSync(join(resolvedDir, "manifest.json"), "utf8"));
   } catch (e) {
     console.error("✗ Failed to parse manifest.json");
     return false;
@@ -59,9 +57,7 @@ function verify(reportDir: string): boolean {
   let outputs: Record<string, unknown> = {};
 
   try {
-    timeline = JSON.parse(
-      readFileSync(join(resolvedDir, "timeline.json"), "utf8"),
-    );
+    timeline = JSON.parse(readFileSync(join(resolvedDir, "timeline.json"), "utf8"));
     env = JSON.parse(readFileSync(join(resolvedDir, "env.json"), "utf8"));
   } catch (e) {
     console.error("✗ Failed to load timeline or env");

@@ -9,13 +9,9 @@ export function AdversarialSafetyMonitor() {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2 text-sm text-[#9dabb9]">
             <span>Console</span>
-            <span className="material-symbols-outlined text-[12px]">
-              chevron_right
-            </span>
+            <span className="material-symbols-outlined text-[12px]">chevron_right</span>
             <span>Governance</span>
-            <span className="material-symbols-outlined text-[12px]">
-              chevron_right
-            </span>
+            <span className="material-symbols-outlined text-[12px]">chevron_right</span>
             <span className="text-white font-medium">Safety Monitor</span>
           </div>
           <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-3">
@@ -31,18 +27,14 @@ export function AdversarialSafetyMonitor() {
             type="button"
             className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#1c2632] border border-[#283442] text-[#9dabb9] hover:text-white transition-all text-sm font-medium"
           >
-            <span className="material-symbols-outlined text-[18px]">
-              calendar_today
-            </span>
+            <span className="material-symbols-outlined text-[18px]">calendar_today</span>
             Last 24 Hours
           </button>
           <button
             type="button"
             className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#137fec] text-white text-sm font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20"
           >
-            <span className="material-symbols-outlined text-[18px]">
-              download
-            </span>
+            <span className="material-symbols-outlined text-[18px]">download</span>
             Export Report
           </button>
         </div>
@@ -89,13 +81,9 @@ export function AdversarialSafetyMonitor() {
                   <p className="text-[#9dabb9] text-sm font-bold uppercase tracking-widest">
                     {kpi.label}
                   </p>
-                  <h3 className="text-3xl font-black text-white tracking-tight">
-                    {kpi.val}
-                  </h3>
+                  <h3 className="text-3xl font-black text-white tracking-tight">{kpi.val}</h3>
                 </div>
-                <div
-                  className={`p-2 bg-${kpi.color}-500/10 rounded-lg text-${kpi.color}-400`}
-                >
+                <div className={`p-2 bg-${kpi.color}-500/10 rounded-lg text-${kpi.color}-400`}>
                   <span className="material-symbols-outlined">{kpi.icon}</span>
                 </div>
               </div>
@@ -123,12 +111,10 @@ export function AdversarialSafetyMonitor() {
               </div>
               <div className="flex gap-4">
                 <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  <span className="w-2 h-2 rounded-full bg-[#137fec]"></span>{" "}
-                  Safe Traffic
+                  <span className="w-2 h-2 rounded-full bg-[#137fec]"></span> Safe Traffic
                 </span>
                 <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  <span className="w-2 h-2 rounded-full bg-red-500"></span>{" "}
-                  Blocked PII
+                  <span className="w-2 h-2 rounded-full bg-red-500"></span> Blocked PII
                 </span>
               </div>
             </div>
@@ -151,9 +137,7 @@ export function AdversarialSafetyMonitor() {
             <div className="flex-1 bg-[#111821] rounded-xl border border-[#283442] relative overflow-hidden flex items-center justify-center p-4">
               {/* Map Placeholder */}
               <div className="text-[#283442]">
-                <span className="material-symbols-outlined text-[120px]">
-                  public
-                </span>
+                <span className="material-symbols-outlined text-[120px]">public</span>
               </div>
               <div className="absolute top-[30%] left-[50%] flex flex-col items-center">
                 <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_12px_rgba(16,185,129,0.8)] animate-pulse"></div>
@@ -179,9 +163,7 @@ export function AdversarialSafetyMonitor() {
           <div className="lg:col-span-2 bg-[#1c2632] border border-[#283442] rounded-xl flex flex-col overflow-hidden">
             <div className="p-6 border-b border-[#283442] bg-[#283442]/20">
               <h3 className="text-lg font-black text-white uppercase tracking-widest flex items-center gap-2">
-                <span className="material-symbols-outlined text-amber-500">
-                  bug_report
-                </span>
+                <span className="material-symbols-outlined text-amber-500">bug_report</span>
                 Prompt Injection Attempts
               </h3>
             </div>
@@ -220,15 +202,9 @@ export function AdversarialSafetyMonitor() {
                     },
                   ].map((attempt, i) => (
                     <tr key={i} className="hover:bg-white/5 transition-colors">
-                      <td className="px-6 py-4 font-mono text-[#9dabb9]">
-                        {attempt.t}
-                      </td>
-                      <td className="px-6 py-4 font-bold text-white">
-                        {attempt.a}
-                      </td>
-                      <td className="px-6 py-4 font-black text-red-400">
-                        {attempt.c}
-                      </td>
+                      <td className="px-6 py-4 font-mono text-[#9dabb9]">{attempt.t}</td>
+                      <td className="px-6 py-4 font-bold text-white">{attempt.a}</td>
+                      <td className="px-6 py-4 font-black text-red-400">{attempt.c}</td>
                       <td className="px-6 py-4 text-right">
                         <span
                           className={`px-2 py-0.5 rounded-full font-black uppercase tracking-widest text-[9px] bg-${attempt.clr}-500/10 text-${attempt.clr}-400 border border-${attempt.clr}-500/20`}
@@ -278,9 +254,7 @@ export function AdversarialSafetyMonitor() {
                     {agent.grade}
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-sm font-bold text-white">
-                      {agent.name}
-                    </h4>
+                    <h4 className="text-sm font-bold text-white">{agent.name}</h4>
                     <div className="w-full bg-[#283442] h-1 rounded-full mt-1">
                       <div
                         className={`bg-${agent.color}-500 h-1 rounded-full`}
@@ -288,9 +262,7 @@ export function AdversarialSafetyMonitor() {
                       ></div>
                     </div>
                   </div>
-                  <span
-                    className={`text-sm font-black text-${agent.color}-400`}
-                  >
+                  <span className={`text-sm font-black text-${agent.color}-400`}>
                     {agent.score}
                   </span>
                 </div>

@@ -7,9 +7,7 @@ export default function ProfilePage() {
     <>
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
         <span>Settings</span>
-        <span className="material-symbols-outlined text-[12px]">
-          chevron_right
-        </span>
+        <span className="material-symbols-outlined text-[12px]">chevron_right</span>
         <span className="text-white">Profile</span>
       </div>
 
@@ -26,20 +24,14 @@ export default function ProfilePage() {
             JD
           </div>
           <div>
-            <button className="btn-secondary text-sm py-1.5 px-3">
-              Change Avatar
-            </button>
-            <p className="text-xs text-gray-500 mt-1">
-              JPG, PNG or GIF. Max 2 MB.
-            </p>
+            <button className="btn-secondary text-sm py-1.5 px-3">Change Avatar</button>
+            <p className="text-xs text-gray-500 mt-1">JPG, PNG or GIF. Max 2 MB.</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">
-              First Name
-            </label>
+            <label className="block text-sm font-medium text-gray-400 mb-1">First Name</label>
             <input
               type="text"
               defaultValue="John"
@@ -47,9 +39,7 @@ export default function ProfilePage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">
-              Last Name
-            </label>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Last Name</label>
             <input
               type="text"
               defaultValue="Doe"
@@ -57,9 +47,7 @@ export default function ProfilePage() {
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-400 mb-1">
-              Email
-            </label>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Email</label>
             <input
               type="email"
               defaultValue="john.doe@acme.corp"
@@ -67,9 +55,7 @@ export default function ProfilePage() {
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-400 mb-1">
-              Organization
-            </label>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Organization</label>
             <input
               type="text"
               defaultValue="Acme Corp"
@@ -79,9 +65,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="mt-6 pt-4 border-t border-border flex justify-end">
-          <button className="btn-primary text-sm py-2 px-4">
-            Save Changes
-          </button>
+          <button className="btn-primary text-sm py-2 px-4">Save Changes</button>
         </div>
       </div>
 
@@ -89,8 +73,7 @@ export default function ProfilePage() {
       <div className="card border-red-500/20">
         <h2 className="text-lg font-semibold text-red-400 mb-2">Danger Zone</h2>
         <p className="text-sm text-gray-400 mb-4">
-          Permanently delete your account and all associated data. This action
-          cannot be undone.
+          Permanently delete your account and all associated data. This action cannot be undone.
         </p>
         <button className="text-sm font-medium text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-500/60 rounded-lg px-4 py-2 transition-colors">
           Delete Account

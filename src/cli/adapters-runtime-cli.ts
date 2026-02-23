@@ -26,9 +26,7 @@ export interface AdaptersRuntimeCliArgs {
   approvedOnly: boolean;
 }
 
-export function parseAdaptersRuntimeArgs(
-  argv: string[],
-): AdaptersRuntimeCliArgs {
+export function parseAdaptersRuntimeArgs(argv: string[]): AdaptersRuntimeCliArgs {
   const result: AdaptersRuntimeCliArgs = {
     command: null,
     format: "json",
@@ -108,9 +106,7 @@ Examples:
 `);
 }
 
-export async function runAdaptersRuntimeCommand(
-  args: AdaptersRuntimeCliArgs,
-): Promise<number> {
+export async function runAdaptersRuntimeCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
   if (!args.command) {
     console.error("Error: No command specified");
     printAdaptersRuntimeHelp();
@@ -135,9 +131,7 @@ export async function runAdaptersRuntimeCommand(
   }
 }
 
-async function runAdapterCommand(
-  args: AdaptersRuntimeCliArgs,
-): Promise<number> {
+async function runAdapterCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
   if (!args.adapterId) {
     console.error("Error: --adapter is required for run command");
     return 1;
@@ -187,9 +181,7 @@ async function runAdapterCommand(
   if (result.quarantined.length > 0) {
     console.log("\nQuarantined observations:");
     for (const q of result.quarantined) {
-      console.log(
-        `  - ${q.observation.observationId}: ${q.reason} (${q.severity})`,
-      );
+      console.log(`  - ${q.observation.observationId}: ${q.reason} (${q.severity})`);
     }
   }
 
@@ -203,10 +195,7 @@ async function runAdapterCommand(
         metrics: result.metrics,
         observations: args.approvedOnly
           ? result.observations
-          : [
-              ...result.observations,
-              ...result.quarantined.map((q) => q.observation),
-            ],
+          : [...result.observations, ...result.quarantined.map((q) => q.observation)],
         quarantined: result.quarantined,
         batch: result.batch,
       };
@@ -276,9 +265,7 @@ async function runIngestCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
   return 0;
 }
 
-async function runQuarantineCommand(
-  args: AdaptersRuntimeCliArgs,
-): Promise<number> {
+async function runQuarantineCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
   const store = createQuarantineStore({ retentionHours: 168 });
 
   console.log("=== Quarantine Status ===\n");

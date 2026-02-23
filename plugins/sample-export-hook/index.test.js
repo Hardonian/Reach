@@ -26,9 +26,7 @@ describe("sample-export-hook plugin", () => {
       expect(Array.isArray(files)).toBe(true);
       expect(files.length).toBeGreaterThan(0);
 
-      const metadataFile = files.find(
-        (f) => f.filename === "plugin-metadata.json",
-      );
+      const metadataFile = files.find((f) => f.filename === "plugin-metadata.json");
       expect(metadataFile).toBeDefined();
     });
 
@@ -44,9 +42,7 @@ describe("sample-export-hook plugin", () => {
       };
       const files = renderer.render(run);
 
-      const metadataFile = files.find(
-        (f) => f.filename === "plugin-metadata.json",
-      );
+      const metadataFile = files.find((f) => f.filename === "plugin-metadata.json");
       const metadata = JSON.parse(metadataFile.content);
 
       expect(metadata).toHaveProperty("export_format_version");

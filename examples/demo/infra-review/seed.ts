@@ -95,10 +95,8 @@ function generateCompliantPlan(): TerraformPlan {
 
 function generateExpensivePlan(): TerraformPlan {
   const plan = generateCompliantPlan();
-  plan.planned_values.root_module.resources[0].values.instance_type =
-    "c5.4xlarge";
-  plan.planned_values.root_module.resources[2].values.instance_class =
-    "db.r5.2xlarge";
+  plan.planned_values.root_module.resources[0].values.instance_type = "c5.4xlarge";
+  plan.planned_values.root_module.resources[2].values.instance_class = "db.r5.2xlarge";
   plan.cost_estimate = {
     monthly_usd: 1847.92,
     breakdown: {

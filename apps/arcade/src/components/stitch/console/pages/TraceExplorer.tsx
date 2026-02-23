@@ -29,9 +29,7 @@ export function TraceExplorer() {
             type="button"
             className="flex items-center gap-2 px-4 py-2 bg-[#161b22] border border-[#30363d] rounded-lg text-[10px] font-black uppercase tracking-widest text-[#9da6b9] hover:text-white transition-all"
           >
-            <span className="material-symbols-outlined text-[18px]">
-              filter_list
-            </span>
+            <span className="material-symbols-outlined text-[18px]">filter_list</span>
             Filters
           </button>
         </div>
@@ -45,8 +43,8 @@ export function TraceExplorer() {
                 Execution Timeline
               </h1>
               <p className="text-[#9da6b9] text-base mt-2 max-w-2xl font-medium">
-                Deep inspection of agency-driven execution steps, deterministic
-                fallbacks, and model-aware routing decisions.
+                Deep inspection of agency-driven execution steps, deterministic fallbacks, and
+                model-aware routing decisions.
               </p>
             </div>
 
@@ -79,8 +77,7 @@ export function TraceExplorer() {
                   title: "Validation Retry",
                   status: "WARNING",
                   time: "1.2s",
-                  details:
-                    "Primary model hallucination detected. Deterministic fallback enabled.",
+                  details: "Primary model hallucination detected. Deterministic fallback enabled.",
                   icon: "schema",
                 },
                 {
@@ -98,9 +95,7 @@ export function TraceExplorer() {
                   className="flex gap-6 relative group cursor-pointer hover:translate-x-1 transition-transform"
                 >
                   <div className="z-10 w-12 h-12 rounded-full border-2 border-[#1e232b] bg-[#0d1117] flex items-center justify-center text-[#3b82f6] shadow-xl group-hover:border-[#3b82f6]/50">
-                    <span className="material-symbols-outlined text-xl">
-                      {step.icon}
-                    </span>
+                    <span className="material-symbols-outlined text-xl">{step.icon}</span>
                   </div>
                   <div className="flex-1 bg-[#161b22] border border-[#30363d] rounded-2xl p-6 transition-all group-hover:border-[#3b82f6]/30">
                     <div className="flex justify-between items-start mb-2">

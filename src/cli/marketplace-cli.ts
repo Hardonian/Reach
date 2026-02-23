@@ -1,12 +1,5 @@
 // @ts-nocheck
-import {
-  readFileSync,
-  writeFileSync,
-  mkdirSync,
-  rmSync,
-  existsSync,
-  readdirSync,
-} from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, readdirSync } from "node:fs";
 import { resolve, join, relative } from "node:path";
 import { homedir } from "node:os";
 import { execFileSync } from "node:child_process";
@@ -60,9 +53,7 @@ export async function runMarketplaceCommand(argv: string[]): Promise<number> {
     }
     console.log(`=== Local Modules (${modules.length}) ===`);
     for (const mod of modules) {
-      const det = mod.deterministicSupport
-        ? "deterministic"
-        : "nondeterministic";
+      const det = mod.deterministicSupport ? "deterministic" : "nondeterministic";
       console.log(`${mod.moduleId}@${mod.version} [${det}]`);
     }
     return 0;
@@ -75,9 +66,7 @@ export async function runMarketplaceCommand(argv: string[]): Promise<number> {
       return 1;
     }
     const changed = revokeModule(moduleId, REVOCATION_PATH);
-    console.log(
-      changed ? `Revoked ${moduleId}` : `Already revoked ${moduleId}`,
-    );
+    console.log(changed ? `Revoked ${moduleId}` : `Already revoked ${moduleId}`);
     return 0;
   }
 
@@ -102,10 +91,7 @@ export async function runMarketplaceCommand(argv: string[]): Promise<number> {
     }
     const pipelineContent = readFileSync(resolve(pipelinePath), "utf8");
     const pipeline = parsePipelineDefinition(pipelineContent);
-    const errors = validatePipelineCompatibility(
-      pipeline,
-      listLocalModules(MODULES_ROOT),
-    );
+    const errors = validatePipelineCompatibility(pipeline, listLocalModules(MODULES_ROOT));
     if (errors.length > 0) {
       for (const error of errors) {
         console.error(`- ${error}`);
@@ -120,9 +106,7 @@ export async function runMarketplaceCommand(argv: string[]): Promise<number> {
   if (command === "export" && argv.includes("--deterministic")) {
     const outputArgIdx = argv.findIndex((arg) => arg === "--out");
     const outPath =
-      outputArgIdx >= 0
-        ? argv[outputArgIdx + 1]
-        : ".zeo/export/zeo-modules-deterministic.tar";
+      outputArgIdx >= 0 ? argv[outputArgIdx + 1] : ".zeo/export/zeo-modules-deterministic.tar";
     if (!outPath) {
       console.error("Usage: zeo export --deterministic [--out <tar-path>]");
       return 1;
@@ -130,12 +114,7 @@ export async function runMarketplaceCommand(argv: string[]): Promise<number> {
     const absOut = resolve(outPath);
     mkdirSync(resolve(dirnameSafe(absOut)), { recursive: true });
 
-    const stageDir = resolve(
-      homedir(),
-      ".zeo",
-      "exports",
-      `stage-${Date.now()}`,
-    );
+    const stageDir = resolve(homedir(), ".zeo", "exports", `stage-${Date.now()}`);
     rmSync(stageDir, { recursive: true, force: true });
     mkdirSync(stageDir, { recursive: true });
 

@@ -17,12 +17,7 @@
   "properties": {
     "orchestration_plan": {
       "type": "object",
-      "required": [
-        "phases",
-        "description",
-        "estimated_complexity",
-        "requires_install"
-      ],
+      "required": ["phases", "description", "estimated_complexity", "requires_install"],
       "properties": {
         "phases": {
           "type": "array",
@@ -47,12 +42,7 @@
     },
     "capability_plan": {
       "type": "object",
-      "required": [
-        "required_capabilities",
-        "side_effect_types",
-        "tier_required",
-        "risk_level"
-      ],
+      "required": ["required_capabilities", "side_effect_types", "tier_required", "risk_level"],
       "properties": {
         "required_capabilities": {
           "type": "array",

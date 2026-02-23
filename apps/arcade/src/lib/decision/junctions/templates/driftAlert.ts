@@ -23,9 +23,7 @@ export interface DriftEvidence {
 /**
  * Evaluate drift evidence for alert junction
  */
-export function evaluateDriftAlert(
-  evidence: DriftEvidence,
-): JunctionTemplateResult {
+export function evaluateDriftAlert(evidence: DriftEvidence): JunctionTemplateResult {
   const traces: string[] = [];
 
   let severityScore = evidence.severity;

@@ -81,9 +81,7 @@ function main() {
 
   // Show expected differences
   log("--- Expected Differences ---");
-  const diff = JSON.parse(
-    readFileSync(resolve(EXAMPLE_DIR, "expected-diff.json"), "utf8"),
-  );
+  const diff = JSON.parse(readFileSync(resolve(EXAMPLE_DIR, "expected-diff.json"), "utf8"));
   log(`Fields changed: ${diff.fields_changed.length}`);
   diff.fields_changed.forEach((f) => {
     log(`  ${f.path}: ${JSON.stringify(f.old)} → ${JSON.stringify(f.new)}`);

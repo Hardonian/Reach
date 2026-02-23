@@ -39,9 +39,7 @@ export default function Contact() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
-          <p className="text-gray-400">
-            Have questions? We'd love to hear from you.
-          </p>
+          <p className="text-gray-400">Have questions? We'd love to hear from you.</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-12">
@@ -57,9 +55,7 @@ export default function Contact() {
                   className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-white placeholder-gray-500 focus:outline-none focus:border-accent"
                   placeholder="Your name"
                   value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
               </div>
 
@@ -71,37 +67,27 @@ export default function Contact() {
                   className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-white placeholder-gray-500 focus:outline-none focus:border-accent"
                   placeholder="you@company.com"
                   value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Company
-                </label>
+                <label className="block text-sm font-medium mb-2">Company</label>
                 <input
                   type="text"
                   className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-white placeholder-gray-500 focus:outline-none focus:border-accent"
                   placeholder="Your company (optional)"
                   value={formData.company}
-                  onChange={(e) =>
-                    setFormData({ ...formData, company: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Interest
-                </label>
+                <label className="block text-sm font-medium mb-2">Interest</label>
                 <select
                   className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-white focus:outline-none focus:border-accent"
                   value={formData.interest}
-                  onChange={(e) =>
-                    setFormData({ ...formData, interest: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, interest: e.target.value })}
                 >
                   <option value="general">General Inquiry</option>
                   <option value="sales">Sales / Enterprise</option>
@@ -111,18 +97,14 @@ export default function Contact() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Message
-                </label>
+                <label className="block text-sm font-medium mb-2">Message</label>
                 <textarea
                   required
                   rows={4}
                   className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-white placeholder-gray-500 focus:outline-none focus:border-accent"
                   placeholder="How can we help?"
                   value={formData.message}
-                  onChange={(e) =>
-                    setFormData({ ...formData, message: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 />
               </div>
 
@@ -137,25 +119,19 @@ export default function Contact() {
             <div className="card">
               <h3 className="font-bold mb-2">📧 Email</h3>
               <p className="text-gray-400">hello@reach.io</p>
-              <p className="text-sm text-gray-500 mt-1">
-                For general inquiries
-              </p>
+              <p className="text-sm text-gray-500 mt-1">For general inquiries</p>
             </div>
 
             <div className="card">
               <h3 className="font-bold mb-2">💼 Sales</h3>
               <p className="text-gray-400">sales@reach.io</p>
-              <p className="text-sm text-gray-500 mt-1">
-                For enterprise inquiries
-              </p>
+              <p className="text-sm text-gray-500 mt-1">For enterprise inquiries</p>
             </div>
 
             <div className="card">
               <h3 className="font-bold mb-2">🛟 Support</h3>
               <p className="text-gray-400">support@reach.io</p>
-              <p className="text-sm text-gray-500 mt-1">
-                For technical assistance
-              </p>
+              <p className="text-sm text-gray-500 mt-1">For technical assistance</p>
             </div>
 
             <div className="card">

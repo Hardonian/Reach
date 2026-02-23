@@ -68,9 +68,7 @@ export async function runSnapshotListCommand(json = false): Promise<number> {
   const core = await import("@zeo/core");
   const ids = core.listSnapshots();
   if (json) {
-    const snapshots = ids
-      .map((id: string) => core.loadSnapshot(id))
-      .filter(Boolean);
+    const snapshots = ids.map((id: string) => core.loadSnapshot(id)).filter(Boolean);
     console.log(JSON.stringify(snapshots, null, 2));
     return 0;
   }
@@ -91,9 +89,7 @@ export async function runSnapshotListCommand(json = false): Promise<number> {
   return 0;
 }
 
-export async function runSnapshotRestoreCommand(
-  snapshotId: string,
-): Promise<number> {
+export async function runSnapshotRestoreCommand(snapshotId: string): Promise<number> {
   const core = await import("@zeo/core");
   const snapshot = core.loadSnapshot(snapshotId);
   if (!snapshot) {
@@ -103,9 +99,7 @@ export async function runSnapshotRestoreCommand(
 
   const validation = core.validateSnapshotEnvironment(snapshot);
   if (validation.ok === false) {
-    console.error(
-      `Cannot restore snapshot due to environment mismatch: ${validation.reason}`,
-    );
+    console.error(`Cannot restore snapshot due to environment mismatch: ${validation.reason}`);
     return 1;
   }
 
@@ -117,21 +111,14 @@ export async function runSnapshotRestoreCommand(
     snapshotId: snapshot.snapshotId,
     restoredAt: new Date().toISOString(),
   };
-  writeFileSync(
-    statePointerPath(),
-    `${JSON.stringify(pointer, null, 2)}\n`,
-    "utf8",
-  );
+  writeFileSync(statePointerPath(), `${JSON.stringify(pointer, null, 2)}\n`, "utf8");
   console.log(
     `Restored snapshot ${snapshot.snapshotId} at execution pointer ${snapshot.executionPointer.step}.`,
   );
   return 0;
 }
 
-export async function runReplayFromStepCommand(
-  runId: string,
-  argv: string[],
-): Promise<number> {
+export async function runReplayFromStepCommand(runId: string, argv: string[]): Promise<number> {
   const { replayRun, formatReplayResult } = await import("@zeo/core");
   const fromStep = parseFromStep(argv);
   const result = replayRun(runId, undefined, fromStep);

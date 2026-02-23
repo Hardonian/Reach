@@ -34,13 +34,7 @@ export function PackDiscovery({ onSelect, selectedId }: PackDiscoveryProps) {
     });
   }, [filter, search]);
 
-  const FilterButton = ({
-    type,
-    label,
-  }: {
-    type: FilterType;
-    label: string;
-  }) => {
+  const FilterButton = ({ type, label }: { type: FilterType; label: string }) => {
     const isChecked = filter === type;
     return (
       <button
@@ -70,11 +64,7 @@ export function PackDiscovery({ onSelect, selectedId }: PackDiscoveryProps) {
             className="search-input"
           />
 
-          <div
-            className="filter-chips"
-            role="group"
-            aria-label="Filter capabilities"
-          >
+          <div className="filter-chips" role="group" aria-label="Filter capabilities">
             <FilterButton type="all" label="All" />
             <FilterButton type="verified" label="Verified" />
             <FilterButton type="safe" label="Safe" />
@@ -88,10 +78,7 @@ export function PackDiscovery({ onSelect, selectedId }: PackDiscoveryProps) {
       {/* Grid */}
       {filteredPacks.length === 0 ? (
         <div className="discovery-grid">
-          <div
-            className="col-span-full py-12 text-center text-tertiary"
-            role="status"
-          >
+          <div className="col-span-full py-12 text-center text-tertiary" role="status">
             <div className="text-3xl mb-4" aria-hidden="true">
               🕸️
             </div>
@@ -101,11 +88,7 @@ export function PackDiscovery({ onSelect, selectedId }: PackDiscoveryProps) {
       ) : (
         <div className="discovery-grid" role="list">
           {filteredPacks.map((pack) => (
-            <div
-              key={pack.id}
-              className="animate-in fade-in zoom-in duration-300"
-              role="listitem"
-            >
+            <div key={pack.id} className="animate-in fade-in zoom-in duration-300" role="listitem">
               <PackCard
                 pack={pack}
                 onClick={() => onSelect(pack)}

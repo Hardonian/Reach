@@ -34,9 +34,7 @@ describe("MarketplaceClient", () => {
     const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({}) }));
     vi.stubGlobal("fetch", fetchMock);
     const client = new MarketplaceClient(() => "http://localhost:8092");
-    await client.install("connector", "conn.github", "1.0.0", "idem-key", [
-      "filesystem:read",
-    ]);
+    await client.install("connector", "conn.github", "1.0.0", "idem-key", ["filesystem:read"]);
     expect(fetchMock).toHaveBeenCalledWith(
       "http://localhost:8092/v1/marketplace/install",
       expect.objectContaining({ method: "POST" }),

@@ -6,13 +6,7 @@
  */
 
 import { createHash, generateKeyPairSync } from "node:crypto";
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 // ---------------------------------------------------------------------------
@@ -61,9 +55,7 @@ function hashInput(input: any): string {
     dependsOn: input?.dependsOn,
     informs: input?.informs,
   };
-  return createHash("sha256")
-    .update(JSON.stringify(stablePayload))
-    .digest("hex");
+  return createHash("sha256").update(JSON.stringify(stablePayload)).digest("hex");
 }
 
 export function executeDecision(input: any): { result: any; transcript: any } {
@@ -80,10 +72,7 @@ export function executeDecision(input: any): { result: any; transcript: any } {
       flip_distances: [] as Array<{ action: string; distance: string }>,
     },
     plan: {
-      stop_conditions: [
-        "All high-severity findings resolved",
-        "Evidence completeness >= 90%",
-      ],
+      stop_conditions: ["All high-severity findings resolved", "Evidence completeness >= 90%"],
     },
   };
   const result = {
@@ -116,9 +105,7 @@ export function createEnvelope(
   transcript: Record<string, unknown>,
   metadata: Record<string, unknown>,
 ): Envelope {
-  const hash = createHash("sha256")
-    .update(JSON.stringify(transcript))
-    .digest("hex");
+  const hash = createHash("sha256").update(JSON.stringify(transcript)).digest("hex");
   return {
     transcript_hash: hash,
     transcript,
@@ -136,21 +123,13 @@ export function signEnvelopeWithEd25519(
   const pem = readFileSync(resolve(keyPath), "utf8");
   const data = Buffer.from(envelope.transcript_hash, "utf8");
   const { sign: cryptoSign } = require("node:crypto");
-  const signature = cryptoSign(
-    null,
-    data,
-    passphrase ? { key: pem, passphrase } : pem,
-  ).toString("hex");
-  const fingerprint = createHash("sha256")
-    .update(pem)
-    .digest("hex")
-    .slice(0, 16);
+  const signature = cryptoSign(null, data, passphrase ? { key: pem, passphrase } : pem).toString(
+    "hex",
+  );
+  const fingerprint = createHash("sha256").update(pem).digest("hex").slice(0, 16);
   return {
     ...envelope,
-    signatures: [
-      ...envelope.signatures,
-      { signer_fingerprint: fingerprint, algorithm, signature },
-    ],
+    signatures: [...envelope.signatures, { signer_fingerprint: fingerprint, algorithm, signature }],
   };
 }
 
@@ -169,22 +148,14 @@ export function generateEd25519Keypair(
       : { type: "pkcs8", format: "pem" },
   });
   writeFileSync(resolve(keyPath), privateKey, "utf8");
-  const fingerprint = createHash("sha256")
-    .update(privateKey)
-    .digest("hex")
-    .slice(0, 16);
+  const fingerprint = createHash("sha256").update(privateKey).digest("hex").slice(0, 16);
   return { fingerprint, publicKeyPem: publicKey };
 }
 
-export function exportPublicKeyFromPrivate(
-  keyPath: string,
-  passphrase?: string,
-): string {
+export function exportPublicKeyFromPrivate(keyPath: string, passphrase?: string): string {
   const pem = readFileSync(resolve(keyPath), "utf8");
   const { createPublicKey } = require("node:crypto");
-  const pub = createPublicKey(
-    passphrase ? { key: pem, format: "pem", passphrase } : pem,
-  );
+  const pub = createPublicKey(passphrase ? { key: pem, format: "pem", passphrase } : pem);
   return pub.export({ type: "spki", format: "pem" }) as string;
 }
 
@@ -212,19 +183,13 @@ export function verifyEnvelope(
   envelope: Envelope,
   pubKeyResolver: (() => string) | string,
 ): { ok: boolean; signerFingerprints: string[] } {
-  const pubPem =
-    typeof pubKeyResolver === "function" ? pubKeyResolver() : pubKeyResolver;
+  const pubPem = typeof pubKeyResolver === "function" ? pubKeyResolver() : pubKeyResolver;
   const fingerprints = envelope.signatures.map((s) => s.signer_fingerprint);
   const ok = envelope.signatures.every((sig) => {
     try {
       const { verify: cryptoVerify } = require("node:crypto");
       const data = Buffer.from(envelope.transcript_hash, "utf8");
-      return cryptoVerify(
-        null,
-        data,
-        pubPem,
-        Buffer.from(sig.signature, "hex"),
-      );
+      return cryptoVerify(null, data, pubPem, Buffer.from(sig.signature, "hex"));
     } catch {
       return false;
     }
@@ -263,10 +228,7 @@ export function addPublicKeyToKeyring(
   notes?: string,
 ): { fingerprint: string; label: string } {
   if (!existsSync(keyringDir)) mkdirSync(keyringDir, { recursive: true });
-  const fingerprint = createHash("sha256")
-    .update(pubPem)
-    .digest("hex")
-    .slice(0, 16);
+  const fingerprint = createHash("sha256").update(pubPem).digest("hex").slice(0, 16);
   const entry = {
     fingerprint,
     publicKey: pubPem,
@@ -274,11 +236,7 @@ export function addPublicKeyToKeyring(
     notes: notes ?? "",
     addedAt: new Date(resolveTimestamp()).toISOString(),
   };
-  writeFileSync(
-    join(keyringDir, `${fingerprint}.json`),
-    JSON.stringify(entry, null, 2),
-    "utf8",
-  );
+  writeFileSync(join(keyringDir, `${fingerprint}.json`), JSON.stringify(entry, null, 2), "utf8");
   return { fingerprint, label: entry.label };
 }
 
@@ -304,10 +262,7 @@ export function revokeKeyringEntry(
 ): { revoked: boolean; fingerprint: string } {
   const entryPath = join(keyringDir, `${fingerprint}.json`);
   if (!existsSync(entryPath)) return { revoked: false, fingerprint };
-  const entry = JSON.parse(readFileSync(entryPath, "utf8")) as Record<
-    string,
-    unknown
-  >;
+  const entry = JSON.parse(readFileSync(entryPath, "utf8")) as Record<string, unknown>;
   entry.revoked = true;
   writeFileSync(entryPath, JSON.stringify(entry, null, 2), "utf8");
   return { revoked: true, fingerprint };
@@ -350,9 +305,7 @@ export function recordTrustEvent(
   });
   writeFileSync(
     file,
-    existsSync(file)
-      ? `${readFileSync(file, "utf8").trimEnd()}\n${line}\n`
-      : `${line}\n`,
+    existsSync(file) ? `${readFileSync(file, "utf8").trimEnd()}\n${line}\n` : `${line}\n`,
     "utf8",
   );
 }
@@ -369,10 +322,7 @@ export function compactTrustProfiles(root: string): Array<{
     .filter((f) => f.endsWith(".ndjson"))
     .sort()
     .map((f) => {
-      const lines = readFileSync(join(dir, f), "utf8")
-        .trim()
-        .split("\n")
-        .filter(Boolean);
+      const lines = readFileSync(join(dir, f), "utf8").trim().split("\n").filter(Boolean);
       const events = lines.map(
         (l) =>
           JSON.parse(l) as {
@@ -391,10 +341,7 @@ export function compactTrustProfiles(root: string): Array<{
     });
 }
 
-export function deriveTrustTier(profile: {
-  pass_count: number;
-  fail_count: number;
-}): string {
+export function deriveTrustTier(profile: { pass_count: number; fail_count: number }): string {
   if (profile.fail_count > 0) return "untrusted";
   if (profile.pass_count >= 10) return "established";
   if (profile.pass_count >= 3) return "provisional";

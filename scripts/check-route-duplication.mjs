@@ -52,9 +52,7 @@ for (const domain of CANONICAL_DOMAINS) {
   const dir = path.join(appDir, domain);
   const pagePath = path.join(dir, "page.tsx");
   if (!fs.existsSync(pagePath)) {
-    console.error(
-      `  MISSING: ${domain}/page.tsx — canonical route has no page`,
-    );
+    console.error(`  MISSING: ${domain}/page.tsx — canonical route has no page`);
     errors++;
   } else {
     console.log(`  OK: ${domain}/page.tsx`);
@@ -70,12 +68,7 @@ function findPageFiles(dir, prefix = "") {
   if (!fs.existsSync(dir)) return results;
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   for (const entry of entries) {
-    if (
-      entry.name === "node_modules" ||
-      entry.name === ".next" ||
-      entry.name === "api"
-    )
-      continue;
+    if (entry.name === "node_modules" || entry.name === ".next" || entry.name === "api") continue;
     const fullPath = path.join(dir, entry.name);
     const relPath = prefix ? `${prefix}/${entry.name}` : entry.name;
     if (entry.isDirectory()) {
@@ -111,12 +104,8 @@ for (const name of routeNames) {
     if (other === name) continue;
     if (other.startsWith(name + "-") || name.startsWith(other + "-")) {
       if (!ALLOWED_ALIASES.has(name) && !ALLOWED_ALIASES.has(other)) {
-        console.error(
-          `  DUPLICATE?: "${name}" and "${other}" look like route duplicates`,
-        );
-        console.error(
-          `    If intentional, add to ALLOWED_ALIASES in check-route-duplication.mjs`,
-        );
+        console.error(`  DUPLICATE?: "${name}" and "${other}" look like route duplicates`);
+        console.error(`    If intentional, add to ALLOWED_ALIASES in check-route-duplication.mjs`);
         errors++;
       } else {
         console.log(`  OK (allowed alias): ${name} / ${other}`);
@@ -134,16 +123,12 @@ const consoleLayoutPath = path.join(
 );
 if (fs.existsSync(consoleLayoutPath)) {
   const content = fs.readFileSync(consoleLayoutPath, "utf-8");
-  const hrefMatches = [
-    ...content.matchAll(/href:\s*(?:ROUTES\.\w+(?:\.\w+)*|['"]([^'"]+)['"])/g),
-  ];
+  const hrefMatches = [...content.matchAll(/href:\s*(?:ROUTES\.\w+(?:\.\w+)*|['"]([^'"]+)['"])/g)];
   const hrefs = hrefMatches.map((m) => m[0]);
   const hrefSet = new Set();
   for (const href of hrefs) {
     if (hrefSet.has(href)) {
-      console.error(
-        `  DUPLICATE NAV: ${href} appears multiple times in ConsoleLayout`,
-      );
+      console.error(`  DUPLICATE NAV: ${href} appears multiple times in ConsoleLayout`);
       errors++;
     }
     hrefSet.add(href);

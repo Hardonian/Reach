@@ -68,25 +68,17 @@ export default function ChangelogPage() {
 
         <div className="space-y-12">
           {entries.map((entry) => (
-            <article
-              key={entry.version}
-              className="relative pl-8 border-l border-border"
-            >
+            <article key={entry.version} className="relative pl-8 border-l border-border">
               <div className="absolute left-0 top-0 w-3 h-3 rounded-full bg-accent -translate-x-[7px]" />
               <div className="flex items-center gap-3 mb-2 flex-wrap">
-                <span className="text-xs font-mono text-gray-500">
-                  v{entry.version}
-                </span>
+                <span className="text-xs font-mono text-gray-500">v{entry.version}</span>
                 <span className="text-xs text-gray-500">{entry.date}</span>
                 <span className={`${entry.tagColor} text-xs`}>{entry.tag}</span>
               </div>
               <h2 className="text-xl font-bold mb-3">{entry.title}</h2>
               <ul className="space-y-1.5">
                 {entry.items.map((item) => (
-                  <li
-                    key={item}
-                    className="text-sm text-gray-400 flex items-start gap-2"
-                  >
+                  <li key={item} className="text-sm text-gray-400 flex items-start gap-2">
                     <span className="text-accent mt-0.5">·</span>
                     {item}
                   </li>

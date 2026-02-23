@@ -13,9 +13,7 @@ export function Footer() {
               <div className="w-8 h-8 rounded-lg flex items-center justify-center logo-gradient">
                 <span className="text-white font-bold text-lg">R</span>
               </div>
-              <span className="font-bold text-xl text-gradient">
-                {BRAND_NAME}
-              </span>
+              <span className="font-bold text-xl text-gradient">{BRAND_NAME}</span>
             </div>
             <p className="text-gray-400 text-sm max-w-sm">
               Ship reliable AI agents. Run a readiness check in minutes.
@@ -30,42 +28,27 @@ export function Footer() {
             <h4 className="font-semibold mb-4">Product</h4>
             <ul className="space-y-2 text-sm text-gray-400">
               <li>
-                <Link
-                  href={ROUTES.PLAYGROUND}
-                  className="hover:text-white transition-colors"
-                >
+                <Link href={ROUTES.PLAYGROUND} className="hover:text-white transition-colors">
                   Playground
                 </Link>
               </li>
               <li>
-                <Link
-                  href={ROUTES.LAB}
-                  className="hover:text-white transition-colors"
-                >
+                <Link href={ROUTES.LAB} className="hover:text-white transition-colors">
                   Lab
                 </Link>
               </li>
               <li>
-                <Link
-                  href={ROUTES.TEMPLATES}
-                  className="hover:text-white transition-colors"
-                >
+                <Link href={ROUTES.TEMPLATES} className="hover:text-white transition-colors">
                   Templates
                 </Link>
               </li>
               <li>
-                <Link
-                  href={ROUTES.DOCS}
-                  className="hover:text-white transition-colors"
-                >
+                <Link href={ROUTES.DOCS} className="hover:text-white transition-colors">
                   Docs
                 </Link>
               </li>
               <li>
-                <Link
-                  href={ROUTES.PRICING}
-                  className="hover:text-white transition-colors"
-                >
+                <Link href={ROUTES.PRICING} className="hover:text-white transition-colors">
                   Pricing
                 </Link>
               </li>
@@ -77,50 +60,32 @@ export function Footer() {
             <h4 className="font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-sm text-gray-400">
               <li>
-                <Link
-                  href={ROUTES.SUPPORT}
-                  className="hover:text-white transition-colors"
-                >
+                <Link href={ROUTES.SUPPORT} className="hover:text-white transition-colors">
                   Support
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/support/status"
-                  className="hover:text-white transition-colors"
-                >
+                <Link href="/support/status" className="hover:text-white transition-colors">
                   Status
                 </Link>
               </li>
               <li>
-                <Link
-                  href={ROUTES.CHANGELOG}
-                  className="hover:text-white transition-colors"
-                >
+                <Link href={ROUTES.CHANGELOG} className="hover:text-white transition-colors">
                   Changelog
                 </Link>
               </li>
               <li>
-                <Link
-                  href={ROUTES.SECURITY}
-                  className="hover:text-white transition-colors"
-                >
+                <Link href={ROUTES.SECURITY} className="hover:text-white transition-colors">
                   Security
                 </Link>
               </li>
               <li>
-                <Link
-                  href={ROUTES.FAQ}
-                  className="hover:text-white transition-colors"
-                >
+                <Link href={ROUTES.FAQ} className="hover:text-white transition-colors">
                   FAQ
                 </Link>
               </li>
               <li>
-                <Link
-                  href={ROUTES.CONTACT}
-                  className="hover:text-white transition-colors"
-                >
+                <Link href={ROUTES.CONTACT} className="hover:text-white transition-colors">
                   Contact
                 </Link>
               </li>
@@ -133,22 +98,13 @@ export function Footer() {
             &copy; {new Date().getFullYear()} {BRAND_NAME}. All rights reserved.
           </p>
           <div className="flex gap-6">
-            <Link
-              href={ROUTES.TRUST.HOME}
-              className="hover:text-white transition-colors"
-            >
+            <Link href={ROUTES.TRUST.HOME} className="hover:text-white transition-colors">
               Trust Center
             </Link>
-            <Link
-              href={ROUTES.TRUST.PRIVACY}
-              className="hover:text-white transition-colors"
-            >
+            <Link href={ROUTES.TRUST.PRIVACY} className="hover:text-white transition-colors">
               Privacy
             </Link>
-            <Link
-              href={ROUTES.TRUST.TERMS}
-              className="hover:text-white transition-colors"
-            >
+            <Link href={ROUTES.TRUST.TERMS} className="hover:text-white transition-colors">
               Terms
             </Link>
           </div>

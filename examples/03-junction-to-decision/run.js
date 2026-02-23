@@ -54,32 +54,24 @@ function main() {
   // Display policies
   log("--- Policies ---");
   policies.policies.forEach((p) => {
-    const icon =
-      p.severity === "blocking" ? "🔴" : p.severity === "warning" ? "🟡" : "🟢";
+    const icon = p.severity === "blocking" ? "🔴" : p.severity === "warning" ? "🟡" : "🟢";
     log(`${icon} ${p.id}: ${p.description}`);
-    log(
-      `   Rule: ${p.rule.field} ${p.rule.operator} ${JSON.stringify(p.rule.value)}`,
-    );
+    log(`   Rule: ${p.rule.field} ${p.rule.operator} ${JSON.stringify(p.rule.value)}`);
     log();
   });
 
   // Show evaluation
   log("--- Evaluation ---");
   junction.options.forEach((opt) => {
-    const passesMinConf =
-      opt.confidence >= junction.selection_criteria.minimum_confidence;
-    const passesRollback = ["instant", "fast"].includes(
-      opt.constraints.rollback_time,
-    );
+    const passesMinConf = opt.confidence >= junction.selection_criteria.minimum_confidence;
+    const passesRollback = ["instant", "fast"].includes(opt.constraints.rollback_time);
     const overall = passesMinConf && passesRollback ? "✅ PASS" : "❌ FAIL";
 
     log(`${opt.id}: ${overall}`);
     log(
       `  Confidence check: ${passesMinConf ? "✓" : "✗"} (${opt.confidence} >= ${junction.selection_criteria.minimum_confidence})`,
     );
-    log(
-      `  Rollback check: ${passesRollback ? "✓" : "✗"} (${opt.constraints.rollback_time})`,
-    );
+    log(`  Rollback check: ${passesRollback ? "✓" : "✗"} (${opt.constraints.rollback_time})`);
     log();
   });
 

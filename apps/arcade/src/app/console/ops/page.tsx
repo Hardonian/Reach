@@ -43,9 +43,9 @@ export default function OpsPage() {
     },
   ]);
   const [concurrencyCap, setConcurrencyCap] = useState(50);
-  const [auditLog, setAuditLog] = useState<
-    Array<{ time: string; action: string; user: string }>
-  >([]);
+  const [auditLog, setAuditLog] = useState<Array<{ time: string; action: string; user: string }>>(
+    [],
+  );
 
   const handleToggle = (id: string) => {
     setToggles((prev) =>
@@ -65,17 +65,14 @@ export default function OpsPage() {
     );
   };
 
-  const isDegraded =
-    systemMode === "degraded" || toggles.some((t) => t.enabled);
+  const isDegraded = systemMode === "degraded" || toggles.some((t) => t.enabled);
 
   return (
     <ConsoleLayout>
       <DegradedBanner visible={isDegraded} />
       <div className="p-6 lg:p-10 max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-            Operations Controls
-          </h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Operations Controls</h1>
           <p className="text-sm text-slate-500 mt-1">
             Admin-only controls for system safety. All changes are audited.
           </p>
@@ -132,9 +129,7 @@ export default function OpsPage() {
                 type="button"
                 onClick={() => handleToggle(toggle.id)}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-                  toggle.enabled
-                    ? "bg-amber-500"
-                    : "bg-slate-300 dark:bg-slate-600"
+                  toggle.enabled ? "bg-amber-500" : "bg-slate-300 dark:bg-slate-600"
                 }`}
                 role="switch"
                 aria-checked={toggle.enabled}

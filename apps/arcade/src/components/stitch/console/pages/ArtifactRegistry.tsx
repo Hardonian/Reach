@@ -17,10 +17,7 @@ interface Artifact {
   expired: boolean;
 }
 
-const RETENTION_LABELS: Record<
-  RetentionTier,
-  { label: string; days: number; color: string }
-> = {
+const RETENTION_LABELS: Record<RetentionTier, { label: string; days: number; color: string }> = {
   short: { label: "7d", days: 7, color: "slate" },
   standard: { label: "30d", days: 30, color: "blue" },
   extended: { label: "90d", days: 90, color: "purple" },
@@ -119,9 +116,7 @@ export function ArtifactRegistry() {
             type="button"
             className="flex items-center gap-2 bg-[#135bec] hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20"
           >
-            <span className="material-symbols-outlined text-[18px]">
-              upload
-            </span>
+            <span className="material-symbols-outlined text-[18px]">upload</span>
             Upload Artifact
           </button>
         </div>
@@ -138,9 +133,7 @@ export function ArtifactRegistry() {
             },
             {
               label: "Signed",
-              value: String(
-                artifacts.filter((a) => a.status === "Signed").length,
-              ),
+              value: String(artifacts.filter((a) => a.status === "Signed").length),
               color: "emerald",
             },
             {
@@ -157,9 +150,7 @@ export function ArtifactRegistry() {
               <p className="text-[10px] font-black uppercase tracking-widest text-[#9da6b9] mb-2">
                 {stat.label}
               </p>
-              <p className={`text-3xl font-black text-${stat.color}-400`}>
-                {stat.value}
-              </p>
+              <p className={`text-3xl font-black text-${stat.color}-400`}>{stat.value}</p>
             </div>
           ))}
         </div>
@@ -178,9 +169,7 @@ export function ArtifactRegistry() {
           </div>
           <select
             value={filterTier}
-            onChange={(e) =>
-              setFilterTier(e.target.value as RetentionTier | "all")
-            }
+            onChange={(e) => setFilterTier(e.target.value as RetentionTier | "all")}
             className="bg-[#1e293b] border border-slate-700/50 rounded-xl px-4 py-3 text-sm text-[#9da6b9] focus:outline-none focus:ring-1 focus:ring-[#135bec]"
             aria-label="Filter by retention tier"
           >
@@ -218,10 +207,7 @@ export function ArtifactRegistry() {
             <tbody className="divide-y divide-slate-800 text-xs">
               {filtered.length === 0 && (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="px-8 py-12 text-center text-slate-500"
-                  >
+                  <td colSpan={8} className="px-8 py-12 text-center text-slate-500">
                     <span className="material-symbols-outlined text-[32px] mb-2 block">
                       inventory_2
                     </span>
@@ -248,9 +234,7 @@ export function ArtifactRegistry() {
                     <td className="px-8 py-5 text-[#9da6b9] font-bold uppercase tracking-widest text-[10px]">
                       {artifact.type}
                     </td>
-                    <td className="px-8 py-5 text-[#9da6b9]">
-                      {artifact.size}
-                    </td>
+                    <td className="px-8 py-5 text-[#9da6b9]">{artifact.size}</td>
                     <td className="px-8 py-5">
                       <span
                         className={`px-2 py-0.5 rounded-full font-black uppercase tracking-widest text-[9px] bg-${color}-500/10 text-${color}-400 border border-${color}-500/20`}
@@ -283,18 +267,14 @@ export function ArtifactRegistry() {
                               : "Download"
                           }
                         >
-                          <span className="material-symbols-outlined text-[18px]">
-                            download
-                          </span>
+                          <span className="material-symbols-outlined text-[18px]">download</span>
                         </button>
                         <button
                           type="button"
                           className="text-slate-400 hover:text-red-400 p-1"
                           title="Delete (admin only)"
                         >
-                          <span className="material-symbols-outlined text-[18px]">
-                            delete
-                          </span>
+                          <span className="material-symbols-outlined text-[18px]">delete</span>
                         </button>
                       </div>
                     </td>

@@ -23,11 +23,7 @@ const REPO_ROOT = path.resolve(__dirname_compat, "..");
  * Presentation-layer paths to scan (relative to REPO_ROOT).
  * Only user-visible files are included.
  */
-const PRESENTATION_PATHS = [
-  "apps/arcade/src/app",
-  "apps/arcade/src/components",
-  "README.md",
-];
+const PRESENTATION_PATHS = ["apps/arcade/src/app", "apps/arcade/src/components", "README.md"];
 
 /**
  * Patterns that are permitted to contain "Reach" because they are
@@ -74,9 +70,7 @@ function isAllowed(line: string): boolean {
   return ALLOWED_PATTERNS.some((p) => p.test(line));
 }
 
-function scanFile(
-  filePath: string,
-): { file: string; line: number; text: string }[] {
+function scanFile(filePath: string): { file: string; line: number; text: string }[] {
   const content = fs.readFileSync(filePath, "utf-8");
   const lines = content.split("\n");
   const violations: { file: string; line: number; text: string }[] = [];
@@ -125,9 +119,7 @@ function collectFiles(targetPath: string): string[] {
 const expectedBrand = process.env.NEXT_PUBLIC_BRAND_NAME ?? "ReadyLayer";
 
 if (expectedBrand === "Reach") {
-  console.log(
-    "validate:brand — SKIP: rollback mode active (NEXT_PUBLIC_BRAND_NAME=Reach)",
-  );
+  console.log("validate:brand — SKIP: rollback mode active (NEXT_PUBLIC_BRAND_NAME=Reach)");
   process.exit(0);
 }
 

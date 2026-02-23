@@ -3,35 +3,29 @@ export default function Webhooks() {
     <div className="section-container py-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <a
-            href="/docs"
-            className="text-gray-400 hover:text-white transition-colors"
-          >
+          <a href="/docs" className="text-gray-400 hover:text-white transition-colors">
             ← Back to Documentation
           </a>
         </div>
 
         <h1 className="text-4xl font-bold mb-4">Webhooks</h1>
         <p className="text-gray-400 mb-8">
-          Receive real-time notifications when events occur in your ReadyLayer
-          environment.
+          Receive real-time notifications when events occur in your ReadyLayer environment.
         </p>
 
         <div className="space-y-8">
           <section className="card">
             <h2 className="text-xl font-bold mb-4">What are Webhooks?</h2>
             <p className="text-gray-400">
-              Webhooks allow you to receive HTTP callbacks when specific events
-              happen in ReadyLayer. Instead of polling for changes, webhooks
-              push event data to your endpoint in real-time.
+              Webhooks allow you to receive HTTP callbacks when specific events happen in
+              ReadyLayer. Instead of polling for changes, webhooks push event data to your endpoint
+              in real-time.
             </p>
           </section>
 
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Creating a Webhook</h2>
-            <p className="text-gray-400 mb-4">
-              Register a webhook endpoint using the API:
-            </p>
+            <p className="text-gray-400 mb-4">Register a webhook endpoint using the API:</p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>POST /v1/webhooks</p>
               <p>Content-Type: application/json</p>
@@ -128,8 +122,8 @@ export default function Webhooks() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Retry Policy</h2>
             <p className="text-gray-400 mb-4">
-              If your endpoint returns a non-2xx status code, ReadyLayer will
-              retry with exponential backoff:
+              If your endpoint returns a non-2xx status code, ReadyLayer will retry with exponential
+              backoff:
             </p>
             <div className="bg-black/50 p-4 rounded-lg text-gray-400">
               <div className="flex justify-between py-2 border-b border-gray-700">
@@ -156,9 +150,7 @@ export default function Webhooks() {
             <ul className="space-y-2 text-gray-400">
               <li>• Respond quickly (within 5 seconds) to avoid timeouts</li>
               <li>• Process webhooks asynchronously for long-running tasks</li>
-              <li>
-                • Store webhook events before processing to prevent data loss
-              </li>
+              <li>• Store webhook events before processing to prevent data loss</li>
               <li>• Implement idempotency to handle duplicate deliveries</li>
               <li>• Use HTTPS endpoints only</li>
               <li>• Verify signatures to ensure authenticity</li>
@@ -168,9 +160,7 @@ export default function Webhooks() {
 
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Testing Webhooks</h2>
-            <p className="text-gray-400 mb-4">
-              Use the CLI to test webhook delivery:
-            </p>
+            <p className="text-gray-400 mb-4">Use the CLI to test webhook delivery:</p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>{`# Send a test event`}</p>
               <p>reach webhooks test WEBHOOK_ID --event agent.executed</p>

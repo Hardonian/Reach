@@ -3,27 +3,24 @@ export default function Pipelines() {
     <div className="section-container py-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <a
-            href="/docs"
-            className="text-gray-400 hover:text-white transition-colors"
-          >
+          <a href="/docs" className="text-gray-400 hover:text-white transition-colors">
             ← Back to Documentation
           </a>
         </div>
 
         <h1 className="text-4xl font-bold mb-4">Pipelines</h1>
         <p className="text-gray-400 mb-8">
-          Build multi-step workflows by connecting agents, tools, and data
-          sources into executable pipelines.
+          Build multi-step workflows by connecting agents, tools, and data sources into executable
+          pipelines.
         </p>
 
         <div className="space-y-8">
           <section className="card">
             <h2 className="text-xl font-bold mb-4">What are Pipelines?</h2>
             <p className="text-gray-400">
-              Pipelines in ReadyLayer are declarative workflows that define how
-              data flows between agents and services. They enable you to compose
-              complex operations from simple, reusable components.
+              Pipelines in ReadyLayer are declarative workflows that define how data flows between
+              agents and services. They enable you to compose complex operations from simple,
+              reusable components.
             </p>
           </section>
 
@@ -55,10 +52,7 @@ export default function Pipelines() {
             <div className="space-y-4 text-gray-400">
               <div>
                 <h3 className="font-semibold text-white">Steps</h3>
-                <p>
-                  Individual operations in a pipeline. Each step invokes an
-                  agent or service.
-                </p>
+                <p>Individual operations in a pipeline. Each step invokes an agent or service.</p>
               </div>
               <div>
                 <h3 className="font-semibold text-white">Inputs & Outputs</h3>
@@ -70,16 +64,13 @@ export default function Pipelines() {
               <div>
                 <h3 className="font-semibold text-white">Triggers</h3>
                 <p>
-                  Events that start pipeline execution: HTTP requests,
-                  schedules, webhooks, or agent outputs.
+                  Events that start pipeline execution: HTTP requests, schedules, webhooks, or agent
+                  outputs.
                 </p>
               </div>
               <div>
                 <h3 className="font-semibold text-white">Conditions</h3>
-                <p>
-                  Branching logic to control flow based on step results or
-                  external state.
-                </p>
+                <p>Branching logic to control flow based on step results or external state.</p>
               </div>
             </div>
           </section>
@@ -89,21 +80,15 @@ export default function Pipelines() {
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-black/30 p-4 rounded-lg">
                 <h3 className="font-semibold text-white mb-2">Sequential</h3>
-                <p className="text-gray-400 text-sm">
-                  Steps execute one after another in order.
-                </p>
+                <p className="text-gray-400 text-sm">Steps execute one after another in order.</p>
               </div>
               <div className="bg-black/30 p-4 rounded-lg">
                 <h3 className="font-semibold text-white mb-2">Parallel</h3>
-                <p className="text-gray-400 text-sm">
-                  Multiple steps execute simultaneously.
-                </p>
+                <p className="text-gray-400 text-sm">Multiple steps execute simultaneously.</p>
               </div>
               <div className="bg-black/30 p-4 rounded-lg">
                 <h3 className="font-semibold text-white mb-2">Conditional</h3>
-                <p className="text-gray-400 text-sm">
-                  Branch based on data or step outcomes.
-                </p>
+                <p className="text-gray-400 text-sm">Branch based on data or step outcomes.</p>
               </div>
               <div className="bg-black/30 p-4 rounded-lg">
                 <h3 className="font-semibold text-white mb-2">Loop</h3>
@@ -117,8 +102,7 @@ export default function Pipelines() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Error Handling</h2>
             <p className="text-gray-400 mb-4">
-              Pipelines support robust error handling with retries, fallbacks,
-              and compensation:
+              Pipelines support robust error handling with retries, fallbacks, and compensation:
             </p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>{`steps:`}</p>
@@ -134,9 +118,7 @@ export default function Pipelines() {
 
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Deploying Pipelines</h2>
-            <p className="text-gray-400 mb-4">
-              Deploy a pipeline using the CLI:
-            </p>
+            <p className="text-gray-400 mb-4">Deploy a pipeline using the CLI:</p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>reach pipeline deploy pipeline.yaml</p>
             </div>

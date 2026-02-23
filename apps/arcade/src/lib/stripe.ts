@@ -85,10 +85,7 @@ export async function createPortalSession(
 }
 
 // ── Webhook signature verification ─────────────────────────────────────────
-export function constructWebhookEvent(
-  rawBody: Buffer,
-  sig: string,
-): Stripe.Event {
+export function constructWebhookEvent(rawBody: Buffer, sig: string): Stripe.Event {
   const stripe = getStripe();
   const secret = env.STRIPE_WEBHOOK_SECRET;
   if (!secret) throw new Error("STRIPE_WEBHOOK_SECRET not configured");

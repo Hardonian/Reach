@@ -98,9 +98,7 @@ For more info, see docs/EVAL.md
  */
 export async function runEvalCommand(args: EvalCliArgs): Promise<number> {
   if (!args.suite) {
-    console.error(
-      "[EVAL_ERROR] No evaluation suite specified. Use --suite <path>",
-    );
+    console.error("[EVAL_ERROR] No evaluation suite specified. Use --suite <path>");
     console.error("Run 'zeo eval --help' for usage information.");
     return 1;
   }

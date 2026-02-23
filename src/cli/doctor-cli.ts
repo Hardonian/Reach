@@ -12,14 +12,7 @@ import { performance } from "node:perf_hooks";
  * - Storage pressure
  */
 
-import {
-  readFileSync,
-  existsSync,
-  mkdirSync,
-  statSync,
-  readdirSync,
-  writeFileSync,
-} from "node:fs";
+import { readFileSync, existsSync, mkdirSync, statSync, readdirSync, writeFileSync } from "node:fs";
 import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
@@ -222,18 +215,12 @@ export async function runDoctorCommand(args: {
   checks.push(policyCheck);
 
   // 21. Enterprise Connectivity Check (Supabase)
-  const { runEnterpriseConnectivityCheck } =
-    await import("./doctor-dek-checks.js");
+  const { runEnterpriseConnectivityCheck } = await import("./doctor-dek-checks.js");
   const enterpriseCheck = await runEnterpriseConnectivityCheck();
   checks.push(enterpriseCheck);
 
   // Compute overall status
-  const overall =
-    errorCodes.length > 0
-      ? "critical"
-      : warnings.length > 0
-        ? "warning"
-        : "healthy";
+  const overall = errorCodes.length > 0 ? "critical" : warnings.length > 0 ? "warning" : "healthy";
 
   // Build support payload
   const determinismStamp = {
@@ -310,8 +297,7 @@ function runPerfDiagnostics() {
   const t0 = performance.now();
   const coldStartMs = Math.round(performance.now() - t0);
   const warmStartMs = Math.round((performance.now() - t0) / 2);
-  const memoryPeakMb =
-    Math.round((process.memoryUsage().rss / (1024 * 1024)) * 100) / 100;
+  const memoryPeakMb = Math.round((process.memoryUsage().rss / (1024 * 1024)) * 100) / 100;
   const cacheDir = resolve(__dirname, "../../.zeo-cache");
   const cacheHitRate = existsSync(cacheDir) ? 0.5 : 0;
   return {
@@ -335,8 +321,7 @@ function runDeterminismCheck(): DoctorCheck {
         name: "Determinism Check",
         status: "fail",
         message: "Hash computation is not deterministic",
-        remediation:
-          "Check random seed implementation and canonical JSON serialization",
+        remediation: "Check random seed implementation and canonical JSON serialization",
       };
     }
 
@@ -504,8 +489,7 @@ function runStoragePressureCheck(): DoctorCheck {
         name: "Storage Pressure",
         status: "warning",
         message: `Storage usage: ${sizeMB.toFixed(2)} MB`,
-        remediation:
-          "Consider pruning old runs with 'zeo warehouse prune --older-than 30d'",
+        remediation: "Consider pruning old runs with 'zeo warehouse prune --older-than 30d'",
         details: { sizeBytes: stats.size },
       };
     }
@@ -648,12 +632,9 @@ function computeStorageStats(): StorageStats {
           runsCount += files.length;
           if (files.length > 0) {
             // Extract timestamps from filenames
-            const timestamps = files.map((f) =>
-              f.replace(".json", "").slice(0, 24),
-            );
+            const timestamps = files.map((f) => f.replace(".json", "").slice(0, 24));
             timestamps.sort();
-            if (!oldestRun || timestamps[0] < oldestRun)
-              oldestRun = timestamps[0];
+            if (!oldestRun || timestamps[0] < oldestRun) oldestRun = timestamps[0];
             if (!newestRun || timestamps[timestamps.length - 1] > newestRun)
               newestRun = timestamps[timestamps.length - 1];
           }
@@ -697,10 +678,7 @@ async function runFixes(checks: DoctorCheck[]): Promise<void> {
         break;
 
       case "scenarios": {
-        const scenariosDir = resolve(
-          __dirname,
-          "../../external/examples/scenarios",
-        );
+        const scenariosDir = resolve(__dirname, "../../external/examples/scenarios");
         if (!existsSync(scenariosDir)) {
           console.log(`  Creating scenarios directory: ${scenariosDir}`);
           mkdirSync(scenariosDir, { recursive: true });
@@ -710,10 +688,7 @@ async function runFixes(checks: DoctorCheck[]): Promise<void> {
             name: "Sample Scenario",
             steps: [] as any[],
           };
-          writeFileSync(
-            join(scenariosDir, "sample.json"),
-            JSON.stringify(sample, null, 2),
-          );
+          writeFileSync(join(scenariosDir, "sample.json"), JSON.stringify(sample, null, 2));
         }
         break;
       }
@@ -721,9 +696,7 @@ async function runFixes(checks: DoctorCheck[]): Promise<void> {
       case "llm":
         if (!process.env.OPENAI_API_KEY && !process.env.ANTHROPIC_API_KEY) {
           console.log("  Warning: No LLM API keys found in environment.");
-          console.log(
-            "  Action: Please set OPENAI_API_KEY or ANTHROPIC_API_KEY.",
-          );
+          console.log("  Action: Please set OPENAI_API_KEY or ANTHROPIC_API_KEY.");
         }
         break;
 
@@ -791,9 +764,7 @@ function runLlmConfigCheck(): DoctorCheck {
   const hasConfig =
     existsSync(resolve(process.cwd(), ".zeo", "config.json")) ||
     Boolean(
-      process.env.OPENAI_API_KEY ||
-      process.env.ANTHROPIC_API_KEY ||
-      process.env.OPENROUTER_API_KEY,
+      process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY || process.env.OPENROUTER_API_KEY,
     );
   return hasConfig
     ? {
@@ -861,8 +832,7 @@ function runTrustProfileIntegrityCheck(): DoctorCheck {
     };
   try {
     const files = readdirSync(trustDir).filter((f) => f.endsWith(".json"));
-    for (const file of files.slice(0, 5))
-      JSON.parse(readFileSync(join(trustDir, file), "utf8"));
+    for (const file of files.slice(0, 5)) JSON.parse(readFileSync(join(trustDir, file), "utf8"));
     return {
       id: "trust",
       name: "Trust Profiles",
@@ -930,10 +900,9 @@ function runSnapshotIntegrityCheck(): DoctorCheck {
 async function runMcpHandshakeCheck(): Promise<DoctorCheck> {
   try {
     // Validate MCP tool definitions schema
-    const { validateMcpToolDefinitions } =
-      (await import("./mcp-cli.js")) as unknown as {
-        validateMcpToolDefinitions: () => string[];
-      };
+    const { validateMcpToolDefinitions } = (await import("./mcp-cli.js")) as unknown as {
+      validateMcpToolDefinitions: () => string[];
+    };
     const issues = validateMcpToolDefinitions();
     if (issues.length > 0) {
       return {
@@ -991,10 +960,7 @@ function runEvidenceGraphCheck(): DoctorCheck {
       name: "Evidence Graph",
       status: staleCount > 0 ? "warning" : "pass",
       message: msg,
-      remediation:
-        staleCount > 0
-          ? "Run 'zeo refresh-evidence' to update scores"
-          : undefined,
+      remediation: staleCount > 0 ? "Run 'zeo refresh-evidence' to update scores" : undefined,
     };
   } catch (err) {
     return {
@@ -1019,13 +985,7 @@ function runSecretScanningCheck(): DoctorCheck {
     ".zeo/config.json",
   ];
 
-  const sensitiveKeys = [
-    "api_key",
-    "secret",
-    "private_key",
-    "password",
-    "token",
-  ];
+  const sensitiveKeys = ["api_key", "secret", "private_key", "password", "token"];
 
   const findings: string[] = [];
 
@@ -1034,10 +994,7 @@ function runSecretScanningCheck(): DoctorCheck {
     if (existsSync(path)) {
       const content = readFileSync(path, "utf8");
       for (const key of sensitiveKeys) {
-        if (
-          content.toLowerCase().includes(key) &&
-          !content.includes("REDACTED")
-        ) {
+        if (content.toLowerCase().includes(key) && !content.includes("REDACTED")) {
           // Check if it's actually a secret or just a key name
           const lines = content.split("\n");
           for (const line of lines) {
@@ -1144,8 +1101,7 @@ function runStructuralIntegrityCheck(): DoctorCheck {
       id: "structural_guard",
       name: "Structural Guard Check",
       status: "pass",
-      message:
-        "Root directory matches registered baseline. No entropy detected.",
+      message: "Root directory matches registered baseline. No entropy detected.",
     };
   } catch {
     return {
@@ -1198,8 +1154,7 @@ function runPathAliasCheck(): DoctorCheck {
       id: "path_alias_health",
       name: "Path Alias Check",
       status: "pass",
-      message:
-        "All tsconfig path aliases correctly resolve to filesystem locations.",
+      message: "All tsconfig path aliases correctly resolve to filesystem locations.",
     };
   } catch (e) {
     return {

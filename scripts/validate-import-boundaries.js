@@ -90,8 +90,7 @@ const RULES = [
   {
     id: "R1",
     name: "Core cannot import cloud",
-    description:
-      "crates/**, core/**, services/runner/** MUST NOT import cloud or billing modules",
+    description: "crates/**, core/**, services/runner/** MUST NOT import cloud or billing modules",
     // Forward-slash path prefixes relative to the repo root.
     sourcePrefixes: ["crates/", "core/", "services/runner/"],
     forbiddenPatterns: [
@@ -110,8 +109,7 @@ const RULES = [
   {
     id: "R2",
     name: "CLI cannot import web",
-    description:
-      "apps/cli/**, services/runner/cmd/** MUST NOT import web or frontend modules",
+    description: "apps/cli/**, services/runner/cmd/** MUST NOT import web or frontend modules",
     sourcePrefixes: ["apps/cli/", "services/runner/cmd/"],
     forbiddenPatterns: [
       { pattern: "apps/arcade", label: "apps/arcade/**" },
@@ -486,9 +484,7 @@ function main() {
   console.log(fmt("\n  Reach — Import Boundary Validation", C.bold, C.cyan));
   console.log(fmt(`  Repo root : ${REPO_ROOT}`, C.gray));
   if (FIX_MODE) {
-    console.log(
-      fmt("  Mode      : --fix  (suggestions only — no auto-fix)", C.yellow),
-    );
+    console.log(fmt("  Mode      : --fix  (suggestions only — no auto-fix)", C.yellow));
   }
   console.log("");
 
@@ -508,9 +504,7 @@ function main() {
   // ── Clean ──────────────────────────────────────────────────────────────────
   if (allViolations.length === 0) {
     console.log(fmt("  ✓  All import boundaries are clean.", C.bold, C.green));
-    console.log(
-      fmt(`  Scanned ${filesScanned} files in ${elapsed}ms.`, C.gray),
-    );
+    console.log(fmt(`  Scanned ${filesScanned} files in ${elapsed}ms.`, C.gray));
     console.log("");
     process.exit(0);
   }
@@ -530,16 +524,10 @@ function main() {
     console.log("");
 
     for (const v of violations) {
-      const gfTag = v.grandfathered
-        ? fmt(" [GRANDFATHERED — tracked open issue]", C.yellow)
-        : "";
+      const gfTag = v.grandfathered ? fmt(" [GRANDFATHERED — tracked open issue]", C.yellow) : "";
 
-      console.log(
-        fmt(`    ${v.file}`, C.bold) + fmt(`:${v.line}`, C.yellow) + gfTag,
-      );
-      console.log(
-        fmt("      import  : ", C.gray) + fmt(`"${v.specifier}"`, C.red),
-      );
+      console.log(fmt(`    ${v.file}`, C.bold) + fmt(`:${v.line}`, C.yellow) + gfTag);
+      console.log(fmt("      import  : ", C.gray) + fmt(`"${v.specifier}"`, C.red));
       console.log(fmt("      matches : ", C.gray) + fmt(v.label, C.yellow));
 
       if (FIX_MODE) {
@@ -570,10 +558,7 @@ function main() {
     );
     if (!FIX_MODE) {
       console.log(
-        fmt(
-          "  Re-run with --fix for remediation suggestions on tracked violations.",
-          C.gray,
-        ),
+        fmt("  Re-run with --fix for remediation suggestions on tracked violations.", C.gray),
       );
     }
     console.log("");
@@ -589,9 +574,7 @@ function main() {
     ),
   );
   if (!FIX_MODE) {
-    console.log(
-      fmt("  Re-run with --fix for remediation suggestions.", C.gray),
-    );
+    console.log(fmt("  Re-run with --fix for remediation suggestions.", C.gray));
   }
   console.log(
     fmt(

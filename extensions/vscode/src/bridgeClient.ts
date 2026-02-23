@@ -43,8 +43,7 @@ export class BridgeClient implements vscode.Disposable {
     this.reconnectDelayMs = options.reconnectDelayMs ?? 1000;
     this.maxReconnectDelayMs = options.maxReconnectDelayMs ?? 15000;
     this.currentDelayMs = this.reconnectDelayMs;
-    this.webSocketFactory =
-      options.webSocketFactory ?? ((url) => new WebSocket(url));
+    this.webSocketFactory = options.webSocketFactory ?? ((url) => new WebSocket(url));
   }
 
   connect(): void {
@@ -62,8 +61,7 @@ export class BridgeClient implements vscode.Disposable {
 
     socket.on("message", (rawData) => {
       try {
-        const content =
-          typeof rawData === "string" ? rawData : rawData.toString();
+        const content = typeof rawData === "string" ? rawData : rawData.toString();
         const parsed: unknown = JSON.parse(content);
         this.onMessage?.(parsed);
       } catch {
@@ -112,10 +110,7 @@ export class BridgeClient implements vscode.Disposable {
     const delay = this.currentDelayMs;
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = undefined;
-      this.currentDelayMs = Math.min(
-        this.currentDelayMs * 2,
-        this.maxReconnectDelayMs,
-      );
+      this.currentDelayMs = Math.min(this.currentDelayMs * 2, this.maxReconnectDelayMs);
       this.connect();
     }, delay);
   }

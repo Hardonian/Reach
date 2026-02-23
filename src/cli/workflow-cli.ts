@@ -1,13 +1,6 @@
 // @ts-nocheck
 import { createHash } from "node:crypto";
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-  readdirSync,
-  cpSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, cpSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
@@ -258,20 +251,12 @@ const DECISION_TEMPLATES: DecisionTemplate[] = (
       schemaVersion: "1.0.0",
       id: "security-review",
       title: "Security Review",
-      description:
-        "Security posture decision with threat modeling and provenance checks.",
+      description: "Security posture decision with threat modeling and provenance checks.",
       decisionType: "SEC",
       workspaceMode: "internal",
       reviewAfterDays: 7,
-      requiredEvidence: [
-        "threat-model",
-        "control-evidence",
-        "replayable-reasoning",
-      ],
-      requiredAssumptions: [
-        "threat coverage is complete",
-        "control owners accepted residual risk",
-      ],
+      requiredEvidence: ["threat-model", "control-evidence", "replayable-reasoning"],
+      requiredAssumptions: ["threat coverage is complete", "control owners accepted residual risk"],
       requiredPolicyTypes: ["sec.provenance", "sec.threat-model"],
     },
     {
@@ -283,30 +268,19 @@ const DECISION_TEMPLATES: DecisionTemplate[] = (
       workspaceMode: "internal",
       reviewAfterDays: 14,
       requiredEvidence: ["rollback-plan", "load-test", "runbook"],
-      requiredAssumptions: [
-        "rollback path remains valid",
-        "traffic profile is representative",
-      ],
+      requiredAssumptions: ["rollback path remains valid", "traffic profile is representative"],
       requiredPolicyTypes: ["ops.reliability", "ops.change-control"],
     },
     {
       schemaVersion: "1.0.0",
       id: "product-launch",
       title: "Product Launch",
-      description:
-        "Launch decision balancing customer impact and operational readiness.",
+      description: "Launch decision balancing customer impact and operational readiness.",
       decisionType: "PROD",
       workspaceMode: "customer",
       reviewAfterDays: 30,
-      requiredEvidence: [
-        "customer-impact",
-        "metric-baseline",
-        "support-readiness",
-      ],
-      requiredAssumptions: [
-        "target segment demand persists",
-        "support capacity is sufficient",
-      ],
+      requiredEvidence: ["customer-impact", "metric-baseline", "support-readiness"],
+      requiredAssumptions: ["target segment demand persists", "support capacity is sufficient"],
       requiredPolicyTypes: ["prod.roadmap-governance", "prod.customer-safety"],
     },
   ] as DecisionTemplate[]
@@ -316,9 +290,7 @@ function getTemplate(templateId: string): DecisionTemplate {
   const template = DECISION_TEMPLATES.find((item) => item.id === templateId);
   if (!template) {
     const known = DECISION_TEMPLATES.map((item) => item.id).join(", ");
-    throw new Error(
-      `Unknown template: ${templateId}. Available templates: ${known}`,
-    );
+    throw new Error(`Unknown template: ${templateId}. Available templates: ${known}`);
   }
   return template;
 }
@@ -335,9 +307,7 @@ function writeTemplateCatalog(args: WorkflowArgs): number {
     templates: DECISION_TEMPLATES,
     outputDir: root,
   };
-  const text = DECISION_TEMPLATES.map(
-    (t) => `${t.id} (${t.decisionType})`,
-  ).join("\n");
+  const text = DECISION_TEMPLATES.map((t) => `${t.id} (${t.decisionType})`).join("\n");
   writeJsonOrText(args, payload, text);
   return 0;
 }
@@ -375,8 +345,7 @@ function workspacePath(decisionId: string): string {
 }
 
 function ensureWorkspaceRoot(): void {
-  if (!existsSync(decisionsRoot()))
-    mkdirSync(decisionsRoot(), { recursive: true });
+  if (!existsSync(decisionsRoot())) mkdirSync(decisionsRoot(), { recursive: true });
   if (!existsSync(metricsRoot())) mkdirSync(metricsRoot(), { recursive: true });
 }
 
@@ -395,8 +364,7 @@ function defaultWorkspaceId(): string {
 function parseDurationToDays(input?: string): number {
   if (!input) return 30;
   const match = /^(\d+)(d)?$/.exec(input.trim());
-  if (!match)
-    throw new Error(`Invalid duration: ${input}. Use <Nd>, for example 30d.`);
+  if (!match) throw new Error(`Invalid duration: ${input}. Use <Nd>, for example 30d.`);
   return Number(match[1]);
 }
 
@@ -420,18 +388,14 @@ function requiredEvidenceCountForType(type: DecisionType): number {
   return map[type];
 }
 
-function computeDecisionHealth(
-  ws: DecisionWorkspace,
-  replayStable: boolean,
-): DecisionHealth {
+function computeDecisionHealth(ws: DecisionWorkspace, replayStable: boolean): DecisionHealth {
   // Deterministic scoring formulas (no ML): weighted linear percentages with stable constants.
   const requiredEvidence = requiredEvidenceCountForType(ws.decisionType);
   const evidenceScore = clampScore(
     (Math.min(ws.evidence.length, requiredEvidence) / requiredEvidence) * 100,
   );
   const completedTasks = ws.tasks.filter((t) => t.completed).length;
-  const policyRaw =
-    ws.tasks.length === 0 ? 100 : (completedTasks / ws.tasks.length) * 100;
+  const policyRaw = ws.tasks.length === 0 ? 100 : (completedTasks / ws.tasks.length) * 100;
   const policyScore = clampScore(policyRaw);
   const replayStabilityScore = replayStable ? 100 : 0;
   const flips = ws.runs.filter((r) => r.flipDistance < 3).length;
@@ -439,10 +403,7 @@ function computeDecisionHealth(
     (e) => e.expiresAt && classifyDecay(e, nowIso().slice(0, 10)) === "expired",
   ).length;
   const volatility = clampScore(
-    Math.min(
-      100,
-      flips * 20 + expired * 15 + Math.max(0, ws.runs.length - 1) * 5,
-    ),
+    Math.min(100, flips * 20 + expired * 15 + Math.max(0, ws.runs.length - 1) * 5),
   );
   const riskScore = clampScore(
     Math.round(
@@ -488,10 +449,7 @@ function appendDriftEvent(ws: DecisionWorkspace, event: DriftEvent): void {
   ws.driftEvents = all;
 }
 
-function persistMetricsSnapshot(
-  ws: DecisionWorkspace,
-  health: DecisionHealth,
-): void {
+function persistMetricsSnapshot(ws: DecisionWorkspace, health: DecisionHealth): void {
   const snapshotPath = join(metricsRoot(), `${ws.decisionId}.json`);
   const payload = {
     decisionId: ws.decisionId,
@@ -513,17 +471,14 @@ function nextSteps(
       "Apply security pack? zeo init pack security-pack",
     ];
   }
-  if (context === "verify-mismatch")
-    return ["Show drift report: zeo drift-report --since 30d"];
+  if (context === "verify-mismatch") return ["Show drift report: zeo drift-report --since 30d"];
   return [
     `Set review horizon: zeo review weekly --decision ${values.decisionId ?? "<decisionId>"}`,
     `Export bundle: zeo export decision ${values.decisionId ?? "<decisionId>"} --format zip`,
   ];
 }
 
-function resolveTranscriptWorkspace(
-  transcriptHash: string,
-): DecisionWorkspace | null {
+function resolveTranscriptWorkspace(transcriptHash: string): DecisionWorkspace | null {
   for (const ws of collectWorkspaces()) {
     if (ws.runs.some((run) => run.transcriptHash === transcriptHash)) return ws;
   }
@@ -532,8 +487,7 @@ function resolveTranscriptWorkspace(
 
 function getLatestHealth(ws: DecisionWorkspace): DecisionHealth {
   return (
-    ws.healthHistory?.[ws.healthHistory.length - 1] ??
-    computeDecisionHealth(ws, ws.runs.length > 0)
+    ws.healthHistory?.[ws.healthHistory.length - 1] ?? computeDecisionHealth(ws, ws.runs.length > 0)
   );
 }
 
@@ -558,9 +512,7 @@ function buildBundleManifest(
   const treeHash = createHash("sha256")
     .update(JSON.stringify(entries.map((entry) => [entry.path, entry.sha256])))
     .digest("hex");
-  const manifestHash = createHash("sha256")
-    .update(JSON.stringify(entries))
-    .digest("hex");
+  const manifestHash = createHash("sha256").update(JSON.stringify(entries)).digest("hex");
   return { files: entries, manifestHash, treeHash };
 }
 
@@ -578,9 +530,7 @@ function verificationStatusFromHealth(
   signatureValid: boolean | null;
   verifiedAt: string;
 } {
-  const verified =
-    health.replayStabilityScore === 100 &&
-    (signed ? signatureValid === true : true);
+  const verified = health.replayStabilityScore === 100 && (signed ? signatureValid === true : true);
   return {
     verified,
     method: signed ? "signed" : "hash_only",
@@ -594,12 +544,8 @@ function verificationStatusFromHealth(
 function loadWorkspace(decisionId: string): DecisionWorkspace {
   const path = workspacePath(decisionId);
   if (!existsSync(path))
-    throw new Error(
-      `Decision not found: ${decisionId}. Run 'zeo start' first.`,
-    );
-  const parsed = JSON.parse(
-    readFileSync(path, "utf8"),
-  ) as Partial<DecisionWorkspace>;
+    throw new Error(`Decision not found: ${decisionId}. Run 'zeo start' first.`);
+  const parsed = JSON.parse(readFileSync(path, "utf8")) as Partial<DecisionWorkspace>;
   return {
     decisionId: parsed.decisionId || decisionId,
     title: parsed.title || "Untitled Decision",
@@ -621,11 +567,7 @@ function loadWorkspace(decisionId: string): DecisionWorkspace {
 function saveWorkspace(ws: DecisionWorkspace): void {
   const dir = join(decisionsRoot(), ws.decisionId);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-  writeFileSync(
-    join(dir, "decision.json"),
-    `${JSON.stringify(ws, null, 2)}\n`,
-    "utf8",
-  );
+  writeFileSync(join(dir, "decision.json"), `${JSON.stringify(ws, null, 2)}\n`, "utf8");
 }
 
 function parseNoteToEvidence(
@@ -634,8 +576,7 @@ function parseNoteToEvidence(
   expiresAt?: string,
 ): Omit<EvidenceItem, "id"> {
   const cleaned = text.trim().replace(/\s+/g, " ");
-  const summary =
-    cleaned.length > 120 ? `${cleaned.slice(0, 117)}...` : cleaned;
+  const summary = cleaned.length > 120 ? `${cleaned.slice(0, 117)}...` : cleaned;
   return {
     kind: "note",
     text: cleaned,
@@ -664,8 +605,7 @@ function daysBetween(startDate: string, endDate: string): number {
 }
 
 function classifyDecay(evidence: EvidenceItem, asOfDate: string): DecayStatus {
-  if (evidence.expiresAt && daysBetween(evidence.expiresAt, asOfDate) >= 0)
-    return "expired";
+  if (evidence.expiresAt && daysBetween(evidence.expiresAt, asOfDate) >= 0) return "expired";
   if (!evidence.assertedAt) return "unknown";
   const ageDays = daysBetween(evidence.assertedAt, asOfDate);
   if (ageDays <= DECAY_WINDOWS_DAYS.fresh) return "fresh";
@@ -674,10 +614,7 @@ function classifyDecay(evidence: EvidenceItem, asOfDate: string): DecayStatus {
   return "expired";
 }
 
-function decaySummary(
-  evidence: EvidenceItem[],
-  asOfDate: string,
-): Record<DecayStatus, number> {
+function decaySummary(evidence: EvidenceItem[], asOfDate: string): Record<DecayStatus, number> {
   const summary: Record<DecayStatus, number> = {
     fresh: 0,
     aging: 0,
@@ -766,11 +703,7 @@ async function runDecisionInWorkspace(
 
     const envFileName = `${transcript.transcript_hash}.envelope.json`;
     envelopePathOut = join(envelopeDir, envFileName);
-    writeFileSync(
-      envelopePathOut,
-      `${JSON.stringify(signedEnvelope, null, 2)}\n`,
-      "utf8",
-    );
+    writeFileSync(envelopePathOut, `${JSON.stringify(signedEnvelope, null, 2)}\n`, "utf8");
     console.log(`Signed transcript with key: ${defaultKeyPath}`);
     console.log(`Envelope saved to: ${envelopePathOut}`);
   } else {
@@ -778,25 +711,17 @@ async function runDecisionInWorkspace(
   }
 
   const robustActions =
-    result.evaluations.find((e) => e.lens === "robustness")?.robustActions ||
-    [];
+    result.evaluations.find((e) => e.lens === "robustness")?.robustActions || [];
   const recommendedAction =
     robustActions.length > 0
       ? `Action(s) ${robustActions.join(", ")} are robust.`
       : "No robust actions found. Gather more evidence.";
 
-  const flipDistances = transcript.analysis.flip_distances.map((f) =>
-    parseFloat(f.distance),
-  );
-  const minFlipDistance =
-    flipDistances.length > 0 ? Math.min(...flipDistances) : Infinity;
+  const flipDistances = transcript.analysis.flip_distances.map((f) => parseFloat(f.distance));
+  const minFlipDistance = flipDistances.length > 0 ? Math.min(...flipDistances) : Infinity;
 
   const fragility =
-    minFlipDistance >= 5
-      ? "Stable"
-      : minFlipDistance >= 3
-        ? "Fragile"
-        : "Knife-edge";
+    minFlipDistance >= 5 ? "Stable" : minFlipDistance >= 3 ? "Fragile" : "Knife-edge";
   const totalEvidence = ws.evidence.length;
   // Tasks are distinct from evidence in workspace model
   const unresolvedTasks = ws.tasks.filter((t) => !t.completed).length;
@@ -811,10 +736,7 @@ async function runDecisionInWorkspace(
     fragility,
     topEvidence: ws.evidence
       .slice()
-      .sort(
-        (a, b) =>
-          a.cost.timeMinutes - b.cost.timeMinutes || a.id.localeCompare(b.id),
-      )
+      .sort((a, b) => a.cost.timeMinutes - b.cost.timeMinutes || a.id.localeCompare(b.id))
       .slice(0, 3)
       .map((e) => ({
         id: e.id,
@@ -834,8 +756,7 @@ async function runDecisionInWorkspace(
     informs: transcript.informs ?? [],
     decaySummary: decay,
     fullTranscript: transcript,
-    confidence:
-      fragility === "Stable" ? 0.8 : fragility === "Fragile" ? 0.6 : 0.4,
+    confidence: fragility === "Stable" ? 0.8 : fragility === "Fragile" ? 0.6 : 0.4,
   };
 }
 
@@ -850,11 +771,7 @@ function createTasksFromEvidence(evidence: EvidenceItem): TaskItem[] {
   ];
 }
 
-function writeJsonOrText(
-  args: WorkflowArgs,
-  payload: unknown,
-  text: string,
-): void {
+function writeJsonOrText(args: WorkflowArgs, payload: unknown, text: string): void {
   if (args.json) {
     process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
     return;
@@ -873,8 +790,7 @@ async function prompt(question: string): Promise<string> {
 
 function ensureNoSecrets(text: string): void {
   const secretPattern = /(sk-[A-Za-z0-9]{16,}|AKIA[0-9A-Z]{16})/;
-  if (secretPattern.test(text))
-    throw new Error("Potential secret detected in output payload.");
+  if (secretPattern.test(text)) throw new Error("Potential secret detected in output payload.");
 }
 
 function collectWorkspaces(): DecisionWorkspace[] {
@@ -912,14 +828,10 @@ function collectGraph(asOfDate: string): {
   }
   detectCycles([...nodes.keys()], edges);
   return {
-    nodes: [...nodes.values()].sort((a, b) =>
-      a.transcriptHash.localeCompare(b.transcriptHash),
-    ),
+    nodes: [...nodes.values()].sort((a, b) => a.transcriptHash.localeCompare(b.transcriptHash)),
     edges: edges.sort(
       (a, b) =>
-        a.from.localeCompare(b.from) ||
-        a.to.localeCompare(b.to) ||
-        a.type.localeCompare(b.type),
+        a.from.localeCompare(b.from) || a.to.localeCompare(b.to) || a.type.localeCompare(b.type),
     ),
   };
 }
@@ -935,8 +847,7 @@ function detectCycles(nodeIds: string[], edges: GraphEdge[]): void {
   const visiting = new Set<string>();
   const visited = new Set<string>();
   function walk(id: string): void {
-    if (visiting.has(id))
-      throw new Error(`Cycle detected in decision graph at transcript ${id}`);
+    if (visiting.has(id)) throw new Error(`Cycle detected in decision graph at transcript ${id}`);
     if (visited.has(id)) return;
     visiting.add(id);
     for (const child of outgoing.get(id) ?? []) walk(child);
@@ -969,11 +880,7 @@ function downstreamImpact(
   return impact;
 }
 
-function deriveLens(
-  lens: LensType,
-  ws: DecisionWorkspace,
-  run: RunResult,
-): string {
+function deriveLens(lens: LensType, ws: DecisionWorkspace, run: RunResult): string {
   if (lens === "executive") {
     return `Decision: ${run.recommendedAction}\nWhy: ${run.boundarySummary}\nWhat would change it: ${run.plan.stopConditions.join("; ")}`;
   }
@@ -990,11 +897,7 @@ function citeEvidence(item: EvidenceItem): string {
   return `${item.id}:${item.provenance.hash.slice(0, 12)}@${item.assertedAt ?? "unknown"}`;
 }
 
-function explainForAudience(
-  ws: DecisionWorkspace,
-  audience: Audience,
-  area?: string,
-): string {
+function explainForAudience(ws: DecisionWorkspace, audience: Audience, area?: string): string {
   const latest = ws.runs[ws.runs.length - 1];
   const evidenceCitations = ws.evidence.map(citeEvidence).join(", ") || "none";
   if (audience === "exec") {
@@ -1035,9 +938,7 @@ function buildTypeSummary(
       mode: ws.workspaceMode,
       state: ws.state,
       reviewAfter: ws.createdAt
-        ? new Date(
-            new Date(ws.createdAt).getTime() + 30 * 24 * 3600 * 1000,
-          ).toISOString()
+        ? new Date(new Date(ws.createdAt).getTime() + 30 * 24 * 3600 * 1000).toISOString()
         : "unknown",
       evidenceCount: ws.evidence.length,
     }));
@@ -1131,12 +1032,7 @@ export function parseWorkflowArgs(argv: string[]): WorkflowArgs {
       return {
         ...baseArgs,
         decision: value("--decision") || positional(2),
-        subcommand: positional(1) as
-          | "md"
-          | "ics"
-          | "bundle"
-          | "decision"
-          | undefined,
+        subcommand: positional(1) as "md" | "ics" | "bundle" | "decision" | undefined,
         output: value("--out"),
         format: value("--format") as "zip" | "dir" | undefined,
         signed: argv.includes("--signed"),
@@ -1157,11 +1053,7 @@ export function parseWorkflowArgs(argv: string[]): WorkflowArgs {
     case "graph":
       return {
         ...baseArgs,
-        subcommand: positional(1) as
-          | "show"
-          | "impact"
-          | "fragility"
-          | undefined,
+        subcommand: positional(1) as "show" | "impact" | "fragility" | undefined,
         transcript: positional(2),
       };
     case "view":
@@ -1349,17 +1241,12 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
 
   if (args.command === "decision" && args.subcommand === "create") {
     const title =
-      args.title ||
-      (process.stdin.isTTY
-        ? await prompt("Decision title: ")
-        : "Untitled Decision");
+      args.title || (process.stdin.isTTY ? await prompt("Decision title: ") : "Untitled Decision");
     const templateId = args.templateId ?? "product-launch";
     const template = getTemplate(templateId);
     const decisionId = `dec_${hash({ title, templateId }).slice(0, 12)}`;
     const createdAt = nowIso();
-    const reviewAt = new Date(
-      Date.parse(createdAt) + template.reviewAfterDays * 24 * 3600 * 1000,
-    )
+    const reviewAt = new Date(Date.parse(createdAt) + template.reviewAfterDays * 24 * 3600 * 1000)
       .toISOString()
       .slice(0, 10);
     const evidence = template.requiredEvidence
@@ -1376,11 +1263,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
       }));
     const assumptions = template.requiredAssumptions
       .map((value, index) =>
-        parseNoteToEvidence(
-          `template assumption: ${value}`,
-          createdAt.slice(0, 10),
-          reviewAt,
-        ),
+        parseNoteToEvidence(`template assumption: ${value}`, createdAt.slice(0, 10), reviewAt),
       )
       .map((proposal, index) => ({
         ...proposal,
@@ -1422,22 +1305,16 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
         })),
       )
       .filter((event) => event.detectedAt.slice(0, 10) >= sinceDate)
-      .filter((event) =>
-        args.driftType ? event.type === args.driftType : true,
-      )
+      .filter((event) => (args.driftType ? event.type === args.driftType : true))
       .sort(
         (a, b) =>
-          a.detectedAt.localeCompare(b.detectedAt) ||
-          a.decisionId.localeCompare(b.decisionId),
+          a.detectedAt.localeCompare(b.detectedAt) || a.decisionId.localeCompare(b.decisionId),
       );
     writeJsonOrText(
       args,
       { since: sinceDate, events },
       events
-        .map(
-          (event) =>
-            `${event.detectedAt} ${event.decisionId} ${event.type} ${event.severity}`,
-        )
+        .map((event) => `${event.detectedAt} ${event.decisionId} ${event.type} ${event.severity}`)
         .join("\n") || "No drift events.",
     );
     return 0;
@@ -1447,14 +1324,11 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
     const window = args.window ?? "30d";
     const sinceDate = parseSinceToDate(window);
     const workspaces = collectWorkspaces();
-    const allRuns = workspaces.flatMap((ws) =>
-      ws.runs.map((run) => ({ ws, run })),
-    );
+    const allRuns = workspaces.flatMap((ws) => ws.runs.map((run) => ({ ws, run })));
     const inWindow = allRuns.filter(
       ({ run }) =>
-        String(
-          run.fullTranscript?.timestamp ?? "1970-01-01T00:00:00.000Z",
-        ).slice(0, 10) >= sinceDate,
+        String(run.fullTranscript?.timestamp ?? "1970-01-01T00:00:00.000Z").slice(0, 10) >=
+        sinceDate,
     );
     const decisionsCount = inWindow.length;
     const avgTimeToDecision =
@@ -1466,9 +1340,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
                 sum +
                 Math.max(
                   0,
-                  (Date.parse(
-                    String(run.fullTranscript?.timestamp ?? nowIso()),
-                  ) -
+                  (Date.parse(String(run.fullTranscript?.timestamp ?? nowIso())) -
                     Date.parse(ws.createdAt ?? nowIso())) /
                     60000,
                 ),
@@ -1480,22 +1352,16 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
         ? 0
         : clampScore(
             (inWindow.filter(
-              ({ ws }) =>
-                ws.evidence.length >=
-                requiredEvidenceCountForType(ws.decisionType),
+              ({ ws }) => ws.evidence.length >= requiredEvidenceCountForType(ws.decisionType),
             ).length /
               decisionsCount) *
               100,
           );
-    const securityFlagsPreMerge = inWindow.filter(
-      ({ ws }) => ws.decisionType === "SEC",
-    ).length;
+    const securityFlagsPreMerge = inWindow.filter(({ ws }) => ws.decisionType === "SEC").length;
     const claimsBackedByEvidence = clampScore(
       decisionsCount === 0
         ? 0
-        : (inWindow.filter(({ ws }) => ws.evidence.length > 0).length /
-            decisionsCount) *
-            100,
+        : (inWindow.filter(({ ws }) => ws.evidence.length > 0).length / decisionsCount) * 100,
     );
     const payload = {
       schemaVersion: "1.0.0",
@@ -1517,10 +1383,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
 
   if (args.command === "start") {
     const title =
-      args.title ||
-      (process.stdin.isTTY
-        ? await prompt("Decision title: ")
-        : "Untitled Decision");
+      args.title || (process.stdin.isTTY ? await prompt("Decision title: ") : "Untitled Decision");
     const decisionId = `dec_${hash({ title }).slice(0, 12)}`;
     const createdAt = nowIso();
     const ws: DecisionWorkspace = {
@@ -1535,9 +1398,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
       runs: [],
       chain: {},
       workspaceId: defaultWorkspaceId(),
-      reviewAt: new Date(Date.parse(createdAt) + 30 * 24 * 3600 * 1000)
-        .toISOString()
-        .slice(0, 10),
+      reviewAt: new Date(Date.parse(createdAt) + 30 * 24 * 3600 * 1000).toISOString().slice(0, 10),
       driftEvents: [],
       healthHistory: [],
     };
@@ -1548,8 +1409,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
 
   if (args.command === "decision-health") {
     const decisionId = args.decision || args.title;
-    if (!decisionId)
-      throw new Error("Usage: zeo decision-health <decisionId> [--json]");
+    if (!decisionId) throw new Error("Usage: zeo decision-health <decisionId> [--json]");
     const ws = loadWorkspace(decisionId);
     const health =
       ws.healthHistory?.[ws.healthHistory.length - 1] ??
@@ -1560,14 +1420,12 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
 
   if (args.command === "verify") {
     const target = args.decision || args.title;
-    if (!target)
-      throw new Error("Usage: zeo verify <bundlePath|decisionId> [--json]");
+    if (!target) throw new Error("Usage: zeo verify <bundlePath|decisionId> [--json]");
     const dir = existsSync(resolve(target))
       ? resolve(target)
       : join(resolve(process.cwd(), "exports"), target);
     const manifestPath = join(dir, "manifest.json");
-    if (!existsSync(manifestPath))
-      throw new Error(`Manifest not found: ${manifestPath}`);
+    if (!existsSync(manifestPath)) throw new Error(`Manifest not found: ${manifestPath}`);
     const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
       files: Array<{ path: string; sha256: string; size: number }>;
       verificationStatus?: {
@@ -1586,8 +1444,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
       const contents = readFileSync(absolute);
       const digest = createHash("sha256").update(contents).digest("hex");
       if (digest !== file.sha256) mismatches.push(`${file.path}:hash_mismatch`);
-      if (contents.byteLength !== file.size)
-        mismatches.push(`${file.path}:size_mismatch`);
+      if (contents.byteLength !== file.size) mismatches.push(`${file.path}:size_mismatch`);
     }
     const verified = mismatches.length === 0;
     const payload = {
@@ -1595,9 +1452,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
       method: manifest.verificationStatus?.method ?? "hash_only",
       manifestHash:
         manifest.verificationStatus?.manifestHash ??
-        createHash("sha256")
-          .update(JSON.stringify(manifest.files))
-          .digest("hex"),
+        createHash("sha256").update(JSON.stringify(manifest.files)).digest("hex"),
       treeHash: createHash("sha256")
         .update(JSON.stringify(manifest.files.map((f) => [f.path, f.sha256])))
         .digest("hex"),
@@ -1633,10 +1488,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
       args,
       { expired },
       expired
-        .map(
-          (item) =>
-            `${item.decisionId} ${item.evidenceId} expiresAt=${item.expiresAt}`,
-        )
+        .map((item) => `${item.decisionId} ${item.evidenceId} expiresAt=${item.expiresAt}`)
         .join("\n") || "No expired evidence.",
     );
     return 0;
@@ -1646,23 +1498,20 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
     const graph = collectGraph(args.asOf ?? DEFAULT_AS_OF_DATE);
     if (args.subcommand === "show") {
       const transcriptHash = args.transcript ?? args.decision;
-      if (!transcriptHash)
-        throw new Error("Usage: zeo graph show <transcript>");
+      if (!transcriptHash) throw new Error("Usage: zeo graph show <transcript>");
       const related = graph.edges.filter(
         (e) => e.from === transcriptHash || e.to === transcriptHash,
       );
       writeJsonOrText(
         args,
         { transcript: transcriptHash, edges: related },
-        related.map((e) => `${e.from} -[${e.type}]-> ${e.to}`).join("\n") ||
-          "No graph edges.",
+        related.map((e) => `${e.from} -[${e.type}]-> ${e.to}`).join("\n") || "No graph edges.",
       );
       return 0;
     }
     if (args.subcommand === "impact") {
       const transcriptHash = args.transcript ?? args.decision;
-      if (!transcriptHash)
-        throw new Error("Usage: zeo graph impact <transcript>");
+      if (!transcriptHash) throw new Error("Usage: zeo graph impact <transcript>");
       const impact = downstreamImpact(graph, transcriptHash);
       writeJsonOrText(
         args,
@@ -1683,15 +1532,12 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
         }))
         .sort(
           (a, b) =>
-            b.fragilityScore - a.fragilityScore ||
-            a.transcriptHash.localeCompare(b.transcriptHash),
+            b.fragilityScore - a.fragilityScore || a.transcriptHash.localeCompare(b.transcriptHash),
         );
       writeJsonOrText(
         args,
         { ranked },
-        ranked
-          .map((item) => `${item.transcriptHash} score=${item.fragilityScore}`)
-          .join("\n"),
+        ranked.map((item) => `${item.transcriptHash} score=${item.fragilityScore}`).join("\n"),
       );
       return 0;
     }
@@ -1701,9 +1547,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
   if (args.command === "view") {
     const lens = args.lens;
     if (!lens || !LENSES.includes(lens))
-      throw new Error(
-        "Usage: zeo view <executive|engineering|legal|personal> <transcript>",
-      );
+      throw new Error("Usage: zeo view <executive|engineering|legal|personal> <transcript>");
     const transcriptHash = args.transcript ?? args.decision;
     if (!transcriptHash) throw new Error("Transcript hash required");
     for (const ws of collectWorkspaces()) {
@@ -1723,23 +1567,15 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
     const invalidatedEarly: string[] = [];
     const retired: string[] = [];
     for (const ws of workspaces) {
-      if (
-        ws.runs.length > 1 &&
-        ws.runs[ws.runs.length - 1].flipDistance > ws.runs[0].flipDistance
-      )
+      if (ws.runs.length > 1 && ws.runs[ws.runs.length - 1].flipDistance > ws.runs[0].flipDistance)
         robust.push(ws.decisionId);
       if (
         ws.evidence.some(
-          (e) =>
-            e.expiresAt &&
-            ws.tasks.some((t) => t.sourceEvidenceId === e.id && t.completed),
+          (e) => e.expiresAt && ws.tasks.some((t) => t.sourceEvidenceId === e.id && t.completed),
         )
       )
         invalidatedEarly.push(ws.decisionId);
-      if (
-        ws.runs.length > 0 &&
-        ws.runs[ws.runs.length - 1].decaySummary.expired > 0
-      )
+      if (ws.runs.length > 0 && ws.runs[ws.runs.length - 1].decaySummary.expired > 0)
         retired.push(ws.decisionId);
     }
     const report = { robust, invalidatedEarly, retired };
@@ -1754,11 +1590,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
   if (args.command === "summary") {
     const audience = args.audience ?? "engineer";
     const summary = buildTypeSummary(args.type, audience);
-    writeJsonOrText(
-      args,
-      { audience, type: args.type ?? null, rows: summary.rows },
-      summary.text,
-    );
+    writeJsonOrText(args, { audience, type: args.type ?? null, rows: summary.rows }, summary.text);
     return 0;
   }
 
@@ -1768,16 +1600,12 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
 
   if (args.command === "evidence" && args.subcommand === "set-expiry") {
     if (!args.evidenceId)
-      throw new Error(
-        "Usage: zeo evidence set-expiry <evidenceId> --decision <id> --in 30d",
-      );
+      throw new Error("Usage: zeo evidence set-expiry <evidenceId> --decision <id> --in 30d");
     const days = parseDurationToDays(args.inDuration);
     const evidence = ws.evidence.find((item) => item.id === args.evidenceId);
     if (!evidence) throw new Error(`Evidence not found: ${args.evidenceId}`);
     const base = nowIso().slice(0, 10);
-    const expiresAt = new Date(
-      Date.parse(`${base}T00:00:00.000Z`) + days * 24 * 3600 * 1000,
-    )
+    const expiresAt = new Date(Date.parse(`${base}T00:00:00.000Z`) + days * 24 * 3600 * 1000)
       .toISOString()
       .slice(0, 10);
     evidence.expiresAt = expiresAt;
@@ -1791,8 +1619,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
   }
 
   if (args.command === "add-note") {
-    const text =
-      args.text || (process.stdin.isTTY ? await prompt("Paste note: ") : "");
+    const text = args.text || (process.stdin.isTTY ? await prompt("Paste note: ") : "");
     if (!text) throw new Error("note text required via --text");
     const proposal = parseNoteToEvidence(
       text,
@@ -1818,11 +1645,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
     const asOf = isoDate(args.asOf) ?? DEFAULT_AS_OF_DATE;
     for (const dep of args.dependsOn) {
       const linked = resolveTranscriptWorkspace(dep);
-      if (
-        linked &&
-        linked.workspaceId !== ws.workspaceId &&
-        !args.allowCrossWorkspace
-      ) {
+      if (linked && linked.workspaceId !== ws.workspaceId && !args.allowCrossWorkspace) {
         throw new Error(
           "[E_SCOPE_CROSS_WORKSPACE] linked transcript is in a different workspace; use --allow-cross-workspace to override.",
         );
@@ -1845,9 +1668,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
       return status === "stale" || status === "expired";
     }).length;
     if (staleCount > 0) {
-      health.policyComplianceScore = clampScore(
-        health.policyComplianceScore - staleCount * 10,
-      );
+      health.policyComplianceScore = clampScore(health.policyComplianceScore - staleCount * 10);
       health.riskScore = clampScore(health.riskScore + staleCount * 5);
     }
     if (ws.reviewAt && asOf >= ws.reviewAt) {
@@ -1859,20 +1680,14 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
         detectedAt: nowIso(),
         details: { reviewAt: ws.reviewAt, asOf },
       });
-      health.policyComplianceScore = clampScore(
-        health.policyComplianceScore - 20,
-      );
-      health.assumptionVolatilityIndex = clampScore(
-        health.assumptionVolatilityIndex + 15,
-      );
+      health.policyComplianceScore = clampScore(health.policyComplianceScore - 20);
+      health.assumptionVolatilityIndex = clampScore(health.assumptionVolatilityIndex + 15);
       health.riskScore = clampScore(health.riskScore + 12);
     }
     result.health = health;
     ws.runs = [...ws.runs, result];
     ws.chain.parentTranscriptHash =
-      ws.runs.length > 1
-        ? ws.runs[ws.runs.length - 2]?.transcriptHash
-        : undefined;
+      ws.runs.length > 1 ? ws.runs[ws.runs.length - 2]?.transcriptHash : undefined;
     ws.healthHistory = [...(ws.healthHistory ?? []), health];
     for (const evidence of ws.evidence) {
       if (classifyDecay(evidence, asOf) === "expired") {
@@ -1910,11 +1725,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
         const decay = evidence ? classifyDecay(evidence, asOf) : "unknown";
         return `- [ ] (${t.id}) ${t.label} [decay=${decay}]`;
       });
-    writeJsonOrText(
-      args,
-      { tasks: checklist },
-      checklist.join("\n") || "No pending tasks.",
-    );
+    writeJsonOrText(args, { tasks: checklist }, checklist.join("\n") || "No pending tasks.");
     return 0;
   }
 
@@ -1927,17 +1738,12 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
   }
 
   if (args.command === "done") {
-    if (!args.taskId)
-      throw new Error("task id required: zeo done <taskId> --decision <id>");
+    if (!args.taskId) throw new Error("task id required: zeo done <taskId> --decision <id>");
     const task = ws.tasks.find((t) => t.id === args.taskId);
     if (!task) throw new Error(`Task not found: ${args.taskId}`);
     task.completed = true;
     saveWorkspace(ws);
-    writeJsonOrText(
-      args,
-      { taskId: task.id, completed: true },
-      `Marked ${task.id} complete.`,
-    );
+    writeJsonOrText(args, { taskId: task.id, completed: true }, `Marked ${task.id} complete.`);
     return 0;
   }
 
@@ -1967,9 +1773,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
         [],
         [],
       ));
-    const outDir = args.output
-      ? resolve(args.output)
-      : resolve(process.cwd(), "exports");
+    const outDir = args.output ? resolve(args.output) : resolve(process.cwd(), "exports");
     if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
 
     if (args.subcommand === "md") {
@@ -1984,9 +1788,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
     if (args.subcommand === "ics") {
       const timezone = args.timezone ?? DEFAULT_TIMEZONE;
       const dueDate = args.due;
-      const tasks = ws.tasks
-        .filter((t) => !t.completed)
-        .sort((a, b) => a.id.localeCompare(b.id));
+      const tasks = ws.tasks.filter((t) => !t.completed).sort((a, b) => a.id.localeCompare(b.id));
       const body = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
@@ -2036,36 +1838,16 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
             expiresAt: item.expiresAt,
             provenance: item.provenance,
           }));
-      writeFileSync(
-        join(folder, "decision.json"),
-        `${JSON.stringify(ws, null, 2)}\n`,
-        "utf8",
-      );
+      writeFileSync(join(folder, "decision.json"), `${JSON.stringify(ws, null, 2)}\n`, "utf8");
       writeFileSync(
         join(folder, "evidence.json"),
         `${JSON.stringify(redactedEvidence, null, 2)}\n`,
         "utf8",
       );
-      writeFileSync(
-        join(folder, "transcript.md"),
-        `${formatResultCard(latest)}\n`,
-        "utf8",
-      );
-      writeFileSync(
-        join(folder, "metrics.json"),
-        `${JSON.stringify(health, null, 2)}\n`,
-        "utf8",
-      );
-      writeFileSync(
-        join(folder, "replay.json"),
-        `${JSON.stringify(replay, null, 2)}\n`,
-        "utf8",
-      );
-      writeFileSync(
-        join(folder, "policy.json"),
-        `${JSON.stringify(policy, null, 2)}\n`,
-        "utf8",
-      );
+      writeFileSync(join(folder, "transcript.md"), `${formatResultCard(latest)}\n`, "utf8");
+      writeFileSync(join(folder, "metrics.json"), `${JSON.stringify(health, null, 2)}\n`, "utf8");
+      writeFileSync(join(folder, "replay.json"), `${JSON.stringify(replay, null, 2)}\n`, "utf8");
+      writeFileSync(join(folder, "policy.json"), `${JSON.stringify(policy, null, 2)}\n`, "utf8");
       writeFileSync(
         join(folder, "provenance.json"),
         `${JSON.stringify({ evidenceHashes: ws.evidence.map((item) => item.provenance.hash) }, null, 2)}\n`,
@@ -2118,11 +1900,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
         ? `Zeo Verified (${status.method})`
         : "Verification pending";
       const text = `${folder}\n${proofLine}${args.includeRaw ? "\nWARNING: raw evidence included" : ""}`;
-      writeJsonOrText(
-        args,
-        { out: folder, verificationStatus: status, format },
-        text,
-      );
+      writeJsonOrText(args, { out: folder, verificationStatus: status, format }, text);
       return 0;
     }
 
@@ -2168,28 +1946,20 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
       );
     const ws = loadWorkspace(target);
     const explanation = explainForAudience(ws, audience, args.type);
-    writeJsonOrText(
-      args,
-      { decision: target, audience, explanation },
-      explanation,
-    );
+    writeJsonOrText(args, { decision: target, audience, explanation }, explanation);
     return 0;
   }
 
   if (args.command === "summary") {
     const audience = args.audience ?? "engineer";
     const summary = buildTypeSummary(args.type, audience);
-    writeJsonOrText(
-      args,
-      { audience, type: args.type ?? null, rows: summary.rows },
-      summary.text,
-    );
+    writeJsonOrText(args, { audience, type: args.type ?? null, rows: summary.rows }, summary.text);
     return 0;
   }
 
   if (args.command === "streaks") {
-    const dirs = readdirSync(decisionsRoot(), { withFileTypes: true }).filter(
-      (d) => d.isDirectory(),
+    const dirs = readdirSync(decisionsRoot(), { withFileTypes: true }).filter((d) =>
+      d.isDirectory(),
     );
     let fragilityImproved = 0;
     let replaysVerified = 0;
@@ -2199,16 +1969,12 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
       const local = loadWorkspace(dir.name);
       if (
         local.runs.length > 1 &&
-        local.runs[local.runs.length - 1].flipDistance >
-          local.runs[0].flipDistance
+        local.runs[local.runs.length - 1].flipDistance > local.runs[0].flipDistance
       )
         fragilityImproved += 1;
       if (local.runs.length > 0) replaysVerified += 1;
       if (local.runs.some((r) => r.signatureStatus === "signed")) signed += 1;
-      if (
-        local.evidence.some((e) => e.expiresAt) &&
-        local.tasks.some((t) => t.completed)
-      )
+      if (local.evidence.some((e) => e.expiresAt) && local.tasks.some((t) => t.completed))
         earlyInvalidations += 1;
     }
     writeJsonOrText(

@@ -198,10 +198,7 @@ export function seed(): { success: boolean; message: string } {
   };
 
   for (const [filename, scenario] of Object.entries(scenarios)) {
-    writeFileSync(
-      resolve(dataDir, filename),
-      JSON.stringify(scenario, null, 2),
-    );
+    writeFileSync(resolve(dataDir, filename), JSON.stringify(scenario, null, 2));
     console.log(`   Generated: ${filename}`);
   }
 
@@ -211,12 +208,8 @@ export function seed(): { success: boolean; message: string } {
   for (const [name, scenario] of Object.entries(scenarios)) {
     console.log(`\n   ${scenario.scenario}:`);
     console.log(`     Nodes: ${scenario.nodes.length}`);
-    console.log(
-      `     Evidence: ${scenario.nodes.filter((n) => n.type === "evidence").length}`,
-    );
-    console.log(
-      `     Hypotheses: ${scenario.nodes.filter((n) => n.type === "hypothesis").length}`,
-    );
+    console.log(`     Evidence: ${scenario.nodes.filter((n) => n.type === "evidence").length}`);
+    console.log(`     Hypotheses: ${scenario.nodes.filter((n) => n.type === "hypothesis").length}`);
     console.log(`     VOI opportunities: ${scenario.voi.length}`);
   }
 

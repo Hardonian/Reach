@@ -19,20 +19,14 @@ export function GovernanceCompliance() {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2 text-[#9da6b9] text-sm">
             <span>Console</span>
-            <span className="material-symbols-outlined text-[16px]">
-              chevron_right
-            </span>
+            <span className="material-symbols-outlined text-[16px]">chevron_right</span>
             <span className="text-white font-medium">Governance & Policy</span>
           </div>
-          <h2 className="text-white text-xl font-bold tracking-tight">
-            Security & Compliance
-          </h2>
+          <h2 className="text-white text-xl font-bold tracking-tight">Security & Compliance</h2>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3 bg-[#1c1f27] px-3 py-1.5 rounded-lg border border-[#2d3442]">
-            <span className="material-symbols-outlined text-[#9da6b9]">
-              apartment
-            </span>
+            <span className="material-symbols-outlined text-[#9da6b9]">apartment</span>
             <div className="flex flex-col">
               <span className="text-[10px] text-[#9da6b9] font-medium uppercase tracking-wider">
                 Tenant Scope
@@ -80,19 +74,14 @@ export function GovernanceCompliance() {
                   type="button"
                   className="text-[#135bec] text-sm font-medium hover:underline flex items-center gap-1"
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    edit
-                  </span>{" "}
-                  Edit Roles
+                  <span className="material-symbols-outlined text-[18px]">edit</span> Edit Roles
                 </button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-[#2d3442] text-xs uppercase text-[#9da6b9] font-medium bg-[#282e39]/20">
-                      <th className="px-6 py-3 min-w-[150px]">
-                        Resource / Role
-                      </th>
+                      <th className="px-6 py-3 min-w-[150px]">Resource / Role</th>
                       <th className="px-4 py-3 text-center">Admin</th>
                       <th className="px-4 py-3 text-center">DevOps</th>
                       <th className="px-4 py-3 text-center">Viewer</th>
@@ -118,13 +107,8 @@ export function GovernanceCompliance() {
                         roles: ["check", "none", "none", "none"],
                       },
                     ].map((row) => (
-                      <tr
-                        key={row.res}
-                        className="hover:bg-[#282e39]/20 transition-colors"
-                      >
-                        <td className="px-6 py-4 font-medium text-white">
-                          {row.res}
-                        </td>
+                      <tr key={row.res} className="hover:bg-[#282e39]/20 transition-colors">
+                        <td className="px-6 py-4 font-medium text-white">{row.res}</td>
                         {row.roles.map((role, i) => (
                           <td key={i} className="px-4 py-4 text-center">
                             {role === "check" && (
@@ -160,9 +144,7 @@ export function GovernanceCompliance() {
             <div className="xl:col-span-1 bg-[#1c1f27] border border-[#2d3442] rounded-xl overflow-hidden flex flex-col">
               <div className="px-6 py-4 border-b border-[#2d3442] flex justify-between items-center bg-[#282e39]/30">
                 <h3 className="text-white font-semibold text-lg flex items-center gap-2">
-                  <span className="material-symbols-outlined text-red-500">
-                    gpp_bad
-                  </span>
+                  <span className="material-symbols-outlined text-red-500">gpp_bad</span>
                   Build Gate Violations
                 </h3>
                 <span className="bg-red-500/20 text-red-500 text-xs font-bold px-2 py-0.5 rounded">
@@ -200,9 +182,7 @@ export function GovernanceCompliance() {
                       >
                         {v.title}
                       </span>
-                      <span className="text-[10px] text-[#9da6b9]">
-                        {v.time}
-                      </span>
+                      <span className="text-[10px] text-[#9da6b9]">{v.time}</span>
                     </div>
                     <p className="text-[#9da6b9] text-xs">{v.desc}</p>
                   </div>
@@ -216,9 +196,7 @@ export function GovernanceCompliance() {
             <div className="px-6 py-4 border-b border-[#2d3442] flex justify-between items-center bg-[#282e39]/30">
               <div>
                 <h3 className="text-white font-semibold text-lg flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#135bec]">
-                    security
-                  </span>
+                  <span className="material-symbols-outlined text-[#135bec]">security</span>
                   RLS Policy Viewer
                 </h3>
                 <p className="text-[#9da6b9] text-xs mt-1">
@@ -263,9 +241,7 @@ export function GovernanceCompliance() {
           <div className="bg-[#1c1f27] border border-[#2d3442] rounded-xl overflow-hidden flex flex-col mb-8">
             <div className="px-6 py-4 border-b border-[#2d3442] flex flex-wrap justify-between items-center gap-4 bg-[#282e39]/30">
               <h3 className="text-white font-semibold text-lg flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#135bec]">
-                  history_edu
-                </span>
+                <span className="material-symbols-outlined text-[#135bec]">history_edu</span>
                 Live Audit Timeline
               </h3>
               <div className="flex items-center gap-3">
@@ -319,10 +295,7 @@ export function GovernanceCompliance() {
                       status: "Denied",
                     },
                   ].map((log) => (
-                    <tr
-                      key={log.time}
-                      className="hover:bg-[#282e39]/20 transition-colors group"
-                    >
+                    <tr key={log.time} className="hover:bg-[#282e39]/20 transition-colors group">
                       <td className="px-6 py-4 font-mono text-xs text-[#9da6b9]">
                         2023-10-24 {log.time}
                       </td>

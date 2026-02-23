@@ -13,9 +13,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_BASE_URL ?? "https://reach.dev",
-  ),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL ?? "https://reach.dev"),
   title: {
     default: `${process.env.NEXT_PUBLIC_BRAND_NAME ?? "ReadyLayer"} - Deterministic Orchestration Fabric`,
     template: `%s | ${process.env.NEXT_PUBLIC_BRAND_NAME ?? "ReadyLayer"}`,
@@ -81,11 +79,7 @@ export const viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
       <head>

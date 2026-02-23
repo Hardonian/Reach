@@ -8,17 +8,12 @@ describe("06-retention-compact-safety", () => {
   test("has required files", () => {
     expect(existsSync(resolve(EXAMPLE_DIR, "README.md"))).toBe(true);
     expect(existsSync(resolve(EXAMPLE_DIR, "run.js"))).toBe(true);
-    expect(existsSync(resolve(EXAMPLE_DIR, "retention-policy.json"))).toBe(
-      true,
-    );
+    expect(existsSync(resolve(EXAMPLE_DIR, "retention-policy.json"))).toBe(true);
     expect(existsSync(resolve(EXAMPLE_DIR, "mock-database.json"))).toBe(true);
   });
 
   test("retention-policy.json has tiers", () => {
-    const content = readFileSync(
-      resolve(EXAMPLE_DIR, "retention-policy.json"),
-      "utf8",
-    );
+    const content = readFileSync(resolve(EXAMPLE_DIR, "retention-policy.json"), "utf8");
     const parsed = JSON.parse(content);
     expect(parsed).toHaveProperty("tiers");
     expect(Array.isArray(parsed.tiers)).toBe(true);
@@ -26,10 +21,7 @@ describe("06-retention-compact-safety", () => {
   });
 
   test("retention policy has compaction rules", () => {
-    const content = readFileSync(
-      resolve(EXAMPLE_DIR, "retention-policy.json"),
-      "utf8",
-    );
+    const content = readFileSync(resolve(EXAMPLE_DIR, "retention-policy.json"), "utf8");
     const parsed = JSON.parse(content);
     expect(parsed).toHaveProperty("compaction_rules");
     expect(parsed.compaction_rules).toHaveProperty("preserve_fingerprints");
@@ -37,10 +29,7 @@ describe("06-retention-compact-safety", () => {
   });
 
   test("mock-database.json has runs", () => {
-    const content = readFileSync(
-      resolve(EXAMPLE_DIR, "mock-database.json"),
-      "utf8",
-    );
+    const content = readFileSync(resolve(EXAMPLE_DIR, "mock-database.json"), "utf8");
     const parsed = JSON.parse(content);
     expect(parsed).toHaveProperty("runs");
     expect(Array.isArray(parsed.runs)).toBe(true);
@@ -48,10 +37,7 @@ describe("06-retention-compact-safety", () => {
   });
 
   test("mock runs have tier assignments", () => {
-    const content = readFileSync(
-      resolve(EXAMPLE_DIR, "mock-database.json"),
-      "utf8",
-    );
+    const content = readFileSync(resolve(EXAMPLE_DIR, "mock-database.json"), "utf8");
     const parsed = JSON.parse(content);
 
     for (const run of parsed.runs) {

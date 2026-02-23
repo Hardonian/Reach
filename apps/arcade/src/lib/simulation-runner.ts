@@ -47,9 +47,7 @@ async function executeVariant(
 
     // Inject simulated latency
     if (variant.inject_latency_ms && variant.inject_latency_ms > 0) {
-      await new Promise((r) =>
-        setTimeout(r, Math.min(variant.inject_latency_ms!, 2000)),
-      );
+      await new Promise((r) => setTimeout(r, Math.min(variant.inject_latency_ms!, 2000)));
     }
 
     // Call the playground endpoint for evaluation
@@ -133,8 +131,7 @@ function pickRecommendation(results: ScenarioVariantResult[]): string {
   // Score: pass_rate × (1 / latency_ms) × (1 / (cost_usd + 0.0001))
   const scored = passing.map((r) => ({
     ...r,
-    score:
-      r.pass_rate * (1 / (r.latency_ms || 1)) * (1 / (r.cost_usd + 0.0001)),
+    score: r.pass_rate * (1 / (r.latency_ms || 1)) * (1 / (r.cost_usd + 0.0001)),
   }));
   scored.sort((a, b) => b.score - a.score);
   const best = scored[0];
@@ -142,38 +139,27 @@ function pickRecommendation(results: ScenarioVariantResult[]): string {
   const improvements = results
     .filter((r) => r.variant_id !== best.variant_id && r.status === "passed")
     .map((r) => {
-      const latDelta = (
-        ((r.latency_ms - best.latency_ms) / best.latency_ms) *
-        100
-      ).toFixed(0);
+      const latDelta = (((r.latency_ms - best.latency_ms) / best.latency_ms) * 100).toFixed(0);
       return `${r.variant_label}: ${Math.abs(Number(latDelta))}% ${Number(latDelta) > 0 ? "slower" : "faster"}`;
     });
 
-  const riskNote = results.some(
-    (r) => r.status === "failed" || r.status === "error",
-  )
+  const riskNote = results.some((r) => r.status === "failed" || r.status === "error")
     ? " ⚠ Some variants failed — check for regressions before deploying."
     : "";
 
   const improvNote =
-    improvements.length > 0
-      ? ` Compared to: ${improvements.slice(0, 2).join("; ")}.`
-      : "";
+    improvements.length > 0 ? ` Compared to: ${improvements.slice(0, 2).join("; ")}.` : "";
   return `Best variant: "${best.variant_label}" (pass rate: ${(best.pass_rate * 100).toFixed(0)}%, latency: ${best.latency_ms}ms, cost: $${best.cost_usd}).${improvNote}${riskNote}`;
 }
 
 // ── Public runner ─────────────────────────────────────────────────────────
 
-export async function runSimulation(
-  tenantId: string,
-  scenarioRunId: string,
-): Promise<void> {
+export async function runSimulation(tenantId: string, scenarioRunId: string): Promise<void> {
   const scenarioRun = getScenarioRun(scenarioRunId, tenantId);
   if (!scenarioRun) throw new Error(`Scenario run ${scenarioRunId} not found`);
 
   const scenario = getScenario(scenarioRun.scenario_id, tenantId);
-  if (!scenario)
-    throw new Error(`Scenario ${scenarioRun.scenario_id} not found`);
+  if (!scenario) throw new Error(`Scenario ${scenarioRun.scenario_id} not found`);
 
   // Load base inputs from the linked run if available
   const baseInputs: Record<string, unknown> = scenario.base_run_id

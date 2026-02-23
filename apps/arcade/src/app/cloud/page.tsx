@@ -16,15 +16,7 @@ interface CloudOverviewData {
   billing?: { plan: string; usage: { runs_used: number; runs_limit: number } };
 }
 
-function StatCard({
-  title,
-  value,
-  sub,
-}: {
-  title: string;
-  value: string | number;
-  sub?: string;
-}) {
+function StatCard({ title, value, sub }: { title: string; value: string | number; sub?: string }) {
   return (
     <div className="p-4 rounded-xl border border-border bg-surface">
       <p className="text-xs text-gray-500 mb-1">{title}</p>
@@ -40,24 +32,14 @@ export default function CloudOverviewPage() {
 
   useEffect(() => {
     const tenantId =
-      typeof window !== "undefined"
-        ? (localStorage.getItem("reach_tenant_id") ?? "")
-        : "";
+      typeof window !== "undefined" ? (localStorage.getItem("reach_tenant_id") ?? "") : "";
     const headers: HeadersInit = tenantId ? { "X-Tenant-Id": tenantId } : {};
 
     Promise.all([
-      fetch("/api/v1/auth/me", { headers }).then((r) =>
-        r.ok ? r.json() : null,
-      ),
-      fetch("/api/v1/workflows", { headers }).then((r) =>
-        r.ok ? r.json() : null,
-      ),
-      fetch("/api/v1/workflow-runs?limit=20", { headers }).then((r) =>
-        r.ok ? r.json() : null,
-      ),
-      fetch("/api/v1/billing", { headers }).then((r) =>
-        r.ok ? r.json() : null,
-      ),
+      fetch("/api/v1/auth/me", { headers }).then((r) => (r.ok ? r.json() : null)),
+      fetch("/api/v1/workflows", { headers }).then((r) => (r.ok ? r.json() : null)),
+      fetch("/api/v1/workflow-runs?limit=20", { headers }).then((r) => (r.ok ? r.json() : null)),
+      fetch("/api/v1/billing", { headers }).then((r) => (r.ok ? r.json() : null)),
     ])
       .then(([me, workflows, runs, billing]) => {
         setData({
@@ -99,22 +81,16 @@ export default function CloudOverviewPage() {
   return (
     <div className="p-8 max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">
-          Welcome back, {data.user.display_name}
-        </h1>
+        <h1 className="text-2xl font-bold text-white">Welcome back, {data.user.display_name}</h1>
         <p className="text-gray-400 mt-1">
-          {data.tenant?.name} ·{" "}
-          <span className="capitalize">{data.tenant?.plan ?? "free"}</span> plan
+          {data.tenant?.name} · <span className="capitalize">{data.tenant?.plan ?? "free"}</span>{" "}
+          plan
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <StatCard
-          title="Workflows"
-          value={data.workflows?.length ?? 0}
-          sub="total"
-        />
+        <StatCard title="Workflows" value={data.workflows?.length ?? 0} sub="total" />
         <StatCard
           title="Runs This Month"
           value={data.billing?.usage?.runs_used ?? 0}
@@ -124,16 +100,8 @@ export default function CloudOverviewPage() {
               : `of ${data.billing?.usage?.runs_limit ?? 100}`
           }
         />
-        <StatCard
-          title="Recent Runs"
-          value={data.runs?.length ?? 0}
-          sub="last 20"
-        />
-        <StatCard
-          title="Plan"
-          value={data.billing?.plan ?? "free"}
-          sub="current"
-        />
+        <StatCard title="Recent Runs" value={data.runs?.length ?? 0} sub="last 20" />
+        <StatCard title="Plan" value={data.billing?.plan ?? "free"} sub="current" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -141,11 +109,7 @@ export default function CloudOverviewPage() {
         <div className="rounded-xl border border-border bg-surface p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-white">Recent Workflows</h2>
-            <Link
-              href="#"
-              className="text-xs text-accent hover:underline"
-              title="Coming Soon"
-            >
+            <Link href="#" className="text-xs text-accent hover:underline" title="Coming Soon">
               View all →
             </Link>
           </div>
@@ -159,9 +123,7 @@ export default function CloudOverviewPage() {
                     title="Coming Soon"
                   >
                     <span className="text-sm text-white">{wf.name}</span>
-                    <span className={`text-xs ${statusColor(wf.status)}`}>
-                      {wf.status}
-                    </span>
+                    <span className={`text-xs ${statusColor(wf.status)}`}>{wf.status}</span>
                   </Link>
                 </li>
               ))}
@@ -169,11 +131,7 @@ export default function CloudOverviewPage() {
           ) : (
             <p className="text-gray-500 text-sm">
               No workflows yet.{" "}
-              <Link
-                href="#"
-                className="text-accent hover:underline"
-                title="Coming Soon"
-              >
+              <Link href="#" className="text-accent hover:underline" title="Coming Soon">
                 Create one →
               </Link>
             </p>
@@ -184,34 +142,21 @@ export default function CloudOverviewPage() {
         <div className="rounded-xl border border-border bg-surface p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-white">Recent Runs</h2>
-            <Link
-              href="#"
-              className="text-xs text-accent hover:underline"
-              title="Coming Soon"
-            >
+            <Link href="#" className="text-xs text-accent hover:underline" title="Coming Soon">
               View all →
             </Link>
           </div>
           {data.runs?.length ? (
             <ul className="space-y-2">
               {data.runs.map((run) => (
-                <li
-                  key={run.id}
-                  className="flex items-center justify-between py-2"
-                >
-                  <span className="text-xs font-mono text-gray-400">
-                    {run.id.slice(0, 20)}…
-                  </span>
-                  <span className={`text-xs ${statusColor(run.status)}`}>
-                    {run.status}
-                  </span>
+                <li key={run.id} className="flex items-center justify-between py-2">
+                  <span className="text-xs font-mono text-gray-400">{run.id.slice(0, 20)}…</span>
+                  <span className={`text-xs ${statusColor(run.status)}`}>{run.status}</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-gray-500 text-sm">
-              No runs yet. Execute a workflow to see results.
-            </p>
+            <p className="text-gray-500 text-sm">No runs yet. Execute a workflow to see results.</p>
           )}
         </div>
       </div>

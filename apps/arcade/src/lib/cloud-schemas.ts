@@ -111,9 +111,7 @@ export const PackManifestSchema = z.object({
     .regex(/^[a-z0-9-]+$/),
   description: z.string().min(10).max(2000),
   shortDescription: z.string().max(200).default(""),
-  version: z
-    .string()
-    .regex(/^\d+\.\d+\.\d+$/, "Version must be semver (x.y.z)"),
+  version: z.string().regex(/^\d+\.\d+\.\d+$/, "Version must be semver (x.y.z)"),
   category: z.enum([
     "research",
     "data",
@@ -128,9 +126,7 @@ export const PackManifestSchema = z.object({
   tools: z.array(z.string()).default([]),
   tags: z.array(z.string()).max(10).default([]),
   permissions: z.array(z.string()).default([]),
-  dataHandling: z
-    .enum(["minimal", "processed", "significant"])
-    .default("minimal"),
+  dataHandling: z.enum(["minimal", "processed", "significant"]).default("minimal"),
   changelog: z.string().max(2000).default(""),
   readme: z.string().max(50000).default(""),
   authorName: z.string().min(1).max(100),
@@ -139,9 +135,7 @@ export const PackManifestSchema = z.object({
 export const BrowsePacksSchema = z.object({
   search: z.string().optional(),
   category: z.string().optional(),
-  sort: z
-    .enum(["relevance", "newest", "trending", "rating", "reputation"])
-    .optional(),
+  sort: z.enum(["relevance", "newest", "trending", "rating", "reputation"]).optional(),
   verifiedOnly: z.coerce.boolean().optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(12),
@@ -153,13 +147,7 @@ export const ReviewSchema = z.object({
 });
 
 export const ReportSchema = z.object({
-  reason: z.enum([
-    "security",
-    "spam",
-    "policy_violation",
-    "malicious",
-    "other",
-  ]),
+  reason: z.enum(["security", "spam", "policy_violation", "malicious", "other"]),
   details: z.string().max(2000).default(""),
 });
 
@@ -187,9 +175,7 @@ export const CreateGateSchema = z.object({
   repo_owner: z.string().min(1).max(100),
   repo_name: z.string().min(1).max(100),
   default_branch: z.string().min(1).max(100).default("main"),
-  trigger_types: z
-    .array(z.enum(["pr", "push", "schedule"]))
-    .default(["pr", "push"]),
+  trigger_types: z.array(z.enum(["pr", "push", "schedule"])).default(["pr", "push"]),
   required_checks: z.array(GateCheckSchema).default([]),
   thresholds: GateThresholdsSchema.default({
     pass_rate: 1.0,
@@ -220,9 +206,7 @@ export const CiIngestSchema = z.object({
   branch: z.string().optional(),
   pr_number: z.number().int().optional(),
   actor: z.string().optional(),
-  ci_provider: z
-    .enum(["github", "gitlab", "circleci", "jenkins", "other"])
-    .default("github"),
+  ci_provider: z.enum(["github", "gitlab", "circleci", "jenkins", "other"]).default("github"),
   artifacts: z
     .object({
       prompt_diffs: z.array(z.record(z.string(), z.unknown())).optional(),
@@ -239,13 +223,7 @@ export const CiIngestSchema = z.object({
 // ── Signals ───────────────────────────────────────────────────────────────
 export const CreateSignalSchema = z.object({
   name: z.string().min(1).max(200),
-  type: z.enum([
-    "drift",
-    "latency",
-    "policy_violation",
-    "tool_failure",
-    "regression_rate",
-  ]),
+  type: z.enum(["drift", "latency", "policy_violation", "tool_failure", "regression_rate"]),
   source: z.enum(["webhook", "poller"]).default("webhook"),
   threshold: z.record(z.string(), z.unknown()).default({}),
 });

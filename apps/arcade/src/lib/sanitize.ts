@@ -38,9 +38,7 @@ export function sanitize(data: unknown): unknown {
 
   if (typeof data === "object") {
     const sanitized: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(
-      data as Record<string, unknown>,
-    )) {
+    for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
       if (SENSITIVE_KEYS.some((regex) => regex.test(key))) {
         sanitized[key] = "[REDACTED]";
       } else {

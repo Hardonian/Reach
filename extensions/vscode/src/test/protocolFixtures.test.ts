@@ -21,9 +21,7 @@ describe("protocol fixture contracts", () => {
       expect(typeof event.eventId).toBe("string");
       expect(typeof event.type).toBe("string");
       expect(event.payload).toBeTypeOf("object");
-      expect((event.payload as Record<string, unknown>).schemaVersion).toBe(
-        "1.0.0",
-      );
+      expect((event.payload as Record<string, unknown>).schemaVersion).toBe("1.0.0");
     }
   });
 });

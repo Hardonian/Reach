@@ -3,11 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ROUTES } from "@/lib/routes";
-import {
-  getAllSkills,
-  getToolsForSkill,
-  skillToMCPConfig,
-} from "@/lib/runtime";
+import { getAllSkills, getToolsForSkill, skillToMCPConfig } from "@/lib/runtime";
 import type { SkillManifest } from "@/lib/runtime";
 
 const TAG_COLORS: Record<string, string> = {
@@ -18,9 +14,7 @@ const TAG_COLORS: Record<string, string> = {
 
 export default function SkillsPage() {
   const skills = getAllSkills();
-  const [selectedSkill, setSelectedSkill] = useState<SkillManifest | null>(
-    null,
-  );
+  const [selectedSkill, setSelectedSkill] = useState<SkillManifest | null>(null);
   const [showMCP, setShowMCP] = useState(false);
 
   return (
@@ -29,8 +23,8 @@ export default function SkillsPage() {
       <div className="max-w-3xl mx-auto mb-10 text-center">
         <h1 className="text-4xl font-bold mb-3">Skills</h1>
         <p className="text-gray-400 max-w-lg mx-auto">
-          Composable units of agent behavior. Each skill declares inputs, tools,
-          and evaluation hooks.
+          Composable units of agent behavior. Each skill declares inputs, tools, and evaluation
+          hooks.
         </p>
       </div>
 
@@ -56,9 +50,7 @@ export default function SkillsPage() {
                     <span className="text-2xl">{skill.icon}</span>
                     <div>
                       <h3 className="font-bold">{skill.name}</h3>
-                      <span className="text-xs text-gray-500">
-                        v{skill.version}
-                      </span>
+                      <span className="text-xs text-gray-500">v{skill.version}</span>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -74,9 +66,7 @@ export default function SkillsPage() {
                       ))}
                   </div>
                 </div>
-                <p className="text-sm text-gray-400 mb-3">
-                  {skill.description}
-                </p>
+                <p className="text-sm text-gray-400 mb-3">{skill.description}</p>
                 <div className="flex items-center gap-4 text-xs text-gray-500">
                   <span>
                     {skill.inputs.length} input
@@ -103,41 +93,24 @@ export default function SkillsPage() {
                 <span className="text-3xl">{selectedSkill.icon}</span>
                 <div>
                   <h2 className="font-bold text-lg">{selectedSkill.name}</h2>
-                  <span className="text-xs text-gray-500">
-                    v{selectedSkill.version}
-                  </span>
+                  <span className="text-xs text-gray-500">v{selectedSkill.version}</span>
                 </div>
               </div>
 
-              <p className="text-sm text-gray-400 mb-4">
-                {selectedSkill.description}
-              </p>
+              <p className="text-sm text-gray-400 mb-4">{selectedSkill.description}</p>
 
               {/* Inputs */}
               <div className="mb-4">
-                <h3 className="text-xs text-gray-500 uppercase tracking-wide mb-2">
-                  Inputs
-                </h3>
+                <h3 className="text-xs text-gray-500 uppercase tracking-wide mb-2">Inputs</h3>
                 <div className="space-y-2">
                   {selectedSkill.inputs.map((input) => (
-                    <div
-                      key={input.name}
-                      className="p-2 rounded bg-black/20 border border-white/5"
-                    >
+                    <div key={input.name} className="p-2 rounded bg-black/20 border border-white/5">
                       <div className="flex items-center gap-2 mb-1">
-                        <code className="text-xs text-accent font-mono">
-                          {input.name}
-                        </code>
-                        <span className="text-xs text-gray-600">
-                          {input.type}
-                        </span>
-                        {input.required && (
-                          <span className="text-xs text-red-400">required</span>
-                        )}
+                        <code className="text-xs text-accent font-mono">{input.name}</code>
+                        <span className="text-xs text-gray-600">{input.type}</span>
+                        {input.required && <span className="text-xs text-red-400">required</span>}
                       </div>
-                      <p className="text-xs text-gray-500">
-                        {input.description}
-                      </p>
+                      <p className="text-xs text-gray-500">{input.description}</p>
                     </div>
                   ))}
                 </div>
@@ -145,9 +118,7 @@ export default function SkillsPage() {
 
               {/* Tools */}
               <div className="mb-4">
-                <h3 className="text-xs text-gray-500 uppercase tracking-wide mb-2">
-                  Tools
-                </h3>
+                <h3 className="text-xs text-gray-500 uppercase tracking-wide mb-2">Tools</h3>
                 <div className="flex flex-wrap gap-1">
                   {selectedSkill.tools.map((t) => (
                     <span
@@ -201,10 +172,7 @@ export default function SkillsPage() {
                 >
                   Run in Playground
                 </Link>
-                <button
-                  onClick={() => setShowMCP(!showMCP)}
-                  className="btn-secondary text-sm"
-                >
+                <button onClick={() => setShowMCP(!showMCP)} className="btn-secondary text-sm">
                   {showMCP ? "Hide" : "Export"} MCP Config
                 </button>
               </div>
@@ -222,9 +190,7 @@ export default function SkillsPage() {
             <div className="card text-center py-12">
               <div className="text-4xl mb-3">🧩</div>
               <h3 className="font-bold mb-1">Select a Skill</h3>
-              <p className="text-sm text-gray-500">
-                Click a skill to view its manifest and tools.
-              </p>
+              <p className="text-sm text-gray-500">Click a skill to view its manifest and tools.</p>
             </div>
           )}
         </div>

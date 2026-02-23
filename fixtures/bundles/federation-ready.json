@@ -15,10 +15,7 @@
     "type": "distributed_analysis",
     "action": "federated_query"
   },
-  "policies": [
-    "policy-packs/strict-safe-mode.json",
-    "policy-packs/federation-mesh.json"
-  ],
+  "policies": ["policy-packs/strict-safe-mode.json", "policy-packs/federation-mesh.json"],
   "federation": {
     "enabled": true,
     "strategy": "quorum",

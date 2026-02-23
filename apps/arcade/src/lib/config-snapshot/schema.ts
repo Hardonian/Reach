@@ -146,19 +146,14 @@ export function validateSnapshot(
   }
   return {
     success: false,
-    error: result.error.issues
-      .map((i) => `${i.path.join(".")}: ${i.message}`)
-      .join("; "),
+    error: result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "),
   };
 }
 
 /**
  * Creates a default snapshot with current timestamp.
  */
-export function createDefaultSnapshot(
-  tenantId?: string,
-  exportedBy?: string,
-): ConfigSnapshot {
+export function createDefaultSnapshot(tenantId?: string, exportedBy?: string): ConfigSnapshot {
   return configSnapshotSchema.parse({
     version: SNAPSHOT_VERSION,
     exportedAt: new Date().toISOString(),
@@ -177,10 +172,7 @@ export interface SnapshotDiff {
   newValue: unknown;
 }
 
-export function diffSnapshots(
-  a: ConfigSnapshot,
-  b: ConfigSnapshot,
-): SnapshotDiff[] {
+export function diffSnapshots(a: ConfigSnapshot, b: ConfigSnapshot): SnapshotDiff[] {
   const diffs: SnapshotDiff[] = [];
 
   function compare(pathPrefix: string, valA: unknown, valB: unknown) {

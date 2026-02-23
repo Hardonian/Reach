@@ -31,23 +31,17 @@ interface GitHubTokenResponse {
   expires_at: string;
 }
 
-async function getInstallationToken(
-  installationId: number,
-): Promise<string | null> {
+async function getInstallationToken(installationId: number): Promise<string | null> {
   if (!env.GITHUB_APP_ID || !env.GITHUB_APP_PRIVATE_KEY) return null;
   try {
     // Build JWT for GitHub App auth
     const now = Math.floor(Date.now() / 1000);
-    const header = Buffer.from(
-      JSON.stringify({ alg: "RS256", typ: "JWT" }),
-    ).toString("base64url");
+    const header = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url");
     const payload = Buffer.from(
       JSON.stringify({ iat: now - 60, exp: now + 600, iss: env.GITHUB_APP_ID }),
     ).toString("base64url");
     const sigInput = `${header}.${payload}`;
-    const key = crypto.createPrivateKey(
-      env.GITHUB_APP_PRIVATE_KEY.replace(/\\n/g, "\n"),
-    );
+    const key = crypto.createPrivateKey(env.GITHUB_APP_PRIVATE_KEY.replace(/\\n/g, "\n"));
     const sig = crypto
       .sign("sha256", Buffer.from(sigInput), { key, dsaEncoding: "ieee-p1363" })
       .toString("base64url");
@@ -97,19 +91,16 @@ async function createGithubCheckRun(opts: {
     if (opts.conclusion) body.conclusion = opts.conclusion;
     if (opts.detailsUrl) body.details_url = opts.detailsUrl;
 
-    const res = await fetch(
-      `https://api.github.com/repos/${opts.owner}/${opts.repo}/check-runs`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${opts.token}`,
-          Accept: "application/vnd.github+json",
-          "X-GitHub-Api-Version": "2022-11-28",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
+    const res = await fetch(`https://api.github.com/repos/${opts.owner}/${opts.repo}/check-runs`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${opts.token}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify(body),
+    });
     if (!res.ok) {
       logger.warn("Failed to create GitHub check run", { status: res.status });
       return null;
@@ -194,8 +185,7 @@ function evaluateCheck(
       finding: {
         rule: check.name,
         severity: "error",
-        message:
-          latest.error ?? `Check "${check.name}" failed in the latest run.`,
+        message: latest.error ?? `Check "${check.name}" failed in the latest run.`,
         fix: `Review the run output, fix the failing assertion, and re-run before merging.`,
       },
     };
@@ -218,10 +208,7 @@ function evaluateCheck(
 
 // ── Gate Runner ───────────────────────────────────────────────────────────
 
-export async function runGate(
-  tenantId: string,
-  gateRunId: string,
-): Promise<GateReport> {
+export async function runGate(tenantId: string, gateRunId: string): Promise<GateReport> {
   const gateRun = getGateRun(gateRunId, tenantId);
   if (!gateRun) throw new Error(`Gate run ${gateRunId} not found`);
 
@@ -233,11 +220,7 @@ export async function runGate(
 
   // Post initial GitHub check run
   let checkRunId: number | null = null;
-  const installation = getGithubInstallation(
-    tenantId,
-    gate.repo_owner,
-    gate.repo_name,
-  );
+  const installation = getGithubInstallation(tenantId, gate.repo_owner, gate.repo_name);
   let ghToken: string | null = null;
 
   if (installation?.installation_id) {
@@ -282,8 +265,7 @@ export async function runGate(
   const violations = findings.filter((f) => f.severity === "error").length;
 
   const verdict =
-    passRate >= gate.thresholds.pass_rate &&
-    violations <= gate.thresholds.max_violations
+    passRate >= gate.thresholds.pass_rate && violations <= gate.thresholds.max_violations
       ? "passed"
       : "failed";
 
@@ -328,10 +310,7 @@ export async function runGate(
   // Update GitHub check run with final result
   if (ghToken && checkRunId) {
     const detailText = topFindings
-      .map(
-        (f, i) =>
-          `**Finding ${i + 1}: ${f.rule}**\n${f.message}\n\n_Suggested fix:_ ${f.fix}`,
-      )
+      .map((f, i) => `**Finding ${i + 1}: ${f.rule}**\n${f.message}\n\n_Suggested fix:_ ${f.fix}`)
       .join("\n\n---\n\n");
 
     await updateGithubCheckRun({
@@ -352,18 +331,12 @@ export async function runGate(
 
 // ── Webhook Signature Validation ──────────────────────────────────────────
 
-export function verifyGithubWebhookSignature(
-  payload: string,
-  signature: string,
-): boolean {
+export function verifyGithubWebhookSignature(payload: string, signature: string): boolean {
   const secret = env.GITHUB_WEBHOOK_SECRET;
   if (!secret) return false;
   const expected = `sha256=${crypto.createHmac("sha256", secret).update(payload).digest("hex")}`;
   try {
-    return crypto.timingSafeEqual(
-      Buffer.from(expected),
-      Buffer.from(signature),
-    );
+    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
   } catch {
     return false;
   }
@@ -376,10 +349,7 @@ export function verifyCiTokenSignature(
 ): boolean {
   const expected = `sha256=${crypto.createHmac("sha256", secret).update(payload).digest("hex")}`;
   try {
-    return crypto.timingSafeEqual(
-      Buffer.from(expected),
-      Buffer.from(signature),
-    );
+    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
   } catch {
     return false;
   }

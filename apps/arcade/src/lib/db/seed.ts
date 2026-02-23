@@ -12,24 +12,18 @@ export function seedDevData(): {
   rawApiKey: string;
 } {
   const db = getDB();
-  const existing = db
-    .prepare("SELECT id FROM tenants WHERE slug='reach-dev'")
-    .get();
+  const existing = db.prepare("SELECT id FROM tenants WHERE slug='reach-dev'").get();
   if (existing) {
     const tenant = getTenantBySlug("reach-dev")!;
-    const user = db
-      .prepare("SELECT id FROM users WHERE email='admin@reach.dev'")
-      .get() as { id: string };
+    const user = db.prepare("SELECT id FROM users WHERE email='admin@reach.dev'").get() as {
+      id: string;
+    };
     return { tenant, user: getUserById(user.id)!, rawApiKey: "ALREADY_SEEDED" };
   }
   const tenant = createTenant("Reach Dev", "reach-dev");
   const user = createUser("admin@reach.dev", "dev-password-local", "Admin");
   addMember(tenant.id, user.id, "owner");
-  const project = createProject(
-    tenant.id,
-    "Default Project",
-    "Auto-created dev project",
-  );
+  const project = createProject(tenant.id, "Default Project", "Auto-created dev project");
   const { rawKey } = createApiKey(tenant.id, user.id, "dev-key", ["*"]);
   createWorkflow(
     tenant.id,

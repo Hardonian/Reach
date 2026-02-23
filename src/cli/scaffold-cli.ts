@@ -52,9 +52,7 @@ function loadTemplates(category: string): TemplateSet {
     if (!existsSync(templateJsonPath)) continue;
 
     try {
-      const template: Template = JSON.parse(
-        readFileSync(templateJsonPath, "utf8"),
-      );
+      const template: Template = JSON.parse(readFileSync(templateJsonPath, "utf8"));
       const files = readdirSyncSafe(join(categoryDir, dir)).filter(
         (f) => f.endsWith(".template") || f === "template.json",
       );
@@ -78,10 +76,7 @@ function readdirSyncSafe(dir: string): string[] {
   }
 }
 
-function substituteVariables(
-  content: string,
-  variables: Record<string, string>,
-): string {
+function substituteVariables(content: string, variables: Record<string, string>): string {
   let result = content;
   for (const [key, value] of Object.entries(variables)) {
     const regex = new RegExp(`\\{\\{${key}\\}\\}`, "g");
@@ -144,11 +139,7 @@ function scaffoldPack(name: string, templateName: string): number {
   return 0;
 }
 
-function scaffoldPlugin(
-  name: string,
-  type: string,
-  _templateName: string,
-): number {
+function scaffoldPlugin(name: string, type: string, _templateName: string): number {
   const templates = loadTemplates("plugin");
   const selected = templates[type];
 
@@ -206,10 +197,7 @@ function scaffoldConfig(): number {
     return 1;
   }
 
-  const outputPath = resolve(
-    process.cwd(),
-    selected.template.output || "reach.config.json",
-  );
+  const outputPath = resolve(process.cwd(), selected.template.output || "reach.config.json");
   if (existsSync(outputPath)) {
     console.error(`Config already exists: ${outputPath}`);
     return 1;
@@ -305,9 +293,7 @@ export async function runScaffoldCommand(args: ScaffoldArgs): Promise<number> {
         return 1;
       }
       if (!args.type) {
-        console.error(
-          "Error: --type is required (analyzer|renderer|retriever)",
-        );
+        console.error("Error: --type is required (analyzer|renderer|retriever)");
         return 1;
       }
       return scaffoldPlugin(args.name, args.type, args.template || "default");

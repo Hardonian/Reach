@@ -12,8 +12,7 @@ export function runDekJournalCheck(): DoctorCheck {
       id: "dek-journal",
       name: "DEK Journal Health",
       status: "pass",
-      message:
-        "Journal directory not yet created (will be created on first run)",
+      message: "Journal directory not yet created (will be created on first run)",
     };
   }
 
@@ -101,8 +100,7 @@ export function runModelAdapterCheck(): DoctorCheck {
 
     // Check each adapter has required fields
     const validAdapters = adapters.filter(
-      (a: any) =>
-        a.id && a.provider && a.model && typeof a.execute === "function",
+      (a: any) => a.id && a.provider && a.model && typeof a.execute === "function",
     );
 
     return {

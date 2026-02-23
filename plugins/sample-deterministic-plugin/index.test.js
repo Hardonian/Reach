@@ -93,9 +93,7 @@ describe("sample-deterministic-plugin", () => {
       const analyzer = result.analyzers[0];
 
       const findings = analyzer.analyze({ code: "const x = 42;" });
-      const errors = findings.filter(
-        (f) => f.severity === "high" || f.severity === "error",
-      );
+      const errors = findings.filter((f) => f.severity === "high" || f.severity === "error");
       expect(errors.length).toBe(0);
     });
   });

@@ -91,11 +91,7 @@
       "description": "Explore Reach's capabilities with guided examples",
       "who": "New users and evaluators",
       "presets": [],
-      "examples": [
-        "01-quickstart-local",
-        "02-diff-and-explain",
-        "03-junction-to-decision"
-      ],
+      "examples": ["01-quickstart-local", "02-diff-and-explain", "03-junction-to-decision"],
       "commands": [
         {
           "cmd": "node examples/01-quickstart-local/run.js",

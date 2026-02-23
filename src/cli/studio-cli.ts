@@ -16,9 +16,7 @@ import { execSync, spawn, type ChildProcess } from "node:child_process";
 // ─── Studio Launch ───────────────────────────────────────────────────────────
 
 export async function runStudioCommand(argv: string[]): Promise<number> {
-  const port = argv.includes("--port")
-    ? argv[argv.indexOf("--port") + 1]
-    : "3000";
+  const port = argv.includes("--port") ? argv[argv.indexOf("--port") + 1] : "3000";
   const noBrowser = argv.includes("--no-browser");
 
   console.log(`
@@ -39,12 +37,8 @@ export async function runStudioCommand(argv: string[]): Promise<number> {
   const hasWeb = existsSync(join(webDir, "package.json"));
 
   if (!hasWeb) {
-    console.log(
-      "\n⚠ apps/web not found. Ensure you're in the Zeo project root.\n",
-    );
-    console.log(
-      "  You can still access Studio by running 'pnpm --filter web dev' manually,",
-    );
+    console.log("\n⚠ apps/web not found. Ensure you're in the Zeo project root.\n");
+    console.log("  You can still access Studio by running 'pnpm --filter web dev' manually,");
     console.log("  then navigating to http://localhost:3000/studio");
     return 1;
   }
@@ -87,8 +81,7 @@ export async function runStudioCommand(argv: string[]): Promise<number> {
         const url = `http://localhost:${port}/studio`;
         try {
           if (isWindows) execSync(`start ${url}`, { stdio: "ignore" });
-          else if (process.platform === "darwin")
-            execSync(`open ${url}`, { stdio: "ignore" });
+          else if (process.platform === "darwin") execSync(`open ${url}`, { stdio: "ignore" });
           else execSync(`xdg-open ${url}`, { stdio: "ignore" });
         } catch {
           console.log(`\n  Open in browser: ${url}\n`);
@@ -130,9 +123,7 @@ export async function runExportReportCommand(argv: string[]): Promise<number> {
     return 1;
   }
 
-  const outDir = argv.includes("--out")
-    ? argv[argv.indexOf("--out") + 1]
-    : process.cwd();
+  const outDir = argv.includes("--out") ? argv[argv.indexOf("--out") + 1] : process.cwd();
 
   try {
     const core = await import("@zeo/core");
@@ -270,14 +261,8 @@ export async function runVerifyReportCommand(argv: string[]): Promise<number> {
     // Recompute
     const toVerify = { ...parsed };
     delete toVerify.signature;
-    const normalized = JSON.stringify(
-      toVerify,
-      Object.keys(toVerify).sort(),
-      0,
-    );
-    const computedSignature = createHash("sha256")
-      .update(normalized)
-      .digest("hex");
+    const normalized = JSON.stringify(toVerify, Object.keys(toVerify).sort(), 0);
+    const computedSignature = createHash("sha256").update(normalized).digest("hex");
 
     const valid = computedSignature === reportedSignature;
 

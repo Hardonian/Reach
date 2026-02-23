@@ -154,10 +154,7 @@ export function seed(): { success: boolean; message: string } {
   );
 
   // Write model rates
-  writeFileSync(
-    resolve(dataDir, "model-rates.json"),
-    JSON.stringify(MODEL_RATES, null, 2),
-  );
+  writeFileSync(resolve(dataDir, "model-rates.json"), JSON.stringify(MODEL_RATES, null, 2));
 
   // Generate routing table
   const routingTable = {
@@ -167,10 +164,7 @@ export function seed(): { success: boolean; message: string } {
       premium: { maxCost: 10.0, models: ["gpt-4-turbo", "claude-3-opus"] },
     },
   };
-  writeFileSync(
-    resolve(dataDir, "routing-table.json"),
-    JSON.stringify(routingTable, null, 2),
-  );
+  writeFileSync(resolve(dataDir, "routing-table.json"), JSON.stringify(routingTable, null, 2));
 
   console.log("\n✅ Cost guard data generated:");
   console.log("   Scenarios:", SCENARIOS.length);
@@ -179,9 +173,7 @@ export function seed(): { success: boolean; message: string } {
 
   console.log("\n📊 Scenario Summary:");
   for (const s of SCENARIOS) {
-    console.log(
-      `   ${s.name}: $${s.budget} budget → ${s.expectedTier} tier (${s.expectedModel})`,
-    );
+    console.log(`   ${s.name}: $${s.budget} budget → ${s.expectedTier} tier (${s.expectedModel})`);
   }
 
   return { success: true, message: "Cost scenarios generated" };

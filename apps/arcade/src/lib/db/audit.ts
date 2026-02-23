@@ -26,11 +26,7 @@ export function appendAudit(
   );
 }
 
-export function listAuditEvents(
-  tenantId: string,
-  limit = 100,
-  offset = 0,
-): AuditEvent[] {
+export function listAuditEvents(tenantId: string, limit = 100, offset = 0): AuditEvent[] {
   const db = getDB();
   return db
     .prepare(

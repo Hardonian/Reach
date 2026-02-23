@@ -47,19 +47,14 @@ function MetricCard({
       className={`p-4 rounded-xl border ${alert ? "border-orange-500/30 bg-orange-500/5" : "border-border bg-surface"}`}
     >
       <p className="text-xs text-gray-400 mb-1">{label}</p>
-      <p
-        className={`text-2xl font-bold ${alert ? "text-orange-400" : "text-white"}`}
-      >
-        {value}
-      </p>
+      <p className={`text-2xl font-bold ${alert ? "text-orange-400" : "text-white"}`}>{value}</p>
       {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
     </div>
   );
 }
 
 function Sparkline({ values }: { values: number[] }) {
-  if (values.length < 2)
-    return <div className="h-8 text-xs text-gray-500">No data</div>;
+  if (values.length < 2) return <div className="h-8 text-xs text-gray-500">No data</div>;
   const max = Math.max(...values, 1);
   const min = Math.min(...values, 0);
   const range = max - min || 1;
@@ -71,11 +66,7 @@ function Sparkline({ values }: { values: number[] }) {
     })
     .join(" ");
   return (
-    <svg
-      viewBox="0 0 100 100"
-      preserveAspectRatio="none"
-      className="h-8 w-full"
-    >
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-8 w-full">
       <polyline
         fill="none"
         stroke="currentColor"
@@ -136,17 +127,11 @@ export default function MonitoringPage() {
       body: JSON.stringify({ status: next }),
     });
     if (res.ok)
-      setSignals((prev) =>
-        prev.map((s) => (s.id === signal.id ? { ...s, status: next } : s)),
-      );
+      setSignals((prev) => prev.map((s) => (s.id === signal.id ? { ...s, status: next } : s)));
   }
 
   const driftLabel =
-    health.latest_drift > 0.5
-      ? "⚠ High"
-      : health.latest_drift > 0.2
-        ? "Moderate"
-        : "Stable";
+    health.latest_drift > 0.5 ? "⚠ High" : health.latest_drift > 0.2 ? "Moderate" : "Stable";
 
   return (
     <div className="min-h-screen bg-background py-8 px-6">
@@ -155,9 +140,7 @@ export default function MonitoringPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-white">Monitoring</h1>
-            <p className="text-sm text-gray-400 mt-1">
-              Always-on view of your agent's health.
-            </p>
+            <p className="text-sm text-gray-400 mt-1">Always-on view of your agent's health.</p>
           </div>
           <div className="flex items-center gap-3">
             <Link
@@ -178,11 +161,7 @@ export default function MonitoringPage() {
 
         {/* Health today */}
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <MetricCard
-            label="Total signals"
-            value={signals.length}
-            sub="active monitors"
-          />
+          <MetricCard label="Total signals" value={signals.length} sub="active monitors" />
           <MetricCard
             label="Alerts today"
             value={health.alerts_today}
@@ -191,11 +170,7 @@ export default function MonitoringPage() {
           />
           <MetricCard
             label="Drift score"
-            value={
-              typeof health.latest_drift === "number"
-                ? health.latest_drift.toFixed(2)
-                : "—"
-            }
+            value={typeof health.latest_drift === "number" ? health.latest_drift.toFixed(2) : "—"}
             sub={driftLabel}
             alert={health.latest_drift > 0.5}
           />
@@ -204,20 +179,13 @@ export default function MonitoringPage() {
         {/* Create monitor form */}
         {showCreate && (
           <div className="mb-6 p-5 rounded-xl border border-border bg-surface">
-            <h2 className="text-base font-semibold text-white mb-4">
-              New monitor
-            </h2>
-            <form
-              onSubmit={handleCreateSignal}
-              className="grid grid-cols-3 gap-4"
-            >
+            <h2 className="text-base font-semibold text-white mb-4">New monitor</h2>
+            <form onSubmit={handleCreateSignal} className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Name</label>
                 <input
                   value={form.name}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, name: e.target.value }))
-                  }
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                   className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-white"
                   placeholder="Production latency"
                   required
@@ -227,9 +195,7 @@ export default function MonitoringPage() {
                 <label className="block text-xs text-gray-400 mb-1">Type</label>
                 <select
                   value={form.type}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, type: e.target.value }))
-                  }
+                  onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
                   aria-label="Signal type"
                   className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-white"
                 >
@@ -241,14 +207,10 @@ export default function MonitoringPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-400 mb-1">
-                  Source
-                </label>
+                <label className="block text-xs text-gray-400 mb-1">Source</label>
                 <select
                   value={form.source}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, source: e.target.value }))
-                  }
+                  onChange={(e) => setForm((f) => ({ ...f, source: e.target.value }))}
                   aria-label="Signal source"
                   className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-white"
                 >
@@ -278,20 +240,15 @@ export default function MonitoringPage() {
 
         {/* Monitor list */}
         {loading ? (
-          <div className="text-gray-400 text-sm py-12 text-center">
-            Loading monitors…
-          </div>
+          <div className="text-gray-400 text-sm py-12 text-center">Loading monitors…</div>
         ) : signals.length === 0 ? (
           <div className="text-center py-20 bg-surface/30 rounded-2xl border border-dashed border-border">
             <span className="material-symbols-outlined text-5xl text-gray-600 block mb-3">
               monitor_heart
             </span>
-            <h3 className="text-base font-medium text-white mb-1">
-              Start monitoring
-            </h3>
+            <h3 className="text-base font-medium text-white mb-1">Start monitoring</h3>
             <p className="text-sm text-gray-400 mb-6 max-w-xs mx-auto">
-              Get alerted when your agent drifts, spikes in latency, or violates
-              policy.
+              Get alerted when your agent drifts, spikes in latency, or violates policy.
             </p>
             <button
               onClick={() => setShowCreate(true)}
@@ -303,18 +260,13 @@ export default function MonitoringPage() {
         ) : (
           <div className="flex flex-col gap-3">
             {signals.map((signal) => (
-              <div
-                key={signal.id}
-                className="p-4 rounded-xl border border-border bg-surface"
-              >
+              <div key={signal.id} className="p-4 rounded-xl border border-border bg-surface">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-[16px] text-accent">
                       sensors
                     </span>
-                    <span className="text-sm font-medium text-white">
-                      {signal.name}
-                    </span>
+                    <span className="text-sm font-medium text-white">{signal.name}</span>
                     <span className="px-1.5 py-0.5 rounded text-xs bg-surface border border-border text-gray-400">
                       {signal.type}
                     </span>
@@ -329,9 +281,7 @@ export default function MonitoringPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">
-                      via {signal.source}
-                    </span>
+                    <span className="text-xs text-gray-500">via {signal.source}</span>
                     <button
                       onClick={() => toggleSignal(signal)}
                       className="px-3 py-1 text-xs border border-border rounded-lg text-gray-400 hover:text-white"
@@ -342,11 +292,8 @@ export default function MonitoringPage() {
                 </div>
                 <div className="text-xs text-gray-500">
                   Ingest via:{" "}
-                  <code className="font-mono text-gray-400">
-                    POST /api/monitor/ingest
-                  </code>{" "}
-                  with signal_id:{" "}
-                  <code className="font-mono text-gray-400">{signal.id}</code>
+                  <code className="font-mono text-gray-400">POST /api/monitor/ingest</code> with
+                  signal_id: <code className="font-mono text-gray-400">{signal.id}</code>
                 </div>
               </div>
             ))}

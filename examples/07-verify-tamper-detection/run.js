@@ -42,9 +42,7 @@ function checkmark(success) {
 
 function main() {
   console.log("=== Tamper Detection Demo ===");
-  console.log(
-    "Demonstrates cryptographic verification of execution artifacts\n",
-  );
+  console.log("Demonstrates cryptographic verification of execution artifacts\n");
 
   // Setup
   if (existsSync(TEMP_DIR)) {
@@ -68,9 +66,7 @@ function main() {
       runId = result.run_id;
       fingerprint = result.fingerprint;
       console.log(`   ${checkmark(true)} Run ID: ${runId?.slice(0, 32)}...`);
-      console.log(
-        `   ${checkmark(true)} Fingerprint: ${fingerprint?.slice(0, 32)}...`,
-      );
+      console.log(`   ${checkmark(true)} Fingerprint: ${fingerprint?.slice(0, 32)}...`);
     } catch {
       console.log(`   Output: ${runOutput.slice(0, 200)}`);
       runId = "demo-run-id";
@@ -80,10 +76,9 @@ function main() {
     // Step 2: Export capsule
     step(2, "Exporting capsule");
     try {
-      const exportOutput = run(
-        `./reach export ${runId} --output ${CAPSULE_INTACT}`,
-        { ignoreError: true },
-      );
+      const exportOutput = run(`./reach export ${runId} --output ${CAPSULE_INTACT}`, {
+        ignoreError: true,
+      });
       console.log(`   ${checkmark(true)} Export complete`);
       console.log(`   File: ${CAPSULE_INTACT.replace(process.cwd(), ".")}`);
     } catch (e) {
@@ -97,11 +92,8 @@ function main() {
       const verifyOutput = run(`./reach verify-proof ${CAPSULE_INTACT}`, {
         ignoreError: true,
       });
-      const isValid =
-        verifyOutput.includes("VALID") || verifyOutput.includes("valid");
-      console.log(
-        `   ${checkmark(isValid)} Verification: ${isValid ? "VALID" : "FAILED"}`,
-      );
+      const isValid = verifyOutput.includes("VALID") || verifyOutput.includes("valid");
+      console.log(`   ${checkmark(isValid)} Verification: ${isValid ? "VALID" : "FAILED"}`);
       if (verifyOutput.includes("fingerprint")) {
         console.log(
           `   ${verifyOutput
@@ -111,17 +103,12 @@ function main() {
         );
       }
     } catch (e) {
-      console.log(
-        `   ${checkmark(false)} Verification command not available (demo mode)`,
-      );
+      console.log(`   ${checkmark(false)} Verification command not available (demo mode)`);
     }
 
     // Step 4: Simulate tampering
     step(4, "Simulating tampering");
-    writeFileSync(
-      CAPSULE_TAMPERED,
-      "tampered capsule data - integrity compromised",
-    );
+    writeFileSync(CAPSULE_TAMPERED, "tampered capsule data - integrity compromised");
     console.log(`   ${checkmark(true)} Created tampered copy`);
     console.log(`   Modified: capsule content`);
 
@@ -131,37 +118,27 @@ function main() {
       const tamperOutput = run(`./reach verify-proof ${CAPSULE_TAMPERED}`, {
         ignoreError: true,
       });
-      const isValid =
-        tamperOutput.includes("VALID") || tamperOutput.includes("valid");
+      const isValid = tamperOutput.includes("VALID") || tamperOutput.includes("valid");
       console.log(
         `   ${checkmark(!isValid)} Tamper detection: ${!isValid ? "DETECTED" : "PASSED"}`,
       );
-      if (
-        tamperOutput.includes("mismatch") ||
-        tamperOutput.includes("FAILED")
-      ) {
+      if (tamperOutput.includes("mismatch") || tamperOutput.includes("FAILED")) {
         console.log(`   ${checkmark(true)} Integrity failure confirmed`);
       }
     } catch (e) {
-      console.log(
-        `   ${checkmark(true)} Tamper detected (demo mode - files differ)`,
-      );
+      console.log(`   ${checkmark(true)} Tamper detected (demo mode - files differ)`);
     }
 
     // Summary
     section("Summary");
     console.log(`Intact capsule:   ✓ VALID (integrity verified)`);
     console.log(`Tampered capsule: ✗ DETECTED (modification found)`);
-    console.log(
-      `Determinism:      ✓ VERIFIED (fingerprints match across runs)`,
-    );
+    console.log(`Determinism:      ✓ VERIFIED (fingerprints match across runs)`);
 
     // Cleanup note
     console.log("\n---");
     console.log(`Temp files in: ${TEMP_DIR}/`);
-    console.log(
-      "Clean up with: rm -rf examples/07-verify-tamper-detection/.temp/",
-    );
+    console.log("Clean up with: rm -rf examples/07-verify-tamper-detection/.temp/");
   } catch (error) {
     console.error("\nError:", error.message);
     process.exit(1);

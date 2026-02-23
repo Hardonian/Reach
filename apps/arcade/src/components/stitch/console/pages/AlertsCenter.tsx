@@ -63,9 +63,7 @@ export function AlertsCenter() {
     <div className="flex-1 flex flex-col h-full overflow-y-auto bg-[#101622] font-sans">
       <header className="sticky top-0 z-50 flex items-center justify-between border-b border-[#282e39] bg-[#111318] px-10 py-5">
         <div className="flex flex-col">
-          <h2 className="text-lg font-black uppercase tracking-widest text-[#135bec]">
-            Alerts
-          </h2>
+          <h2 className="text-lg font-black uppercase tracking-widest text-[#135bec]">Alerts</h2>
           <p className="text-[#9da6b9] text-[10px] font-bold uppercase tracking-wide">
             System health events & threshold violations
           </p>
@@ -82,9 +80,7 @@ export function AlertsCenter() {
             type="button"
             className="flex items-center gap-2 bg-[#135bec] hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20"
           >
-            <span className="material-symbols-outlined text-[18px]">
-              add_alert
-            </span>
+            <span className="material-symbols-outlined text-[18px]">add_alert</span>
             New Rule
           </button>
         </div>
@@ -106,9 +102,7 @@ export function AlertsCenter() {
               <p className="text-[10px] font-black uppercase tracking-widest text-[#9da6b9] mb-2">
                 {stat.label}
               </p>
-              <p className={`text-3xl font-black text-${stat.color}-400`}>
-                {stat.value}
-              </p>
+              <p className={`text-3xl font-black text-${stat.color}-400`}>{stat.value}</p>
             </div>
           ))}
         </div>
@@ -132,9 +126,7 @@ export function AlertsCenter() {
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-4 mb-1.5">
-                      <p className="text-white font-bold text-sm truncate">
-                        {alert.title}
-                      </p>
+                      <p className="text-white font-bold text-sm truncate">{alert.title}</p>
                       <div className="flex items-center gap-2 shrink-0">
                         <span
                           className={`px-2 py-0.5 rounded-full font-black uppercase tracking-widest text-[9px] bg-${sColor}-500/10 text-${sColor}-400 border border-${sColor}-500/20`}

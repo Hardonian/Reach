@@ -12,7 +12,15 @@ const getFiles = () => {
       .split("\n")
       .filter(Boolean);
     // exclude tests, docs, scripts, readmes
-    return filesMatch.filter(f => !f.includes('test') && !f.includes('docs/') && !f.includes('scripts/') && !f.includes('.test.') && !f.includes('.spec.') && !f.toLowerCase().includes('readme.md'));
+    return filesMatch.filter(
+      (f) =>
+        !f.includes("test") &&
+        !f.includes("docs/") &&
+        !f.includes("scripts/") &&
+        !f.includes(".test.") &&
+        !f.includes(".spec.") &&
+        !f.toLowerCase().includes("readme.md"),
+    );
   } catch {
     return [];
   }
@@ -51,13 +59,10 @@ if (theatreOutput.length > 0) {
 
 // B) No Substring Hash Omission Gate
 console.log("Checking No Substring Hash Omission Gate...");
-const hashPattern =
-  /strings\.Contains\(lowerK, "time"\)|strings\.Contains\(lowerK, "uuid"\)/;
+const hashPattern = /strings\.Contains\(lowerK, "time"\)|strings\.Contains\(lowerK, "uuid"\)/;
 const hashOutput = runManualGrep(hashPattern);
 if (hashOutput.length > 0) {
-  console.error(
-    "❌ ERROR: Found substring-based hash omission in determinism code:",
-  );
+  console.error("❌ ERROR: Found substring-based hash omission in determinism code:");
   hashOutput.forEach((line) => console.error(line));
   failed = true;
 } else {

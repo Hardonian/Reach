@@ -7,13 +7,7 @@
  */
 
 import { execSync } from "child_process";
-import {
-  writeFileSync,
-  mkdirSync,
-  existsSync,
-  readdirSync,
-  readFileSync,
-} from "fs";
+import { writeFileSync, mkdirSync, existsSync, readdirSync, readFileSync } from "fs";
 import { join, resolve } from "path";
 import { createHash } from "crypto";
 
@@ -53,17 +47,13 @@ function getVersions(): Record<string, string> {
   }
 
   try {
-    versions.go = execSync("go version", { encoding: "utf8" })
-      .trim()
-      .split(" ")[2];
+    versions.go = execSync("go version", { encoding: "utf8" }).trim().split(" ")[2];
   } catch {
     versions.go = "not found";
   }
 
   try {
-    versions.rust = execSync("rustc --version", { encoding: "utf8" })
-      .trim()
-      .split(" ")[1];
+    versions.rust = execSync("rustc --version", { encoding: "utf8" }).trim().split(" ")[1];
   } catch {
     versions.rust = "not found";
   }
@@ -120,10 +110,10 @@ function generateOutputs(): Record<string, unknown> {
 
   // Run example 01 and capture output (safe, deterministic)
   try {
-    const example01Output = execSync(
-      "node examples/01-quickstart-local/run.js 2>&1",
-      { encoding: "utf8", timeout: 30000 },
-    );
+    const example01Output = execSync("node examples/01-quickstart-local/run.js 2>&1", {
+      encoding: "utf8",
+      timeout: 30000,
+    });
     outputs["example-01"] = {
       command: "node examples/01-quickstart-local/run.js",
       output: example01Output,
@@ -175,26 +165,17 @@ function main(): void {
   });
 
   // Write manifest.json
-  writeFileSync(
-    join(resolvedDir, "manifest.json"),
-    JSON.stringify(report, null, 2),
-  );
+  writeFileSync(join(resolvedDir, "manifest.json"), JSON.stringify(report, null, 2));
 
   // Write timeline.json
-  writeFileSync(
-    join(resolvedDir, "timeline.json"),
-    JSON.stringify(timeline, null, 2),
-  );
+  writeFileSync(join(resolvedDir, "timeline.json"), JSON.stringify(timeline, null, 2));
 
   // Write env.json
   writeFileSync(join(resolvedDir, "env.json"), JSON.stringify(env, null, 2));
 
   // Write outputs
   for (const [key, value] of Object.entries(outputs)) {
-    writeFileSync(
-      join(resolvedDir, "outputs", `${key}.json`),
-      JSON.stringify(value, null, 2),
-    );
+    writeFileSync(join(resolvedDir, "outputs", `${key}.json`), JSON.stringify(value, null, 2));
   }
 
   // Write index.md (human readable)

@@ -2,11 +2,7 @@ import Link from "next/link";
 
 import { sidebarItems } from "@/lib/docs/nav";
 
-export default function DocsLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DocsLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="section-container flex gap-8 py-8">
       {/* Documentation Sidebar */}
@@ -36,9 +32,7 @@ export default function DocsLayout({
 
       {/* Main Content */}
       <main className="flex-1 min-w-0 max-w-4xl">
-        <article className="prose prose-invert prose-accent max-w-none">
-          {children}
-        </article>
+        <article className="prose prose-invert prose-accent max-w-none">{children}</article>
       </main>
     </div>
   );

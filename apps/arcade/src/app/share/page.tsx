@@ -53,10 +53,8 @@ export default async function SharePage({
           </Link>
         </div>
         <div className="font-mono text-xs text-tertiary">
-          Run ID:{" "}
-          {timeline.find((e) => e.type === "Initializing")?.timestamp ||
-            "unknown"}{" "}
-          • {new Date(timestamp).toLocaleString()}
+          Run ID: {timeline.find((e) => e.type === "Initializing")?.timestamp || "unknown"} •{" "}
+          {new Date(timestamp).toLocaleString()}
         </div>
       </header>
 
@@ -68,20 +66,14 @@ export default async function SharePage({
           {timeline.map((ev, i) => (
             <div key={i} className="timeline-log-entry">
               <div className="flex gap-2">
-                <span
-                  className={
-                    ev.status === "failed" ? "text-error" : "text-success"
-                  }
-                >
+                <span className={ev.status === "failed" ? "text-error" : "text-success"}>
                   {ev.type}
                 </span>
                 <span className="text-tertiary">
                   {ev.timestamp ? `(${ev.timestamp - timestamp}ms)` : ""}
                 </span>
               </div>
-              {ev.details && (
-                <div className="text-secondary mt-1">{ev.details}</div>
-              )}
+              {ev.details && <div className="text-secondary mt-1">{ev.details}</div>}
             </div>
           ))}
         </div>

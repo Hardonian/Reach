@@ -50,16 +50,16 @@ export function createPack(
 
 export function getPack(id: string): Pack | undefined {
   const db = getDB();
-  return db
-    .prepare("SELECT * FROM packs WHERE id=? AND deleted_at IS NULL")
-    .get(id) as Pack | undefined;
+  return db.prepare("SELECT * FROM packs WHERE id=? AND deleted_at IS NULL").get(id) as
+    | Pack
+    | undefined;
 }
 
 export function getPackBySlug(slug: string): Pack | undefined {
   const db = getDB();
-  return db
-    .prepare("SELECT * FROM packs WHERE slug=? AND deleted_at IS NULL")
-    .get(slug) as Pack | undefined;
+  return db.prepare("SELECT * FROM packs WHERE slug=? AND deleted_at IS NULL").get(slug) as
+    | Pack
+    | undefined;
 }
 
 export function browsePacks(opts: {
@@ -89,9 +89,7 @@ export function browsePacks(opts: {
   params.push(visibility);
 
   if (search) {
-    conditions.push(
-      `(p.name LIKE ? OR p.description LIKE ? OR p.tags_json LIKE ?)`,
-    );
+    conditions.push(`(p.name LIKE ? OR p.description LIKE ? OR p.tags_json LIKE ?)`);
     const q = `%${search}%`;
     params.push(q, q, q);
   }
@@ -107,8 +105,7 @@ export function browsePacks(opts: {
   const orderMap: Record<string, string> = {
     newest: "p.updated_at DESC",
     trending: "p.downloads DESC",
-    rating:
-      "(CASE WHEN p.rating_count>0 THEN p.rating_sum/p.rating_count ELSE 0 END) DESC",
+    rating: "(CASE WHEN p.rating_count>0 THEN p.rating_sum/p.rating_count ELSE 0 END) DESC",
     reputation: "p.reputation_score DESC",
     relevance: "p.reputation_score DESC",
   };
@@ -116,14 +113,12 @@ export function browsePacks(opts: {
   const offset = (page - 1) * limit;
 
   const total = (
-    db
-      .prepare(`SELECT COUNT(*) as cnt FROM packs p WHERE ${where}`)
-      .get(...params) as { cnt: number }
+    db.prepare(`SELECT COUNT(*) as cnt FROM packs p WHERE ${where}`).get(...params) as {
+      cnt: number;
+    }
   ).cnt;
   const packs = db
-    .prepare(
-      `SELECT p.* FROM packs p WHERE ${where} ORDER BY ${order} LIMIT ? OFFSET ?`,
-    )
+    .prepare(`SELECT p.* FROM packs p WHERE ${where} ORDER BY ${order} LIMIT ? OFFSET ?`)
     .all(...params, limit, offset) as Pack[];
   return { packs, total };
 }
@@ -155,10 +150,7 @@ export function publishPackVersion(
   return getPackVersion(packId, version)!;
 }
 
-export function getPackVersion(
-  packId: string,
-  version: string,
-): PackVersion | undefined {
+export function getPackVersion(packId: string, version: string): PackVersion | undefined {
   const db = getDB();
   return db
     .prepare("SELECT * FROM pack_versions WHERE pack_id=? AND version=?")
@@ -168,39 +160,23 @@ export function getPackVersion(
 export function listPackVersions(packId: string): PackVersion[] {
   const db = getDB();
   return db
-    .prepare(
-      "SELECT * FROM pack_versions WHERE pack_id=? ORDER BY published_at DESC",
-    )
+    .prepare("SELECT * FROM pack_versions WHERE pack_id=? ORDER BY published_at DESC")
     .all(packId) as PackVersion[];
 }
 
-export function addReview(
-  packId: string,
-  userId: string,
-  rating: number,
-  body: string,
-): void {
+export function addReview(packId: string, userId: string, rating: number, body: string): void {
   const db = getDB();
   db.prepare(
     `INSERT OR REPLACE INTO marketplace_reviews (id, pack_id, user_id, rating, body, created_at)
     VALUES (?,?,?,?,?,?)`,
   ).run(newId("rev"), packId, userId, rating, body, new Date().toISOString());
   const agg = db
-    .prepare(
-      "SELECT SUM(rating) as s, COUNT(*) as c FROM marketplace_reviews WHERE pack_id=?",
-    )
+    .prepare("SELECT SUM(rating) as s, COUNT(*) as c FROM marketplace_reviews WHERE pack_id=?")
     .get(packId) as { s: number; c: number };
-  db.prepare("UPDATE packs SET rating_sum=?, rating_count=? WHERE id=?").run(
-    agg.s,
-    agg.c,
-    packId,
-  );
+  db.prepare("UPDATE packs SET rating_sum=?, rating_count=? WHERE id=?").run(agg.s, agg.c, packId);
 }
 
 export function flagPack(id: string): void {
   const db = getDB();
-  db.prepare("UPDATE packs SET flagged=1, security_status=? WHERE id=?").run(
-    "concern",
-    id,
-  );
+  db.prepare("UPDATE packs SET flagged=1, security_status=? WHERE id=?").run("concern", id);
 }

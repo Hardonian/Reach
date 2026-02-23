@@ -39,9 +39,7 @@ export function ReasonForChangeModal({
         <div className="p-6 space-y-4">
           <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
             <p className="text-sm font-medium text-amber-700 dark:text-amber-400 flex items-center gap-2">
-              <span className="material-symbols-outlined text-sm">
-                security
-              </span>
+              <span className="material-symbols-outlined text-sm">security</span>
               Action: <span className="font-bold">{actionName}</span>
             </p>
             <p className="text-xs text-amber-600/80 dark:text-amber-400/80 mt-1">

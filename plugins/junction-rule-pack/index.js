@@ -47,9 +47,7 @@ function blockOnHighRisk(decision, options = {}) {
   const riskLevels = options.riskLevels || ["high", "critical"];
   const evidence = decision.evidence || [];
 
-  const highRisk = evidence.filter((e) =>
-    riskLevels.includes((e.risk || "").toLowerCase()),
-  );
+  const highRisk = evidence.filter((e) => riskLevels.includes((e.risk || "").toLowerCase()));
 
   return {
     passed: highRisk.length === 0,
@@ -68,16 +66,11 @@ function blockOnHighRisk(decision, options = {}) {
 // Rule: Require all evidence to be signed
 function requireSignatures(decision, options = {}) {
   const evidence = decision.evidence || [];
-  const unsigned = evidence.filter(
-    (e) => !e.signatures || e.signatures.length === 0,
-  );
+  const unsigned = evidence.filter((e) => !e.signatures || e.signatures.length === 0);
 
   return {
     passed: unsigned.length === 0,
-    reason:
-      unsigned.length === 0
-        ? "All evidence signed"
-        : `${unsigned.length} items unsigned`,
+    reason: unsigned.length === 0 ? "All evidence signed" : `${unsigned.length} items unsigned`,
     details: {
       total: evidence.length,
       signed: evidence.length - unsigned.length,

@@ -1,16 +1,7 @@
 // @ts-nocheck
-import {
-  writeFileSync,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  unlinkSync,
-} from "node:fs";
+import { writeFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "node:fs";
 import { resolve, join } from "node:path";
-import {
-  FilesystemWarehouseAdapter,
-  FilesystemBlobStorage,
-} from "@zeo/warehouse";
+import { FilesystemWarehouseAdapter, FilesystemBlobStorage } from "@zeo/warehouse";
 import {
   buildDataset,
   datasetToCsv,
@@ -18,11 +9,7 @@ import {
   runRegression,
   generateReport,
 } from "@zeo/analytics";
-import type {
-  WarehouseKind,
-  ExportOptions,
-  WarehouseEnvelope,
-} from "@zeo/contracts";
+import type { WarehouseKind, ExportOptions, WarehouseEnvelope } from "@zeo/contracts";
 
 const WAREHOUSE_DIR = ".zeo/warehouse";
 const METADATA_DIR = ".zeo/metadata";
@@ -41,15 +28,7 @@ interface PinnedRecords {
 }
 
 interface WarehouseCliArgs {
-  command:
-    | "export"
-    | "import"
-    | "list"
-    | "prune"
-    | "pin"
-    | "unpin"
-    | "retention"
-    | null;
+  command: "export" | "import" | "list" | "prune" | "pin" | "unpin" | "retention" | null;
   out?: string;
   input?: string;
   kinds?: WarehouseKind[];
@@ -95,10 +74,7 @@ async function getRetentionConfig(cwd: string): Promise<RetentionConfig> {
   }
 }
 
-async function saveRetentionConfig(
-  cwd: string,
-  config: RetentionConfig,
-): Promise<void> {
+async function saveRetentionConfig(cwd: string, config: RetentionConfig): Promise<void> {
   const configPath = resolve(cwd, METADATA_DIR, RETENTION_CONFIG_FILE);
   const configDir = resolve(cwd, METADATA_DIR);
 
@@ -127,10 +103,7 @@ async function getPinnedRecords(cwd: string): Promise<PinnedRecords> {
   }
 }
 
-async function savePinnedRecords(
-  cwd: string,
-  pinned: PinnedRecords,
-): Promise<void> {
+async function savePinnedRecords(cwd: string, pinned: PinnedRecords): Promise<void> {
   const pinnedPath = resolve(cwd, METADATA_DIR, PINNED_FILE);
   const metadataDir = resolve(cwd, METADATA_DIR);
 
@@ -247,9 +220,7 @@ export function parseAnalyticsArgs(argv: string[]): AnalyticsCliArgs {
   return result;
 }
 
-export async function runWarehouseCommand(
-  args: WarehouseCliArgs,
-): Promise<number> {
+export async function runWarehouseCommand(args: WarehouseCliArgs): Promise<number> {
   const warehouse = new FilesystemWarehouseAdapter();
 
   if (!args.command) {
@@ -379,8 +350,7 @@ export async function runWarehouseCommand(
 
       for (const record of allRecords.items) {
         const retentionDays =
-          retentionConfig.perKindRetention[record.kind] ||
-          retentionConfig.defaultRetentionDays;
+          retentionConfig.perKindRetention[record.kind] || retentionConfig.defaultRetentionDays;
 
         if (isExpired(record, retentionDays, pinned.pinnedIds)) {
           const createdAt = new Date(record.createdAt);
@@ -412,9 +382,7 @@ export async function runWarehouseCommand(
       }
 
       if (args.dryRun) {
-        console.log(
-          `\n[Dry run] Would prune ${expiredRecords.length} record(s)`,
-        );
+        console.log(`\n[Dry run] Would prune ${expiredRecords.length} record(s)`);
         console.log("No changes made.");
         return 0;
       }
@@ -511,9 +479,7 @@ export async function runWarehouseCommand(
 
       console.log("Retention Policy Settings:");
       console.log(`  Default retention: ${config.defaultRetentionDays} days`);
-      console.log(
-        `  Pinned records: ${pinned.pinnedIds.length} (never expire)`,
-      );
+      console.log(`  Pinned records: ${pinned.pinnedIds.length} (never expire)`);
       console.log("\nRetention by record kind:");
       for (const [kind, days] of Object.entries(config.perKindRetention)) {
         console.log(`  ${kind}: ${days} days`);
@@ -535,9 +501,7 @@ export async function runWarehouseCommand(
   }
 }
 
-export async function runAnalyticsCommand(
-  args: AnalyticsCliArgs,
-): Promise<number> {
+export async function runAnalyticsCommand(args: AnalyticsCliArgs): Promise<number> {
   if (!args.command) {
     console.log(`
 Zeo Analytics CLI
@@ -589,11 +553,7 @@ Examples:
 
       // Write schema
       const schemaPath = join(outPath, "dataset_schema.json");
-      writeFileSync(
-        schemaPath,
-        JSON.stringify(dataset.schema, null, 2),
-        "utf8",
-      );
+      writeFileSync(schemaPath, JSON.stringify(dataset.schema, null, 2), "utf8");
 
       console.log(`Dataset written to ${outPath}:`);
       console.log(`  - ${csvPath} (${dataset.rows.length} rows)`);
@@ -635,22 +595,13 @@ Examples:
       console.log("Computing correlations...");
       const correlationsPath = join(outPath, "correlations.json");
       try {
-        const correlations = await runCorrelation(
-          datasetPath,
-          correlationsPath,
-          {
-            includeRobust: true,
-          },
-        );
+        const correlations = await runCorrelation(datasetPath, correlationsPath, {
+          includeRobust: true,
+        });
         console.log(`  Correlations saved to ${correlationsPath}`);
-        console.log(
-          `  Variables analyzed: ${correlations?.variables.join(", ")}`,
-        );
+        console.log(`  Variables analyzed: ${correlations?.variables.join(", ")}`);
       } catch (err) {
-        console.error(
-          "  Correlation failed:",
-          err instanceof Error ? err.message : err,
-        );
+        console.error("  Correlation failed:", err instanceof Error ? err.message : err);
         console.error(
           "  Ensure Python dependencies are installed: pip install -r packages/analytics/python/requirements.txt",
         );
@@ -661,14 +612,10 @@ Examples:
         console.log("\nRunning regression...");
         const regressionsPath = join(outPath, "regressions.json");
         try {
-          const regressions = await runRegression(
-            datasetPath,
-            regressionsPath,
-            {
-              targetCol: args.targetCol,
-              featureCols: args.featureCols,
-            },
-          );
+          const regressions = await runRegression(datasetPath, regressionsPath, {
+            targetCol: args.targetCol,
+            featureCols: args.featureCols,
+          });
           console.log(`  Regressions saved to ${regressionsPath}`);
           console.log(`  Target: ${regressions?.target}`);
           console.log(`  Features: ${regressions?.features.join(", ")}`);
@@ -678,10 +625,7 @@ Examples:
             console.log(`  Note: ${regressions.epistemic_note}`);
           }
         } catch (err) {
-          console.error(
-            "  Regression failed:",
-            err instanceof Error ? err.message : err,
-          );
+          console.error("  Regression failed:", err instanceof Error ? err.message : err);
         }
       }
 
@@ -696,20 +640,13 @@ Examples:
           : undefined;
 
         const datasetHash = "unknown";
-        const report = await generateReport(
-          correlationsData,
-          regressionsData,
-          datasetHash,
-        );
+        const report = await generateReport(correlationsData, regressionsData, datasetHash);
 
         const reportPath = join(outPath, "analytics_report.md");
         writeFileSync(reportPath, report, "utf8");
         console.log(`  Report saved to ${reportPath}`);
       } catch (err) {
-        console.error(
-          "  Report generation failed:",
-          err instanceof Error ? err.message : err,
-        );
+        console.error("  Report generation failed:", err instanceof Error ? err.message : err);
       }
 
       console.log("\nAnalytics complete.");

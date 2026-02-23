@@ -40,11 +40,7 @@ const sidebarItems = [
   },
 ];
 
-export default function SettingsLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (
@@ -69,9 +65,7 @@ export default function SettingsLayout({
                         : "text-gray-400 hover:text-white hover:bg-white/5"
                     }`}
                   >
-                    <span className="material-symbols-outlined text-[20px]">
-                      {item.icon}
-                    </span>
+                    <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
                     {item.label}
                   </Link>
                 );

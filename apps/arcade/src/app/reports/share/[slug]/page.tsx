@@ -72,12 +72,8 @@ export default function SharedReportPage() {
   if (notFound || !report)
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3">
-        <span className="material-symbols-outlined text-4xl text-gray-600">
-          link_off
-        </span>
-        <p className="text-white font-medium">
-          Share link not found or expired
-        </p>
+        <span className="material-symbols-outlined text-4xl text-gray-600">link_off</span>
+        <p className="text-white font-medium">Share link not found or expired</p>
         <a href="/" className="text-sm text-accent underline">
           Go to ReadyLayer
         </a>
@@ -106,9 +102,7 @@ export default function SharedReportPage() {
         {isGate && report.report && (
           <div
             className={`flex items-center gap-4 p-5 rounded-2xl border mb-6 ${
-              passed
-                ? "border-green-500/30 bg-green-500/5"
-                : "border-orange-500/30 bg-orange-500/5"
+              passed ? "border-green-500/30 bg-green-500/5" : "border-orange-500/30 bg-orange-500/5"
             }`}
           >
             <span
@@ -117,14 +111,10 @@ export default function SharedReportPage() {
               {passed ? "check_circle" : "warning"}
             </span>
             <div>
-              <p
-                className={`text-base font-bold ${passed ? "text-green-400" : "text-orange-400"}`}
-              >
+              <p className={`text-base font-bold ${passed ? "text-green-400" : "text-orange-400"}`}>
                 {passed ? "PASSED" : "NEEDS ATTENTION"}
               </p>
-              <p className="text-sm text-gray-300 mt-0.5">
-                {report.report.summary}
-              </p>
+              <p className="text-sm text-gray-300 mt-0.5">{report.report.summary}</p>
             </div>
           </div>
         )}
@@ -163,24 +153,19 @@ export default function SharedReportPage() {
             <table className="w-full text-sm border border-border rounded-xl overflow-hidden">
               <thead className="border-b border-border bg-surface">
                 <tr>
-                  {["Variant", "Status", "Pass rate", "Latency", "Cost"].map(
-                    (h) => (
-                      <th
-                        key={h}
-                        className={`py-2 px-4 text-xs text-gray-400 ${h === "Variant" ? "text-left" : "text-right"}`}
-                      >
-                        {h}
-                      </th>
-                    ),
-                  )}
+                  {["Variant", "Status", "Pass rate", "Latency", "Cost"].map((h) => (
+                    <th
+                      key={h}
+                      className={`py-2 px-4 text-xs text-gray-400 ${h === "Variant" ? "text-left" : "text-right"}`}
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {report.results.map((r) => (
-                  <tr
-                    key={r.variant_id}
-                    className="border-b border-border/50 last:border-0"
-                  >
+                  <tr key={r.variant_id} className="border-b border-border/50 last:border-0">
                     <td className="py-2 px-4 text-white">{r.variant_label}</td>
                     <td className="py-2 px-4 text-right">
                       <span
@@ -192,12 +177,8 @@ export default function SharedReportPage() {
                     <td className="py-2 px-4 text-right text-gray-300">
                       {(r.pass_rate * 100).toFixed(0)}%
                     </td>
-                    <td className="py-2 px-4 text-right text-gray-300">
-                      {r.latency_ms}ms
-                    </td>
-                    <td className="py-2 px-4 text-right text-gray-300">
-                      ${r.cost_usd.toFixed(4)}
-                    </td>
+                    <td className="py-2 px-4 text-right text-gray-300">{r.latency_ms}ms</td>
+                    <td className="py-2 px-4 text-right text-gray-300">${r.cost_usd.toFixed(4)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -212,10 +193,7 @@ export default function SharedReportPage() {
             ? ` · Expires ${new Date(report.share_expires_at).toLocaleDateString()}`
             : ""}
           {" · "}
-          <a
-            href="https://readylayer.com"
-            className="text-gray-500 hover:text-gray-400"
-          >
+          <a href="https://readylayer.com" className="text-gray-500 hover:text-gray-400">
             ReadyLayer
           </a>
         </div>

@@ -49,8 +49,8 @@ export function BillingChargeback() {
               Internal Billing & Chargeback
             </h1>
             <p className="text-[#9dabb9] text-base font-medium max-w-2xl">
-              Manage usage-based monetization, cost recovery, and department
-              budgets across the ReadyLayer ecosystem.
+              Manage usage-based monetization, cost recovery, and department budgets across the
+              ReadyLayer ecosystem.
             </p>
           </div>
           <div className="flex gap-4">
@@ -58,9 +58,7 @@ export function BillingChargeback() {
               type="button"
               className="flex items-center gap-2 px-6 py-3 rounded-xl border border-[#3b4754] bg-[#1a212a] text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#283039] transition-all"
             >
-              <span className="material-symbols-outlined text-[18px]">
-                download
-              </span>
+              <span className="material-symbols-outlined text-[18px]">download</span>
               Export CSV
             </button>
             <button
@@ -68,9 +66,7 @@ export function BillingChargeback() {
               onClick={() => setInvoiceModalOpen(true)}
               className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#137fec] text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl shadow-blue-500/20"
             >
-              <span className="material-symbols-outlined text-[18px]">
-                receipt_long
-              </span>
+              <span className="material-symbols-outlined text-[18px]">receipt_long</span>
               Generate Invoices
             </button>
           </div>
@@ -112,16 +108,12 @@ export function BillingChargeback() {
               className="flex flex-col gap-4 rounded-2xl p-6 bg-[#1a212a] border border-[#3b4754] relative overflow-hidden group hover:border-[#137fec]/30 transition-all"
             >
               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                <span className="material-symbols-outlined text-4xl text-white">
-                  {kpi.icon}
-                </span>
+                <span className="material-symbols-outlined text-4xl text-white">{kpi.icon}</span>
               </div>
               <p className="text-[#9dabb9] text-[10px] font-black uppercase tracking-widest">
                 {kpi.label}
               </p>
-              <h3 className="text-3xl font-black text-white tracking-tight">
-                {kpi.val}
-              </h3>
+              <h3 className="text-3xl font-black text-white tracking-tight">{kpi.val}</h3>
               <div
                 className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-${kpi.color}-500/10 text-${kpi.color}-400 w-fit px-2 py-1 rounded border border-${kpi.color}-500/20`}
               >
@@ -188,16 +180,12 @@ export function BillingChargeback() {
                     className="flex justify-between items-center p-4 rounded-xl bg-red-500/5 border border-red-500/10 group hover:border-red-500/30 transition-all"
                   >
                     <div>
-                      <p className="text-white text-xs font-bold">
-                        {leak.name}
-                      </p>
+                      <p className="text-white text-xs font-bold">{leak.name}</p>
                       <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
                         {leak.dept}
                       </p>
                     </div>
-                    <span className="text-red-400 font-black font-mono text-sm">
-                      {leak.val}
-                    </span>
+                    <span className="text-red-400 font-black font-mono text-sm">{leak.val}</span>
                   </div>
                 ))}
               </div>
@@ -227,10 +215,7 @@ export function BillingChargeback() {
                       <span className="text-white">{model.val}</span>
                     </div>
                     <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${model.color}`}
-                        style={{ width: model.val }}
-                      ></div>
+                      <div className={`h-full ${model.color}`} style={{ width: model.val }}></div>
                     </div>
                   </div>
                 ))}
@@ -253,9 +238,7 @@ export function BillingChargeback() {
                   <th className="px-8 py-5 text-right">Tokens</th>
                   <th className="px-8 py-5 text-right">Raw Cost</th>
                   <th className="px-8 py-5 text-right">Markup</th>
-                  <th className="px-8 py-5 text-right text-white">
-                    Chargeback
-                  </th>
+                  <th className="px-8 py-5 text-right text-white">Chargeback</th>
                   <th className="px-8 py-5">Budget Status</th>
                 </tr>
               </thead>
@@ -294,19 +277,13 @@ export function BillingChargeback() {
                 ].map((row, i) => (
                   <tr key={i} className="hover:bg-white/5 transition-colors">
                     <td className="px-8 py-6">
-                      <p className="text-white font-black text-sm">
-                        {row.dept}
-                      </p>
+                      <p className="text-white font-black text-sm">{row.dept}</p>
                       <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
                         {row.sub}
                       </p>
                     </td>
-                    <td className="px-8 py-6 text-right font-mono text-slate-400">
-                      {row.tok}
-                    </td>
-                    <td className="px-8 py-6 text-right font-mono text-slate-400">
-                      {row.raw}
-                    </td>
+                    <td className="px-8 py-6 text-right font-mono text-slate-400">{row.tok}</td>
+                    <td className="px-8 py-6 text-right font-mono text-slate-400">{row.raw}</td>
                     <td className="px-8 py-6 text-right font-black text-emerald-400 font-mono">
                       {row.mark}
                     </td>
@@ -316,9 +293,7 @@ export function BillingChargeback() {
                     <td className="px-8 py-6">
                       <div className="flex flex-col gap-2">
                         <div className="flex justify-between font-black text-[9px] uppercase tracking-widest">
-                          <span className={`text-${row.clr}-400`}>
-                            {row.pct}%
-                          </span>
+                          <span className={`text-${row.clr}-400`}>{row.pct}%</span>
                         </div>
                         <div className="h-1 w-40 bg-slate-800 rounded-full overflow-hidden">
                           <div

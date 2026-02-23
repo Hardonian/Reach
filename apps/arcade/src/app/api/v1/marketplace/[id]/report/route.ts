@@ -19,10 +19,7 @@ export async function POST(
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(ReportSchema, body);
   if ("errors" in parsed)
-    return cloudErrorResponse(
-      parsed.errors.issues[0]?.message ?? "Invalid input",
-      400,
-    );
+    return cloudErrorResponse(parsed.errors.issues[0]?.message ?? "Invalid input", 400);
 
   // Flag the pack for moderation review
   if (parsed.data.reason === "security" || parsed.data.reason === "malicious") {

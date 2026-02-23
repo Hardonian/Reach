@@ -19,9 +19,7 @@ export async function runStatusCommand(): Promise<number> {
   console.log(`Recent Decisions: ${recent.length}`);
   console.log("\nLast 10 Decisions:");
   recent.forEach((a) => {
-    console.log(
-      `- ${a.decision_id}: ${a.timestamp} (${a.execution_duration_ms}ms)`,
-    );
+    console.log(`- ${a.decision_id}: ${a.timestamp} (${a.execution_duration_ms}ms)`);
   });
 
   console.log("\nConfig Summary:");

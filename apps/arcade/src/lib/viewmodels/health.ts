@@ -9,9 +9,7 @@ export interface HealthData {
   failureTrend: string;
 }
 
-export const getHealthData = async (): Promise<
-  ViewModelResponse<HealthData>
-> => {
+export const getHealthData = async (): Promise<ViewModelResponse<HealthData>> => {
   return safeDefault({
     uptime: "99.98%",
     uptimeTrend: "0.01%",

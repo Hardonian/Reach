@@ -86,9 +86,7 @@ module.exports = {
 
               for (let i = 0; i < data.evidence.length; i++) {
                 const ev = data.evidence[i];
-                lines.push(
-                  `| ${i + 1} | ${ev.source} | ${ev.confidence || "N/A"} |`,
-                );
+                lines.push(`| ${i + 1} | ${ev.source} | ${ev.confidence || "N/A"} |`);
               }
 
               lines.push("");
@@ -141,8 +139,7 @@ module.exports = {
             ];
 
             if (data.status) {
-              const statusClass =
-                data.status === "success" ? "status-success" : "status-failure";
+              const statusClass = data.status === "success" ? "status-success" : "status-failure";
               parts.push(
                 `    <p>Status: <span class=\"${statusClass}\">${escapeHtml(data.status)}</span></p>`,
               );
@@ -153,20 +150,14 @@ module.exports = {
             }
 
             if (data.fingerprint) {
-              parts.push(
-                `    <p>Fingerprint: <code>${escapeHtml(data.fingerprint)}</code></p>`,
-              );
+              parts.push(`    <p>Fingerprint: <code>${escapeHtml(data.fingerprint)}</code></p>`);
             }
 
             parts.push("  </div>");
 
             if (data.outputs) {
               parts.push("  <h2>Outputs</h2>");
-              parts.push(
-                "  <pre>" +
-                  escapeHtml(JSON.stringify(data.outputs, null, 2)) +
-                  "</pre>",
-              );
+              parts.push("  <pre>" + escapeHtml(JSON.stringify(data.outputs, null, 2)) + "</pre>");
             }
 
             if (data.evidence && data.evidence.length > 0) {

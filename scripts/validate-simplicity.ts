@@ -47,10 +47,7 @@ const PRESENTATION_PATHS = [
  */
 const BANNED_JARGON: [RegExp, string][] = [
   [/\bdeterministic pipeline\b/i, 'Use: "Same input, same result"'],
-  [
-    /\borchestration infrastructure\b/i,
-    'Use: "platform" or specific feature name',
-  ],
+  [/\borchestration infrastructure\b/i, 'Use: "platform" or specific feature name'],
   [/\bglobal edge network\b/i, 'Use: "platform" or omit'],
   [/\brun artifacts\b/i, 'Use: "reports"'],
   [/\brun capsule\b/i, 'Use: "saved check"'],
@@ -77,9 +74,7 @@ function countSentences(text: string): number {
  * Extract JSX string literals from a TSX file (very approximate).
  * This catches most user-visible strings without a full AST parser.
  */
-function extractTextBlocks(
-  content: string,
-): { text: string; lineNum: number }[] {
+function extractTextBlocks(content: string): { text: string; lineNum: number }[] {
   const lines = content.split("\n");
   const blocks: { text: string; lineNum: number }[] = [];
 
@@ -99,8 +94,7 @@ function extractTextBlocks(
 
     // Look for string content in JSX text nodes and string literals
     const textMatch =
-      line.match(/>\s*([A-Z][^<{]{20,})\s*</) ??
-      line.match(/["']([A-Z][^"']{20,})["']/);
+      line.match(/>\s*([A-Z][^<{]{20,})\s*</) ?? line.match(/["']([A-Z][^"']{20,})["']/);
     if (textMatch) {
       blocks.push({ text: textMatch[1].trim(), lineNum: i + 1 });
     }
@@ -191,10 +185,7 @@ function checkEmptyStates(filePath: string, content: string): void {
       if (pattern.test(lines[i])) {
         // Check if btn-primary or a href appears within 5 lines
         const surrounding = lines.slice(Math.max(0, i - 3), i + 5).join("\n");
-        if (
-          !surrounding.includes("btn-primary") &&
-          !surrounding.includes("href=")
-        ) {
+        if (!surrounding.includes("btn-primary") && !surrounding.includes("href=")) {
           violations.push({
             file: path.relative(REPO_ROOT, filePath),
             line: i + 1,
@@ -240,9 +231,7 @@ if (violations.length === 0) {
   process.exit(0);
 } else {
   const sevCount = violations.length;
-  console.warn(
-    `⚠ Found ${sevCount} simplicity violation${sevCount === 1 ? "" : "s"}:\n`,
-  );
+  console.warn(`⚠ Found ${sevCount} simplicity violation${sevCount === 1 ? "" : "s"}:\n`);
   for (const v of violations) {
     console.warn(`  ${v.file}:${v.line}`);
     console.warn(`  Rule: ${v.rule}`);

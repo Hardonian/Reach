@@ -47,16 +47,12 @@ describe("zeolite core", () => {
       contextId,
       agentClaim: "commit_now",
     });
-    expect((boundary.zeoBoundary as { topAction: string }).topAction).toBe(
-      "verify_terms",
-    );
+    expect((boundary.zeoBoundary as { topAction: string }).topAction).toBe("verify_terms");
 
     const referee = executeZeoliteOperation("referee_proposal", {
       contextId,
       proposal: { claim: "commit_now" },
     });
-    expect((referee.adjudication as { accepted: boolean }).accepted).toBe(
-      false,
-    );
+    expect((referee.adjudication as { accepted: boolean }).accepted).toBe(false);
   });
 });

@@ -1,28 +1,15 @@
 // @ts-nocheck
 import { describe, expect, it } from "vitest";
-import {
-  mkdtempSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-  existsSync,
-} from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { generateDashboardViewModel } from "../lib/generateViewModel.js";
-import {
-  runRenderCommand,
-  runShareCommand,
-  runDemoCommand,
-} from "./render-cli.js";
+import { runRenderCommand, runShareCommand, runDemoCommand } from "./render-cli.js";
 
 function setupFixture(root: string, id: string) {
   const dir = join(root, ".zeo", "analyze-pr", id);
   mkdirSync(dir, { recursive: true });
-  writeFileSync(
-    join(dir, "manifest.json"),
-    JSON.stringify({ manifest_hash: "abc123" }),
-  );
+  writeFileSync(join(dir, "manifest.json"), JSON.stringify({ manifest_hash: "abc123" }));
   writeFileSync(join(dir, "summary.json"), JSON.stringify({ risk_score: 64 }));
   writeFileSync(
     join(dir, "findings.json"),
@@ -100,11 +87,7 @@ describe("render/share/demo", () => {
     const cwd = process.cwd();
     const root = mkdtempSync(join(tmpdir(), "zeo-demo-"));
     process.chdir(root);
-    const examples = [
-      "analyze-pr-auth",
-      "analyze-pr-migration",
-      "analyze-pr-performance",
-    ];
+    const examples = ["analyze-pr-auth", "analyze-pr-migration", "analyze-pr-performance"];
     for (const ex of examples) {
       const exDir = join(root, "examples", ex);
       mkdirSync(exDir, { recursive: true });
@@ -129,9 +112,7 @@ describe("render/share/demo", () => {
     expect(existsSync(join(outDir, "report.md"))).toBe(true);
     expect(existsSync(join(outDir, "dashboard.html"))).toBe(true);
     expect(existsSync(join(outDir, "bundle.zip"))).toBe(true);
-    expect(readFileSync(join(outDir, "pr-comment.md"), "utf8")).toContain(
-      "Zeo Review",
-    );
+    expect(readFileSync(join(outDir, "pr-comment.md"), "utf8")).toContain("Zeo Review");
     process.chdir(cwd);
   });
 });

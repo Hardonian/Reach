@@ -9,11 +9,7 @@ interface HeroMediaProps {
   className?: string;
 }
 
-export function HeroMedia({
-  videoSrc,
-  fallbackSrc,
-  className = "",
-}: HeroMediaProps) {
+export function HeroMedia({ videoSrc, fallbackSrc, className = "" }: HeroMediaProps) {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
@@ -33,13 +29,7 @@ export function HeroMedia({
   if (prefersReducedMotion || videoError || !videoSrc) {
     return (
       <div className={`relative overflow-hidden ${className}`}>
-        <Image
-          src={fallbackSrc}
-          alt="Hero background"
-          fill
-          className="object-cover"
-          priority
-        />
+        <Image src={fallbackSrc} alt="Hero background" fill className="object-cover" priority />
         {/* Overlay for safe text space */}
         <div className="absolute inset-0 bg-linear-to-t from-background via-background/50 to-transparent" />
         <div className="absolute inset-0 bg-linear-to-r from-background/80 via-transparent to-transparent" />

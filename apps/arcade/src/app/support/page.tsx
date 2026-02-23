@@ -26,20 +26,14 @@ export default function SupportPage() {
       name: "Professional Support",
       description:
         "Standard support for scaling teams. Guaranteed response times for critical issues.",
-      features: [
-        "Email Support",
-        "8/5 Availability",
-        "24h Response Time",
-        "Basic SLA",
-      ],
+      features: ["Email Support", "8/5 Availability", "24h Response Time", "Basic SLA"],
       cta: "Contact Sales",
       href: "/contact",
       highlighted: true,
     },
     {
       name: "Enterprise Support",
-      description:
-        "Mission-critical support with dedicated engineers and 24/7 availability.",
+      description: "Mission-critical support with dedicated engineers and 24/7 availability.",
       features: [
         "Dedicated Slack/Teams",
         "24/7 Availability",
@@ -57,8 +51,8 @@ export default function SupportPage() {
         <header className="mb-16 text-center">
           <h1 className="text-4xl font-bold mb-4">Support Center</h1>
           <p className="text-gray-400 max-w-2xl mx-auto">
-            Choose the right level of support for your team. From self-service
-            documentation to dedicated enterprise engineering.
+            Choose the right level of support for your team. From self-service documentation to
+            dedicated enterprise engineering.
           </p>
         </header>
 
@@ -102,10 +96,7 @@ export default function SupportPage() {
 
               <ul className="space-y-4 mb-8 flex-1">
                 {tier.features.map((feature) => (
-                  <li
-                    key={feature}
-                    className="flex items-center gap-3 text-sm text-gray-400"
-                  >
+                  <li key={feature} className="flex items-center gap-3 text-sm text-gray-400">
                     <span className="text-accent text-lg">✓</span>
                     {feature}
                   </li>
@@ -131,14 +122,11 @@ export default function SupportPage() {
           <div>
             <h2 className="text-2xl font-bold mb-2 text-white">Found a bug?</h2>
             <p className="text-gray-400 text-sm max-w-sm">
-              Our engineering team tracks all issues on GitHub. Help us improve
-              the deterministic engine by reporting bugs and edge cases.
+              Our engineering team tracks all issues on GitHub. Help us improve the deterministic
+              engine by reporting bugs and edge cases.
             </p>
           </div>
-          <Link
-            href="https://github.com"
-            className="btn-secondary py-3 px-8 whitespace-nowrap"
-          >
+          <Link href="https://github.com" className="btn-secondary py-3 px-8 whitespace-nowrap">
             Report Issue on GitHub
           </Link>
         </div>
@@ -149,26 +137,26 @@ export default function SupportPage() {
           <div className="grid md:grid-cols-2 gap-8 text-sm text-gray-400">
             <ul className="space-y-3">
               <li className="flex gap-2">
-                <span>1.</span> <strong>Version:</strong> Include{" "}
-                <code>reach version</code> and node version.
+                <span>1.</span> <strong>Version:</strong> Include <code>reach version</code> and
+                node version.
               </li>
               <li className="flex gap-2">
-                <span>2.</span> <strong>Reproduction:</strong> Provide a minimal
-                execution pack and clear steps.
+                <span>2.</span> <strong>Reproduction:</strong> Provide a minimal execution pack and
+                clear steps.
               </li>
               <li className="flex gap-2">
-                <span>3.</span> <strong>Expected vs Actual:</strong> Explain the
-                deterministic divergence.
+                <span>3.</span> <strong>Expected vs Actual:</strong> Explain the deterministic
+                divergence.
               </li>
             </ul>
             <ul className="space-y-3">
               <li className="flex gap-2">
-                <span>4.</span> <strong>Logs:</strong> Attach{" "}
-                <code>.artifacts/run.log</code> (redact secrets!).
+                <span>4.</span> <strong>Logs:</strong> Attach <code>.artifacts/run.log</code>{" "}
+                (redact secrets!).
               </li>
               <li className="flex gap-2">
-                <span>5.</span> <strong>Environment:</strong> Specify if running
-                on Cloud, Edge, or Local.
+                <span>5.</span> <strong>Environment:</strong> Specify if running on Cloud, Edge, or
+                Local.
               </li>
             </ul>
           </div>

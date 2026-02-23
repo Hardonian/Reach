@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  getAllSkills,
-  getSkill,
-  getToolsForSkill,
-  skillToMCPConfig,
-} from "@/lib/runtime";
+import { getAllSkills, getSkill, getToolsForSkill, skillToMCPConfig } from "@/lib/runtime";
 
 export const runtime = "nodejs";
 

@@ -1,9 +1,4 @@
-import {
-  ContextPayload,
-  RepoSyncProfile,
-  SelectionRange,
-  WorkspaceConfig,
-} from "./types";
+import { ContextPayload, RepoSyncProfile, SelectionRange, WorkspaceConfig } from "./types";
 
 export interface ContextInput {
   workspaceRoot: string | null;

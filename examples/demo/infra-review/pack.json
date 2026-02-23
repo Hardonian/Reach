@@ -9,13 +9,7 @@
     "created": "2024-01-15T00:00:00Z",
     "tags": ["intermediate", "policy", "infrastructure", "cost"]
   },
-  "declared_tools": [
-    "echo",
-    "parse_plan",
-    "check_cost",
-    "check_security",
-    "recommend"
-  ],
+  "declared_tools": ["echo", "parse_plan", "check_cost", "check_security", "recommend"],
   "declared_permissions": ["fs:read", "policy:evaluate"],
   "model_requirements": {
     "tier": "standard"

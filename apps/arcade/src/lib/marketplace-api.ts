@@ -282,9 +282,7 @@ const MOCK_VERSIONS: Record<string, PackVersion[]> = {
 
 // API Functions
 
-export async function browsePacks(
-  filters: BrowseFilters = {},
-): Promise<PaginatedPacks> {
+export async function browsePacks(filters: BrowseFilters = {}): Promise<PaginatedPacks> {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -328,9 +326,7 @@ export async function browsePacks(
   filtered.sort((a, b) => {
     switch (sort) {
       case "newest":
-        return (
-          new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
-        );
+        return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
       case "trending":
         return b.downloads - a.downloads;
       case "rating":
@@ -377,10 +373,7 @@ export async function getPackVersions(id: string): Promise<PackVersion[]> {
   );
 }
 
-export async function installPack(
-  id: string,
-  version?: string,
-): Promise<PackInstallResult> {
+export async function installPack(id: string, version?: string): Promise<PackInstallResult> {
   await new Promise((resolve) => setTimeout(resolve, 800));
 
   const pack = await getPack(id);
@@ -397,9 +390,7 @@ export async function installPack(
   };
 }
 
-export async function publishPack(
-  metadata: PackPublishInput,
-): Promise<{ id: string }> {
+export async function publishPack(metadata: PackPublishInput): Promise<{ id: string }> {
   await new Promise((resolve) => setTimeout(resolve, 1200));
 
   return {
@@ -407,10 +398,7 @@ export async function publishPack(
   };
 }
 
-export async function reportPack(
-  id: string,
-  input: PackReportInput,
-): Promise<void> {
+export async function reportPack(id: string, input: PackReportInput): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 300));
 
   // In production, this would send the report to the backend
@@ -433,8 +421,7 @@ export async function validateManifest(manifest: string): Promise<{
     if (!parsed.name) errors.push("Missing required field: name");
     if (!parsed.version) errors.push("Missing required field: version");
     if (!parsed.description) warnings.push("Missing description");
-    if (!parsed.tools || parsed.tools.length === 0)
-      warnings.push("No tools declared");
+    if (!parsed.tools || parsed.tools.length === 0) warnings.push("No tools declared");
 
     return { valid: errors.length === 0, errors, warnings };
   } catch {

@@ -5,21 +5,11 @@
  */
 
 import { junctionRepository } from "../../db/decisions";
-import {
-  JunctionScanResult,
-  JunctionTemplateResult,
-  JunctionType,
-} from "./types";
-import {
-  evaluateDiffCritical,
-  type DiffEvidence,
-} from "./templates/diffCritical";
+import { JunctionScanResult, JunctionTemplateResult, JunctionType } from "./types";
+import { evaluateDiffCritical, type DiffEvidence } from "./templates/diffCritical";
 import { evaluateDriftAlert, type DriftEvidence } from "./templates/driftAlert";
 import { evaluateTrustDrop, type TrustEvidence } from "./templates/trustDrop";
-import {
-  evaluatePolicyViolation,
-  type PolicyViolationEvidence,
-} from "./templates/policyViolation";
+import { evaluatePolicyViolation, type PolicyViolationEvidence } from "./templates/policyViolation";
 
 /**
  * Junction configuration
@@ -149,9 +139,7 @@ export class JunctionOrchestrator {
     for (const template of templateResults) {
       try {
         // Check for existing junction with same fingerprint (deduplication)
-        const existing = junctionRepository.getByFingerprint(
-          template.fingerprint,
-        );
+        const existing = junctionRepository.getByFingerprint(template.fingerprint);
 
         if (existing) {
           // Skip if within cooldown window

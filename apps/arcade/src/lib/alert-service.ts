@@ -31,19 +31,12 @@ export function shouldAlert(signal: Signal, value: number): boolean {
 
 // ── Email dispatch via HTTP relay (avoids SMTP dep) ───────────────────────
 
-async function sendEmailViaRelay(
-  to: string,
-  subject: string,
-  body: string,
-): Promise<void> {
+async function sendEmailViaRelay(to: string, subject: string, body: string): Promise<void> {
   // Supports any transactional email relay with a simple POST API (Resend, Postmark, custom).
   // Set READYLAYER_ALERT_EMAIL_ENDPOINT to your HTTP relay URL.
   const endpoint = process.env.READYLAYER_ALERT_EMAIL_ENDPOINT;
   if (!endpoint) {
-    logger.warn(
-      "READYLAYER_ALERT_EMAIL_ENDPOINT not set — email alert skipped",
-      { to },
-    );
+    logger.warn("READYLAYER_ALERT_EMAIL_ENDPOINT not set — email alert skipped", { to });
     return;
   }
   try {
@@ -73,10 +66,7 @@ async function sendEmailViaRelay(
 
 // ── Webhook dispatch ──────────────────────────────────────────────────────
 
-async function sendWebhook(
-  url: string,
-  payload: Record<string, unknown>,
-): Promise<void> {
+async function sendWebhook(url: string, payload: Record<string, unknown>): Promise<void> {
   try {
     const res = await fetch(url, {
       method: "POST",
@@ -104,9 +94,7 @@ export async function dispatchAlerts(
   monitorRun: MonitorRun,
 ): Promise<void> {
   const rules = listAlertRules(tenantId).filter(
-    (r) =>
-      r.status === "enabled" &&
-      (r.signal_id === null || r.signal_id === signal.id),
+    (r) => r.status === "enabled" && (r.signal_id === null || r.signal_id === signal.id),
   );
 
   const baseUrl = env.READYLAYER_BASE_URL ?? "https://app.readylayer.com";

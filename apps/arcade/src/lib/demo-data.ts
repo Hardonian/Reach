@@ -15,33 +15,23 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
   {
     id: "customer-support-agent",
     name: "Omnichannel Support Agent",
-    agentDescription:
-      "Handles billing and refund requests across Zendesk and Slack.",
-    typicalFailure:
-      "Agent attempts to refund a non-refundable subscription tier.",
+    agentDescription: "Handles billing and refund requests across Zendesk and Slack.",
+    typicalFailure: "Agent attempts to refund a non-refundable subscription tier.",
     policyViolation: "Bypasses multi-sig requirement for refunds > $500.",
     toolFailure: "Stripe API returns 401 due to expired rotated token.",
-    driftExample:
-      "Response latency increases by 400ms after switching from GPT-4o to Llama-3-70b.",
-    monitoringAlert:
-      "Alert: Refund success rate dropped below 85% in last 10 mins.",
-    simulationVariant:
-      "Variant A (Strict Policy) vs Variant B (Human-in-the-loop).",
-    suggestedFix:
-      "Append `require_approval: true` to the `process_refund` tool definition.",
+    driftExample: "Response latency increases by 400ms after switching from GPT-4o to Llama-3-70b.",
+    monitoringAlert: "Alert: Refund success rate dropped below 85% in last 10 mins.",
+    simulationVariant: "Variant A (Strict Policy) vs Variant B (Human-in-the-loop).",
+    suggestedFix: "Append `require_approval: true` to the `process_refund` tool definition.",
   },
   {
     id: "legal-reviewer",
     name: "Contract Compliance Bot",
-    agentDescription:
-      "Reviews NDAs and MSAs for compliance with company standards.",
-    typicalFailure:
-      'Misses a "non-standard" indemnity clause in a 40-page PDF.',
-    policyViolation:
-      "Accidentally leaks confidential clause to public web search tool.",
+    agentDescription: "Reviews NDAs and MSAs for compliance with company standards.",
+    typicalFailure: 'Misses a "non-standard" indemnity clause in a 40-page PDF.',
+    policyViolation: "Accidentally leaks confidential clause to public web search tool.",
     toolFailure: "PDF parser fails on scanned images without OCR.",
-    driftExample:
-      'Accuracy on "governing law" detection drops from 98% to 82%.',
+    driftExample: 'Accuracy on "governing law" detection drops from 98% to 82%.',
     monitoringAlert: "Alert: Average review time exceeded 30-second budget.",
     simulationVariant: "OCR vs. No-OCR preprocessing comparison.",
     suggestedFix: "Enable `ocr_mode: high_accuracy` in the PDF ingestion tool.",
@@ -49,14 +39,11 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
   {
     id: "healthcare-triage",
     name: "Patient Triage Assistant",
-    agentDescription:
-      "Assists ER staff by summarizing patient history and urgency.",
+    agentDescription: "Assists ER staff by summarizing patient history and urgency.",
     typicalFailure: "Hallucinates a drug allergy not present in history.",
     policyViolation: "Stores PII in a non-compliant logging bucket.",
-    toolFailure:
-      "EPIC FHIR server down; agent fails to fall back to cached records.",
-    driftExample:
-      'Triage priority scores shift "Low" to "Critical" for same symptoms.',
+    toolFailure: "EPIC FHIR server down; agent fails to fall back to cached records.",
+    driftExample: 'Triage priority scores shift "Low" to "Critical" for same symptoms.',
     monitoringAlert: "Alert: PII detected in plain-text observability logs.",
     simulationVariant: "GPT-4o vs. Med-Gemini-1.5 for summarization accuracy.",
     suggestedFix: "Add a `pii_scrubbing_gate` to the execution pipeline.",
@@ -64,14 +51,11 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
   {
     id: "fintech-trader",
     name: "Algorithmic Portfolio Rebalancer",
-    agentDescription:
-      "Rebalances crypto portfolios based on market volatility signals.",
-    typicalFailure:
-      "Executes buy order on a delisted asset due to cached price feed.",
+    agentDescription: "Rebalances crypto portfolios based on market volatility signals.",
+    typicalFailure: "Executes buy order on a delisted asset due to cached price feed.",
     policyViolation: "Exceeds max draw-down limit of 2% per 24h window.",
     toolFailure: "Binance API rate-limited during high-volatility event.",
-    driftExample:
-      "Execution slippage increases as model starts favoring low-liquidity pairs.",
+    driftExample: "Execution slippage increases as model starts favoring low-liquidity pairs.",
     monitoringAlert: "Alert: Real-time loss threshold exceeded.",
     simulationVariant: "Stop-loss at 1.5% vs. 2.5% scenario testing.",
     suggestedFix: "Implement `circuit_breaker` on the `place_order` tool.",
@@ -81,22 +65,18 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     name: "Incident Response Agent",
     agentDescription: "Automatically resolves high-priority K8s incidents.",
     typicalFailure: "Restarts the wrong pod name due to regex mismatch.",
-    policyViolation:
-      "Attempts to delete a production namespace without approval.",
+    policyViolation: "Attempts to delete a production namespace without approval.",
     toolFailure: "Kubectl auth expired; agent infinite-loops on retry.",
     driftExample: "Time-to-resolution increases after model fine-tune.",
-    monitoringAlert:
-      "Alert: 5 consecutive pod failures after agent intervention.",
+    monitoringAlert: "Alert: 5 consecutive pod failures after agent intervention.",
     simulationVariant: "Restart vs. Rollback strategy evaluation.",
-    suggestedFix:
-      "Use `name_regex_gate` to validate resource targets before action.",
+    suggestedFix: "Use `name_regex_gate` to validate resource targets before action.",
   },
   {
     id: "ecommerce-inventory",
     name: "Supply Chain Sync",
     agentDescription: "Syncs warehouse stock with Shopify and Amazon.",
-    typicalFailure:
-      "Oversells item by 50 units due to race condition between stores.",
+    typicalFailure: "Oversells item by 50 units due to race condition between stores.",
     policyViolation: "Updates prices below COGS (Cost of Goods Sold).",
     toolFailure: "Shopify webhook fails to fire; agent misses 200 orders.",
     driftExample: "Stock level sync delay grows from 2s to 15s.",
@@ -108,10 +88,8 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     id: "recruitment-screener",
     name: "First-Round Interviewer",
     agentDescription: "Screens resumes and schedules initial technical chats.",
-    typicalFailure:
-      "Rejects a qualified candidate due to formatting quirks in resume.",
-    policyViolation:
-      "Infers candidate gender/ethnicity from name and uses as filter.",
+    typicalFailure: "Rejects a qualified candidate due to formatting quirks in resume.",
+    policyViolation: "Infers candidate gender/ethnicity from name and uses as filter.",
     toolFailure: "Calendly integration fails to find open slots.",
     driftExample: "Selected candidate quality score drops month-over-month.",
     monitoringAlert: "Alert: Bias detected in rejection patterns.",
@@ -134,10 +112,8 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     id: "cybersec-triage",
     name: "Threat Hunting Assistant",
     agentDescription: "Analyzes SIEM logs and suggests containment actions.",
-    typicalFailure:
-      "Flags legitimate IT admin activity as a brute-force attack.",
-    policyViolation:
-      "Automates firewall block of a critical internal database.",
+    typicalFailure: "Flags legitimate IT admin activity as a brute-force attack.",
+    policyViolation: "Automates firewall block of a critical internal database.",
     toolFailure: "Splunk query exceeds memory limit; returns partial results.",
     driftExample: "False positive rate climbs as new log sources are added.",
     monitoringAlert: "Alert: High-severity alert not triaged within SLA.",
@@ -147,17 +123,12 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
   {
     id: "travel-planner",
     name: "Itinerary Concierge",
-    agentDescription:
-      "Books flights, hotels, and tours based on user bucket lists.",
-    typicalFailure:
-      "Books a flight to San Jose, CA instead of San Jose, Costa Rica.",
-    policyViolation:
-      "Persists user passport number in non-encrypted session state.",
+    agentDescription: "Books flights, hotels, and tours based on user bucket lists.",
+    typicalFailure: "Books a flight to San Jose, CA instead of San Jose, Costa Rica.",
+    policyViolation: "Persists user passport number in non-encrypted session state.",
     toolFailure: "Amadeus flight search returns stale availability.",
-    driftExample:
-      'Preference for "Luxury" hotels even when budget is "frugal".',
-    monitoringAlert:
-      "Alert: Cancellation rate increasing due to booking errors.",
+    driftExample: 'Preference for "Luxury" hotels even when budget is "frugal".',
+    monitoringAlert: "Alert: Cancellation rate increasing due to booking errors.",
     simulationVariant: "LLM-only vs. RAG-based search comparison.",
     suggestedFix: "Add `iata_code_validation` to all flight booking calls.",
   },

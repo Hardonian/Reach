@@ -11,8 +11,8 @@ export default function SkillsDocsPage() {
     <div className="prose prose-invert max-w-none">
       <h1>Skills System</h1>
       <p>
-        Skills are composable units of agent behavior. Each skill declares its
-        inputs, required tools, model hints, and evaluation hooks.
+        Skills are composable units of agent behavior. Each skill declares its inputs, required
+        tools, model hints, and evaluation hooks.
       </p>
 
       <h2>Skill Manifest</h2>
@@ -81,41 +81,36 @@ export default function SkillsDocsPage() {
       <h2>Built-in Skills</h2>
       <ul>
         <li>
-          <strong>Readiness Check</strong> — Full readiness sweep: tool
-          reliability, policy gates, output schema, latency.
+          <strong>Readiness Check</strong> — Full readiness sweep: tool reliability, policy gates,
+          output schema, latency.
         </li>
         <li>
-          <strong>Policy Gate</strong> — Validate tool calls against defined
-          rules.
+          <strong>Policy Gate</strong> — Validate tool calls against defined rules.
         </li>
         <li>
-          <strong>Change Detection</strong> — Compare current run against saved
-          baseline.
+          <strong>Change Detection</strong> — Compare current run against saved baseline.
         </li>
         <li>
-          <strong>Trace Capture</strong> — Capture a full execution trace
-          without enforcing rules.
+          <strong>Trace Capture</strong> — Capture a full execution trace without enforcing rules.
         </li>
         <li>
-          <strong>Release Gate</strong> — CI/CD gate that blocks merges when
-          agent score drops.
+          <strong>Release Gate</strong> — CI/CD gate that blocks merges when agent score drops.
         </li>
         <li>
-          <strong>MCP Bridge</strong> — Connect to MCP servers and expose tools
-          as skill inputs.
+          <strong>MCP Bridge</strong> — Connect to MCP servers and expose tools as skill inputs.
         </li>
       </ul>
 
       <h2>Skill Composition</h2>
       <p>
-        Skills can be composed into pipelines. A composition defines which
-        skills run in sequence and how they connect.
+        Skills can be composed into pipelines. A composition defines which skills run in sequence
+        and how they connect.
       </p>
 
       <h2>MCP Export</h2>
       <p>
-        Any skill can be exported as an MCP server configuration. This allows
-        ReadyLayer skills to be consumed by any MCP-compatible client.
+        Any skill can be exported as an MCP server configuration. This allows ReadyLayer skills to
+        be consumed by any MCP-compatible client.
       </p>
 
       <div className="not-prose mt-8">

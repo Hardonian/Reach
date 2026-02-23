@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  requireAuth,
-  cloudErrorResponse,
-  requireRole,
-  auditLog,
-} from "@/lib/cloud-auth";
+import { requireAuth, cloudErrorResponse, requireRole, auditLog } from "@/lib/cloud-auth";
 import {
   getWorkflow,
   createWorkflowRun,
@@ -24,8 +19,7 @@ export async function GET(
   const ctx = await requireAuth(req);
   if (ctx instanceof NextResponse) return ctx;
   const { id } = await params;
-  if (!getWorkflow(id, ctx.tenantId))
-    return cloudErrorResponse("Workflow not found", 404);
+  if (!getWorkflow(id, ctx.tenantId)) return cloudErrorResponse("Workflow not found", 404);
   const runs = listWorkflowRuns(ctx.tenantId, id);
   return NextResponse.json({ runs });
 }
@@ -36,8 +30,7 @@ export async function POST(
 ): Promise<NextResponse> {
   const ctx = await requireAuth(req);
   if (ctx instanceof NextResponse) return ctx;
-  if (!requireRole(ctx, "member"))
-    return cloudErrorResponse("Insufficient permissions", 403);
+  if (!requireRole(ctx, "member")) return cloudErrorResponse("Insufficient permissions", 403);
 
   const { id } = await params;
   const wf = getWorkflow(id, ctx.tenantId);
@@ -55,21 +48,11 @@ export async function POST(
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(RunWorkflowSchema, body);
   if ("errors" in parsed)
-    return cloudErrorResponse(
-      parsed.errors.issues[0]?.message ?? "Invalid input",
-      400,
-    );
+    return cloudErrorResponse(parsed.errors.issues[0]?.message ?? "Invalid input", 400);
 
   const run = createWorkflowRun(ctx.tenantId, id, parsed.data.inputs);
   incrementRunUsage(ctx.tenantId);
-  auditLog(
-    ctx,
-    "workflow_run.create",
-    "workflow_run",
-    run.id,
-    { workflow_id: id },
-    req,
-  );
+  auditLog(ctx, "workflow_run.create", "workflow_run", run.id, { workflow_id: id }, req);
 
   // Simulate async execution (real wiring would call Go runner)
   simulateExecution(run.id, ctx.tenantId, wf, parsed.data.inputs);

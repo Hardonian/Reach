@@ -5,8 +5,8 @@ export default function QuickstartPage() {
   return (
     <DocLayout currentPath="/docs/quickstart" title="Quickstart">
       <p className="text-lg text-slate-600 mb-8">
-        Get Reach running locally in under a minute. This guide walks you
-        through installation, verification, and your first decision workflow.
+        Get Reach running locally in under a minute. This guide walks you through installation,
+        verification, and your first decision workflow.
       </p>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Prerequisites</h2>
@@ -27,25 +27,20 @@ pnpm install`}
       <h2 className="text-2xl font-semibold mt-8 mb-4">2. Verify Your Setup</h2>
       <CodeBlock code={`./reach doctor`} />
       <p className="mt-4">
-        The doctor command checks all dependencies, file permissions, and
-        deterministic environment requirements. You should see all checks pass.
+        The doctor command checks all dependencies, file permissions, and deterministic environment
+        requirements. You should see all checks pass.
       </p>
 
-      <h2 className="text-2xl font-semibold mt-8 mb-4">
-        3. Run Your First Example
-      </h2>
+      <h2 className="text-2xl font-semibold mt-8 mb-4">3. Run Your First Example</h2>
       <CodeBlock code={`node examples/01-quickstart-local/run.js`} />
       <p className="mt-4">
-        This creates a local decision, adds evidence, and outputs a
-        deterministic result card.
+        This creates a local decision, adds evidence, and outputs a deterministic result card.
       </p>
 
-      <h2 className="text-2xl font-semibold mt-8 mb-4">
-        4. Verify Determinism
-      </h2>
+      <h2 className="text-2xl font-semibold mt-8 mb-4">4. Verify Determinism</h2>
       <p>
-        Run the same command twice. The transcript hash will be identical—this
-        is Reach's core guarantee.
+        Run the same command twice. The transcript hash will be identical—this is Reach's core
+        guarantee.
       </p>
       <CodeBlock
         code={`# Run once

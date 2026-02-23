@@ -1,12 +1,6 @@
 // @ts-nocheck
 import { createHash, randomUUID } from "node:crypto";
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  statSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { resolve, dirname, join, relative } from "node:path";
 import { execFileSync } from "node:child_process";
 
@@ -116,11 +110,7 @@ function parseAnalyzePrArgs(argv: string[]): AnalyzePrArgs {
     const arg = argv[i];
     const next = argv[i + 1];
     if (arg === "--json") result.format = "json";
-    else if (
-      arg === "--format" &&
-      next &&
-      (next === "text" || next === "json")
-    ) {
+    else if (arg === "--format" && next && (next === "text" || next === "json")) {
       result.format = next;
       i++;
     } else if (arg === "--explain") result.explain = true;
@@ -152,11 +142,7 @@ function parseAnalyzePrArgs(argv: string[]): AnalyzePrArgs {
 }
 
 function isLikelyRange(value: string): boolean {
-  return (
-    value.includes("..") &&
-    !value.endsWith(".diff") &&
-    !value.endsWith(".patch")
-  );
+  return value.includes("..") && !value.endsWith(".diff") && !value.endsWith(".patch");
 }
 
 function runGit(args: string[]): string {
@@ -186,10 +172,7 @@ function parseHunks(diff: string): DiffHunkRef[] {
       const removed = Number(m[2] || "1");
       const newStart = Number(m[3]);
       const added = Number(m[4] || "1");
-      const hash = createHash("sha1")
-        .update(`${currentFile}:${line}`)
-        .digest("hex")
-        .slice(0, 12);
+      const hash = createHash("sha1").update(`${currentFile}:${line}`).digest("hex").slice(0, 12);
       hunks.push({
         file: currentFile,
         oldStart,
@@ -283,31 +266,20 @@ function scoreFindings(findings: Finding[], files: string[]): number {
   };
   return Math.min(
     100,
-    base +
-      findings.reduce(
-        (sum, finding) => sum + severityWeight[finding.severity],
-        0,
-      ),
+    base + findings.reduce((sum, finding) => sum + severityWeight[finding.severity], 0),
   );
 }
 
-function analyze(
-  diff: string,
-  files: string[],
-  hunks: DiffHunkRef[],
-): Finding[] {
+function analyze(diff: string, files: string[], hunks: DiffHunkRef[]): Finding[] {
   const findings: Finding[] = [];
   const fileToHunk = new Map<string, DiffHunkRef[]>();
-  for (const hunk of hunks)
-    fileToHunk.set(hunk.file, [...(fileToHunk.get(hunk.file) ?? []), hunk]);
+  for (const hunk of hunks) fileToHunk.set(hunk.file, [...(fileToHunk.get(hunk.file) ?? []), hunk]);
 
   const addFinding = (
     finding: Omit<Finding, "id" | "evidence"> & { evidence?: string[] },
   ): void => {
     const fileHunks = fileToHunk.get(finding.file) ?? [];
-    const evidence =
-      finding.evidence ??
-      fileHunks.slice(0, 2).map((h) => `${h.file}#${h.hash}`);
+    const evidence = finding.evidence ?? fileHunks.slice(0, 2).map((h) => `${h.file}#${h.hash}`);
     const idSource = `${finding.category}:${finding.file}:${finding.description}`;
     findings.push({
       id: createHash("sha1").update(idSource).digest("hex").slice(0, 12),
@@ -322,8 +294,7 @@ function analyze(
     const lineRange: [number, number] | null = fileToHunk.get(file)?.[0]
       ? [
           fileToHunk.get(file)![0].newStart,
-          fileToHunk.get(file)![0].newStart +
-            Math.max(fileToHunk.get(file)![0].added - 1, 0),
+          fileToHunk.get(file)![0].newStart + Math.max(fileToHunk.get(file)![0].added - 1, 0),
         ]
       : null;
     if (/(auth|session|jwt|cookie|csrf)/.test(lower)) {
@@ -333,8 +304,7 @@ function analyze(
         file,
         line_range: lineRange,
         description: "Authentication or session surface changed",
-        why_it_matters:
-          "Auth boundary changes can shift access control guarantees.",
+        why_it_matters: "Auth boundary changes can shift access control guarantees.",
         suggested_next_action:
           "Require focused auth boundary review with explicit attack-surface notes.",
       });
@@ -346,62 +316,46 @@ function analyze(
         file,
         line_range: lineRange,
         description: "Schema or migration file changed",
-        why_it_matters:
-          "Schema changes can break compatibility and rollback safety.",
-        suggested_next_action:
-          "Document backward/forward compatibility and rollback plan.",
+        why_it_matters: "Schema changes can break compatibility and rollback safety.",
+        suggested_next_action: "Document backward/forward compatibility and rollback plan.",
       });
     }
-    if (
-      /(docker|helm|k8s|terraform|workflow|deploy|\.env|config)/.test(lower)
-    ) {
+    if (/(docker|helm|k8s|terraform|workflow|deploy|\.env|config)/.test(lower)) {
       addFinding({
         category: "data-integrity",
         severity: "medium",
         file,
         line_range: lineRange,
         description: "Deployment or config path changed",
-        why_it_matters:
-          "Configuration drift can alter runtime behavior across environments.",
+        why_it_matters: "Configuration drift can alter runtime behavior across environments.",
         suggested_next_action:
           "Compare effective configuration between environments before rollout.",
       });
     }
-    if (
-      /(service|controller|api|handler|query)/.test(lower) &&
-      !/(test|spec)/.test(lower)
-    ) {
+    if (/(service|controller|api|handler|query)/.test(lower) && !/(test|spec)/.test(lower)) {
       addFinding({
         category: "test-impact",
         severity: "low",
         file,
         line_range: lineRange,
         description: "Runtime code changed without direct test-file signal",
-        why_it_matters:
-          "Behavioral changes without tests increase regression risk.",
-        suggested_next_action:
-          "Add or update tests that cover the changed runtime path.",
+        why_it_matters: "Behavioral changes without tests increase regression risk.",
+        suggested_next_action: "Add or update tests that cover the changed runtime path.",
       });
     }
   }
 
   for (const line of lines) {
     if (!line.startsWith("+")) continue;
-    if (
-      /\b(password|api[_-]?key|secret|token)\b\s*[:=]\s*['"][^'"]{8,}/i.test(
-        line,
-      )
-    ) {
+    if (/\b(password|api[_-]?key|secret|token)\b\s*[:=]\s*['"][^'"]{8,}/i.test(line)) {
       addFinding({
         category: "security",
         severity: "high",
         file: "[diff-content]",
         line_range: null,
         description: "Potential secret detected in added lines",
-        why_it_matters:
-          "Committed secrets create immediate credential exposure risk.",
-        suggested_next_action:
-          "Rotate exposed secret material and replace with secure reference.",
+        why_it_matters: "Committed secrets create immediate credential exposure risk.",
+        suggested_next_action: "Rotate exposed secret material and replace with secure reference.",
         evidence: ["diff#line-secret-pattern"],
       });
     }
@@ -415,10 +369,8 @@ function analyze(
         file: "[diff-content]",
         line_range: null,
         description: "Dynamic network target construction detected",
-        why_it_matters:
-          "Dynamic outbound targets can expand SSRF attack paths.",
-        suggested_next_action:
-          "Constrain outbound destinations with allowlist validation.",
+        why_it_matters: "Dynamic outbound targets can expand SSRF attack paths.",
+        suggested_next_action: "Constrain outbound destinations with allowlist validation.",
         evidence: ["diff#line-network-pattern"],
       });
     }
@@ -432,27 +384,20 @@ function analyze(
         file: "[diff-content]",
         line_range: null,
         description: "Error handling appears to swallow exceptions",
-        why_it_matters:
-          "Silent failures reduce observability and can hide correctness issues.",
-        suggested_next_action:
-          "Log structured context and propagate actionable errors.",
+        why_it_matters: "Silent failures reduce observability and can hide correctness issues.",
+        suggested_next_action: "Log structured context and propagate actionable errors.",
         evidence: ["diff#line-error-handling"],
       });
     }
-    if (
-      /\b(timeout|retry|maxRetries)\b/.test(line) &&
-      /0|false|null/.test(line)
-    ) {
+    if (/\b(timeout|retry|maxRetries)\b/.test(line) && /0|false|null/.test(line)) {
       addFinding({
         category: "reliability",
         severity: "medium",
         file: "[diff-content]",
         line_range: null,
         description: "Timeout or retry guard may be disabled",
-        why_it_matters:
-          "Removing retry/timeouts can amplify outage blast radius.",
-        suggested_next_action:
-          "Validate timeout/retry policy against service-level objectives.",
+        why_it_matters: "Removing retry/timeouts can amplify outage blast radius.",
+        suggested_next_action: "Validate timeout/retry policy against service-level objectives.",
         evidence: ["diff#line-timeout-retry"],
       });
     }
@@ -488,11 +433,7 @@ function writeArtifacts(result: AnalysisResult, explain: boolean): void {
     `${JSON.stringify(result.findings, null, 2)}\n`,
     "utf8",
   );
-  writeFileSync(
-    join(dir, "summary.json"),
-    `${JSON.stringify(result.summary, null, 2)}\n`,
-    "utf8",
-  );
+  writeFileSync(join(dir, "summary.json"), `${JSON.stringify(result.summary, null, 2)}\n`, "utf8");
   if (explain)
     writeFileSync(
       join(dir, "explain.json"),
@@ -510,23 +451,13 @@ function writeArtifacts(result: AnalysisResult, explain: boolean): void {
   const manifest = {
     run_id: result.run_id,
     schemaVersion: result.schemaVersion,
-    files: [
-      "findings.json",
-      "summary.json",
-      ...(explain ? ["explain.json"] : []),
-    ],
+    files: ["findings.json", "summary.json", ...(explain ? ["explain.json"] : [])],
     hashes: {
-      findings: createHash("sha256")
-        .update(JSON.stringify(result.findings))
-        .digest("hex"),
-      summary: createHash("sha256")
-        .update(JSON.stringify(result.summary))
-        .digest("hex"),
+      findings: createHash("sha256").update(JSON.stringify(result.findings)).digest("hex"),
+      summary: createHash("sha256").update(JSON.stringify(result.summary)).digest("hex"),
     },
   };
-  const manifestHash = createHash("sha256")
-    .update(JSON.stringify(manifest))
-    .digest("hex");
+  const manifestHash = createHash("sha256").update(JSON.stringify(manifest)).digest("hex");
   writeFileSync(
     join(dir, "manifest.json"),
     `${JSON.stringify({ ...manifest, manifest_hash: manifestHash }, null, 2)}\n`,
@@ -535,9 +466,7 @@ function writeArtifacts(result: AnalysisResult, explain: boolean): void {
 }
 
 function buildText(result: AnalysisResult, explain: boolean): string {
-  const mustReview = result.findings
-    .filter((f) => f.severity === "high")
-    .slice(0, 5);
+  const mustReview = result.findings.filter((f) => f.severity === "high").slice(0, 5);
   const lines = [
     "=== Accountability summary ===",
     `run_id: ${result.run_id}`,
@@ -598,18 +527,14 @@ function toAnalysis(
   const run_id = randomUUID();
   const policies = [
     ...(args.policy ? [`policy-pack:${args.policy}`] : []),
-    ...findings
-      .filter((f) => f.category === "security")
-      .map(() => "security-review-required"),
+    ...findings.filter((f) => f.category === "security").map(() => "security-review-required"),
     ...findings
       .filter((f) => f.category === "data-integrity")
       .map(() => "data-integrity-review-required"),
   ];
   const dedupePolicies = [...new Set(policies)].sort();
 
-  const suggestedEvidence = [
-    ...new Set(findings.map((f) => f.suggested_next_action)),
-  ].sort();
+  const suggestedEvidence = [...new Set(findings.map((f) => f.suggested_next_action))].sort();
   const diffHash = createHash("sha256").update(loaded.diff).digest("hex");
   const manifestHash = createHash("sha256")
     .update(JSON.stringify({ diffHash, findings }))
@@ -664,9 +589,7 @@ export async function runAnalyzePrCommand(argv: string[]): Promise<number> {
       !Number.isFinite(args.maxDiffBytes) ||
       args.maxDiffBytes <= 0
     ) {
-      console.error(
-        "[E_INPUT_INVALID] max-files and max-diff-bytes must be positive numbers",
-      );
+      console.error("[E_INPUT_INVALID] max-files and max-diff-bytes must be positive numbers");
       return EXIT_CODES.INPUT_ERROR;
     }
     if (args.safe && args.assist) {
@@ -687,9 +610,7 @@ export async function runAnalyzePrCommand(argv: string[]): Promise<number> {
     }
 
     if (Buffer.byteLength(loaded.diff, "utf8") > args.maxDiffBytes) {
-      console.error(
-        `[E_INPUT_OVERSIZE] diff exceeds max bytes (${args.maxDiffBytes})`,
-      );
+      console.error(`[E_INPUT_OVERSIZE] diff exceeds max bytes (${args.maxDiffBytes})`);
       return EXIT_CODES.INPUT_ERROR;
     }
 
@@ -717,9 +638,7 @@ export async function runAnalyzePrCommand(argv: string[]): Promise<number> {
     return EXIT_CODES.OK;
   } catch (err) {
     const runId = randomUUID();
-    console.error(
-      `[E_ANALYZE_INTERNAL] run_id=${runId} ${(err as Error).message}`,
-    );
+    console.error(`[E_ANALYZE_INTERNAL] run_id=${runId} ${(err as Error).message}`);
     return EXIT_CODES.INTERNAL_ERROR;
   }
 }
@@ -742,18 +661,11 @@ export function runAnalyzePrReplay(runId: string): number {
   const dir = artifactDir(runId);
   const manifestPath = join(dir, "manifest.json");
   if (!existsSync(manifestPath)) return EXIT_CODES.INPUT_ERROR;
-  const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as Record<
-    string,
-    unknown
-  >;
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as Record<string, unknown>;
   const summaryPath = join(dir, "summary.json");
   const findingsPath = join(dir, "findings.json");
-  const summary = existsSync(summaryPath)
-    ? JSON.parse(readFileSync(summaryPath, "utf8"))
-    : null;
-  const findings = existsSync(findingsPath)
-    ? JSON.parse(readFileSync(findingsPath, "utf8"))
-    : [];
+  const summary = existsSync(summaryPath) ? JSON.parse(readFileSync(summaryPath, "utf8")) : null;
+  const findings = existsSync(findingsPath) ? JSON.parse(readFileSync(findingsPath, "utf8")) : [];
   process.stdout.write(
     `${JSON.stringify({ run_id: runId, manifest, summary, findings }, null, 2)}\n`,
   );

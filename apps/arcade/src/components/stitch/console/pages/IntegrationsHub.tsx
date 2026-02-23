@@ -98,9 +98,7 @@ export function IntegrationsHub() {
               <p className="text-[10px] font-black uppercase tracking-widest text-[#9da6b9] mb-2">
                 {stat.label}
               </p>
-              <p className={`text-3xl font-black text-${stat.color}-400`}>
-                {stat.value}
-              </p>
+              <p className={`text-3xl font-black text-${stat.color}-400`}>{stat.value}</p>
             </div>
           ))}
         </div>
@@ -126,9 +124,7 @@ export function IntegrationsHub() {
                         </span>
                       </div>
                       <div>
-                        <p className="text-white font-black text-sm">
-                          {integration.name}
-                        </p>
+                        <p className="text-white font-black text-sm">{integration.name}</p>
                         <p className="text-[10px] text-[#9da6b9] font-bold uppercase tracking-widest">
                           {integration.category}
                         </p>
@@ -146,10 +142,7 @@ export function IntegrationsHub() {
                       type="button"
                       className="text-[10px] font-black uppercase tracking-widest text-[#135bec] hover:text-blue-400 transition-colors"
                     >
-                      {integration.status === "Connected"
-                        ? "Configure"
-                        : "Connect"}{" "}
-                      →
+                      {integration.status === "Connected" ? "Configure" : "Connect"} →
                     </button>
                   </div>
                 </div>
@@ -198,9 +191,7 @@ export function IntegrationsHub() {
                     <td className="px-8 py-5 font-bold text-white uppercase tracking-wide">
                       {row.src}
                     </td>
-                    <td className="px-8 py-5 font-mono text-[#9da6b9] text-[11px]">
-                      {row.ev}
-                    </td>
+                    <td className="px-8 py-5 font-mono text-[#9da6b9] text-[11px]">{row.ev}</td>
                     <td className="px-8 py-5">
                       <span
                         className={`px-2 py-0.5 rounded-full font-black uppercase tracking-widest text-[9px] bg-${row.color}-500/10 text-${row.color}-400 border border-${row.color}-500/20`}
@@ -208,9 +199,7 @@ export function IntegrationsHub() {
                         {row.status}
                       </span>
                     </td>
-                    <td className="px-8 py-5 text-right font-mono text-slate-500">
-                      10:42 AM
-                    </td>
+                    <td className="px-8 py-5 text-right font-mono text-slate-500">10:42 AM</td>
                   </tr>
                 ))}
               </tbody>

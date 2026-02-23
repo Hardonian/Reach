@@ -53,11 +53,7 @@ export function detectLanguage(repoPath: string): {
         const stat = require("fs").statSync(fullPath);
 
         if (stat.isDirectory()) {
-          if (
-            !entry.startsWith(".") &&
-            entry !== "node_modules" &&
-            entry !== "dist"
-          ) {
+          if (!entry.startsWith(".") && entry !== "node_modules" && entry !== "dist") {
             files.push(...scanDir(fullPath));
           }
         } else {
@@ -469,17 +465,10 @@ export function bootstrapCI(
   }
 
   // Check if workflow already exists
-  const workflowPath = join(
-    repoPath,
-    ".github",
-    "workflows",
-    "readylayer-gate.yml",
-  );
+  const workflowPath = join(repoPath, ".github", "workflows", "readylayer-gate.yml");
 
   if (existsSync(workflowPath) && !options?.force) {
-    result.errors.push(
-      "Workflow file already exists. Use --force to overwrite.",
-    );
+    result.errors.push("Workflow file already exists. Use --force to overwrite.");
     return result;
   }
 
@@ -588,12 +577,9 @@ export async function runBootstrapCLI(args: string[]): Promise<void> {
 
   console.log(`Analyzing repository: ${options.repo_path}`);
 
-  const result = bootstrapCI(
-    options.repo_path,
-    options.gate_id,
-    options.api_key,
-    { force: options.force },
-  );
+  const result = bootstrapCI(options.repo_path, options.gate_id, options.api_key, {
+    force: options.force,
+  });
 
   console.log(
     `\nDetected language: ${result.language} (${(result.confidence * 100).toFixed(0)}% confidence)`,
@@ -616,13 +602,9 @@ export async function runBootstrapCLI(args: string[]): Promise<void> {
 
   if (result.success) {
     console.log("\n✓ Workflow file created successfully!");
-    console.log(
-      `  Location: ${options.repo_path}/.github/workflows/readylayer-gate.yml`,
-    );
+    console.log(`  Location: ${options.repo_path}/.github/workflows/readylayer-gate.yml`);
     console.log("\nNext steps:");
-    console.log(
-      "  1. Add READILAYER_GATE_ID and READILAYER_API_KEY to GitHub secrets",
-    );
+    console.log("  1. Add READILAYER_GATE_ID and READILAYER_API_KEY to GitHub secrets");
     console.log("  2. Commit and push the workflow file");
     console.log("  3. Configure your Gate in the ReadyLayer dashboard");
   }

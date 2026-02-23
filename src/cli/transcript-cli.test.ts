@@ -18,12 +18,8 @@ describe("transcript cli", () => {
       writeFileSync(transcriptPath, JSON.stringify({ decision: "go" }));
 
       expect(await runTranscriptCommand(["keygen", "--out", keyPath])).toBe(0);
-      expect(
-        await runTranscriptCommand(["key", "export", "--key", keyPath]),
-      ).toBe(0);
-      const pub = await (
-        await import("@zeo/core")
-      ).exportPublicKeyFromPrivate(keyPath);
+      expect(await runTranscriptCommand(["key", "export", "--key", keyPath])).toBe(0);
+      const pub = await (await import("@zeo/core")).exportPublicKeyFromPrivate(keyPath);
       writeFileSync(pubPath, pub);
       expect(await runTranscriptCommand(["keys", "add", pubPath])).toBe(0);
       expect(
@@ -37,12 +33,8 @@ describe("transcript cli", () => {
           envPath,
         ]),
       ).toBe(0);
-      expect(
-        await runTranscriptCommand(["transcript", "verify", envPath]),
-      ).toBe(0);
-      expect(
-        await runTranscriptCommand(["trust", "record", "--from", envPath]),
-      ).toBe(0);
+      expect(await runTranscriptCommand(["transcript", "verify", envPath])).toBe(0);
+      expect(await runTranscriptCommand(["trust", "record", "--from", envPath])).toBe(0);
       expect(await runTranscriptCommand(["trust", "list"])).toBe(0);
     } finally {
       process.chdir(old);

@@ -16,8 +16,7 @@ export async function runAuditCommand(args: string[]): Promise<number> {
     if (a.flip_distance_summary.length === 0) return false;
     return a.flip_distance_summary.some(
       (s: { distance?: number }) =>
-        typeof s.distance === "number" &&
-        s.distance < DRIFT_FLIP_DISTANCE_THRESHOLD,
+        typeof s.distance === "number" && s.distance < DRIFT_FLIP_DISTANCE_THRESHOLD,
     );
   });
 
@@ -29,8 +28,7 @@ export async function runAuditCommand(args: string[]): Promise<number> {
     flagged.forEach((f) => {
       const breachedCount = f.flip_distance_summary.filter(
         (s: { distance?: number }) =>
-          typeof s.distance === "number" &&
-          s.distance < DRIFT_FLIP_DISTANCE_THRESHOLD,
+          typeof s.distance === "number" && s.distance < DRIFT_FLIP_DISTANCE_THRESHOLD,
       ).length;
       const riskTier = breachedCount >= 2 ? "HIGH" : "MEDIUM";
       console.log(`- ${f.decision_id}: RISK TIER ${riskTier}`);

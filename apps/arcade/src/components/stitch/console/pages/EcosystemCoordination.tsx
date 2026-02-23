@@ -92,9 +92,7 @@ export function EcosystemCoordination() {
                   </div>
                 ) : (
                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-[#9da6b9]">
-                    <span className={`text-${node.color}-400`}>
-                      {node.uptime}
-                    </span>
+                    <span className={`text-${node.color}-400`}>{node.uptime}</span>
                     <span>{node.lat}</span>
                   </div>
                 )}
@@ -118,9 +116,7 @@ export function EcosystemCoordination() {
                   aria-label="Fit to screen"
                   className="p-2 rounded bg-slate-800 text-slate-400 hover:text-white"
                 >
-                  <span className="material-symbols-outlined text-sm">
-                    fit_screen
-                  </span>
+                  <span className="material-symbols-outlined text-sm">fit_screen</span>
                 </button>
               </div>
             </div>
@@ -128,8 +124,7 @@ export function EcosystemCoordination() {
               <div
                 className="absolute inset-0 opacity-[0.05]"
                 style={{
-                  backgroundImage:
-                    "radial-gradient(#64748b 1px, transparent 1px)",
+                  backgroundImage: "radial-gradient(#64748b 1px, transparent 1px)",
                   backgroundSize: "24px 24px",
                 }}
               ></div>
@@ -137,9 +132,7 @@ export function EcosystemCoordination() {
               <div className="relative w-full h-full max-w-lg">
                 <div className="absolute top-[10%] left-1/2 -translate-x-1/2 flex flex-col items-center">
                   <div className="w-16 h-16 rounded-full border-2 border-emerald-500 bg-slate-900 flex items-center justify-center text-emerald-500 shadow-2xl">
-                    <span className="material-symbols-outlined text-3xl">
-                      hub
-                    </span>
+                    <span className="material-symbols-outlined text-3xl">hub</span>
                   </div>
                   <span className="mt-2 text-[10px] font-black uppercase tracking-widest text-white bg-slate-800 px-3 py-1 rounded-full border border-white/10">
                     ReadyLayer Core
@@ -147,9 +140,7 @@ export function EcosystemCoordination() {
                 </div>
                 <div className="absolute top-[60%] left-[10%] flex flex-col items-center">
                   <div className="w-12 h-12 rounded-full border-2 border-emerald-500 bg-slate-900 flex items-center justify-center text-emerald-500 shadow-xl">
-                    <span className="material-symbols-outlined">
-                      settings_input_component
-                    </span>
+                    <span className="material-symbols-outlined">settings_input_component</span>
                   </div>
                   <span className="mt-2 text-[9px] font-black uppercase tracking-widest text-[#9da6b9]">
                     Settler
@@ -180,9 +171,7 @@ export function EcosystemCoordination() {
               <div className="p-6 hover:bg-white/5 transition-colors">
                 <div className="flex items-start gap-3">
                   <div className="p-1 bg-emerald-500/10 text-emerald-500 rounded-full">
-                    <span className="material-symbols-outlined text-sm">
-                      check
-                    </span>
+                    <span className="material-symbols-outlined text-sm">check</span>
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between font-black text-[10px] uppercase tracking-widest mb-1">
@@ -201,9 +190,7 @@ export function EcosystemCoordination() {
               <div className="p-6 bg-red-500/5 hover:bg-red-500/10 transition-colors border-l-4 border-l-red-500">
                 <div className="flex items-start gap-3">
                   <div className="p-1 bg-red-500/10 text-red-500 rounded-full">
-                    <span className="material-symbols-outlined text-sm">
-                      priority_high
-                    </span>
+                    <span className="material-symbols-outlined text-sm">priority_high</span>
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between font-black text-[10px] uppercase tracking-widest mb-1">
@@ -281,9 +268,7 @@ export function EcosystemCoordination() {
                         {log.s}
                       </span>
                     </td>
-                    <td className="px-8 py-5 text-right font-mono text-slate-500">
-                      10:42 AM
-                    </td>
+                    <td className="px-8 py-5 text-right font-mono text-slate-500">10:42 AM</td>
                   </tr>
                 ))}
               </tbody>

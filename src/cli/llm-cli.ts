@@ -2,12 +2,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-export type LlmProviderName =
-  | "openai"
-  | "anthropic"
-  | "openrouter"
-  | "ollama"
-  | "custom";
+export type LlmProviderName = "openai" | "anthropic" | "openrouter" | "ollama" | "custom";
 
 export interface LlmConfig {
   provider: LlmProviderName;
@@ -32,8 +27,7 @@ export function parseLlmArgs(argv: string[]): DoctorArgs {
   for (let i = 1; i < argv.length; i += 1) {
     const arg = argv[i];
     const next = argv[i + 1];
-    if ((arg === "--provider" || arg === "-p") && next)
-      args.provider = next as LlmProviderName;
+    if ((arg === "--provider" || arg === "-p") && next) args.provider = next as LlmProviderName;
     if (arg === "--model" && next) args.model = next;
     if (arg === "--base-url" && next) args.baseUrl = next;
     if (arg === "--api-key" && next) args.apiKey = next;
@@ -90,9 +84,7 @@ export function resolveLlmConfig(args: DoctorArgs): LlmConfig {
   }
 
   if (!["ollama"].includes(normalized) && !apiKey) {
-    throw new Error(
-      `Missing API key for provider ${normalized}. Set via --api-key or env/config.`,
-    );
+    throw new Error(`Missing API key for provider ${normalized}. Set via --api-key or env/config.`);
   }
 
   if ((projectConfig.llm as any)?.apiKey || (localConfig.llm as any)?.apiKey) {
@@ -164,9 +156,7 @@ export async function runLlmCommand(args: DoctorArgs): Promise<number> {
   const config = resolveLlmConfig(args);
   const health = await providerHealth(config);
   if (!health.reachable) {
-    console.error(
-      `[LLM_DOCTOR_FAILED] Provider unreachable: ${health.details}`,
-    );
+    console.error(`[LLM_DOCTOR_FAILED] Provider unreachable: ${health.details}`);
     return 2;
   }
   if (!health.modelAvailable) {
@@ -176,9 +166,7 @@ export async function runLlmCommand(args: DoctorArgs): Promise<number> {
     return 3;
   }
   if (config.temperature !== 0) {
-    console.error(
-      "[LLM_DOCTOR_FAILED] Non-deterministic temperature; must be 0.",
-    );
+    console.error("[LLM_DOCTOR_FAILED] Non-deterministic temperature; must be 0.");
     return 4;
   }
 

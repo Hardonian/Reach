@@ -18,14 +18,7 @@
     },
     "state": {
       "type": "string",
-      "enum": [
-        "PENDING",
-        "PREPARING",
-        "EXECUTING",
-        "COMPLETED",
-        "FAILED",
-        "ABORTED"
-      ],
+      "enum": ["PENDING", "PREPARING", "EXECUTING", "COMPLETED", "FAILED", "ABORTED"],
       "description": "Current run state"
     },
     "createdAt": {

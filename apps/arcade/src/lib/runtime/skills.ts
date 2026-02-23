@@ -14,8 +14,7 @@ export const BUILTIN_SKILLS: SkillManifest[] = [
     id: "readiness-check",
     name: "Readiness Check",
     version: "1.0.0",
-    description:
-      "Full readiness sweep: tool reliability, policy gates, output schema, latency.",
+    description: "Full readiness sweep: tool reliability, policy gates, output schema, latency.",
     icon: "▶",
     inputs: [
       {
@@ -73,8 +72,7 @@ export const BUILTIN_SKILLS: SkillManifest[] = [
     id: "regression-detect",
     name: "Change Detection",
     version: "1.0.0",
-    description:
-      "Compare current run against saved baseline. Surface behavioral diffs.",
+    description: "Compare current run against saved baseline. Surface behavioral diffs.",
     icon: "⟳",
     inputs: [
       {
@@ -99,8 +97,7 @@ export const BUILTIN_SKILLS: SkillManifest[] = [
     id: "trace-capture",
     name: "Trace Capture",
     version: "1.0.0",
-    description:
-      "Capture a full execution trace without enforcing rules. Observation only.",
+    description: "Capture a full execution trace without enforcing rules. Observation only.",
     icon: "🔍",
     inputs: [
       {
@@ -119,8 +116,7 @@ export const BUILTIN_SKILLS: SkillManifest[] = [
     id: "release-gate",
     name: "Release Gate",
     version: "1.0.0",
-    description:
-      "CI/CD gate that blocks merges when agent score drops below threshold.",
+    description: "CI/CD gate that blocks merges when agent score drops below threshold.",
     icon: "🚀",
     inputs: [
       {
@@ -146,19 +142,14 @@ export const BUILTIN_SKILLS: SkillManifest[] = [
     ],
     tools: ["trace-parser", "policy-engine", "diff-engine", "ci-reporter"],
     modelHints: [],
-    evaluationHooks: [
-      "score-gate",
-      "zero-high-severity",
-      "regression-threshold",
-    ],
+    evaluationHooks: ["score-gate", "zero-high-severity", "regression-threshold"],
     tags: ["release", "ci-cd", "intermediate"],
   },
   {
     id: "mcp-bridge",
     name: "MCP Bridge",
     version: "1.0.0",
-    description:
-      "Connect to an MCP server and expose its tools as skill inputs.",
+    description: "Connect to an MCP server and expose its tools as skill inputs.",
     icon: "🔌",
     inputs: [
       {
@@ -197,10 +188,7 @@ export function getAllSkills(): SkillManifest[] {
 
 // ── Skill Composition ──
 
-export function composeSkills(
-  name: string,
-  skillIds: string[],
-): SkillComposition | null {
+export function composeSkills(name: string, skillIds: string[]): SkillComposition | null {
   const skills = skillIds.map((id) => getSkill(id)).filter(Boolean);
   if (skills.length !== skillIds.length) return null;
 
@@ -219,9 +207,7 @@ export function composeSkills(
 
 // ── MCP Export ──
 
-export function skillToMCPConfig(
-  skill: SkillManifest,
-): Record<string, unknown> {
+export function skillToMCPConfig(skill: SkillManifest): Record<string, unknown> {
   return {
     name: `readylayer-${skill.id}`,
     version: skill.version,

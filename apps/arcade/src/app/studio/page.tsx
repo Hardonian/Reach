@@ -1,11 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  PipelineStage,
-  StageType,
-  StageStatus,
-} from "@/components/PipelineStage";
+import { PipelineStage, StageType, StageStatus } from "@/components/PipelineStage";
 import { EmptyState } from "@/components/EmptyState";
 
 // Mock pipeline stages
@@ -118,9 +114,7 @@ function PipelineView({
 
 export default function StudioPage() {
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"design" | "test" | "deploy">(
-    "design",
-  );
+  const [activeTab, setActiveTab] = useState<"design" | "test" | "deploy">("design");
 
   const selectedStageData = mockStages.find((s) => s.id === selectedStage);
 
@@ -146,9 +140,7 @@ export default function StudioPage() {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 rounded-md text-sm font-medium capitalize transition-colors ${
-              activeTab === tab
-                ? "bg-accent text-white"
-                : "text-gray-400 hover:text-white"
+              activeTab === tab ? "bg-accent text-white" : "text-gray-400 hover:text-white"
             }`}
           >
             {tab}
@@ -162,9 +154,7 @@ export default function StudioPage() {
           <div className="lg:col-span-2">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">Customer Support Flow</h2>
-              <button className="text-sm text-accent hover:text-accent/80">
-                + Add Stage
-              </button>
+              <button className="text-sm text-accent hover:text-accent/80">+ Add Stage</button>
             </div>
             <PipelineView
               stages={mockStages}
@@ -194,35 +184,24 @@ export default function StudioPage() {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm text-gray-500 block mb-1">
-                      Description
-                    </label>
+                    <label className="text-sm text-gray-500 block mb-1">Description</label>
                     <p className="text-sm">{selectedStageData.description}</p>
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-500 block mb-2">
-                      Configuration
-                    </label>
+                    <label className="text-sm text-gray-500 block mb-2">Configuration</label>
                     <div className="space-y-2">
-                      {Object.entries(selectedStageData.config).map(
-                        ([key, value]) => (
-                          <div
-                            key={key}
-                            className="flex justify-between text-sm"
-                          >
-                            <span className="text-gray-400">{key}</span>
-                            <span className="font-mono">{String(value)}</span>
-                          </div>
-                        ),
-                      )}
+                      {Object.entries(selectedStageData.config).map(([key, value]) => (
+                        <div key={key} className="flex justify-between text-sm">
+                          <span className="text-gray-400">{key}</span>
+                          <span className="font-mono">{String(value)}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
                   <div className="pt-4 border-t border-border flex gap-2">
-                    <button className="flex-1 btn-primary text-sm py-2">
-                      Update
-                    </button>
+                    <button className="flex-1 btn-primary text-sm py-2">Update</button>
                     <button className="px-3 py-2 rounded-lg border border-red-500/50 text-red-400 hover:bg-red-500/10 text-sm">
                       Delete
                     </button>
@@ -266,9 +245,7 @@ export default function StudioPage() {
           <h2 className="text-xl font-bold mb-4">Test Pipeline</h2>
           <div className="space-y-4">
             <div>
-              <label className="text-sm text-gray-500 block mb-2">
-                Test Input
-              </label>
+              <label className="text-sm text-gray-500 block mb-2">Test Input</label>
               <textarea
                 className="w-full h-32 px-4 py-3 rounded-lg bg-surface border border-border text-white placeholder-gray-500 focus:outline-none focus:border-accent font-mono text-sm"
                 placeholder='{"message": "Hello, I need help with my account"}'
@@ -285,9 +262,7 @@ export default function StudioPage() {
           <div className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm text-gray-500 block mb-2">
-                  Target Region
-                </label>
+                <label className="text-sm text-gray-500 block mb-2">Target Region</label>
                 <select
                   title="Select Target Region"
                   className="w-full px-4 py-2 rounded-lg bg-surface border border-border text-white focus:outline-none focus:border-accent"
@@ -300,9 +275,7 @@ export default function StudioPage() {
                 </select>
               </div>
               <div>
-                <label className="text-sm text-gray-500 block mb-2">
-                  Environment
-                </label>
+                <label className="text-sm text-gray-500 block mb-2">Environment</label>
                 <select
                   title="Select Environment"
                   className="w-full px-4 py-2 rounded-lg bg-surface border border-border text-white focus:outline-none focus:border-accent"

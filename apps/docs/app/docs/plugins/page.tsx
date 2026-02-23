@@ -60,18 +60,15 @@ export default function PluginsPage() {
   return (
     <DocLayout currentPath="/docs/plugins" title="Plugins">
       <p className="text-lg text-slate-600 mb-8">
-        Extend Reach with custom plugins. Plugins can add analyzers, extractors,
-        renderers, and new decision types—all while maintaining determinism
-        guarantees.
+        Extend Reach with custom plugins. Plugins can add analyzers, extractors, renderers, and new
+        decision types—all while maintaining determinism guarantees.
       </p>
 
-      <h2 className="text-2xl font-semibold mt-8 mb-4">
-        Quick Start: Scaffold a Plugin
-      </h2>
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Quick Start: Scaffold a Plugin</h2>
       <CodeBlock code={`./reach plugins scaffold my-plugin`} />
       <p className="mt-4">
-        This creates a new plugin in <code>plugins/my-plugin/</code> with the
-        basic structure and a sample implementation.
+        This creates a new plugin in <code>plugins/my-plugin/</code> with the basic structure and a
+        sample implementation.
       </p>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Plugin Structure</h2>
@@ -94,9 +91,7 @@ export default function PluginsPage() {
           {capabilities.map((cap) => (
             <tr key={cap.name} className="border-b">
               <td className="py-2">
-                <code className="bg-slate-100 px-2 py-1 rounded text-sm">
-                  {cap.name}
-                </code>
+                <code className="bg-slate-100 px-2 py-1 rounded text-sm">{cap.name}</code>
               </td>
               <td className="py-2">{cap.description}</td>
             </tr>
@@ -104,12 +99,8 @@ export default function PluginsPage() {
         </tbody>
       </table>
 
-      <h2 className="text-2xl font-semibold mt-8 mb-4">
-        Determinism Requirements
-      </h2>
-      <p className="mb-4">
-        Plugins used in replay must be deterministic. Follow these rules:
-      </p>
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Determinism Requirements</h2>
+      <p className="mb-4">Plugins used in replay must be deterministic. Follow these rules:</p>
       <ul className="list-disc pl-6 space-y-2">
         <li>Same input → same output</li>
         <li>
@@ -140,9 +131,7 @@ export default function PluginsPage() {
       <h2 className="text-2xl font-semibold mt-8 mb-4">Validate a Plugin</h2>
       <CodeBlock code={`./reach plugins validate plugins/my-plugin`} />
 
-      <h2 className="text-2xl font-semibold mt-8 mb-4">
-        List Installed Plugins
-      </h2>
+      <h2 className="text-2xl font-semibold mt-8 mb-4">List Installed Plugins</h2>
       <CodeBlock code={`./reach plugins list`} />
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Sample Plugins</h2>
@@ -154,8 +143,7 @@ export default function PluginsPage() {
           <code>export-postprocessor</code> — Transforms export bundles
         </li>
         <li>
-          <code>junction-rule-pack</code> — Collection of reusable junction
-          rules
+          <code>junction-rule-pack</code> — Collection of reusable junction rules
         </li>
       </ul>
     </DocLayout>

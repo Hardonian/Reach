@@ -5,8 +5,7 @@ const examples = [
   {
     id: "01",
     name: "Quickstart Local",
-    description:
-      "Your first Reach decision. Create a decision, add evidence, export results.",
+    description: "Your first Reach decision. Create a decision, add evidence, export results.",
     command: "node examples/01-quickstart-local/run.js",
     concepts: ["Decision creation", "Evidence", "Export"],
   },
@@ -51,8 +50,8 @@ export default function ExamplesPage() {
   return (
     <DocLayout currentPath="/docs/examples" title="Examples">
       <p className="text-lg text-slate-600 mb-8">
-        Six complete examples that demonstrate Reach's core capabilities, from
-        basic decision creation to advanced replay verification.
+        Six complete examples that demonstrate Reach's core capabilities, from basic decision
+        creation to advanced replay verification.
       </p>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Run All Examples</h2>
@@ -94,8 +93,8 @@ node examples/06-retention-compact-safety/run.js`}
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Demo Pack</h2>
       <p className="mb-4">
-        For a visual walkthrough, run the web demo which provides an interactive
-        evidence graph visualization.
+        For a visual walkthrough, run the web demo which provides an interactive evidence graph
+        visualization.
       </p>
       <CodeBlock
         code={`# Start the web interface

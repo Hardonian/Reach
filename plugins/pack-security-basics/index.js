@@ -66,13 +66,7 @@ module.exports = {
             ].sort((a, b) => a.name.localeCompare(b.name));
 
             if (content) {
-              for (const {
-                name,
-                pattern,
-                description,
-                severity,
-                context,
-              } of secretPatterns) {
+              for (const { name, pattern, description, severity, context } of secretPatterns) {
                 if (pattern.test(content)) {
                   // Additional context check if specified
                   if (context && !context.test(content)) {
@@ -120,9 +114,7 @@ module.exports = {
               findings.push(...checkWorkspaceSecurity(workspace));
             }
 
-            return findings.sort(
-              (a, b) => severityRank(b.severity) - severityRank(a.severity),
-            );
+            return findings.sort((a, b) => severityRank(b.severity) - severityRank(a.severity));
           },
         },
 
@@ -139,9 +131,7 @@ module.exports = {
 
             // Verify artifact hashes
             if (artifacts && expectedHashes) {
-              for (const [name, expectedHash] of Object.entries(
-                expectedHashes,
-              ).sort()) {
+              for (const [name, expectedHash] of Object.entries(expectedHashes).sort()) {
                 const artifact = artifacts[name];
 
                 if (!artifact) {
@@ -193,9 +183,7 @@ module.exports = {
               }
             }
 
-            return findings.sort(
-              (a, b) => severityRank(b.severity) - severityRank(a.severity),
-            );
+            return findings.sort((a, b) => severityRank(b.severity) - severityRank(a.severity));
           },
         },
       ],
@@ -255,9 +243,7 @@ module.exports = {
             }
 
             // Sort items for determinism
-            evidence.items.sort((a, b) =>
-              JSON.stringify(a).localeCompare(JSON.stringify(b)),
-            );
+            evidence.items.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
 
             return evidence;
           },

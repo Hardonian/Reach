@@ -20,9 +20,7 @@ export interface TrustEvidence {
 /**
  * Evaluate trust evidence for drop junction
  */
-export function evaluateTrustDrop(
-  evidence: TrustEvidence,
-): JunctionTemplateResult {
+export function evaluateTrustDrop(evidence: TrustEvidence): JunctionTemplateResult {
   const traces: string[] = [];
 
   // Calculate severity based on drop magnitude
@@ -45,8 +43,7 @@ export function evaluateTrustDrop(
   }
 
   // Determine if should trigger
-  const shouldTrigger =
-    severityScore >= 0.4 || evidence.currentScore < evidence.threshold;
+  const shouldTrigger = severityScore >= 0.4 || evidence.currentScore < evidence.threshold;
 
   // Generate deterministic fingerprint
   const fingerprint = generateFingerprint("trust_drop", evidence);

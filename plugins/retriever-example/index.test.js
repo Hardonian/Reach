@@ -25,9 +25,9 @@ describe("retriever-example plugin", () => {
       const result = plugin.register();
       const retriever = result.retrievers["weather"];
 
-      await expect(
-        retriever.retrieve({ region: "invalid-region" }),
-      ).rejects.toThrow("Unknown region");
+      await expect(retriever.retrieve({ region: "invalid-region" })).rejects.toThrow(
+        "Unknown region",
+      );
     });
 
     test("validates parameters", () => {
@@ -82,9 +82,7 @@ describe("retriever-example plugin", () => {
       const result = plugin.register();
       const retriever = result.retrievers["exchange-rate"];
 
-      await expect(
-        retriever.retrieve({ from: "XYZ", to: "USD" }),
-      ).rejects.toThrow();
+      await expect(retriever.retrieve({ from: "XYZ", to: "USD" })).rejects.toThrow();
     });
   });
 });

@@ -30,9 +30,7 @@ async function checkRouteBloat() {
   const routes = items
     .filter(
       (dirent) =>
-        dirent.isDirectory() &&
-        !dirent.name.startsWith("[") &&
-        !dirent.name.startsWith("("),
+        dirent.isDirectory() && !dirent.name.startsWith("[") && !dirent.name.startsWith("("),
     )
     .map((dirent) => dirent.name);
 
@@ -41,13 +39,7 @@ async function checkRouteBloat() {
   const illegalRoutes = routes.filter(
     (r) =>
       !CONFIG.allowedTopLevelRoutes.includes(r) &&
-      ![
-        "api",
-        "favicon.ico",
-        "globals.css",
-        "robots.ts",
-        "sitemap.ts",
-      ].includes(r),
+      !["api", "favicon.ico", "globals.css", "robots.ts", "sitemap.ts"].includes(r),
   );
 
   if (illegalRoutes.length > 0) {

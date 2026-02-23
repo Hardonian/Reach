@@ -7,17 +7,8 @@
 
 import assert from "assert";
 import { test, describe } from "node:test";
-import {
-  canonicalJson,
-  canonicalJsonPretty,
-  canonicalEqual,
-} from "../canonicalJson.js";
-import {
-  sortStrings,
-  sortByKey,
-  sortedEntries,
-  sortedKeys,
-} from "../deterministicSort.js";
+import { canonicalJson, canonicalJsonPretty, canonicalEqual } from "../canonicalJson.js";
+import { sortStrings, sortByKey, sortedEntries, sortedKeys } from "../deterministicSort.js";
 import { DeterministicMap } from "../deterministicMap.js";
 import { seededRandom } from "../seededRandom.js";
 import { HashStream, hashString, combineHashes } from "../hashStream.js";
@@ -193,10 +184,7 @@ describe("seededRandom", () => {
     const rng = seededRandom("int-test");
     for (let i = 0; i < 100; i++) {
       const v = rng.nextInt(10);
-      assert.ok(
-        Number.isInteger(v) && v >= 0 && v < 10,
-        `Expected [0,10), got ${v}`,
-      );
+      assert.ok(Number.isInteger(v) && v >= 0 && v < 10, `Expected [0,10), got ${v}`);
     }
   });
 

@@ -42,9 +42,9 @@ export function createGate(tenantId: string, input: Partial<Gate>): Gate {
 
 export function getGate(id: string, tenantId: string): Gate | undefined {
   const db = getDB();
-  const row = db
-    .prepare("SELECT * FROM gates WHERE id=? AND tenant_id=?")
-    .get(id, tenantId) as Record<string, unknown> | undefined;
+  const row = db.prepare("SELECT * FROM gates WHERE id=? AND tenant_id=?").get(id, tenantId) as
+    | Record<string, unknown>
+    | undefined;
   return row ? parseGate(row) : undefined;
 }
 
@@ -56,11 +56,7 @@ export function listGates(tenantId: string): Gate[] {
   return rows.map(parseGate);
 }
 
-export function updateGate(
-  id: string,
-  tenantId: string,
-  patch: Partial<Gate>,
-): boolean {
+export function updateGate(id: string, tenantId: string, patch: Partial<Gate>): boolean {
   const db = getDB();
   const existing = getGate(id, tenantId);
   if (!existing) return false;
@@ -83,9 +79,7 @@ export function updateGate(
 
 export function deleteGate(id: string, tenantId: string): boolean {
   const db = getDB();
-  const res = db
-    .prepare("DELETE FROM gates WHERE id=? AND tenant_id=?")
-    .run(id, tenantId);
+  const res = db.prepare("DELETE FROM gates WHERE id=? AND tenant_id=?").run(id, tenantId);
   return res.changes > 0;
 }
 
@@ -106,11 +100,7 @@ function parseGateRun(row: Record<string, unknown>): GateRun {
   return { ...row, report: JSON.parse(row.report_json as string) } as GateRun;
 }
 
-export function createGateRun(
-  tenantId: string,
-  gateId: string,
-  input: Partial<GateRun>,
-): GateRun {
+export function createGateRun(tenantId: string, gateId: string, input: Partial<GateRun>): GateRun {
   const db = getDB();
   const id = newId("gtr");
   const now = new Date().toISOString();
@@ -140,9 +130,9 @@ export function createGateRun(
 
 export function getGateRun(id: string, tenantId: string): GateRun | undefined {
   const db = getDB();
-  const row = db
-    .prepare("SELECT * FROM gate_runs WHERE id=? AND tenant_id=?")
-    .get(id, tenantId) as Record<string, unknown> | undefined;
+  const row = db.prepare("SELECT * FROM gate_runs WHERE id=? AND tenant_id=?").get(id, tenantId) as
+    | Record<string, unknown>
+    | undefined;
   return row ? parseGateRun(row) : undefined;
 }
 
@@ -163,18 +153,13 @@ export function updateGateRun(
     patch.report ? JSON.stringify(patch.report) : null,
     patch.github_check_run_id ?? null,
     patch.workflow_run_id ?? null,
-    patch.finished_at ??
-      (patch.status && patch.status !== "running" ? now : null),
+    patch.finished_at ?? (patch.status && patch.status !== "running" ? now : null),
     id,
     tenantId,
   );
 }
 
-export function listGateRuns(
-  tenantId: string,
-  gateId?: string,
-  limit = 50,
-): GateRun[] {
+export function listGateRuns(tenantId: string, gateId?: string, limit = 50): GateRun[] {
   const db = getDB();
   const rows = gateId
     ? (db
@@ -183,26 +168,19 @@ export function listGateRuns(
         )
         .all(tenantId, gateId, limit) as Record<string, unknown>[])
     : (db
-        .prepare(
-          "SELECT * FROM gate_runs WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?",
-        )
+        .prepare("SELECT * FROM gate_runs WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?")
         .all(tenantId, limit) as Record<string, unknown>[]);
   return rows.map(parseGateRun);
 }
 
-export function upsertGithubInstallation(
-  tenantId: string,
-  input: any,
-): GithubInstallation {
+export function upsertGithubInstallation(tenantId: string, input: any): GithubInstallation {
   const db = getDB();
   const now = new Date().toISOString();
   const existing = db
     .prepare(
       "SELECT id FROM github_installations WHERE tenant_id=? AND repo_owner=? AND repo_name=?",
     )
-    .get(tenantId, input.repo_owner, input.repo_name) as
-    | { id: string }
-    | undefined;
+    .get(tenantId, input.repo_owner, input.repo_name) as { id: string } | undefined;
   if (existing) {
     db.prepare(
       `UPDATE github_installations SET installation_id=COALESCE(?,installation_id),
@@ -234,9 +212,7 @@ export function upsertGithubInstallation(
     now,
     now,
   );
-  return db
-    .prepare("SELECT * FROM github_installations WHERE id=?")
-    .get(id) as GithubInstallation;
+  return db.prepare("SELECT * FROM github_installations WHERE id=?").get(id) as GithubInstallation;
 }
 
 export function getGithubInstallation(
@@ -272,9 +248,10 @@ export function createCiIngestRun(tenantId: string, input: any): CiIngestRun {
     JSON.stringify(input.run_metadata ?? {}),
     now,
   );
-  const row = db
-    .prepare("SELECT * FROM ci_ingest_runs WHERE id=?")
-    .get(id) as Record<string, unknown>;
+  const row = db.prepare("SELECT * FROM ci_ingest_runs WHERE id=?").get(id) as Record<
+    string,
+    unknown
+  >;
   return {
     ...row,
     artifacts: JSON.parse(row.artifacts_json as string),
@@ -282,22 +259,19 @@ export function createCiIngestRun(tenantId: string, input: any): CiIngestRun {
   } as CiIngestRun;
 }
 
-export function associateCiIngestToGateRun(
-  ciRunId: string,
-  gateRunId: string,
-): void {
+export function associateCiIngestToGateRun(ciRunId: string, gateRunId: string): void {
   const db = getDB();
-  db.prepare(
-    "UPDATE ci_ingest_runs SET gate_run_id=?, status=? WHERE id=?",
-  ).run(gateRunId, "processed", ciRunId);
+  db.prepare("UPDATE ci_ingest_runs SET gate_run_id=?, status=? WHERE id=?").run(
+    gateRunId,
+    "processed",
+    ciRunId,
+  );
 }
 
 export function listCiIngestRuns(tenantId: string, limit = 50): CiIngestRun[] {
   const db = getDB();
   const rows = db
-    .prepare(
-      "SELECT * FROM ci_ingest_runs WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?",
-    )
+    .prepare("SELECT * FROM ci_ingest_runs WHERE tenant_id=? ORDER BY created_at DESC LIMIT ?")
     .all(tenantId, limit) as Record<string, unknown>[];
   return rows.map(
     (r) =>

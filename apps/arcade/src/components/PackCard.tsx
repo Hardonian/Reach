@@ -41,16 +41,11 @@ export function PackCard({ pack, onClick, isSelected }: PackCardProps) {
       className={`pack-card ${isSelected ? "selected" : ""}`}
     >
       {/* Decorative background glow for unsafe packs */}
-      {!pack.arcadeSafe && (
-        <div className="absolute inset-0 unsafe-glow pointer-events-none" />
-      )}
+      {!pack.arcadeSafe && <div className="absolute inset-0 unsafe-glow pointer-events-none" />}
 
       <div className="flex justify-between items-center mb-3 relative z-10">
         <div className="flex items-center gap-2">
-          <div
-            className={`pack-card-icon ${!pack.arcadeSafe ? "unsafe" : ""}`}
-            aria-hidden="true"
-          >
+          <div className={`pack-card-icon ${!pack.arcadeSafe ? "unsafe" : ""}`} aria-hidden="true">
             {pack.arcadeSafe ? "⚡" : "⚠️"}
           </div>
           <div>
@@ -66,13 +61,9 @@ export function PackCard({ pack, onClick, isSelected }: PackCardProps) {
             <div className="flex items-center gap-2 font-mono mt-1 text-xs text-tertiary">
               <span>{pack.duration}</span>
               <span aria-hidden="true">•</span>
-              <span className={difficultyClass}>
-                {pack.difficulty.toUpperCase()}
-              </span>
+              <span className={difficultyClass}>{pack.difficulty.toUpperCase()}</span>
               <span aria-hidden="true">•</span>
-              <span
-                className={author.verified ? "text-success" : "text-secondary"}
-              >
+              <span className={author.verified ? "text-success" : "text-secondary"}>
                 {author.name}
               </span>
             </div>
@@ -85,25 +76,18 @@ export function PackCard({ pack, onClick, isSelected }: PackCardProps) {
         </span>
       </div>
 
-      <p className="mb-4 relative z-10 text-sm text-secondary line-clamp-2">
-        {pack.description}
-      </p>
+      <p className="mb-4 relative z-10 text-sm text-secondary line-clamp-2">{pack.description}</p>
 
       {/* Footer: Tools */}
       <div className="flex items-center justify-between relative z-10">
-        <div
-          className="pack-tools"
-          aria-label={`Tools used: ${pack.tools.join(", ") || "None"}`}
-        >
+        <div className="pack-tools" aria-label={`Tools used: ${pack.tools.join(", ") || "None"}`}>
           {pack.tools.map((tool, i) => (
             <div key={i} className="tool-icon" title={tool}>
               {TOOL_ICONS[tool] || "🔧"}
             </div>
           ))}
           {pack.tools.length === 0 && (
-            <span className="italic text-xs text-tertiary">
-              No tools declared
-            </span>
+            <span className="italic text-xs text-tertiary">No tools declared</span>
           )}
         </div>
 

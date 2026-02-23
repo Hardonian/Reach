@@ -153,11 +153,7 @@ interface AllowlistEntry {
 }
 
 function loadAllowlist(repoRoot: string): AllowlistEntry[] {
-  const allowlistPath = path.join(
-    repoRoot,
-    "scripts",
-    "canonical-language.allowlist.txt",
-  );
+  const allowlistPath = path.join(repoRoot, "scripts", "canonical-language.allowlist.txt");
   if (!fs.existsSync(allowlistPath)) return [];
 
   const entries: AllowlistEntry[] = [];
@@ -195,8 +191,7 @@ function isAllowlisted(
   return allowlist.some((entry) => {
     if (entry.term !== term) return false;
     if (!rel.startsWith(entry.filePath)) return false;
-    if (entry.lineNumber !== undefined && entry.lineNumber !== lineNumber)
-      return false;
+    if (entry.lineNumber !== undefined && entry.lineNumber !== lineNumber) return false;
     return true;
   });
 }
@@ -218,8 +213,7 @@ function shouldSkip(filePath: string): boolean {
 function isLineExempt(line: string, prevLine?: string): boolean {
   const trimmed = line.trim();
   // Inline escape hatch: previous line has `// canonical-language: allow`
-  if (prevLine && prevLine.trim() === "// canonical-language: allow")
-    return true;
+  if (prevLine && prevLine.trim() === "// canonical-language: allow") return true;
   // Skip import/require statements
   if (/^import\s/.test(trimmed) || /require\(/.test(trimmed)) return true;
   // Skip type-only lines (interfaces, type aliases)
@@ -248,11 +242,7 @@ function collectFiles(dir: string): string[] {
   return results;
 }
 
-function isTermExempt(
-  term: string,
-  filePath: string,
-  repoRoot: string,
-): boolean {
+function isTermExempt(term: string, filePath: string, repoRoot: string): boolean {
   const exemptions = TERM_EXEMPTIONS[term];
   if (!exemptions) return false;
   // Normalize to forward slashes for cross-platform comparison.
@@ -260,11 +250,7 @@ function isTermExempt(
   return exemptions.some((ex) => rel.startsWith(ex));
 }
 
-function scanFile(
-  filePath: string,
-  repoRoot: string,
-  allowlist: AllowlistEntry[],
-): Violation[] {
+function scanFile(filePath: string, repoRoot: string, allowlist: AllowlistEntry[]): Violation[] {
   const violations: Violation[] = [];
   const content = fs.readFileSync(filePath, "utf-8");
   const lines = content.split("\n");
@@ -276,8 +262,7 @@ function scanFile(
 
     for (const forbidden of FORBIDDEN_TERMS) {
       if (isTermExempt(forbidden.term, filePath, repoRoot)) continue;
-      if (isAllowlisted(allowlist, filePath, i + 1, forbidden.term, repoRoot))
-        continue;
+      if (isAllowlisted(allowlist, filePath, i + 1, forbidden.term, repoRoot)) continue;
       if (forbidden.pattern.test(line)) {
         violations.push({
           file: filePath,
@@ -313,9 +298,7 @@ function main(): void {
     process.exit(0);
   }
 
-  console.error(
-    `validate:language — FAILED (${allViolations.length} violation(s) found)\n`,
-  );
+  console.error(`validate:language — FAILED (${allViolations.length} violation(s) found)\n`);
 
   for (const v of allViolations) {
     const rel = path.relative(repoRoot, v.file);
@@ -327,9 +310,7 @@ function main(): void {
   }
 
   console.error("Internal terms must not appear in presentation/UI layers.");
-  console.error(
-    "Fix the above violations or add exemptions to enforce-canonical-language.ts.",
-  );
+  console.error("Fix the above violations or add exemptions to enforce-canonical-language.ts.");
   process.exit(1);
 }
 

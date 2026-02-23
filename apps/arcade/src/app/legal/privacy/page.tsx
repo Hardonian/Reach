@@ -2,8 +2,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | ReadyLayer",
-  description:
-    "Learn how ReadyLayer handles your data with transparency and security.",
+  description: "Learn how ReadyLayer handles your data with transparency and security.",
 };
 
 export default function PrivacyPage() {
@@ -16,10 +15,9 @@ export default function PrivacyPage() {
         <section>
           <h2>1. Data Sovereignty</h2>
           <p>
-            ReadyLayer is designed with "Data Sovereignty First" principles. By
-            default, ReadyLayer operates in your infrastructure. We only collect
-            the minimal metadata required to orchestrate determinstic execution
-            packs across your distributed nodes.
+            ReadyLayer is designed with "Data Sovereignty First" principles. By default, ReadyLayer
+            operates in your infrastructure. We only collect the minimal metadata required to
+            orchestrate determinstic execution packs across your distributed nodes.
           </p>
         </section>
 
@@ -27,16 +25,16 @@ export default function PrivacyPage() {
           <h2>2. Information We Collect</h2>
           <ul>
             <li>
-              <strong>Authentication Data:</strong> User IDs and tenant
-              associations via your chosen identity provider.
+              <strong>Authentication Data:</strong> User IDs and tenant associations via your chosen
+              identity provider.
             </li>
             <li>
-              <strong>Orchestration Metadata:</strong> Run IDs, status
-              transitions, and tool capability references.
+              <strong>Orchestration Metadata:</strong> Run IDs, status transitions, and tool
+              capability references.
             </li>
             <li>
-              <strong>Telemetry:</strong> Anonymous performance metrics for
-              engine optimization (opt-out available).
+              <strong>Telemetry:</strong> Anonymous performance metrics for engine optimization
+              (opt-out available).
             </li>
           </ul>
         </section>
@@ -44,18 +42,17 @@ export default function PrivacyPage() {
         <section>
           <h2>3. Data Retention</h2>
           <p>
-            Audit logs and execution capsules are retained for 30 days by
-            default in the managed service. Self-hosted instances allow for
-            indefinite retention policies managed by the operator.
+            Audit logs and execution capsules are retained for 30 days by default in the managed
+            service. Self-hosted instances allow for indefinite retention policies managed by the
+            operator.
           </p>
         </section>
 
         <section>
           <h2>4. Your Rights</h2>
           <p>
-            You have the right to access, export, or delete your tenant data at
-            any time via the ReadyLayer Dashboard or the{" "}
-            <code>reach account purge</code> CLI command.
+            You have the right to access, export, or delete your tenant data at any time via the
+            ReadyLayer Dashboard or the <code>reach account purge</code> CLI command.
           </p>
         </section>
 

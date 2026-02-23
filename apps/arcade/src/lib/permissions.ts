@@ -43,11 +43,9 @@ export function createPermissions(role: Role): Permissions {
  */
 export const DEGRADED_PERMISSIONS: Permissions = {
   role: "viewer",
-  can: (minRole: Role) =>
-    ROLE_ORDER.indexOf("viewer") >= ROLE_ORDER.indexOf(minRole),
+  can: (minRole: Role) => ROLE_ORDER.indexOf("viewer") >= ROLE_ORDER.indexOf(minRole),
   tooltip: (minRole: Role) => {
-    if (ROLE_ORDER.indexOf("viewer") >= ROLE_ORDER.indexOf(minRole))
-      return undefined;
+    if (ROLE_ORDER.indexOf("viewer") >= ROLE_ORDER.indexOf(minRole)) return undefined;
     return "Authentication unavailable — read-only mode";
   },
 };

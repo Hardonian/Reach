@@ -191,12 +191,9 @@ export default function FAQPage() {
 
       <div className="max-w-3xl mx-auto">
         <header className="mb-12 text-center">
-          <h1 className="text-4xl font-bold mb-4">
-            Frequently Asked Questions
-          </h1>
+          <h1 className="text-4xl font-bold mb-4">Frequently Asked Questions</h1>
           <p className="text-gray-400">
-            Everything you need to know about ReadyLayer architecture, security,
-            and deployment.
+            Everything you need to know about ReadyLayer architecture, security, and deployment.
           </p>
         </header>
 
@@ -233,9 +230,7 @@ export default function FAQPage() {
                 className={`group border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 transition-colors ${openIndex === index ? "bg-white/5" : "bg-transparent"}`}
               >
                 <button
-                  onClick={() =>
-                    setOpenIndex(openIndex === index ? null : index)
-                  }
+                  onClick={() => setOpenIndex(openIndex === index ? null : index)}
                   className="w-full flex items-center justify-between p-6 text-left"
                 >
                   <div>
@@ -272,8 +267,7 @@ export default function FAQPage() {
         <div className="mt-16 card gradient-border p-8 text-center">
           <h2 className="text-2xl font-bold mb-2">Still have questions?</h2>
           <p className="text-gray-400 mb-6">
-            Can&apos;t find the answer you&apos;re looking for? ReadyLayer out
-            to our team.
+            Can&apos;t find the answer you&apos;re looking for? ReadyLayer out to our team.
           </p>
           <div className="flex gap-4 justify-center">
             <a href="/support" className="btn-primary py-2 px-8">

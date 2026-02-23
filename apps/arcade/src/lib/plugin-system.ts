@@ -18,12 +18,7 @@ import { z } from "zod";
 /**
  * Plugin types supported.
  */
-export type PluginType =
-  | "skill_pack"
-  | "tool"
-  | "provider"
-  | "integration"
-  | "policy";
+export type PluginType = "skill_pack" | "tool" | "provider" | "integration" | "policy";
 
 /**
  * Plugin status.
@@ -101,9 +96,7 @@ export class PluginLoader {
     // Validate manifest
     const validation = validatePluginManifest(manifest);
     if (!validation.valid) {
-      throw new PluginLoadError(
-        `Invalid manifest: ${(validation.errors ?? []).join(", ")}`,
-      );
+      throw new PluginLoadError(`Invalid manifest: ${(validation.errors ?? []).join(", ")}`);
     }
 
     // Check version compatibility
@@ -115,9 +108,7 @@ export class PluginLoader {
     );
 
     if (!compatibilityCheck.compatible) {
-      throw new PluginLoadError(
-        `Version incompatibility: ${compatibilityCheck.reason}`,
-      );
+      throw new PluginLoadError(`Version incompatibility: ${compatibilityCheck.reason}`);
     }
 
     // Create plugin instance
@@ -341,9 +332,7 @@ export function validatePluginManifest(manifest: unknown): {
   if (!result.success) {
     return {
       valid: false,
-      errors: result.error.issues.map(
-        (e) => `${String(e.path.join("."))}: ${e.message}`,
-      ),
+      errors: result.error.issues.map((e) => `${String(e.path.join("."))}: ${e.message}`),
     };
   }
 
@@ -387,8 +376,7 @@ export function createValidationContract(): PluginValidationContract {
       const warnings: ValidationWarning[] = [];
 
       // Check required fields
-      if (!plugin.id)
-        errors.push({ code: "MISSING_ID", message: "Plugin ID is required" });
+      if (!plugin.id) errors.push({ code: "MISSING_ID", message: "Plugin ID is required" });
       if (!plugin.name)
         errors.push({
           code: "MISSING_NAME",
@@ -434,8 +422,7 @@ export function createValidationContract(): PluginValidationContract {
       }
 
       // Check required fields
-      if (!manifest.id)
-        errors.push({ code: "MISSING_ID", message: "Manifest ID is required" });
+      if (!manifest.id) errors.push({ code: "MISSING_ID", message: "Manifest ID is required" });
       if (!manifest.name)
         errors.push({
           code: "MISSING_NAME",
@@ -449,9 +436,7 @@ export function createValidationContract(): PluginValidationContract {
 
       // Check dependencies don't have conflicts
       if (manifest.dependencies && manifest.peer_dependencies) {
-        for (const [dep, version] of Object.entries(
-          manifest.peer_dependencies,
-        )) {
+        for (const [dep, version] of Object.entries(manifest.peer_dependencies)) {
           if (manifest.dependencies[dep]) {
             const depVersion = manifest.dependencies[dep];
             if (!versionsCompatible(depVersion, version)) {
@@ -587,13 +572,7 @@ export const PluginSchema = z.object({
   id: z.string(),
   name: z.string(),
   version: z.string(),
-  plugin_type: z.enum([
-    "skill_pack",
-    "tool",
-    "provider",
-    "integration",
-    "policy",
-  ]),
+  plugin_type: z.enum(["skill_pack", "tool", "provider", "integration", "policy"]),
   manifest: PluginManifestSchema,
   status: z.enum(["inactive", "active", "error", "deprecated"]),
   compatibility: z.object({

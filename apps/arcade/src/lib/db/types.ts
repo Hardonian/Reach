@@ -234,12 +234,7 @@ export type DecisionOutcomeStatus = "unknown" | "success" | "failure" | "mixed";
 /**
  * Source Type for Decision
  */
-export type DecisionSourceType =
-  | "diff"
-  | "drift"
-  | "policy"
-  | "trust"
-  | "manual";
+export type DecisionSourceType = "diff" | "drift" | "policy" | "trust" | "manual";
 
 /**
  * Decision Report - Core entity for the Decision Pillar

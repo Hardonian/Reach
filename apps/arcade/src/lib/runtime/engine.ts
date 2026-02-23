@@ -41,10 +41,7 @@ export function executeRun(options: RunOptions): ExecutionGraph {
   const startedAt = new Date().toISOString();
 
   // Route to provider
-  const provider = routeToProvider(
-    routingStrategy ?? "default",
-    preferredProvider,
-  );
+  const provider = routeToProvider(routingStrategy ?? "default", preferredProvider);
 
   // Build execution nodes
   const nodes: ExecutionNode[] = [];
@@ -150,8 +147,7 @@ export function executeRun(options: RunOptions): ExecutionGraph {
   edges.push({ from: "evaluation", to: "output" });
 
   // Calculate totals
-  const totalDurationMs =
-    toolInvocations.reduce((sum, t) => sum + t.durationMs, 0) + 200;
+  const totalDurationMs = toolInvocations.reduce((sum, t) => sum + t.durationMs, 0) + 200;
   const completedAt = new Date(Date.now() + totalDurationMs).toISOString();
 
   // Update skill node timing
@@ -169,10 +165,7 @@ export function executeRun(options: RunOptions): ExecutionGraph {
   };
   tokenUsage.totalTokens = tokenUsage.inputTokens + tokenUsage.outputTokens;
   tokenUsage.estimatedCost = parseFloat(
-    (
-      (tokenUsage.inputTokens * 0.003 + tokenUsage.outputTokens * 0.015) /
-      1000
-    ).toFixed(6),
+    ((tokenUsage.inputTokens * 0.003 + tokenUsage.outputTokens * 0.015) / 1000).toFixed(6),
   );
 
   return {
@@ -193,10 +186,7 @@ export function executeRun(options: RunOptions): ExecutionGraph {
 
 // ── Evaluation ──
 
-function generateEvaluation(
-  skillId: string,
-  _inputs: Record<string, unknown>,
-): EvaluationSummary {
+function generateEvaluation(skillId: string, _inputs: Record<string, unknown>): EvaluationSummary {
   const findingsMap: Record<string, EvaluationFinding[]> = {
     "readiness-check": [
       {
@@ -204,8 +194,7 @@ function generateEvaluation(
         severity: "high",
         category: "Tool reliability",
         title: "Tool call timeout exceeded",
-        detail:
-          '"search_web" exceeded the 2s timeout budget on 2 of 5 runs (p95: 3.1s).',
+        detail: '"search_web" exceeded the 2s timeout budget on 2 of 5 runs (p95: 3.1s).',
         fix: "Set `timeout_ms: 1500` on the search_web tool. Add a fallback for slow responses.",
       },
       {
@@ -213,8 +202,7 @@ function generateEvaluation(
         severity: "medium",
         category: "Policy gate",
         title: "Unguarded external call",
-        detail:
-          "The agent calls an external API without checking the allow-list rule.",
+        detail: "The agent calls an external API without checking the allow-list rule.",
         fix: "Add `external_calls: [approved-apis]` to your policy config.",
       },
       {
@@ -232,8 +220,7 @@ function generateEvaluation(
         severity: "high",
         category: "Policy gate",
         title: "write_file called without approval gate",
-        detail:
-          "The write_file tool was invoked without passing through the approval flow.",
+        detail: "The write_file tool was invoked without passing through the approval flow.",
         fix: "Add `require_approval: true` to write_file policy.",
       },
     ],
@@ -243,8 +230,7 @@ function generateEvaluation(
         severity: "medium",
         category: "Regression",
         title: "confidence field dropped",
-        detail:
-          "The `confidence` field was present in baseline but missing in 1 of 5 runs.",
+        detail: "The `confidence` field was present in baseline but missing in 1 of 5 runs.",
         fix: "Pin output schema or update baseline after intentional change.",
       },
     ],
@@ -356,9 +342,7 @@ function generateReport(graph: ExecutionGraph): string {
     if (eval_.findings.length > 0) {
       lines.push(`## Findings`);
       eval_.findings.forEach((f) => {
-        lines.push(
-          `- **[${f.severity.toUpperCase()}]** ${f.title}: ${f.detail}`,
-        );
+        lines.push(`- **[${f.severity.toUpperCase()}]** ${f.title}: ${f.detail}`);
         lines.push(`  - Fix: ${f.fix}`);
       });
     }

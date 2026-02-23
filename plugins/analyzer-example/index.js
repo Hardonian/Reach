@@ -38,9 +38,7 @@ module.exports = {
               const line = lines[i];
 
               // Detect function start (simplified)
-              if (
-                /^\\s*(function|const|let|var)\\s+\\w+\\s*[=\\(]/.test(line)
-              ) {
+              if (/^\\s*(function|const|let|var)\\s+\\w+\\s*[=\\(]/.test(line)) {
                 inFunction = true;
                 functionLength = 1;
               } else if (inFunction) {

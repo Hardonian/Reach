@@ -162,9 +162,7 @@ module.exports = {
             const rate = MOCK_DATA["exchange-rates"][pair];
 
             if (!rate) {
-              throw new Error(
-                `Exchange rate not available for ${from} to ${to}`,
-              );
+              throw new Error(`Exchange rate not available for ${from} to ${to}`);
             }
 
             return {

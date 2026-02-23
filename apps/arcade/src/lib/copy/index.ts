@@ -51,20 +51,17 @@ export const TERMS: Record<string, CopyEntry> = {
 export const HERO_VARIANTS = {
   A: {
     headline: "Agent Reliability. Guaranteed.",
-    subhead:
-      "ReadyLayer is the category-defining suite for shipping agents that actually work.",
+    subhead: "ReadyLayer is the category-defining suite for shipping agents that actually work.",
     badge: "Category: Agent Reliability",
   },
   B: {
     headline: "Stop guessing. Start shipping.",
-    subhead:
-      "The infrastructure for safe, predictable, and auditable AI agents.",
+    subhead: "The infrastructure for safe, predictable, and auditable AI agents.",
     badge: "Reliability Suite",
   },
   C: {
     headline: "Zero drift. Zero doubt.",
-    subhead:
-      "Automated gates and side-by-side simulation for production agents.",
+    subhead: "Automated gates and side-by-side simulation for production agents.",
     badge: "Pro Grade",
   },
 } as const;
@@ -128,22 +125,19 @@ export const HOW_IT_WORKS = [
   {
     step: "01",
     title: "Run a check",
-    description:
-      "Point ReadyLayer at your agent. It runs a suite of readiness checks instantly.",
+    description: "Point ReadyLayer at your agent. It runs a suite of readiness checks instantly.",
     icon: "▶",
   },
   {
     step: "02",
     title: "Fix what breaks",
-    description:
-      "Get plain-English explanations and specific fix suggestions for every finding.",
+    description: "Get plain-English explanations and specific fix suggestions for every finding.",
     icon: "⚡",
   },
   {
     step: "03",
     title: "Ship with confidence",
-    description:
-      "Gate your CI/CD on a green score. Never merge a broken agent again.",
+    description: "Gate your CI/CD on a green score. Never merge a broken agent again.",
     icon: "✓",
   },
 ] as const;

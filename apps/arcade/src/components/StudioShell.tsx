@@ -104,21 +104,11 @@ export function StudioShell() {
   const [busy, setBusy] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
 
-  const manifestCheck = useMemo(
-    () => validatePackManifest(manifest),
-    [manifest],
-  );
-  const eventDiff = useMemo(
-    () => compareEventStreams(sampleRunA, sampleRunB),
-    [],
-  );
+  const manifestCheck = useMemo(() => validatePackManifest(manifest), [manifest]);
+  const eventDiff = useMemo(() => compareEventStreams(sampleRunA, sampleRunB), []);
   const trust = useMemo(() => federationReadModel(federationNodes), []);
   const arenaScore = useMemo(
-    () =>
-      deterministicArenaScore(
-        `${manifest.name}:baseline`,
-        [0.3, 0.2, 0.25, 0.25],
-      ),
+    () => deterministicArenaScore(`${manifest.name}:baseline`, [0.3, 0.2, 0.25, 0.25]),
     [manifest.name],
   );
 
@@ -135,10 +125,7 @@ export function StudioShell() {
     void hydrateState();
   }, []);
 
-  async function persistState(
-    nextManifest: PackManifest,
-    nextHistory: StudioState["runHistory"],
-  ) {
+  async function persistState(nextManifest: PackManifest, nextHistory: StudioState["runHistory"]) {
     await fetch("/api/studio/state", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -157,9 +144,7 @@ export function StudioShell() {
     const data = (await response.json()) as CommandResponse;
     const runs = data.runs || [];
     setRunInventory(runs);
-    setSelectedRun((current) =>
-      current && runs.includes(current) ? current : runs[0] || "",
-    );
+    setSelectedRun((current) => (current && runs.includes(current) ? current : runs[0] || ""));
   }
 
   function updateManifest(mutator: (draft: PackManifest) => PackManifest) {
@@ -214,8 +199,8 @@ export function StudioShell() {
       <aside aria-label="Studio sections">
         <h1 style={{ marginBottom: 12 }}>ReadyLayer Studio</h1>
         <p style={{ marginBottom: 12, fontSize: 13, opacity: 0.8 }}>
-          Local-first control surface for deterministic build, run, replay,
-          trust, and support workflows.
+          Local-first control surface for deterministic build, run, replay, trust, and support
+          workflows.
         </p>
         <nav style={{ display: "grid", gap: 8 }}>
           {sections.map((section) => (
@@ -277,22 +262,10 @@ export function StudioShell() {
           <>
             <h2>Dashboard</h2>
             <ul>
-              <li>
-                Determinism guard: replay model is immutable and compared
-                event-by-event.
-              </li>
-              <li>
-                Policy gate: required for pack validation before sign/verify
-                controls.
-              </li>
-              <li>
-                Signing + proof: reachable via Studio actions and reachctl
-                parity buttons.
-              </li>
-              <li>
-                Offline mode: all commands call local reachctl and local KB
-                retrieval only.
-              </li>
+              <li>Determinism guard: replay model is immutable and compared event-by-event.</li>
+              <li>Policy gate: required for pack validation before sign/verify controls.</li>
+              <li>Signing + proof: reachable via Studio actions and reachctl parity buttons.</li>
+              <li>Offline mode: all commands call local reachctl and local KB retrieval only.</li>
             </ul>
           </>
         )}
@@ -300,18 +273,13 @@ export function StudioShell() {
         {active === "Packs (Build)" && (
           <>
             <h2>Packs (Build)</h2>
-            <p>
-              Create, validate, and sign governed packs using existing CLI
-              semantics.
-            </p>
+            <p>Create, validate, and sign governed packs using existing CLI semantics.</p>
             <div style={{ display: "grid", gap: 8, margin: "12px 0" }}>
               <label>
                 Template
                 <select
                   value={manifest.name}
-                  onChange={(e) =>
-                    updateManifest((m) => ({ ...m, name: e.target.value }))
-                  }
+                  onChange={(e) => updateManifest((m) => ({ ...m, name: e.target.value }))}
                   style={{ marginLeft: 8 }}
                 >
                   <option value="governed-starter">governed/default</option>
@@ -346,29 +314,19 @@ export function StudioShell() {
               </label>
             </div>
             <p>Validation: {manifestCheck.valid ? "PASS" : "FAIL"}</p>
-            {manifestCheck.errors.length > 0 && (
-              <pre>{manifestCheck.errors.join("\n")}</pre>
-            )}
-            {manifestCheck.warnings.length > 0 && (
-              <pre>{manifestCheck.warnings.join("\n")}</pre>
-            )}
+            {manifestCheck.errors.length > 0 && <pre>{manifestCheck.errors.join("\n")}</pre>}
+            {manifestCheck.warnings.length > 0 && <pre>{manifestCheck.warnings.join("\n")}</pre>}
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <button disabled={busy} onClick={() => runCommand("packs.init")}>
                 init
               </button>
-              <button
-                disabled={busy}
-                onClick={() => runCommand("packs.validate")}
-              >
+              <button disabled={busy} onClick={() => runCommand("packs.validate")}>
                 validate
               </button>
               <button disabled={busy} onClick={() => runCommand("packs.sign")}>
                 sign
               </button>
-              <button
-                disabled={busy}
-                onClick={() => runCommand("packs.verify")}
-              >
+              <button disabled={busy} onClick={() => runCommand("packs.verify")}>
                 verify
               </button>
             </div>
@@ -378,26 +336,15 @@ export function StudioShell() {
         {active === "Library" && (
           <>
             <h2>Library</h2>
-            <p>
-              Git-backed registry browser with verification-first install path.
-            </p>
+            <p>Git-backed registry browser with verification-first install path.</p>
             <div style={{ display: "flex", gap: 8 }}>
-              <button
-                disabled={busy}
-                onClick={() => runCommand("marketplace.search")}
-              >
+              <button disabled={busy} onClick={() => runCommand("marketplace.search")}>
                 Search
               </button>
-              <button
-                disabled={busy}
-                onClick={() => runCommand("marketplace.install")}
-              >
+              <button disabled={busy} onClick={() => runCommand("marketplace.install")}>
                 Install
               </button>
-              <button
-                disabled={busy}
-                onClick={() => runCommand("packs.verify")}
-              >
+              <button disabled={busy} onClick={() => runCommand("packs.verify")}>
                 Verify
               </button>
             </div>
@@ -408,23 +355,17 @@ export function StudioShell() {
           <>
             <h2>Reports (Recent)</h2>
             <p>
-              Selected run: {selectedRun || "none"}. Report and proof actions
-              bind to this run selection.
+              Selected run: {selectedRun || "none"}. Report and proof actions bind to this run
+              selection.
             </p>
             <div style={{ display: "flex", gap: 8 }}>
               <button disabled={busy} onClick={() => runCommand("runs.list")}>
                 Operator summary
               </button>
-              <button
-                disabled={busy || !selectedRun}
-                onClick={() => runCommand("runs.explain")}
-              >
+              <button disabled={busy || !selectedRun} onClick={() => runCommand("runs.explain")}>
                 Explain this run
               </button>
-              <button
-                disabled={busy || !selectedRun}
-                onClick={() => runCommand("report.create")}
-              >
+              <button disabled={busy || !selectedRun} onClick={() => runCommand("report.create")}>
                 Create report
               </button>
             </div>
@@ -441,10 +382,7 @@ export function StudioShell() {
               <li>🟦 delegation hops</li>
               <li>🟨 replay verification warnings</li>
             </ul>
-            <button
-              disabled={busy || !selectedRun}
-              onClick={() => runCommand("graph.export")}
-            >
+            <button disabled={busy || !selectedRun} onClick={() => runCommand("graph.export")}>
               Export graph (json)
             </button>
           </>
@@ -453,10 +391,7 @@ export function StudioShell() {
         {active === "Lineage (Traces)" && (
           <>
             <h2>Lineage (Traces)</h2>
-            <p>
-              Combined audit log and execution trace view for side-by-side
-              verification.
-            </p>
+            <p>Combined audit log and execution trace view for side-by-side verification.</p>
             <label>
               Step
               <input
@@ -472,16 +407,10 @@ export function StudioShell() {
             </pre>
             <p>Reviewing run A vs B: {eventDiff.length} mismatch(es).</p>
             <div style={{ display: "flex", gap: 8 }}>
-              <button
-                disabled={busy}
-                onClick={() => runCommand("replay.verify")}
-              >
+              <button disabled={busy} onClick={() => runCommand("replay.verify")}>
                 Verify lineage
               </button>
-              <button
-                disabled={busy}
-                onClick={() => runCommand("report.replay")}
-              >
+              <button disabled={busy} onClick={() => runCommand("report.replay")}>
                 Replay report
               </button>
             </div>
@@ -492,8 +421,8 @@ export function StudioShell() {
           <>
             <h2>Federation</h2>
             <p>
-              Total nodes: {trust.total} • quarantined: {trust.quarantined} •
-              avg trust: {trust.avgTrust}
+              Total nodes: {trust.total} • quarantined: {trust.quarantined} • avg trust:{" "}
+              {trust.avgTrust}
             </p>
             <svg
               width="320"
@@ -510,26 +439,13 @@ export function StudioShell() {
               <text x="200" y="110" fill="#ddd" fontSize="12">
                 mesh-beta
               </text>
-              <line
-                x1="94"
-                y1="70"
-                x2="206"
-                y2="70"
-                stroke="#8aa"
-                strokeWidth="2"
-              />
+              <line x1="94" y1="70" x2="206" y2="70" stroke="#8aa" strokeWidth="2" />
             </svg>
             <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-              <button
-                disabled={busy}
-                onClick={() => runCommand("federation.status")}
-              >
+              <button disabled={busy} onClick={() => runCommand("federation.status")}>
                 Refresh status
               </button>
-              <button
-                disabled={busy}
-                onClick={() => runCommand("federation.map")}
-              >
+              <button disabled={busy} onClick={() => runCommand("federation.map")}>
                 Export topology
               </button>
             </div>
@@ -550,14 +466,8 @@ export function StudioShell() {
         {active === "Playground" && (
           <>
             <h2>Playground</h2>
-            <p>
-              Zero-install safe adapter demo with explicit policy and replay
-              visibility.
-            </p>
-            <button
-              disabled={busy}
-              onClick={() => runCommand("playground.export")}
-            >
+            <p>Zero-install safe adapter demo with explicit policy and replay visibility.</p>
+            <button disabled={busy} onClick={() => runCommand("playground.export")}>
               Export demo
             </button>
           </>
@@ -567,15 +477,12 @@ export function StudioShell() {
           <>
             <h2>Support</h2>
             <p>
-              Use local KB-backed support for safe troubleshooting. Optional
-              hosted LLM remains opt-in via env key.
+              Use local KB-backed support for safe troubleshooting. Optional hosted LLM remains
+              opt-in via env key.
             </p>
             <div style={{ display: "flex", gap: 8 }}>
               <a href="/support">Open support chat</a>
-              <button
-                disabled={busy || !selectedRun}
-                onClick={() => runCommand("proof.verify")}
-              >
+              <button disabled={busy || !selectedRun} onClick={() => runCommand("proof.verify")}>
                 Generate verification report
               </button>
             </div>
@@ -585,18 +492,12 @@ export function StudioShell() {
         {active === "Settings" && (
           <>
             <h2>Settings</h2>
-            <p>
-              Manage infrastructure keys, tenant policies, and release gate
-              thresholds.
-            </p>
+            <p>Manage infrastructure keys, tenant policies, and release gate thresholds.</p>
             <div style={{ display: "grid", gap: 8, marginTop: 12 }}>
               <button disabled={busy} onClick={() => runCommand("config.view")}>
                 View current config
               </button>
-              <button
-                disabled={busy}
-                onClick={() => runCommand("config.validate")}
-              >
+              <button disabled={busy} onClick={() => runCommand("config.validate")}>
                 Validate local environment
               </button>
             </div>
@@ -613,9 +514,7 @@ export function StudioShell() {
             borderRadius: 8,
           }}
         >
-          {runHistory.length === 0
-            ? "No snapshots yet."
-            : JSON.stringify(runHistory, null, 2)}
+          {runHistory.length === 0 ? "No snapshots yet." : JSON.stringify(runHistory, null, 2)}
         </pre>
 
         <h3>Command output</h3>

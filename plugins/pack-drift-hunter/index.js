@@ -34,8 +34,7 @@ module.exports = {
               return [
                 {
                   type: "info",
-                  message:
-                    "Insufficient data for drift analysis (need previous and current)",
+                  message: "Insufficient data for drift analysis (need previous and current)",
                   severity: "low",
                 },
               ];
@@ -74,10 +73,7 @@ module.exports = {
 
             // Check for undeclared changes (files modified but not tracked)
             if (input.trackedFiles) {
-              const untrackedChanges = detectUntrackedChanges(
-                input.trackedFiles,
-                input.workspace,
-              );
+              const untrackedChanges = detectUntrackedChanges(input.trackedFiles, input.workspace);
               if (untrackedChanges.length > 0) {
                 findings.push({
                   type: "error",
@@ -102,9 +98,7 @@ module.exports = {
               }
             }
 
-            return findings.sort(
-              (a, b) => severityRank(b.severity) - severityRank(a.severity),
-            );
+            return findings.sort((a, b) => severityRank(b.severity) - severityRank(a.severity));
           },
         },
 
@@ -131,12 +125,7 @@ module.exports = {
             const differences = [];
 
             // Compare all fields deterministically
-            const fieldsToCompare = [
-              "status",
-              "fingerprint",
-              "duration_ms",
-              "exit_code",
-            ];
+            const fieldsToCompare = ["status", "fingerprint", "duration_ms", "exit_code"];
 
             for (const field of fieldsToCompare.sort()) {
               if (runA[field] !== runB[field]) {
@@ -156,10 +145,7 @@ module.exports = {
 
             return [
               {
-                type:
-                  differences.length > 0 || outputDiff.length > 0
-                    ? "warning"
-                    : "info",
+                type: differences.length > 0 || outputDiff.length > 0 ? "warning" : "info",
                 message:
                   differences.length === 0 && outputDiff.length === 0
                     ? "No differences found between runs"
@@ -191,11 +177,7 @@ module.exports = {
             // Collect workspace state
             if (context.workspace) {
               try {
-                const configFiles = [
-                  "package.json",
-                  "reach.config.json",
-                  "Dockerfile",
-                ]
+                const configFiles = ["package.json", "reach.config.json", "Dockerfile"]
                   .filter((f) => fs.existsSync(path.join(context.workspace, f)))
                   .sort();
 
@@ -221,9 +203,7 @@ module.exports = {
             });
 
             // Sort for determinism
-            evidence.items.sort((a, b) =>
-              JSON.stringify(a).localeCompare(JSON.stringify(b)),
-            );
+            evidence.items.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
 
             return evidence;
           },
@@ -263,21 +243,14 @@ function sortObjectKeys(obj) {
  */
 function diffObjects(a, b, path = "") {
   const diffs = [];
-  const allKeys = [
-    ...new Set([...Object.keys(a || {}), ...Object.keys(b || {})]),
-  ].sort();
+  const allKeys = [...new Set([...Object.keys(a || {}), ...Object.keys(b || {})])].sort();
 
   for (const key of allKeys) {
     const currentPath = path ? `${path}.${key}` : key;
     const valA = a?.[key];
     const valB = b?.[key];
 
-    if (
-      typeof valA === "object" &&
-      typeof valB === "object" &&
-      valA !== null &&
-      valB !== null
-    ) {
+    if (typeof valA === "object" && typeof valB === "object" && valA !== null && valB !== null) {
       diffs.push(...diffObjects(valA, valB, currentPath));
     } else if (JSON.stringify(valA) !== JSON.stringify(valB)) {
       diffs.push({

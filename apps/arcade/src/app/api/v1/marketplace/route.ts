@@ -11,10 +11,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const qp = Object.fromEntries(req.nextUrl.searchParams.entries());
     const parsed = parseBody(BrowsePacksSchema, qp);
     if ("errors" in parsed)
-      return cloudErrorResponse(
-        parsed.errors.issues[0]?.message ?? "Invalid query",
-        400,
-      );
+      return cloudErrorResponse(parsed.errors.issues[0]?.message ?? "Invalid query", 400);
 
     const { search, category, sort, verifiedOnly, page, limit } = parsed.data;
     const result = browsePacks({

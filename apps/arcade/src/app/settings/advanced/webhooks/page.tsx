@@ -7,20 +7,16 @@ export default function WebhooksPage() {
     <>
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
         <span>Settings</span>
-        <span className="material-symbols-outlined text-[12px]">
-          chevron_right
-        </span>
+        <span className="material-symbols-outlined text-[12px]">chevron_right</span>
         <span>Advanced</span>
-        <span className="material-symbols-outlined text-[12px]">
-          chevron_right
-        </span>
+        <span className="material-symbols-outlined text-[12px]">chevron_right</span>
         <span className="text-white">Webhooks</span>
       </div>
 
       <h1 className="text-3xl font-bold tracking-tight mb-2">Webhooks</h1>
       <p className="text-gray-400 max-w-2xl mb-8">
-        Configure HTTP callbacks to receive real-time notifications when events
-        occur in your {BRAND_NAME} workspace.
+        Configure HTTP callbacks to receive real-time notifications when events occur in your{" "}
+        {BRAND_NAME} workspace.
       </p>
 
       {/* Create Webhook */}
@@ -53,12 +49,10 @@ export default function WebhooksPage() {
               className="flex items-center justify-between p-4 rounded-lg bg-white/[0.03] border border-border"
             >
               <div className="flex-1 min-w-0">
-                <code className="text-sm font-mono text-gray-300 truncate block">
-                  {wh.url}
-                </code>
+                <code className="text-sm font-mono text-gray-300 truncate block">{wh.url}</code>
                 <p className="text-xs text-gray-500 mt-1">
-                  Events: <span className="text-gray-400">{wh.events}</span> ·
-                  Last delivery: {wh.lastDelivery}
+                  Events: <span className="text-gray-400">{wh.events}</span> · Last delivery:{" "}
+                  {wh.lastDelivery}
                 </p>
               </div>
               <div className="flex items-center gap-3 ml-4">
@@ -67,17 +61,13 @@ export default function WebhooksPage() {
                   className="p-1 rounded text-gray-400 hover:text-accent hover:bg-white/5 transition-colors"
                   title="Edit"
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    edit
-                  </span>
+                  <span className="material-symbols-outlined text-[18px]">edit</span>
                 </button>
                 <button
                   className="p-1 rounded text-gray-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
                   title="Delete"
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    delete
-                  </span>
+                  <span className="material-symbols-outlined text-[18px]">delete</span>
                 </button>
               </div>
             </div>

@@ -31,22 +31,13 @@ describe("workflow cli", () => {
     const id = await setupDecision("Hiring decision");
 
     await runWorkflowCommand(
-      parseWorkflowArgs([
-        "add-note",
-        "--decision",
-        id,
-        "--text",
-        "Candidate has domain expertise",
-      ]),
+      parseWorkflowArgs(["add-note", "--decision", id, "--text", "Candidate has domain expertise"]),
     );
     await runWorkflowCommand(parseWorkflowArgs(["run", "--decision", id]));
     await runWorkflowCommand(parseWorkflowArgs(["run", "--decision", id]));
 
     const ws = JSON.parse(
-      readFileSync(
-        join(process.cwd(), ".zeo", "decisions", id, "decision.json"),
-        "utf8",
-      ),
+      readFileSync(join(process.cwd(), ".zeo", "decisions", id, "decision.json"), "utf8"),
     );
     expect(ws.runs).toHaveLength(2);
     expect(ws.runs[0].transcriptHash).toBe(ws.runs[1].transcriptHash);
@@ -75,14 +66,7 @@ describe("workflow cli", () => {
       return true;
     }) as typeof process.stdout.write;
     await runWorkflowCommand(
-      parseWorkflowArgs([
-        "run",
-        "--decision",
-        id,
-        "--as-of",
-        "2024-04-01",
-        "--json",
-      ]),
+      parseWorkflowArgs(["run", "--decision", id, "--as-of", "2024-04-01", "--json"]),
     );
     process.stdout.write = origWrite;
     const payload = JSON.parse(out.join(""));
@@ -92,19 +76,9 @@ describe("workflow cli", () => {
   it("detects graph cycles", async () => {
     pushTempCwd();
     const id = await setupDecision("Graph decision");
+    await runWorkflowCommand(parseWorkflowArgs(["add-note", "--decision", id, "--text", "Signal"]));
     await runWorkflowCommand(
-      parseWorkflowArgs(["add-note", "--decision", id, "--text", "Signal"]),
-    );
-    await runWorkflowCommand(
-      parseWorkflowArgs([
-        "run",
-        "--decision",
-        id,
-        "--depends-on",
-        "a",
-        "--informs",
-        "a",
-      ]),
+      parseWorkflowArgs(["run", "--decision", id, "--depends-on", "a", "--informs", "a"]),
     );
     await expect(
       runWorkflowCommand(parseWorkflowArgs(["graph", "fragility", "--json"])),
@@ -115,20 +89,11 @@ describe("workflow cli", () => {
     pushTempCwd();
     const id = await setupDecision("Lens decision");
     await runWorkflowCommand(
-      parseWorkflowArgs([
-        "add-note",
-        "--decision",
-        id,
-        "--text",
-        "Constraint one",
-      ]),
+      parseWorkflowArgs(["add-note", "--decision", id, "--text", "Constraint one"]),
     );
     await runWorkflowCommand(parseWorkflowArgs(["run", "--decision", id]));
     const ws = JSON.parse(
-      readFileSync(
-        join(process.cwd(), ".zeo", "decisions", id, "decision.json"),
-        "utf8",
-      ),
+      readFileSync(join(process.cwd(), ".zeo", "decisions", id, "decision.json"), "utf8"),
     );
     const hash = ws.runs[0].transcriptHash;
     const origWrite = process.stdout.write;
@@ -137,18 +102,14 @@ describe("workflow cli", () => {
       out1.push(String(chunk));
       return true;
     }) as typeof process.stdout.write;
-    await runWorkflowCommand(
-      parseWorkflowArgs(["view", "executive", hash, "--json"]),
-    );
+    await runWorkflowCommand(parseWorkflowArgs(["view", "executive", hash, "--json"]));
     const first = JSON.parse(out1.join(""));
     const out2: string[] = [];
     process.stdout.write = ((chunk: string | Uint8Array) => {
       out2.push(String(chunk));
       return true;
     }) as typeof process.stdout.write;
-    await runWorkflowCommand(
-      parseWorkflowArgs(["view", "executive", hash, "--json"]),
-    );
+    await runWorkflowCommand(parseWorkflowArgs(["view", "executive", hash, "--json"]));
     process.stdout.write = origWrite;
     const second = JSON.parse(out2.join(""));
     expect(first.body).toBe(second.body);
@@ -170,9 +131,7 @@ describe("workflow cli", () => {
         "2024-01-02",
       ]),
     );
-    await runWorkflowCommand(
-      parseWorkflowArgs(["run", "--decision", id, "--as-of", "2024-01-03"]),
-    );
+    await runWorkflowCommand(parseWorkflowArgs(["run", "--decision", id, "--as-of", "2024-01-03"]));
     const origWrite = process.stdout.write;
     const out1: string[] = [];
     process.stdout.write = ((chunk: string | Uint8Array) => {
@@ -215,14 +174,7 @@ describe("workflow cli", () => {
       return true;
     }) as typeof process.stdout.write;
     await runWorkflowCommand(
-      parseWorkflowArgs([
-        "explain",
-        "--decision",
-        id,
-        "--audience",
-        "auditor",
-        "--json",
-      ]),
+      parseWorkflowArgs(["explain", "--decision", id, "--audience", "auditor", "--json"]),
     );
     const first = JSON.parse(out1.join(""));
 
@@ -232,14 +184,7 @@ describe("workflow cli", () => {
       return true;
     }) as typeof process.stdout.write;
     await runWorkflowCommand(
-      parseWorkflowArgs([
-        "explain",
-        "--decision",
-        id,
-        "--audience",
-        "auditor",
-        "--json",
-      ]),
+      parseWorkflowArgs(["explain", "--decision", id, "--audience", "auditor", "--json"]),
     );
     process.stdout.write = origWrite;
     const second = JSON.parse(out2.join(""));
@@ -263,9 +208,7 @@ describe("workflow cli", () => {
       out1.push(String(chunk));
       return true;
     }) as typeof process.stdout.write;
-    await runWorkflowCommand(
-      parseWorkflowArgs(["summary", "--type", "SEC", "--json"]),
-    );
+    await runWorkflowCommand(parseWorkflowArgs(["summary", "--type", "SEC", "--json"]));
     const first = JSON.parse(out1.join(""));
 
     const out2: string[] = [];
@@ -273,37 +216,24 @@ describe("workflow cli", () => {
       out2.push(String(chunk));
       return true;
     }) as typeof process.stdout.write;
-    await runWorkflowCommand(
-      parseWorkflowArgs(["summary", "--type", "SEC", "--json"]),
-    );
+    await runWorkflowCommand(parseWorkflowArgs(["summary", "--type", "SEC", "--json"]));
     process.stdout.write = origWrite;
     const second = JSON.parse(out2.join(""));
 
     expect(first).toEqual(second);
-    expect(
-      first.rows.every((row: { type: string }) => row.type === "SEC"),
-    ).toBe(true);
+    expect(first.rows.every((row: { type: string }) => row.type === "SEC")).toBe(true);
   });
 
   it("exports md/ics/bundle with deterministic names", async () => {
     pushTempCwd();
     const id = await setupDecision("Launch decision");
     await runWorkflowCommand(
-      parseWorkflowArgs([
-        "add-note",
-        "--decision",
-        id,
-        "--text",
-        "Collect customer incident logs",
-      ]),
+      parseWorkflowArgs(["add-note", "--decision", id, "--text", "Collect customer incident logs"]),
     );
     await runWorkflowCommand(parseWorkflowArgs(["run", "--decision", id]));
 
     const ws = JSON.parse(
-      readFileSync(
-        join(process.cwd(), ".zeo", "decisions", id, "decision.json"),
-        "utf8",
-      ),
+      readFileSync(join(process.cwd(), ".zeo", "decisions", id, "decision.json"), "utf8"),
     );
     const hashPrefix = ws.runs[0].transcriptHash.slice(0, 16);
 
@@ -323,28 +253,13 @@ describe("workflow cli", () => {
       ]),
     );
     await runWorkflowCommand(
-      parseWorkflowArgs([
-        "export",
-        "bundle",
-        "--decision",
-        id,
-        "--out",
-        "exports",
-      ]),
+      parseWorkflowArgs(["export", "bundle", "--decision", id, "--out", "exports"]),
     );
 
     const fs = await import("node:fs");
-    expect(
-      fs.existsSync(join(process.cwd(), "exports", `${hashPrefix}.md`)),
-    ).toBe(true);
-    expect(
-      fs.existsSync(join(process.cwd(), "exports", `${hashPrefix}.ics`)),
-    ).toBe(true);
-    expect(
-      fs.existsSync(
-        join(process.cwd(), "exports", hashPrefix, "transcript.json"),
-      ),
-    ).toBe(true);
+    expect(fs.existsSync(join(process.cwd(), "exports", `${hashPrefix}.md`))).toBe(true);
+    expect(fs.existsSync(join(process.cwd(), "exports", `${hashPrefix}.ics`))).toBe(true);
+    expect(fs.existsSync(join(process.cwd(), "exports", hashPrefix, "transcript.json"))).toBe(true);
   });
 
   it("emits decision health and ROI/drift reports", async () => {
@@ -363,9 +278,7 @@ describe("workflow cli", () => {
         "2024-01-02",
       ]),
     );
-    await runWorkflowCommand(
-      parseWorkflowArgs(["run", "--decision", id, "--as-of", "2024-01-03"]),
-    );
+    await runWorkflowCommand(parseWorkflowArgs(["run", "--decision", id, "--as-of", "2024-01-03"]));
 
     const origWrite = process.stdout.write;
     const healthOut: string[] = [];
@@ -373,9 +286,7 @@ describe("workflow cli", () => {
       healthOut.push(String(chunk));
       return true;
     }) as typeof process.stdout.write;
-    await runWorkflowCommand(
-      parseWorkflowArgs(["decision-health", id, "--json"]),
-    );
+    await runWorkflowCommand(parseWorkflowArgs(["decision-health", id, "--json"]));
     const health = JSON.parse(healthOut.join(""));
     expect(health.health.replayStabilityScore).toBe(100);
 
@@ -384,9 +295,7 @@ describe("workflow cli", () => {
       driftOut.push(String(chunk));
       return true;
     }) as typeof process.stdout.write;
-    await runWorkflowCommand(
-      parseWorkflowArgs(["drift-report", "--since", "3650d", "--json"]),
-    );
+    await runWorkflowCommand(parseWorkflowArgs(["drift-report", "--since", "3650d", "--json"]));
     const drift = JSON.parse(driftOut.join(""));
     expect(Array.isArray(drift.events)).toBe(true);
 
@@ -395,9 +304,7 @@ describe("workflow cli", () => {
       roiOut.push(String(chunk));
       return true;
     }) as typeof process.stdout.write;
-    await runWorkflowCommand(
-      parseWorkflowArgs(["roi-report", "--window", "30d", "--json"]),
-    );
+    await runWorkflowCommand(parseWorkflowArgs(["roi-report", "--window", "30d", "--json"]));
     process.stdout.write = origWrite;
     const roi = JSON.parse(roiOut.join(""));
     expect(roi.schemaVersion).toBe("1.0.0");
@@ -407,13 +314,7 @@ describe("workflow cli", () => {
     pushTempCwd();
     const id = await setupDecision("Bundle decision");
     await runWorkflowCommand(
-      parseWorkflowArgs([
-        "add-note",
-        "--decision",
-        id,
-        "--text",
-        "Customer impact validated",
-      ]),
+      parseWorkflowArgs(["add-note", "--decision", id, "--text", "Customer impact validated"]),
     );
     await runWorkflowCommand(parseWorkflowArgs(["run", "--decision", id]));
 
@@ -443,19 +344,13 @@ describe("workflow cli", () => {
       verifyOkOut.push(String(chunk));
       return true;
     }) as typeof process.stdout.write;
-    const verifyCode = await runWorkflowCommand(
-      parseWorkflowArgs(["verify", bundleDir, "--json"]),
-    );
+    const verifyCode = await runWorkflowCommand(parseWorkflowArgs(["verify", bundleDir, "--json"]));
     expect(verifyCode).toBe(0);
     const verifyOk = JSON.parse(verifyOkOut.join(""));
     expect(verifyOk.verified).toBe(true);
 
     const fs = await import("node:fs");
-    fs.writeFileSync(
-      join(bundleDir, "decision.json"),
-      '{"tampered":true}\n',
-      "utf8",
-    );
+    fs.writeFileSync(join(bundleDir, "decision.json"), '{"tampered":true}\n', "utf8");
     const verifyFailOut: string[] = [];
     process.stdout.write = ((chunk: string | Uint8Array) => {
       verifyFailOut.push(String(chunk));
@@ -508,13 +403,7 @@ describe("workflow cli", () => {
 
     const ws = JSON.parse(
       readFileSync(
-        join(
-          process.cwd(),
-          ".zeo",
-          "decisions",
-          created.decisionId,
-          "decision.json",
-        ),
+        join(process.cwd(), ".zeo", "decisions", created.decisionId, "decision.json"),
         "utf8",
       ),
     );
@@ -535,24 +424,12 @@ describe("workflow cli", () => {
         "Overdue Review",
       ]),
     );
-    const id = (await import("node:fs")).readdirSync(
-      join(process.cwd(), ".zeo", "decisions"),
-    )[0];
+    const id = (await import("node:fs")).readdirSync(join(process.cwd(), ".zeo", "decisions"))[0];
 
-    const wsPath = join(
-      process.cwd(),
-      ".zeo",
-      "decisions",
-      id,
-      "decision.json",
-    );
+    const wsPath = join(process.cwd(), ".zeo", "decisions", id, "decision.json");
     const ws = JSON.parse(readFileSync(wsPath, "utf8"));
     ws.reviewAt = "1970-01-02";
-    (await import("node:fs")).writeFileSync(
-      wsPath,
-      `${JSON.stringify(ws, null, 2)}\n`,
-      "utf8",
-    );
+    (await import("node:fs")).writeFileSync(wsPath, `${JSON.stringify(ws, null, 2)}\n`, "utf8");
 
     const origWrite = process.stdout.write;
     const out: string[] = [];
@@ -561,14 +438,7 @@ describe("workflow cli", () => {
       return true;
     }) as typeof process.stdout.write;
     await runWorkflowCommand(
-      parseWorkflowArgs([
-        "run",
-        "--decision",
-        id,
-        "--as-of",
-        "1970-01-03",
-        "--json",
-      ]),
+      parseWorkflowArgs(["run", "--decision", id, "--as-of", "1970-01-03", "--json"]),
     );
     process.stdout.write = origWrite;
     const runPayload = JSON.parse(out.join(""));
@@ -576,9 +446,7 @@ describe("workflow cli", () => {
 
     const wsAfter = JSON.parse(readFileSync(wsPath, "utf8"));
     expect(
-      wsAfter.driftEvents.some(
-        (event: { type: string }) => event.type === "review_overdue",
-      ),
+      wsAfter.driftEvents.some((event: { type: string }) => event.type === "review_overdue"),
     ).toBe(true);
   });
 });

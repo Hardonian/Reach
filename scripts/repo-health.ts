@@ -53,14 +53,10 @@ function checkRepoHealth() {
     (f) => f.startsWith(".eslintrc") || f.startsWith("eslint.config"),
   );
   if (eslintConfigs.length > 1) {
-    console.error(
-      `❌ Multiple ESLint configs detected: ${eslintConfigs.join(", ")}`,
-    );
+    console.error(`❌ Multiple ESLint configs detected: ${eslintConfigs.join(", ")}`);
     failed = true;
   } else if (eslintConfigs.length === 0) {
-    console.warn(
-      "⚠️ No ESLint config detected in root (ignoring if intentional)",
-    );
+    console.warn("⚠️ No ESLint config detected in root (ignoring if intentional)");
   } else {
     console.log(`✅ Single ESLint config: ${eslintConfigs[0]}`);
   }

@@ -99,12 +99,9 @@ export function AgentRegistry() {
           </div>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">
-                Agent Registry
-              </h1>
+              <h1 className="text-2xl font-bold text-white tracking-tight">Agent Registry</h1>
               <p className="text-slate-400 text-sm mt-1">
-                Manage lifecycle, capabilities, and health status across your
-                organization.
+                Manage lifecycle, capabilities, and health status across your organization.
               </p>
             </div>
             <div className="flex gap-3">
@@ -112,18 +109,14 @@ export function AgentRegistry() {
                 type="button"
                 className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-200 text-sm font-medium hover:bg-slate-700 hover:border-slate-600 transition-all"
               >
-                <span className="material-symbols-outlined text-[20px]">
-                  file_upload
-                </span>
+                <span className="material-symbols-outlined text-[20px]">file_upload</span>
                 Import Config
               </button>
               <button
                 type="button"
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#135bec] hover:bg-blue-600 text-white text-sm font-bold shadow-lg shadow-blue-900/20 transition-all"
               >
-                <span className="material-symbols-outlined text-[20px]">
-                  add
-                </span>
+                <span className="material-symbols-outlined text-[20px]">add</span>
                 Register New Agent
               </button>
             </div>
@@ -158,24 +151,18 @@ export function AgentRegistry() {
                   {stat.label}
                 </span>
                 <div className="flex items-end justify-between mt-1">
-                  <span className="text-2xl font-bold text-white">
-                    {stat.value}
-                  </span>
+                  <span className="text-2xl font-bold text-white">{stat.value}</span>
                   {stat.trend && (
                     <span
                       className={`text-${stat.color}-400 text-xs font-medium bg-${stat.color}-400/10 px-1.5 py-0.5 rounded flex items-center gap-1`}
                     >
                       <span className="material-symbols-outlined text-[14px]">
-                        {stat.color === "emerald"
-                          ? "trending_up"
-                          : "trending_down"}
+                        {stat.color === "emerald" ? "trending_up" : "trending_down"}
                       </span>{" "}
                       {stat.trend}
                     </span>
                   )}
-                  {stat.sub && (
-                    <span className="text-slate-400 text-xs">{stat.sub}</span>
-                  )}
+                  {stat.sub && <span className="text-slate-400 text-xs">{stat.sub}</span>}
                 </div>
               </div>
             ))}
@@ -199,33 +186,27 @@ export function AgentRegistry() {
               />
             </div>
             <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-              {["All Organizations", "All Capabilities", "Status: Any"].map(
-                (opt) => (
-                  <select
-                    key={opt}
-                    aria-label={opt}
-                    className="bg-slate-800 border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-[#135bec] focus:border-[#135bec] py-2 pl-3 pr-8 outline-none"
-                  >
-                    <option>{opt}</option>
-                  </select>
-                ),
-              )}
+              {["All Organizations", "All Capabilities", "Status: Any"].map((opt) => (
+                <select
+                  key={opt}
+                  aria-label={opt}
+                  className="bg-slate-800 border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-[#135bec] focus:border-[#135bec] py-2 pl-3 pr-8 outline-none"
+                >
+                  <option>{opt}</option>
+                </select>
+              ))}
               <div className="h-6 w-px bg-slate-700 mx-1 hidden lg:block"></div>
               <button
                 type="button"
                 className="text-slate-400 hover:text-white p-2 rounded hover:bg-slate-800 transition-colors"
               >
-                <span className="material-symbols-outlined text-[20px]">
-                  grid_view
-                </span>
+                <span className="material-symbols-outlined text-[20px]">grid_view</span>
               </button>
               <button
                 type="button"
                 className="text-[#135bec] bg-[#135bec]/10 p-2 rounded transition-colors"
               >
-                <span className="material-symbols-outlined text-[20px]">
-                  view_list
-                </span>
+                <span className="material-symbols-outlined text-[20px]">view_list</span>
               </button>
             </div>
           </div>
@@ -244,9 +225,7 @@ export function AgentRegistry() {
               type="button"
               className="px-2 py-2 rounded-l-md border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 transition-colors"
             >
-              <span className="material-symbols-outlined text-[20px]">
-                chevron_left
-              </span>
+              <span className="material-symbols-outlined text-[20px]">chevron_left</span>
             </button>
             <button
               type="button"
@@ -279,9 +258,7 @@ export function AgentRegistry() {
               type="button"
               className="px-2 py-2 rounded-r-md border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 transition-colors"
             >
-              <span className="material-symbols-outlined text-[20px]">
-                chevron_right
-              </span>
+              <span className="material-symbols-outlined text-[20px]">chevron_right</span>
             </button>
           </nav>
         </div>

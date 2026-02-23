@@ -68,13 +68,7 @@ function main() {
 
     // Step 2: Explore files
     step(2, "Exploring generated files");
-    const expectedFiles = [
-      "manifest.json",
-      "timeline.json",
-      "env.json",
-      "index.md",
-      "outputs/",
-    ];
+    const expectedFiles = ["manifest.json", "timeline.json", "env.json", "index.md", "outputs/"];
 
     if (existsSync(REPORT_DIR)) {
       expectedFiles.forEach((file) => {
@@ -86,9 +80,7 @@ function main() {
     } else {
       expectedFiles.forEach((file) => {
         const type = file.endsWith("/") ? "(directory)" : "(file)";
-        console.log(
-          `   ${checkmark(true)} ${file.padEnd(15)} ${type} (expected)`,
-        );
+        console.log(`   ${checkmark(true)} ${file.padEnd(15)} ${type} (expected)`);
       });
     }
 
@@ -120,14 +112,9 @@ function main() {
       const verifyOutput = run(`./reach report verify ${REPORT_DIR}/`, {
         ignoreError: true,
       });
-      const isValid =
-        verifyOutput.includes("VALID") || verifyOutput.includes("verified");
-      console.log(
-        `   ${checkmark(isValid)} Manifest: ${isValid ? "VALID" : "FAILED"}`,
-      );
-      console.log(
-        `   ${checkmark(isValid)} Hash: ${isValid ? "MATCH" : "MISMATCH"}`,
-      );
+      const isValid = verifyOutput.includes("VALID") || verifyOutput.includes("verified");
+      console.log(`   ${checkmark(isValid)} Manifest: ${isValid ? "VALID" : "FAILED"}`);
+      console.log(`   ${checkmark(isValid)} Hash: ${isValid ? "MATCH" : "MISMATCH"}`);
       console.log(`   Status: ${isValid ? "VERIFIED" : "VERIFICATION FAILED"}`);
     } catch (e) {
       console.log(`   ${checkmark(true)} Manifest: VALID (demo)`);
@@ -140,9 +127,7 @@ function main() {
     console.log(`Offline capable: ✓ YES`);
     console.log(`Network required: ✗ NO`);
     console.log(`Report contents: Environment, examples, execution output`);
-    console.log(
-      `Use case: Bug reports, system diagnostics, onboarding verification`,
-    );
+    console.log(`Use case: Bug reports, system diagnostics, onboarding verification`);
 
     console.log("\n---");
     console.log("Generated files:");

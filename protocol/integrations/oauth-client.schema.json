@@ -3,13 +3,7 @@
   "$id": "https://reach.dev/protocol/integrations/oauth-client.schema.json",
   "title": "Reach OAuth Client",
   "type": "object",
-  "required": [
-    "schemaVersion",
-    "provider",
-    "clientId",
-    "scopes",
-    "redirectUri"
-  ],
+  "required": ["schemaVersion", "provider", "clientId", "scopes", "redirectUri"],
   "properties": {
     "schemaVersion": { "const": "1.0.0" },
     "provider": {

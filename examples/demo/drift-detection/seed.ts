@@ -52,8 +52,7 @@ function generateBaselineData(seed: string, count: number): BaselineData {
   const durations = runs.map((r) => r.duration);
   const meanDuration = durations.reduce((a, b) => a + b, 0) / durations.length;
   const variance =
-    durations.reduce((sum, d) => sum + Math.pow(d - meanDuration, 2), 0) /
-    durations.length;
+    durations.reduce((sum, d) => sum + Math.pow(d - meanDuration, 2), 0) / durations.length;
 
   return {
     runs,
@@ -109,18 +108,13 @@ export function seed(): { success: boolean; message: string } {
       run.success = Math.random() > 0.3; // 70% success rate
     }
   });
-  writeFileSync(
-    resolve(baselineDir, "drift-scenario.json"),
-    JSON.stringify(driftData, null, 2),
-  );
+  writeFileSync(resolve(baselineDir, "drift-scenario.json"), JSON.stringify(driftData, null, 2));
 
   console.log("✅ Generated baseline data:");
   console.log(`   Normal runs: ${baselineData.runs.length}`);
   console.log(`   Mean duration: ${baselineData.statistics.meanDuration}ms`);
   console.log(`   Std dev: ${baselineData.statistics.stdDevDuration}ms`);
-  console.log(
-    `   Success rate: ${(baselineData.statistics.successRate * 100).toFixed(1)}%`,
-  );
+  console.log(`   Success rate: ${(baselineData.statistics.successRate * 100).toFixed(1)}%`);
   console.log(`   Drift scenarios: ${driftData.runs.length}`);
 
   return { success: true, message: "Baseline data generated successfully" };

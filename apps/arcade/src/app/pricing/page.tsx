@@ -57,9 +57,7 @@ const tiers = [
 ];
 
 export default function Pricing() {
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">(
-    "monthly",
-  );
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
 
   return (
     <div className="section-container py-8">
@@ -67,8 +65,7 @@ export default function Pricing() {
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">Simple, Usage-Based Pricing</h1>
         <p className="text-gray-400 max-w-2xl mx-auto">
-          Start free, scale as you grow. Only pay for what you use with no
-          hidden fees.
+          Start free, scale as you grow. Only pay for what you use with no hidden fees.
         </p>
       </div>
 
@@ -77,9 +74,7 @@ export default function Pricing() {
         {tiers.map((tier) => (
           <div
             key={tier.name}
-            className={`card flex flex-col ${
-              tier.highlighted ? "border-accent relative" : ""
-            }`}
+            className={`card flex flex-col ${tier.highlighted ? "border-accent relative" : ""}`}
           >
             {tier.highlighted && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -96,9 +91,7 @@ export default function Pricing() {
 
             <div className="mb-6">
               <span className="text-4xl font-bold">{tier.price}</span>
-              {tier.period && (
-                <span className="text-gray-400 ml-2">{tier.period}</span>
-              )}
+              {tier.period && <span className="text-gray-400 ml-2">{tier.period}</span>}
             </div>
 
             <ul className="space-y-3 mb-8 flex-1">
@@ -151,17 +144,14 @@ export default function Pricing() {
             </div>
           </div>
           <p className="text-center text-sm text-gray-500 mt-6">
-            Volume discounts available for Enterprise plans. Contact sales for
-            details.
+            Volume discounts available for Enterprise plans. Contact sales for details.
           </p>
         </div>
       </div>
 
       {/* FAQ */}
       <div className="max-w-3xl mx-auto mt-16">
-        <h2 className="text-2xl font-bold text-center mb-8">
-          Frequently Asked Questions
-        </h2>
+        <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
         <div className="space-y-4">
           {[
             {

@@ -267,8 +267,6 @@ export function getTemplate(id: string): Template | undefined {
   return TEMPLATES.find((t) => t.id === id);
 }
 
-export function getTemplatesByCategory(
-  category: Template["category"],
-): Template[] {
+export function getTemplatesByCategory(category: Template["category"]): Template[] {
   return TEMPLATES.filter((t) => t.category === category);
 }

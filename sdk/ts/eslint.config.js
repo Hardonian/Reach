@@ -11,10 +11,7 @@ export default [
     rules: {
       "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
       "no-console": "warn",
-      "@typescript-eslint/no-unused-vars": [
-        "warn",
-        { argsIgnorePattern: "^_" },
-      ],
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
     },
     languageOptions: {
       ecmaVersion: "latest",

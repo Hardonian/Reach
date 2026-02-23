@@ -6,9 +6,12 @@ export function createTenant(name: string, slug: string): Tenant {
   const db = getDB();
   const id = newId("ten");
   const now = new Date().toISOString();
-  db.prepare(
-    `INSERT INTO tenants (id, name, slug, plan, created_at) VALUES (?,?,?,'free',?)`,
-  ).run(id, name, slug, now);
+  db.prepare(`INSERT INTO tenants (id, name, slug, plan, created_at) VALUES (?,?,?,'free',?)`).run(
+    id,
+    name,
+    slug,
+    now,
+  );
   // Create default entitlement row
   db.prepare(
     `INSERT INTO entitlements (id, tenant_id, plan, runs_per_month, pack_limit, retention_days, updated_at)
@@ -19,16 +22,16 @@ export function createTenant(name: string, slug: string): Tenant {
 
 export function getTenant(id: string): Tenant | undefined {
   const db = getDB();
-  return db
-    .prepare("SELECT * FROM tenants WHERE id=? AND deleted_at IS NULL")
-    .get(id) as Tenant | undefined;
+  return db.prepare("SELECT * FROM tenants WHERE id=? AND deleted_at IS NULL").get(id) as
+    | Tenant
+    | undefined;
 }
 
 export function getTenantBySlug(slug: string): Tenant | undefined {
   const db = getDB();
-  return db
-    .prepare("SELECT * FROM tenants WHERE slug=? AND deleted_at IS NULL")
-    .get(slug) as Tenant | undefined;
+  return db.prepare("SELECT * FROM tenants WHERE slug=? AND deleted_at IS NULL").get(slug) as
+    | Tenant
+    | undefined;
 }
 
 export function listTenantsForUser(userId: string): Tenant[] {

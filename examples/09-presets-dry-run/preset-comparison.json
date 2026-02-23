@@ -2,19 +2,13 @@
   "presets": {
     "ci-cd-integration": {
       "description": "Optimized for automated pipelines with fast checks and deterministic gates",
-      "filesCreated": [
-        ".reach/config.ci.yml",
-        ".github/workflows/reach-ci.yml"
-      ],
+      "filesCreated": [".reach/config.ci.yml", ".github/workflows/reach-ci.yml"],
       "filesModified": [".reach/config.yml"],
       "useCase": "DevOps engineers running automated deployments"
     },
     "security-review": {
       "description": "Comprehensive security policy enforcement with evidence requirements",
-      "filesCreated": [
-        ".reach/policies/security.rego",
-        ".reach/config.security.yml"
-      ],
+      "filesCreated": [".reach/policies/security.rego", ".reach/config.security.yml"],
       "filesModified": [".reach/config.yml"],
       "useCase": "Security teams and compliance officers"
     },

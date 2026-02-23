@@ -24,12 +24,7 @@
     }
   },
   "expected_structure": {
-    "bundle_contents": [
-      "manifest.json",
-      "events.jsonl",
-      "fingerprint.sha256",
-      "metadata.json"
-    ],
+    "bundle_contents": ["manifest.json", "events.jsonl", "fingerprint.sha256", "metadata.json"],
     "manifest_fields": [
       "id",
       "version",

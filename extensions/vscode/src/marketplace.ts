@@ -1,9 +1,7 @@
 import * as vscode from "vscode";
 import { MarketplaceClient, MarketplaceItem } from "./marketplaceClient";
 
-export async function runMarketplaceSearch(
-  client: MarketplaceClient,
-): Promise<void> {
+export async function runMarketplaceSearch(client: MarketplaceClient): Promise<void> {
   const query = await vscode.window.showInputBox({
     prompt: "Search Reach Marketplace",
   });
@@ -26,13 +24,10 @@ export async function runMarketplaceSearch(
   await installFromItem(client, selected.item);
 }
 
-export async function runMarketplaceInstall(
-  client: MarketplaceClient,
-): Promise<void> {
-  const kind = await vscode.window.showQuickPick(
-    ["connector", "template", "policy"],
-    { title: "Install kind" },
-  );
+export async function runMarketplaceInstall(client: MarketplaceClient): Promise<void> {
+  const kind = await vscode.window.showQuickPick(["connector", "template", "policy"], {
+    title: "Install kind",
+  });
   if (!kind) {
     return;
   }
@@ -56,20 +51,11 @@ export async function runMarketplaceInstall(
     intent.idempotency_key,
     intent.permissions_summary?.required_capabilities ?? [],
   );
-  void vscode.window.showInformationMessage(
-    `Installed ${id}@${intent.resolved_version}`,
-  );
+  void vscode.window.showInformationMessage(`Installed ${id}@${intent.resolved_version}`);
 }
 
-async function installFromItem(
-  client: MarketplaceClient,
-  item: MarketplaceItem,
-): Promise<void> {
-  const intent = await client.installIntent(
-    item.kind,
-    item.id,
-    item.latest_version,
-  );
+async function installFromItem(client: MarketplaceClient, item: MarketplaceItem): Promise<void> {
+  const intent = await client.installIntent(item.kind, item.id, item.latest_version);
   const confirm = await vscode.window.showWarningMessage(
     `Install ${item.name} (${item.id})? Capabilities: ${(item.required_capabilities ?? []).join(", ") || "none"}; side effects: ${(item.side_effect_types ?? []).join(", ") || "none"}`,
     { modal: true },
@@ -85,19 +71,13 @@ async function installFromItem(
     intent.idempotency_key,
     intent.permissions_summary?.required_capabilities ?? [],
   );
-  void vscode.window.showInformationMessage(
-    `Installed ${item.id}@${intent.resolved_version}`,
-  );
+  void vscode.window.showInformationMessage(`Installed ${item.id}@${intent.resolved_version}`);
 }
 
-export async function runMarketplaceInstalled(
-  client: MarketplaceClient,
-): Promise<void> {
+export async function runMarketplaceInstalled(client: MarketplaceClient): Promise<void> {
   const items = await client.installed();
   if (items.length === 0) {
-    void vscode.window.showInformationMessage(
-      "No installed marketplace items.",
-    );
+    void vscode.window.showInformationMessage("No installed marketplace items.");
     return;
   }
   await vscode.window.showQuickPick(
@@ -109,9 +89,7 @@ export async function runMarketplaceInstalled(
   );
 }
 
-export async function runMarketplaceUpdate(
-  client: MarketplaceClient,
-): Promise<void> {
+export async function runMarketplaceUpdate(client: MarketplaceClient): Promise<void> {
   const items = await client.installed();
   if (items.length === 0) {
     void vscode.window.showInformationMessage("No installed items to update.");

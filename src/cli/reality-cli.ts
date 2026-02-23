@@ -146,14 +146,10 @@ function runAdaptersList(): number {
     const status = adapter.enabled ? "Enabled" : "Disabled";
     const cadence = adapter.metadata?.cadence ?? "N/A";
 
-    console.log(
-      `| ${adapter.id} | ${adapter.domain} | ${status} | ${cadence} |`,
-    );
+    console.log(`| ${adapter.id} | ${adapter.domain} | ${status} | ${cadence} |`);
   }
 
-  console.log(
-    "\nUse --adapter <id> for details, --enable/--disable to toggle.",
-  );
+  console.log("\nUse --adapter <id> for details, --enable/--disable to toggle.");
   return 0;
 }
 
@@ -228,9 +224,7 @@ async function runBuildDataset(
     }
   } else {
     const endDate = new Date().toISOString();
-    const startDate = new Date(
-      Date.now() - 30 * 24 * 60 * 60 * 1000,
-    ).toISOString();
+    const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     dateRange = { start: startDate, end: endDate };
   }
 
@@ -241,9 +235,7 @@ async function runBuildDataset(
 
   const registry = createRealityAdapterRegistry();
   const enabledAdapters = registry.getEnabled();
-  console.log(
-    `Enabled adapters: ${enabledAdapters.map((a: Adapter) => a.info.id).join(", ")}`,
-  );
+  console.log(`Enabled adapters: ${enabledAdapters.map((a: Adapter) => a.info.id).join(", ")}`);
 
   const dataset = await builder.buildDataset({
     adapterIds: enabledAdapters.map((a: Adapter) => a.info.id),
@@ -263,9 +255,7 @@ async function runBuildDataset(
   console.log("\nDataset built successfully:");
   console.log(`  ID: ${dataset.id}`);
   console.log(`  Created: ${dataset.createdAt}`);
-  console.log(
-    `  Time Range: ${dataset.timeRange.start} to ${dataset.timeRange.end}`,
-  );
+  console.log(`  Time Range: ${dataset.timeRange.start} to ${dataset.timeRange.end}`);
   console.log(`  Observations: ${dataset.observations.length}`);
   console.log(`  Batches: ${dataset.batches.length}`);
   console.log(`  Catalog Hash: ${dataset.catalogHash.slice(0, 16)}...`);
@@ -291,9 +281,7 @@ export async function runReplayPipeline(datasetPath: string): Promise<number> {
   console.log(`\n=== Zeo Replay Pipeline ===\n`);
   console.log(`Dataset: ${datasetPath}`);
 
-  console.log(
-    "\nNote: Replay pipeline requires ReplayDataset format from contracts.",
-  );
+  console.log("\nNote: Replay pipeline requires ReplayDataset format from contracts.");
   console.log("This is different from the dataset builder output.");
   console.log("To run replay, use: zeo --replay <dataset.json>");
 
@@ -313,9 +301,7 @@ export async function runNightlyPipeline(
   console.log("");
 
   const endDate = new Date().toISOString();
-  const startDate = new Date(
-    Date.now() - 30 * 24 * 60 * 60 * 1000,
-  ).toISOString();
+  const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
   console.log("Building dataset...");
   const builder = createDatasetBuilder();

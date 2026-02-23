@@ -689,9 +689,10 @@ export function applyMigrations(db: Database.Database): void {
     if (!appliedSet.has(version)) {
       const applyMigration = db.transaction(() => {
         db.exec(MIGRATIONS[i]);
-        db.prepare(
-          "INSERT OR IGNORE INTO schema_version (version, applied_at) VALUES (?, ?)",
-        ).run(version, new Date().toISOString());
+        db.prepare("INSERT OR IGNORE INTO schema_version (version, applied_at) VALUES (?, ?)").run(
+          version,
+          new Date().toISOString(),
+        );
       });
       applyMigration();
     }

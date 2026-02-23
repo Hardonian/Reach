@@ -32,15 +32,10 @@ const runManualGrep = (pattern: RegExp) => {
       for (let i = 0; i < lines.length; i++) {
         if (pattern.test(lines[i])) {
           // Exempt PoEE if "core and justified"
-          if (
-            /PoEE/i.test(lines[i]) &&
-            /(core.*justified|justified.*core)/i.test(lines[i])
-          ) {
+          if (/PoEE/i.test(lines[i]) && /(core.*justified|justified.*core)/i.test(lines[i])) {
             continue;
           }
-          matchedFiles.push(
-            `${f}:${i + 1}: ${lines[i].substring(0, 100).trim()}`,
-          );
+          matchedFiles.push(`${f}:${i + 1}: ${lines[i].substring(0, 100).trim()}`);
         }
       }
     }
@@ -53,14 +48,11 @@ const runManualGrep = (pattern: RegExp) => {
 let failed = false;
 
 console.log("Checking for banned legacy vocabulary...");
-const legacyPattern =
-  /\b(Envelope|Capsule|Blueprint|Recipe|Pack-Variant|PoEE)\b/i;
+const legacyPattern = /\b(Envelope|Capsule|Blueprint|Recipe|Pack-Variant|PoEE)\b/i;
 const issues = runManualGrep(legacyPattern);
 
 if (issues.length > 0) {
-  const filtered = issues.filter(
-    (i: string) => !i.startsWith("scripts/check-terminology.ts"),
-  );
+  const filtered = issues.filter((i: string) => !i.startsWith("scripts/check-terminology.ts"));
   if (filtered.length > 0) {
     console.error("❌ ERROR: Found Terminology Drift in user-facing surfaces:");
     filtered.forEach((i: string) => console.error(i));

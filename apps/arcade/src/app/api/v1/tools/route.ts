@@ -4,14 +4,7 @@ import type { ToolType } from "@/lib/runtime";
 
 export const runtime = "nodejs";
 
-const VALID_TYPES: ToolType[] = [
-  "http",
-  "github",
-  "file",
-  "webhook",
-  "local-cli",
-  "vector-db",
-];
+const VALID_TYPES: ToolType[] = ["http", "github", "file", "webhook", "local-cli", "vector-db"];
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(req.url);

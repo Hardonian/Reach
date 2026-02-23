@@ -21,17 +21,7 @@ services:
       - ./pack-devkit:/app/pack-devkit
     working_dir: /app/services/runner
     command:
-      [
-        "go",
-        "run",
-        "./cmd/reach-serve",
-        "--bind",
-        "0.0.0.0",
-        "--port",
-        "8787",
-        "--data",
-        "/data",
-      ]
+      ["go", "run", "./cmd/reach-serve", "--bind", "0.0.0.0", "--port", "8787", "--data", "/data"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8787/health"]
       interval: 30s

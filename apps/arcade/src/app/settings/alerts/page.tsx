@@ -75,9 +75,7 @@ export default function AlertsPage() {
       body: JSON.stringify({ status: next }),
     });
     if (res.ok)
-      setRules((prev) =>
-        prev.map((r) => (r.id === rule.id ? { ...r, status: next } : r)),
-      );
+      setRules((prev) => prev.map((r) => (r.id === rule.id ? { ...r, status: next } : r)));
   }
 
   async function deleteRule(id: string) {
@@ -106,28 +104,20 @@ export default function AlertsPage() {
 
       {showCreate && (
         <div className="mb-6 p-5 rounded-xl border border-border bg-surface">
-          <h2 className="text-base font-semibold text-white mb-4">
-            New alert rule
-          </h2>
+          <h2 className="text-base font-semibold text-white mb-4">New alert rule</h2>
           <form onSubmit={handleCreate} className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-gray-400 mb-1">
-                Rule name
-              </label>
+              <label className="block text-xs font-medium text-gray-400 mb-1">Rule name</label>
               <input
                 value={form.name}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, name: e.target.value }))
-                }
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-white"
                 placeholder="Drift alert"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1">
-                Channel
-              </label>
+              <label className="block text-xs font-medium text-gray-400 mb-1">Channel</label>
               <select
                 value={form.channel}
                 onChange={(e) =>
@@ -148,21 +138,15 @@ export default function AlertsPage() {
               </label>
               <input
                 value={form.destination}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, destination: e.target.value }))
-                }
+                onChange={(e) => setForm((f) => ({ ...f, destination: e.target.value }))}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-white"
                 placeholder={
-                  form.channel === "email"
-                    ? "you@company.com"
-                    : "https://hooks.slack.com/..."
+                  form.channel === "email" ? "you@company.com" : "https://hooks.slack.com/..."
                 }
                 required
               />
             </div>
-            {error && (
-              <p className="col-span-2 text-xs text-red-400">{error}</p>
-            )}
+            {error && <p className="col-span-2 text-xs text-red-400">{error}</p>}
             <div className="col-span-2 flex items-center gap-3">
               <button
                 type="submit"
@@ -190,12 +174,8 @@ export default function AlertsPage() {
           <span className="material-symbols-outlined text-4xl text-gray-600 block mb-3">
             notifications_active
           </span>
-          <h3 className="text-base font-medium text-white mb-1">
-            No alert rules
-          </h3>
-          <p className="text-sm text-gray-400 mb-4">
-            Get alerted when your agent drifts.
-          </p>
+          <h3 className="text-base font-medium text-white mb-1">No alert rules</h3>
+          <p className="text-sm text-gray-400 mb-4">Get alerted when your agent drifts.</p>
           <button
             onClick={() => setShowCreate(true)}
             className="px-4 py-2 bg-accent text-white rounded-lg text-sm font-medium"
@@ -215,9 +195,7 @@ export default function AlertsPage() {
                   <span className="material-symbols-outlined text-[16px] text-gray-400">
                     {rule.channel === "email" ? "email" : "webhook"}
                   </span>
-                  <span className="text-sm font-medium text-white">
-                    {rule.name}
-                  </span>
+                  <span className="text-sm font-medium text-white">{rule.name}</span>
                   <span
                     className={`px-1.5 py-0.5 rounded text-xs ${
                       rule.status === "enabled"
@@ -228,9 +206,7 @@ export default function AlertsPage() {
                     {rule.status}
                   </span>
                 </div>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {rule.destination}
-                </p>
+                <p className="text-xs text-gray-400 mt-0.5">{rule.destination}</p>
               </div>
               <div className="flex items-center gap-2">
                 <button

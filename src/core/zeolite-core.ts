@@ -1,9 +1,5 @@
 import { createHash } from "node:crypto";
-import type {
-  DecisionSpec,
-  EvidenceEvent,
-  FinalizedDecisionTranscript,
-} from "@zeo/contracts";
+import type { DecisionSpec, EvidenceEvent, FinalizedDecisionTranscript } from "@zeo/contracts";
 // @ts-ignore - resolve missing core module
 import { executeDecision, verifyDecisionTranscript } from "@zeo/core";
 
@@ -57,9 +53,7 @@ function makeNegotiationSpec(): DecisionSpec {
         kind: "commit",
       },
     ],
-    constraints: [
-      { id: "deadline", name: "deadline", value: "7d", status: "assumption" },
-    ],
+    constraints: [{ id: "deadline", name: "deadline", value: "7d", status: "assumption" }],
     assumptions: [
       {
         id: "timeline_pressure",
@@ -112,10 +106,7 @@ function resolveSpec(example?: unknown): DecisionSpec {
   return example === "ops" ? makeOpsSpec() : makeNegotiationSpec();
 }
 
-function envelope(
-  spec: DecisionSpec,
-  whatWouldChange: string[],
-): Record<string, unknown> {
+function envelope(spec: DecisionSpec, whatWouldChange: string[]): Record<string, unknown> {
   return {
     schemaVersion: "zeo.v1",
     assumptions: spec.assumptions.map((a: any) => a.id),
@@ -169,9 +160,7 @@ function deriveVoiRankings(
     .sort((a: any, b: any) => b.evoi - a.evoi);
 }
 
-function createTranscriptForContext(
-  context: ZeoliteContext,
-): FinalizedDecisionTranscript {
+function createTranscriptForContext(context: ZeoliteContext): FinalizedDecisionTranscript {
   const { transcript } = executeDecision({
     spec: context.spec,
     evidence: context.evidence,
@@ -202,13 +191,10 @@ export function executeZeoliteOperation(
       typeof params.seed === "string" && params.seed.trim().length > 0
         ? params.seed
         : deterministicSeed(spec.id, depth);
-    const contextId = stableId(
-      JSON.stringify({ specId: spec.id, depth, seed }),
-    );
+    const contextId = stableId(JSON.stringify({ specId: spec.id, depth, seed }));
 
     const whatWouldChange = spec.assumptions.map(
-      (a: any, idx: number) =>
-        `${a.id}: threshold shift ${(idx + 1) * 10}% can alter ranking`,
+      (a: any, idx: number) => `${a.id}: threshold shift ${(idx + 1) * 10}% can alter ranking`,
     );
     contexts.set(contextId, { id: contextId, spec, evidence: [] });
 
@@ -229,15 +215,11 @@ export function executeZeoliteOperation(
     if (!sourceId || !claim) throw new Error("sourceId and claim are required");
 
     const evidence: EvidenceEvent = {
-      id: stableId(
-        `${contextId}:${sourceId}:${claim}:${context.evidence.length}`,
-      ),
+      id: stableId(`${contextId}:${sourceId}:${claim}:${context.evidence.length}`),
       type: "document",
       sourceId,
       capturedAt:
-        typeof params.capturedAt === "string"
-          ? params.capturedAt
-          : "1970-01-01T00:00:00.000Z",
+        typeof params.capturedAt === "string" ? params.capturedAt : "1970-01-01T00:00:00.000Z",
       checksum: stableId(claim),
       observations: [claim],
       claims: [],
@@ -266,8 +248,7 @@ export function executeZeoliteOperation(
       ...envelope(
         context.spec,
         counterfactuals.map(
-          (cf) =>
-            `${cf.variableId} within ±${cf.flipDistance.toFixed(3)} can alter ranking`,
+          (cf) => `${cf.variableId} within ±${cf.flipDistance.toFixed(3)} can alter ranking`,
         ),
       ),
     };
@@ -281,23 +262,17 @@ export function executeZeoliteOperation(
       rankings,
       ...envelope(
         context.spec,
-        rankings
-          .slice(0, 3)
-          .map((r) => `${r.actionId} with VOI ${r.evoi.toFixed(4)}`),
+        rankings.slice(0, 3).map((r) => `${r.actionId} with VOI ${r.evoi.toFixed(4)}`),
       ),
     };
   }
 
   if (operation === "generate_regret_bounded_plan") {
     const horizon =
-      typeof params.horizon === "number"
-        ? Math.max(1, Math.min(5, Math.floor(params.horizon)))
-        : 3;
+      typeof params.horizon === "number" ? Math.max(1, Math.min(5, Math.floor(params.horizon))) : 3;
     const minEvoi = typeof params.minEvoi === "number" ? params.minEvoi : 0.5;
     const rankings = deriveVoiRankings(context.spec, minEvoi);
-    const selected = rankings
-      .filter((r) => r.recommendation === "do_now")
-      .slice(0, horizon);
+    const selected = rankings.filter((r) => r.recommendation === "do_now").slice(0, horizon);
 
     return {
       contextId,
@@ -321,10 +296,7 @@ export function executeZeoliteOperation(
       terminatedEarly: selected.length < horizon,
       ...envelope(
         context.spec,
-        selected.map(
-          (s) =>
-            `${s.actionId} below threshold would change recommendation order`,
-        ),
+        selected.map((s) => `${s.actionId} below threshold would change recommendation order`),
       ),
     };
   }
@@ -342,10 +314,7 @@ export function executeZeoliteOperation(
         context.spec,
         flip
           .slice(0, 2)
-          .map(
-            (cf) =>
-              `${cf.variableId} at ${cf.flipDistance.toFixed(3)} changes top action`,
-          ),
+          .map((cf) => `${cf.variableId} at ${cf.flipDistance.toFixed(3)} changes top action`),
       ),
     };
   }
@@ -380,8 +349,7 @@ export function executeZeoliteOperation(
       contextId,
       transcriptId,
       replay: {
-        sameHash:
-          replayed.transcript.transcript_hash === transcript.transcript_hash,
+        sameHash: replayed.transcript.transcript_hash === transcript.transcript_hash,
         originalHash: transcript.transcript_hash,
         replayHash: replayed.transcript.transcript_hash,
       },
@@ -396,15 +364,12 @@ export function executeZeoliteOperation(
   return {
     contextId,
     adjudication: {
-      accepted:
-        proposal.claim ===
-        (boundary.zeoBoundary as Record<string, unknown>).topAction,
+      accepted: proposal.claim === (boundary.zeoBoundary as Record<string, unknown>).topAction,
       agentClaim: proposal.claim ?? null,
       zeoBoundary: boundary.zeoBoundary,
       diff: {
         agentClaim: proposal.claim ?? null,
-        zeoBoundary: (boundary.zeoBoundary as Record<string, unknown>)
-          .topAction,
+        zeoBoundary: (boundary.zeoBoundary as Record<string, unknown>).topAction,
         whatWouldChange: boundary.whatWouldChange,
       },
     },

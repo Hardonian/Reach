@@ -3,14 +3,7 @@
   "$id": "https://reach.dev/protocol/v1/capsule.schema.json",
   "title": "Capsule",
   "type": "object",
-  "required": [
-    "schemaVersion",
-    "capsuleId",
-    "session",
-    "spawn",
-    "syncState",
-    "updatedAt"
-  ],
+  "required": ["schemaVersion", "capsuleId", "session", "spawn", "syncState", "updatedAt"],
   "properties": {
     "schemaVersion": { "const": "1.0.0" },
     "capsuleId": { "type": "string", "minLength": 1 },

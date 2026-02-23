@@ -8,11 +8,7 @@
  * - Failure auto-fallback
  */
 
-import type {
-  ProviderConfig,
-  ProviderRoutingResult,
-  ProviderModel,
-} from "./types";
+import type { ProviderConfig, ProviderRoutingResult, ProviderModel } from "./types";
 
 // ── Built-in Providers ──
 
@@ -117,10 +113,7 @@ export const BUILTIN_PROVIDERS: ProviderConfig[] = [
 
 // ── Routing Logic ──
 
-export type RoutingStrategy =
-  | "default"
-  | "cost-optimized"
-  | "latency-optimized";
+export type RoutingStrategy = "default" | "cost-optimized" | "latency-optimized";
 
 export function routeToProvider(
   strategy: RoutingStrategy = "default",
@@ -178,13 +171,9 @@ export function fallbackRoute(
   };
 }
 
-function selectModel(
-  provider: ProviderConfig,
-  strategy: RoutingStrategy,
-): ProviderModel {
+function selectModel(provider: ProviderConfig, strategy: RoutingStrategy): ProviderModel {
   const models = provider.models;
-  if (models.length === 0)
-    throw new Error(`Provider ${provider.id} has no models`);
+  if (models.length === 0) throw new Error(`Provider ${provider.id} has no models`);
 
   if (strategy === "cost-optimized") {
     return [...models].sort((a, b) => a.costPer1kInput - b.costPer1kInput)[0];

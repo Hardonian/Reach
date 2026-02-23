@@ -9,10 +9,9 @@ export default function Home() {
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-5xl font-bold mb-6">Reach</h1>
           <p className="text-xl text-slate-300 mb-8">
-            High-performance, deterministic decision engine for autonomous
-            agents and complex workflows. Cryptographic provenance and
-            bit-identical replayability for production-grade, auditable AI
-            systems.
+            High-performance, deterministic decision engine for autonomous agents and complex
+            workflows. Cryptographic provenance and bit-identical replayability for
+            production-grade, auditable AI systems.
           </p>
           <div className="flex gap-4 justify-center">
             <Link
@@ -34,9 +33,7 @@ export default function Home() {
       {/* Quick Install */}
       <section className="py-16 px-4 bg-white">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold mb-8 text-center">
-            Install in Seconds
-          </h2>
+          <h2 className="text-3xl font-bold mb-8 text-center">Install in Seconds</h2>
           <CodeBlock
             code={`# Clone and install
 git clone https://github.com/reach/reach.git
@@ -53,9 +50,7 @@ pnpm install
       {/* Example Walkthrough */}
       <section className="py-16 px-4 bg-slate-50">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold mb-8 text-center">
-            See It In Action
-          </h2>
+          <h2 className="text-3xl font-bold mb-8 text-center">See It In Action</h2>
           <CodeBlock
             code={`$ reach explain decision-01.json
 ✔ Workflow parsed successfully
@@ -68,10 +63,7 @@ Execution Time: 14ms`}
             language="bash"
           />
           <div className="text-center mt-6">
-            <Link
-              href="/docs/examples"
-              className="text-blue-600 hover:text-blue-800 font-medium"
-            >
+            <Link href="/docs/examples" className="text-blue-600 hover:text-blue-800 font-medium">
               Explore all 6 examples →
             </Link>
           </div>
@@ -81,9 +73,7 @@ Execution Time: 14ms`}
       {/* Navigation Cards */}
       <section className="py-16 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold mb-12 text-center">
-            Documentation
-          </h2>
+          <h2 className="text-3xl font-bold mb-12 text-center">Documentation</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <Link
               href="/docs/quickstart"
@@ -91,8 +81,7 @@ Execution Time: 14ms`}
             >
               <h3 className="text-xl font-semibold mb-2">Quickstart</h3>
               <p className="text-slate-600">
-                Get up and running in under a minute with your first decision
-                workflow.
+                Get up and running in under a minute with your first decision workflow.
               </p>
             </Link>
             <Link
@@ -101,8 +90,7 @@ Execution Time: 14ms`}
             >
               <h3 className="text-xl font-semibold mb-2">Examples</h3>
               <p className="text-slate-600">
-                Six complete examples from basic setup to advanced replay
-                verification.
+                Six complete examples from basic setup to advanced replay verification.
               </p>
             </Link>
             <Link
@@ -111,8 +99,7 @@ Execution Time: 14ms`}
             >
               <h3 className="text-xl font-semibold mb-2">Presets</h3>
               <p className="text-slate-600">
-                Choose your starting path with pre-configured policy packs and
-                templates.
+                Choose your starting path with pre-configured policy packs and templates.
               </p>
             </Link>
             <Link
@@ -139,8 +126,7 @@ Execution Time: 14ms`}
             >
               <h3 className="text-xl font-semibold mb-2">Stability</h3>
               <p className="text-slate-600">
-                What's stable vs experimental, versioning policy, and migration
-                guides.
+                What's stable vs experimental, versioning policy, and migration guides.
               </p>
             </Link>
           </div>
@@ -152,8 +138,8 @@ Execution Time: 14ms`}
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-6">Contribute to Reach</h2>
           <p className="text-slate-300 mb-8">
-            Reach is open source and welcomes contributions. Help us build the
-            future of deterministic AI systems.
+            Reach is open source and welcomes contributions. Help us build the future of
+            deterministic AI systems.
           </p>
           <div className="flex gap-4 justify-center">
             <Link

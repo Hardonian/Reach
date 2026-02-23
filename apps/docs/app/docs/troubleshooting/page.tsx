@@ -28,8 +28,8 @@ export default function TroubleshootingPage() {
   return (
     <DocLayout currentPath="/docs/troubleshooting" title="Troubleshooting">
       <p className="text-lg text-slate-600 mb-8">
-        Common issues, debug workflows, and how to generate comprehensive bug
-        reports for the Reach team.
+        Common issues, debug workflows, and how to generate comprehensive bug reports for the Reach
+        team.
       </p>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Diagnostic Tools</h2>
@@ -37,8 +37,7 @@ export default function TroubleshootingPage() {
       <h3 className="text-xl font-semibold mt-6 mb-2">System Health Check</h3>
       <CodeBlock code={`./reach doctor`} />
       <p className="mt-2">
-        Checks all dependencies, permissions, and deterministic environment
-        requirements.
+        Checks all dependencies, permissions, and deterministic environment requirements.
       </p>
 
       <h3 className="text-xl font-semibold mt-6 mb-2">Generate Demo Report</h3>
@@ -50,8 +49,8 @@ export default function TroubleshootingPage() {
 ./reach report verify demo-report/`}
       />
       <p className="mt-2">
-        Creates a shareable artifact with hashes, timeline, and environment
-        snapshot. Attach this to bug reports.
+        Creates a shareable artifact with hashes, timeline, and environment snapshot. Attach this to
+        bug reports.
       </p>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Common Issues</h2>
@@ -78,9 +77,7 @@ DEBUG=reach* ./reach doctor
 ./reach explain <decision-id> --verbose`}
       />
 
-      <h2 className="text-2xl font-semibold mt-8 mb-4">
-        Generating Bug Reports
-      </h2>
+      <h2 className="text-2xl font-semibold mt-8 mb-4">Generating Bug Reports</h2>
       <p className="mb-4">When filing a bug report, please include:</p>
       <ol className="list-decimal pl-6 space-y-2">
         <li>Exact command run</li>

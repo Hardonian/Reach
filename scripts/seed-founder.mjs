@@ -21,8 +21,7 @@ const decisions = [
   {
     id: "dec_01",
     title: "Consolidate Marketplace and Templates",
-    description:
-      "Merge divergent library routes into /library to reduce nav bloat.",
+    description: "Merge divergent library routes into /library to reduce nav bloat.",
     status: "go",
     score_total: 42.5,
     strategic_align: 1,
@@ -43,14 +42,7 @@ for (const dec of decisions) {
     INSERT OR IGNORE INTO founder_decisions (id, title, description, status, score_total, strategic_align, created_by, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, 'u_demo_01', datetime('now'), datetime('now'))
   `,
-  ).run(
-    dec.id,
-    dec.title,
-    dec.description,
-    dec.status,
-    dec.score_total,
-    dec.strategic_align,
-  );
+  ).run(dec.id, dec.title, dec.description, dec.status, dec.score_total, dec.strategic_align);
 }
 
 console.log("✅ Founder data seeded.");

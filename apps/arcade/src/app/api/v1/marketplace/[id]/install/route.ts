@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth, cloudErrorResponse, auditLog } from "@/lib/cloud-auth";
-import {
-  getPack,
-  getPackBySlug,
-  getPackVersion,
-  incrementDownload,
-} from "@/lib/cloud-db";
+import { getPack, getPackBySlug, getPackVersion, incrementDownload } from "@/lib/cloud-db";
 
 export const runtime = "nodejs";
 

@@ -276,11 +276,7 @@ interface ToolInvocation {
 /**
  * Compares latency between baseline and current.
  */
-export function compareLatency(
-  baseline: number,
-  current: number,
-  thresholdMs = 1000,
-): DiffResult {
+export function compareLatency(baseline: number, current: number, thresholdMs = 1000): DiffResult {
   const deltaMs = current - baseline;
   const deltaPct = baseline > 0 ? ((current - baseline) / baseline) * 100 : 0;
 
@@ -317,11 +313,7 @@ export function compareLatency(
 /**
  * Compares cost between baseline and current.
  */
-export function compareCost(
-  baseline: number,
-  current: number,
-  thresholdPct = 50,
-): DiffResult {
+export function compareCost(baseline: number, current: number, thresholdPct = 50): DiffResult {
   const delta = current - baseline;
   const deltaPct = baseline > 0 ? ((current - baseline) / baseline) * 100 : 0;
 
@@ -393,9 +385,7 @@ export function comparePolicyViolations(
 
   const similarity = calculateViolationSimilarity(baseline, current);
   const riskDelta =
-    current.length > baseline.length
-      ? Math.min(1, (current.length - baseline.length) / 10)
-      : 0;
+    current.length > baseline.length ? Math.min(1, (current.length - baseline.length) / 10) : 0;
 
   return {
     diff_type: "policy_violations",
@@ -458,18 +448,12 @@ export function runComprehensiveDiff(
   const results: DiffResult[] = [];
 
   // Output text diff
-  if (
-    typeof baseline.output === "string" &&
-    typeof current.output === "string"
-  ) {
+  if (typeof baseline.output === "string" && typeof current.output === "string") {
     results.push(compareOutputText(baseline.output, current.output));
   }
 
   // JSON diff
-  if (
-    typeof baseline.output === "object" &&
-    typeof current.output === "object"
-  ) {
+  if (typeof baseline.output === "object" && typeof current.output === "object") {
     results.push(
       compareStructuredJson(
         baseline.output as Record<string, unknown>,
@@ -480,9 +464,7 @@ export function runComprehensiveDiff(
 
   // Tool sequence diff
   if (baseline.tool_invocations && current.tool_invocations) {
-    results.push(
-      compareToolSequences(baseline.tool_invocations, current.tool_invocations),
-    );
+    results.push(compareToolSequences(baseline.tool_invocations, current.tool_invocations));
   }
 
   // Latency diff
@@ -497,16 +479,13 @@ export function runComprehensiveDiff(
 
   // Policy violations diff
   if (baseline.violations && current.violations) {
-    results.push(
-      comparePolicyViolations(baseline.violations, current.violations),
-    );
+    results.push(comparePolicyViolations(baseline.violations, current.violations));
   }
 
   // Aggregate results
   const overallSimilarity =
     results.reduce((sum, r) => sum + r.similarity_score, 0) / results.length;
-  const overallRiskDelta =
-    results.reduce((sum, r) => sum + r.risk_delta, 0) / results.length;
+  const overallRiskDelta = results.reduce((sum, r) => sum + r.risk_delta, 0) / results.length;
 
   // Count changes
   let totalChanges = 0;
@@ -608,9 +587,7 @@ function calculateJsonSimilarity(
   const baselineJson = JSON.stringify(baselineFiltered);
   const currentJson = JSON.stringify(currentFiltered);
 
-  return baselineJson === currentJson
-    ? 1
-    : calculateSimilarity(baselineJson, currentJson);
+  return baselineJson === currentJson ? 1 : calculateSimilarity(baselineJson, currentJson);
 }
 
 function calculateSequenceSimilarity(
@@ -668,21 +645,12 @@ function calculateViolationSimilarity(
   const maxLen = Math.max(baseline.length, current.length);
   return matches / maxLen;
 }
-function calculateChangeSeverity(
-  baseline: unknown,
-  current: unknown,
-): ChangeSeverity {
+function calculateChangeSeverity(baseline: unknown, current: unknown): ChangeSeverity {
   const bStr = String(baseline);
   const cStr = String(current);
 
   // Check for concerning keywords
-  const errorKeywords = [
-    "error",
-    "fail",
-    "exception",
-    "denied",
-    "unauthorized",
-  ];
+  const errorKeywords = ["error", "fail", "exception", "denied", "unauthorized"];
   const warningKeywords = ["warning", "warn", "deprecated"];
 
   const combined = (bStr + cStr).toLowerCase();
@@ -717,21 +685,15 @@ function generateRecommendations(results: DiffResult[]): string[] {
 
   for (const result of results) {
     if (result.risk_level === "critical") {
-      recommendations.push(
-        `Critical changes detected in ${result.diff_type}. Review immediately.`,
-      );
+      recommendations.push(`Critical changes detected in ${result.diff_type}. Review immediately.`);
     }
     if (result.risk_level === "high") {
-      recommendations.push(
-        `Significant changes in ${result.diff_type}. Consider manual review.`,
-      );
+      recommendations.push(`Significant changes in ${result.diff_type}. Consider manual review.`);
     }
 
     for (const change of result.changes) {
       if (change.severity === "error") {
-        recommendations.push(
-          `Error-level change at ${change.path}: review required.`,
-        );
+        recommendations.push(`Error-level change at ${change.path}: review required.`);
       }
     }
   }

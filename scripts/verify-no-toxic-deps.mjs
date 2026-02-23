@@ -35,10 +35,7 @@ const RESTRICTED_PACKAGES = [
 
 console.log("🛡️  Reach Toxic Dependency Check\n");
 console.log("Checking for toxic packages:", TOXIC_PACKAGES.join(", "));
-console.log(
-  "Checking restricted packages:",
-  RESTRICTED_PACKAGES.map((p) => p.name).join(", "),
-);
+console.log("Checking restricted packages:", RESTRICTED_PACKAGES.map((p) => p.name).join(", "));
 console.log();
 
 let hasErrors = false;
@@ -81,12 +78,8 @@ for (const workspace of workspaces) {
         const [minMajor] = restricted.minVersion.split(".").map(Number);
 
         if (major < minMajor) {
-          console.error(
-            `  ❌ VULNERABLE: ${restricted.name}@${version} in ${workspace.name}`,
-          );
-          console.error(
-            `     Required: >=${restricted.minVersion} (${restricted.reason})`,
-          );
+          console.error(`  ❌ VULNERABLE: ${restricted.name}@${version} in ${workspace.name}`);
+          console.error(`     Required: >=${restricted.minVersion} (${restricted.reason})`);
           hasErrors = true;
         } else {
           console.log(`  ✅ ${restricted.name}@${version} OK`);
@@ -115,9 +108,7 @@ for (const workspace of workspaces) {
 // Summary
 if (hasErrors) {
   console.error("❌ TOXIC DEPENDENCIES DETECTED!");
-  console.error(
-    "   These packages must be removed or isolated before deployment.",
-  );
+  console.error("   These packages must be removed or isolated before deployment.");
   console.error("   See SECURITY.md for remediation steps.\n");
   process.exit(1);
 } else {

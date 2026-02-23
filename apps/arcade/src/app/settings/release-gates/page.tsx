@@ -24,9 +24,7 @@ function StatusBadge({ status }: { status: "enabled" | "disabled" }) {
   return (
     <span
       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-        status === "enabled"
-          ? "bg-green-500/15 text-green-400"
-          : "bg-gray-500/15 text-gray-400"
+        status === "enabled" ? "bg-green-500/15 text-green-400" : "bg-gray-500/15 text-gray-400"
       }`}
     >
       <span
@@ -98,9 +96,7 @@ export default function ReleaseGatesPage() {
       body: JSON.stringify({ status: next }),
     });
     if (res.ok) {
-      setGates((prev) =>
-        prev.map((g) => (g.id === gate.id ? { ...g, status: next } : g)),
-      );
+      setGates((prev) => prev.map((g) => (g.id === gate.id ? { ...g, status: next } : g)));
     }
   }
 
@@ -133,68 +129,48 @@ export default function ReleaseGatesPage() {
       {/* Create form */}
       {showCreate && (
         <div className="mb-6 p-5 rounded-xl border border-border bg-surface">
-          <h2 className="text-base font-semibold text-white mb-4">
-            New release gate
-          </h2>
+          <h2 className="text-base font-semibold text-white mb-4">New release gate</h2>
           <form onSubmit={handleCreate} className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-gray-400 mb-1">
-                Gate name
-              </label>
+              <label className="block text-xs font-medium text-gray-400 mb-1">Gate name</label>
               <input
                 value={form.name}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, name: e.target.value }))
-                }
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-white"
                 placeholder="Production gate"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1">
-                Repo owner
-              </label>
+              <label className="block text-xs font-medium text-gray-400 mb-1">Repo owner</label>
               <input
                 value={form.repo_owner}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, repo_owner: e.target.value }))
-                }
+                onChange={(e) => setForm((f) => ({ ...f, repo_owner: e.target.value }))}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-white"
                 placeholder="acme-corp"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1">
-                Repo name
-              </label>
+              <label className="block text-xs font-medium text-gray-400 mb-1">Repo name</label>
               <input
                 value={form.repo_name}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, repo_name: e.target.value }))
-                }
+                onChange={(e) => setForm((f) => ({ ...f, repo_name: e.target.value }))}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-white"
                 placeholder="my-agent"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1">
-                Default branch
-              </label>
+              <label className="block text-xs font-medium text-gray-400 mb-1">Default branch</label>
               <input
                 value={form.default_branch}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, default_branch: e.target.value }))
-                }
+                onChange={(e) => setForm((f) => ({ ...f, default_branch: e.target.value }))}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-white"
                 placeholder="main"
               />
             </div>
-            {error && (
-              <p className="col-span-2 text-xs text-red-400">{error}</p>
-            )}
+            {error && <p className="col-span-2 text-xs text-red-400">{error}</p>}
             <div className="col-span-2 flex items-center gap-3">
               <button
                 type="submit"
@@ -225,12 +201,8 @@ export default function ReleaseGatesPage() {
           <span className="material-symbols-outlined text-4xl text-gray-600 block mb-3">
             verified
           </span>
-          <h3 className="text-base font-medium text-white mb-1">
-            No gates yet
-          </h3>
-          <p className="text-sm text-gray-400 mb-4">
-            Connect a repo to protect releases.
-          </p>
+          <h3 className="text-base font-medium text-white mb-1">No gates yet</h3>
+          <p className="text-sm text-gray-400 mb-4">Connect a repo to protect releases.</p>
           <button
             onClick={() => setShowCreate(true)}
             className="px-4 py-2 bg-accent text-white rounded-lg text-sm font-medium"
@@ -246,14 +218,10 @@ export default function ReleaseGatesPage() {
               className="flex items-center justify-between p-4 rounded-xl border border-border bg-surface hover:bg-surface/80"
             >
               <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-[20px] text-accent">
-                  verified
-                </span>
+                <span className="material-symbols-outlined text-[20px] text-accent">verified</span>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-white">
-                      {gate.name}
-                    </span>
+                    <span className="text-sm font-medium text-white">{gate.name}</span>
                     <StatusBadge status={gate.status} />
                   </div>
                   <p className="text-xs text-gray-400 mt-0.5">
@@ -289,16 +257,13 @@ export default function ReleaseGatesPage() {
       {/* Webhook info */}
       {gates.length > 0 && (
         <div className="mt-6 p-4 rounded-xl border border-border bg-surface/50">
-          <h3 className="text-sm font-medium text-white mb-1">
-            GitHub webhook URL
-          </h3>
+          <h3 className="text-sm font-medium text-white mb-1">GitHub webhook URL</h3>
           <code className="text-xs text-gray-400 font-mono bg-background px-2 py-1 rounded">
             {typeof window !== "undefined" ? window.location.origin : ""}
             /api/github/webhook
           </code>
           <p className="text-xs text-gray-500 mt-2">
-            Set this as your repo webhook URL. Use secret from
-            GITHUB_WEBHOOK_SECRET.
+            Set this as your repo webhook URL. Use secret from GITHUB_WEBHOOK_SECRET.
           </p>
         </div>
       )}

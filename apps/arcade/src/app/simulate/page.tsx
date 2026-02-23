@@ -81,11 +81,7 @@ function VerdictBadge({ status }: { status: string }) {
       : status === "failed"
         ? "text-red-400 bg-red-500/10"
         : "text-gray-400 bg-gray-500/10";
-  return (
-    <span className={`px-2 py-0.5 rounded text-xs font-medium ${color}`}>
-      {status}
-    </span>
-  );
+  return <span className={`px-2 py-0.5 rounded text-xs font-medium ${color}`}>{status}</span>;
 }
 
 export default function SimulatePage() {
@@ -179,15 +175,11 @@ export default function SimulatePage() {
 
         {/* New simulation panel */}
         <div className="p-6 rounded-2xl border border-border bg-surface mb-8">
-          <h2 className="text-base font-semibold text-white mb-4">
-            New simulation
-          </h2>
+          <h2 className="text-base font-semibold text-white mb-4">New simulation</h2>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-xs text-gray-400 mb-1">
-                Simulation name
-              </label>
+              <label className="block text-xs text-gray-400 mb-1">Simulation name</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -209,9 +201,7 @@ export default function SimulatePage() {
                     }`}
                   >
                     <span className="block font-semibold">{p.label}</span>
-                    <span className="block text-gray-500 leading-snug mt-0.5">
-                      {p.description}
-                    </span>
+                    <span className="block text-gray-500 leading-snug mt-0.5">{p.description}</span>
                   </button>
                 ))}
               </div>
@@ -220,9 +210,7 @@ export default function SimulatePage() {
 
           {/* Variant preview */}
           <div className="mb-4">
-            <p className="text-xs text-gray-400 mb-2">
-              {PRESETS[preset].defaults.length} variants
-            </p>
+            <p className="text-xs text-gray-400 mb-2">{PRESETS[preset].defaults.length} variants</p>
             <div className="flex gap-2">
               {PRESETS[preset].defaults.map((v) => (
                 <div
@@ -230,18 +218,12 @@ export default function SimulatePage() {
                   className="flex-1 p-2 rounded-lg border border-border bg-background/50"
                 >
                   <p className="text-xs font-medium text-white">{v.label}</p>
-                  {v.model && (
-                    <p className="text-xs text-gray-500">{v.model}</p>
-                  )}
+                  {v.model && <p className="text-xs text-gray-500">{v.model}</p>}
                   {v.inject_latency_ms !== undefined && (
-                    <p className="text-xs text-gray-500">
-                      {v.inject_latency_ms}ms delay
-                    </p>
+                    <p className="text-xs text-gray-500">{v.inject_latency_ms}ms delay</p>
                   )}
                   {v.disable_tools?.length ? (
-                    <p className="text-xs text-gray-500">
-                      No: {v.disable_tools.join(", ")}
-                    </p>
+                    <p className="text-xs text-gray-500">No: {v.disable_tools.join(", ")}</p>
                   ) : null}
                 </div>
               ))}
@@ -255,16 +237,12 @@ export default function SimulatePage() {
           >
             {running ? (
               <>
-                <span className="animate-spin material-symbols-outlined text-[16px]">
-                  sync
-                </span>
+                <span className="animate-spin material-symbols-outlined text-[16px]">sync</span>
                 Running…
               </>
             ) : (
               <>
-                <span className="material-symbols-outlined text-[16px]">
-                  play_arrow
-                </span>
+                <span className="material-symbols-outlined text-[16px]">play_arrow</span>
                 Run simulation
               </>
             )}
@@ -281,9 +259,7 @@ export default function SimulatePage() {
 
             {activeRun.status === "running" ? (
               <div className="text-sm text-gray-400 flex items-center gap-2 py-4">
-                <span className="animate-spin material-symbols-outlined text-[18px]">
-                  sync
-                </span>
+                <span className="animate-spin material-symbols-outlined text-[18px]">sync</span>
                 Running variants…
               </div>
             ) : (
@@ -298,21 +274,11 @@ export default function SimulatePage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="text-left text-xs text-gray-400 py-2 pr-4">
-                          Variant
-                        </th>
-                        <th className="text-right text-xs text-gray-400 py-2 px-4">
-                          Status
-                        </th>
-                        <th className="text-right text-xs text-gray-400 py-2 px-4">
-                          Pass rate
-                        </th>
-                        <th className="text-right text-xs text-gray-400 py-2 px-4">
-                          Latency
-                        </th>
-                        <th className="text-right text-xs text-gray-400 py-2 pl-4">
-                          Cost
-                        </th>
+                        <th className="text-left text-xs text-gray-400 py-2 pr-4">Variant</th>
+                        <th className="text-right text-xs text-gray-400 py-2 px-4">Status</th>
+                        <th className="text-right text-xs text-gray-400 py-2 px-4">Pass rate</th>
+                        <th className="text-right text-xs text-gray-400 py-2 px-4">Latency</th>
+                        <th className="text-right text-xs text-gray-400 py-2 pl-4">Cost</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -337,9 +303,7 @@ export default function SimulatePage() {
                             <td className="py-2 px-4 text-right text-gray-300">
                               {(r.pass_rate * 100).toFixed(0)}%
                             </td>
-                            <td className="py-2 px-4 text-right text-gray-300">
-                              {r.latency_ms}ms
-                            </td>
+                            <td className="py-2 px-4 text-right text-gray-300">{r.latency_ms}ms</td>
                             <td className="py-2 pl-4 text-right text-gray-300">
                               ${r.cost_usd.toFixed(4)}
                             </td>
@@ -351,10 +315,7 @@ export default function SimulatePage() {
                 </div>
                 <div className="mt-3 text-xs text-gray-500">
                   Share:{" "}
-                  <a
-                    href={`/reports/${activeRun.id}`}
-                    className="text-accent underline"
-                  >
+                  <a href={`/reports/${activeRun.id}`} className="text-accent underline">
                     View full report
                   </a>
                 </div>
@@ -377,16 +338,13 @@ export default function SimulatePage() {
                 >
                   <span className="text-sm text-white">{s.name}</span>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-500">
-                      {s.variants.length} variants
-                    </span>
+                    <span className="text-xs text-gray-500">{s.variants.length} variants</span>
                     <button
                       onClick={async () => {
                         setRunning(true);
-                        const res = await fetch(
-                          `/api/v1/scenarios/${s.id}/run`,
-                          { method: "POST" },
-                        );
+                        const res = await fetch(`/api/v1/scenarios/${s.id}/run`, {
+                          method: "POST",
+                        });
                         if (res.ok) {
                           const { scenario_run } = (await res.json()) as {
                             scenario_run: ScenarioRun;

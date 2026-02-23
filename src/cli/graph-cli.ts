@@ -56,8 +56,7 @@ export async function runGraphCommand(argv: string[]): Promise<number> {
 
   if (action === "show") {
     const targetHash = argv[2];
-    if (!targetHash)
-      throw new Error("Usage: zeo graph show <transcript_hash_or_file>");
+    if (!targetHash) throw new Error("Usage: zeo graph show <transcript_hash_or_file>");
 
     let hash = targetHash;
     // If it looks like a file path (ends in .json), try to load it to get the hash
@@ -72,9 +71,7 @@ export async function runGraphCommand(argv: string[]): Promise<number> {
 
     const node = graph.nodes.get(hash);
     if (!node) {
-      console.error(
-        `Transcript with hash or from file '${targetHash}' not found in graph.`,
-      );
+      console.error(`Transcript with hash or from file '${targetHash}' not found in graph.`);
       return 1;
     }
 
@@ -95,8 +92,7 @@ export async function runGraphCommand(argv: string[]): Promise<number> {
 
   if (action === "impact") {
     const targetHash = argv[2];
-    if (!targetHash)
-      throw new Error("Usage: zeo graph impact <transcript_hash_or_file>");
+    if (!targetHash) throw new Error("Usage: zeo graph impact <transcript_hash_or_file>");
 
     let hash = targetHash;
     if (targetHash.endsWith(".json")) {

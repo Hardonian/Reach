@@ -79,9 +79,7 @@ export function MarketplaceTemplates() {
                 className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#135bec]/10 text-[#135bec]"
                 href="#"
               >
-                <span className="material-symbols-outlined text-[20px]">
-                  grid_view
-                </span>
+                <span className="material-symbols-outlined text-[20px]">grid_view</span>
                 <span className="text-sm font-medium">All Templates</span>
               </a>
               {[
@@ -95,9 +93,7 @@ export function MarketplaceTemplates() {
                   className="flex items-center gap-3 px-3 py-2 rounded-lg text-[#9da6b9] hover:text-white hover:bg-white/5 transition-colors"
                   href="#"
                 >
-                  <span className="material-symbols-outlined text-[20px]">
-                    {item.icon}
-                  </span>
+                  <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
                   <span className="text-sm font-medium">{item.label}</span>
                 </a>
               ))}
@@ -109,22 +105,20 @@ export function MarketplaceTemplates() {
               Industries
             </h3>
             <div className="flex flex-col gap-1">
-              {["Finance", "Healthcare", "DevOps", "Customer Support"].map(
-                (industry) => (
-                  <label
-                    key={industry}
-                    className="flex items-center gap-3 px-3 py-1.5 cursor-pointer group"
-                  >
-                    <input
-                      className="h-4 w-4 rounded border-[#283040] bg-[#1a2230] text-[#135bec] focus:ring-0 focus:ring-offset-0"
-                      type="checkbox"
-                    />
-                    <span className="text-sm text-[#9da6b9] group-hover:text-white transition-colors">
-                      {industry}
-                    </span>
-                  </label>
-                ),
-              )}
+              {["Finance", "Healthcare", "DevOps", "Customer Support"].map((industry) => (
+                <label
+                  key={industry}
+                  className="flex items-center gap-3 px-3 py-1.5 cursor-pointer group"
+                >
+                  <input
+                    className="h-4 w-4 rounded border-[#283040] bg-[#1a2230] text-[#135bec] focus:ring-0 focus:ring-offset-0"
+                    type="checkbox"
+                  />
+                  <span className="text-sm text-[#9da6b9] group-hover:text-white transition-colors">
+                    {industry}
+                  </span>
+                </label>
+              ))}
             </div>
           </div>
           <div className="mt-auto pt-6">
@@ -139,9 +133,7 @@ export function MarketplaceTemplates() {
                   NEW
                 </span>
               </div>
-              <h4 className="text-sm font-semibold text-white mb-1">
-                Enterprise Runner
-              </h4>
+              <h4 className="text-sm font-semibold text-white mb-1">Enterprise Runner</h4>
               <p className="text-xs text-[#9da6b9] mb-3">
                 Dedicated instances with SOC2 compliance built-in.
               </p>
@@ -165,9 +157,8 @@ export function MarketplaceTemplates() {
                 ReadyLayer Marketplace
               </h1>
               <p className="text-lg text-[#9da6b9] leading-relaxed">
-                Accelerate your AI workforce. Discover pre-built agent
-                templates, secure runner configurations, and community-driven
-                workflows ready to deploy.
+                Accelerate your AI workforce. Discover pre-built agent templates, secure runner
+                configurations, and community-driven workflows ready to deploy.
               </p>
             </div>
             <div className="flex flex-col md:flex-row gap-4">
@@ -191,23 +182,14 @@ export function MarketplaceTemplates() {
                   type="button"
                   className="flex items-center gap-2 px-4 py-3 rounded-lg bg-[#1a2230] border border-[#283040] text-[#9da6b9] hover:text-white hover:border-[#135bec]/50 transition-colors"
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    tune
-                  </span>
+                  <span className="material-symbols-outlined text-[18px]">tune</span>
                   <span className="text-sm font-medium">Filters</span>
                 </button>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              <span className="text-sm text-[#9da6b9] py-1 mr-2">
-                Trending:
-              </span>
-              {[
-                "Financial Analyst",
-                "HIPAA Runner",
-                "Slack Bot",
-                "Data Scraper",
-              ].map((tag) => (
+              <span className="text-sm text-[#9da6b9] py-1 mr-2">Trending:</span>
+              {["Financial Analyst", "HIPAA Runner", "Slack Bot", "Data Scraper"].map((tag) => (
                 <a
                   key={tag}
                   className="px-3 py-1 rounded-full bg-[#283040]/50 hover:bg-[#135bec]/20 hover:text-[#135bec] text-xs font-medium text-[#9da6b9] border border-transparent hover:border-[#135bec]/20 transition-all font-sans"
@@ -222,9 +204,7 @@ export function MarketplaceTemplates() {
           <section>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-white mb-1">
-                  Featured Agent Templates
-                </h2>
+                <h2 className="text-xl font-bold text-white mb-1">Featured Agent Templates</h2>
                 <p className="text-sm text-[#9da6b9]">
                   High-performance agents curated by the ReadyLayer team.
                 </p>
@@ -234,9 +214,7 @@ export function MarketplaceTemplates() {
                 href="#"
               >
                 View All{" "}
-                <span className="material-symbols-outlined text-[16px]">
-                  arrow_forward
-                </span>
+                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
               </a>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -250,9 +228,7 @@ export function MarketplaceTemplates() {
                       <div
                         className={`size-10 rounded-lg bg-${card.color}-500/10 text-${card.color}-500 flex items-center justify-center border border-${card.color}-500/20`}
                       >
-                        <span className="material-symbols-outlined">
-                          {card.icon}
-                        </span>
+                        <span className="material-symbols-outlined">{card.icon}</span>
                       </div>
                       <div>
                         <h3 className="text-base font-bold text-white group-hover:text-[#135bec] transition-colors">
@@ -270,14 +246,10 @@ export function MarketplaceTemplates() {
                       <span className="text-white">{card.rating}</span>
                     </div>
                   </div>
-                  <p className="text-sm text-[#9da6b9] mb-6 line-clamp-2">
-                    {card.desc}
-                  </p>
+                  <p className="text-sm text-[#9da6b9] mb-6 line-clamp-2">{card.desc}</p>
                   <div className="mt-auto flex items-center justify-between pt-4 border-t border-[#283040]/50">
                     <div className="flex items-center gap-2 text-xs text-[#9da6b9]">
-                      <span className="material-symbols-outlined text-[16px]">
-                        download
-                      </span>
+                      <span className="material-symbols-outlined text-[16px]">download</span>
                       <span>{card.deploys}</span>
                     </div>
                     <button
@@ -295,9 +267,7 @@ export function MarketplaceTemplates() {
           <section>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-white mb-1">
-                  Industry Runners
-                </h2>
+                <h2 className="text-xl font-bold text-white mb-1">Industry Runners</h2>
                 <p className="text-sm text-[#9da6b9]">
                   Pre-configured environments compliant with industry standards.
                 </p>
@@ -313,9 +283,7 @@ export function MarketplaceTemplates() {
                     <div
                       className={`p-2 rounded bg-${runner.color}-500/10 text-${runner.color}-500`}
                     >
-                      <span className="material-symbols-outlined">
-                        {runner.icon}
-                      </span>
+                      <span className="material-symbols-outlined">{runner.icon}</span>
                     </div>
                     <span
                       className={`bg-${runner.color}-500/10 text-${runner.color}-500 text-[10px] font-bold px-2 py-1 rounded h-fit`}
@@ -344,8 +312,8 @@ export function MarketplaceTemplates() {
                   Can't find what you're looking for?
                 </h2>
                 <p className="text-[#9da6b9]">
-                  Build your own custom agent from scratch using our SDK or
-                  request a specific template from our engineering team.
+                  Build your own custom agent from scratch using our SDK or request a specific
+                  template from our engineering team.
                 </p>
               </div>
               <div className="relative z-10 flex gap-4">

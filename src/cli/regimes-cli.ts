@@ -10,11 +10,7 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
-import {
-  detectRegimes,
-  type NumericPoint,
-  type DetectorConfig,
-} from "@zeo/regimes";
+import { detectRegimes, type NumericPoint, type DetectorConfig } from "@zeo/regimes";
 import type {
   ObservationBatch,
   RegimeEvent,
@@ -77,13 +73,7 @@ export function parseRegimesArgs(argv: string[]): RegimesCliArgs {
 
 export async function runRegimesCommand(args: RegimesCliArgs): Promise<number> {
   if (args.detect) {
-    return await runDetectCommand(
-      args.detect,
-      args.dataset,
-      args.domain,
-      args.signalId,
-      args.out,
-    );
+    return await runDetectCommand(args.detect, args.dataset, args.domain, args.signalId, args.out);
   }
 
   if (args.history) {
@@ -127,13 +117,9 @@ async function runDetectCommand(
         return 1;
       }
 
-      console.log(
-        `Loaded ${observations.length} observations from ${datasetPath}`,
-      );
+      console.log(`Loaded ${observations.length} observations from ${datasetPath}`);
     } catch (err) {
-      console.error(
-        `Error reading dataset: ${err instanceof Error ? err.message : err}`,
-      );
+      console.error(`Error reading dataset: ${err instanceof Error ? err.message : err}`);
       return 1;
     }
   } else {
@@ -186,9 +172,7 @@ async function runDetectCommand(
   if (currentState) {
     console.log(`\nCurrent regime parameters:`);
     for (const [key, value] of Object.entries(currentState.parameters)) {
-      console.log(
-        `  ${key}: ${typeof value === "number" ? value.toFixed(4) : value}`,
-      );
+      console.log(`  ${key}: ${typeof value === "number" ? value.toFixed(4) : value}`);
     }
   }
 
@@ -214,15 +198,10 @@ async function runDetectCommand(
     events: results.events,
     summary: {
       totalEvents: results.events.length,
-      stablePeriods: results.events.filter(
-        (e: RegimeEvent) => e.kind === "mean_shift",
-      ).length,
-      shifts: results.events.filter(
-        (e: RegimeEvent) => e.kind === "distribution_shift",
-      ).length,
-      volatilityEvents: results.events.filter(
-        (e: RegimeEvent) => e.kind === "volatility_break",
-      ).length,
+      stablePeriods: results.events.filter((e: RegimeEvent) => e.kind === "mean_shift").length,
+      shifts: results.events.filter((e: RegimeEvent) => e.kind === "distribution_shift").length,
+      volatilityEvents: results.events.filter((e: RegimeEvent) => e.kind === "volatility_break")
+        .length,
     },
   };
 

@@ -26,9 +26,7 @@ export interface McpCliArgs {
 export function parseMcpArgs(argv: string[]): McpCliArgs {
   const raw = argv[0];
   const command =
-    raw === "serve" || raw === "ping" || raw === "tools" || raw === "test"
-      ? raw
-      : null;
+    raw === "serve" || raw === "ping" || raw === "tools" || raw === "test" ? raw : null;
   return {
     command,
     http: argv.includes("--http"),
@@ -135,9 +133,7 @@ export function getMcpToolDefinitions(): McpToolDef[] {
   return TOOL_DEFS;
 }
 
-export function validateMcpToolDefinitions(
-  definitions: McpToolDef[] = TOOL_DEFS,
-): string[] {
+export function validateMcpToolDefinitions(definitions: McpToolDef[] = TOOL_DEFS): string[] {
   const requiredNames = [
     "submit_evidence",
     "compute_flip_distance",
@@ -154,15 +150,12 @@ export function validateMcpToolDefinitions(
   if (names.length !== requiredNames.length)
     issues.push(`expected ${requiredNames.length} tools, got ${names.length}`);
   for (const name of requiredNames) {
-    if (!names.includes(name))
-      issues.push(`missing required deterministic tool '${name}'`);
+    if (!names.includes(name)) issues.push(`missing required deterministic tool '${name}'`);
   }
 
   for (const def of definitions) {
     if (!def.name || !def.description)
-      issues.push(
-        `tool definition must include name/description (${def.name || "unknown"})`,
-      );
+      issues.push(`tool definition must include name/description (${def.name || "unknown"})`);
     if (def.inputSchema.type !== "object")
       issues.push(`tool '${def.name}' inputSchema.type must be object`);
     if (!Array.isArray(def.inputSchema.required))
@@ -218,10 +211,7 @@ async function handleToolCall(
   }
 
   try {
-    const structuredContent = await executeToolOperation(
-      name as ZeoliteOperation,
-      args,
-    );
+    const structuredContent = await executeToolOperation(name as ZeoliteOperation, args);
     return { schemaVersion: SCHEMA_VERSION, isError: false, structuredContent };
   } catch (caught) {
     const message = caught instanceof Error ? caught.message : String(caught);
@@ -277,17 +267,13 @@ export async function dispatchMcpRequest(raw: string): Promise<string | null> {
 
 async function runServeCommand(args: McpCliArgs): Promise<number> {
   if (args.http) {
-    process.stderr.write(
-      "[zeo mcp] HTTP transport is unsupported in CLI mode.\n",
-    );
+    process.stderr.write("[zeo mcp] HTTP transport is unsupported in CLI mode.\n");
     return 2;
   }
 
   const issues = validateMcpToolDefinitions();
   if (issues.length > 0) {
-    process.stderr.write(
-      `[zeo mcp] Invalid tool definitions: ${issues.join("; ")}\n`,
-    );
+    process.stderr.write(`[zeo mcp] Invalid tool definitions: ${issues.join("; ")}\n`);
     return 1;
   }
 
@@ -319,9 +305,7 @@ async function runPingCommand(): Promise<number> {
     console.error(`[MCP_SCHEMA_INVALID] ${issues.join("; ")}`);
     return 1;
   }
-  console.log(
-    `ok: initialize + tools/list (${TOOL_DEFS.length} tools, schema ${SCHEMA_VERSION})`,
-  );
+  console.log(`ok: initialize + tools/list (${TOOL_DEFS.length} tools, schema ${SCHEMA_VERSION})`);
   return 0;
 }
 
@@ -331,8 +315,7 @@ async function runToolsCommand(): Promise<number> {
 }
 
 async function runTestCommand(args: McpCliArgs): Promise<number> {
-  const { runHandshakeTest, formatHandshakeTestResult } =
-    await import("@zeo/mcp-server");
+  const { runHandshakeTest, formatHandshakeTestResult } = await import("@zeo/mcp-server");
   const result = await runHandshakeTest();
   if (args.json) {
     process.stdout.write(JSON.stringify(result, null, 2) + "\n");

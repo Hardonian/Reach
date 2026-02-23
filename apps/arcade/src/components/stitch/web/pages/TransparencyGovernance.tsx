@@ -19,9 +19,9 @@ export function TransparencyGovernance() {
               </span>
             </h1>
             <p className="text-slate-600 dark:text-[#9da6b9] text-lg max-w-2xl leading-relaxed">
-              Public verification for ReadyLayer Agentic Orchestration Control
-              Plane. Our security architecture is built on three immutable
-              pillars ensuring zero-trust compliance for enterprise workloads.
+              Public verification for ReadyLayer Agentic Orchestration Control Plane. Our security
+              architecture is built on three immutable pillars ensuring zero-trust compliance for
+              enterprise workloads.
             </p>
           </div>
           <div className="flex flex-col gap-2">
@@ -29,8 +29,7 @@ export function TransparencyGovernance() {
               Last Verified Audit
             </div>
             <div className="text-2xl font-mono font-bold text-slate-900 dark:text-white text-right">
-              2023-10-24{" "}
-              <span className="text-slate-500 text-lg">14:02 UTC</span>
+              2023-10-24 <span className="text-slate-500 text-lg">14:02 UTC</span>
             </div>
           </div>
         </div>
@@ -71,9 +70,7 @@ export function TransparencyGovernance() {
                   </span>
                 </div>
                 <div className="p-3 bg-[#135bec]/10 w-fit rounded-lg text-[#135bec]">
-                  <span className="material-symbols-outlined text-[32px]">
-                    {card.icon}
-                  </span>
+                  <span className="material-symbols-outlined text-[32px]">{card.icon}</span>
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
@@ -104,10 +101,9 @@ export function TransparencyGovernance() {
                 Determining Intent via Weighted Scoring
               </h2>
               <p className="text-slate-600 dark:text-[#9da6b9] leading-relaxed mb-6">
-                We prioritize deterministic, canonical commands over
-                probabilistic generation to ensure safety and predictability in
-                agent actions. Our scoring engine evaluates intent against a
-                strict whitelist of safe operations.
+                We prioritize deterministic, canonical commands over probabilistic generation to
+                ensure safety and predictability in agent actions. Our scoring engine evaluates
+                intent against a strict whitelist of safe operations.
               </p>
               <div className="flex gap-4 items-center mb-8">
                 <div className="px-4 py-2 bg-slate-100 dark:bg-[#1e293b] rounded-lg border border-slate-200 dark:border-slate-700">
@@ -122,23 +118,17 @@ export function TransparencyGovernance() {
                   <span className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold block mb-1">
                     Hallucination Rate
                   </span>
-                  <span className="text-xl font-mono font-bold text-[#135bec]">
-                    &lt; 0.01%
-                  </span>
+                  <span className="text-xl font-mono font-bold text-[#135bec]">&lt; 0.01%</span>
                 </div>
               </div>
             </div>
 
             <div className="p-6 rounded-xl bg-slate-900 text-white border border-slate-800 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-10">
-                <span className="material-symbols-outlined text-6xl text-white">
-                  security
-                </span>
+                <span className="material-symbols-outlined text-6xl text-white">security</span>
               </div>
               <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#135bec]">
-                  toggle_on
-                </span>
+                <span className="material-symbols-outlined text-[#135bec]">toggle_on</span>
                 Operational Safety Controls
               </h3>
               <div className="space-y-4">
@@ -172,9 +162,7 @@ export function TransparencyGovernance() {
                       ></div>
                       <div>
                         <div className="text-sm font-bold">{item.name}</div>
-                        <div className="text-xs text-slate-400">
-                          {item.desc}
-                        </div>
+                        <div className="text-xs text-slate-400">{item.desc}</div>
                       </div>
                     </div>
                     <span
@@ -217,10 +205,7 @@ export function TransparencyGovernance() {
                   icon: "receipt_long",
                 },
               ].map((step, idx, arr) => (
-                <div
-                  key={step.title}
-                  className="flex gap-4 items-center group relative z-10"
-                >
+                <div key={step.title} className="flex gap-4 items-center group relative z-10">
                   <div className="flex flex-col items-center">
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all ${
@@ -229,9 +214,7 @@ export function TransparencyGovernance() {
                           : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-400"
                       }`}
                     >
-                      <span className="material-symbols-outlined text-sm">
-                        {step.icon}
-                      </span>
+                      <span className="material-symbols-outlined text-sm">{step.icon}</span>
                     </div>
                     {idx < arr.length - 1 && (
                       <div

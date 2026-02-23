@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  requireAuth,
-  cloudErrorResponse,
-  requireRole,
-  auditLog,
-} from "@/lib/cloud-auth";
+import { requireAuth, cloudErrorResponse, requireRole, auditLog } from "@/lib/cloud-auth";
 import { getWorkflow, updateWorkflow } from "@/lib/cloud-db";
 import { UpdateWorkflowSchema, parseBody } from "@/lib/cloud-schemas";
 
@@ -30,24 +25,18 @@ export async function PATCH(
 ): Promise<NextResponse> {
   const ctx = await requireAuth(req);
   if (ctx instanceof NextResponse) return ctx;
-  if (!requireRole(ctx, "member"))
-    return cloudErrorResponse("Insufficient permissions", 403);
+  if (!requireRole(ctx, "member")) return cloudErrorResponse("Insufficient permissions", 403);
   const { id } = await params;
 
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(UpdateWorkflowSchema, body);
   if ("errors" in parsed)
-    return cloudErrorResponse(
-      parsed.errors.issues[0]?.message ?? "Invalid input",
-      400,
-    );
+    return cloudErrorResponse(parsed.errors.issues[0]?.message ?? "Invalid input", 400);
 
   const patch = {
     name: parsed.data.name,
     description: parsed.data.description,
-    graphJson: parsed.data.graph
-      ? JSON.stringify(parsed.data.graph)
-      : undefined,
+    graphJson: parsed.data.graph ? JSON.stringify(parsed.data.graph) : undefined,
     status: parsed.data.status,
   };
   const ok = updateWorkflow(id, ctx.tenantId, patch);
@@ -58,9 +47,7 @@ export async function PATCH(
     "workflow",
     id,
     {
-      patch: Object.keys(patch).filter(
-        (k) => patch[k as keyof typeof patch] !== undefined,
-      ),
+      patch: Object.keys(patch).filter((k) => patch[k as keyof typeof patch] !== undefined),
     },
     req,
   );

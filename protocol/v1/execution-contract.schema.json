@@ -3,13 +3,7 @@
   "$id": "https://reach.sh/protocol/v1/execution-contract.schema.json",
   "title": "Execution Contract",
   "type": "object",
-  "required": [
-    "schemaVersion",
-    "specVersion",
-    "packMetadata",
-    "executionMetadata",
-    "federation"
-  ],
+  "required": ["schemaVersion", "specVersion", "packMetadata", "executionMetadata", "federation"],
   "properties": {
     "schemaVersion": {
       "type": "string",

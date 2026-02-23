@@ -3,27 +3,23 @@ export default function Dashboard() {
     <div className="section-container py-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <a
-            href="/docs"
-            className="text-gray-400 hover:text-white transition-colors"
-          >
+          <a href="/docs" className="text-gray-400 hover:text-white transition-colors">
             ← Back to Documentation
           </a>
         </div>
 
         <h1 className="text-4xl font-bold mb-4">Dashboard</h1>
         <p className="text-gray-400 mb-8">
-          Monitor, manage, and control your agents from a centralized web
-          interface.
+          Monitor, manage, and control your agents from a centralized web interface.
         </p>
 
         <div className="space-y-8">
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Overview</h2>
             <p className="text-gray-400">
-              The ReadyLayer Dashboard provides a unified view of your agents,
-              pipelines, and platform metrics. Access real-time monitoring,
-              logs, and management controls from any browser.
+              The ReadyLayer Dashboard provides a unified view of your agents, pipelines, and
+              platform metrics. Access real-time monitoring, logs, and management controls from any
+              browser.
             </p>
           </section>
 
@@ -31,37 +27,27 @@ export default function Dashboard() {
             <h2 className="text-xl font-bold mb-4">Dashboard Features</h2>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-black/30 p-4 rounded-lg">
-                <h3 className="font-semibold text-white mb-2">
-                  Agent Management
-                </h3>
+                <h3 className="font-semibold text-white mb-2">Agent Management</h3>
                 <p className="text-gray-400 text-sm">
-                  View, deploy, update, and monitor all your agents in one
-                  place.
+                  View, deploy, update, and monitor all your agents in one place.
                 </p>
               </div>
               <div className="bg-black/30 p-4 rounded-lg">
-                <h3 className="font-semibold text-white mb-2">
-                  Real-time Metrics
-                </h3>
+                <h3 className="font-semibold text-white mb-2">Real-time Metrics</h3>
                 <p className="text-gray-400 text-sm">
-                  Track execution count, latency, error rates, and resource
-                  usage.
+                  Track execution count, latency, error rates, and resource usage.
                 </p>
               </div>
               <div className="bg-black/30 p-4 rounded-lg">
                 <h3 className="font-semibold text-white mb-2">Logs & Traces</h3>
                 <p className="text-gray-400 text-sm">
-                  Search and filter logs across all agents with full trace
-                  visibility.
+                  Search and filter logs across all agents with full trace visibility.
                 </p>
               </div>
               <div className="bg-black/30 p-4 rounded-lg">
-                <h3 className="font-semibold text-white mb-2">
-                  Team Collaboration
-                </h3>
+                <h3 className="font-semibold text-white mb-2">Team Collaboration</h3>
                 <p className="text-gray-400 text-sm">
-                  Share agents, manage permissions, and collaborate with your
-                  team.
+                  Share agents, manage permissions, and collaborate with your team.
                 </p>
               </div>
             </div>
@@ -84,17 +70,11 @@ export default function Dashboard() {
             <div className="space-y-4 text-gray-400">
               <div>
                 <h3 className="font-semibold text-white">Home</h3>
-                <p>
-                  Overview of recent activity, popular agents, and key metrics
-                  at a glance.
-                </p>
+                <p>Overview of recent activity, popular agents, and key metrics at a glance.</p>
               </div>
               <div>
                 <h3 className="font-semibold text-white">Agents</h3>
-                <p>
-                  List of all your agents with status, version, and quick
-                  actions.
-                </p>
+                <p>List of all your agents with status, version, and quick actions.</p>
               </div>
               <div>
                 <h3 className="font-semibold text-white">Pipelines</h3>
@@ -106,9 +86,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <h3 className="font-semibold text-white">Settings</h3>
-                <p>
-                  Organization settings, billing, integrations, and API keys.
-                </p>
+                <p>Organization settings, billing, integrations, and API keys.</p>
               </div>
             </div>
           </section>

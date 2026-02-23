@@ -29,12 +29,8 @@ function main() {
   log("=== Reach Example 05: Export Verify Replay ===\n");
 
   // Load configurations
-  const sourceRun = JSON.parse(
-    readFileSync(resolve(EXAMPLE_DIR, "source-run.json"), "utf8"),
-  );
-  const verifyConfig = JSON.parse(
-    readFileSync(resolve(EXAMPLE_DIR, "verify-config.json"), "utf8"),
-  );
+  const sourceRun = JSON.parse(readFileSync(resolve(EXAMPLE_DIR, "source-run.json"), "utf8"));
+  const verifyConfig = JSON.parse(readFileSync(resolve(EXAMPLE_DIR, "verify-config.json"), "utf8"));
   const expectedParity = JSON.parse(
     readFileSync(resolve(EXAMPLE_DIR, "expected-parity.json"), "utf8"),
   );
@@ -78,9 +74,7 @@ function main() {
   log("--- Phase 2: Verify ---");
 
   // Check manifest hash
-  const manifestHash = hashEvents([
-    { sequence: 1, type: JSON.stringify(bundle.manifest) },
-  ]);
+  const manifestHash = hashEvents([{ sequence: 1, type: JSON.stringify(bundle.manifest) }]);
   log(`Manifest integrity: ✅ VALID`);
 
   // Check event chain
@@ -93,11 +87,8 @@ function main() {
   log(`Fingerprint match: ${fingerprintMatch ? "✅ VALID" : "❌ MISMATCH"}`);
 
   // Signature check
-  const signatureRequired =
-    verifyConfig.verification_settings.signature_checks.required;
-  log(
-    `Signature check: ${signatureRequired ? "⏭️  SKIPPED (unsigned)" : "✅ NOT REQUIRED"}`,
-  );
+  const signatureRequired = verifyConfig.verification_settings.signature_checks.required;
+  log(`Signature check: ${signatureRequired ? "⏭️  SKIPPED (unsigned)" : "✅ NOT REQUIRED"}`);
   log();
 
   // Phase 3: Replay

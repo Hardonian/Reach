@@ -58,9 +58,7 @@ export function ConsoleLayout({ children }: ConsoleLayoutProps) {
                   : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#1a1f2e] hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <span className="material-symbols-outlined text-[20px]">
-                {item.icon}
-              </span>
+              <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
               <span className="text-sm">{item.label}</span>
             </Link>
           ))}
@@ -75,9 +73,7 @@ export function ConsoleLayout({ children }: ConsoleLayoutProps) {
               JD
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-semibold truncate leading-none">
-                John Doe
-              </p>
+              <p className="text-sm font-semibold truncate leading-none">John Doe</p>
               <p className="text-[10px] text-slate-500 mt-1">reach-alpha-org</p>
             </div>
           </Link>
@@ -89,9 +85,7 @@ export function ConsoleLayout({ children }: ConsoleLayoutProps) {
         <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 dark:border-[#2e3545] bg-white/80 dark:bg-[#111318]/80 backdrop-blur-md px-6 py-3">
           <div className="flex items-center gap-4">
             <div className="lg:hidden size-8 rounded bg-[#135bec] flex items-center justify-center text-white">
-              <span className="material-symbols-outlined text-xl">
-                grid_view
-              </span>
+              <span className="material-symbols-outlined text-xl">grid_view</span>
             </div>
             <div className="relative group flex items-center">
               <span className="material-symbols-outlined absolute left-3 text-slate-400 text-[18px]">
@@ -111,9 +105,7 @@ export function ConsoleLayout({ children }: ConsoleLayoutProps) {
               aria-label="Notifications"
               className="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors relative"
             >
-              <span className="material-symbols-outlined text-[22px]">
-                notifications
-              </span>
+              <span className="material-symbols-outlined text-[22px]">notifications</span>
               <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-[#111318]"></span>
             </button>
             <button
@@ -121,9 +113,7 @@ export function ConsoleLayout({ children }: ConsoleLayoutProps) {
               aria-label="Help"
               className="p-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
-              <span className="material-symbols-outlined text-[22px]">
-                help
-              </span>
+              <span className="material-symbols-outlined text-[22px]">help</span>
             </button>
             <div className="h-6 w-px bg-slate-200 dark:border-[#2e3545]"></div>
             <button

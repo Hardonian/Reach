@@ -22,9 +22,7 @@ export const MIN_SPEC_VERSION = "1.0.0";
 export function parseVersion(version) {
   const match = version.match(/^(\d+)\.(\d+)\.(\d+)$/);
   if (!match) {
-    throw new Error(
-      `Invalid version format: ${version}. Expected MAJOR.MINOR.PATCH`,
-    );
+    throw new Error(`Invalid version format: ${version}. Expected MAJOR.MINOR.PATCH`);
   }
   return {
     major: parseInt(match[1], 10),

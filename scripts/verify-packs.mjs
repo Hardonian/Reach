@@ -84,9 +84,7 @@ async function lintPack(packPath) {
   // In production, this would call reach pack lint
   try {
     const packJsonPath = join(packPath, "pack.json");
-    const content = await import("fs/promises").then((fs) =>
-      fs.readFile(packJsonPath, "utf-8"),
-    );
+    const content = await import("fs/promises").then((fs) => fs.readFile(packJsonPath, "utf-8"));
     const pack = JSON.parse(content);
 
     const errors = [];
@@ -163,10 +161,7 @@ async function verifyPack(pack) {
   results.test = await testPack(pack.path);
 
   if (results.test.passed) {
-    log(
-      `  ✓ Tests passed${results.test.warning ? ` (${results.test.warning})` : ""}`,
-      "green",
-    );
+    log(`  ✓ Tests passed${results.test.warning ? ` (${results.test.warning})` : ""}`, "green");
   } else {
     log("  ✗ Tests failed", "red");
   }
@@ -209,16 +204,10 @@ async function main() {
     log(`  ${status}: ${result.name}`, color);
   }
 
-  log(
-    `\nTotal: ${passed} passed, ${failed} failed`,
-    failed > 0 ? "red" : "green",
-  );
+  log(`\nTotal: ${passed} passed, ${failed} failed`, failed > 0 ? "red" : "green");
 
   if (failed > 0) {
-    log(
-      "\nSome packs failed verification. Please fix the issues above.",
-      "red",
-    );
+    log("\nSome packs failed verification. Please fix the issues above.", "red");
     process.exit(1);
   } else {
     log("\nAll packs passed verification!", "green");

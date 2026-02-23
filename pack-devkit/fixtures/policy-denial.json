@@ -16,9 +16,7 @@
     "declared_permissions": ["sys:exec"],
     "model_requirements": { "tier": "standard" },
     "execution_graph": {
-      "steps": [
-        { "id": "step-1", "tool": "exec", "input": "dangerous_command" }
-      ]
+      "steps": [{ "id": "step-1", "tool": "exec", "input": "dangerous_command" }]
     },
     "deterministic": true,
     "signature_hash": ""

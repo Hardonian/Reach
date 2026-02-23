@@ -173,12 +173,9 @@ export function calculateRegressionDelta(
 
   // Adjust threshold based on sample size (less confidence with smaller samples)
   const confidenceFactor = Math.min(windowSize / 30, 1);
-  const adjustedWarning =
-    DEFAULT_THRESHOLDS.regression_delta.warning * confidenceFactor;
-  const adjustedError =
-    DEFAULT_THRESHOLDS.regression_delta.error * confidenceFactor;
-  const adjustedCritical =
-    DEFAULT_THRESHOLDS.regression_delta.critical * confidenceFactor;
+  const adjustedWarning = DEFAULT_THRESHOLDS.regression_delta.warning * confidenceFactor;
+  const adjustedError = DEFAULT_THRESHOLDS.regression_delta.error * confidenceFactor;
+  const adjustedCritical = DEFAULT_THRESHOLDS.regression_delta.critical * confidenceFactor;
 
   let severity: ScoreSeverity;
   if (delta <= adjustedCritical) severity = "critical";
@@ -221,17 +218,11 @@ export function calculateDriftVector(
   components.push({ type: "semantic", value: semanticDrift });
 
   // 2. Structural drift (format/schema changes)
-  const structuralDrift = calculateStructuralDrift(
-    baselineOutputs,
-    currentOutputs,
-  );
+  const structuralDrift = calculateStructuralDrift(baselineOutputs, currentOutputs);
   components.push({ type: "structural", value: structuralDrift });
 
   // 3. Behavioral drift (tool usage patterns)
-  const behavioralDrift = calculateBehavioralDrift(
-    baselineOutputs,
-    currentOutputs,
-  );
+  const behavioralDrift = calculateBehavioralDrift(baselineOutputs, currentOutputs);
   components.push({ type: "behavioral", value: behavioralDrift });
 
   // Weighted average drift
@@ -253,27 +244,19 @@ interface DriftComponent {
   value: number;
 }
 
-function calculateSemanticDrift(
-  baseline: unknown[],
-  current: unknown[],
-): number {
+function calculateSemanticDrift(baseline: unknown[], current: unknown[]): number {
   // Simple hash-based distribution comparison
   const baselineHashes = new Set(baseline.map((v) => JSON.stringify(v)));
   const currentHashes = new Set(current.map((v) => JSON.stringify(v)));
 
-  const intersection = [...baselineHashes].filter((h) =>
-    currentHashes.has(h),
-  ).length;
+  const intersection = [...baselineHashes].filter((h) => currentHashes.has(h)).length;
   const union = new Set([...baselineHashes, ...currentHashes]).size;
 
   // Jaccard distance
   return 1 - intersection / union;
 }
 
-function calculateStructuralDrift(
-  baseline: unknown[],
-  current: unknown[],
-): number {
+function calculateStructuralDrift(baseline: unknown[], current: unknown[]): number {
   if (baseline.length === 0 || current.length === 0) return 0;
 
   const baselineTypes = getTypeDistribution(baseline);
@@ -282,10 +265,7 @@ function calculateStructuralDrift(
   return calculateDistributionDistance(baselineTypes, currentTypes);
 }
 
-function calculateBehavioralDrift(
-  baseline: unknown[],
-  current: unknown[],
-): number {
+function calculateBehavioralDrift(baseline: unknown[], current: unknown[]): number {
   // Compare tool usage patterns
   const baselineTools = extractToolUsage(baseline);
   const currentTools = extractToolUsage(current);
@@ -408,9 +388,11 @@ interface ToolReliabilityDetails {
 /**
  * Calculates tool reliability score based on execution history.
  */
-export function calculateToolReliabilityScore(
-  toolExecutions: ToolExecution[],
-): { score: number; severity: ScoreSeverity; details: ToolReliabilityDetails } {
+export function calculateToolReliabilityScore(toolExecutions: ToolExecution[]): {
+  score: number;
+  severity: ScoreSeverity;
+  details: ToolReliabilityDetails;
+} {
   if (toolExecutions.length === 0) {
     return {
       score: 1,
@@ -541,10 +523,7 @@ export function calculateOverallHealthScore(
 /**
  * Analyzes trends in score history.
  */
-export function analyzeTrend(
-  history: ScoreHistoryEntry[],
-  windowDays = 7,
-): TrendResult[] {
+export function analyzeTrend(history: ScoreHistoryEntry[], windowDays = 7): TrendResult[] {
   if (history.length < 2) {
     return [];
   }
@@ -552,9 +531,7 @@ export function analyzeTrend(
   const now = new Date();
   const cutoff = new Date(now.getTime() - windowDays * 24 * 60 * 60 * 1000);
 
-  const relevantHistory = history.filter(
-    (e) => new Date(e.timestamp) >= cutoff,
-  );
+  const relevantHistory = history.filter((e) => new Date(e.timestamp) >= cutoff);
 
   const byType = new Map<ScoreType, ScoreHistoryEntry[]>();
   for (const entry of relevantHistory) {
@@ -569,8 +546,7 @@ export function analyzeTrend(
     if (entries.length < 2) continue;
 
     const sorted = entries.sort(
-      (a, b) =>
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
     );
 
     // Compare first half to second half
@@ -578,13 +554,10 @@ export function analyzeTrend(
     const firstHalf = sorted.slice(0, mid);
     const secondHalf = sorted.slice(mid);
 
-    const firstAvg =
-      firstHalf.reduce((sum, e) => sum + e.score_value, 0) / firstHalf.length;
-    const secondAvg =
-      secondHalf.reduce((sum, e) => sum + e.score_value, 0) / secondHalf.length;
+    const firstAvg = firstHalf.reduce((sum, e) => sum + e.score_value, 0) / firstHalf.length;
+    const secondAvg = secondHalf.reduce((sum, e) => sum + e.score_value, 0) / secondHalf.length;
 
-    const deltaPct =
-      firstAvg > 0 ? ((secondAvg - firstAvg) / firstAvg) * 100 : 0;
+    const deltaPct = firstAvg > 0 ? ((secondAvg - firstAvg) / firstAvg) * 100 : 0;
 
     let direction: "improving" | "degrading" | "stable";
     if (deltaPct > 5) direction = "improving";

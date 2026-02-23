@@ -21,9 +21,7 @@ describe("pack-replay-first-ci plugin", () => {
         replay: { fingerprint: "abc123", events: [{}, {}] },
       });
 
-      const success = findings.find((f) =>
-        f.message.includes("Fingerprints match"),
-      );
+      const success = findings.find((f) => f.message.includes("Fingerprints match"));
       expect(success).toBeDefined();
     });
 
@@ -94,9 +92,7 @@ describe("pack-replay-first-ci plugin", () => {
         },
       });
 
-      const errors = findings.filter(
-        (f) => f.severity === "error" || f.severity === "high",
-      );
+      const errors = findings.filter((f) => f.severity === "error" || f.severity === "high");
       expect(errors.length).toBe(0);
     });
   });

@@ -2,8 +2,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Error Codes | ReadyLayer Documentation",
-  description:
-    "Reference guide for common ReadyLayer execution and policy errors.",
+  description: "Reference guide for common ReadyLayer execution and policy errors.",
 };
 
 export default function ErrorsPage() {
@@ -35,8 +34,7 @@ export default function ErrorsPage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">Error Codes</h1>
         <p className="text-xl text-gray-400">
-          ReadyLayer uses structured error codes to help debug policy and
-          execution issues.
+          ReadyLayer uses structured error codes to help debug policy and execution issues.
         </p>
       </header>
 
@@ -44,15 +42,9 @@ export default function ErrorsPage() {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-border text-gray-400 text-sm">
-              <th className="py-2 pr-4 font-semibold uppercase tracking-wider">
-                Code
-              </th>
-              <th className="py-2 pr-4 font-semibold uppercase tracking-wider">
-                Title
-              </th>
-              <th className="py-2 font-semibold uppercase tracking-wider">
-                Description
-              </th>
+              <th className="py-2 pr-4 font-semibold uppercase tracking-wider">Code</th>
+              <th className="py-2 pr-4 font-semibold uppercase tracking-wider">Title</th>
+              <th className="py-2 font-semibold uppercase tracking-wider">Description</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">

@@ -6,8 +6,7 @@ export interface CtaContext {
 }
 
 function missingEvidenceCount(model: DashboardViewModel): number {
-  return model.lists.findings.filter((finding: any) => finding.severity >= 4)
-    .length;
+  return model.lists.findings.filter((finding: any) => finding.severity >= 4).length;
 }
 
 export function generateCtas(
@@ -62,8 +61,5 @@ export function generateCtas(
 
   return items
     .slice(0, 5)
-    .sort(
-      (a: any, b: any) =>
-        a.priority - b.priority || a.label.localeCompare(b.label),
-    );
+    .sort((a: any, b: any) => a.priority - b.priority || a.label.localeCompare(b.label));
 }

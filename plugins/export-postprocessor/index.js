@@ -63,10 +63,7 @@ function createHashesOnlyBundle(bundle) {
   const hashes = {};
 
   for (const [key, value] of Object.entries(bundle)) {
-    if (
-      key.toLowerCase().includes("hash") ||
-      (typeof value === "string" && value.length === 64)
-    ) {
+    if (key.toLowerCase().includes("hash") || (typeof value === "string" && value.length === 64)) {
       hashes[key] = value;
     }
   }

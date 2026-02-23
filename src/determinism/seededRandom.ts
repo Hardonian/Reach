@@ -74,8 +74,7 @@ export function seededRandom(seed: string): SeededRng {
     },
 
     pick<T>(arr: readonly T[]): T {
-      if (arr.length === 0)
-        throw new RangeError("Cannot pick from empty array");
+      if (arr.length === 0) throw new RangeError("Cannot pick from empty array");
       return arr[Math.floor(advance() * arr.length)];
     },
 

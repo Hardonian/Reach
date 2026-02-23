@@ -95,9 +95,7 @@ export function TraceTimeline({ steps, onStepClick }: TraceTimelineProps) {
 
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                    {step.title}
-                  </h3>
+                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">{step.title}</h3>
                   {step.status === "Running" && (
                     <span className="flex h-2 w-2 relative">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
@@ -119,26 +117,19 @@ export function TraceTimeline({ steps, onStepClick }: TraceTimelineProps) {
                   </span>
                 </div>
                 {step.duration && (
-                  <div className="text-xs text-slate-400 font-mono">
-                    {step.duration}
-                  </div>
+                  <div className="text-xs text-slate-400 font-mono">{step.duration}</div>
                 )}
               </div>
 
               {step.description && (
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {step.description}
-                </p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{step.description}</p>
               )}
 
               {step.score !== undefined && (
                 <div className="mt-3">
                   <div className="flex items-center justify-between mb-1 text-xs text-slate-500">
                     <span>
-                      Score:{" "}
-                      <span className="text-orange-500 font-bold">
-                        {step.score}
-                      </span>
+                      Score: <span className="text-orange-500 font-bold">{step.score}</span>
                     </span>
                     <span>Threshold: 0.80</span>
                   </div>

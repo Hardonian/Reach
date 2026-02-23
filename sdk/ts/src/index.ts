@@ -225,19 +225,12 @@ class ReachClient {
   private readonly fetchImpl: typeof fetch;
 
   constructor(config: ReachClientConfig = {}) {
-    this.baseUrl = (config.baseUrl ?? "http://127.0.0.1:8787").replace(
-      /\/$/,
-      "",
-    );
+    this.baseUrl = (config.baseUrl ?? "http://127.0.0.1:8787").replace(/\/$/, "");
     this.timeout = config.timeout ?? 30000;
     this.fetchImpl = config.fetch ?? fetch;
   }
 
-  private async request<T>(
-    method: string,
-    path: string,
-    body?: unknown,
-  ): Promise<T> {
+  private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
     const url = `${this.baseUrl}${path}`;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
@@ -261,9 +254,7 @@ class ReachClient {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const errorData = (await response
-          .json()
-          .catch(() => ({}))) as Partial<ReachError>;
+        const errorData = (await response.json().catch(() => ({}))) as Partial<ReachError>;
         throw new ReachErrorException(
           errorData.error ?? `HTTP ${response.status}`,
           errorData.code ?? "UNKNOWN_ERROR",
@@ -311,10 +302,7 @@ class ReachClient {
   }
 
   // Runs
-  async createRun(params?: {
-    capabilities?: string[];
-    plan_tier?: string;
-  }): Promise<Run> {
+  async createRun(params?: { capabilities?: string[]; plan_tier?: string }): Promise<Run> {
     return this.request("POST", "/runs", params);
   }
 
@@ -324,10 +312,7 @@ class ReachClient {
 
   async getRunEvents(id: string, after?: number): Promise<{ events: Event[] }> {
     const query = after ? `?after=${after}` : "";
-    return this.request(
-      "GET",
-      `/runs/${encodeURIComponent(id)}/events${query}`,
-    );
+    return this.request("GET", `/runs/${encodeURIComponent(id)}/events${query}`);
   }
 
   async streamRunEvents(
@@ -345,10 +330,7 @@ class ReachClient {
       });
 
       if (!response.ok) {
-        throw new ReachErrorException(
-          `HTTP ${response.status}`,
-          "STREAM_ERROR",
-        );
+        throw new ReachErrorException(`HTTP ${response.status}`, "STREAM_ERROR");
       }
 
       const reader = response.body?.getReader();
@@ -407,9 +389,7 @@ class ReachClient {
   }
 
   // Capsules
-  async createCapsule(
-    runId: string,
-  ): Promise<Capsule & { capsulePath: string }> {
+  async createCapsule(runId: string): Promise<Capsule & { capsulePath: string }> {
     return this.request("POST", "/capsules", { run_id: runId });
   }
 

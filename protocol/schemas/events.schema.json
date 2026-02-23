@@ -138,14 +138,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "type",
-        "run_id",
-        "tool",
-        "capabilities",
-        "reason",
-        "gate_id"
-      ],
+      "required": ["type", "run_id", "tool", "capabilities", "reason", "gate_id"],
       "additionalProperties": false
     },
     {

@@ -25,28 +25,17 @@ const VALID_EVENTS = new Set([
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     // Rate limit: 60 events/min per IP
-    const ip =
-      req.headers.get("x-forwarded-for") ??
-      req.headers.get("x-real-ip") ??
-      "unknown";
+    const ip = req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? "unknown";
     const { success } = await checkRateLimit(ip, 60, 60);
     if (!success) {
-      return NextResponse.json(
-        { ok: false, error: "Rate limited" },
-        { status: 429 },
-      );
+      return NextResponse.json({ ok: false, error: "Rate limited" }, { status: 429 });
     }
 
-    const body = (await req
-      .json()
-      .catch(() => ({}))) as Partial<AnalyticsEvent>;
+    const body = (await req.json().catch(() => ({}))) as Partial<AnalyticsEvent>;
     const { event, properties } = body;
 
     if (!event || !VALID_EVENTS.has(event)) {
-      return NextResponse.json(
-        { ok: false, error: "Unknown event" },
-        { status: 400 },
-      );
+      return NextResponse.json({ ok: false, error: "Unknown event" }, { status: 400 });
     }
 
     // Sanitize properties — only allow primitive values
@@ -55,13 +44,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       for (const [k, v] of Object.entries(properties)) {
         if (
           k.length <= 64 &&
-          (typeof v === "string" ||
-            typeof v === "number" ||
-            typeof v === "boolean" ||
-            v === null)
+          (typeof v === "string" || typeof v === "number" || typeof v === "boolean" || v === null)
         ) {
-          safeProps[k.slice(0, 64)] =
-            typeof v === "string" ? v.slice(0, 256) : v;
+          safeProps[k.slice(0, 64)] = typeof v === "string" ? v.slice(0, 256) : v;
         }
       }
     }

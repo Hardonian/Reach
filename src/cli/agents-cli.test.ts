@@ -41,9 +41,7 @@ describe("agents permissions", () => {
     const rc = await runAgentsCommand(parseAgentsArgs(["add", "agent"]));
     expect(rc).toBe(1);
 
-    const rcAccepted = await runAgentsCommand(
-      parseAgentsArgs(["add", "agent", "--accept"]),
-    );
+    const rcAccepted = await runAgentsCommand(parseAgentsArgs(["add", "agent", "--accept"]));
     expect(rcAccepted).toBe(0);
   });
 
@@ -93,9 +91,7 @@ describe("agents permissions", () => {
       firstOut.push(String(chunk));
       return true;
     }) as typeof process.stdout.write;
-    await runAgentsCommand(
-      parseAgentsArgs(["recommend", "extraction", "--json"]),
-    );
+    await runAgentsCommand(parseAgentsArgs(["recommend", "extraction", "--json"]));
     const first = JSON.parse(firstOut.join(""));
 
     const secondOut: string[] = [];
@@ -103,9 +99,7 @@ describe("agents permissions", () => {
       secondOut.push(String(chunk));
       return true;
     }) as typeof process.stdout.write;
-    await runAgentsCommand(
-      parseAgentsArgs(["recommend", "extraction", "--json"]),
-    );
+    await runAgentsCommand(parseAgentsArgs(["recommend", "extraction", "--json"]));
     process.stdout.write = orig;
     const second = JSON.parse(secondOut.join(""));
 

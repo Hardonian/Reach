@@ -40,10 +40,8 @@ interface ProviderResponse {
 }
 
 function validateDeterminism(seed: number, temperature: number): void {
-  if (!Number.isInteger(seed) || seed < 0)
-    throw new Error("seed must be a non-negative integer");
-  if (temperature !== 0)
-    throw new Error("temperature must be 0 for deterministic mode");
+  if (!Number.isInteger(seed) || seed < 0) throw new Error("seed must be a non-negative integer");
+  if (temperature !== 0) throw new Error("temperature must be 0 for deterministic mode");
 }
 
 function normalizeBaseUrl(provider: LlmProviderName, baseUrl?: string): string {
@@ -54,9 +52,7 @@ function normalizeBaseUrl(provider: LlmProviderName, baseUrl?: string): string {
   return "http://127.0.0.1:11434";
 }
 
-function asOpenAiMessages(
-  messages: LlmMessage[],
-): Array<Record<string, string>> {
+function asOpenAiMessages(messages: LlmMessage[]): Array<Record<string, string>> {
   return messages.map((message) => ({
     role: message.role,
     content: message.content,
@@ -176,21 +172,18 @@ function parseProviderResponse(
     const message = (first?.message ?? {}) as Record<string, unknown>;
     const content = message.content;
     if (typeof content !== "string" || content.trim().length === 0) {
-      throw new Error(
-        `Malformed ${provider} response: missing choices[0].message.content`,
-      );
+      throw new Error(`Malformed ${provider} response: missing choices[0].message.content`);
     }
     return {
       json: tryParseJsonObject(content, provider),
       usage: {
         inputTokens:
-          typeof (payload.usage as Record<string, unknown> | undefined)
-            ?.prompt_tokens === "number"
+          typeof (payload.usage as Record<string, unknown> | undefined)?.prompt_tokens === "number"
             ? (payload.usage as Record<string, number>).prompt_tokens
             : undefined,
         outputTokens:
-          typeof (payload.usage as Record<string, unknown> | undefined)
-            ?.completion_tokens === "number"
+          typeof (payload.usage as Record<string, unknown> | undefined)?.completion_tokens ===
+          "number"
             ? (payload.usage as Record<string, number>).completion_tokens
             : undefined,
       },
@@ -208,13 +201,11 @@ function parseProviderResponse(
       json: tryParseJsonObject(text, provider),
       usage: {
         inputTokens:
-          typeof (payload.usage as Record<string, unknown> | undefined)
-            ?.input_tokens === "number"
+          typeof (payload.usage as Record<string, unknown> | undefined)?.input_tokens === "number"
             ? (payload.usage as Record<string, number>).input_tokens
             : undefined,
         outputTokens:
-          typeof (payload.usage as Record<string, unknown> | undefined)
-            ?.output_tokens === "number"
+          typeof (payload.usage as Record<string, unknown> | undefined)?.output_tokens === "number"
             ? (payload.usage as Record<string, number>).output_tokens
             : undefined,
       },
@@ -234,9 +225,7 @@ function parseProviderResponse(
           ? (payload.prompt_eval_count as number)
           : undefined,
       outputTokens:
-        typeof payload.eval_count === "number"
-          ? (payload.eval_count as number)
-          : undefined,
+        typeof payload.eval_count === "number" ? (payload.eval_count as number) : undefined,
     },
   };
 }
@@ -247,11 +236,7 @@ function schemaType(value: unknown): string {
   return typeof value;
 }
 
-function validateSchemaValue(
-  value: unknown,
-  schema: Record<string, unknown>,
-  path: string,
-): void {
+function validateSchemaValue(value: unknown, schema: Record<string, unknown>, path: string): void {
   const expected = schema.type;
   if (typeof expected === "string") {
     if (expected === "object") {
@@ -260,13 +245,8 @@ function validateSchemaValue(
           `Schema validation failed at ${path}: expected object, received ${schemaType(value)}`,
         );
       }
-      const required = Array.isArray(schema.required)
-        ? schema.required.map(String)
-        : [];
-      const properties = (schema.properties ?? {}) as Record<
-        string,
-        Record<string, unknown>
-      >;
+      const required = Array.isArray(schema.required) ? schema.required.map(String) : [];
+      const properties = (schema.properties ?? {}) as Record<string, Record<string, unknown>>;
       for (const req of required) {
         if (!(req in (value as Record<string, unknown>))) {
           throw new Error(
@@ -293,9 +273,7 @@ function validateSchemaValue(
         );
       const itemSchema = (schema.items ?? {}) as Record<string, unknown>;
       if (Object.keys(itemSchema).length > 0) {
-        value.forEach((item, idx) =>
-          validateSchemaValue(item, itemSchema, `${path}[${idx}]`),
-        );
+        value.forEach((item, idx) => validateSchemaValue(item, itemSchema, `${path}[${idx}]`));
       }
       return;
     }
@@ -308,10 +286,7 @@ function validateSchemaValue(
   }
 }
 
-export function validateJsonSchema(
-  value: unknown,
-  schema?: Record<string, unknown>,
-): void {
+export function validateJsonSchema(value: unknown, schema?: Record<string, unknown>): void {
   if (!schema) return;
   validateSchemaValue(value, schema, "$");
 }
@@ -320,16 +295,8 @@ export function createProvider(config: LlmConfig): LlmProvider {
   return {
     async chat(messages, jsonSchema, seed = config.seed, temperature = 0) {
       validateDeterminism(seed, temperature);
-      const provider =
-        config.provider === "custom" ? "ollama" : config.provider;
-      const req = buildRequest(
-        provider,
-        config,
-        messages,
-        jsonSchema,
-        seed,
-        temperature,
-      );
+      const provider = config.provider === "custom" ? "ollama" : config.provider;
+      const req = buildRequest(provider, config, messages, jsonSchema, seed, temperature);
       const response = await fetch(req.url, {
         method: "POST",
         headers: req.headers,
@@ -337,9 +304,7 @@ export function createProvider(config: LlmConfig): LlmProvider {
       });
       if (!response.ok) {
         const detail = await response.text();
-        throw new Error(
-          `Provider request failed with status ${response.status}: ${detail}`,
-        );
+        throw new Error(`Provider request failed with status ${response.status}: ${detail}`);
       }
       const payload = (await response.json()) as Record<string, unknown>;
       const parsed = parseProviderResponse(provider, payload);

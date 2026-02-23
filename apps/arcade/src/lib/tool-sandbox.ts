@@ -19,10 +19,8 @@ import crypto from "crypto";
 
 // Simple logger placeholder - replace with actual logger in production
 const logger = {
-  info: (msg: string, meta?: Record<string, unknown>) =>
-    console.log(`[INFO] ${msg}`, meta || ""),
-  warn: (msg: string, meta?: Record<string, unknown>) =>
-    console.warn(`[WARN] ${msg}`, meta || ""),
+  info: (msg: string, meta?: Record<string, unknown>) => console.log(`[INFO] ${msg}`, meta || ""),
+  warn: (msg: string, meta?: Record<string, unknown>) => console.warn(`[WARN] ${msg}`, meta || ""),
   error: (msg: string, meta?: Record<string, unknown>) =>
     console.error(`[ERROR] ${msg}`, meta || ""),
 };
@@ -223,10 +221,7 @@ export class RateLimiter {
     setInterval(() => this.cleanup(), this.cleanupIntervalMs);
   }
 
-  check(
-    key: string,
-    config: RateLimitConfig,
-  ): { allowed: boolean; retry_after_ms?: number } {
+  check(key: string, config: RateLimitConfig): { allowed: boolean; retry_after_ms?: number } {
     let bucket = this.tokens.get(key);
 
     if (!bucket) {
@@ -290,17 +285,11 @@ class TokenBucket {
 
     if (elapsed >= 60000) {
       // Refill minute
-      this.minuteTokens = Math.min(
-        this.minuteTokens + Math.floor(elapsed / 60000),
-        60,
-      );
+      this.minuteTokens = Math.min(this.minuteTokens + Math.floor(elapsed / 60000), 60);
     }
     if (elapsed >= 3600000) {
       // Refill hour
-      this.hourTokens = Math.min(
-        this.hourTokens + Math.floor(elapsed / 3600000),
-        3600,
-      );
+      this.hourTokens = Math.min(this.hourTokens + Math.floor(elapsed / 3600000), 3600);
     }
     // Day doesn't refill during normal operation
 
@@ -343,11 +332,7 @@ export class ToolSandbox {
     this.tools.set(tool.id, tool);
     this.circuitBreakers.set(
       tool.id,
-      new CircuitBreaker(
-        tool.max_retries * 2,
-        tool.max_retries,
-        tool.timeout_ms * 2,
-      ),
+      new CircuitBreaker(tool.max_retries * 2, tool.max_retries, tool.timeout_ms * 2),
     );
     logger.info("Tool registered in sandbox", {
       tool_id: tool.id,
@@ -382,10 +367,7 @@ export class ToolSandbox {
   /**
    * Checks if user has required permissions.
    */
-  checkPermissions(
-    userScopes: ToolPermissionScope[],
-    required: ToolPermissionScope[],
-  ): boolean {
+  checkPermissions(userScopes: ToolPermissionScope[], required: ToolPermissionScope[]): boolean {
     return required.every((perm) => userScopes.includes(perm));
   }
 
@@ -532,9 +514,7 @@ export class ToolSandbox {
    */
   clearLogs(beforeTimestamp?: string): void {
     if (beforeTimestamp) {
-      this.executionLogs = this.executionLogs.filter(
-        (l) => l.created_at > beforeTimestamp,
-      );
+      this.executionLogs = this.executionLogs.filter((l) => l.created_at > beforeTimestamp);
     } else {
       this.executionLogs = [];
     }
@@ -547,9 +527,7 @@ export class ToolSandbox {
   ): Promise<unknown> {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
-        reject(
-          new TimeoutError(`Tool execution timed out after ${timeoutMs}ms`),
-        );
+        reject(new TimeoutError(`Tool execution timed out after ${timeoutMs}ms`));
       }, timeoutMs);
 
       try {
@@ -565,10 +543,7 @@ export class ToolSandbox {
     });
   }
 
-  private simulateExecution(
-    _invocation: ToolInvocation,
-    _tool: ToolDefinition,
-  ): unknown {
+  private simulateExecution(_invocation: ToolInvocation, _tool: ToolDefinition): unknown {
     // Placeholder for actual tool execution
     // In production, this would use a proper sandbox (Web Worker, Docker, etc.)
     return { success: true, message: "Tool executed successfully" };
@@ -674,26 +649,10 @@ export const ToolDefinitionSchema = z.object({
   description: z.string(),
   version: z.string(),
   permission_scope: z.array(
-    z.enum([
-      "read",
-      "write",
-      "execute",
-      "admin",
-      "network",
-      "filesystem",
-      "process",
-    ]),
+    z.enum(["read", "write", "execute", "admin", "network", "filesystem", "process"]),
   ),
   required_permissions: z.array(
-    z.enum([
-      "read",
-      "write",
-      "execute",
-      "admin",
-      "network",
-      "filesystem",
-      "process",
-    ]),
+    z.enum(["read", "write", "execute", "admin", "network", "filesystem", "process"]),
   ),
   input_schema: z.record(z.string(), z.unknown()),
   output_schema: z.record(z.string(), z.unknown()),
@@ -730,15 +689,7 @@ export const ToolInvocationSchema = z.object({
   user_id: z.string(),
   input: z.record(z.string(), z.unknown()),
   permission_scope: z.array(
-    z.enum([
-      "read",
-      "write",
-      "execute",
-      "admin",
-      "network",
-      "filesystem",
-      "process",
-    ]),
+    z.enum(["read", "write", "execute", "admin", "network", "filesystem", "process"]),
   ),
   timestamp: z.string().datetime(),
   timeout_ms: z.number().positive(),

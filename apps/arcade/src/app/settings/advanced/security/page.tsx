@@ -7,20 +7,15 @@ export default function SecuritySettingsPage() {
     <>
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
         <span>Settings</span>
-        <span className="material-symbols-outlined text-[12px]">
-          chevron_right
-        </span>
+        <span className="material-symbols-outlined text-[12px]">chevron_right</span>
         <span>Advanced</span>
-        <span className="material-symbols-outlined text-[12px]">
-          chevron_right
-        </span>
+        <span className="material-symbols-outlined text-[12px]">chevron_right</span>
         <span className="text-white">Security</span>
       </div>
 
       <h1 className="text-3xl font-bold tracking-tight mb-2">Security</h1>
       <p className="text-gray-400 max-w-2xl mb-8">
-        Manage authentication, access controls, and security settings for your{" "}
-        {BRAND_NAME} account.
+        Manage authentication, access controls, and security settings for your {BRAND_NAME} account.
       </p>
 
       {/* MFA */}
@@ -31,9 +26,7 @@ export default function SecuritySettingsPage() {
               <span className="material-symbols-outlined">lock</span>
             </div>
             <div>
-              <h2 className="text-lg font-semibold">
-                Multi-Factor Authentication
-              </h2>
+              <h2 className="text-lg font-semibold">Multi-Factor Authentication</h2>
               <p className="text-sm text-gray-400">
                 Protect your account with an additional verification step.
               </p>
@@ -52,9 +45,7 @@ export default function SecuritySettingsPage() {
           </div>
         </div>
         <div className="mt-4 flex gap-3">
-          <button className="btn-secondary text-sm py-1.5 px-3">
-            Regenerate Recovery Codes
-          </button>
+          <button className="btn-secondary text-sm py-1.5 px-3">Regenerate Recovery Codes</button>
           <button className="text-sm text-red-400 hover:text-red-300 transition-colors">
             Disable MFA
           </button>
@@ -72,9 +63,7 @@ export default function SecuritySettingsPage() {
             <p className="text-sm text-gray-400">Last changed 45 days ago.</p>
           </div>
         </div>
-        <button className="btn-secondary text-sm py-1.5 px-3">
-          Change Password
-        </button>
+        <button className="btn-secondary text-sm py-1.5 px-3">Change Password</button>
       </div>
 
       {/* Active Sessions */}
@@ -85,9 +74,7 @@ export default function SecuritySettingsPage() {
           </div>
           <div>
             <h2 className="text-lg font-semibold">Active Sessions</h2>
-            <p className="text-sm text-gray-400">
-              Devices currently signed into your account.
-            </p>
+            <p className="text-sm text-gray-400">Devices currently signed into your account.</p>
           </div>
         </div>
         <div className="space-y-3">
@@ -111,9 +98,7 @@ export default function SecuritySettingsPage() {
             >
               <div className="flex items-center gap-3">
                 <span className="material-symbols-outlined text-gray-400">
-                  {s.device.includes("macOS")
-                    ? "laptop_mac"
-                    : "desktop_windows"}
+                  {s.device.includes("macOS") ? "laptop_mac" : "desktop_windows"}
                 </span>
                 <div>
                   <p className="text-sm font-medium">{s.device}</p>
@@ -167,9 +152,7 @@ export default function SecuritySettingsPage() {
             ].map((a, i) => (
               <tr key={i} className="hover:bg-white/[0.02] transition-colors">
                 <td className="px-6 py-3 font-medium">{a.action}</td>
-                <td className="px-6 py-3 text-gray-400 font-mono text-xs">
-                  {a.ip}
-                </td>
+                <td className="px-6 py-3 text-gray-400 font-mono text-xs">{a.ip}</td>
                 <td className="px-6 py-3 text-gray-400 text-right">{a.time}</td>
               </tr>
             ))}

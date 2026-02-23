@@ -56,9 +56,7 @@ function main() {
   } else if (existsSync(reachScript)) {
     reachCmd = "bash " + reachScript;
   } else {
-    error(
-      "Reach CLI not found. Expected reachctl.exe or reach script in repo root.",
-    );
+    error("Reach CLI not found. Expected reachctl.exe or reach script in repo root.");
     process.exit(1);
   }
 
@@ -94,9 +92,7 @@ function main() {
     log("  3. See: examples/02-diff-and-explain/");
   } catch (e) {
     // Doctor may return warnings but that's OK for demo
-    log(
-      "✅ Environment check completed (some warnings in dev mode are expected)\n",
-    );
+    log("✅ Environment check completed (some warnings in dev mode are expected)\n");
 
     log("---");
     log("Run complete!");

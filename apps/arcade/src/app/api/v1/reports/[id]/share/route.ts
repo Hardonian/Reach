@@ -20,10 +20,7 @@ export async function POST(
     resource_id: id,
   });
   if ("errors" in parsed)
-    return cloudErrorResponse(
-      parsed.errors.issues[0]?.message ?? "Invalid input",
-      400,
-    );
+    return cloudErrorResponse(parsed.errors.issues[0]?.message ?? "Invalid input", 400);
 
   const share = createReportShare(
     ctx.tenantId,

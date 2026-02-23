@@ -24,15 +24,9 @@ function main() {
   log("=== Reach Example 06: Retention Compact Safety ===\n");
 
   // Load configurations
-  const policy = JSON.parse(
-    readFileSync(resolve(EXAMPLE_DIR, "retention-policy.json"), "utf8"),
-  );
-  const db = JSON.parse(
-    readFileSync(resolve(EXAMPLE_DIR, "mock-database.json"), "utf8"),
-  );
-  const expected = JSON.parse(
-    readFileSync(resolve(EXAMPLE_DIR, "expected-compact.json"), "utf8"),
-  );
+  const policy = JSON.parse(readFileSync(resolve(EXAMPLE_DIR, "retention-policy.json"), "utf8"));
+  const db = JSON.parse(readFileSync(resolve(EXAMPLE_DIR, "mock-database.json"), "utf8"));
+  const expected = JSON.parse(readFileSync(resolve(EXAMPLE_DIR, "expected-compact.json"), "utf8"));
 
   // Phase 1: Retention Status
   log("--- Phase 1: Retention Status ---");
@@ -68,9 +62,7 @@ function main() {
   // Phase 2: Policy Check
   log("--- Phase 2: Policy Check ---");
   log(`Policy: ${policy.id}`);
-  log(
-    `Archive after: ${policy.tiers.find((t) => t.name === "archive").min_age_days} days`,
-  );
+  log(`Archive after: ${policy.tiers.find((t) => t.name === "archive").min_age_days} days`);
 
   const archiveRuns = db.runs.filter((r) => r.tier === "archive");
   log(`Runs in archive tier: ${archiveRuns.length}`);
@@ -116,9 +108,7 @@ function main() {
   // Phase 4: Integrity Check
   log("--- Phase 4: Integrity Check ---");
 
-  const allFingerprints = compacted.every(
-    (r) => r.fingerprint || r.fingerprint_preserved,
-  );
+  const allFingerprints = compacted.every((r) => r.fingerprint || r.fingerprint_preserved);
   log(`Fingerprints preserved: ${allFingerprints ? "✅ YES" : "❌ NO"}`);
 
   const allMetadata = compacted.every((r) => r.metadata_preserved !== false);
@@ -153,9 +143,7 @@ function main() {
   // Summary
   log("--- Summary ---");
   log(`Runs processed: ${db.runs.length}`);
-  log(
-    `Runs compacted: ${compacted.filter((r) => r.action === "compact").length}`,
-  );
+  log(`Runs compacted: ${compacted.filter((r) => r.action === "compact").length}`);
   log(`Storage saved: ${savedPercent}%`);
   log(`Integrity: VERIFIED`);
   log(`Compliance: CONFIRMED`);

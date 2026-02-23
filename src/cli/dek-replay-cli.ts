@@ -44,9 +44,7 @@ export function parseDekReplayArgs(argv: string[]): DekReplayArgs | null {
   return args;
 }
 
-export async function runDekReplayCommand(
-  args: DekReplayArgs,
-): Promise<number> {
+export async function runDekReplayCommand(args: DekReplayArgs): Promise<number> {
   // Initialize DEK
   initializeDEK();
 
@@ -183,15 +181,11 @@ function printHumanOutput(
   console.log(`  Run ID: ${envelope.runId}`);
   console.log(`  Workflow: ${envelope.workflowId}`);
   console.log(`  Timestamp: ${envelope.timestamp}`);
-  console.log(
-    `  Model: ${envelope.modelSpec.provider}/${envelope.modelSpec.model}`,
-  );
+  console.log(`  Model: ${envelope.modelSpec.provider}/${envelope.modelSpec.model}`);
   console.log(`  Duration: ${result.originalEntry.durationMs}ms`);
 
   console.log(`\nReplay Comparison:`);
-  console.log(
-    `  Original Hash: ${result.comparison.originalHash.slice(0, 16)}...`,
-  );
+  console.log(`  Original Hash: ${result.comparison.originalHash.slice(0, 16)}...`);
   console.log(
     `  Replay Hash: ${
       result.comparison.replayHash === "reconstruction_required"
@@ -215,16 +209,12 @@ function printHumanOutput(
       break;
     case "DEGRADED":
       console.log(`  ⚠️  Replay degraded - input reconstruction required`);
-      console.log(
-        `  \nThe original input snapshot needs to be restored for full replay.`,
-      );
+      console.log(`  \nThe original input snapshot needs to be restored for full replay.`);
       break;
     case "UNAVAILABLE":
       console.log(`  ❌ Model unavailable for replay`);
       if (showSuggestions && result.modelAvailability.suggestedModel) {
-        console.log(
-          `  \nSuggested compatible model: ${result.modelAvailability.suggestedModel}`,
-        );
+        console.log(`  \nSuggested compatible model: ${result.modelAvailability.suggestedModel}`);
       }
       break;
   }
@@ -267,8 +257,7 @@ export async function listJournalRuns(limit: number = 20): Promise<void> {
 
   for (const entry of entries.reverse()) {
     const e = entry.envelope;
-    const status =
-      entry.status === "success" ? "✓" : entry.status === "error" ? "✗" : "◐";
+    const status = entry.status === "success" ? "✓" : entry.status === "error" ? "✗" : "◐";
     console.log(`${status} ${e.runId}`);
     console.log(`   Workflow: ${e.workflowId}`);
     console.log(`   Time: ${e.timestamp}`);

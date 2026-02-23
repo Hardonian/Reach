@@ -9,20 +9,12 @@ import { z } from "zod";
 /**
  * Junction types
  */
-export type JunctionType =
-  | "diff_critical"
-  | "drift_alert"
-  | "trust_drop"
-  | "policy_violation";
+export type JunctionType = "diff_critical" | "drift_alert" | "trust_drop" | "policy_violation";
 
 /**
  * Junction status
  */
-export type JunctionStatus =
-  | "triggered"
-  | "acknowledged"
-  | "resolved"
-  | "superseded";
+export type JunctionStatus = "triggered" | "acknowledged" | "resolved" | "superseded";
 
 /**
  * Junction trigger data

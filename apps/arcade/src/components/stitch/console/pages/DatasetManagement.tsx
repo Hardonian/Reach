@@ -18,9 +18,7 @@ export function DatasetManagement() {
             type="button"
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#3b4354] bg-[#1c1f27] text-white text-sm font-medium hover:bg-[#282e39] transition-colors"
           >
-            <span className="material-symbols-outlined text-[18px]">
-              refresh
-            </span>
+            <span className="material-symbols-outlined text-[18px]">refresh</span>
             <span>Sync All</span>
           </button>
         </div>
@@ -34,8 +32,8 @@ export function DatasetManagement() {
                 Dataset & RAG Management
               </h1>
               <p className="text-[#9da6b9] text-base max-w-2xl">
-                Manage vector stores, configure ingestion pipelines, and test
-                retrieval accuracy for your agentic workflows.
+                Manage vector stores, configure ingestion pipelines, and test retrieval accuracy for
+                your agentic workflows.
               </p>
             </div>
             <button
@@ -79,9 +77,7 @@ export function DatasetManagement() {
                 className="bg-[#1c1f27] border border-[#3b4354] rounded-xl p-6 relative overflow-hidden group"
               >
                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <span className="material-symbols-outlined text-6xl text-white">
-                    {stat.icon}
-                  </span>
+                  <span className="material-symbols-outlined text-6xl text-white">{stat.icon}</span>
                 </div>
                 <p className="text-[#9da6b9] text-[10px] font-bold uppercase tracking-widest mb-1">
                   {stat.label}
@@ -156,24 +152,15 @@ export function DatasetManagement() {
                         color: "red",
                       },
                     ].map((row) => (
-                      <tr
-                        key={row.name}
-                        className="hover:bg-white/5 transition-colors"
-                      >
+                      <tr key={row.name} className="hover:bg-white/5 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded bg-slate-800 flex items-center justify-center text-slate-400">
-                              <span className="material-symbols-outlined text-sm">
-                                database
-                              </span>
+                              <span className="material-symbols-outlined text-sm">database</span>
                             </div>
                             <div>
-                              <p className="text-slate-100 font-bold">
-                                {row.name}
-                              </p>
-                              <p className="text-[10px] text-slate-500 font-medium">
-                                {row.type}
-                              </p>
+                              <p className="text-slate-100 font-bold">{row.name}</p>
+                              <p className="text-[10px] text-slate-500 font-medium">{row.type}</p>
                             </div>
                           </div>
                         </td>
@@ -184,9 +171,7 @@ export function DatasetManagement() {
                             {row.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 font-mono text-slate-400">
-                          {row.chunks}
-                        </td>
+                        <td className="px-6 py-4 font-mono text-slate-400">{row.chunks}</td>
                         <td className="px-6 py-4">
                           <span className="px-2 py-0.5 rounded border border-[#3b4354] bg-[#282e39] text-[10px] text-slate-400 font-bold">
                             {row.model}
@@ -198,9 +183,7 @@ export function DatasetManagement() {
                             aria-label="More actions"
                             className="text-slate-500 hover:text-white transition-colors"
                           >
-                            <span className="material-symbols-outlined">
-                              more_vert
-                            </span>
+                            <span className="material-symbols-outlined">more_vert</span>
                           </button>
                         </td>
                       </tr>
@@ -259,9 +242,7 @@ export function DatasetManagement() {
                         aria-label="Run test query"
                         className="absolute bottom-3 right-3 p-1.5 bg-[#135bec] text-white rounded-lg hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"
                       >
-                        <span className="material-symbols-outlined text-sm">
-                          play_arrow
-                        </span>
+                        <span className="material-symbols-outlined text-sm">play_arrow</span>
                       </button>
                     </div>
                   </div>

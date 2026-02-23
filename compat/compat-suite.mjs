@@ -80,17 +80,13 @@ function validateSchema(data, schema) {
     }
 
     if (schemaNode.enum && !schemaNode.enum.includes(value)) {
-      errors.push(
-        `${path}: expected one of ${schemaNode.enum.join(", ")}, got ${value}`,
-      );
+      errors.push(`${path}: expected one of ${schemaNode.enum.join(", ")}, got ${value}`);
     }
 
     if (schemaNode.pattern && typeof value === "string") {
       const regex = new RegExp(schemaNode.pattern);
       if (!regex.test(value)) {
-        errors.push(
-          `${path}: value "${value}" does not match pattern ${schemaNode.pattern}`,
-        );
+        errors.push(`${path}: value "${value}" does not match pattern ${schemaNode.pattern}`);
       }
     }
 
@@ -236,10 +232,7 @@ console.log("\n--- Replay Tests ---\n");
 test("capsule contains required replay fields", () => {
   const capsuleSchema = loadSchema("capsule.schema.json");
   assert(capsuleSchema.properties.events, "Must include events");
-  assert(
-    capsuleSchema.properties.toolRecordings,
-    "Must include tool recordings",
-  );
+  assert(capsuleSchema.properties.toolRecordings, "Must include tool recordings");
   assert(capsuleSchema.properties.manifest, "Must have manifest");
 });
 
@@ -274,19 +267,12 @@ test("capabilities include tools and resources", () => {
 
 test("policy violations have structured error format", () => {
   const errorSchema = loadSchema("error.schema.json");
+  assert(errorSchema.$defs && errorSchema.$defs.ErrorDetails, "Must have ErrorDetails def");
   assert(
-    errorSchema.$defs && errorSchema.$defs.ErrorDetails,
-    "Must have ErrorDetails def",
-  );
-  assert(
-    errorSchema.$defs.ErrorDetails.properties &&
-      errorSchema.$defs.ErrorDetails.properties.category,
+    errorSchema.$defs.ErrorDetails.properties && errorSchema.$defs.ErrorDetails.properties.category,
     "Must include category",
   );
-  assert(
-    errorSchema.$defs.ErrorDetails.properties.recoverable,
-    "Must include recoverable flag",
-  );
+  assert(errorSchema.$defs.ErrorDetails.properties.recoverable, "Must include recoverable flag");
 });
 
 // ----------------------------------------------------------------------------
@@ -335,23 +321,14 @@ console.log("\n--- Error Code Tests ---\n");
 
 test("error codes follow CATEGORY_DETAIL format", () => {
   const errorSchema = loadSchema("error.schema.json");
-  assert(
-    errorSchema.$defs && errorSchema.$defs.ErrorDetails,
-    "Must have ErrorDetails def",
-  );
+  assert(errorSchema.$defs && errorSchema.$defs.ErrorDetails, "Must have ErrorDetails def");
   const pattern = errorSchema.$defs.ErrorDetails.properties.code.pattern;
-  assert(
-    pattern === "^[A-Z][A-Z0-9]*_[A-Z][A-Z0-9_]*$",
-    "Must match required pattern",
-  );
+  assert(pattern === "^[A-Z][A-Z0-9]*_[A-Z][A-Z0-9_]*$", "Must match required pattern");
 });
 
 test("all error categories are defined", () => {
   const errorSchema = loadSchema("error.schema.json");
-  assert(
-    errorSchema.$defs && errorSchema.$defs.ErrorDetails,
-    "Must have ErrorDetails def",
-  );
+  assert(errorSchema.$defs && errorSchema.$defs.ErrorDetails, "Must have ErrorDetails def");
   const categories = errorSchema.$defs.ErrorDetails.properties.category.enum;
   assert(categories.includes("PROTOCOL"), "Must include PROTOCOL");
   assert(categories.includes("POLICY"), "Must include POLICY");
@@ -371,31 +348,16 @@ test("all schemas declare specVersion", () => {
   const packSchema = loadSchema("pack.schema.json");
   const capsuleSchema = loadSchema("capsule.schema.json");
 
-  assert(
-    runSchema.required.includes("specVersion"),
-    "run schema must require specVersion",
-  );
-  assert(
-    eventSchema.required.includes("specVersion"),
-    "event schema must require specVersion",
-  );
-  assert(
-    packSchema.required.includes("specVersion"),
-    "pack schema must require specVersion",
-  );
-  assert(
-    capsuleSchema.required.includes("specVersion"),
-    "capsule schema must require specVersion",
-  );
+  assert(runSchema.required.includes("specVersion"), "run schema must require specVersion");
+  assert(eventSchema.required.includes("specVersion"), "event schema must require specVersion");
+  assert(packSchema.required.includes("specVersion"), "pack schema must require specVersion");
+  assert(capsuleSchema.required.includes("specVersion"), "capsule schema must require specVersion");
 });
 
 test("specVersion follows SemVer pattern", () => {
   const runSchema = loadSchema("run.schema.json");
   const pattern = runSchema.properties.specVersion.pattern;
-  assert(
-    pattern === "^[0-9]+\\.[0-9]+\\.[0-9]+$",
-    "Must require SemVer format",
-  );
+  assert(pattern === "^[0-9]+\\.[0-9]+\\.[0-9]+$", "Must require SemVer format");
 });
 
 // ----------------------------------------------------------------------------

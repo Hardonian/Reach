@@ -14,19 +14,11 @@ export function upsertWebhookEvent(
   db.prepare(
     `INSERT INTO webhook_events (id, stripe_event_id, type, payload_json, processed, created_at)
     VALUES (?,?,?,?,0,?)`,
-  ).run(
-    newId("whe"),
-    stripeEventId,
-    type,
-    payloadJson,
-    new Date().toISOString(),
-  );
+  ).run(newId("whe"), stripeEventId, type, payloadJson, new Date().toISOString());
   return true;
 }
 
 export function markWebhookProcessed(stripeEventId: string): void {
   const db = getDB();
-  db.prepare(
-    "UPDATE webhook_events SET processed=1 WHERE stripe_event_id=?",
-  ).run(stripeEventId);
+  db.prepare("UPDATE webhook_events SET processed=1 WHERE stripe_event_id=?").run(stripeEventId);
 }

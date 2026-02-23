@@ -32,10 +32,7 @@ export function sortNumbers(arr: readonly number[]): number[] {
  * @example
  * sortByKey([{ id: "b" }, { id: "a" }], "id") // [{ id: "a" }, { id: "b" }]
  */
-export function sortByKey<T extends Record<string, unknown>>(
-  arr: readonly T[],
-  key: keyof T,
-): T[] {
+export function sortByKey<T extends Record<string, unknown>>(arr: readonly T[], key: keyof T): T[] {
   return [...arr].sort((a, b) => {
     const av = String(a[key]);
     const bv = String(b[key]);
@@ -60,10 +57,7 @@ export function sortByNumericKey<T extends Record<string, unknown>>(
  * Sorts an array using a provided comparator, returning a new array.
  * Wraps Array.prototype.sort to ensure immutability.
  */
-export function sortWith<T>(
-  arr: readonly T[],
-  comparator: (a: T, b: T) => number,
-): T[] {
+export function sortWith<T>(arr: readonly T[], comparator: (a: T, b: T) => number): T[] {
   return [...arr].sort(comparator);
 }
 

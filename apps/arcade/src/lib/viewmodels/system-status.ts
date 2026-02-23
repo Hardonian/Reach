@@ -16,9 +16,7 @@ export interface SystemStatus {
  * Returns the current system status.
  * In the absence of a backend, returns safe defaults (normal mode).
  */
-export const getSystemStatus = async (): Promise<
-  ViewModelResponse<SystemStatus>
-> => {
+export const getSystemStatus = async (): Promise<ViewModelResponse<SystemStatus>> => {
   return safeDefault({
     mode: "normal",
     queuePaused: false,

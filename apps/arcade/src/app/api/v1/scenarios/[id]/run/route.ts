@@ -22,14 +22,7 @@ export async function POST(
     );
 
   const scenarioRun = createScenarioRun(ctx.tenantId, id);
-  auditLog(
-    ctx,
-    "scenario_run.create",
-    "scenario_run",
-    scenarioRun.id,
-    { scenario_id: id },
-    req,
-  );
+  auditLog(ctx, "scenario_run.create", "scenario_run", scenarioRun.id, { scenario_id: id }, req);
 
   // Execute simulation asynchronously
   void runSimulation(ctx.tenantId, scenarioRun.id).catch((err) => {

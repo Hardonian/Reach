@@ -86,12 +86,8 @@ export default function DashboardPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">
-            Get started with ReadyLayer
-          </h1>
-          <p className="text-gray-400">
-            5 steps to your first successful agent check.
-          </p>
+          <h1 className="text-3xl font-bold mb-2">Get started with ReadyLayer</h1>
+          <p className="text-gray-400">5 steps to your first successful agent check.</p>
         </div>
 
         {/* Progress bar */}
@@ -114,12 +110,9 @@ export default function DashboardPage() {
         {allDone && (
           <div className="card border-emerald-500/40 bg-emerald-950/20 p-6 mb-6 text-center animate-slide-up">
             <div className="text-3xl mb-2">✅</div>
-            <h2 className="text-xl font-bold text-emerald-400 mb-1">
-              You&apos;re all set!
-            </h2>
+            <h2 className="text-xl font-bold text-emerald-400 mb-1">You&apos;re all set!</h2>
             <p className="text-gray-400 text-sm mb-4">
-              You&apos;ve completed onboarding. Your agent is ready to be
-              shipped with confidence.
+              You&apos;ve completed onboarding. Your agent is ready to be shipped with confidence.
             </p>
             <Link href={ROUTES.DOCS} className="btn-primary">
               Explore the docs
@@ -166,9 +159,7 @@ export default function DashboardPage() {
                           {isDone ? item.completedLabel : item.title}
                         </h3>
                         {!isDone && (
-                          <p className="text-sm text-gray-400 mt-0.5">
-                            {item.description}
-                          </p>
+                          <p className="text-sm text-gray-400 mt-0.5">{item.description}</p>
                         )}
                       </div>
 

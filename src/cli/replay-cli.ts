@@ -44,10 +44,7 @@ interface RunData {
   seed?: string;
 }
 
-async function importOrFallback<T>(
-  specifier: string,
-  fallbackRelativeToDist: string,
-): Promise<T> {
+async function importOrFallback<T>(specifier: string, fallbackRelativeToDist: string): Promise<T> {
   try {
     return (await import(specifier)) as T;
   } catch {
@@ -226,20 +223,9 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
   }
 
   const { replayCase } = replayMod;
-  const {
-    createTracker,
-    checkBudget,
-    recordUsage,
-    createBudgetGuard,
-    SAFE_DEFAULTS,
-  } = budgetsMod;
+  const { createTracker, checkBudget, recordUsage, createBudgetGuard, SAFE_DEFAULTS } = budgetsMod;
   const { getJobQueue } = jobsMod;
-  const {
-    readReproPackZip,
-    replayFromPack,
-    createAssumptionTracker,
-    EXIT_CODES,
-  } = reproMod;
+  const { readReproPackZip, replayFromPack, createAssumptionTracker, EXIT_CODES } = reproMod;
   const { runDecision } = coreMod;
   // ─── Repro Pack Replay ────────────────────────────────────────────────────
   if (args.pack) {
@@ -394,9 +380,7 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
 
   // Check budget for expected cases
   if (!budgetGuard.checkAndRecord("cases", casesToRun.length)) {
-    console.error(
-      `Error: Case budget exceeded (${casesToRun.length} cases requested)`,
-    );
+    console.error(`Error: Case budget exceeded (${casesToRun.length} cases requested)`);
     const budgetStatus = checkBudget(budgetContext);
     printBudgetIssues(budgetStatus);
     return 1;
@@ -436,9 +420,7 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
 
       // Print summary
       console.log(`  Checkpoints: ${result.checkpoints.length}`);
-      console.log(
-        `  Coverage: ${(result.scoring.coverage.overall * 100).toFixed(1)}%`,
-      );
+      console.log(`  Coverage: ${(result.scoring.coverage.overall * 100).toFixed(1)}%`);
       console.log(
         `  Recommended widen factor: ${result.scoring.recommendedAdjustment.widenFactorOverall.toFixed(2)}x`,
       );
@@ -459,14 +441,11 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
 
   // Aggregate results
   const aggregateCoverage =
-    results.reduce((sum, r) => sum + r.scoring.coverage.overall, 0) /
-    Math.max(results.length, 1);
+    results.reduce((sum, r) => sum + r.scoring.coverage.overall, 0) / Math.max(results.length, 1);
 
   const aggregateWidenFactor =
-    results.reduce(
-      (sum, r) => sum + r.scoring.recommendedAdjustment.widenFactorOverall,
-      0,
-    ) / Math.max(results.length, 1);
+    results.reduce((sum, r) => sum + r.scoring.recommendedAdjustment.widenFactorOverall, 0) /
+    Math.max(results.length, 1);
 
   // Print budget summary
   const finalBudgetCheck = checkBudget(budgetContext);
@@ -482,11 +461,7 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
   if (finalBudgetCheck.usage.length > 0) {
     console.log("\nBudget Usage:");
     for (const usage of finalBudgetCheck.usage) {
-      const status = usage.isExceeded
-        ? "EXCEEDED"
-        : usage.isWarning
-          ? "warning"
-          : "ok";
+      const status = usage.isExceeded ? "EXCEEDED" : usage.isWarning ? "warning" : "ok";
       console.log(
         `  ${usage.resource}: ${usage.used}/${usage.limit} (${(usage.percentUsed * 100).toFixed(0)}%) [${status}]`,
       );
@@ -494,14 +469,9 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
   }
 
   // Per-domain breakdown
-  const domainStats: Record<
-    string,
-    { coverages: number[]; widenFactors: number[] }
-  > = {};
+  const domainStats: Record<string, { coverages: number[]; widenFactors: number[] }> = {};
   for (const result of results) {
-    for (const [domain, coverage] of Object.entries(
-      result.scoring.coverage.byDomain,
-    )) {
+    for (const [domain, coverage] of Object.entries(result.scoring.coverage.byDomain)) {
       if (!domainStats[domain]) {
         domainStats[domain] = { coverages: [], widenFactors: [] };
       }
@@ -521,11 +491,9 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
     console.log("\nPer-domain:");
     for (const [domain, stats] of Object.entries(domainStats)) {
       const avgCoverage =
-        stats.coverages.reduce((a, b) => a + b, 0) /
-        Math.max(stats.coverages.length, 1);
+        stats.coverages.reduce((a, b) => a + b, 0) / Math.max(stats.coverages.length, 1);
       const avgWiden =
-        stats.widenFactors.reduce((a, b) => a + b, 0) /
-        Math.max(stats.widenFactors.length, 1);
+        stats.widenFactors.reduce((a, b) => a + b, 0) / Math.max(stats.widenFactors.length, 1);
       console.log(
         `  ${domain}: ${(avgCoverage * 100).toFixed(1)}% coverage, ${avgWiden.toFixed(2)}x widen`,
       );
@@ -552,8 +520,7 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
             domain,
             {
               coverage:
-                stats.coverages.reduce((a, b) => a + b, 0) /
-                Math.max(stats.coverages.length, 1),
+                stats.coverages.reduce((a, b) => a + b, 0) / Math.max(stats.coverages.length, 1),
               widenFactor:
                 stats.widenFactors.reduce((a, b) => a + b, 0) /
                 Math.max(stats.widenFactors.length, 1),
@@ -628,9 +595,7 @@ function generateMarkdownReport(
   lines.push("## Summary");
   lines.push("");
   lines.push(`- **Total Cases:** ${reportJson.summary.totalCases}`);
-  lines.push(
-    `- **Overall Coverage:** ${(reportJson.summary.overallCoverage * 100).toFixed(1)}%`,
-  );
+  lines.push(`- **Overall Coverage:** ${(reportJson.summary.overallCoverage * 100).toFixed(1)}%`);
   lines.push(
     `- **Recommended Widen Factor:** ${reportJson.summary.recommendedWidenFactor.toFixed(2)}x`,
   );
@@ -656,23 +621,17 @@ function generateMarkdownReport(
     lines.push(`### ${result.caseId}`);
     lines.push("");
     lines.push(`- **Checkpoints:** ${result.checkpoints.length}`);
-    lines.push(
-      `- **Coverage:** ${(result.scoring.coverage.overall * 100).toFixed(1)}%`,
-    );
+    lines.push(`- **Coverage:** ${(result.scoring.coverage.overall * 100).toFixed(1)}%`);
     lines.push(
       `- **Widen Factor:** ${result.scoring.recommendedAdjustment.widenFactorOverall.toFixed(2)}x`,
     );
-    lines.push(
-      `- **Rationale:** ${result.scoring.recommendedAdjustment.rationale}`,
-    );
+    lines.push(`- **Rationale:** ${result.scoring.recommendedAdjustment.rationale}`);
 
     if (Object.keys(result.scoring.coverage.byMetricId).length > 0) {
       lines.push("");
       lines.push("**Per-Metric Coverage:**");
       lines.push("");
-      for (const [metricId, coverage] of Object.entries(
-        result.scoring.coverage.byMetricId,
-      )) {
+      for (const [metricId, coverage] of Object.entries(result.scoring.coverage.byMetricId)) {
         lines.push(`- ${metricId}: ${(coverage * 100).toFixed(1)}%`);
       }
     }

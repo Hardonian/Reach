@@ -49,32 +49,21 @@ export function createApiKey(
   db.prepare(
     `INSERT INTO api_keys (id, tenant_id, user_id, key_hash, key_prefix, name, scopes, created_at)
     VALUES (?,?,?,?,?,?,?,?)`,
-  ).run(
-    id,
-    tenantId,
-    userId,
-    keyHash,
-    keyPrefix,
-    name,
-    JSON.stringify(scopes),
-    now,
-  );
+  ).run(id, tenantId, userId, keyHash, keyPrefix, name, JSON.stringify(scopes), now);
   const key = getApiKey(id)!;
   return { key, rawKey };
 }
 
 export function getApiKey(id: string): ApiKey | undefined {
   const db = getDB();
-  const row = db
-    .prepare("SELECT * FROM api_keys WHERE id=? AND revoked_at IS NULL")
-    .get(id) as Record<string, unknown> | undefined;
+  const row = db.prepare("SELECT * FROM api_keys WHERE id=? AND revoked_at IS NULL").get(id) as
+    | Record<string, unknown>
+    | undefined;
   if (!row) return undefined;
   return { ...row, scopes: JSON.parse(row.scopes as string) } as ApiKey;
 }
 
-export function lookupApiKey(
-  rawKey: string,
-): { key: ApiKey; tenant: Tenant } | undefined {
+export function lookupApiKey(rawKey: string): { key: ApiKey; tenant: Tenant } | undefined {
   const db = getDB();
   const keyHash = hashApiKey(rawKey);
   const row = db
@@ -87,14 +76,9 @@ export function lookupApiKey(
   if (!row) return undefined;
 
   const now = new Date();
-  const lastUsed = row.last_used_at
-    ? new Date(row.last_used_at as string)
-    : new Date(0);
+  const lastUsed = row.last_used_at ? new Date(row.last_used_at as string) : new Date(0);
   if (now.getTime() - lastUsed.getTime() > 5 * 60 * 1000) {
-    db.prepare("UPDATE api_keys SET last_used_at=? WHERE id=?").run(
-      now.toISOString(),
-      row.id,
-    );
+    db.prepare("UPDATE api_keys SET last_used_at=? WHERE id=?").run(now.toISOString(), row.id);
   }
 
   const key: ApiKey = {
@@ -127,9 +111,7 @@ export function listApiKeys(tenantId: string): ApiKey[] {
       "SELECT * FROM api_keys WHERE tenant_id=? AND revoked_at IS NULL ORDER BY created_at DESC",
     )
     .all(tenantId) as Record<string, unknown>[];
-  return rows.map(
-    (r) => ({ ...r, scopes: JSON.parse(r.scopes as string) }) as ApiKey,
-  );
+  return rows.map((r) => ({ ...r, scopes: JSON.parse(r.scopes as string) }) as ApiKey);
 }
 
 export function revokeApiKey(id: string, tenantId: string): boolean {

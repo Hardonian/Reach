@@ -30,28 +30,24 @@ export class ReachPanel implements vscode.Disposable {
     );
 
     this.panel.webview.html = this.render();
-    this.panel.webview.onDidReceiveMessage(
-      (message: { type: string; [key: string]: unknown }) => {
-        if (
-          message.type === "approvalDecision" &&
-          typeof message.promptId === "string" &&
-          typeof message.decision === "string"
-        ) {
-          this.bridgeClient.send({
-            type: "approvalDecision",
-            promptId: message.promptId,
-            decision: message.decision,
-          });
-          const index = this.approvals.findIndex(
-            (prompt) => prompt.id === message.promptId,
-          );
-          if (index >= 0) {
-            this.approvals.splice(index, 1);
-          }
-          this.refresh();
+    this.panel.webview.onDidReceiveMessage((message: { type: string; [key: string]: unknown }) => {
+      if (
+        message.type === "approvalDecision" &&
+        typeof message.promptId === "string" &&
+        typeof message.decision === "string"
+      ) {
+        this.bridgeClient.send({
+          type: "approvalDecision",
+          promptId: message.promptId,
+          decision: message.decision,
+        });
+        const index = this.approvals.findIndex((prompt) => prompt.id === message.promptId);
+        if (index >= 0) {
+          this.approvals.splice(index, 1);
         }
-      },
-    );
+        this.refresh();
+      }
+    });
 
     this.panel.onDidDispose(() => {
       this.panel = undefined;
@@ -67,8 +63,7 @@ export class ReachPanel implements vscode.Disposable {
     if (event.type === "artifact" && typeof event.name === "string") {
       this.artifacts.unshift({
         name: event.name,
-        description:
-          typeof event.description === "string" ? event.description : undefined,
+        description: typeof event.description === "string" ? event.description : undefined,
         uri: typeof event.uri === "string" ? event.uri : undefined,
       });
       this.artifacts.length = Math.min(this.artifacts.length, 50);
@@ -98,9 +93,7 @@ export class ReachPanel implements vscode.Disposable {
       try {
         await previewAndApplyDiff(event.diff);
       } catch (error) {
-        vscode.window.showErrorMessage(
-          `Reach patch apply failed: ${(error as Error).message}`,
-        );
+        vscode.window.showErrorMessage(`Reach patch apply failed: ${(error as Error).message}`);
       }
     }
 

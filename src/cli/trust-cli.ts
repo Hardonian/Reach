@@ -26,10 +26,7 @@ export function parseTrustArgs(argv: string[]): TrustCliArgs {
   };
 }
 
-export async function runTrustReplayCommand(
-  runId: string,
-  json: boolean,
-): Promise<number> {
+export async function runTrustReplayCommand(runId: string, json: boolean): Promise<number> {
   const { replayRun, formatReplayResult } = await import("@zeo/core");
 
   try {
@@ -67,10 +64,7 @@ export async function runDiffCommand(
   }
 }
 
-export async function runExplainCommand(
-  runId: string,
-  json: boolean,
-): Promise<number> {
+export async function runExplainCommand(runId: string, json: boolean): Promise<number> {
   const { loadSnapshot } = await import("@zeo/core");
 
   const snapshot = loadSnapshot(runId);
@@ -152,10 +146,7 @@ export async function runExplainCommand(
   return 0;
 }
 
-export async function runTraceCommand(
-  runId: string,
-  json: boolean,
-): Promise<number> {
+export async function runTraceCommand(runId: string, json: boolean): Promise<number> {
   const { loadSnapshot } = await import("@zeo/core");
 
   const snapshot = loadSnapshot(runId);
@@ -251,9 +242,7 @@ export async function runSnapshotsCommand(json: boolean): Promise<number> {
 
   const ids = listSnapshots();
   if (ids.length === 0) {
-    console.log(
-      "No snapshots found. Run a decision with --deterministic to create snapshots.",
-    );
+    console.log("No snapshots found. Run a decision with --deterministic to create snapshots.");
     return 0;
   }
 

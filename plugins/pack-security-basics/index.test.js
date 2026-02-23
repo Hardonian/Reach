@@ -105,9 +105,7 @@ describe("pack-security-basics plugin", () => {
         expectedHashes: { "test.txt": "hash" },
       });
 
-      const error = findings.find((f) =>
-        f.message.includes("Missing artifact"),
-      );
+      const error = findings.find((f) => f.message.includes("Missing artifact"));
       expect(error).toBeDefined();
     });
   });

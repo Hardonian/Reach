@@ -1,13 +1,6 @@
 // @ts-nocheck
 import { createHash } from "node:crypto";
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  statSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve, basename } from "node:path";
 
 interface ControlPlaneArgs {
@@ -101,11 +94,7 @@ function listFilesRecursive(base: string, maxDepth = 4): string[] {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const full = join(dir, entry.name);
       if (entry.isDirectory()) {
-        if (
-          entry.name === "node_modules" ||
-          entry.name === ".git" ||
-          entry.name === ".next"
-        )
+        if (entry.name === "node_modules" || entry.name === ".git" || entry.name === ".next")
           continue;
         walk(full, depth + 1);
       } else {
@@ -180,20 +169,16 @@ function collectModuleStats(root: string): ControlPlaneStatus["modules"] {
   const now = Date.now();
   return modules
     .map((module) => {
-      const relevantLogs = KNOWN_LOGS.map((log) => join(root, log)).filter(
-        (file) => existsSync(file),
+      const relevantLogs = KNOWN_LOGS.map((log) => join(root, log)).filter((file) =>
+        existsSync(file),
       );
       const failures = relevantLogs.reduce(
-        (acc, file) =>
-          acc +
-          (readFileSync(file, "utf8").toLowerCase().includes("fail") ? 1 : 0),
+        (acc, file) => acc + (readFileSync(file, "utf8").toLowerCase().includes("fail") ? 1 : 0),
         0,
       );
       const lastExecution =
         relevantLogs.length > 0
-          ? new Date(
-              Math.max(...relevantLogs.map((file) => statSync(file).mtimeMs)),
-            ).toISOString()
+          ? new Date(Math.max(...relevantLogs.map((file) => statSync(file).mtimeMs))).toISOString()
           : null;
       const tokenUsage = relevantLogs.reduce(
         (acc, file) => acc + Math.floor(statSync(file).size / 4),
@@ -218,8 +203,7 @@ function collectPolicyViolations24h(root: string): number {
     .filter((file) => existsSync(file) && statSync(file).mtimeMs >= since)
     .reduce(
       (count, file) =>
-        count +
-        (readFileSync(file, "utf8").toLowerCase().includes("policy") ? 1 : 0),
+        count + (readFileSync(file, "utf8").toLowerCase().includes("policy") ? 1 : 0),
       0,
     );
 }
@@ -394,9 +378,7 @@ export async function runControlPlaneCommand(argv: string[]): Promise<number> {
     }
     if (args.command === "show") {
       const artifactId = args.subcommand;
-      const item = registry.artifacts.find(
-        (artifact) => artifact.artifactId === artifactId,
-      );
+      const item = registry.artifacts.find((artifact) => artifact.artifactId === artifactId);
       if (!item) {
         console.error(`Artifact not found: ${artifactId ?? "<missing-id>"}`);
         return 1;
@@ -414,13 +396,10 @@ export async function runControlPlaneCommand(argv: string[]): Promise<number> {
     }
     if (args.command === "verify") {
       const invalid = registry.artifacts.filter(
-        (artifact) =>
-          artifact.contentHash !== sha256(stableStringify(artifact.evidence)),
+        (artifact) => artifact.contentHash !== sha256(stableStringify(artifact.evidence)),
       );
       if (invalid.length > 0) {
-        console.error(
-          `Artifact verification failed for ${invalid.length} record(s)`,
-        );
+        console.error(`Artifact verification failed for ${invalid.length} record(s)`);
         printJson(
           invalid.map((item) => ({
             artifactId: item.artifactId,
@@ -432,9 +411,7 @@ export async function runControlPlaneCommand(argv: string[]): Promise<number> {
       console.log(`Verified ${registry.artifacts.length} artifacts`);
       return 0;
     }
-    console.error(
-      "Usage: zeo artifacts <list|show <artifactId>|export <path>|verify> [--json]",
-    );
+    console.error("Usage: zeo artifacts <list|show <artifactId>|export <path>|verify> [--json]");
     return 1;
   }
 
@@ -450,13 +427,9 @@ export async function runControlPlaneCommand(argv: string[]): Promise<number> {
       action,
       deterministicHash: sha256(action),
       agents: status.agents.map((item) => item.id),
-      tools: status.mcpTools
-        .filter((tool) => tool.enabled)
-        .map((tool) => tool.name),
+      tools: status.mcpTools.filter((tool) => tool.enabled).map((tool) => tool.name),
       estimatedCostUsd: Number(
-        (
-          status.modules.reduce((acc, item) => acc + item.costUsd, 0) / 10
-        ).toFixed(6),
+        (status.modules.reduce((acc, item) => acc + item.costUsd, 0) / 10).toFixed(6),
       ),
       estimatedTimeMs: status.modules.length * 250,
       riskScore: Math.min(1, status.policyViolations24h / 10),
@@ -477,9 +450,7 @@ export async function runControlPlaneCommand(argv: string[]): Promise<number> {
       decisionCheckpoints: ["ingest", "evaluate", "enforce", "export"],
       blockedActions: collectPolicyViolations24h(root),
       complianceState: collectPolicyViolations24h(root) > 0 ? "red" : "green",
-      rlsSimulationMode: existsSync(join(root, "supabase"))
-        ? "available"
-        : "not_detected",
+      rlsSimulationMode: existsSync(join(root, "supabase")) ? "available" : "not_detected",
     };
     printJson(policy);
     return 0;
@@ -528,14 +499,10 @@ export async function runControlPlaneCommand(argv: string[]): Promise<number> {
         "JobForge",
       ],
       schemaContracts: status.mcpTools.length > 0 ? "ok" : "degraded",
-      circuitBreakerState: status.modules.some(
-        (module) => module.health === "red",
-      )
+      circuitBreakerState: status.modules.some((module) => module.health === "red")
         ? "open"
         : "closed",
-      quarantineCount: status.modules.filter(
-        (module) => module.health === "red",
-      ).length,
+      quarantineCount: status.modules.filter((module) => module.health === "red").length,
       breakingChanges: 0,
       integrity: status.modules.every((module) => module.lastExecution !== null)
         ? "green"

@@ -3,10 +3,7 @@ export default function Authentication() {
     <div className="section-container py-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <a
-            href="/docs"
-            className="text-gray-400 hover:text-white transition-colors"
-          >
+          <a href="/docs" className="text-gray-400 hover:text-white transition-colors">
             ← Back to Documentation
           </a>
         </div>
@@ -20,8 +17,8 @@ export default function Authentication() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">API Keys</h2>
             <p className="text-gray-400 mb-4">
-              API keys are the simplest way to authenticate with ReadyLayer.
-              Include your key in the Authorization header:
+              API keys are the simplest way to authenticate with ReadyLayer. Include your key in the
+              Authorization header:
             </p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>Authorization: Bearer YOUR_API_KEY</p>
@@ -30,9 +27,7 @@ export default function Authentication() {
 
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Generating API Keys</h2>
-            <p className="text-gray-400 mb-4">
-              Create API keys from the Dashboard or via CLI:
-            </p>
+            <p className="text-gray-400 mb-4">Create API keys from the Dashboard or via CLI:</p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300 mb-4">
               <p>{`# Create a new API key`}</p>
               <p>reach auth create-key --name "Production Key"</p>
@@ -48,8 +43,7 @@ export default function Authentication() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">OAuth2</h2>
             <p className="text-gray-400 mb-4">
-              For third-party applications, use OAuth2 to obtain access tokens
-              on behalf of users:
+              For third-party applications, use OAuth2 to obtain access tokens on behalf of users:
             </p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>{`# Authorization URL`}</p>
@@ -63,9 +57,7 @@ export default function Authentication() {
 
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Token Exchange</h2>
-            <p className="text-gray-400 mb-4">
-              Exchange authorization code for access token:
-            </p>
+            <p className="text-gray-400 mb-4">Exchange authorization code for access token:</p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>POST /oauth/token</p>
               <p>Content-Type: application/json</p>

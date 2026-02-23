@@ -13,10 +13,7 @@ describe("05-export-verify-replay", () => {
   });
 
   test("source-run.json has deterministic execution", () => {
-    const content = readFileSync(
-      resolve(EXAMPLE_DIR, "source-run.json"),
-      "utf8",
-    );
+    const content = readFileSync(resolve(EXAMPLE_DIR, "source-run.json"), "utf8");
     const parsed = JSON.parse(content);
     expect(parsed).toHaveProperty("deterministic");
     expect(parsed.deterministic).toBe(true);
@@ -26,10 +23,7 @@ describe("05-export-verify-replay", () => {
   });
 
   test("events have sequence numbers", () => {
-    const content = readFileSync(
-      resolve(EXAMPLE_DIR, "source-run.json"),
-      "utf8",
-    );
+    const content = readFileSync(resolve(EXAMPLE_DIR, "source-run.json"), "utf8");
     const parsed = JSON.parse(content);
 
     for (const event of parsed.events) {
@@ -62,10 +56,7 @@ describe("05-export-verify-replay", () => {
   });
 
   test("verify-config.json has integrity checks", () => {
-    const content = readFileSync(
-      resolve(EXAMPLE_DIR, "verify-config.json"),
-      "utf8",
-    );
+    const content = readFileSync(resolve(EXAMPLE_DIR, "verify-config.json"), "utf8");
     const parsed = JSON.parse(content);
     expect(parsed).toHaveProperty("verification_settings");
     expect(parsed.verification_settings).toHaveProperty("integrity_checks");

@@ -13,9 +13,7 @@ export class DecisionEngine {
     try {
       // Use dynamic import for ESM compatibility and optional loading
       // @ts-ignore - WASM module might not be built
-      this.wasmModule = await import("../pkg/decision_engine_rs.js").catch(
-        () => null,
-      );
+      this.wasmModule = await import("../pkg/decision_engine_rs.js").catch(() => null);
       if (!this.wasmModule) {
         console.warn(
           "WARN: WASM module not found at '../pkg/decision_engine_rs.js'. Using fallback.",
@@ -31,10 +29,7 @@ export class DecisionEngine {
   }
 
   evaluate(input: DecisionInput): DecisionOutput {
-    if (
-      this.wasmModule &&
-      typeof this.wasmModule.evaluate_decision === "function"
-    ) {
+    if (this.wasmModule && typeof this.wasmModule.evaluate_decision === "function") {
       try {
         const inputJson = JSON.stringify(input);
         const outputJson = this.wasmModule.evaluate_decision(inputJson);
@@ -53,9 +48,7 @@ export class DecisionEngine {
  */
 const defaultEngine = new DecisionEngine();
 
-export async function evaluateDecision(
-  input: DecisionInput,
-): Promise<DecisionOutput> {
+export async function evaluateDecision(input: DecisionInput): Promise<DecisionOutput> {
   await defaultEngine.init();
   return defaultEngine.evaluate(input);
 }

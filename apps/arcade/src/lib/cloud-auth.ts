@@ -45,11 +45,7 @@ function correlationId(): string {
   return `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function cloudErrorResponse(
-  msg: string,
-  status: number,
-  corrId?: string,
-): NextResponse {
+export function cloudErrorResponse(msg: string, status: number, corrId?: string): NextResponse {
   return NextResponse.json(
     {
       error: msg,
@@ -132,25 +128,18 @@ export async function resolveAuth(
       const cached = await getCachedAuth(`sess:${sessionId}`);
 
       // If cached tenantId matches the requested one (if any)
-      if (
-        cached &&
-        (!tenantIdOverride || cached.tenantId === tenantIdOverride)
-      ) {
+      if (cached && (!tenantIdOverride || cached.tenantId === tenantIdOverride)) {
         return { ...cached, correlationId: corrId };
       }
 
       const session = getSession(sessionId);
-      if (!session)
-        return cloudErrorResponse("Session expired or invalid", 401, corrId);
+      if (!session) return cloudErrorResponse("Session expired or invalid", 401, corrId);
       const user = getUserById(session.user_id);
       if (!user) return cloudErrorResponse("User not found", 401, corrId);
 
       // Determine tenantId: from session, override param, or query
       const tenantId =
-        tenantIdOverride ??
-        session.tenant_id ??
-        req.headers.get("x-tenant-id") ??
-        "";
+        tenantIdOverride ?? session.tenant_id ?? req.headers.get("x-tenant-id") ?? "";
       if (!tenantId)
         return cloudErrorResponse(
           "No tenant context. Pass X-Tenant-Id header or login to a tenant.",
@@ -162,8 +151,7 @@ export async function resolveAuth(
       if (!tenant) return cloudErrorResponse("Tenant not found", 404, corrId);
 
       const membership = getMembership(tenantId, user.id);
-      if (!membership)
-        return cloudErrorResponse("Not a member of this tenant", 403, corrId);
+      if (!membership) return cloudErrorResponse("Not a member of this tenant", 403, corrId);
 
       const ctx: AuthContext = {
         userId: user.id,
@@ -233,8 +221,7 @@ export async function getServerAuth(): Promise<AuthContext | null> {
       const session = getSession(sessionId);
       if (session) {
         const user = getUserById(session.user_id);
-        const tenantId =
-          session.tenant_id ?? headerStore.get("x-tenant-id") ?? "";
+        const tenantId = session.tenant_id ?? headerStore.get("x-tenant-id") ?? "";
         const tenant = tenantId ? getTenant(tenantId) : undefined;
         if (user && tenant) {
           const membership = getMembership(tenant.id, user.id);
@@ -290,29 +277,15 @@ export function auditLog(
   req: NextRequest,
 ): void {
   try {
-    const ip =
-      req.headers.get("x-forwarded-for") ??
-      req.headers.get("x-real-ip") ??
-      undefined;
-    appendAudit(
-      ctx.tenantId,
-      ctx.userId,
-      action,
-      resource,
-      resourceId,
-      meta,
-      ip,
-    );
+    const ip = req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? undefined;
+    appendAudit(ctx.tenantId, ctx.userId, action, resource, resourceId, meta, ip);
   } catch {
     /* non-blocking */
   }
 }
 
 /** Set session cookie on a response */
-export function setSessionCookie(
-  res: NextResponse,
-  sessionId: string,
-): NextResponse {
+export function setSessionCookie(res: NextResponse, sessionId: string): NextResponse {
   const cookieName = env.REACH_SESSION_COOKIE_NAME;
   const ttlHours = env.REACH_SESSION_TTL_HOURS;
   res.cookies.set(cookieName, sessionId, {
@@ -353,17 +326,12 @@ export async function requireCiAuth(
     }
     const rawKey = authHeader.slice(7);
     const result = lookupApiKey(rawKey);
-    if (!result)
-      return cloudErrorResponse("Invalid or revoked CI token", 401, corrId);
+    if (!result) return cloudErrorResponse("Invalid or revoked CI token", 401, corrId);
 
     const { key, tenant } = result;
     // Check scope: key must have the required scope or wildcard '*'
     if (!key.scopes.includes("*") && !key.scopes.includes(scope)) {
-      return cloudErrorResponse(
-        `Token missing required scope: ${scope}`,
-        403,
-        corrId,
-      );
+      return cloudErrorResponse(`Token missing required scope: ${scope}`, 403, corrId);
     }
 
     const user = getUserById(key.user_id);

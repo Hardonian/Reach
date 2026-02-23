@@ -7,10 +7,7 @@ interface MissionControlOverviewProps {
   agents: AgentData;
 }
 
-export function MissionControlOverview({
-  health,
-  agents,
-}: MissionControlOverviewProps) {
+export function MissionControlOverview({ health, agents }: MissionControlOverviewProps) {
   return (
     <div className="p-6 lg:px-10 lg:py-8 max-w-[1600px] mx-auto w-full flex flex-col gap-6">
       {/* Alerts Banner */}
@@ -25,8 +22,7 @@ export function MissionControlOverview({
               Degraded Mode Active
             </h3>
             <p className="text-sm text-yellow-700/80 dark:text-yellow-400/80 mt-0.5">
-              High latency detected in Zeo submodule. Orchestration throughput
-              is limited.
+              High latency detected in Zeo submodule. Orchestration throughput is limited.
             </p>
           </div>
         </div>
@@ -63,9 +59,7 @@ export function MissionControlOverview({
               {health.uptime}
             </span>
             <span className="flex items-center text-emerald-600 dark:text-emerald-400 text-sm font-semibold mb-1 bg-emerald-500/10 px-1.5 py-0.5 rounded">
-              <span className="material-symbols-outlined text-[16px] mr-0.5">
-                trending_up
-              </span>
+              <span className="material-symbols-outlined text-[16px] mr-0.5">trending_up</span>
               {health.uptimeTrend}
             </span>
           </div>
@@ -91,9 +85,7 @@ export function MissionControlOverview({
               {health.queueDepth}
             </span>
             <span className="flex items-center text-amber-600 dark:text-amber-400 text-sm font-semibold mb-1 bg-amber-500/10 px-1.5 py-0.5 rounded">
-              <span className="material-symbols-outlined text-[16px] mr-0.5">
-                trending_up
-              </span>
+              <span className="material-symbols-outlined text-[16px] mr-0.5">trending_up</span>
               {health.queueTrend}
             </span>
           </div>
@@ -118,9 +110,7 @@ export function MissionControlOverview({
               {health.failureRate}
             </span>
             <span className="flex items-center text-emerald-600 dark:text-emerald-400 text-sm font-semibold mb-1 bg-emerald-500/10 px-1.5 py-0.5 rounded">
-              <span className="material-symbols-outlined text-[16px] mr-0.5">
-                trending_down
-              </span>
+              <span className="material-symbols-outlined text-[16px] mr-0.5">trending_down</span>
               {health.failureTrend}
             </span>
           </div>
@@ -149,17 +139,13 @@ export function MissionControlOverview({
                 type="button"
                 className="p-1.5 text-slate-500 hover:text-slate-900 dark:hover:text-white rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
-                <span className="material-symbols-outlined text-[20px]">
-                  filter_list
-                </span>
+                <span className="material-symbols-outlined text-[20px]">filter_list</span>
               </button>
               <button
                 type="button"
                 className="p-1.5 text-slate-500 hover:text-slate-900 dark:hover:text-white rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
-                <span className="material-symbols-outlined text-[20px]">
-                  refresh
-                </span>
+                <span className="material-symbols-outlined text-[20px]">refresh</span>
               </button>
             </div>
           </div>
@@ -234,9 +220,7 @@ export function MissionControlOverview({
                         className="text-slate-400 hover:text-red-500 transition-colors"
                         title="Abort Run"
                       >
-                        <span className="material-symbols-outlined text-[20px]">
-                          stop_circle
-                        </span>
+                        <span className="material-symbols-outlined text-[20px]">stop_circle</span>
                       </button>
                     </td>
                   </tr>
@@ -250,9 +234,7 @@ export function MissionControlOverview({
               className="text-sm font-medium text-slate-500 hover:text-[#135bec] dark:text-slate-400 dark:hover:text-white transition-colors flex items-center gap-1"
             >
               View All Active Runs
-              <span className="material-symbols-outlined text-[18px]">
-                arrow_forward
-              </span>
+              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
             </button>
           </div>
         </div>
@@ -262,17 +244,13 @@ export function MissionControlOverview({
           {/* Eval Drift */}
           <div className="p-5 bg-white dark:bg-[#1a1f2e] border border-slate-200 dark:border-[#2e3545] rounded-lg shadow-xs">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                Eval Drift
-              </h3>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Eval Drift</h3>
               <span className="text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded">
                 24h
               </span>
             </div>
             <div className="flex items-end gap-2 mb-4">
-              <span className="text-2xl font-bold text-slate-900 dark:text-white">
-                0.15
-              </span>
+              <span className="text-2xl font-bold text-slate-900 dark:text-white">0.15</span>
               <span className="text-xs text-slate-500 dark:text-slate-400 mb-1">
                 Model Drift Score
               </span>
@@ -298,10 +276,7 @@ export function MissionControlOverview({
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
                 Repo Health Matrix
               </h3>
-              <button
-                type="button"
-                className="text-xs text-[#135bec] hover:underline"
-              >
+              <button type="button" className="text-xs text-[#135bec] hover:underline">
                 View Details
               </button>
             </div>

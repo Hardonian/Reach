@@ -38,11 +38,7 @@
       "change_type": "added"
     }
   ],
-  "outputs_impacted": [
-    "recommendation.priority",
-    "action_required",
-    "escalation_level"
-  ],
+  "outputs_impacted": ["recommendation.priority", "action_required", "escalation_level"],
   "fingerprint_delta": {
     "similarity": 0.72,
     "significant_change": true

@@ -1,18 +1,9 @@
 import { HeroMedia } from "@/components/HeroMedia";
 import Link from "next/link";
 import { ROUTES } from "@/lib/routes";
-import {
-  HERO_VARIANTS,
-  CTA,
-  HOW_IT_WORKS,
-  CAPABILITIES,
-  BEFORE_AFTER,
-} from "@/lib/copy";
+import { HERO_VARIANTS, CTA, HOW_IT_WORKS, CAPABILITIES, BEFORE_AFTER } from "@/lib/copy";
 import { resolveVariant } from "@/lib/ab";
-import {
-  HomepageClient,
-  HomepageExtraCapabilities,
-} from "@/components/HomepageClient";
+import { HomepageClient, HomepageExtraCapabilities } from "@/components/HomepageClient";
 
 interface HomePageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -61,19 +52,14 @@ export default async function Home({ searchParams }: HomePageProps) {
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 leading-tight">
               {hero.headline.split(".").map((part, i, arr) => (
-                <span
-                  key={i}
-                  className={i === arr.length - 1 ? "text-gradient" : ""}
-                >
+                <span key={i} className={i === arr.length - 1 ? "text-gradient" : ""}>
                   {part}
                   {i < arr.length - 1 ? "." : ""}{" "}
                 </span>
               ))}
             </h1>
 
-            <p className="text-xl text-gray-400 mb-3 max-w-2xl">
-              {hero.subhead}
-            </p>
+            <p className="text-xl text-gray-400 mb-3 max-w-2xl">{hero.subhead}</p>
 
             <p className="text-base text-emerald-400 font-medium mb-8">
               First check runs in under 30 seconds. No configuration required.
@@ -114,9 +100,7 @@ export default async function Home({ searchParams }: HomePageProps) {
       <section className="py-24 bg-surface/30">
         <div className="section-container">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              How it works
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">How it works</h2>
             <p className="text-gray-400 max-w-xl mx-auto">
               From first run to shipping — in three steps.
             </p>
@@ -126,9 +110,7 @@ export default async function Home({ searchParams }: HomePageProps) {
             {HOW_IT_WORKS.map((item) => (
               <div key={item.step} className="card gradient-border">
                 <div className="text-3xl mb-4 text-accent">{item.icon}</div>
-                <div className="text-xs font-mono text-accent mb-2">
-                  {item.step}
-                </div>
+                <div className="text-xs font-mono text-accent mb-2">{item.step}</div>
                 <h3 className="text-xl font-bold mb-3">{item.title}</h3>
                 <p className="text-gray-400 text-sm">{item.description}</p>
               </div>
@@ -141,9 +123,7 @@ export default async function Home({ searchParams }: HomePageProps) {
       <section className="py-24">
         <div className="section-container">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              What ReadyLayer checks
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">What ReadyLayer checks</h2>
             <p className="text-gray-400 max-w-xl mx-auto">
               Every run covers the things that break in production.
             </p>
@@ -188,9 +168,7 @@ export default async function Home({ searchParams }: HomePageProps) {
       <section className="py-24 bg-surface/30">
         <div className="section-container">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Before vs After
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Before vs After</h2>
           </div>
 
           <div className="max-w-3xl mx-auto">

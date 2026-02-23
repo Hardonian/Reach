@@ -2,18 +2,12 @@ import { describe, it, expect } from "vitest";
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import {
-  generateDashboardViewModel,
-  stableStringify,
-} from "./generateViewModel.js";
+import { generateDashboardViewModel, stableStringify } from "./generateViewModel.js";
 
 function setupFixture(root: string, id: string) {
   const dir = join(root, ".zeo", "analyze-pr", id);
   mkdirSync(dir, { recursive: true });
-  writeFileSync(
-    join(dir, "manifest.json"),
-    JSON.stringify({ manifest_hash: "abc123" }),
-  );
+  writeFileSync(join(dir, "manifest.json"), JSON.stringify({ manifest_hash: "abc123" }));
   writeFileSync(join(dir, "summary.json"), JSON.stringify({ risk_score: 64 }));
   writeFileSync(
     join(dir, "findings.json"),
@@ -55,9 +49,7 @@ describe("dashboard viewmodel", () => {
         Boolean((node.meta as { position?: unknown } | undefined)?.position),
       ),
     ).toBe(true);
-    expect(first.ctas.map((cta) => cta.command)).toEqual(
-      second.ctas.map((cta) => cta.command),
-    );
+    expect(first.ctas.map((cta) => cta.command)).toEqual(second.ctas.map((cta) => cta.command));
     process.chdir(cwd);
   });
 });

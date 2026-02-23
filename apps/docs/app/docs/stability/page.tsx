@@ -3,8 +3,7 @@ import { DocLayout } from "@/components/doc-layout";
 const stabilityLevels = [
   {
     level: "Stable",
-    description:
-      "Production-ready. Breaking changes only in major versions with migration path.",
+    description: "Production-ready. Breaking changes only in major versions with migration path.",
     items: [
       "Core Rust deterministic evaluate loop",
       "Transcript hashing and verification",
@@ -16,12 +15,7 @@ const stabilityLevels = [
     level: "Beta",
     description:
       "Feature-complete but may have API changes. Suitable for production with awareness.",
-    items: [
-      "TypeScript SDK APIs",
-      "Plugin system (v1)",
-      "CLI command structure",
-      "Web interface",
-    ],
+    items: ["TypeScript SDK APIs", "Plugin system (v1)", "CLI command structure", "Web interface"],
   },
   {
     level: "Experimental",
@@ -39,8 +33,8 @@ export default function StabilityPage() {
   return (
     <DocLayout currentPath="/docs/stability" title="Stability & Roadmap">
       <p className="text-lg text-slate-600 mb-8">
-        Reach is currently in <strong>Beta (0.3.x)</strong>. This page documents
-        what's stable, what's experimental, and our versioning policy.
+        Reach is currently in <strong>Beta (0.3.x)</strong>. This page documents what's stable,
+        what's experimental, and our versioning policy.
       </p>
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
@@ -66,21 +60,19 @@ export default function StabilityPage() {
       </div>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Versioning Policy</h2>
-      <p className="mb-4">
-        Reach follows semantic versioning with stability annotations:
-      </p>
+      <p className="mb-4">Reach follows semantic versioning with stability annotations:</p>
       <ul className="list-disc pl-6 space-y-2">
         <li>
-          <strong>0.x.y (Pre-1.0):</strong> APIs may evolve. Minor versions may
-          add features; patch versions fix bugs.
+          <strong>0.x.y (Pre-1.0):</strong> APIs may evolve. Minor versions may add features; patch
+          versions fix bugs.
         </li>
         <li>
-          <strong>Post-1.0:</strong> Standard SemVer. Major = breaking changes
-          (with migrations), Minor = features, Patch = fixes.
+          <strong>Post-1.0:</strong> Standard SemVer. Major = breaking changes (with migrations),
+          Minor = features, Patch = fixes.
         </li>
         <li>
-          <strong>Breaking changes:</strong> Always documented with migration
-          guides in CHANGELOG.md.
+          <strong>Breaking changes:</strong> Always documented with migration guides in
+          CHANGELOG.md.
         </li>
       </ul>
 
@@ -134,9 +126,7 @@ export default function StabilityPage() {
       </table>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Migration Guides</h2>
-      <p className="mb-4">
-        When breaking changes occur, we provide migration tools:
-      </p>
+      <p className="mb-4">When breaking changes occur, we provide migration tools:</p>
       <ul className="list-disc pl-6 space-y-2">
         <li>Automated migration scripts where possible</li>
         <li>Detailed CHANGELOG entries with before/after examples</li>

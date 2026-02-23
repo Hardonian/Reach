@@ -149,9 +149,7 @@ export type DecisionResult = z.infer<typeof DecisionResultSchema>;
  */
 export const ExplainRequestSchema = z.object({
   decisionId: z.string(),
-  focusArea: z
-    .enum(["recommendation", "trace", "regret", "adversarial", "governance"])
-    .optional(),
+  focusArea: z.enum(["recommendation", "trace", "regret", "adversarial", "governance"]).optional(),
 });
 
 export type ExplainRequest = z.infer<typeof ExplainRequestSchema>;
@@ -188,10 +186,7 @@ export interface DecisionEngine {
   /**
    * Explain a decision (provide detailed reasoning)
    */
-  explain(
-    decisionId: string,
-    request: ExplainRequest,
-  ): Promise<ExplainResponse>;
+  explain(decisionId: string, request: ExplainRequest): Promise<ExplainResponse>;
 
   /**
    * Get engine version info
@@ -230,9 +225,7 @@ class TSReferenceEngine implements DecisionEngine {
     const bestAction = recommendations[0];
 
     // Determine governance badges
-    const governanceBadges: Array<
-      "policy_conflict" | "low_trust_risk" | "drift_high_impact"
-    > = [];
+    const governanceBadges: Array<"policy_conflict" | "low_trust_risk" | "drift_high_impact"> = [];
 
     if (input.policyViolations && input.policyViolations.length > 0) {
       governanceBadges.push("policy_conflict");
@@ -242,11 +235,7 @@ class TSReferenceEngine implements DecisionEngine {
       governanceBadges.push("low_trust_risk");
     }
 
-    if (
-      input.driftData &&
-      input.triggerSeverity &&
-      input.triggerSeverity > 0.7
-    ) {
+    if (input.driftData && input.triggerSeverity && input.triggerSeverity > 0.7) {
       governanceBadges.push("drift_high_impact");
     }
 
@@ -263,8 +252,7 @@ class TSReferenceEngine implements DecisionEngine {
       inputFingerprint,
       evaluatedAt: new Date().toISOString(),
       engineVersion: this.version,
-      governanceBadges:
-        governanceBadges.length > 0 ? governanceBadges : undefined,
+      governanceBadges: governanceBadges.length > 0 ? governanceBadges : undefined,
       recommendations,
       bestAction,
       worstCase,
@@ -274,10 +262,7 @@ class TSReferenceEngine implements DecisionEngine {
     };
   }
 
-  async explain(
-    decisionId: string,
-    request: ExplainRequest,
-  ): Promise<ExplainResponse> {
+  async explain(decisionId: string, request: ExplainRequest): Promise<ExplainResponse> {
     // Generate explanation based on focus area
     return {
       decisionId,
@@ -323,8 +308,7 @@ class TSReferenceEngine implements DecisionEngine {
         const regretScore = this.computeRegretScore(input, action.id);
 
         // Composite score: weighted combination
-        const compositeScore =
-          baseScore * 0.4 + probability * 0.3 + (1 - riskScore) * 0.3;
+        const compositeScore = baseScore * 0.4 + probability * 0.3 + (1 - riskScore) * 0.3;
 
         return {
           id: action.id,
@@ -394,10 +378,7 @@ class TSReferenceEngine implements DecisionEngine {
     return 0.15;
   }
 
-  private computeWorstCase(
-    input: DecisionInput,
-    recommendations: ActionRecommendation[],
-  ) {
+  private computeWorstCase(input: DecisionInput, recommendations: ActionRecommendation[]) {
     const worstAction = recommendations[recommendations.length - 1];
 
     let scenario = "Unexpected side effect";
@@ -435,10 +416,7 @@ class TSReferenceEngine implements DecisionEngine {
     };
   }
 
-  private computeRegretTable(
-    input: DecisionInput,
-    recommendations: ActionRecommendation[],
-  ) {
+  private computeRegretTable(input: DecisionInput, recommendations: ActionRecommendation[]) {
     const scenarios = ["best_case", "expected", "worst_case"];
 
     return recommendations.flatMap((action) =>
@@ -446,16 +424,12 @@ class TSReferenceEngine implements DecisionEngine {
         actionId: action.id,
         actionName: action.name,
         scenario,
-        regret:
-          scenario === "worst_case" ? 0.4 : scenario === "expected" ? 0.15 : 0,
+        regret: scenario === "worst_case" ? 0.4 : scenario === "expected" ? 0.15 : 0,
       })),
     );
   }
 
-  private generateTrace(
-    input: DecisionInput,
-    bestAction?: ActionRecommendation,
-  ): string[] {
+  private generateTrace(input: DecisionInput, bestAction?: ActionRecommendation): string[] {
     const trace: string[] = [];
 
     trace.push(`Evaluated ${input.sourceType} from ${input.sourceRef}`);
@@ -481,11 +455,7 @@ class TSReferenceEngine implements DecisionEngine {
     return trace;
   }
 
-  private generateReasoning(
-    input: DecisionInput,
-    actionId: string,
-    score: number,
-  ): string {
+  private generateReasoning(input: DecisionInput, actionId: string, score: number): string {
     const reasons: string[] = [];
 
     if (input.triggerSeverity !== undefined) {
@@ -500,8 +470,7 @@ class TSReferenceEngine implements DecisionEngine {
       reasons.push(`${input.policyViolations.length} policy violations`);
     }
 
-    const reasonStr =
-      reasons.length > 0 ? reasons.join(", ") : "default analysis";
+    const reasonStr = reasons.length > 0 ? reasons.join(", ") : "default analysis";
     return `Action ${actionId} recommended based on ${reasonStr} (composite: ${score.toFixed(2)})`;
   }
 
@@ -541,10 +510,7 @@ class WASMEnginePlaceholder implements DecisionEngine {
     return result;
   }
 
-  async explain(
-    decisionId: string,
-    request: ExplainRequest,
-  ): Promise<ExplainResponse> {
+  async explain(decisionId: string, request: ExplainRequest): Promise<ExplainResponse> {
     const tsEngine = new TSReferenceEngine();
     return tsEngine.explain(decisionId, request);
   }
@@ -565,11 +531,8 @@ class WASMEnginePlaceholder implements DecisionEngine {
  * - "wasm" - WASM engine (when available)
  * - "ts" or anything else - TypeScript reference engine
  */
-export function getDecisionEngine(
-  config?: Partial<EngineConfig>,
-): DecisionEngine {
-  const engineType =
-    config?.type || (process.env.DECISION_ENGINE as "ts" | "wasm") || "ts";
+export function getDecisionEngine(config?: Partial<EngineConfig>): DecisionEngine {
+  const engineType = config?.type || (process.env.DECISION_ENGINE as "ts" | "wasm") || "ts";
 
   switch (engineType) {
     case "wasm":

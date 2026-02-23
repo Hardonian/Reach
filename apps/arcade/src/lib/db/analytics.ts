@@ -1,10 +1,6 @@
 import { getDB } from "./connection";
 
-export function appendEvent(
-  event: string,
-  properties: Record<string, unknown>,
-  ts: string,
-): void {
+export function appendEvent(event: string, properties: Record<string, unknown>, ts: string): void {
   try {
     const db = getDB();
     db.prepare(

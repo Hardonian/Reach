@@ -1,19 +1,10 @@
 // @ts-nocheck
 import { createHash } from "node:crypto";
-import {
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import type { DashboardPersona, DashboardViewModel } from "@zeo/contracts";
-import {
-  loadOrGenerateDashboardViewModel,
-  stableStringify,
-} from "../lib/generateViewModel.js";
+import { loadOrGenerateDashboardViewModel, stableStringify } from "../lib/generateViewModel.js";
 
 export type RenderTarget = "github-pr" | "slack" | "markdown" | "plain";
 
@@ -37,21 +28,14 @@ function parseFlag(argv: string[], flag: string): string | undefined {
 }
 
 function parseTarget(value?: string): RenderTarget {
-  if (
-    value === "github-pr" ||
-    value === "slack" ||
-    value === "markdown" ||
-    value === "plain"
-  )
+  if (value === "github-pr" || value === "slack" || value === "markdown" || value === "plain")
     return value;
   return "plain";
 }
 
 function detectNoExternalShare(model: DashboardViewModel): boolean {
   return model.lists.policies.some(
-    (policy) =>
-      policy.id.includes("no-external-share") ||
-      policy.id.includes("internal-only"),
+    (policy) => policy.id.includes("no-external-share") || policy.id.includes("internal-only"),
   );
 }
 
@@ -100,16 +84,10 @@ function verificationLine(model: DashboardViewModel): string {
   return model.verificationStatus.verified ? "Replay Verified" : "Not Verified";
 }
 
-function renderOutput(
-  model: DashboardViewModel,
-  target: RenderTarget,
-  compact: boolean,
-): string {
+function renderOutput(model: DashboardViewModel, target: RenderTarget, compact: boolean): string {
   const topRiskLines = topRisks(model);
   const policyLines = policySummary(model);
-  const ctas = model.ctas
-    .slice(0, compact ? 3 : 5)
-    .map((cta) => `- ${cta.command}`);
+  const ctas = model.ctas.slice(0, compact ? 3 : 5).map((cta) => `- ${cta.command}`);
   const manifestHash = model.fingerprint.artifactsHash;
   const verify = verificationLine(model);
 
@@ -151,10 +129,7 @@ function renderOutput(
   if (target === "markdown") {
     const evidenceRows = model.lists.evidence
       .slice(0, 8)
-      .map(
-        (ev) =>
-          `| ${ev.id} | ${ev.qualityScore} | ${ev.freshness} | ${ev.ageDays} |`,
-      );
+      .map((ev) => `| ${ev.id} | ${ev.qualityScore} | ${ev.freshness} | ${ev.ageDays} |`);
     const findingRows = model.lists.findings
       .slice(0, 8)
       .map((f) => `| ${f.id} | ${f.severity} | ${f.title} | ${f.file ?? ""} |`);
@@ -272,9 +247,7 @@ export async function runShareCommand(argv: string[]): Promise<number> {
   const post = argv.includes("--post");
 
   if (post && scanned.hasHighRisk) {
-    console.error(
-      `Blocked share --post due to high-risk token detection. run_id=${id}`,
-    );
+    console.error(`Blocked share --post due to high-risk token detection. run_id=${id}`);
     return 2;
   }
   if (post && policyBlocked) {
@@ -395,32 +368,16 @@ export async function runDemoCommand(argv: string[]): Promise<number> {
   const model = loadModel(id, "exec");
   const viewerDir = join(outDir, "viewer");
   mkdirSync(viewerDir, { recursive: true });
-  writeFileSync(
-    join(viewerDir, "dashboard.json"),
-    stableStringify(model),
-    "utf8",
-  );
+  writeFileSync(join(viewerDir, "dashboard.json"), stableStringify(model), "utf8");
   writeFileSync(
     join(outDir, "dashboard.html"),
     `<html><body><h1>Zeo Demo ${id}</h1><pre>${stableStringify(model).replace(/</g, "&lt;")}</pre></body></html>\n`,
     "utf8",
   );
 
-  writeFileSync(
-    join(outDir, "pr-comment.md"),
-    renderOutput(model, "github-pr", false),
-    "utf8",
-  );
-  writeFileSync(
-    join(outDir, "slack-message.txt"),
-    renderOutput(model, "slack", true),
-    "utf8",
-  );
-  writeFileSync(
-    join(outDir, "report.md"),
-    renderOutput(model, "markdown", false),
-    "utf8",
-  );
+  writeFileSync(join(outDir, "pr-comment.md"), renderOutput(model, "github-pr", false), "utf8");
+  writeFileSync(join(outDir, "slack-message.txt"), renderOutput(model, "slack", true), "utf8");
+  writeFileSync(join(outDir, "report.md"), renderOutput(model, "markdown", false), "utf8");
 
   const bundleDir = join(outDir, "bundle");
   copyDir(resolve(process.cwd(), ".zeo", "analyze-pr", id), bundleDir);
@@ -448,16 +405,12 @@ export async function runDemoCommand(argv: string[]): Promise<number> {
   );
 
   if (argv.includes("--zip")) {
-    zipDirectory(
-      outDir,
-      join(resolve(process.cwd(), "dist", "demo"), `${stamp}.zip`),
-    );
+    zipDirectory(outDir, join(resolve(process.cwd(), "dist", "demo"), `${stamp}.zip`));
   }
 
   if (argv.includes("--open")) {
     try {
-      if (process.platform === "darwin")
-        execFileSync("open", [join(outDir, "dashboard.html")]);
+      if (process.platform === "darwin") execFileSync("open", [join(outDir, "dashboard.html")]);
       else if (process.platform === "win32")
         execFileSync("cmd", ["/c", "start", join(outDir, "dashboard.html")]);
       else execFileSync("xdg-open", [join(outDir, "dashboard.html")]);

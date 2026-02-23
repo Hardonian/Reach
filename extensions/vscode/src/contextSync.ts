@@ -10,12 +10,8 @@ export function buildContextPayload() {
   const editor = vscode.window.activeTextEditor;
   const selection = editor?.selection;
   const config = vscode.workspace.getConfiguration("reach");
-  const tier = (config.get<string>("planTier") ?? "free") as
-    | "free"
-    | "pro"
-    | "enterprise";
-  const repoMode =
-    tier === "enterprise" ? "full" : tier === "pro" ? "diff-only" : "metadata";
+  const tier = (config.get<string>("planTier") ?? "free") as "free" | "pro" | "enterprise";
+  const repoMode = tier === "enterprise" ? "full" : tier === "pro" ? "diff-only" : "metadata";
 
   return createContextPayload({
     workspaceRoot: workspaceFolder?.uri.fsPath ?? null,
@@ -34,8 +30,7 @@ export function buildContextPayload() {
         }
       : null,
     workspace_config: {
-      model_provider_default:
-        config.get<string>("modelProviderDefault") ?? "gpt-5.2-codex",
+      model_provider_default: config.get<string>("modelProviderDefault") ?? "gpt-5.2-codex",
       spawn_defaults: {
         max_iterations: config.get<number>("maxIterations") ?? 5,
       },

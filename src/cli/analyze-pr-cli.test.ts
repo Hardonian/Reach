@@ -10,10 +10,7 @@ describe("analyze-pr", () => {
       "diff --git a/infra/main.tf b/infra/main.tf",
       "+++ b/infra/main.tf",
     ].join("\n");
-    expect(__private__.parseModifiedFiles(diff)).toEqual([
-      "infra/main.tf",
-      "src/a.ts",
-    ]);
+    expect(__private__.parseModifiedFiles(diff)).toEqual(["infra/main.tf", "src/a.ts"]);
   });
 
   it("builds stable findings and risk score from fixed fixture", () => {

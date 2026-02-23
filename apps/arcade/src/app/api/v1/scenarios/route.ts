@@ -18,19 +18,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(CreateScenarioSchema, body);
   if ("errors" in parsed)
-    return cloudErrorResponse(
-      parsed.errors.issues[0]?.message ?? "Invalid input",
-      400,
-    );
+    return cloudErrorResponse(parsed.errors.issues[0]?.message ?? "Invalid input", 400);
 
   const scenario = createScenario(ctx.tenantId, parsed.data);
-  auditLog(
-    ctx,
-    "scenario.create",
-    "scenario",
-    scenario.id,
-    { name: scenario.name },
-    req,
-  );
+  auditLog(ctx, "scenario.create", "scenario", scenario.id, { name: scenario.name }, req);
   return NextResponse.json({ scenario }, { status: 201 });
 }

@@ -66,9 +66,7 @@ describe("sample-summarizer plugin", () => {
       const findings = analyzer.analyze({
         evidence: [{ id: 1 }, { id: 2 }, { id: 3 }],
       });
-      const warning = findings.find((f) =>
-        f.message.includes("Limited evidence"),
-      );
+      const warning = findings.find((f) => f.message.includes("Limited evidence"));
       expect(warning).toBeUndefined();
     });
   });

@@ -21,13 +21,8 @@ module.exports = {
            * @returns {Object} Junction with options
            */
           createJunction(context) {
-            const {
-              service,
-              current_version,
-              target_version,
-              risk_tolerance,
-              traffic_pattern,
-            } = context || {};
+            const { service, current_version, target_version, risk_tolerance, traffic_pattern } =
+              context || {};
 
             // Define base options (deterministic order)
             const baseOptions = [
@@ -79,8 +74,7 @@ module.exports = {
                   type: "risk_analysis",
                   value: risk_tolerance,
                   impact: "positive",
-                  description:
-                    "Low risk tolerance favors safer deployment methods",
+                  description: "Low risk tolerance favors safer deployment methods",
                 });
               } else if (risk_tolerance === "high") {
                 if (option.id === "rolling") score += 0.2;
@@ -99,8 +93,7 @@ module.exports = {
                   type: "traffic_analysis",
                   value: traffic_pattern,
                   impact: "positive",
-                  description:
-                    "Spiky traffic benefits from instant rollback capability",
+                  description: "Spiky traffic benefits from instant rollback capability",
                 });
               }
 
@@ -116,9 +109,7 @@ module.exports = {
             });
 
             // Sort by score (deterministic - stable sort)
-            const rankedOptions = scoredOptions.sort(
-              (a, b) => b.score - a.score,
-            );
+            const rankedOptions = scoredOptions.sort((a, b) => b.score - a.score);
 
             return {
               id: `junction-${service || "unknown"}-${Date.now()}`,
@@ -153,9 +144,7 @@ module.exports = {
 
             // Filter options that meet minimum confidence
             const validOptions = junction.options.filter(
-              (opt) =>
-                opt.confidence >=
-                (junction.selection_criteria?.minimum_confidence || 0.6),
+              (opt) => opt.confidence >= (junction.selection_criteria?.minimum_confidence || 0.6),
             );
 
             // Apply policy checks (simplified)

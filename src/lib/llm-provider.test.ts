@@ -74,9 +74,7 @@ describe("llm provider request builders", () => {
       0,
     );
     expect(request.url).toContain("/api/chat");
-    expect((request.body.options as Record<string, unknown>).temperature).toBe(
-      0,
-    );
+    expect((request.body.options as Record<string, unknown>).temperature).toBe(0);
     expect((request.body.options as Record<string, unknown>).seed).toBe(7);
   });
 });
@@ -90,9 +88,7 @@ describe("llm provider schema validation", () => {
           ({
             ok: true,
             json: async () => ({
-              choices: [
-                { message: { content: JSON.stringify({ verdict: "ok" }) } },
-              ],
+              choices: [{ message: { content: JSON.stringify({ verdict: "ok" }) } }],
               usage: { prompt_tokens: 1, completion_tokens: 1 },
             }),
           }) as Response,
@@ -124,33 +120,21 @@ describe("llm provider schema validation", () => {
 
 describe("provider response fixtures", () => {
   it("enforces one fixture filename per supported provider", () => {
-    const fixtureDir = resolve(
-      process.cwd(),
-      "src/fixtures/provider-contracts",
-    );
+    const fixtureDir = resolve(process.cwd(), "src/fixtures/provider-contracts");
     const providerFromFilename = readdirSync(fixtureDir)
       .filter((name) => name.endsWith(".response.json"))
       .map((name) => name.split(".")[0])
       .sort();
 
-    expect(providerFromFilename).toEqual(
-      [...SUPPORTED_PROVIDER_FIXTURE_NAMES].sort(),
-    );
+    expect(providerFromFilename).toEqual([...SUPPORTED_PROVIDER_FIXTURE_NAMES].sort());
   });
 
   it("parses recorded provider payload contracts", () => {
-    const fixtureDir = resolve(
-      process.cwd(),
-      "src/fixtures/provider-contracts",
-    );
-    const files = readdirSync(fixtureDir).filter((name) =>
-      name.endsWith(".response.json"),
-    );
+    const fixtureDir = resolve(process.cwd(), "src/fixtures/provider-contracts");
+    const files = readdirSync(fixtureDir).filter((name) => name.endsWith(".response.json"));
 
     for (const file of files) {
-      const fixture = JSON.parse(
-        readFileSync(resolve(fixtureDir, file), "utf8"),
-      ) as {
+      const fixture = JSON.parse(readFileSync(resolve(fixtureDir, file), "utf8")) as {
         provider: "openai" | "anthropic" | "openrouter" | "ollama";
         payload: Record<string, unknown>;
         expected: {
@@ -160,23 +144,15 @@ describe("provider response fixtures", () => {
       };
 
       expect(fixture.provider).toBe(file.split(".")[0]);
-      const parsed = __internal.parseProviderResponse(
-        fixture.provider,
-        fixture.payload,
-      );
+      const parsed = __internal.parseProviderResponse(fixture.provider, fixture.payload);
       expect(parsed.json).toEqual(fixture.expected.json);
       expect(parsed.usage).toEqual(fixture.expected.usage);
     }
   });
 
   it("covers malformed and nonjson negative fixtures for each provider", () => {
-    const fixtureDir = resolve(
-      process.cwd(),
-      "src/fixtures/provider-contracts/negative",
-    );
-    const files = readdirSync(fixtureDir).filter((name) =>
-      name.endsWith(".response.json"),
-    );
+    const fixtureDir = resolve(process.cwd(), "src/fixtures/provider-contracts/negative");
+    const files = readdirSync(fixtureDir).filter((name) => name.endsWith(".response.json"));
     const grouped = new Map<string, Set<string>>();
 
     for (const file of files) {
@@ -194,10 +170,7 @@ describe("provider response fixtures", () => {
   });
 
   it("validates schema-path diagnostics for array where object is expected", () => {
-    const fixtureDir = resolve(
-      process.cwd(),
-      "src/fixtures/provider-contracts/negative",
-    );
+    const fixtureDir = resolve(process.cwd(), "src/fixtures/provider-contracts/negative");
     const files = readdirSync(fixtureDir).filter((name) =>
       name.endsWith("schemaarray.response.json"),
     );
@@ -210,46 +183,32 @@ describe("provider response fixtures", () => {
     };
 
     for (const file of files) {
-      const fixture = JSON.parse(
-        readFileSync(resolve(fixtureDir, file), "utf8"),
-      ) as {
+      const fixture = JSON.parse(readFileSync(resolve(fixtureDir, file), "utf8")) as {
         provider: "openai" | "anthropic" | "openrouter" | "ollama";
         payload: Record<string, unknown>;
         expectedSchemaError: string;
       };
 
-      const parsed = __internal.parseProviderResponse(
-        fixture.provider,
-        fixture.payload,
-      );
-      expect(() => validateJsonSchema(parsed.json, schema)).toThrow(
-        fixture.expectedSchemaError,
-      );
+      const parsed = __internal.parseProviderResponse(fixture.provider, fixture.payload);
+      expect(() => validateJsonSchema(parsed.json, schema)).toThrow(fixture.expectedSchemaError);
     }
   });
 
   it("fails with explicit diagnostics for malformed provider envelopes", () => {
-    const fixtureDir = resolve(
-      process.cwd(),
-      "src/fixtures/provider-contracts/negative",
-    );
-    const files = readdirSync(fixtureDir).filter((name) =>
-      name.endsWith(".response.json"),
-    );
+    const fixtureDir = resolve(process.cwd(), "src/fixtures/provider-contracts/negative");
+    const files = readdirSync(fixtureDir).filter((name) => name.endsWith(".response.json"));
 
     for (const file of files) {
-      const fixture = JSON.parse(
-        readFileSync(resolve(fixtureDir, file), "utf8"),
-      ) as {
+      const fixture = JSON.parse(readFileSync(resolve(fixtureDir, file), "utf8")) as {
         provider: "openai" | "anthropic" | "openrouter" | "ollama";
         payload: Record<string, unknown>;
         expectedError?: string;
       };
 
       if (!fixture.expectedError) continue;
-      expect(() =>
-        __internal.parseProviderResponse(fixture.provider, fixture.payload),
-      ).toThrow(fixture.expectedError);
+      expect(() => __internal.parseProviderResponse(fixture.provider, fixture.payload)).toThrow(
+        fixture.expectedError,
+      );
     }
   });
 });

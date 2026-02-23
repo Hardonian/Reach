@@ -7,9 +7,7 @@ export default function BillingPage() {
     <>
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
         <span>Settings</span>
-        <span className="material-symbols-outlined text-[12px]">
-          chevron_right
-        </span>
+        <span className="material-symbols-outlined text-[12px]">chevron_right</span>
         <span className="text-white">Billing</span>
       </div>
 
@@ -32,9 +30,7 @@ export default function BillingPage() {
             </p>
           </div>
           <div className="flex gap-3">
-            <button className="btn-secondary text-sm py-2 px-4">
-              Change Plan
-            </button>
+            <button className="btn-secondary text-sm py-2 px-4">Change Plan</button>
             <button className="text-sm font-medium text-red-400 hover:text-red-300 transition-colors">
               Cancel
             </button>
@@ -48,10 +44,7 @@ export default function BillingPage() {
           <p className="text-sm text-gray-400 mb-1">API Calls (this cycle)</p>
           <p className="text-2xl font-bold">12,480</p>
           <div className="w-full bg-white/5 h-1.5 rounded-full mt-2 overflow-hidden">
-            <div
-              className="bg-accent h-1.5 rounded-full"
-              style={{ width: "42%" }}
-            />
+            <div className="bg-accent h-1.5 rounded-full" style={{ width: "42%" }} />
           </div>
           <p className="text-xs text-gray-500 mt-1">42% of 30,000 limit</p>
         </div>
@@ -59,10 +52,7 @@ export default function BillingPage() {
           <p className="text-sm text-gray-400 mb-1">Tokens Used</p>
           <p className="text-2xl font-bold">450,230</p>
           <div className="w-full bg-white/5 h-1.5 rounded-full mt-2 overflow-hidden">
-            <div
-              className="bg-emerald-500 h-1.5 rounded-full"
-              style={{ width: "65%" }}
-            />
+            <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: "65%" }} />
           </div>
           <p className="text-xs text-gray-500 mt-1">65% of 700k limit</p>
         </div>
@@ -78,9 +68,7 @@ export default function BillingPage() {
         <h2 className="text-lg font-semibold mb-4">Payment Method</h2>
         <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.03] border border-border">
           <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined text-gray-400">
-              credit_card
-            </span>
+            <span className="material-symbols-outlined text-gray-400">credit_card</span>
             <div>
               <p className="text-sm font-medium">Visa ending in 4242</p>
               <p className="text-xs text-gray-500">Expires 12/2027</p>
@@ -112,16 +100,11 @@ export default function BillingPage() {
               { date: "Jan 1, 2026", amount: "$49.00", status: "Paid" },
               { date: "Dec 1, 2025", amount: "$49.00", status: "Paid" },
             ].map((inv) => (
-              <tr
-                key={inv.date}
-                className="hover:bg-white/[0.02] transition-colors"
-              >
+              <tr key={inv.date} className="hover:bg-white/[0.02] transition-colors">
                 <td className="px-6 py-3 text-gray-300">{inv.date}</td>
                 <td className="px-6 py-3 font-medium">{inv.amount}</td>
                 <td className="px-6 py-3">
-                  <span className="status-pill online text-xs">
-                    {inv.status}
-                  </span>
+                  <span className="status-pill online text-xs">{inv.status}</span>
                 </td>
                 <td className="px-6 py-3 text-right">
                   <button className="text-accent hover:text-accent/80 text-xs font-medium transition-colors">

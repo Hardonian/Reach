@@ -12,16 +12,13 @@ export default function GettingStartedPage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">Getting Started</h1>
         <p className="text-xl text-gray-400">
-          ReadyLayer is a deterministic execution fabric. In this guide, we will
-          set up the ReadyLayer environment, execute your first signed pack, and
-          verify its results.
+          ReadyLayer is a deterministic execution fabric. In this guide, we will set up the
+          ReadyLayer environment, execute your first signed pack, and verify its results.
         </p>
       </header>
 
       <section className="space-y-6">
-        <h2 className="text-2xl font-bold border-b border-border pb-2">
-          1. Installation
-        </h2>
+        <h2 className="text-2xl font-bold border-b border-border pb-2">1. Installation</h2>
         <div className="grid md:grid-cols-2 gap-8">
           <div className="space-y-4">
             <h3 className="font-bold text-white">Desktop / Server</h3>
@@ -44,21 +41,16 @@ export default function GettingStartedPage() {
             </p>
             <div className="bg-black/40 p-4 rounded-lg font-mono text-xs space-y-1">
               <div className="text-gray-500"># One-tap install</div>
-              <div className="text-accent">
-                curl -fsSL https://get.reach.dev/termux | bash
-              </div>
+              <div className="text-accent">curl -fsSL https://get.reach.dev/termux | bash</div>
             </div>
           </div>
         </div>
       </section>
 
       <section className="space-y-6">
-        <h2 className="text-2xl font-bold border-b border-border pb-2">
-          2. System Health Check
-        </h2>
+        <h2 className="text-2xl font-bold border-b border-border pb-2">2. System Health Check</h2>
         <p className="text-gray-400">
-          Before running agentic workloads, verify your environment with{" "}
-          <code>doctor</code>.
+          Before running agentic workloads, verify your environment with <code>doctor</code>.
         </p>
         <div className="bg-white/5 p-6 rounded-xl border border-white/10">
           <div className="bg-black/20 p-4 rounded font-mono text-xs text-green-500">
@@ -71,12 +63,10 @@ export default function GettingStartedPage() {
       </section>
 
       <section className="space-y-6">
-        <h2 className="text-2xl font-bold border-b border-border pb-2">
-          3. Running the Wizard
-        </h2>
+        <h2 className="text-2xl font-bold border-b border-border pb-2">3. Running the Wizard</h2>
         <p className="text-gray-400">
-          The <code>reach wizard</code> is the fastest way to explore the
-          ReadyLayer marketplace and execute your first task.
+          The <code>reach wizard</code> is the fastest way to explore the ReadyLayer marketplace and
+          execute your first task.
         </p>
         <div className="space-y-4">
           <div className="flex gap-4 items-start">
@@ -86,8 +76,7 @@ export default function GettingStartedPage() {
             <div>
               <span className="font-bold text-white">Select a Pack</span>
               <p className="text-sm text-gray-500">
-                Choose from available execution templates like "Repo Audit" or
-                "Skill Discovery".
+                Choose from available execution templates like "Repo Audit" or "Skill Discovery".
               </p>
             </div>
           </div>
@@ -109,8 +98,7 @@ export default function GettingStartedPage() {
             <div>
               <span className="font-bold text-white">Execute and Stream</span>
               <p className="text-sm text-gray-500">
-                Watch the execution event log stream in real-time with full
-                determinism.
+                Watch the execution event log stream in real-time with full determinism.
               </p>
             </div>
           </div>
@@ -118,9 +106,7 @@ export default function GettingStartedPage() {
       </section>
 
       <section className="space-y-6">
-        <h2 className="text-2xl font-bold border-b border-border pb-2">
-          Next Steps
-        </h2>
+        <h2 className="text-2xl font-bold border-b border-border pb-2">Next Steps</h2>
         <div className="grid md:grid-cols-2 gap-4">
           <a
             href="/docs/architecture"

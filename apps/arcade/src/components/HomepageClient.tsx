@@ -17,8 +17,7 @@ interface DemoResult {
 
 const DEMO_RESULT: DemoResult = {
   status: "needs_attention",
-  finding:
-    'Tool call "search_web" exceeded the 2s timeout budget on 2 of 5 runs.',
+  finding: 'Tool call "search_web" exceeded the 2s timeout budget on 2 of 5 runs.',
   fix: "Set `timeout_ms: 1500` on the search_web tool to stay within SLA.",
   duration_ms: 847,
 };
@@ -88,9 +87,7 @@ export function HomepageClient({ variant }: { variant: Variant }) {
       {state === "loading" && (
         <div className="card p-8 text-center animate-fade-in">
           <div className="w-10 h-10 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400 text-sm">
-            Running readiness checks on demo agent…
-          </p>
+          <p className="text-gray-400 text-sm">Running readiness checks on demo agent…</p>
           <div className="mt-4 space-y-2 text-xs text-gray-600">
             <p>✓ Loading demo agent trace</p>
             <p>✓ Checking tool call budget</p>
@@ -105,20 +102,14 @@ export function HomepageClient({ variant }: { variant: Variant }) {
           <div className="flex items-center gap-3 mb-4">
             <span className="text-2xl">{cfg.icon}</span>
             <div>
-              <div className={`font-bold text-lg ${cfg.color}`}>
-                {cfg.label}
-              </div>
-              <div className="text-xs text-gray-500">
-                {result.duration_ms}ms · demo run
-              </div>
+              <div className={`font-bold text-lg ${cfg.color}`}>{cfg.label}</div>
+              <div className="text-xs text-gray-500">{result.duration_ms}ms · demo run</div>
             </div>
           </div>
 
           {/* Finding */}
           <div className="mb-4 p-3 rounded-lg bg-black/20 border border-white/5">
-            <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-              Finding
-            </div>
+            <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Finding</div>
             <p className="text-sm text-gray-200">{result.finding}</p>
           </div>
 

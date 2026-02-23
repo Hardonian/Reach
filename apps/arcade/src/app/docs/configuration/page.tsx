@@ -3,27 +3,22 @@ export default function Configuration() {
     <div className="section-container py-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <a
-            href="/docs"
-            className="text-gray-400 hover:text-white transition-colors"
-          >
+          <a href="/docs" className="text-gray-400 hover:text-white transition-colors">
             ← Back to Documentation
           </a>
         </div>
 
         <h1 className="text-4xl font-bold mb-4">Configuration</h1>
         <p className="text-gray-400 mb-8">
-          Configure your ReadyLayer environment, agents, and deployment
-          settings.
+          Configure your ReadyLayer environment, agents, and deployment settings.
         </p>
 
         <div className="space-y-8">
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Global Configuration</h2>
             <p className="text-gray-400 mb-4">
-              ReadyLayer uses a global configuration file located at
-              ~/.reach/config.yaml. This file stores your default settings and
-              credentials.
+              ReadyLayer uses a global configuration file located at ~/.reach/config.yaml. This file
+              stores your default settings and credentials.
             </p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>{`# ~/.reach/config.yaml`}</p>
@@ -50,8 +45,7 @@ export default function Configuration() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Agent Configuration</h2>
             <p className="text-gray-400 mb-4">
-              Each agent has its own configuration file (agent.yaml) that
-              defines its behavior:
+              Each agent has its own configuration file (agent.yaml) that defines its behavior:
             </p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>{`name: my-agent`}</p>
@@ -70,9 +64,7 @@ export default function Configuration() {
 
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Deployment Configuration</h2>
-            <p className="text-gray-400 mb-4">
-              Configure deployment settings in deploy.yaml:
-            </p>
+            <p className="text-gray-400 mb-4">Configure deployment settings in deploy.yaml:</p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>{`# deploy.yaml`}</p>
               <p>{`environment: production`}</p>
@@ -89,8 +81,7 @@ export default function Configuration() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Configuration Precedence</h2>
             <p className="text-gray-400 mb-4">
-              Settings are applied in the following order (later overrides
-              earlier):
+              Settings are applied in the following order (later overrides earlier):
             </p>
             <ol className="list-decimal list-inside space-y-2 text-gray-400">
               <li>Default values</li>
