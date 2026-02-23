@@ -159,14 +159,14 @@ pub fn patch_upgrade_replay_compatible(source: &str, target: &str) -> bool {
 
 ### Compatibility Rules
 
-| Change Type        | Version Bump  | Replay Compatible | Migration Required |
-| :----------------- | :------------ | :---------------- | :----------------- |
-| Bug fix            | Patch (0.3.x) | YES               | NO                 |
-| New optional field | Minor (0.x.0) | YES               | Maybe              |
-| Hash input change  | Major (x.0.0) | NO                | YES                |
-| Algorithm change   | Major (x.0.0) | NO                | YES                |
-| New SQL migration  | Minor (0.x.0) | YES               | Automatic          |
-| Schema version bump | Major (x.0.0) | NO               | YES                |
+| Change Type         | Version Bump  | Replay Compatible | Migration Required |
+| :------------------ | :------------ | :---------------- | :----------------- |
+| Bug fix             | Patch (0.3.x) | YES               | NO                 |
+| New optional field  | Minor (0.x.0) | YES               | Maybe              |
+| Hash input change   | Major (x.0.0) | NO                | YES                |
+| Algorithm change    | Major (x.0.0) | NO                | YES                |
+| New SQL migration   | Minor (0.x.0) | YES               | Automatic          |
+| Schema version bump | Major (x.0.0) | NO                | YES                |
 
 ### Upgrade Path
 
