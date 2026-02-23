@@ -1,0 +1,17 @@
+{
+  "name": "Reach Configuration",
+  "description": "Project configuration file for Reach",
+  "variables": [
+    {
+      "name": "project_name",
+      "prompt": "Project name",
+      "required": true
+    },
+    {
+      "name": "project_description",
+      "prompt": "Project description",
+      "default": "A Reach project"
+    }
+  ],
+  "output": "reach.config.json"
+}

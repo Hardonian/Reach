@@ -1,0 +1,32 @@
+{
+  "name": "Analyzer Plugin",
+  "description": "Template for creating custom analyzers",
+  "variables": [
+    {
+      "name": "name",
+      "prompt": "Plugin name (lowercase, no spaces)",
+      "required": true,
+      "validate": "^[a-z0-9-]+$"
+    },
+    {
+      "name": "description",
+      "prompt": "Short description",
+      "default": "A custom analyzer for Reach"
+    },
+    {
+      "name": "author",
+      "prompt": "Author name",
+      "default": "local"
+    },
+    {
+      "name": "version",
+      "prompt": "Initial version",
+      "default": "1.0.0"
+    },
+    {
+      "name": "license",
+      "prompt": "License",
+      "default": "MIT"
+    }
+  ]
+}

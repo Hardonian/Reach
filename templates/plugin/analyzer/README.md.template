@@ -1,0 +1,26 @@
+# {{name}}
+
+{{description}}
+
+## Installation
+
+```bash
+# Verify plugin loads
+reach plugins doctor
+```
+
+## Usage
+
+The analyzer runs automatically when analyzing PRs:
+
+```bash
+reach analyze-pr --with-plugin {{name}}
+```
+
+## Development
+
+Edit `index.js` to add your analysis logic.
+
+## License
+
+{{license}}

@@ -1,0 +1,25 @@
+# {{name}}
+
+{{description}}
+
+## Usage
+
+```bash
+reach run {{author}}.{{name}}
+```
+
+## Structure
+
+```
+{{name}}/
+├── pack.json       # Pack manifest
+└── README.md       # This file
+```
+
+## Development
+
+Edit `pack.json` to add steps and configuration.
+
+## License
+
+{{license}}

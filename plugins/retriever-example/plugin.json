@@ -1,0 +1,23 @@
+{
+  "$schema": "../plugin-schema.json",
+  "id": "retriever-example",
+  "version": "1.0.0",
+  "apiVersion": "1.0.0",
+  "name": "Example Data Retriever",
+  "description": "Example data retriever for external sources",
+  "deterministic": true,
+  "permissions": {
+    "network": true,
+    "filesystem": false,
+    "env": false
+  },
+  "capabilities": ["registerRetriever"],
+  "entry": "index.js",
+  "author": "reach-examples",
+  "license": "MIT",
+  "config": {
+    "cache_ttl_seconds": 300,
+    "timeout_ms": 5000,
+    "max_retries": 2
+  }
+}

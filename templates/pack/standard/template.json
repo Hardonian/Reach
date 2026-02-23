@@ -1,0 +1,37 @@
+{
+  "name": "Standard Pack",
+  "description": "Full-featured pack with policies and tests",
+  "variables": [
+    {
+      "name": "name",
+      "prompt": "Pack name (lowercase, no spaces)",
+      "required": true,
+      "validate": "^[a-z0-9-]+$"
+    },
+    {
+      "name": "description",
+      "prompt": "Short description",
+      "default": "A standard Reach execution pack"
+    },
+    {
+      "name": "author",
+      "prompt": "Author name/organization",
+      "default": "local"
+    },
+    {
+      "name": "version",
+      "prompt": "Initial version",
+      "default": "1.0.0"
+    },
+    {
+      "name": "license",
+      "prompt": "License",
+      "default": "MIT"
+    },
+    {
+      "name": "created",
+      "prompt": "Creation date",
+      "default": "{{now.iso}}"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "spec_version": "1.0",
+  "metadata": {
+    "id": "examples.cost-guard",
+    "version": "1.0.0",
+    "name": "Cost Guard",
+    "description": "Budget-aware execution with automatic model tier routing",
+    "author": "reach-examples",
+    "created": "2024-01-15T00:00:00Z",
+    "tags": ["advanced", "cost", "routing", "optimization"]
+  },
+  "declared_tools": ["echo", "estimate_cost", "route_model", "execute", "report"],
+  "declared_permissions": ["cost:read", "model:select"],
+  "model_requirements": {
+    "tier": "adaptive"
+  },
+  "execution_graph": {
+    "steps": [
+      {
+        "id": "check-budget",
+        "tool": "echo",
+        "input": "Budget check: $0.50 available"
+      },
+      {
+        "id": "route",
+        "tool": "echo",
+        "input": "Routing to: tier-minimal (cost-optimized)",
+        "depends_on": ["check-budget"]
+      },
+      {
+        "id": "execute",
+        "tool": "echo",
+        "input": "Executing with gpt-3.5-turbo (est: $0.02)",
+        "depends_on": ["route"]
+      },
+      {
+        "id": "report",
+        "tool": "echo",
+        "input": "Cost report: $0.018 spent, $0.482 remaining",
+        "depends_on": ["execute"]
+      }
+    ]
+  },
+  "deterministic": true,
+  "governed": true,
+  "policies": ["cost-hard-ceiling", "model-tier-routing"],
+  "routing_config": {
+    "budget_tiers": {
+      "minimal": { "max_cost": 0.10, "models": ["gpt-3.5-turbo"] },
+      "standard": { "max_cost": 1.00, "models": ["gpt-4", "claude-3-sonnet"] },
+      "premium": { "max_cost": 10.00, "models": ["gpt-4-turbo", "claude-3-opus"] }
+    }
+  },
+  "signature_hash": ""
+}

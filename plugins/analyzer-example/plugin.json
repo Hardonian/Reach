@@ -1,0 +1,18 @@
+{
+  "$schema": "../plugin-schema.json",
+  "id": "analyzer-example",
+  "version": "1.0.0",
+  "apiVersion": "1.0.0",
+  "name": "Example PR Analyzer",
+  "description": "Demonstrates custom analysis capabilities for PR reviews",
+  "deterministic": true,
+  "permissions": {
+    "network": false,
+    "filesystem": false,
+    "env": false
+  },
+  "capabilities": ["registerAnalyzePrAnalyzer"],
+  "entry": "index.js",
+  "author": "reach-examples",
+  "license": "MIT"
+}

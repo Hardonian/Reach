@@ -1,0 +1,63 @@
+{
+  "$schema": "./schema.json",
+  "id": "drift-detection-default",
+  "version": "1.0.0",
+  "type": "quality",
+  "severity": "warning",
+  "description": "Detect execution drift from established baselines",
+  "rules": [
+    {
+      "name": "duration_drift",
+      "condition": {
+        "type": "statistical_outlier",
+        "metric": "execution_duration_ms",
+        "method": "z_score",
+        "threshold": 3.0
+      },
+      "message": "Execution time ${actual} is ${z_score}σ from baseline",
+      "suggestion": "Investigate performance degradation or infrastructure issues"
+    },
+    {
+      "name": "output_drift",
+      "condition": {
+        "type": "distribution_shift",
+        "metric": "output_similarity",
+        "method": "kl_divergence",
+        "threshold": 0.1
+      },
+      "message": "Output distribution has shifted significantly",
+      "suggestion": "Review recent code or data changes"
+    },
+    {
+      "name": "success_rate_drift",
+      "condition": {
+        "type": "rolling_window",
+        "metric": "success_rate",
+        "window": "1h",
+        "operator": "less_than",
+        "value": 0.95
+      },
+      "message": "Success rate dropped to ${success_rate} in last hour",
+      "suggestion": "Check error logs and external dependencies"
+    }
+  ],
+  "config": {
+    "baseline_window": {
+      "type": "string",
+      "default": "7d",
+      "description": "Time window for baseline establishment"
+    },
+    "sensitivity": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "default": "medium",
+      "description": "Drift detection sensitivity"
+    }
+  },
+  "metadata": {
+    "author": "reach-team",
+    "category": "monitoring",
+    "applies_to": ["all-executions"],
+    "tags": ["drift", "monitoring", "quality"]
+  }
+}

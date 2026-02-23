@@ -1,0 +1,37 @@
+{
+  "$schema": "./schema.json",
+  "id": "security-no-high-severity",
+  "version": "1.0.0",
+  "type": "infrastructure",
+  "severity": "blocking",
+  "description": "Block deployments with high-severity security findings",
+  "rules": [
+    {
+      "name": "no_high_severity_findings",
+      "condition": {
+        "type": "security_scan",
+        "max_severity": "medium",
+        "forbidden_levels": ["high", "critical"]
+      },
+      "message": "High or critical security findings detected",
+      "suggestion": "Fix security issues before deploying. Run security scan for details."
+    },
+    {
+      "name": "max_medium_findings",
+      "condition": {
+        "type": "security_scan",
+        "metric": "medium_severity_count",
+        "operator": "less_than",
+        "value": 5
+      },
+      "message": "Too many medium-severity findings (max 4 allowed)",
+      "suggestion": "Address medium-severity issues to reduce security debt"
+    }
+  ],
+  "metadata": {
+    "author": "reach-security",
+    "category": "security",
+    "applies_to": ["terraform", "cloudformation", "kubernetes"],
+    "tags": ["infrastructure", "security", "compliance"]
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://reach.sh/plugin-schema.json",
+  "title": "Reach Plugin Manifest Schema",
+  "description": "Schema for Reach plugin manifests",
+  "type": "object",
+  "required": ["id", "version", "apiVersion", "deterministic", "permissions", "capabilities", "entry"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique plugin identifier",
+      "pattern": "^[a-z0-9-]+$",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.-]+)?$"
+    },
+    "apiVersion": {
+      "type": "string",
+      "description": "Reach API version this plugin targets",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable plugin name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Plugin description"
+    },
+    "deterministic": {
+      "type": "boolean",
+      "description": "Whether plugin produces deterministic output"
+    },
+    "permissions": {
+      "type": "object",
+      "description": "Plugin permissions",
+      "properties": {
+        "network": {
+          "type": "boolean",
+          "description": "Allow network access"
+        },
+        "filesystem": {
+          "type": "boolean",
+          "description": "Allow filesystem access beyond plugin directory"
+        },
+        "env": {
+          "type": "boolean",
+          "description": "Allow reading environment variables"
+        }
+      },
+      "required": ["network"]
+    },
+    "capabilities": {
+      "type": "array",
+      "description": "Capabilities this plugin registers",
+      "items": {
+        "type": "string",
+        "enum": [
+          "registerDecisionType",
+          "registerPolicy",
+          "registerEvidenceExtractor",
+          "registerRenderer",
+          "registerRetriever",
+          "registerAnalyzePrAnalyzer"
+        ]
+      },
+      "minItems": 1
+    },
+    "entry": {
+      "type": "string",
+      "description": "Main entry point file",
+      "default": "index.js"
+    },
+    "author": {
+      "type": "string",
+      "description": "Plugin author"
+    },
+    "license": {
+      "type": "string",
+      "description": "SPDX license identifier"
+    },
+    "repository": {
+      "type": "string",
+      "description": "Repository URL"
+    },
+    "dependencies": {
+      "type": "object",
+      "description": "Plugin dependencies",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "config": {
+      "type": "object",
+      "description": "Default configuration values"
+    }
+  }
+}

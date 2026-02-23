@@ -1,0 +1,41 @@
+{
+  "$schema": "https://reach.sh/config-schema.json",
+  "version": "1.0",
+  "project": {
+    "name": "{{project_name}}",
+    "description": "{{project_description}}"
+  },
+  "execution": {
+    "default_tier": "standard",
+    "deterministic_by_default": true,
+    "governed_by_default": true
+  },
+  "cost": {
+    "default_budget": 1.0,
+    "currency": "USD",
+    "alert_threshold": 0.8
+  },
+  "policies": {
+    "enabled": [
+      "cost-hard-ceiling",
+      "min-confidence-0.7"
+    ],
+    "custom_path": "./policies"
+  },
+  "plugins": {
+    "auto_load": true,
+    "paths": [
+      "./plugins",
+      "~/.reach/plugins"
+    ]
+  },
+  "storage": {
+    "capsule_retention_days": 90,
+    "compress_archives": true
+  },
+  "logging": {
+    "level": "info",
+    "format": "json",
+    "destination": "stdout"
+  }
+}

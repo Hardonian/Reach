@@ -1,0 +1,22 @@
+{
+  "spec_version": "1.0",
+  "metadata": {
+    "id": "{{author}}.{{name}}",
+    "version": "{{version}}",
+    "name": "{{name}}",
+    "description": "{{description}}",
+    "author": "{{author}}",
+    "created": "{{created}}"
+  },
+  "declared_tools": [],
+  "declared_permissions": [],
+  "model_requirements": {
+    "tier": "minimal"
+  },
+  "execution_graph": {
+    "steps": []
+  },
+  "deterministic": true,
+  "governed": false,
+  "signature_hash": ""
+}

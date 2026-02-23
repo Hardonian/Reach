@@ -1,0 +1,26 @@
+{
+  "$schema": "./schema.json",
+  "id": "require-tags",
+  "version": "1.0.0",
+  "type": "infrastructure",
+  "severity": "blocking",
+  "description": "All resources must have required tags for cost allocation and ownership",
+  "rules": [
+    {
+      "name": "required_tags_present",
+      "condition": {
+        "type": "resource_attribute",
+        "attribute": "tags",
+        "required_keys": ["Environment", "Owner", "CostCenter"]
+      },
+      "message": "Resource missing required tags: Environment, Owner, CostCenter",
+      "suggestion": "Add the required tags to all resources for proper cost attribution"
+    }
+  ],
+  "metadata": {
+    "author": "reach-team",
+    "category": "governance",
+    "applies_to": ["aws", "azure", "gcp"],
+    "tags": ["infrastructure", "tagging", "governance"]
+  }
+}

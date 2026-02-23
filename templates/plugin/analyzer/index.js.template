@@ -1,0 +1,37 @@
+/**
+ * {{name}} - Custom Analyzer Plugin
+ *
+ * {{description}}
+ */
+
+module.exports = {
+  register() {
+    return {
+      analyzers: [
+        {
+          id: "{{name}}-check",
+          category: "quality",
+          deterministic: true,
+          description: "{{description}}",
+
+          analyze(input) {
+            const findings = [];
+
+            // TODO: Add your analysis logic here
+            // Example:
+            // if (input.content.includes('something')) {
+            //   findings.push({
+            //     type: 'warning',
+            //     message: 'Found something',
+            //     line: 1,
+            //     severity: 'medium'
+            //   });
+            // }
+
+            return findings;
+          }
+        }
+      ]
+    };
+  }
+};

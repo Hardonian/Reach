@@ -1,0 +1,36 @@
+{
+  "spec_version": "1.0",
+  "metadata": {
+    "id": "{{author}}.{{name}}",
+    "version": "{{version}}",
+    "name": "{{name}}",
+    "description": "{{description}}",
+    "author": "{{author}}",
+    "created": "{{created}}",
+    "tags": ["standard", "governed"]
+  },
+  "declared_tools": ["echo", "compute"],
+  "declared_permissions": [],
+  "model_requirements": {
+    "tier": "standard"
+  },
+  "execution_graph": {
+    "steps": [
+      {
+        "id": "step-1",
+        "tool": "echo",
+        "input": "Starting {{name}} execution"
+      },
+      {
+        "id": "step-2",
+        "tool": "compute",
+        "input": "process",
+        "depends_on": ["step-1"]
+      }
+    ]
+  },
+  "deterministic": true,
+  "governed": true,
+  "policies": ["min-confidence-0.7"],
+  "signature_hash": ""
+}

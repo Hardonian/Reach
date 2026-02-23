@@ -1,0 +1,53 @@
+{
+  "$schema": "./schema.json",
+  "id": "model-tier-routing",
+  "version": "1.0.0",
+  "type": "cost",
+  "severity": "advisory",
+  "description": "Automatically select model tier based on budget constraints",
+  "rules": [
+    {
+      "name": "route_by_budget",
+      "condition": {
+        "type": "routing_decision",
+        "tiers": {
+          "minimal": {
+            "max_cost": 0.1,
+            "models": ["gpt-3.5-turbo"],
+            "confidence_multiplier": 0.8
+          },
+          "standard": {
+            "max_cost": 1.0,
+            "models": ["gpt-4", "claude-3-sonnet"],
+            "confidence_multiplier": 1.0
+          },
+          "premium": {
+            "max_cost": 10.0,
+            "models": ["gpt-4-turbo", "claude-3-opus"],
+            "confidence_multiplier": 1.1
+          }
+        }
+      },
+      "message": "Model routed based on budget: ${selected_tier}",
+      "suggestion": "Increase budget for higher quality results"
+    }
+  ],
+  "config": {
+    "budget": {
+      "type": "number",
+      "default": 1.0,
+      "description": "Available budget for execution"
+    },
+    "preserve_budget": {
+      "type": "boolean",
+      "default": true,
+      "description": "Keep 20% buffer for unexpected costs"
+    }
+  },
+  "metadata": {
+    "author": "reach-team",
+    "category": "routing",
+    "applies_to": ["model-selection"],
+    "tags": ["cost", "routing", "optimization"]
+  }
+}

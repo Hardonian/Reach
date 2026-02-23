@@ -1,0 +1,41 @@
+{
+  "spec_version": "1.0",
+  "metadata": {
+    "id": "examples.hello-world",
+    "version": "1.0.0",
+    "name": "Hello World",
+    "description": "A friendly introduction to Reach deterministic execution",
+    "author": "reach-examples",
+    "created": "2024-01-15T00:00:00Z",
+    "tags": ["beginner", "tutorial", "basics"]
+  },
+  "declared_tools": ["echo", "greet"],
+  "declared_permissions": [],
+  "model_requirements": {
+    "tier": "minimal"
+  },
+  "execution_graph": {
+    "steps": [
+      {
+        "id": "greet",
+        "tool": "echo",
+        "input": "Welcome to Reach! 👋"
+      },
+      {
+        "id": "explain",
+        "tool": "echo",
+        "input": "This pack runs with deterministic guarantees.",
+        "depends_on": ["greet"]
+      },
+      {
+        "id": "verify",
+        "tool": "echo",
+        "input": "Every run produces identical output given the same inputs.",
+        "depends_on": ["explain"]
+      }
+    ]
+  },
+  "deterministic": true,
+  "governed": false,
+  "signature_hash": ""
+}

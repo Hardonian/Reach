@@ -1,0 +1,37 @@
+{
+  "name": "Minimal Pack",
+  "description": "Bare minimum pack structure to get started",
+  "variables": [
+    {
+      "name": "name",
+      "prompt": "Pack name (lowercase, no spaces)",
+      "required": true,
+      "validate": "^[a-z0-9-]+$"
+    },
+    {
+      "name": "description",
+      "prompt": "Short description",
+      "default": "A Reach execution pack"
+    },
+    {
+      "name": "author",
+      "prompt": "Author name/organization",
+      "default": "local"
+    },
+    {
+      "name": "version",
+      "prompt": "Initial version",
+      "default": "1.0.0"
+    },
+    {
+      "name": "license",
+      "prompt": "License",
+      "default": "MIT"
+    },
+    {
+      "name": "created",
+      "prompt": "Creation date",
+      "default": "{{now.iso}}"
+    }
+  ]
+}

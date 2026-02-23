@@ -1,0 +1,48 @@
+{
+  "spec_version": "1.0",
+  "metadata": {
+    "id": "examples.drift-detection",
+    "version": "1.0.0",
+    "name": "Drift Detection Demo",
+    "description": "Demonstrates Reach's ability to detect execution drift and anomalies",
+    "author": "reach-examples",
+    "created": "2024-01-15T00:00:00Z",
+    "tags": ["intermediate", "monitoring", "drift"]
+  },
+  "declared_tools": ["echo", "compute_baseline", "detect_drift"],
+  "declared_permissions": ["telemetry:read"],
+  "model_requirements": {
+    "tier": "standard"
+  },
+  "execution_graph": {
+    "steps": [
+      {
+        "id": "baseline",
+        "tool": "echo",
+        "input": "Establishing execution baseline..."
+      },
+      {
+        "id": "simulate",
+        "tool": "echo",
+        "input": "Running simulation with 100 iterations",
+        "depends_on": ["baseline"]
+      },
+      {
+        "id": "check",
+        "tool": "echo",
+        "input": "Checking for drift indicators...",
+        "depends_on": ["simulate"]
+      },
+      {
+        "id": "report",
+        "tool": "echo",
+        "input": "Drift analysis complete. Baseline: stable",
+        "depends_on": ["check"]
+      }
+    ]
+  },
+  "deterministic": true,
+  "governed": true,
+  "policies": ["drift-threshold-default"],
+  "signature_hash": ""
+}

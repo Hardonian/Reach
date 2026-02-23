@@ -1,0 +1,43 @@
+{
+  "$schema": "./schema.json",
+  "id": "cost-hard-ceiling",
+  "version": "1.0.0",
+  "type": "cost",
+  "severity": "blocking",
+  "description": "Hard spending limit for model execution - execution stops if exceeded",
+  "rules": [
+    {
+      "name": "hard_spend_limit",
+      "condition": {
+        "metric": "cumulative_cost_usd",
+        "operator": "less_than_or_equal",
+        "value": "${config.budget}"
+      },
+      "message": "Execution would exceed budget of ${config.budget} USD",
+      "suggestion": "Reduce complexity, use cheaper models, or increase budget"
+    },
+    {
+      "name": "step_cost_check",
+      "condition": {
+        "metric": "estimated_step_cost",
+        "operator": "less_than_or_equal",
+        "value": "${config.budget * 0.5}"
+      },
+      "message": "Single step cost exceeds 50% of total budget",
+      "suggestion": "Break into smaller steps or use cheaper execution tier"
+    }
+  ],
+  "config": {
+    "budget": {
+      "type": "number",
+      "default": 1.0,
+      "description": "Maximum spend in USD"
+    }
+  },
+  "metadata": {
+    "author": "reach-team",
+    "category": "cost-control",
+    "applies_to": ["all-executions"],
+    "tags": ["cost", "budget", "control"]
+  }
+}

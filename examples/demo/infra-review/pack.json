@@ -1,0 +1,54 @@
+{
+  "spec_version": "1.0",
+  "metadata": {
+    "id": "examples.infra-review",
+    "version": "1.0.0",
+    "name": "Infrastructure Review",
+    "description": "Policy-based review of infrastructure changes with cost and security guardrails",
+    "author": "reach-examples",
+    "created": "2024-01-15T00:00:00Z",
+    "tags": ["intermediate", "policy", "infrastructure", "cost"]
+  },
+  "declared_tools": ["echo", "parse_plan", "check_cost", "check_security", "recommend"],
+  "declared_permissions": ["fs:read", "policy:evaluate"],
+  "model_requirements": {
+    "tier": "standard"
+  },
+  "execution_graph": {
+    "steps": [
+      {
+        "id": "load",
+        "tool": "echo",
+        "input": "Loading infrastructure plan..."
+      },
+      {
+        "id": "parse",
+        "tool": "echo",
+        "input": "Parsing 12 resources from plan",
+        "depends_on": ["load"]
+      },
+      {
+        "id": "cost-check",
+        "tool": "echo",
+        "input": "Cost estimate: $247/month (within budget)",
+        "depends_on": ["parse"]
+      },
+      {
+        "id": "security-check",
+        "tool": "echo",
+        "input": "Security scan: 0 high, 1 medium, 3 low severity findings",
+        "depends_on": ["cost-check"]
+      },
+      {
+        "id": "recommend",
+        "tool": "echo",
+        "input": "Recommendation: APPROVE with security advisory",
+        "depends_on": ["security-check"]
+      }
+    ]
+  },
+  "deterministic": true,
+  "governed": true,
+  "policies": ["cost-ceiling-1k", "security-no-high-severity", "require-tags"],
+  "signature_hash": ""
+}

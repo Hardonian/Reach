@@ -1,0 +1,18 @@
+{
+  "$schema": "../plugin-schema.json",
+  "id": "{{name}}",
+  "version": "{{version}}",
+  "apiVersion": "1.0.0",
+  "name": "{{name}}",
+  "description": "{{description}}",
+  "deterministic": true,
+  "permissions": {
+    "network": false,
+    "filesystem": false,
+    "env": false
+  },
+  "capabilities": ["registerAnalyzePrAnalyzer"],
+  "entry": "index.js",
+  "author": "{{author}}",
+  "license": "{{license}}"
+}

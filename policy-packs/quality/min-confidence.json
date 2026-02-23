@@ -1,0 +1,50 @@
+{
+  "$schema": "./schema.json",
+  "id": "min-confidence-0.7",
+  "version": "1.0.0",
+  "type": "quality",
+  "severity": "blocking",
+  "description": "Require minimum confidence level for decisions",
+  "rules": [
+    {
+      "name": "confidence_threshold",
+      "condition": {
+        "metric": "decision_confidence",
+        "operator": "greater_than_or_equal",
+        "value": 0.7
+      },
+      "message": "Decision confidence ${actual_confidence} below threshold ${threshold}",
+      "suggestion": "Gather more evidence or acquire higher-value information"
+    },
+    {
+      "name": "uncertainty_disclosure",
+      "condition": {
+        "metric": "uncertainty_range",
+        "operator": "less_than",
+        "value": 0.4
+      },
+      "message": "Decision uncertainty is high (range: ${uncertainty_range})",
+      "suggestion": "Consider multiple scenarios or sensitivity analysis"
+    }
+  ],
+  "config": {
+    "threshold": {
+      "type": "number",
+      "default": 0.7,
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Minimum required confidence (0.0-1.0)"
+    },
+    "allow_defer": {
+      "type": "boolean",
+      "default": true,
+      "description": "Allow deferring decision instead of failing"
+    }
+  },
+  "metadata": {
+    "author": "reach-team",
+    "category": "quality",
+    "applies_to": ["decisions"],
+    "tags": ["quality", "confidence", "decision-making"]
+  }
+}

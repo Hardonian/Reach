@@ -1,0 +1,70 @@
+{
+  "spec_version": "1.0",
+  "metadata": {
+    "id": "examples.multi-step-reasoning",
+    "version": "1.0.0",
+    "name": "Multi-Step Reasoning",
+    "description": "Complex decision chains with evidence propagation and value of information",
+    "author": "reach-examples",
+    "created": "2024-01-15T00:00:00Z",
+    "tags": ["advanced", "reasoning", "evidence", "voi"]
+  },
+  "declared_tools": [
+    "echo",
+    "gather_evidence",
+    "evaluate_hypothesis",
+    "compute_voi",
+    "synthesize"
+  ],
+  "declared_permissions": ["evidence:read", "voi:compute"],
+  "model_requirements": {
+    "tier": "standard"
+  },
+  "execution_graph": {
+    "steps": [
+      {
+        "id": "problem",
+        "tool": "echo",
+        "input": "Problem: Select optimal cloud region for deployment"
+      },
+      {
+        "id": "evidence-1",
+        "tool": "echo",
+        "input": "Evidence: Latency analysis (us-east: 45ms, eu-west: 78ms)",
+        "depends_on": ["problem"]
+      },
+      {
+        "id": "evidence-2",
+        "tool": "echo",
+        "input": "Evidence: Cost analysis (us-east: $420/mo, eu-west: $380/mo)",
+        "depends_on": ["evidence-1"]
+      },
+      {
+        "id": "hypothesis",
+        "tool": "echo",
+        "input": "Hypothesis: eu-west is optimal (cost savings outweigh latency)",
+        "depends_on": ["evidence-2"]
+      },
+      {
+        "id": "voi",
+        "tool": "echo",
+        "input": "VOI: Traffic pattern data would improve confidence by 23%",
+        "depends_on": ["hypothesis"]
+      },
+      {
+        "id": "decision",
+        "tool": "echo",
+        "input": "Decision: Deploy to eu-west (confidence: 0.78)",
+        "depends_on": ["voi"]
+      }
+    ]
+  },
+  "deterministic": true,
+  "governed": true,
+  "policies": ["min-confidence-0.7", "require-voi-for-uncertain"],
+  "evidence_chain": {
+    "propagate": true,
+    "track_uncertainty": true
+  },
+  "signature_hash": ""
+}

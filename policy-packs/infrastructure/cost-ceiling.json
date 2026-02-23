@@ -1,0 +1,26 @@
+{
+  "$schema": "./schema.json",
+  "id": "cost-ceiling-1k",
+  "version": "1.0.0",
+  "type": "infrastructure",
+  "severity": "blocking",
+  "description": "Monthly infrastructure cost must not exceed $1,000 USD",
+  "rules": [
+    {
+      "name": "monthly_cost_limit",
+      "condition": {
+        "metric": "monthly_estimate_usd",
+        "operator": "less_than_or_equal",
+        "value": 1000
+      },
+      "message": "Monthly cost estimate exceeds $1,000 limit",
+      "suggestion": "Consider using smaller instance types or reducing resource count"
+    }
+  ],
+  "metadata": {
+    "author": "reach-team",
+    "category": "cost",
+    "applies_to": ["terraform", "cloudformation", "pulumi"],
+    "tags": ["infrastructure", "cost-control", "budget"]
+  }
+}

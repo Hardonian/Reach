@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reach Decision Ranking</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .header {
+      margin-bottom: 2rem;
+    }
+    h1 {
+      font-size: 1.5rem;
+      color: #60a5fa;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      color: #64748b;
+      font-size: 0.875rem;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 2rem;
+    }
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+    .ranking-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .decision-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .decision-card:hover {
+      border-color: #60a5fa;
+      transform: translateX(4px);
+    }
+    .decision-card.selected {
+      border-color: #22c55e;
+      background: #1e293b;
+      box-shadow: 0 0 0 1px #22c55e;
+    }
+    .decision-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+    .decision-rank {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #3b82f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.875rem;
+    }
+    .decision-rank.top {
+      background: #22c55e;
+    }
+    .decision-rank.second {
+      background: #f59e0b;
+    }
+    .decision-rank.third {
+      background: #8b5cf6;
+    }
+    .decision-score {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #60a5fa;
+    }
+    .decision-name {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .decision-bar {
+      height: 6px;
+      background: #334155;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+    .decision-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #22c55e);
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+    .decision-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+    .metric {
+      display: flex;
+      flex-direction: column;
+    }
+    .metric-value {
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .panel {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 0.5rem;
+      padding: 1rem;
+    }
+    .panel-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+    .criteria-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .criterion {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.875rem;
+    }
+    .criterion-name {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .criterion-weight {
+      font-size: 0.75rem;
+      color: #64748b;
+      background: #334155;
+      padding: 0.125rem 0.375rem;
+      border-radius: 0.25rem;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      font-size: 0.75rem;
+    }
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+    }
+    .radar-chart {
+      width: 100%;
+      aspect-ratio: 1;
+    }
+    .empty-state {
+      text-align: center;
+      color: #64748b;
+      padding: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🏆 Decision Ranking</h1>
+    <p class="subtitle">Multi-criteria decision analysis with weighted scoring</p>
+  </div>
+
+  <div class="container">
+    <div class="ranking-list" id="ranking">
+      <!-- Decision cards rendered here -->
+    </div>
+
+    <div class="sidebar">
+      <div class="panel">
+        <div class="panel-title">Selection</div>
+        <div id="selection-details">
+          <div class="empty-state">Click a decision to view details</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Criteria Weights</div>
+        <div class="criteria-list">
+          <div class="criterion">
+            <span class="criterion-name">💰 Cost</span>
+            <span class="criterion-weight">30%</span>
+          </div>
+          <div class="criterion">
+            <span class="criterion-name">⚡ Performance</span>
+            <span class="criterion-weight">25%</span>
+          </div>
+          <div class="criterion">
+            <span class="criterion-name">🔒 Security</span>
+            <span class="criterion-weight">20%</span>
+          </div>
+          <div class="criterion">
+            <span class="criterion-name">📈 Scalability</span>
+            <span class="criterion-weight">15%</span>
+          </div>
+          <div class="criterion">
+            <span class="criterion-name">🔧 Maintainability</span>
+            <span class="criterion-weight">10%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Legend</div>
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-color" style="background: #22c55e;"></div>
+            <span>Recommended</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: #f59e0b;"></div>
+            <span>Viable</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: #8b5cf6;"></div>
+            <span>Consider</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const decisions = [
+      {
+        id: 'opt-1',
+        name: 'eu-west (Ireland)',
+        score: 0.82,
+        rank: 1,
+        metrics: {
+          cost: 0.9,
+          performance: 0.7,
+          security: 0.85,
+          scalability: 0.8,
+          maintainability: 0.9
+        },
+        reasoning: 'Best cost efficiency with strong compliance support'
+      },
+      {
+        id: 'opt-2',
+        name: 'us-east (N. Virginia)',
+        score: 0.76,
+        rank: 2,
+        metrics: {
+          cost: 0.7,
+          performance: 0.9,
+          security: 0.8,
+          scalability: 0.85,
+          maintainability: 0.75
+        },
+        reasoning: 'Excellent performance but higher costs'
+      },
+      {
+        id: 'opt-3',
+        name: 'us-west (Oregon)',
+        score: 0.68,
+        rank: 3,
+        metrics: {
+          cost: 0.75,
+          performance: 0.8,
+          security: 0.75,
+          scalability: 0.7,
+          maintainability: 0.6
+        },
+        reasoning: 'Good balance but limited team expertise'
+      },
+      {
+        id: 'opt-4',
+        name: 'ap-southeast (Singapore)',
+        score: 0.54,
+        rank: 4,
+        metrics: {
+          cost: 0.6,
+          performance: 0.5,
+          security: 0.7,
+          scalability: 0.5,
+          maintainability: 0.5
+        },
+        reasoning: 'Strategic location but latency concerns for primary users'
+      }
+    ];
+
+    let selectedId = null;
+
+    function renderRanking() {
+      const container = document.getElementById('ranking');
+      container.innerHTML = '';
+
+      // Sort by score descending
+      const sorted = [...decisions].sort((a, b) => b.score - a.score);
+
+      for (let i = 0; i < sorted.length; i++) {
+        const d = sorted[i];
+        const rank = i + 1;
+        const rankClass = rank === 1 ? 'top' : rank === 2 ? 'second' : rank === 3 ? 'third' : '';
+        const isSelected = d.id === selectedId;
+
+        const card = document.createElement('div');
+        card.className = `decision-card ${isSelected ? 'selected' : ''}`;
+        card.onclick = () => selectDecision(d.id);
+        card.innerHTML = `
+          <div class="decision-header">
+            <div class="decision-rank ${rankClass}">${rank}</div>
+            <div class="decision-score">${(d.score * 100).toFixed(0)}%</div>
+          </div>
+          <div class="decision-name">${d.name}</div>
+          <div class="decision-bar">
+            <div class="decision-bar-fill" style="width: ${d.score * 100}%"></div>
+          </div>
+          <div class="decision-metrics">
+            <div class="metric">
+              <span>Cost</span>
+              <span class="metric-value">${(d.metrics.cost * 100).toFixed(0)}%</span>
+            </div>
+            <div class="metric">
+              <span>Perf</span>
+              <span class="metric-value">${(d.metrics.performance * 100).toFixed(0)}%</span>
+            </div>
+            <div class="metric">
+              <span>Sec</span>
+              <span class="metric-value">${(d.metrics.security * 100).toFixed(0)}%</span>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      }
+    }
+
+    function selectDecision(id) {
+      selectedId = id;
+      renderRanking();
+      renderDetails();
+    }
+
+    function renderDetails() {
+      const container = document.getElementById('selection-details');
+
+      if (!selectedId) {
+        container.innerHTML = '<div class="empty-state">Click a decision to view details</div>';
+        return;
+      }
+
+      const d = decisions.find(x => x.id === selectedId);
+      if (!d) return;
+
+      container.innerHTML = `
+        <div style="margin-bottom: 1rem;">
+          <strong style="font-size: 1.125rem;">${d.name}</strong>
+          <div style="color: #64748b; font-size: 0.875rem; margin-top: 0.25rem;">
+            Overall Score: ${(d.score * 100).toFixed(1)}%
+          </div>
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; margin-bottom: 0.5rem;">
+            Reasoning
+          </div>
+          <div style="font-size: 0.875rem; line-height: 1.5;">${d.reasoning}</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; margin-bottom: 0.5rem;">
+            All Metrics
+          </div>
+          ${Object.entries(d.metrics).map(([key, value]) => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.375rem 0; border-bottom: 1px solid #334155;">
+              <span style="text-transform: capitalize; font-size: 0.875rem;">${key}</span>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div style="width: 60px; height: 4px; background: #334155; border-radius: 2px; overflow: hidden;">
+                  <div style="width: ${value * 100}%; height: 100%; background: #60a5fa; border-radius: 2px;"></div>
+                </div>
+                <span style="font-size: 0.875rem; font-weight: 600; width: 36px; text-align: right;">${(value * 100).toFixed(0)}%</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // Initial render
+    renderRanking();
+  </script>
+</body>
+</html>

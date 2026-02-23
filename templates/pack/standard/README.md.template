@@ -1,0 +1,67 @@
+# {{name}}
+
+{{description}}
+
+## Features
+
+- Deterministic execution
+- Policy governance
+- Evidence tracking
+- Replay verification
+
+## Usage
+
+```bash
+# Run the pack
+reach run {{author}}.{{name}}
+
+# Run with verbose output
+reach run {{author}}.{{name}} --verbose
+
+# Export capsule for replay
+reach run {{author}}.{{name}} --export {{name}}.reach
+```
+
+## Structure
+
+```
+{{name}}/
+├── pack.json          # Pack manifest
+├── README.md          # Documentation
+├── policies/          # Custom policies
+│   └── default.json
+├── tests/             # Test cases
+│   └── validation.test.ts
+└── fixtures/          # Test fixtures
+    └── sample.json
+```
+
+## Policies
+
+This pack uses the following policies:
+- `min-confidence-0.7` - Requires 70% confidence for decisions
+
+## Development
+
+### Running Tests
+
+```bash
+npm test -- --filter {{name}}
+```
+
+### Adding Steps
+
+Edit `pack.json` and add to `execution_graph.steps`:
+
+```json
+{
+  "id": "my-step",
+  "tool": "echo",
+  "input": "Hello",
+  "depends_on": ["step-1"]
+}
+```
+
+## License
+
+{{license}}
