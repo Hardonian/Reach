@@ -1,0 +1,19 @@
+{
+  "scenario": "tamper-detection",
+  "expectedResults": {
+    "intactCapsule": {
+      "verification": "VALID",
+      "integrity": "PASSED",
+      "structure": "VALID"
+    },
+    "tamperedCapsule": {
+      "verification": "FAILED",
+      "integrity": "FAILED",
+      "error": "hash mismatch"
+    }
+  },
+  "exitCodes": {
+    "valid": 0,
+    "tampered": 5
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "verify-tamper-detection",
+  "version": "1.0.0",
+  "description": "Demonstrates cryptographic verification and tamper detection",
+  "extends": "examples/01-quickstart-local/pack.json",
+  "config": {
+    "verifyOnComplete": true,
+    "exportArtifacts": true
+  }
+}
