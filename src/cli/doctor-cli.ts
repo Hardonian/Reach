@@ -15,7 +15,7 @@ import { performance } from "node:perf_hooks";
 import { readFileSync, existsSync, mkdirSync, statSync, readdirSync, writeFileSync } from "node:fs";
 import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createHash } from "node:crypto";
+import { hashString } from "../determinism/index.js";
 import { safeValidateEnv } from "@zeo/env";
 import { execSync } from "node:child_process";
 
@@ -714,7 +714,7 @@ async function runFixes(checks: DoctorCheck[]): Promise<void> {
 
 function computeDeterministicHash(spec: unknown, seed: string): string {
   const content = JSON.stringify({ spec, seed });
-  return createHash("sha256").update(content).digest("hex");
+  return hashString(content);
 }
 
 function computeSeed(): string {
@@ -727,9 +727,7 @@ function computeSeed(): string {
 
 function generateRequestId(): string {
   const timestamp = Date.now().toString(36);
-  const suffix = createHash("sha256")
-    .update(`${timestamp}-${VERSION_INFO.version}-${VERSION_INFO.gitSha}`)
-    .digest("hex")
+  const suffix = hashString(`${timestamp}-${VERSION_INFO.version}-${VERSION_INFO.gitSha}`)
     .slice(0, 8);
   return `req_${timestamp}_${suffix}`;
 }

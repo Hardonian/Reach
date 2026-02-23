@@ -1,4 +1,5 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
+import { hashString } from "../determinism/index.js";
 
 export type RedactMode = "off" | "safe" | "strict";
 
@@ -44,7 +45,7 @@ function redact(v: unknown, mode: RedactMode): unknown {
       const str = typeof val === "string" ? val : JSON.stringify(val);
       out[k] = {
         redacted: true,
-        sha256: createHash("sha256").update(str).digest("hex"),
+        sha256: hashString(str),
         preview: mode === "strict" ? "" : str.slice(0, 24),
       };
     } else {

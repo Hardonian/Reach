@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createHash } from "node:crypto";
+import { hashString } from "../determinism/index.js";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve, basename } from "node:path";
 import { codePointCompare } from "../determinism/deterministicCompare.js";
@@ -76,7 +76,7 @@ function sortKeys(value: unknown): unknown {
 }
 
 function sha256(input: string): string {
-  return createHash("sha256").update(input).digest("hex");
+  return hashString(input);
 }
 
 function readJsonSafe(path: string): Record<string, unknown> | null {

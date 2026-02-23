@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createHash } from "node:crypto";
+import { hashString } from "../determinism/index.js";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { runDecision } from "@zeo/core";
@@ -42,7 +42,7 @@ function parsePackManifest(packDir: string): PackManifest {
 
 function hashPack(packDir: string): string {
   const payload = readFileSync(join(packDir, "pack.json"), "utf8");
-  return createHash("sha256").update(payload).digest("hex");
+  return hashString(payload);
 }
 
 export function parsePackArgs(argv: string[]): PackCliArgs {

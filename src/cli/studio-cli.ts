@@ -10,7 +10,7 @@
 
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { createHash } from "node:crypto";
+import { hashString } from "../determinism/index.js";
 import { execSync, spawn, type ChildProcess } from "node:child_process";
 
 // ─── Studio Launch ───────────────────────────────────────────────────────────
@@ -208,7 +208,7 @@ export async function runExportReportCommand(argv: string[]): Promise<number> {
     const toSign = { ...report };
     delete toSign.signature;
     const normalized = JSON.stringify(toSign, Object.keys(toSign).sort(), 0);
-    const signature = createHash("sha256").update(normalized).digest("hex");
+    const signature = hashString(normalized);
     report.signature = signature;
 
     // Write JSON
@@ -262,7 +262,7 @@ export async function runVerifyReportCommand(argv: string[]): Promise<number> {
     const toVerify = { ...parsed };
     delete toVerify.signature;
     const normalized = JSON.stringify(toVerify, Object.keys(toVerify).sort(), 0);
-    const computedSignature = createHash("sha256").update(normalized).digest("hex");
+    const computedSignature = hashString(normalized);
 
     const valid = computedSignature === reportedSignature;
 

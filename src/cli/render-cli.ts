@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createHash } from "node:crypto";
+import { hashString } from "../determinism/index.js";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { execFileSync } from "node:child_process";

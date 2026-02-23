@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { hashString } from "../determinism/index.js";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import type { DashboardGraphNode, DashboardPersona, DashboardViewModel } from "@zeo/contracts";
@@ -17,7 +17,7 @@ function viewModelPath(id: string): string {
 }
 
 function hashText(input: string): string {
-  return createHash("sha256").update(input).digest("hex");
+  return hashString(input);
 }
 
 function stableValue(value: unknown): unknown {

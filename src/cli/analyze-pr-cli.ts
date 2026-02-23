@@ -1,5 +1,6 @@
 // @ts-nocheck
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
+import { hashString } from "../determinism/index.js";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { resolve, join, relative } from "node:path";
 import { execFileSync } from "node:child_process";
@@ -536,7 +537,7 @@ function toAnalysis(
   const dedupePolicies = [...new Set(policies)].sort();
 
   const suggestedEvidence = [...new Set(findings.map((f) => f.suggested_next_action))].sort();
-  const diffHash = createHash("sha256").update(loaded.diff).digest("hex");
+  const diffHash = hashString(loaded.diff);
   const manifestHash = createHash("sha256")
     .update(JSON.stringify({ diffHash, findings }))
     .digest("hex");

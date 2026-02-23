@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createHash } from "node:crypto";
+import { hashString } from "../determinism/index.js";
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, cpSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
@@ -505,7 +505,7 @@ function buildBundleManifest(
       const contents = readFileSync(join(bundleDir, path));
       return {
         path,
-        sha256: createHash("sha256").update(contents).digest("hex"),
+        sha256: hashString(contents),
         size: contents.byteLength,
       };
     })
@@ -657,7 +657,7 @@ async function runDecisionInWorkspace(
   informs: string[],
 ): Promise<RunResult> {
   if (process.env.ZEO_FIXED_TIME) {
-    const seed = createHash("sha256").update(ws.decisionId).digest("hex");
+    const seed = hashString(ws.decisionId);
     core.activateDeterministicMode({
       seed,
       clock: {
@@ -1442,7 +1442,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
         continue;
       }
       const contents = readFileSync(absolute);
-      const digest = createHash("sha256").update(contents).digest("hex");
+      const digest = hashString(contents);
       if (digest !== file.sha256) mismatches.push(`${file.path}:hash_mismatch`);
       if (contents.byteLength !== file.size) mismatches.push(`${file.path}:size_mismatch`);
     }
@@ -1867,9 +1867,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
       if (args.signed) {
         const signingKey = process.env.ZEO_SIGNING_HMAC_KEY;
         if (signingKey) {
-          const signature = createHash("sha256")
-            .update(`${manifest.manifestHash}:${signingKey}`)
-            .digest("hex");
+          const signature = hashString(`${manifest.manifestHash}:${signingKey}`);
           writeFileSync(
             join(folder, "signature.json"),
             `${JSON.stringify({ mode: "hmac", signature }, null, 2)}\n`,

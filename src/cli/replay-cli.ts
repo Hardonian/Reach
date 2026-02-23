@@ -7,7 +7,7 @@
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { resolve, join } from "node:path";
-import { createHash } from "node:crypto";
+import { hashString } from "../determinism/index.js";
 import type { ReplayDataset, ReplayResult, DecisionSpec } from "@zeo/contracts";
 import { assertReplayDataset } from "@zeo/contracts";
 
@@ -331,7 +331,7 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
 
   // Initialize budget tracking — context is derived from replay path for idempotency
   const replayPath = resolve(args.replay);
-  const budgetContext = `replay-${createHash("sha256").update(replayPath).digest("hex").slice(0, 12)}`;
+  const budgetContext = `replay-${hashString(replayPath).slice(0, 12)}`;
   createTracker(SAFE_DEFAULTS, budgetContext);
   const budgetGuard = createBudgetGuard(budgetContext);
 
