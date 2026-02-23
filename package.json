@@ -8,6 +8,8 @@
   ],
   "scripts": {
     "build": "echo 'Build handled by individual language compilers'",
+    "docs:dev": "cd apps/docs && pnpm dev",
+    "docs:build": "cd apps/docs && pnpm build",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint src",
