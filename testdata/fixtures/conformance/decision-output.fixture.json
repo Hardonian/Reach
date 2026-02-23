@@ -1,0 +1,31 @@
+{
+  "_comment": "Golden fixture: decision output from policy evaluation. Conforming engines must produce this structure.",
+  "fixture_version": "1.0.0",
+  "description": "Policy decision output with allow/deny and reasons",
+  "decision": {
+    "decision_id": "decision-test-v1",
+    "allowed": true,
+    "policy_version": "2026-01",
+    "policy_fingerprint": "sha256:policy-fingerprint-v1",
+    "evaluated_at": "2026-01-01T00:00:00Z",
+    "rules_evaluated": ["require_deterministic", "require_signed"],
+    "violations": [],
+    "engine_version": "0.3.1",
+    "spec_version": "1.0.0"
+  },
+  "required_fields": [
+    "decision_id",
+    "allowed",
+    "policy_version",
+    "policy_fingerprint",
+    "engine_version",
+    "spec_version"
+  ],
+  "conformance_rules": [
+    "allowed must be boolean",
+    "policy_version must be present",
+    "violations must be array (empty if allowed)",
+    "engine_version must match engine version",
+    "spec_version must match schema version"
+  ]
+}

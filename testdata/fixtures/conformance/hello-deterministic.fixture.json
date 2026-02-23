@@ -4,7 +4,8 @@
   "description": "Simplest deterministic run — single input, single output, no tools.",
   "run": {
     "run_id": "sha256:run-hello-deterministic-v1",
-    "engine_version": "0.2.0",
+    "engine_version": "0.3.1",
+    "spec_version": "1.0.0",
     "policy_version": "sha256:policy-strict-default-v1",
     "input_hash": "sha256:6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
     "artifact_hashes": [],
@@ -29,6 +30,8 @@
     "fingerprint must match exactly",
     "event_log_hash must match exactly",
     "output_hash must match exactly",
-    "timestamp fields must be 0 or epoch-zero in fingerprint paths"
+    "timestamp fields must be 0 or epoch-zero in fingerprint paths",
+    "engine_version must be present in output",
+    "spec_version must be present and match schema version"
   ]
 }

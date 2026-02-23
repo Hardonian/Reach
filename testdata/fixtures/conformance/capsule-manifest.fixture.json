@@ -1,0 +1,44 @@
+{
+  "_comment": "Golden fixture: capsule manifest output. Any conforming engine MUST produce manifests with these required fields.",
+  "fixture_version": "1.0.0",
+  "description": "Standard capsule manifest with all required version fields",
+  "manifest": {
+    "spec_version": "1.0.0",
+    "engine_version": "0.3.1",
+    "run_id": "sha256:run-capsule-test-v1",
+    "run_fingerprint": "sha256:abc123def456789012345678901234567890123456789012345678901234567890",
+    "registry_snapshot_hash": "sha256:snapshot-v1",
+    "pack": {
+      "name": "test.pack",
+      "version": "1.0.0"
+    },
+    "policy": {
+      "decision": "allow",
+      "version": "2026-01"
+    },
+    "federation_path": ["node-a", "node-b"],
+    "trust_scores": {
+      "node-a": 0.95,
+      "node-b": 0.87
+    },
+    "audit_root": "sha256:merkle-root-v1",
+    "environment": {
+      "os": "linux",
+      "arch": "amd64"
+    },
+    "created_at": "2026-01-01T00:00:00Z"
+  },
+  "required_fields": [
+    "spec_version",
+    "engine_version",
+    "run_id",
+    "run_fingerprint",
+    "created_at"
+  ],
+  "conformance_rules": [
+    "spec_version must be valid semver",
+    "engine_version must be present and match engine version",
+    "run_fingerprint must be valid SHA-256 hash",
+    "created_at must be ISO 8601 format"
+  ]
+}
