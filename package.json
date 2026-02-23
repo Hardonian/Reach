@@ -12,6 +12,8 @@
     "test:watch": "vitest src",
     "test:system": "vitest run test/integration",
     "test:system:watch": "vitest test/integration",
+    "test:integration": "vitest run test/integration",
+    "test:all": "vitest run src test/integration",
     "lint": "eslint src",
     "lint:structure": "powershell ./tools/guard-structure.ps1",
     "typecheck": "tsc --noEmit",
@@ -22,7 +24,8 @@
     "health:check": "npx tsx scripts/repo-health.ts",
     "verify:fast": "npm run typecheck && npm run lint:structure && npm run format:check && npm run docs:index:check && npm run health:check && npm test",
     "verify": "npm run verify:fast && npm run build",
-    "verify:full": "npm run verify"
+    "verify:full": "npm run verify",
+    "ci": "npm run typecheck && npm test && npm run test:system"
   },
   "devDependencies": {
     "@types/node": "^25.3.0",

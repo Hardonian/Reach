@@ -31,7 +31,7 @@ export async function runCli(
           ok: !error,
           stdout,
           stderr,
-          code: error?.code ?? 0,
+          code: error ? (typeof error.code === "number" ? error.code : null) : 0,
         });
       }
     );

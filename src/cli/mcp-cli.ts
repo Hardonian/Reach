@@ -120,7 +120,7 @@ function error(id: JsonRpcId, code: number, message: string): string {
 
 
 async function executeToolOperation(name: ZeoliteOperation, args: Record<string, unknown>): Promise<Record<string, unknown>> {
-  const { executeZeoliteOperation } = await import("./zeolite-core.js");
+  const { executeZeoliteOperation } = await import("../core/zeolite-core.js");
   return executeZeoliteOperation(name, args);
 }
 

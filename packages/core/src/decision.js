@@ -88,7 +88,7 @@ export class DecisionResult {
 export class TranscriptEntry {
   constructor(options = {}) {
     this.type = options.type; // "assumption", "constraint", "decision", "action", "evidence"
-    this.timestamp = options.timestamp || Date.now();
+    this.timestamp = options.timestamp ?? Date.now();
     this.data = options.data || {};
     this.hash = options.hash;
   }
@@ -120,7 +120,7 @@ export function executeDecision(options = {}) {
   const evidence = options.evidence || [];
   const dependsOn = options.dependsOn || [];
   const informs = options.informs || [];
-  const logicalTimestamp = options.logicalTimestamp || Date.now();
+  const logicalTimestamp = options.logicalTimestamp ?? Date.now();
   
   const transcript = [];
   

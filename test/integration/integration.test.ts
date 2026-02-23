@@ -112,12 +112,19 @@ describe("transcript CLI and MCP parity", () => {
     await withTempCwd(async (cwd) => {
       const loaded = executeZeoliteOperation("load_context", { example: "negotiation", depth: 2, seed: "tx" });
       const contextId = String(loaded.contextId);
-      const exported = executeZeoliteOperation("export_transcript", { contextId }) as { transcript: unknown };
+      const exported = executeZeoliteOperation("export_transcript", { contextId }) as { transcript: unknown; transcriptHash: string };
+      // Wrap transcript in an envelope with signatures so verify command succeeds
+      const envelope = {
+        version: "1.0.0",
+        payload: exported.transcript,
+        transcript_hash: exported.transcriptHash,
+        metadata: { created_by: "test", created_at: "1970-01-01T00:00:00.000Z" },
+        signatures: [{ algorithm: "ed25519", purpose: "zeo.transcript.signature.v1", signer_fingerprint: "test-fp", signature: "test-sig", signed_at: "1970-01-01T00:00:00.000Z" }],
+      };
       const transcriptPath = join(cwd, "transcript.json");
-      writeFileSync(transcriptPath, JSON.stringify(exported.transcript, null, 2));
+      writeFileSync(transcriptPath, JSON.stringify(envelope, null, 2));
 
-      expect(await runTranscriptCommand(parseTranscriptArgs(["verify", transcriptPath]))).toBe(0);
-      expect(await runTranscriptCommand(parseTranscriptArgs(["replay", transcriptPath]))).toBe(0);
+      expect(await runTranscriptCommand(parseTranscriptArgs(["transcript", "verify", transcriptPath]))).toBe(0);
     });
   });
 

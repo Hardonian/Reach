@@ -97,17 +97,18 @@ export function signEnvelopeWithEd25519(envelope, keyPath, purpose, passphrase) 
 
 export function verifyEnvelope(envelope) {
   if (!envelope.signatures || envelope.signatures.length === 0) {
-    return { valid: false, reason: "No signatures found" };
+    return { ok: false, valid: false, reason: "No signatures found", signerFingerprints: [] };
   }
   
   // Simplified verification - in production would verify actual crypto
   for (const sig of envelope.signatures) {
     if (!sig.signature || !sig.signer_fingerprint) {
-      return { valid: false, reason: "Invalid signature structure" };
+      return { ok: false, valid: false, reason: "Invalid signature structure", signerFingerprints: [] };
     }
   }
   
-  return { valid: true, verified_at: new Date().toISOString() };
+  const signerFingerprints = envelope.signatures.map(s => s.signer_fingerprint).filter(Boolean);
+  return { ok: true, valid: true, verified_at: new Date().toISOString(), signerFingerprints };
 }
 
 export function addPublicKeyToKeyring(pubKeyPath) {

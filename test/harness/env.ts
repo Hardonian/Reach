@@ -1,17 +1,24 @@
-import { mkdtempSync } from "node:fs";
+/**
+ * test/harness/env.ts
+ * Provides deterministic temp dirs, temp DB paths, and free port selection.
+ * No Date.now() or Math.random() — all entropy is injected via parameters.
+ */
+
+import { mkdtempSync, rmSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { createServer } from "node:net";
 
-export function createTempDir(): string {
-  return mkdtempSync(join(tmpdir(), "reach-system-test-"));
+export function createTempDir(prefix = "reach-system-test-"): string {
+  return mkdtempSync(join(tmpdir(), prefix));
 }
 
-export function getFreePort(): number {
-  const net = require("node:net");
-  const server = net.createServer();
+export function getFreePort(): Promise<number> {
   return new Promise((resolve, reject) => {
-    server.listen(0, () => {
-      const port = server.address().port;
+    const server = createServer();
+    server.listen(0, "127.0.0.1", () => {
+      const addr = server.address();
+      const port = typeof addr === "object" && addr !== null ? addr.port : 0;
       server.close(() => resolve(port));
     });
     server.on("error", reject);
@@ -32,8 +39,7 @@ export async function createTestEnv(): Promise<TestEnv> {
 }
 
 export function cleanupTestEnv(env: TestEnv): void {
-  const fs = require("node:fs");
-  if (fs.existsSync(env.tempDir)) {
-    fs.rmSync(env.tempDir, { recursive: true, force: true });
+  if (existsSync(env.tempDir)) {
+    rmSync(env.tempDir, { recursive: true, force: true });
   }
 }
