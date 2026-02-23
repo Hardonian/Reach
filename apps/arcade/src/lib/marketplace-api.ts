@@ -414,7 +414,7 @@ export async function reportPack(
   await new Promise((resolve) => setTimeout(resolve, 300));
 
   // In production, this would send the report to the backend
-  console.log("Pack reported:", { id, ...input });
+  // console.log("Pack reported:", { id, ...input });
 }
 
 export async function validateManifest(manifest: string): Promise<{
