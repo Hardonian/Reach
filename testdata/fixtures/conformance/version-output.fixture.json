@@ -1,0 +1,27 @@
+{
+  "_comment": "Golden fixture: version output from reach version --json. Conforming engines must produce this structure.",
+  "fixture_version": "1.0.0",
+  "description": "Version command output with all required fields",
+  "version_output": {
+    "engineVersion": "0.3.1",
+    "specVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "gitCommit": "abc123def4567890123456789012345678901234",
+    "compatibilityPolicy": "backward_compatible",
+    "supportedVersions": ["1.0.0"]
+  },
+  "required_fields": [
+    "engineVersion",
+    "specVersion",
+    "schemaVersion",
+    "compatibilityPolicy",
+    "supportedVersions"
+  ],
+  "conformance_rules": [
+    "engineVersion must be valid semver",
+    "specVersion must be valid semver",
+    "schemaVersion must match specVersion",
+    "compatibilityPolicy must be 'backward_compatible'",
+    "supportedVersions must be non-empty array of semver strings"
+  ]
+}

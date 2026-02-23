@@ -4,11 +4,19 @@
   "title": "Run Capsule Manifest",
   "type": "object",
   "properties": {
-    "version": {"type": "string"},
+    "spec_version": {"type": "string", "description": "Protocol specification version"},
+    "engine_version": {"type": "string", "description": "Reach engine version that produced this capsule"},
     "run_id": {"type": "string"},
-    "created_at": {"type": "string"},
-    "files": {"type": "array", "items": {"type": "string"}}
+    "run_fingerprint": {"type": "string", "description": "SHA-256 hash of the event log and run_id"},
+    "registry_snapshot_hash": {"type": "string"},
+    "pack": {"type": "object"},
+    "policy": {"type": "object"},
+    "federation_path": {"type": "array", "items": {"type": "string"}},
+    "trust_scores": {"type": "object", "additionalProperties": {"type": "number"}},
+    "audit_root": {"type": "string"},
+    "environment": {"type": "object", "additionalProperties": {"type": "string"}},
+    "created_at": {"type": "string"}
   },
-  "required": ["version", "run_id", "created_at", "files"],
-  "additionalProperties": false
+  "required": ["spec_version", "engine_version", "run_id", "run_fingerprint", "created_at"],
+  "additionalProperties": true
 }
