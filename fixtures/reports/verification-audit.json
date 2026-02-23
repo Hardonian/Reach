@@ -1,0 +1,86 @@
+{
+  "_fixture": {
+    "id": "verification-audit",
+    "description": "Full audit trail for compliance verification",
+    "created": "2026-02-23",
+    "schema_version": "1.0.0"
+  },
+  "report_type": "verification_audit",
+  "generated_at": "2026-02-23T19:52:46.292Z",
+  "reach_version": "0.3.1",
+  "audit_metadata": {
+    "audit_id": "audit_2026_001",
+    "auditor": "compliance-system",
+    "scope": "full_chain",
+    "standard": "reach-v1"
+  },
+  "verification_chain": {
+    "root": {
+      "type": "input",
+      "hash": "a3f5c8e2d9b1470e6f8a2c5d7e9b1f4a8c2d5e7f9a1b3c5d7e9f1a3b5c7d9e1f",
+      "timestamp": "2026-02-23T19:52:46.100Z",
+      "verified": true
+    },
+    "policy_binding": {
+      "type": "policy",
+      "policy_id": "strict-safe-mode",
+      "policy_hash": "b2c4d6e8f0a1b3c5d7e9f1a3b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5f7a9b1c3d",
+      "binding_proof": "c3d5e7f9a1b3c5d7e9f1a3b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5f7a9b1c3d5e",
+      "verified": true
+    },
+    "execution": {
+      "type": "execution",
+      "run_id": "run_20260223_195246",
+      "engine_version": "0.3.1",
+      "determinism_proof": "d4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8",
+      "trace_hash": "e5f7a9b1c3d5e7f9a1b3c5d7e9f1a3b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5f7a9",
+      "verified": true
+    },
+    "output": {
+      "type": "output",
+      "result_hash": "f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4a6b8c0d2e4f6a8b0c2d4e6f8a0",
+      "fingerprint": "9f86d081884c7d659a2feaa0c55ad015a3b0f8c4e5d6e7f8a9b0c1d2e3f4a5b6",
+      "verified": true
+    }
+  },
+  "determinism_verification": {
+    "runs_executed": 5,
+    "fingerprint_matches": 5,
+    "entropy_detected": false,
+    "cross_platform": {
+      "linux_x64": "9f86d081884c7d659a2feaa0c55ad015",
+      "darwin_arm64": "9f86d081884c7d659a2feaa0c55ad015",
+      "win32_x64": "9f86d081884c7d659a2feaa0c55ad015",
+      "match": true
+    }
+  },
+  "compliance_checks": [
+    {
+      "check": "input_integrity",
+      "status": "passed",
+      "details": "Input hash verified against submission"
+    },
+    {
+      "check": "policy_enforcement",
+      "status": "passed",
+      "details": "All policies applied and verified"
+    },
+    {
+      "check": "execution_integrity",
+      "status": "passed",
+      "details": "Trace matches expected pattern"
+    },
+    {
+      "check": "output_verifiability",
+      "status": "passed",
+      "details": "Output can be reproduced from inputs"
+    },
+    {
+      "check": "non_repudiation",
+      "status": "passed",
+      "details": "All signatures valid"
+    }
+  ],
+  "overall_status": "verified",
+  "verification_signature": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2"
+}

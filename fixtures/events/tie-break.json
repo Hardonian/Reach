@@ -47,10 +47,10 @@
     }
   ],
   "outcomes": [
-    {"action": "option_a", "scenario": "success", "utility": 100},
-    {"action": "option_a", "scenario": "partial", "utility": 0},
-    {"action": "option_b", "scenario": "success", "utility": 100},
-    {"action": "option_b", "scenario": "partial", "utility": 0}
+    { "action": "option_a", "scenario": "success", "utility": 100 },
+    { "action": "option_a", "scenario": "partial", "utility": 0 },
+    { "action": "option_b", "scenario": "success", "utility": 100 },
+    { "action": "option_b", "scenario": "partial", "utility": 0 }
   ],
   "tie_breaker": {
     "method": "lexicographic",

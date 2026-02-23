@@ -1,0 +1,49 @@
+{
+  "_fixture": {
+    "id": "decision-output",
+    "description": "Canonical decision output format for regression testing",
+    "created": "2026-02-23",
+    "schema_version": "1.0.0",
+    "note": "Fingerprint will vary based on input"
+  },
+  "status": "completed",
+  "run_id": "run_20260223_195246_abc123",
+  "fingerprint": "9f86d081884c7d659a2feaa0c55ad015a3b0f8c4e5d6e7f8a9b0c1d2e3f4a5b6",
+  "decision": {
+    "action": {
+      "id": "scale_up",
+      "label": "Scale up compute resources",
+      "type": "infrastructure"
+    },
+    "confidence": 0.92,
+    "expected_utility": 125.5,
+    "rationale": {
+      "primary_factor": "highest_expected_utility",
+      "scenario_weights": {
+        "high_load": 0.7,
+        "normal_load": 0.3
+      },
+      "alternative_considered": "optimize",
+      "utility_difference": 17.5
+    }
+  },
+  "evaluation_summary": {
+    "actions_evaluated": 2,
+    "scenarios_considered": 2,
+    "outcomes_analyzed": 4,
+    "computation_time_ms": 14
+  },
+  "evidence": {
+    "input_hash": "a3f5c8e2d9b1470e6f8a2c5d7e9b1f4a",
+    "pack_version": "1.0.0",
+    "engine_version": "0.3.1",
+    "execution_trace_id": "trace_20260223_195246_xyz789",
+    "policies_applied": ["strict-safe-mode"]
+  },
+  "audit": {
+    "verifiable": true,
+    "replay_available": true,
+    "verification_hash": "edba97b11d6ebe861b8053f753458ad2"
+  },
+  "_comment": "This is a canonical output. Actual fingerprints will vary based on input."
+}

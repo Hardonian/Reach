@@ -15,25 +15,15 @@
     "type": "analysis",
     "action": "security_review"
   },
-  "policies": [
-    "policy-packs/strict-safe-mode.json"
-  ],
+  "policies": ["policy-packs/strict-safe-mode.json"],
   "policy_config": {
     "enforce_all": true,
     "fail_closed": true,
     "audit_mode": false
   },
   "capabilities": {
-    "allowed_tools": [
-      "file_read",
-      "file_list",
-      "json_parse"
-    ],
-    "blocked_tools": [
-      "shell_exec",
-      "network_request",
-      "file_write"
-    ],
+    "allowed_tools": ["file_read", "file_list", "json_parse"],
+    "blocked_tools": ["shell_exec", "network_request", "file_write"],
     "max_iterations": 100,
     "max_execution_time_ms": 5000
   },
