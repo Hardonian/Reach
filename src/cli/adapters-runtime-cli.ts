@@ -8,6 +8,7 @@
 import { mkdir, writeFile } from "fs/promises";
 import { existsSync } from "fs";
 import { resolve, join } from "path";
+import { ErrorCodes, type ErrorCode } from "../core/errors.js";
 import {
   createAdapterRuntime,
   runAdapter,
@@ -73,7 +74,7 @@ export function parseAdaptersRuntimeArgs(argv: string[]): AdaptersRuntimeCliArgs
       result.approvedOnly = true;
     } else if (arg === "--help" || arg === "-h") {
       printAdaptersRuntimeHelp();
-      process.exit(0);
+      process.exit(ErrorCodes.SUCCESS);
     }
   }
 
@@ -106,11 +107,11 @@ Examples:
 `);
 }
 
-export async function runAdaptersRuntimeCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
+export async function runAdaptersRuntimeCommand(args: AdaptersRuntimeCliArgs): Promise<ErrorCode> {
   if (!args.command) {
     console.error("Error: No command specified");
     printAdaptersRuntimeHelp();
-    return 1;
+    return ErrorCodes.INVALID_INPUT;
   }
 
   try {
@@ -123,23 +124,23 @@ export async function runAdaptersRuntimeCommand(args: AdaptersRuntimeCliArgs): P
         return await runQuarantineCommand(args);
       default:
         console.error(`Error: Unknown command: ${args.command}`);
-        return 1;
+        return ErrorCodes.INVALID_INPUT;
     }
   } catch (error) {
     console.error("Error:", error instanceof Error ? error.message : error);
-    return 1;
+    return ErrorCodes.GENERIC_FAILURE;
   }
 }
 
-async function runAdapterCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
+async function runAdapterCommand(args: AdaptersRuntimeCliArgs): Promise<ErrorCode> {
   if (!args.adapterId) {
     console.error("Error: --adapter is required for run command");
-    return 1;
+    return ErrorCodes.INVALID_INPUT;
   }
 
   if (!args.range) {
     console.error("Error: --range is required (format: start:end)");
-    return 1;
+    return ErrorCodes.INVALID_INPUT;
   }
 
   console.log(`Running adapter: ${args.adapterId}`);
@@ -156,7 +157,7 @@ async function runAdapterCommand(args: AdaptersRuntimeCliArgs): Promise<number> 
     for (const info of adapters) {
       console.log(`  - ${info.id}: ${info.name}`);
     }
-    return 1;
+    return ErrorCodes.NOT_FOUND;
   }
 
   // Create runtime
@@ -206,13 +207,13 @@ async function runAdapterCommand(args: AdaptersRuntimeCliArgs): Promise<number> 
     console.log(`\nOutput written to: ${outPath}`);
   }
 
-  return 0;
+  return ErrorCodes.SUCCESS;
 }
 
-async function runIngestCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
+async function runIngestCommand(args: AdaptersRuntimeCliArgs): Promise<ErrorCode> {
   if (!args.range) {
     console.error("Error: --range is required (format: start:end)");
-    return 1;
+    return ErrorCodes.INVALID_INPUT;
   }
 
   console.log(`Ingesting data from all enabled adapters`);
@@ -224,7 +225,7 @@ async function runIngestCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
 
   if (adapters.length === 0) {
     console.error("Error: No enabled adapters found");
-    return 1;
+    return ErrorCodes.NOT_FOUND;
   }
 
   console.log(`Found ${adapters.length} enabled adapters`);
@@ -262,10 +263,10 @@ async function runIngestCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
     console.log(`\nDataset written to: ${args.out}/dataset.json`);
   }
 
-  return 0;
+  return ErrorCodes.SUCCESS;
 }
 
-async function runQuarantineCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
+async function runQuarantineCommand(args: AdaptersRuntimeCliArgs): Promise<ErrorCode> {
   const store = createQuarantineStore({ retentionHours: 168 });
 
   console.log("=== Quarantine Status ===\n");
@@ -300,5 +301,5 @@ async function runQuarantineCommand(args: AdaptersRuntimeCliArgs): Promise<numbe
     console.log(`\nCleaned up ${cleaned} expired entries`);
   }
 
-  return 0;
+  return ErrorCodes.SUCCESS;
 }
