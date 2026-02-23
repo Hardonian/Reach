@@ -79,7 +79,7 @@ cd "$REPO_ROOT"
 echo
 echo "Test 2: Wizard (Quick Mode)"
 echo "───────────────────────────"
-WIZARD_OUTPUT=$(cd services/runner && go run ./cmd/reachctl wizard --quick --json 2>/dev/null) || true
+WIZARD_OUTPUT=$(cd services/runner && ./reachctl wizard --quick --json 2>/dev/null) || true
 RUN_ID=$(echo "$WIZARD_OUTPUT" | grep -o '"run_id": "[^"]*"' | head -1 | cut -d'"' -f4) || true
 
 if [[ -n "$RUN_ID" && -f "$DATA_DIR/runs/$RUN_ID.json" ]]; then
@@ -93,7 +93,7 @@ echo
 echo "Test 3: Proof Verification"
 echo "──────────────────────────"
 if [[ -n "$RUN_ID" ]]; then
-    PROOF_OUTPUT=$(cd services/runner && go run ./cmd/reachctl proof verify "$RUN_ID" 2>/dev/null) || true
+    PROOF_OUTPUT=$(cd services/runner && ./reachctl proof verify "$RUN_ID" 2>/dev/null) || true
     if echo "$PROOF_OUTPUT" | grep -q "run_fingerprint"; then
         pass "Proof verification works"
     else
@@ -108,12 +108,12 @@ echo
 echo "Test 4: Capsule Operations"
 echo "─────────────────────────"
 if [[ -n "$RUN_ID" ]]; then
-    CAPSULE_OUTPUT=$(cd services/runner && go run ./cmd/reachctl capsule create "$RUN_ID" --output "$DATA_DIR/capsules/$RUN_ID.capsule.json" 2>/dev/null) || true
+    CAPSULE_OUTPUT=$(cd services/runner && ./reachctl capsule create "$RUN_ID" --output "$DATA_DIR/capsules/$RUN_ID.capsule.json" 2>/dev/null) || true
     
     if [[ -f "$DATA_DIR/capsules/$RUN_ID.capsule.json" ]]; then
         pass "Capsule created"
         
-        VERIFY_OUTPUT=$(cd services/runner && go run ./cmd/reachctl capsule verify "$DATA_DIR/capsules/$RUN_ID.capsule.json" 2>/dev/null) || true
+        VERIFY_OUTPUT=$(cd services/runner && ./reachctl capsule verify "$DATA_DIR/capsules/$RUN_ID.capsule.json" 2>/dev/null) || true
         if echo "$VERIFY_OUTPUT" | grep -q '"verified": true'; then
             pass "Capsule verified"
         else
@@ -130,7 +130,7 @@ echo
 echo "Test 5: Share Command"
 echo "────────────────────"
 if [[ -n "$RUN_ID" ]]; then
-    SHARE_OUTPUT=$(cd services/runner && go run ./cmd/reachctl share run "$RUN_ID" 2>/dev/null) || true
+    SHARE_OUTPUT=$(cd services/runner && ./reachctl share run "$RUN_ID" 2>/dev/null) || true
     if echo "$SHARE_OUTPUT" | grep -q "reach://share/$RUN_ID"; then
         pass "Share URL generated"
     else
@@ -144,7 +144,7 @@ fi
 echo
 echo "Test 6: Operator Dashboard"
 echo "─────────────────────────"
-OPERATOR_OUTPUT=$(cd services/runner && go run ./cmd/reachctl operator 2>/dev/null) || true
+OPERATOR_OUTPUT=$(cd services/runner && ./reachctl operator 2>/dev/null) || true
 if echo "$OPERATOR_OUTPUT" | grep -q '"runs"\|topology_nodes'; then
     pass "Operator dashboard accessible"
 else

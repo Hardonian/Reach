@@ -26,7 +26,7 @@ echo "[5/7] Go vet/test"
 )
 
 echo "[6/7] Runner dev"
-echo "Run: (cd services/runner && go run ./cmd/runnerd)"
+echo "Run: (cd services/runner && ./runnerd)"
 
 echo "[7/7] Mobile"
 echo "Android: cd apps/mobile/android && ./gradlew :app:assembleDebug"

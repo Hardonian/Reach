@@ -21,79 +21,79 @@ case "$cmd" in
     ;;
   serve)
     shift
-    (cd services/runner && go run ./cmd/reach-serve "$@")
+    (cd services/runner && ./reach-serve "$@")
     ;;
   federation)
     shift
-    (cd services/runner && go run ./cmd/reachctl federation "$@")
+    (cd services/runner && ./reachctl federation "$@")
     ;;
   support)
     shift
-    (cd services/runner && go run ./cmd/reachctl support "$@")
+    (cd services/runner && ./reachctl support "$@")
     ;;
   arcade)
     shift
-    (cd services/runner && go run ./cmd/reachctl arcade "$@")
+    (cd services/runner && ./reachctl arcade "$@")
     ;;
   capsule)
     shift
-    (cd services/runner && go run ./cmd/reachctl capsule "$@")
+    (cd services/runner && ./reachctl capsule "$@")
     ;;
   proof)
     shift
-    (cd services/runner && go run ./cmd/reachctl proof "$@")
+    (cd services/runner && ./reachctl proof "$@")
     ;;
   graph)
     shift
-    (cd services/runner && go run ./cmd/reachctl graph "$@")
+    (cd services/runner && ./reachctl graph "$@")
     ;;
   packs)
     shift
-    (cd services/runner && go run ./cmd/reachctl packs "$@")
+    (cd services/runner && ./reachctl packs "$@")
     ;;
   init)
     shift
-    (cd services/runner && go run ./cmd/reachctl init "$@")
+    (cd services/runner && ./reachctl init "$@")
     ;;
   config)
     shift
-    (cd services/runner && go run ./cmd/reachctl config "$@")
+    (cd services/runner && ./reachctl config "$@")
     ;;
   explain)
     shift
-    (cd services/runner && go run ./cmd/reachctl explain "$@")
+    (cd services/runner && ./reachctl explain "$@")
     ;;
   operator)
     shift
-    (cd services/runner && go run ./cmd/reachctl operator "$@")
+    (cd services/runner && ./reachctl operator "$@")
     ;;
   pack)
     shift
-    (cd services/runner && go run ./cmd/reachctl pack "$@")
+    (cd services/runner && ./reachctl pack "$@")
     ;;
   wizard)
     shift
-    (cd services/runner && go run ./cmd/reachctl wizard "$@")
+    (cd services/runner && ./reachctl wizard "$@")
     ;;
   run)
     shift
-    (cd services/runner && go run ./cmd/reachctl run "$@")
+    (cd services/runner && ./reachctl run "$@")
     ;;
   share)
     shift
-    (cd services/runner && go run ./cmd/reachctl share "$@")
+    (cd services/runner && ./reachctl share "$@")
     ;;
   delegate)
     shift
-    (cd services/runner && go run ./cmd/reachctl delegate "$@")
+    (cd services/runner && ./reachctl delegate "$@")
     ;;
   verify-proof)
     shift
-    (cd services/runner && go run ./cmd/reachctl verify-proof "$@")
+    (cd services/runner && ./reachctl verify-proof "$@")
     ;;
   gate)
     shift
-    (cd services/runner && go run ./cmd/reachctl gate "$@")
+    (cd services/runner && ./reachctl gate "$@")
     ;;
   cost)
     shift

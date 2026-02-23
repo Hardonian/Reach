@@ -18,7 +18,6 @@ import (
 
 	"reach/core/evaluation"
 	"reach/services/runner/internal/arcade/gamification"
-	"reach/services/runner/internal/consensus"
 	"reach/services/runner/internal/determinism"
 	"reach/services/runner/internal/federation"
 	"reach/services/runner/internal/jobs"
@@ -400,10 +399,10 @@ func runProofVerify(ctx context.Context, dataRoot string, args []string, out io.
 			return 1
 		}
 		return writeJSON(out, map[string]any{
-			"target":         target,
-			"audit_root":     cap.Manifest.AuditRoot,
+			"target":          target,
+			"audit_root":      cap.Manifest.AuditRoot,
 			"run_fingerprint": cap.Manifest.RunFingerprint,
-			"deterministic":  stableHash(map[string]any{"event_log": cap.EventLog, "run_id": cap.Manifest.RunID}) == cap.Manifest.RunFingerprint,
+			"deterministic":   stableHash(map[string]any{"event_log": cap.EventLog, "run_id": cap.Manifest.RunID}) == cap.Manifest.RunFingerprint,
 		})
 	}
 	record, err := loadRunRecord(dataRoot, target)
@@ -1051,14 +1050,14 @@ func runPlugins(dataRoot string, args []string, out io.Writer, errOut io.Writer)
 
 // PluginManifest declares the plugin's determinism contract and resource limits.
 type PluginManifest struct {
-	Name                string            `json:"name"`
-	Version             string            `json:"version"`
-	Deterministic       bool              `json:"deterministic"`
-	ExternalDependencies []string         `json:"external_dependencies"`
-	ResourceLimits      map[string]string `json:"resource_limits"`
-	ChecksumSHA256      string            `json:"checksum_sha256"`
-	SignatureHex        string            `json:"signature_hex,omitempty"`
-	Capabilities        []string          `json:"capabilities"`
+	Name                 string            `json:"name"`
+	Version              string            `json:"version"`
+	Deterministic        bool              `json:"deterministic"`
+	ExternalDependencies []string          `json:"external_dependencies"`
+	ResourceLimits       map[string]string `json:"resource_limits"`
+	ChecksumSHA256       string            `json:"checksum_sha256"`
+	SignatureHex         string            `json:"signature_hex,omitempty"`
+	Capabilities         []string          `json:"capabilities"`
 }
 
 func runPluginsList(dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
@@ -1102,12 +1101,12 @@ func runPluginsVerify(dataRoot string, args []string, out io.Writer, errOut io.W
 	}
 
 	checks := map[string]bool{
-		"manifest_present":   true,
-		"deterministic":      manifest.Deterministic,
-		"checksum_present":   manifest.ChecksumSHA256 != "",
-		"resource_limits":    len(manifest.ResourceLimits) > 0,
-		"no_external_deps":   len(manifest.ExternalDependencies) == 0,
-		"signed":             manifest.SignatureHex != "",
+		"manifest_present": true,
+		"deterministic":    manifest.Deterministic,
+		"checksum_present": manifest.ChecksumSHA256 != "",
+		"resource_limits":  len(manifest.ResourceLimits) > 0,
+		"no_external_deps": len(manifest.ExternalDependencies) == 0,
+		"signed":           manifest.SignatureHex != "",
 	}
 
 	allPassed := true
@@ -4671,9 +4670,9 @@ func runCheckpoint(ctx context.Context, dataRoot string, args []string, out io.W
 
 	result := map[string]any{
 		"checkpoint_id": runID + "-" + time.Now().Format("20060102150405"),
-		"run_id":      runID,
-		"path":        checkpointPath,
-		"status":      "created",
+		"run_id":        runID,
+		"path":          checkpointPath,
+		"status":        "created",
 	}
 
 	if *jsonFlag {
@@ -4708,9 +4707,9 @@ func runRewind(ctx context.Context, dataRoot string, args []string, out io.Write
 
 	result := map[string]any{
 		"checkpoint_id": checkpointID,
-		"path":         checkpointPath,
-		"status":       "restored",
-		"run_id":       strings.TrimSuffix(checkpointID, "-" + strings.Split(checkpointID, "-")[len(strings.Split(checkpointID, "-"))-1]),
+		"path":          checkpointPath,
+		"status":        "restored",
+		"run_id":        strings.TrimSuffix(checkpointID, "-"+strings.Split(checkpointID, "-")[len(strings.Split(checkpointID, "-"))-1]),
 	}
 
 	if *jsonFlag {
@@ -4736,12 +4735,12 @@ func runSimulate(ctx context.Context, dataRoot string, args []string, out io.Wri
 
 	result := map[string]any{
 		"simulated_against": *against,
-		"rules_version":    rules,
-		"historical_runs":  0,
-		"would_fail":       0,
-		"would_pass":       0,
-		"status":           "no_history",
-		"message":          "No historical runs found. Run some packs first to build history.",
+		"rules_version":     rules,
+		"historical_runs":   0,
+		"would_fail":        0,
+		"would_pass":        0,
+		"status":            "no_history",
+		"message":           "No historical runs found. Run some packs first to build history.",
 	}
 
 	if *jsonFlag {
@@ -4765,11 +4764,6 @@ func runChaos(ctx context.Context, dataRoot string, args []string, out io.Writer
 	level := fs.Int("level", 2, "Chaos level (1-5)")
 	seeds := fs.Int("seeds", 3, "Number of seed variants to test")
 	_ = fs.Parse(args)
-
-	// Check for byzantine subcommand
-	if len(args) > 0 && args[0] == "byzantine" {
-		return runByzantine(ctx, dataRoot, args[1:], out, errOut)
-	}
 
 	if *level < 1 || *level > 5 {
 		_, _ = fmt.Fprintln(errOut, "error: chaos level must be 1-5")
@@ -4859,14 +4853,14 @@ func runChaos(ctx context.Context, dataRoot string, args []string, out io.Writer
 	}
 
 	report := map[string]any{
-		"pipeline_id":        pipelineID,
-		"chaos_level":        *level,
-		"seeds_tested":       *seeds,
-		"drift_count":        driftCount,
-		"instability_pct":    instabilityPct,
+		"pipeline_id":          pipelineID,
+		"chaos_level":          *level,
+		"seeds_tested":         *seeds,
+		"drift_count":          driftCount,
+		"instability_pct":      instabilityPct,
 		"invariant_violations": violations,
-		"runs":               runs,
-		"status":             map[bool]string{true: "unstable", false: "stable"}[driftCount > 0],
+		"runs":                 runs,
+		"status":               map[bool]string{true: "unstable", false: "stable"}[driftCount > 0],
 	}
 
 	// Persist chaos report
@@ -5003,27 +4997,27 @@ func runSteps(ctx context.Context, dataRoot string, args []string, out io.Writer
 
 		// Compute proof for this step
 		eventHash := determinism.Hash(event)
-		
+
 		step := map[string]any{
-			"seq":          i + 1,
-			"step_id":      stepID,
-			"status":       "complete",
-			"event_hash":   eventHash,
+			"seq":        i + 1,
+			"step_id":    stepID,
+			"status":     "complete",
+			"event_hash": eventHash,
 		}
-		
+
 		if *verboseFlag {
 			step["event"] = event
 		} else {
 			step["event_hash_short"] = eventHash[:16]
 		}
-		
+
 		steps = append(steps, step)
 	}
 
 	result := map[string]any{
-		"run_id":     runID,
-		"step_count": len(steps),
-		"steps":      steps,
+		"run_id":          runID,
+		"step_count":      len(steps),
+		"steps":           steps,
 		"run_fingerprint": stableHash(map[string]any{"event_log": record.EventLog, "run_id": record.RunID}),
 	}
 
@@ -5035,7 +5029,7 @@ func runSteps(ctx context.Context, dataRoot string, args []string, out io.Writer
 	_, _ = fmt.Fprintf(out, "Steps for run %s\n", runID)
 	_, _ = fmt.Fprintln(out, "================")
 	_, _ = fmt.Fprintf(out, "Total steps: %d\n\n", len(steps))
-	
+
 	for _, step := range steps {
 		stepID := step["step_id"].(string)
 		seq := step["seq"].(int)
@@ -5075,18 +5069,18 @@ func runProvenance(ctx context.Context, dataRoot string, args []string, out io.W
 
 	// Gather provenance info
 	provenance := map[string]any{
-		"run_id":           runID,
-		"spec_version":     specVersion,
-		"engine_version":   "1.0.0",
-		"event_count":      len(record.EventLog),
-		"timestamp":        time.Now().Format(time.RFC3339),
-		"environment":      record.Environment,
-		"registry_hash":    record.RegistrySnapshotHash,
-		"federation_path":  record.FederationPath,
-		"input_sources":    []map[string]string{},
-		"secrets_present":  false,
-		"git_commit":       "unknown",
-		"git_dirty":        false,
+		"run_id":          runID,
+		"spec_version":    specVersion,
+		"engine_version":  "1.0.0",
+		"event_count":     len(record.EventLog),
+		"timestamp":       time.Now().Format(time.RFC3339),
+		"environment":     record.Environment,
+		"registry_hash":   record.RegistrySnapshotHash,
+		"federation_path": record.FederationPath,
+		"input_sources":   []map[string]string{},
+		"secrets_present": false,
+		"git_commit":      "unknown",
+		"git_dirty":       false,
 	}
 
 	// Try to get git info
@@ -5100,9 +5094,9 @@ func runProvenance(ctx context.Context, dataRoot string, args []string, out io.W
 	// If step specified, show step-level provenance
 	if *stepID != "" {
 		stepProv := map[string]any{
-			"step_id":     *stepID,
-			"run_id":      runID,
-			"provenance":  "Step-level provenance tracking not yet implemented",
+			"step_id":    *stepID,
+			"run_id":     runID,
+			"provenance": "Step-level provenance tracking not yet implemented",
 		}
 		if *jsonFlag {
 			return writeJSON(out, stepProv)
@@ -5143,334 +5137,3 @@ func runProvenance(ctx context.Context, dataRoot string, args []string, out io.W
 }
 
 // runVerifyPeer handles the verify-peer command for independent re-verification
-func runVerifyPeer(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
-	fs := flag.NewFlagSet("verify-peer", flag.ContinueOnError)
-	fs.SetOutput(errOut)
-	jsonFlag := fs.Bool("json", false, "Output in JSON format")
-	export := fs.String("export", "", "Export verification file for run ID")
-	importFile := fs.String("import", "", "Import and verify a verification file")
-	_ = fs.Parse(args)
-
-	// Export mode
-	if *export != "" {
-		runID := *export
-		record, err := loadRunRecord(dataRoot, runID)
-		if err != nil {
-			_, _ = fmt.Fprintf(errOut, "Run not found: %s\n", runID)
-			return 1
-		}
-
-		// Get provenance
-		provenance := consensus.ProvenanceSnapshot{
-			RegistryHash: record.RegistrySnapshotHash,
-			PolicyHash:   stableHash(record.Policy),
-			PackHash:     stableHash(record.Pack),
-			Timestamp:    time.Now().UTC(),
-			FedPath:      record.FederationPath,
-			TrustScores:  record.TrustScores,
-		}
-
-		// Get step keys
-		steps := make([]string, 0)
-		for i := range record.EventLog {
-			steps = append(steps, fmt.Sprintf("step-%d", i))
-		}
-
-		// Create verification file
-		vf := consensus.NewVerificationFile(
-			runID,
-			specVersion,
-			map[string]string{"core": specVersion},
-			stableHash(map[string]any{"event_log": record.EventLog, "run_id": runID}),
-			record.EventLog,
-			steps,
-			provenance,
-			85, // confidence score
-		)
-
-		// Save verification file
-		vfPath := filepath.Join(dataRoot, fmt.Sprintf("verify-%s.json", runID))
-		vfJSON, _ := json.MarshalIndent(vf, "", "  ")
-		_ = os.WriteFile(vfPath, vfJSON, 0644)
-
-		result := map[string]any{
-			"run_id":          runID,
-			"verification_file": vfPath,
-			"status":          "exported",
-			"proof_hash":      vf.Meta.OriginalProofHash,
-		}
-
-		if *jsonFlag {
-			return writeJSON(out, result)
-		}
-		_, _ = fmt.Fprintf(out, "Verification file exported: %s\n", vfPath)
-		return 0
-	}
-
-	// Import mode
-	if *importFile != "" {
-		vfData, err := os.ReadFile(*importFile)
-		if err != nil {
-			_, _ = fmt.Fprintf(errOut, "Failed to read verification file: %v\n", err)
-			return 1
-		}
-
-		var vf consensus.VerificationFile
-		if err := json.Unmarshal(vfData, &vf); err != nil {
-			_, _ = fmt.Fprintf(errOut, "Failed to parse verification file: %v\n", err)
-			return 1
-		}
-
-		// Run peer verification
-		report, err := consensus.RunPeerVerification(vf.Meta.RunID, vf)
-		if err != nil {
-			_, _ = fmt.Fprintf(errOut, "Verification failed: %v\n", err)
-			return 1
-		}
-
-		result := map[string]any{
-			"run_id":                report.RunID,
-			"original_proof_hash":   report.OriginalProofHash,
-			"local_proof_hash":     report.LocalProofHash,
-			"proof_match":          report.ProofMatch,
-			"divergence_score":     report.DivergenceScore,
-			"step_key_comparison": map[string]any{
-				"matching_steps": report.StepKeyComparison.MatchingSteps,
-				"total_steps":    report.StepKeyComparison.TotalSteps,
-			},
-			"status": report.Status,
-		}
-
-		// Save report
-		reportPath := filepath.Join(dataRoot, "peer-verification-report.json")
-		reportJSON, _ := json.MarshalIndent(report, "", "  ")
-		_ = os.WriteFile(reportPath, reportJSON, 0644)
-
-		if *jsonFlag {
-			return writeJSON(out, result)
-		}
-
-		symbol := "✓"
-		if report.Status == "diverged" {
-			symbol = "⚠"
-		}
-		_, _ = fmt.Fprintf(out, "%s Peer Verification Report\n", symbol)
-		_, _ = fmt.Fprintln(out, "==========================")
-		_, _ = fmt.Fprintf(out, "Run ID: %s\n", report.RunID)
-		_, _ = fmt.Fprintf(out, "Proof Match: %v\n", report.ProofMatch)
-		_, _ = fmt.Fprintf(out, "Divergence Score: %.1f%%\n", report.DivergenceScore)
-		_, _ = fmt.Fprintf(out, "Status: %s\n", report.Status)
-		_, _ = fmt.Fprintf(out, "\nReport saved: %s\n", reportPath)
-		return 0
-	}
-
-	_, _ = fmt.Fprintln(errOut, "usage: reachctl verify-peer --export <runId> OR reachctl verify-peer --import <file>")
-	return 1
-}
-
-// runConsensus handles the consensus command for multi-node consensus simulation
-func runConsensus(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
-	fs := flag.NewFlagSet("consensus", flag.ContinueOnError)
-	fs.SetOutput(errOut)
-	jsonFlag := fs.Bool("json", false, "Output in JSON format")
-	simulateNodes := fs.Int("nodes", 3, "Number of nodes to simulate")
-	_ = fs.Parse(args)
-
-	if fs.NArg() < 1 {
-		_, _ = fmt.Fprintln(errOut, "usage: reachctl consensus simulate <runId> [--nodes N]")
-		return 1
-	}
-
-	subCmd := fs.Arg(0)
-	if subCmd != "simulate" {
-		_, _ = fmt.Fprintln(errOut, "unknown consensus command, supported: simulate")
-		return 1
-	}
-
-	runID := fs.Arg(1)
-	if runID == "" {
-		runID = "sample"
-	}
-
-	// Load run record for proof hash
-	var proofHash string
-	var steps []string
-	record, err := loadRunRecord(dataRoot, runID)
-	if err == nil {
-		proofHash = stableHash(map[string]any{"event_log": record.EventLog, "run_id": runID})
-		for i := range record.EventLog {
-			steps = append(steps, fmt.Sprintf("step-%d", i))
-		}
-	} else {
-		// Use sample data
-		proofHash = stableHash(map[string]any{"run_id": runID, "default": "true"})
-		steps = []string{"step-0", "step-1", "step-2", "step-3", "step-4"}
-	}
-
-	// Simulate consensus
-	config := consensus.ConsensusConfig{
-		NodeCount:   *simulateNodes,
-		RandomSeeds: []int{1, 2, 3, 4, 5},
-		NodeOverrides: map[int]consensus.NodeConfig{
-			0: {NodeID: "node-0", OS: "linux", Arch: "x64"},
-			1: {NodeID: "node-1", OS: "linux", Arch: "x64"},
-			2: {NodeID: "node-2", OS: "darwin", Arch: "arm64"},
-		},
-	}
-
-	report := consensus.SimulateConsensus(runID, config, proofHash, steps)
-
-	// Save report
-	reportPath := filepath.Join(dataRoot, "consensus-report.json")
-	reportJSON, _ := json.MarshalIndent(report, "", "  ")
-	_ = os.WriteFile(reportPath, reportJSON, 0644)
-
-	if *jsonFlag {
-		return writeJSON(out, report)
-	}
-
-	_, _ = fmt.Fprintln(out, "Consensus Simulation Report")
-	_, _ = fmt.Fprintln(out, "===========================")
-	_, _ = fmt.Fprintf(out, "Run ID: %s\n", report.RunID)
-	_, _ = fmt.Fprintf(out, "Node Count: %d\n", report.NodeCount)
-	_, _ = fmt.Fprintf(out, "Agreement Rate: %.1f%%\n", report.AgreementRate)
-	_, _ = fmt.Fprintf(out, "Consensus Score: %d/100\n", report.ConsensusScore)
-	_, _ = fmt.Fprintf(out, "Majority Proof Hash: %s...\n", report.MajorityProofHash[:16])
-	_, _ = fmt.Fprintf(out, "\nReport saved: %s\n", reportPath)
-	return 0
-}
-
-// runPeer handles the peer command for peer trust index
-func runPeer(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
-	fs := flag.NewFlagSet("peer", flag.ContinueOnError)
-	fs.SetOutput(errOut)
-	jsonFlag := fs.Bool("json", false, "Output in JSON format")
-	peers := fs.Int("peers", 3, "Number of peers to evaluate")
-	_ = fs.Parse(args)
-
-	if fs.NArg() < 1 {
-		_, _ = fmt.Fprintln(errOut, "usage: reachctl peer trust <runId> [--peers N]")
-		return 1
-	}
-
-	subCmd := fs.Arg(0)
-	if subCmd != "trust" {
-		_, _ = fmt.Fprintln(errOut, "unknown peer command, supported: trust")
-		return 1
-	}
-
-	runID := fs.Arg(1)
-	if runID == "" {
-		runID = "sample"
-	}
-
-	// Load determinism confidence from existing data
-	determinismConfidence := loadDeterminismConfidence(dataRoot)
-	consensusScore := 85
-	pluginCertScore := 90
-
-	// Generate peer list
-	peerList := make([]string, *peers)
-	for i := 0; i < *peers; i++ {
-		peerList[i] = fmt.Sprintf("peer-%d", i)
-	}
-
-	report := consensus.ComputePeerTrust(runID, determinismConfidence, consensusScore, pluginCertScore, peerList)
-
-	// Save report
-	reportPath := filepath.Join(dataRoot, "peer-trust-report.json")
-	reportJSON, _ := json.MarshalIndent(report, "", "  ")
-	_ = os.WriteFile(reportPath, reportJSON, 0644)
-
-	if *jsonFlag {
-		return writeJSON(out, report)
-	}
-
-	_, _ = fmt.Fprintln(out, "Peer Trust Index Report")
-	_, _ = fmt.Fprintln(out, "======================")
-	_, _ = fmt.Fprintf(out, "Run ID: %s\n", report.RunID)
-	_, _ = fmt.Fprintf(out, "Peer Count: %d\n", report.PeerCount)
-	_, _ = fmt.Fprintf(out, "Determinism Confidence: %d\n", report.DeterminismConfidence)
-	_, _ = fmt.Fprintf(out, "Consensus Score: %d\n", report.ConsensusScore)
-	_, _ = fmt.Fprintf(out, "Plugin Certification: %d\n", report.PluginCertificationScore)
-	_, _ = fmt.Fprintf(out, "\nPeer Trust Score: %d/100\n", report.PeerTrustScore)
-	_, _ = fmt.Fprintf(out, "\nReport saved: %s\n", reportPath)
-	return 0
-}
-
-// loadDeterminismConfidence loads the determinism confidence score from data
-func loadDeterminismConfidence(dataRoot string) int {
-	// Try to load from stress report
-	stressPath := filepath.Join(dataRoot, "stress-report.json")
-	data, err := os.ReadFile(stressPath)
-	if err == nil {
-		var report map[string]any
-		if json.Unmarshal(data, &report) == nil {
-			if matrix, ok := report["matrix_result"].(map[string]any); ok {
-				if conf, ok := matrix["determinism_confidence"].(float64); ok {
-					return int(conf)
-				}
-			}
-		}
-	}
-	return 75 // Default confidence
-}
-
-// runByzantine handles the byzantine fault simulation
-func runByzantine(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
-	fs := flag.NewFlagSet("byzantine", flag.ContinueOnError)
-	fs.SetOutput(errOut)
-	jsonFlag := fs.Bool("json", false, "Output in JSON format")
-	simulations := fs.Int("simulations", 5, "Number of simulations to run")
-	mutationRate := fs.Float64("mutation-rate", 0.5, "Mutation rate (0-1)")
-	_ = fs.Parse(args)
-
-	runID := "sample"
-	if len(fs.Args()) > 0 {
-		runID = fs.Arg(0)
-	}
-
-	// Load run record for proof hash
-	var proofHash string
-	var steps []string
-	record, err := loadRunRecord(dataRoot, runID)
-	if err == nil {
-		proofHash = stableHash(map[string]any{"event_log": record.EventLog, "run_id": runID})
-		for i := range record.EventLog {
-			steps = append(steps, fmt.Sprintf("step-%d", i))
-		}
-	} else {
-		// Use sample data
-		proofHash = stableHash(map[string]any{"run_id": runID, "default": "true"})
-		steps = []string{"step-0", "step-1", "step-2", "step-3", "step-4"}
-	}
-
-	// Configure byzantine simulation
-	config := consensus.ByzantineConfig{
-		RunID:           runID,
-		MutationTypes:   []string{"step_output", "plugin_output", "dependency_order"},
-		MutationRate:    *mutationRate,
-		SimulationCount: *simulations,
-	}
-
-	report := consensus.SimulateByzantine(runID, config, proofHash, steps)
-
-	// Save report
-	reportPath := filepath.Join(dataRoot, "byzantine-report.json")
-	reportJSON, _ := json.MarshalIndent(report, "", "  ")
-	_ = os.WriteFile(reportPath, reportJSON, 0644)
-
-	if *jsonFlag {
-		return writeJSON(out, report)
-	}
-
-	_, _ = fmt.Fprintln(out, "Byzantine Fault Simulation Report")
-	_, _ = fmt.Fprintln(out, "===============================")
-	_, _ = fmt.Fprintf(out, "Run ID: %s\n", report.RunID)
-	_, _ = fmt.Fprintf(out, "Simulation Count: %d\n", report.SimulationCount)
-	_, _ = fmt.Fprintf(out, "Mutations Applied: %d\n", report.MutationsApplied)
-	_, _ = fmt.Fprintf(out, "Detection Rate: %.1f%%\n", report.DetectionRate)
-	_, _ = fmt.Fprintf(out, "Status: %s\n", report.Status)
-	_, _ = fmt.Fprintf(out, "\nReport saved: %s\n", reportPath)
-	return 0
-}

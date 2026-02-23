@@ -61,5 +61,5 @@ Use helper scripts:
 cd services/integration-hub
 INTEGRATION_HUB_ENCRYPTION_KEY="$(tools/integration-hub/generate-encryption-key.sh)" \
 RUNNER_INTERNAL_URL="http://localhost:8080" \
-go run ./cmd/integration-hub
+./integration-hub
 ```

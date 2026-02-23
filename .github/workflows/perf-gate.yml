@@ -30,7 +30,7 @@ jobs:
       - name: Start runner with metrics
         working-directory: services/runner
         run: |
-          RUNNER_METRICS_ENABLED=1 RUNNER_ADDR=:8080 go run ./cmd/runnerd > /tmp/runner.log 2>&1 &
+          RUNNER_METRICS_ENABLED=1 RUNNER_ADDR=:8080 ./runnerd > /tmp/runner.log 2>&1 &
           echo $! > /tmp/runner.pid
           sleep 2
 

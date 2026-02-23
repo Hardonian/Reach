@@ -1,0 +1,10 @@
+5164 		provenance := consensus.ProvenanceSnapshot{
+5180 		vf := consensus.NewVerificationFile(
+5218 		var vf consensus.VerificationFile
+5225 		report, err := consensus.RunPeerVerification(vf.Meta.RunID, vf)
+5311 	config := consensus.ConsensusConfig{
+5314 		NodeOverrides: map[int]consensus.NodeConfig{
+5321 	report := consensus.SimulateConsensus(runID, config, proofHash, steps)
+5378 	report := consensus.ComputePeerTrust(runID, determinismConfidence, consensusScore, pluginCertScore, peerList)
+5449 	config := consensus.ByzantineConfig{
+5456 	report := consensus.SimulateByzantine(runID, config, proofHash, steps)
