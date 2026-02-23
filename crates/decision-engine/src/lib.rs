@@ -51,6 +51,7 @@
 //! const output = JSON.parse(result);
 //! ```
 
+pub mod classical;
 pub mod determinism;
 pub mod engine;
 pub mod types;
