@@ -396,3 +396,45 @@ impl RunHandle {
         Ok(())
     }
 }
+# [ d e r i v e ( C l o n e ,   D e b u g ,   P a r t i a l E q ,   E q ) ]  
+ p u b   s t r u c t   E n g i n e E v e n t   {  
+         p u b   s e q u e n c e :   u 6 4 ,  
+         p u b   n o d e _ i d :   S t r i n g ,  
+         p u b   k i n d :   E v e n t K i n d ,  
+ }  
+  
+ # [ d e r i v e ( C l o n e ,   D e b u g ,   P a r t i a l E q ,   E q ) ]  
+ p u b   e n u m   E v e n t K i n d   {  
+         E n t e r e d ,  
+         C o m p l e t e d ,  
+         D e n i e d ,  
+         P a u s e d ,  
+         R e s u m e d ,  
+         C a n c e l l e d ,  
+ }  
+  
+ i m p l   E n g i n e E v e n t   {  
+         # [ m u s t _ u s e ]  
+         p u b   f n   n e w ( s e q u e n c e :   u 6 4 ,   n o d e _ i d :   i m p l   I n t o < S t r i n g > ,   k i n d :   E v e n t K i n d )   - >   S e l f   {  
+                 S e l f   {  
+                         s e q u e n c e ,  
+                         n o d e _ i d :   n o d e _ i d . i n t o ( ) ,  
+                         k i n d ,  
+                 }  
+         }  
+ }  
+  
+ # [ c f g ( t e s t ) ]  
+ m o d   t e s t s   {  
+         u s e   s u p e r : : { E n g i n e E v e n t ,   E v e n t K i n d } ;  
+  
+         # [ t e s t ]  
+         f n   n e w _ e v e n t _ i s _ d e t e r m i n i s t i c ( )   {  
+                 l e t   e v e n t   =   E n g i n e E v e n t : : n e w ( 7 ,   " s t a r t " ,   E v e n t K i n d : : E n t e r e d ) ;  
+  
+                 a s s e r t _ e q ! ( e v e n t . s e q u e n c e ,   7 ) ;  
+                 a s s e r t _ e q ! ( e v e n t . n o d e _ i d ,   " s t a r t " ) ;  
+                 a s s e r t _ e q ! ( e v e n t . k i n d ,   E v e n t K i n d : : E n t e r e d ) ;  
+         }  
+ }  
+ 
