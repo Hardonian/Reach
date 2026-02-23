@@ -1,8 +1,9 @@
 // @ts-nocheck
 import { createHash, randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { resolve, dirname, join, relative } from "node:path";
+import { resolve, join, relative } from "node:path";
 import { execFileSync } from "node:child_process";
+import { codePointCompare } from "../determinism/deterministicCompare.js";
 
 export interface AnalyzePrArgs {
   target?: string;
@@ -91,10 +92,10 @@ const EXIT_CODES = {
 } as const;
 
 const FINDING_SORT = (a: Finding, b: Finding): number =>
-  a.category.localeCompare(b.category) ||
-  b.severity.localeCompare(a.severity) ||
-  a.file.localeCompare(b.file) ||
-  a.id.localeCompare(b.id);
+  codePointCompare(a.category, b.category) ||
+  codePointCompare(b.severity, a.severity) ||
+  codePointCompare(a.file, b.file) ||
+  codePointCompare(a.id, b.id);
 
 function parseAnalyzePrArgs(argv: string[]): AnalyzePrArgs {
   const result: AnalyzePrArgs = {

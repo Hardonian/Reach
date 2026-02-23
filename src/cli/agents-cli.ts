@@ -9,6 +9,7 @@ import {
   cpSync,
 } from "node:fs";
 import { basename, resolve } from "node:path";
+import { codePointCompare } from "../determinism/deterministicCompare.js";
 
 export interface AgentsArgs {
   command: "list" | "add" | "remove" | "inspect" | "recommend" | null;
@@ -109,7 +110,7 @@ export async function runAgentsCommand(args: AgentsArgs): Promise<number> {
           score,
         };
       })
-      .sort((a, b) => b.score - a.score || a.agent.localeCompare(b.agent));
+      .sort((a, b) => b.score - a.score || codePointCompare(a.agent, b.agent));
     if (args.json) process.stdout.write(`${JSON.stringify({ task, recommendations }, null, 2)}\n`);
     else
       for (const rec of recommendations)

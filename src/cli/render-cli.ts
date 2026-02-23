@@ -5,6 +5,7 @@ import { join, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import type { DashboardPersona, DashboardViewModel } from "@zeo/contracts";
 import { loadOrGenerateDashboardViewModel, stableStringify } from "../lib/generateViewModel.js";
+import { codePointCompare } from "../determinism/deterministicCompare.js";
 
 export type RenderTarget = "github-pr" | "slack" | "markdown" | "plain";
 
@@ -62,8 +63,8 @@ function topRisks(model: DashboardViewModel): string[] {
     .sort(
       (a, b) =>
         b.severity - a.severity ||
-        (a.file ?? "").localeCompare(b.file ?? "") ||
-        a.id.localeCompare(b.id),
+        codePointCompare(a.file ?? "", b.file ?? "") ||
+        codePointCompare(a.id, b.id),
     )
     .slice(0, 3)
     .map(
@@ -75,7 +76,7 @@ function topRisks(model: DashboardViewModel): string[] {
 function policySummary(model: DashboardViewModel): string[] {
   return model.lists.policies
     .slice()
-    .sort((a, b) => b.severity - a.severity || a.id.localeCompare(b.id))
+    .sort((a, b) => b.severity - a.severity || codePointCompare(a.id, b.id))
     .slice(0, 5)
     .map((policy) => `- ${policy.id} [${policy.status}]`);
 }

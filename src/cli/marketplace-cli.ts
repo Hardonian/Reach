@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, readdirSync
 import { resolve, join, relative } from "node:path";
 import { homedir } from "node:os";
 import { execFileSync } from "node:child_process";
+import { codePointCompare } from "../determinism/deterministicCompare.js";
 import {
   addLocalModule,
   listRevokedModules,
@@ -189,7 +190,7 @@ function copyTreeDeterministic(source: string, dest: string): void {
     const current = stack.pop();
     if (!current) continue;
     const entries = readdirSync(current, { withFileTypes: true }).sort((a, b) =>
-      a.name.localeCompare(b.name),
+      codePointCompare(a.name, b.name),
     );
     for (const entry of entries) {
       const srcPath = join(current, entry.name);

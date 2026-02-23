@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { codePointCompare } from "../determinism/deterministicCompare.js";
 
 const API_VERSION = "1.0.0";
 
@@ -77,7 +78,7 @@ function loadPluginManifests(): Array<{
       manifests.push({ root: join(root, dir), manifest: raw });
     }
   }
-  return manifests.sort((a, b) => a.manifest.id.localeCompare(b.manifest.id));
+  return manifests.sort((a, b) => codePointCompare(a.manifest.id, b.manifest.id));
 }
 
 export function parsePluginsArgs(argv: string[]): PluginsArgs {

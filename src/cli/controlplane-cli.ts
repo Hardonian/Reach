@@ -2,6 +2,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve, basename } from "node:path";
+import { codePointCompare } from "../determinism/deterministicCompare.js";
 
 interface ControlPlaneArgs {
   scope: "cp" | "artifacts";
@@ -166,7 +167,6 @@ function healthFromFailures(failures: number): Health {
 
 function collectModuleStats(root: string): ControlPlaneStatus["modules"] {
   const modules = ["zeo", "keys", "settler", "readylayer"];
-  const now = Date.now();
   return modules
     .map((module) => {
       const relevantLogs = KNOWN_LOGS.map((log) => join(root, log)).filter((file) =>
@@ -194,7 +194,7 @@ function collectModuleStats(root: string): ControlPlaneStatus["modules"] {
         costUsd: Number((tokenUsage * 0.000002).toFixed(6)),
       };
     })
-    .sort((a, b) => a.module.localeCompare(b.module));
+    .sort((a, b) => codePointCompare(a.module, b.module));
 }
 
 function collectPolicyViolations24h(root: string): number {
@@ -234,7 +234,7 @@ function collectRoutingDecisions(): Array<{
       model: process.env.SETTLER_MODEL || "local-default",
       provider: process.env.SETTLER_PROVIDER || "local",
     },
-  ].sort((a, b) => a.module.localeCompare(b.module));
+  ].sort((a, b) => codePointCompare(a.module, b.module));
 }
 
 function buildControlPlaneStatus(root: string): ControlPlaneStatus {

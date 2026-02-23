@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { codePointCompare } from "../determinism/deterministicCompare.js";
 
 interface TranscriptSecurityModule {
   addPublicKeyToKeyring: typeof import("@zeo/core").addPublicKeyToKeyring;
@@ -186,7 +187,7 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
       const objections = readObjections(envelope);
       objections.push({ signer, condition, statement });
       metadata.conditional_objections = objections.sort(
-        (a, b) => a.signer.localeCompare(b.signer) || a.condition.localeCompare(b.condition),
+        (a, b) => codePointCompare(a.signer, b.signer) || codePointCompare(a.condition, b.condition),
       );
       envelope.metadata = metadata;
       writeFileSync(resolve(out), `${JSON.stringify(envelope, null, 2)}\n`, "utf8");

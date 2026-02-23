@@ -6,6 +6,7 @@ import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import * as core from "@zeo/core";
 import * as contracts from "@zeo/contracts";
+import { codePointCompare } from "../determinism/deterministicCompare.js";
 
 const DEFAULT_TIMEZONE = "UTC";
 const DEFAULT_AS_OF_DATE = "1970-01-01";
@@ -284,7 +285,7 @@ const DECISION_TEMPLATES: DecisionTemplate[] = (
       requiredPolicyTypes: ["prod.roadmap-governance", "prod.customer-safety"],
     },
   ] as DecisionTemplate[]
-).sort((a, b) => a.id.localeCompare(b.id));
+).sort((a, b) => codePointCompare(a.id, b.id));
 
 function getTemplate(templateId: string): DecisionTemplate {
   const template = DECISION_TEMPLATES.find((item) => item.id === templateId);
@@ -442,9 +443,9 @@ function healthLine(health: DecisionHealth): string {
 function appendDriftEvent(ws: DecisionWorkspace, event: DriftEvent): void {
   const all = [...(ws.driftEvents ?? []), event].sort(
     (a, b) =>
-      a.detectedAt.localeCompare(b.detectedAt) ||
-      a.decisionId.localeCompare(b.decisionId) ||
-      a.type.localeCompare(b.type),
+      codePointCompare(a.detectedAt, b.detectedAt) ||
+      codePointCompare(a.decisionId, b.decisionId) ||
+      codePointCompare(a.type, b.type),
   );
   ws.driftEvents = all;
 }
@@ -508,7 +509,7 @@ function buildBundleManifest(
         size: contents.byteLength,
       };
     })
-    .sort((a, b) => a.path.localeCompare(b.path));
+    .sort((a, b) => codePointCompare(a.path, b.path));
   const treeHash = createHash("sha256")
     .update(JSON.stringify(entries.map((entry) => [entry.path, entry.sha256])))
     .digest("hex");
@@ -722,7 +723,6 @@ async function runDecisionInWorkspace(
 
   const fragility =
     minFlipDistance >= 5 ? "Stable" : minFlipDistance >= 3 ? "Fragile" : "Knife-edge";
-  const totalEvidence = ws.evidence.length;
   // Tasks are distinct from evidence in workspace model
   const unresolvedTasks = ws.tasks.filter((t) => !t.completed).length;
   const decay = decaySummary(ws.evidence, asOfDate);
@@ -736,7 +736,7 @@ async function runDecisionInWorkspace(
     fragility,
     topEvidence: ws.evidence
       .slice()
-      .sort((a, b) => a.cost.timeMinutes - b.cost.timeMinutes || a.id.localeCompare(b.id))
+      .sort((a, b) => a.cost.timeMinutes - b.cost.timeMinutes || codePointCompare(a.id, b.id))
       .slice(0, 3)
       .map((e) => ({
         id: e.id,
@@ -828,10 +828,10 @@ function collectGraph(asOfDate: string): {
   }
   detectCycles([...nodes.keys()], edges);
   return {
-    nodes: [...nodes.values()].sort((a, b) => a.transcriptHash.localeCompare(b.transcriptHash)),
+    nodes: [...nodes.values()].sort((a, b) => codePointCompare(a.transcriptHash, b.transcriptHash)),
     edges: edges.sort(
       (a, b) =>
-        a.from.localeCompare(b.from) || a.to.localeCompare(b.to) || a.type.localeCompare(b.type),
+        codePointCompare(a.from, b.from) || codePointCompare(a.to, b.to) || codePointCompare(a.type, b.type),
     ),
   };
 }
@@ -931,7 +931,7 @@ function buildTypeSummary(
 } {
   const rows = collectWorkspaces()
     .filter((ws) => (type ? ws.decisionType === type : true))
-    .sort((a, b) => a.decisionId.localeCompare(b.decisionId))
+    .sort((a, b) => codePointCompare(a.decisionId, b.decisionId))
     .map((ws) => ({
       decisionId: ws.decisionId,
       type: ws.decisionType,
@@ -1308,7 +1308,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
       .filter((event) => (args.driftType ? event.type === args.driftType : true))
       .sort(
         (a, b) =>
-          a.detectedAt.localeCompare(b.detectedAt) || a.decisionId.localeCompare(b.decisionId),
+          codePointCompare(a.detectedAt, b.detectedAt) || codePointCompare(a.decisionId, b.decisionId),
       );
     writeJsonOrText(
       args,
@@ -1532,7 +1532,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
         }))
         .sort(
           (a, b) =>
-            b.fragilityScore - a.fragilityScore || a.transcriptHash.localeCompare(b.transcriptHash),
+            b.fragilityScore - a.fragilityScore || codePointCompare(a.transcriptHash, b.transcriptHash),
         );
       writeJsonOrText(
         args,
@@ -1719,7 +1719,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
     const asOf = isoDate(args.asOf) ?? DEFAULT_AS_OF_DATE;
     const checklist = ws.tasks
       .filter((t) => !t.completed)
-      .sort((a, b) => a.id.localeCompare(b.id))
+      .sort((a, b) => codePointCompare(a.id, b.id))
       .map((t) => {
         const evidence = ws.evidence.find((e) => e.id === t.sourceEvidenceId);
         const decay = evidence ? classifyDecay(evidence, asOf) : "unknown";
@@ -1731,7 +1731,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
 
   if (args.command === "quests") {
     const quests = ws.tasks
-      .sort((a, b) => a.id.localeCompare(b.id))
+      .sort((a, b) => codePointCompare(a.id, b.id))
       .map((t) => `- [${t.completed ? "x" : " "}] (${t.id}) ${t.label}`);
     writeJsonOrText(args, { quests }, quests.join("\n") || "No quests yet.");
     return 0;
@@ -1788,7 +1788,7 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
     if (args.subcommand === "ics") {
       const timezone = args.timezone ?? DEFAULT_TIMEZONE;
       const dueDate = args.due;
-      const tasks = ws.tasks.filter((t) => !t.completed).sort((a, b) => a.id.localeCompare(b.id));
+      const tasks = ws.tasks.filter((t) => !t.completed).sort((a, b) => codePointCompare(a.id, b.id));
       const body = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
