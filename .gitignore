@@ -93,3 +93,21 @@ crates/ffi/c_abi/target/
 .artifacts/
 playwright-report/
 test-results/
+
+# ======================================
+# Build Outputs
+# ======================================
+build/
+dist/
+*.exe
+reachctl
+reachctl-*
+!reachctl/
+!reachctl.exe/
+
+# ======================================
+# Committed Binaries (should not be in repo)
+# ======================================
+services/runner/*.exe
+services/runner/reachctl
+reachctl.exe

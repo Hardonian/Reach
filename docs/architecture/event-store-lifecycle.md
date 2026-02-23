@@ -18,7 +18,7 @@ lifecycle operations.
 The event store uses SQLite with WAL mode for concurrency. The schema is
 defined across sequential migrations:
 
-```
+```text
 migrations/001_init.sql          — runs, events, audit, sessions tables
 migrations/002_orchestration.sql — jobs, job_attempts, nodes tables
 migrations/003_hardware.sql      — hardware attestation columns
@@ -50,7 +50,7 @@ no gaps.
 
 ### Event Append
 
-```
+```go
 storage.EventsStore.AppendEvent(ctx, EventRecord) → (id, error)
 ```
 
@@ -64,7 +64,7 @@ There is no concurrent append to the same run.
 
 ### Run Fingerprint
 
-```
+```go
 storage.RunsStore.SetFingerprint(ctx, runID, fingerprint) → error
 ```
 
@@ -78,7 +78,7 @@ statement — atomic within SQLite.
 
 ### Event Listing
 
-```
+```go
 storage.EventsStore.ListEvents(ctx, runID, tenantID, afterID) → ([]EventRecord, error)
 ```
 
@@ -94,18 +94,18 @@ same run. This is what makes replay deterministic.
 
 ### Creating a Snapshot
 
-```
+```go
 storage.EventsStore.SaveSnapshot(ctx, SnapshotRecord) → (id, error)
 ```
 
 A snapshot captures the compacted state of a run at a specific event ID.
 
-| Field           | Description                                         |
-| :-------------- | :-------------------------------------------------- |
-| `run_id`        | The run this snapshot belongs to                     |
-| `last_event_id` | The ID of the last event included in this snapshot   |
-| `state_payload` | Serialized JSON of the compacted state               |
-| `created_at`    | Timestamp of snapshot creation                       |
+| Field            | Description                                        |
+| :--------------- | :------------------------------------------------- |
+| `run_id`         | The run this snapshot belongs to                   |
+| `last_event_id`  | The ID of the last event included in this snapshot |
+| `state_payload`  | Serialized JSON of the compacted state             |
+| `created_at`     | Timestamp of snapshot creation                     |
 
 **Invariant**: `state_payload` is the canonical JSON representation of the
 run state computed by replaying events `[1..last_event_id]`. If the same
@@ -113,7 +113,7 @@ events are replayed, the same `state_payload` MUST be produced.
 
 ### Retrieving the Latest Snapshot
 
-```
+```go
 storage.EventsStore.GetLatestSnapshot(ctx, runID) → (SnapshotRecord, error)
 ```
 
@@ -125,7 +125,7 @@ Returns the most recent snapshot for a run (by `created_at DESC`).
 
 ### Event Pruning
 
-```
+```go
 storage.EventsStore.PruneEvents(ctx, runID, beforeEventID) → (pruned_count, error)
 ```
 
@@ -149,7 +149,7 @@ Deletes events with `id < beforeEventID` for the given run.
 
 ### Pruning Algorithm
 
-```
+```text
 1. snapshot = GetLatestSnapshot(runID)
 2. if snapshot == nil:
      return error("cannot prune without snapshot")
@@ -165,7 +165,7 @@ Deletes events with `id < beforeEventID` for the given run.
 
 ### Full Replay (No Snapshots)
 
-```
+```text
 events = ListEvents(runID, tenantID, afterID=0)
 state = replay_all(events)
 hash = compute_hash(state)
@@ -174,7 +174,7 @@ assert hash == runs.fingerprint
 
 ### Resumable Replay (With Snapshots)
 
-```
+```text
 snapshot = GetLatestSnapshot(runID)
 if snapshot exists:
   state = deserialize(snapshot.state_payload)
@@ -199,11 +199,12 @@ hash. This is the **replay equivalence guarantee**.
 
 Without pruning, storage grows linearly with the number of events:
 
-```
+```text
 Size = N_events × avg_event_size + N_runs × run_metadata_size
 ```
 
 Typical event sizes:
+
 - `spec_loaded`: ~2–5 KB
 - `evidence_submitted`: ~0.5–2 KB
 - `evaluation_completed`: ~1–3 KB

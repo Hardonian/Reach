@@ -234,6 +234,8 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runCapability(ctx, dataRoot, args[1:], out, errOut)
 	case "demo":
 		return runDemo(ctx, dataRoot, args[1:], out, errOut)
+	case "version", "--version", "-v":
+		return runVersion(out)
 	default:
 		usage(out)
 		return 1
