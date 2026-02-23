@@ -107,28 +107,79 @@ case "$cmd" in
       *) (cd tools/economics && npm install --silent && npm start --silent -- metrics "$@") ;;
     esac
     ;;
+  report)
+    shift
+    subcmd="${1:-}"
+    case "$subcmd" in
+      demo)
+        shift
+        npx tsx scripts/report/generate-demo-report.ts "$@"
+        ;;
+      verify)
+        shift
+        npx tsx scripts/report/verify-report.ts "$@"
+        ;;
+      *)
+        echo "usage: reach report demo|verify" >&2
+        exit 2
+        ;;
+    esac
+    ;;
   help|--help|-h)
     echo "Reach - Deterministic Execution Fabric"
     echo ""
-    echo "Commands:"
-    echo "  doctor           - System health check"
-    echo "  eval             - Evaluate runs and regressions"
-    echo "  wizard           - Guided run wizard (mobile-friendly)"
-    echo "  run <pack>       - Quick run a pack"
-    echo "  share            - Share runs via QR/text"
-    echo "  operator         - View operator dashboard"
-    echo "  audit            - Export/verify signed audit logs"
-    echo "  capsule          - Create/verify capsules"
-    echo "  proof            - Verify execution proofs"
-    echo "  packs            - Search/install packs"
-    echo "  cost             - View cost analysis and unit economics"
-    echo "  metrics          - View GTM and usage metrics"
-    echo "  gate             - Manage repository release gates"
+    echo "QUICK START"
+    echo "  ./reach doctor              Check system health"
+    echo "  ./reach report demo         Generate demo report"
+    echo ""
+    echo "CORE COMMANDS"
+    echo "  doctor                      System health check"
+    echo "  eval                        Evaluate runs and regressions"
+    echo "  wizard                      Guided run wizard (mobile-friendly)"
+    echo "  run <pack>                  Quick run a pack"
+    echo "  share                       Share runs via QR/text"
+    echo ""
+    echo "VERIFICATION"
+    echo "  audit                       Export/verify signed audit logs"
+    echo "  capsule                     Create/verify capsules"
+    echo "  proof                       Verify execution proofs"
+    echo "  report demo                 Generate demo report"
+    echo "  report verify <path>        Verify report integrity"
+    echo ""
+    echo "PACKS & PRESETS"
+    echo "  packs                       Search/install packs"
+    echo "  presets list                List available presets"
+    echo "  presets apply <name>        Apply a preset (--dry-run, --yes)"
+    echo ""
+    echo "PLUGINS"
+    echo "  plugins scaffold <name>     Create new plugin from template"
+    echo "  plugins validate <path>     Validate plugin manifest"
+    echo "  plugins list                List installed plugins"
+    echo ""
+    echo "OPERATIONS"
+    echo "  operator                    View operator dashboard"
+    echo "  graph                       View evidence graph"
+    echo "  explain <decision>          Explain a decision"
+    echo "  gate                        Manage repository release gates"
+    echo "  cost                        View cost analysis"
+    echo "  metrics                     View GTM and usage metrics"
+    echo ""
+    echo "SERVER"
+    echo "  serve                       Start the Reach server"
+    echo "  federation                  Manage federation"
+    echo "  support                     Support utilities"
+    echo "  arcade                      Arcade mode"
+    echo ""
+    echo "DOCUMENTATION"
+    echo "  https://github.com/reach/reach/tree/main/apps/docs"
     echo ""
     echo "For mobile/Termux: Install with scripts/install-termux.sh"
+    echo ""
+    echo "Exit codes: 0=success, 1=failure, 2=invalid input, 3=not found,"
+    echo "            4=policy blocked, 5=verification failed"
     ;;
   *)
-    echo "usage: reach doctor|audit|eval|release-check|serve|federation|support|arcade|capsule|proof|graph|packs|init|explain|operator|pack|wizard|run|share|delegate|verify-proof|cost|metrics|gate" >&2
+    echo "usage: reach doctor|audit|eval|release-check|serve|federation|support|arcade|capsule|proof|graph|packs|init|explain|operator|pack|wizard|run|share|delegate|verify-proof|cost|metrics|gate|report" >&2
     echo "       reach help for more info" >&2
     exit 1
     ;;

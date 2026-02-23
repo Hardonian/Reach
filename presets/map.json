@@ -1,0 +1,84 @@
+{
+  "version": "1.0.0",
+  "description": "Preset-to-scenario mapping for guided starting paths",
+  "paths": [
+    {
+      "id": "ci-cd-integration",
+      "name": "CI/CD Integration",
+      "description": "Optimized for automated pipelines with fast checks and deterministic gates",
+      "who": "DevOps engineers and teams running automated deployments",
+      "presets": ["pack-replay-first-ci", "fast-path"],
+      "examples": ["01-quickstart-local", "05-export-verify-replay"],
+      "commands": [
+        { "cmd": "./reach doctor", "desc": "Verify environment" },
+        { "cmd": "./reach presets apply pack-replay-first-ci --dry-run", "desc": "Preview CI preset" }
+      ],
+      "icon": "rocket"
+    },
+    {
+      "id": "security-review",
+      "name": "Security Review",
+      "description": "Comprehensive security policy enforcement with evidence requirements",
+      "who": "Security teams and compliance officers",
+      "presets": ["pack-security-basics", "full-review"],
+      "examples": ["04-action-plan-execute-safe", "05-export-verify-replay"],
+      "commands": [
+        { "cmd": "./reach presets apply pack-security-basics --dry-run", "desc": "Preview security preset" },
+        { "cmd": "./reach explain <decision-id>", "desc": "Review decision" }
+      ],
+      "icon": "shield"
+    },
+    {
+      "id": "compliance-audit",
+      "name": "Compliance Audit",
+      "description": "Full documentation, retention policies, and compliance-ready reporting",
+      "who": "Auditors and regulated industries",
+      "presets": ["audit-ready", "evidence-strict"],
+      "examples": ["05-export-verify-replay", "06-retention-compact-safety"],
+      "commands": [
+        { "cmd": "./reach presets apply audit-ready --dry-run", "desc": "Preview audit preset" },
+        { "cmd": "./reach report demo", "desc": "Generate audit artifact" }
+      ],
+      "icon": "document"
+    },
+    {
+      "id": "plugin-development",
+      "name": "Plugin Development",
+      "description": "Starting point for building custom plugins and extensions",
+      "who": "Developers extending Reach",
+      "presets": ["plugin-dev"],
+      "examples": ["01-quickstart-local", "03-junction-to-decision"],
+      "commands": [
+        { "cmd": "./reach plugins scaffold my-plugin", "desc": "Scaffold new plugin" },
+        { "cmd": "./reach plugins validate plugins/my-plugin", "desc": "Validate plugin" }
+      ],
+      "icon": "plugin"
+    },
+    {
+      "id": "policy-drift-detection",
+      "name": "Policy Drift Detection",
+      "description": "Monitor and detect when decisions drift from policies over time",
+      "who": "Governance teams maintaining policy compliance",
+      "presets": ["pack-drift-hunter", "drift-hunter"],
+      "examples": ["02-diff-and-explain", "06-retention-compact-safety"],
+      "commands": [
+        { "cmd": "./reach presets apply pack-drift-hunter --dry-run", "desc": "Preview drift preset" },
+        { "cmd": "./reach eval diff <run1> <run2>", "desc": "Compare runs" }
+      ],
+      "icon": "search"
+    },
+    {
+      "id": "learning-exploration",
+      "name": "Learning & Exploration",
+      "description": "Explore Reach's capabilities with guided examples",
+      "who": "New users and evaluators",
+      "presets": [],
+      "examples": ["01-quickstart-local", "02-diff-and-explain", "03-junction-to-decision"],
+      "commands": [
+        { "cmd": "node examples/01-quickstart-local/run.js", "desc": "First example" },
+        { "cmd": "./reach doctor", "desc": "Check setup" }
+      ],
+      "icon": "book"
+    }
+  ]
+}

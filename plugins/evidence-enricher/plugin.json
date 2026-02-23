@@ -1,0 +1,11 @@
+{
+  "id": "evidence-enricher",
+  "name": "Evidence Enricher",
+  "version": "0.1.0",
+  "description": "Adds metadata to evidence items",
+  "capabilities": ["registerEvidenceExtractor"],
+  "deterministic": true,
+  "entry": "index.js",
+  "author": "Reach Team",
+  "license": "MIT"
+}

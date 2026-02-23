@@ -1,0 +1,76 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-02-23",
+  "plugins": [
+    {
+      "id": "evidence-enricher",
+      "name": "Evidence Enricher",
+      "description": "Adds metadata to evidence items",
+      "version": "0.1.0",
+      "path": "plugins/evidence-enricher",
+      "capabilities": ["registerEvidenceExtractor"],
+      "deterministic": true,
+      "status": "official"
+    },
+    {
+      "id": "export-postprocessor",
+      "name": "Export Postprocessor",
+      "description": "Transforms export bundles",
+      "version": "0.1.0",
+      "path": "plugins/export-postprocessor",
+      "capabilities": ["registerRenderer"],
+      "deterministic": true,
+      "status": "official"
+    },
+    {
+      "id": "junction-rule-pack",
+      "name": "Junction Rule Pack",
+      "description": "Collection of reusable junction rules",
+      "version": "0.1.0",
+      "path": "plugins/junction-rule-pack",
+      "capabilities": ["registerPolicy"],
+      "deterministic": true,
+      "status": "official"
+    },
+    {
+      "id": "sample-deterministic-plugin",
+      "name": "Sample Deterministic Plugin",
+      "description": "Minimal deterministic example for learning",
+      "version": "0.1.0",
+      "path": "plugins/sample-deterministic-plugin",
+      "capabilities": ["registerRenderer"],
+      "deterministic": true,
+      "status": "sample"
+    },
+    {
+      "id": "pack-drift-hunter",
+      "name": "Drift Hunter Pack",
+      "description": "Detect policy drift",
+      "version": "0.1.0",
+      "path": "plugins/pack-drift-hunter",
+      "capabilities": ["registerAnalyzePrAnalyzer"],
+      "deterministic": true,
+      "status": "pack"
+    },
+    {
+      "id": "pack-replay-first-ci",
+      "name": "Replay First CI Pack",
+      "description": "CI-focused replay validation",
+      "version": "0.1.0",
+      "path": "plugins/pack-replay-first-ci",
+      "capabilities": ["registerAnalyzePrAnalyzer", "registerPolicy"],
+      "deterministic": true,
+      "status": "pack"
+    },
+    {
+      "id": "pack-security-basics",
+      "name": "Security Basics Pack",
+      "description": "Security policy enforcement",
+      "version": "0.1.0",
+      "path": "plugins/pack-security-basics",
+      "capabilities": ["registerPolicy"],
+      "deterministic": true,
+      "status": "pack"
+    }
+  ]
+}

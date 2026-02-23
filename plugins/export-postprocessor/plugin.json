@@ -1,0 +1,11 @@
+{
+  "id": "export-postprocessor",
+  "name": "Export Postprocessor",
+  "version": "0.1.0",
+  "description": "Transforms export bundles with additional processing",
+  "capabilities": ["registerRenderer"],
+  "deterministic": true,
+  "entry": "index.js",
+  "author": "Reach Team",
+  "license": "MIT"
+}

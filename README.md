@@ -74,6 +74,23 @@ node examples/05-export-verify-replay/run.js
 node examples/06-retention-compact-safety/run.js
 ```
 
+## 📖 Documentation
+
+Full documentation is available in the [docs site](apps/docs/):
+
+- [Quickstart](apps/docs/app/docs/quickstart) - Get up and running in 60 seconds
+- [Examples](apps/docs/app/docs/examples) - Six complete walkthroughs
+- [Presets](apps/docs/app/docs/presets) - Choose your starting path
+- [Plugins](apps/docs/app/docs/plugins) - Extend Reach
+- [Troubleshooting](apps/docs/app/docs/troubleshooting) - Debug and bug reports
+- [Stability](apps/docs/app/docs/stability) - Versioning and roadmap
+
+Run locally:
+```bash
+pnpm run docs:dev     # http://localhost:3001
+pnpm run docs:build   # Static export
+```
+
 ## 🤝 Contributing
 
 We actively welcome community contributions! Please review our [Contribution Guide](CONTRIBUTING.md) to learn how to:
@@ -82,6 +99,7 @@ We actively welcome community contributions! Please review our [Contribution Gui
 - Run the test suite
 - Submit Pull Requests
 - Follow our coding standards
+- Where to add [examples](examples/), [presets](presets/), and [plugins](plugins/)
 
 ## 💬 Feedback & Discussions
 

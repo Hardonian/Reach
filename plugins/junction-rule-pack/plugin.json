@@ -1,0 +1,11 @@
+{
+  "id": "junction-rule-pack",
+  "name": "Junction Rule Pack",
+  "version": "0.1.0",
+  "description": "Collection of reusable junction rules for common patterns",
+  "capabilities": ["registerPolicy"],
+  "deterministic": true,
+  "entry": "index.js",
+  "author": "Reach Team",
+  "license": "MIT"
+}

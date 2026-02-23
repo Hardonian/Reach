@@ -1,0 +1,38 @@
+[
+  {
+    "type": "example",
+    "name": "01-quickstart-local",
+    "status": "available",
+    "command": "node examples/01-quickstart-local/run.js"
+  },
+  {
+    "type": "example",
+    "name": "02-diff-and-explain",
+    "status": "available",
+    "command": "node examples/02-diff-and-explain/run.js"
+  },
+  {
+    "type": "example",
+    "name": "03-junction-to-decision",
+    "status": "available",
+    "command": "node examples/03-junction-to-decision/run.js"
+  },
+  {
+    "type": "example",
+    "name": "04-action-plan-execute-safe",
+    "status": "available",
+    "command": "node examples/04-action-plan-execute-safe/run.js"
+  },
+  {
+    "type": "example",
+    "name": "05-export-verify-replay",
+    "status": "available",
+    "command": "node examples/05-export-verify-replay/run.js"
+  },
+  {
+    "type": "example",
+    "name": "06-retention-compact-safety",
+    "status": "available",
+    "command": "node examples/06-retention-compact-safety/run.js"
+  }
+]

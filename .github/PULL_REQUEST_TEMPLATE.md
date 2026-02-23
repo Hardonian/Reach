@@ -1,67 +1,42 @@
-## Summary
+## Description
 
-Brief description of the changes
-
-## Related Issues
-
-Fixes #(issue number) or Related to #(issue number)
-
-## Changes Made
-
-- [ ] Change 1
-- [ ] Change 2
-- [ ] Change 3
+<!-- Describe what this PR changes and why -->
 
 ## Type of Change
 
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [ ] Documentation update
-- [ ] Example/pack addition
-- [ ] Policy pack addition
-- [ ] Plugin addition
-- [ ] Refactoring
+- [ ] Refactoring (no functional changes)
 - [ ] Performance improvement
-
-## Testing
-
-- [ ] Unit tests added/updated
-- [ ] Integration tests pass
-- [ ] Example runs verified
-- [ ] Manual testing performed
-
-Run verification:
-
-```bash
-npm run verify:full
-```
-
-## Determinism Check
-
-For changes affecting execution:
-
-- [ ] Verified identical inputs produce identical fingerprints
-- [ ] No `time.Now()` or `rand` in fingerprint paths
-- [ ] Map iterations are sorted
-
-## Documentation
-
-- [ ] Code comments updated
-- [ ] README updated (if applicable)
-- [ ] Examples updated (if applicable)
-- [ ] CHANGELOG.md updated (if user-facing)
+- [ ] Test additions/improvements
 
 ## Checklist
 
-- [ ] Code follows project style guidelines
-- [ ] Self-review completed
-- [ ] Changes are focused and minimal
-- [ ] No breaking changes (or clearly documented)
-- [ ] All CI checks pass
+- [ ] I have run `pnpm run verify:fast` and all checks pass
+- [ ] My code follows the project's style guidelines
+- [ ] I have made corresponding changes to the documentation
+- [ ] My changes generate no new warnings
+- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] New and existing unit tests pass locally with my changes
+- [ ] Any dependent changes have been merged and published
+
+## Determinism Check
+
+- [ ] My changes do not introduce non-deterministic behavior
+- [ ] No `Math.random()` without seed in core paths
+- [ ] No `Date.now()` in output-determining code
+- [ ] Object keys are sorted where order affects output
+
+## Testing
+
+<!-- Describe how you tested your changes -->
+
+## Related Issues
+
+<!-- Link to any related issues: Fixes #123, Addresses #456 -->
 
 ## Screenshots (if applicable)
 
-## Additional Notes
-
-Any other information reviewers should know
+<!-- Add screenshots for UI changes -->

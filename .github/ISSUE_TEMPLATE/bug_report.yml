@@ -48,6 +48,36 @@ body:
       required: true
 
   - type: textarea
+    id: command
+    attributes:
+      label: Exact Command Run
+      description: The exact command you ran
+      placeholder: |
+        ./reach doctor
+        node examples/01-quickstart-local/run.js
+    validations:
+      required: true
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `./reach doctor`
+      description: Run ./reach doctor and paste the output
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: demo-report
+    attributes:
+      label: Demo Report (if available)
+      description: Run ./reach report demo and attach the generated report
+      placeholder: |
+        Attach the demo-report/ directory or paste key information here
+    validations:
+      required: false
+
+  - type: textarea
     id: environment
     attributes:
       label: Environment

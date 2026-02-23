@@ -37,6 +37,13 @@ type AuditRecord struct {
 	Payload               []byte
 	CreatedAt             time.Time
 }
+type SnapshotRecord struct {
+	ID            int64
+	RunID         string
+	LastEventID   int64
+	StatePayload  []byte
+	CreatedAt     time.Time
+}
 type SessionRecord struct {
 	ID, TenantID, UserID string
 	CreatedAt, ExpiresAt time.Time
@@ -50,6 +57,9 @@ type RunsStore interface {
 type EventsStore interface {
 	AppendEvent(context.Context, EventRecord) (int64, error)
 	ListEvents(context.Context, string, string, int64) ([]EventRecord, error)
+	SaveSnapshot(context.Context, SnapshotRecord) (int64, error)
+	GetLatestSnapshot(context.Context, string) (SnapshotRecord, error)
+	PruneEvents(context.Context, string, int64) (int64, error)
 }
 type AuditStore interface {
 	AppendAudit(context.Context, AuditRecord) error
@@ -107,10 +117,13 @@ type preparedOps struct {
 	getJobsByLease *sql.Stmt
 	upsertNode     *sql.Stmt
 	listNodes      *sql.Stmt
-	putSession     *sql.Stmt
-	getSession     *sql.Stmt
-	deleteSession  *sql.Stmt
-	setFingerprint *sql.Stmt
+	putSession        *sql.Stmt
+	getSession        *sql.Stmt
+	deleteSession     *sql.Stmt
+	setFingerprint    *sql.Stmt
+	saveSnapshot      *sql.Stmt
+	getLatestSnapshot *sql.Stmt
+	pruneEvents       *sql.Stmt
 }
 
 func NewSQLiteStore(path string) (*SQLiteStore, error) {
@@ -195,6 +208,18 @@ func (s *SQLiteStore) prepareStmts() error {
 	if err != nil {
 		return err
 	}
+	s.ops.saveSnapshot, err = s.db.Prepare("INSERT INTO snapshots(run_id,last_event_id,state_payload,created_at) VALUES(?,?,?,?)")
+	if err != nil {
+		return err
+	}
+	s.ops.getLatestSnapshot, err = s.db.Prepare("SELECT id,run_id,last_event_id,state_payload,created_at FROM snapshots WHERE run_id=? ORDER BY id DESC LIMIT 1")
+	if err != nil {
+		return err
+	}
+	s.ops.pruneEvents, err = s.db.Prepare("DELETE FROM events WHERE run_id=? AND id<=?")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -243,6 +268,15 @@ func (s *SQLiteStore) Close() error {
 	}
 	if s.ops.setFingerprint != nil {
 		s.ops.setFingerprint.Close()
+	}
+	if s.ops.saveSnapshot != nil {
+		s.ops.saveSnapshot.Close()
+	}
+	if s.ops.getLatestSnapshot != nil {
+		s.ops.getLatestSnapshot.Close()
+	}
+	if s.ops.pruneEvents != nil {
+		s.ops.pruneEvents.Close()
 	}
 	return s.db.Close()
 }
@@ -346,6 +380,42 @@ func (s *SQLiteStore) ListEvents(ctx context.Context, tenantID, runID string, af
 		res = append(res, r)
 	}
 	return res, rows.Err()
+}
+
+func (s *SQLiteStore) SaveSnapshot(ctx context.Context, rec SnapshotRecord) (int64, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	res, err := s.ops.saveSnapshot.ExecContext(ctx, rec.RunID, rec.LastEventID, rec.StatePayload, rec.CreatedAt.UTC())
+	if err != nil {
+		return 0, err
+	}
+	return res.LastInsertId()
+}
+
+func (s *SQLiteStore) GetLatestSnapshot(ctx context.Context, runID string) (SnapshotRecord, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	var r SnapshotRecord
+	var created time.Time
+	err := s.ops.getLatestSnapshot.QueryRowContext(ctx, runID).Scan(&r.ID, &r.RunID, &r.LastEventID, &r.StatePayload, &created)
+	if err == sql.ErrNoRows {
+		return r, ErrNotFound
+	}
+	if err != nil {
+		return r, err
+	}
+	r.CreatedAt = created
+	return r, nil
+}
+
+func (s *SQLiteStore) PruneEvents(ctx context.Context, runID string, upToEventID int64) (int64, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	res, err := s.ops.pruneEvents.ExecContext(ctx, runID, upToEventID)
+	if err != nil {
+		return 0, err
+	}
+	return res.RowsAffected()
 }
 
 func (s *SQLiteStore) AppendAudit(ctx context.Context, a AuditRecord) error {

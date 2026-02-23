@@ -61,6 +61,38 @@ To maintain our quality bar, all Pull Requests must adhere to the following rule
 3. **Pass CI**: Ensure the GitHub Actions CI pipeline is green.
 4. **Description**: Clearly explain _what_ you changed and _why_. Use the provided PR template.
 
+## 💡 How to Propose an Idea
+
+- **Bug Reports**: [File an issue](../../issues/new?template=bug_report.yml) with the `./reach report demo` output
+- **Feature Requests**: [Submit a feature request](../../issues/new?template=feature_request.yml)
+- **Questions**: Start a [GitHub Discussion](../../discussions)
+
+## 🎯 Good First Issues
+
+Look for issues labeled:
+- `good first issue` - Great for newcomers
+- `help wanted` - Community contributions welcome
+- `documentation` - Docs improvements
+
+## 📝 Where to Contribute
+
+### Examples
+Add examples to `examples/` following the numbered format:
+- Each example should be runnable with `node examples/XX-name/run.js`
+- Include a README explaining the concepts demonstrated
+
+### Presets
+Add presets to `presets/`:
+- Create a directory under the appropriate category
+- Include a README with usage instructions
+- Add to `presets/map.json` if it's a new starting path
+
+### Plugins
+Add plugins to `plugins/`:
+- Use `./reach plugins scaffold <name>` to get started
+- Ensure deterministic behavior
+- Include tests and documentation
+
 ## 📝 Commit Expectations
 
 We follow [Conventional Commits](https://www.conventionalcommits.org/):
