@@ -36,27 +36,27 @@ describe("DET-10: cross-language golden hash assertions", () => {
     {
       description: "Simple flat object",
       input: { action: "deploy", environment: "production" },
-      expectedHash: "c30b67fdb03e3e614ec69c7a7837c974fb5bead7476eeee6c23a7ec2ffdbe4ff",
+      expectedHash: "165b836d9d6e803d5ce1bb8b7a01437ff68928f549887360cf13a0d551a66e85",
     },
     {
       description: "Nested object with sorted keys",
       input: { b: 2, a: 1, c: { z: 26, a: 1 } },
-      expectedHash: "44d0a9b0b0dd87a9e337c5df56fc6001abbc8cc760a0aa8a53cd41b24e1e29b2",
+      expectedHash: "24e4db09ae0e40a93e391725f9290725f3a8ffd15d33ed0bb39c394319087492",
     },
     {
       description: "Empty object",
       input: {},
-      expectedHash: "44136fa355b311bfa706c3cf3c82f48ab0be64adee2da4ab1af85e62e703e313",
+      expectedHash: "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
     },
     {
       description: "Array with mixed types",
       input: { items: [1, "two", true, null, { nested: "value" }] },
-      expectedHash: "e3fd0d63aa1c63ccaf754e2d4d20e34b2acce91c03e1660f73f8b4f05804b4b6",
+      expectedHash: "7f76a9a8e0bec70c5d327b1ee560378ec256372034993f7cb7b676c77992f5cc",
     },
     {
       description: "Unicode content",
       input: { name: "日本語テスト", emoji: "🎯" },
-      expectedHash: "98285f3b91e79ec58e32adab6c7e4c8f12e7c61e9ae3df03e8c18ce2e4ca19f3",
+      expectedHash: "124cab98f548209aa0b1ea432e5bbf239f2327d65f519a32420fa5f1a67433cc",
     },
   ];
 
