@@ -761,72 +761,176 @@ function buildTypeSummary(type: DecisionType | undefined, audience: Audience): {
   return { rows, text };
 }
 
-export function parseWorkflowArgs(argv: string[]): WorkflowArgs {
-  const command = ["start", "add-note", "run", "next", "share", "copy", "export", "quests", "done", "streaks", "graph", "view", "review", "explain", "summary", "decision-health", "drift-report", "roi-report", "verify", "evidence", "help", "examples", "template", "decision"].includes(argv[0] ?? "") ? argv[0] as WorkflowArgs["command"] : null;
-  const subcommand =
-    argv[0] === "export" && ["md", "ics", "bundle", "decision"].includes(argv[1] ?? "")
-      ? argv[1] as WorkflowArgs["subcommand"]
-      : argv[0] === "evidence" && ["set-expiry", "expired"].includes(argv[1] ?? "")
-        ? argv[1] as WorkflowArgs["subcommand"]
-        : argv[0] === "help" && ["start", "examples"].includes(argv[1] ?? "")
-          ? argv[1] as WorkflowArgs["subcommand"]
-      : argv[0] === "graph" && ["show", "impact", "fragility"].includes(argv[1] ?? "")
-        ? argv[1] as WorkflowArgs["subcommand"]
-        : argv[0] === "review" && argv[1] === "weekly"
-          ? "weekly"
-          : argv[0] === "template" && argv[1] === "list"
-            ? "list"
-            : argv[0] === "decision" && argv[1] === "create"
-              ? "create"
-              : undefined;
+function parseWorkflowArgs(argv: string[]): WorkflowArgs {
+  const command = argv[0] as WorkflowArgs["command"];
+  const subcommand = argv[1] as WorkflowArgs["subcommand"];
+
   const value = (flag: string): string | undefined => {
     const idx = argv.indexOf(flag);
     return idx >= 0 ? argv[idx + 1] : undefined;
   };
+
   const list = (flag: string): string[] => {
     const values: string[] = [];
     for (let i = 0; i < argv.length; i += 1) {
-      if (argv[i] === flag && argv[i + 1]) values.push(argv[i + 1]);
+      if (argv[i] === flag && argv[i + 1]) {
+        values.push(argv[i + 1]);
+      }
     }
     return values;
   };
-  const positionalDecision = (["decision-health", "verify"].includes(argv[0] ?? "") ? argv[1] : undefined)
-    || (argv[0] === "export" && argv[1] === "decision" ? argv[2] : undefined);
-  return {
+
+  const positional = (index: number): string | undefined => {
+    return argv[index];
+  };
+
+  const baseArgs = {
     command,
     subcommand,
-    decision: value("--decision") ?? positionalDecision,
-    text: value("--text"),
-    title: value("--title"),
-    templateId: value("--template"),
     json: argv.includes("--json"),
     output: value("--out"),
     envelope: value("--envelope"),
-    due: value("--due"),
-    timezone: value("--timezone"),
-    taskId: argv[1] && command === "done" ? argv[1] : value("--task"),
-    transcript: argv[2] && command === "view" ? argv[2] : value("--transcript"),
-    lens: (argv[1] && command === "view" ? argv[1] : value("--lens")) as LensType | undefined,
     dependsOn: list("--depends-on"),
     informs: list("--informs"),
-    assertedAt: value("--asserted-at"),
-    expiresAt: value("--expires-at"),
     asOf: value("--as-of"),
     audience: value("--audience") as Audience | undefined,
     type: value("--type") as DecisionType | undefined,
-    mode: (value("--mode") as "internal" | "customer" | undefined),
+    mode: value("--mode") as "internal" | "customer" | undefined,
     since: value("--since"),
-    window: (value("--window") as "7d" | "30d" | "90d" | undefined),
+    window: value("--window") as "7d" | "30d" | "90d" | undefined,
     driftType: value("--type") as DriftType | undefined,
-    format: (value("--format") as "zip" | "dir" | undefined),
+    format: value("--format") as "zip" | "dir" | undefined,
     signed: argv.includes("--signed"),
     includeRaw: argv.includes("--include-raw"),
-    inDuration: value("--in"),
-    evidenceId: argv[2] && argv[0] === "evidence" && argv[1] === "set-expiry" ? argv[2] : value("--evidence"),
     interactive: argv.includes("--interactive"),
     allowCrossWorkspace: argv.includes("--allow-cross-workspace"),
     fixedTime: value("--fixed-time"),
   };
+
+  switch (command) {
+    case "start":
+      return {
+        ...baseArgs,
+        title: value("--title"),
+      };
+    case "add-note":
+      return {
+        ...baseArgs,
+        decision: value("--decision"),
+        text: value("--text"),
+        assertedAt: value("--asserted-at"),
+        expiresAt: value("--expires-at"),
+      };
+    case "run":
+      return {
+        ...baseArgs,
+        decision: value("--decision"),
+      };
+    case "next":
+      return {
+        ...baseArgs,
+        decision: value("--decision"),
+      };
+    case "share":
+    case "copy":
+      return {
+        ...baseArgs,
+        decision: value("--decision"),
+      };
+    case "export":
+      return {
+        ...baseArgs,
+        decision: positional(2),
+        subcommand: positional(1) as "md" | "ics" | "bundle" | "decision" | undefined,
+        output: value("--out"),
+        format: value("--format") as "zip" | "dir" | undefined,
+        signed: argv.includes("--signed"),
+        includeRaw: argv.includes("--include-raw"),
+      };
+    case "quests":
+    case "streaks":
+      return {
+        ...baseArgs,
+        decision: value("--decision"),
+      };
+    case "done":
+      return {
+        ...baseArgs,
+        decision: value("--decision"),
+        taskId: positional(1),
+      };
+    case "graph":
+      return {
+        ...baseArgs,
+        subcommand: positional(1) as "show" | "impact" | "fragility" | undefined,
+        transcript: positional(2),
+      };
+    case "view":
+      return {
+        ...baseArgs,
+        lens: positional(1) as LensType | undefined,
+        transcript: positional(2),
+      };
+    case "review":
+      return {
+        ...baseArgs,
+        subcommand: positional(1) as "weekly" | undefined,
+      };
+    case "explain":
+      return {
+        ...baseArgs,
+        decision: value("--decision"),
+      };
+    case "summary":
+      return {
+        ...baseArgs,
+      };
+    case "decision-health":
+      return {
+        ...baseArgs,
+        decision: positional(1),
+      };
+    case "drift-report":
+      return {
+        ...baseArgs,
+      };
+    case "roi-report":
+      return {
+        ...baseArgs,
+      };
+    case "verify":
+      return {
+        ...baseArgs,
+        decision: positional(1),
+      };
+    case "evidence":
+      return {
+        ...baseArgs,
+        subcommand: positional(1) as "set-expiry" | "expired" | undefined,
+        evidenceId: positional(2),
+        inDuration: value("--in"),
+      };
+    case "help":
+    case "examples":
+      return {
+        ...baseArgs,
+        subcommand: positional(1) as "start" | "examples" | undefined,
+      };
+    case "template":
+      return {
+        ...baseArgs,
+        subcommand: positional(1) as "list" | undefined,
+      };
+    case "decision":
+      return {
+        ...baseArgs,
+        subcommand: positional(1) as "create" | undefined,
+        title: value("--title"),
+        templateId: value("--template"),
+      };
+    default:
+      return { ...baseArgs, command: null, dependsOn: [], informs: [], json: false };
+  }
 }
 
 export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
@@ -859,6 +963,68 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
       ].join("\n") + "\n");
       return 0;
     }
+    process.stdout.write([
+      "Usage: zeo <command> [options]",
+      "",
+      "Commands:",
+      "  start               Start a new decision workspace",
+      "  add-note            Add a new evidence note to a decision",
+      "  run                 Run a decision in a workspace",
+      "  next                Show the next pending tasks for a decision",
+      "  share, copy         Share a decision summary",
+      "  export              Export a decision to a file or bundle",
+      "  quests              Show all tasks for a decision",
+      "  done                Mark a task as done",
+      "  streaks             Show your contribution streaks",
+      "  graph               Analyze the decision graph",
+      "  view                View a decision from a specific lens",
+      "  review              Review decisions",
+      "  explain             Explain a decision for a specific audience",
+      "  summary             Show a summary of decisions",
+      "  decision-health     Show the health of a decision",
+      "  drift-report        Show a report of drift events",
+      "  roi-report          Show a report of the return on investment",
+      "  verify              Verify a decision bundle",
+      "  evidence            Manage evidence for a decision",
+      "  help                Show help",
+      "  examples            Show example commands",
+      "  template            Manage decision templates",
+      "  decision            Manage decisions",
+      "",
+      "Options:",
+      "  --decision <id>     The decision ID to operate on",
+      "  --text <text>       The text of a note",
+      "  --title <title>     The title of a decision",
+      "  --template <id>     The template to use for a new decision",
+      "  --json              Output as JSON",
+      "  --out <path>        The output path for exports",
+      "  --envelope <path>   The path to a signed envelope",
+      "  --due <date>        The due date for a task",
+      "  --timezone <tz>     The timezone for dates",
+      "  --task <id>         The ID of a task",
+      "  --transcript <hash> The hash of a transcript",
+      "  --lens <lens>       The lens to view a decision through",
+      "  --depends-on <hash> Add a dependency to a decision",
+      "  --informs <hash>    Add an informs relationship to a decision",
+      "  --asserted-at <date> The date an evidence note was asserted",
+      "  --expires-at <date> The date an evidence note expires",
+      "  --as-of <date>      The date to use for time-sensitive calculations",
+      "  --audience <aud>    The audience for an explanation",
+      "  --type <type>       The type of a decision",
+      "  --mode <mode>       The mode of a decision",
+      "  --since <duration>  The duration to look back for reports",
+      "  --window <duration> The duration to use for reports",
+      "  --drift-type <type> The type of drift to report on",
+      "  --format <format>   The format for exports",
+      "  --signed            Sign the exported bundle",
+      "  --include-raw       Include raw evidence in the exported bundle",
+      "  --in <duration>     The duration for evidence expiry",
+      "  --evidence <id>     The ID of an evidence note",
+      "  --interactive       Run in interactive mode",
+      "  --allow-cross-workspace Allow operations across workspaces",
+      "  --fixed-time <iso>  Use a fixed time for all operations",
+    ].join("\n") + "\n");
+    return 0;
   }
 
   if (args.command === "examples") {
