@@ -7,10 +7,7 @@ export interface CostBreakdown {
   currency: string;
 }
 
-export function calculateRunCost(
-  entry: LedgerEntry,
-  config: EconomicsConfig,
-): CostBreakdown {
+export function calculateRunCost(entry: LedgerEntry, config: EconomicsConfig): CostBreakdown {
   const modelRates = config.models[entry.model_id] || {
     input_1k: 0,
     output_1k: 0,

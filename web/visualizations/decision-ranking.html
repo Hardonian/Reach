@@ -199,9 +199,7 @@
   <body>
     <div class="header">
       <h1>🏆 Decision Ranking</h1>
-      <p class="subtitle">
-        Multi-criteria decision analysis with weighted scoring
-      </p>
+      <p class="subtitle">Multi-criteria decision analysis with weighted scoring</p>
     </div>
 
     <div class="container">
@@ -319,8 +317,7 @@
             scalability: 0.5,
             maintainability: 0.5,
           },
-          reasoning:
-            "Strategic location but latency concerns for primary users",
+          reasoning: "Strategic location but latency concerns for primary users",
         },
       ];
 
@@ -336,14 +333,7 @@
         for (let i = 0; i < sorted.length; i++) {
           const d = sorted[i];
           const rank = i + 1;
-          const rankClass =
-            rank === 1
-              ? "top"
-              : rank === 2
-                ? "second"
-                : rank === 3
-                  ? "third"
-                  : "";
+          const rankClass = rank === 1 ? "top" : rank === 2 ? "second" : rank === 3 ? "third" : "";
           const isSelected = d.id === selectedId;
 
           const card = document.createElement("div");
@@ -387,8 +377,7 @@
         const container = document.getElementById("selection-details");
 
         if (!selectedId) {
-          container.innerHTML =
-            '<div class="empty-state">Click a decision to view details</div>';
+          container.innerHTML = '<div class="empty-state">Click a decision to view details</div>';
           return;
         }
 

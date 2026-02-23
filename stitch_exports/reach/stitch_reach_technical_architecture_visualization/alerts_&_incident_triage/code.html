@@ -97,9 +97,7 @@
             "
           ></div>
           <div class="flex flex-col min-w-0">
-            <h1 class="text-white text-sm font-semibold truncate">
-              Reach Control Plane
-            </h1>
+            <h1 class="text-white text-sm font-semibold truncate">Reach Control Plane</h1>
             <p class="text-slate-400 text-xs truncate">Ops Team</p>
           </div>
         </div>
@@ -116,9 +114,7 @@
             class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary border border-primary/30"
             href="#"
           >
-            <span class="material-symbols-outlined text-[20px] fill-1"
-              >notifications</span
-            >
+            <span class="material-symbols-outlined text-[20px] fill-1">notifications</span>
             <span class="text-sm font-medium">Alerts</span>
             <span
               class="ml-auto bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full"
@@ -129,9 +125,7 @@
             class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-surface-dark hover:text-white transition-colors"
             href="#"
           >
-            <span class="material-symbols-outlined text-[20px]"
-              >ssid_chart</span
-            >
+            <span class="material-symbols-outlined text-[20px]">ssid_chart</span>
             <span class="text-sm font-medium">Traces</span>
           </a>
           <a
@@ -154,17 +148,13 @@
         </a>
         <div class="mt-2 pt-4 border-t border-border-dark">
           <div class="px-3">
-            <p class="text-xs text-slate-500 uppercase font-semibold mb-2">
-              Systems Status
-            </p>
+            <p class="text-xs text-slate-500 uppercase font-semibold mb-2">Systems Status</p>
             <div class="flex items-center gap-2 mb-1">
               <div class="w-2 h-2 rounded-full bg-green-500"></div>
               <span class="text-xs text-slate-400">API Gateway: Healthy</span>
             </div>
             <div class="flex items-center gap-2">
-              <div
-                class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"
-              ></div>
+              <div class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
               <span class="text-xs text-slate-400">Payment SVC: Degraded</span>
             </div>
           </div>
@@ -174,9 +164,7 @@
     <!-- Main Content Area: Split View -->
     <main class="flex-1 flex overflow-hidden">
       <!-- Left Panel: Alerts Inbox -->
-      <div
-        class="w-[400px] flex flex-col border-r border-border-dark bg-[#111318]"
-      >
+      <div class="w-[400px] flex flex-col border-r border-border-dark bg-[#111318]">
         <!-- Header & Filter -->
         <div class="p-4 border-b border-border-dark flex flex-col gap-3">
           <div class="flex items-center justify-between">
@@ -185,9 +173,7 @@
               <button
                 class="p-1.5 hover:bg-surface-dark rounded text-slate-400 hover:text-white transition"
               >
-                <span class="material-symbols-outlined text-[20px]"
-                  >filter_list</span
-                >
+                <span class="material-symbols-outlined text-[20px]">filter_list</span>
               </button>
               <button
                 class="p-1.5 hover:bg-surface-dark rounded text-slate-400 hover:text-white transition"
@@ -235,12 +221,8 @@
           >
             <div class="flex justify-between items-start mb-1">
               <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-red-500 text-[18px]"
-                  >error</span
-                >
-                <span class="text-xs font-mono text-slate-400"
-                  >#TRACE-9281</span
-                >
+                <span class="material-symbols-outlined text-red-500 text-[18px]">error</span>
+                <span class="text-xs font-mono text-slate-400">#TRACE-9281</span>
               </div>
               <span class="text-xs text-slate-400">2m ago</span>
             </div>
@@ -269,18 +251,12 @@
           >
             <div class="flex justify-between items-start mb-1">
               <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-red-500 text-[18px]"
-                  >error</span
-                >
-                <span class="text-xs font-mono text-slate-500"
-                  >#TRACE-8812</span
-                >
+                <span class="material-symbols-outlined text-red-500 text-[18px]">error</span>
+                <span class="text-xs font-mono text-slate-500">#TRACE-8812</span>
               </div>
               <span class="text-xs text-slate-500">15m ago</span>
             </div>
-            <h3 class="text-sm font-medium text-slate-200 mb-1">
-              Database Connection Timeout
-            </h3>
+            <h3 class="text-sm font-medium text-slate-200 mb-1">Database Connection Timeout</h3>
             <p class="text-xs text-slate-500 line-clamp-2">
               Postgres pool exhausted on read-replica-02.
             </p>
@@ -301,19 +277,12 @@
           >
             <div class="flex justify-between items-start mb-1">
               <div class="flex items-center gap-2">
-                <span
-                  class="material-symbols-outlined text-yellow-500 text-[18px]"
-                  >warning</span
-                >
-                <span class="text-xs font-mono text-slate-500"
-                  >#TRACE-7731</span
-                >
+                <span class="material-symbols-outlined text-yellow-500 text-[18px]">warning</span>
+                <span class="text-xs font-mono text-slate-500">#TRACE-7731</span>
               </div>
               <span class="text-xs text-slate-500">1h ago</span>
             </div>
-            <h3 class="text-sm font-medium text-slate-300 mb-1">
-              Memory Usage High - Worker Node
-            </h3>
+            <h3 class="text-sm font-medium text-slate-300 mb-1">Memory Usage High - Worker Node</h3>
             <p class="text-xs text-slate-500 line-clamp-2">
               Node k8s-worker-4 at 85% memory capacity.
             </p>
@@ -337,17 +306,12 @@
       <!-- Right Panel: Incident Detail Workspace -->
       <div class="flex-1 flex flex-col bg-background-dark min-w-0">
         <!-- Detail Header -->
-        <div
-          class="px-6 py-4 border-b border-border-dark flex flex-col gap-4 bg-surface-dark/20"
-        >
+        <div class="px-6 py-4 border-b border-border-dark flex flex-col gap-4 bg-surface-dark/20">
           <div class="flex items-start justify-between">
             <div>
               <div class="flex items-center gap-3 mb-2">
-                <h1 class="text-xl font-bold text-white">
-                  High Latency on Payment-Service
-                </h1>
-                <span
-                  class="px-2 py-0.5 rounded text-xs font-bold bg-red-500 text-white"
+                <h1 class="text-xl font-bold text-white">High Latency on Payment-Service</h1>
+                <span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500 text-white"
                   >CRITICAL</span
                 >
                 <span
@@ -356,9 +320,7 @@
                 >
               </div>
               <p class="text-sm text-slate-400 flex items-center gap-2">
-                <span class="material-symbols-outlined text-[16px]"
-                  >domain</span
-                >
+                <span class="material-symbols-outlined text-[16px]">domain</span>
                 payment-gateway-v2
                 <span class="w-1 h-1 rounded-full bg-slate-600"></span>
                 <span class="material-symbols-outlined text-[16px]">dns</span>
@@ -370,25 +332,19 @@
               <button
                 class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-dark border border-border-dark text-slate-300 hover:text-white hover:bg-slate-700 transition text-sm"
               >
-                <span class="material-symbols-outlined text-[18px]"
-                  >notifications_off</span
-                >
+                <span class="material-symbols-outlined text-[18px]">notifications_off</span>
                 Mute
               </button>
               <button
                 class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-dark border border-border-dark text-slate-300 hover:text-white hover:bg-slate-700 transition text-sm"
               >
-                <span class="material-symbols-outlined text-[18px]"
-                  >person_add</span
-                >
+                <span class="material-symbols-outlined text-[18px]">person_add</span>
                 Escalate
               </button>
               <button
                 class="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20 transition text-sm font-medium"
               >
-                <span class="material-symbols-outlined text-[18px]"
-                  >check_circle</span
-                >
+                <span class="material-symbols-outlined text-[18px]">check_circle</span>
                 Acknowledge
               </button>
             </div>
@@ -397,9 +353,7 @@
           <div class="flex items-center gap-6 text-sm">
             <div class="flex items-center gap-2">
               <span class="text-slate-500">Assignee:</span>
-              <div
-                class="flex items-center gap-1.5 bg-slate-800/50 pr-2 rounded-full"
-              >
+              <div class="flex items-center gap-1.5 bg-slate-800/50 pr-2 rounded-full">
                 <div
                   class="bg-indigo-500 rounded-full h-5 w-5 flex items-center justify-center text-[10px] font-bold text-white"
                 >
@@ -407,9 +361,7 @@
                 </div>
                 <span class="text-slate-300 text-xs">Unassigned</span>
               </div>
-              <button class="text-primary text-xs hover:underline">
-                Assign to me
-              </button>
+              <button class="text-primary text-xs hover:underline">Assign to me</button>
             </div>
             <div class="flex items-center gap-2">
               <span class="text-slate-500">Duration:</span>
@@ -427,51 +379,38 @@
             <!-- Left Column: Timeline & Context -->
             <div class="col-span-12 lg:col-span-7 flex flex-col gap-6">
               <!-- Timeline Card -->
-              <div
-                class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden"
-              >
+              <div class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden">
                 <div
                   class="px-4 py-3 border-b border-border-dark flex justify-between items-center bg-[#18202f]"
                 >
-                  <h3 class="text-sm font-semibold text-slate-200">
-                    Incident Timeline
-                  </h3>
+                  <h3 class="text-sm font-semibold text-slate-200">Incident Timeline</h3>
                   <button
                     class="text-xs text-primary hover:text-primary-hover flex items-center gap-1"
                   >
                     View Logs
-                    <span class="material-symbols-outlined text-[14px]"
-                      >open_in_new</span
-                    >
+                    <span class="material-symbols-outlined text-[14px]">open_in_new</span>
                   </button>
                 </div>
                 <div class="p-4 relative">
                   <!-- Vertical Line -->
-                  <div
-                    class="absolute left-[31px] top-6 bottom-6 w-[2px] bg-slate-700"
-                  ></div>
+                  <div class="absolute left-[31px] top-6 bottom-6 w-[2px] bg-slate-700"></div>
                   <!-- Timeline Item 1 -->
                   <div class="relative flex gap-4 mb-6">
                     <div
                       class="flex-shrink-0 z-10 w-8 h-8 rounded-full bg-red-500/20 border border-red-500 flex items-center justify-center"
                     >
-                      <span
-                        class="material-symbols-outlined text-red-500 text-[16px]"
+                      <span class="material-symbols-outlined text-red-500 text-[16px]"
                         >notifications_active</span
                       >
                     </div>
                     <div class="flex-1 pt-1">
                       <div class="flex justify-between items-start">
-                        <p class="text-sm font-medium text-slate-200">
-                          Alert Triggered
-                        </p>
-                        <span class="text-xs text-slate-500 font-mono"
-                          >10:42:01 AM</span
-                        >
+                        <p class="text-sm font-medium text-slate-200">Alert Triggered</p>
+                        <span class="text-xs text-slate-500 font-mono">10:42:01 AM</span>
                       </div>
                       <p class="text-xs text-slate-400 mt-1">
-                        Metric <code>p99_latency</code> exceeded threshold
-                        <code>2000ms</code> for 5m.
+                        Metric <code>p99_latency</code> exceeded threshold <code>2000ms</code> for
+                        5m.
                       </p>
                     </div>
                   </div>
@@ -480,19 +419,14 @@
                     <div
                       class="flex-shrink-0 z-10 w-8 h-8 rounded-full bg-blue-500/20 border border-blue-500 flex items-center justify-center"
                     >
-                      <span
-                        class="material-symbols-outlined text-blue-500 text-[16px]"
+                      <span class="material-symbols-outlined text-blue-500 text-[16px]"
                         >smart_toy</span
                       >
                     </div>
                     <div class="flex-1 pt-1">
                       <div class="flex justify-between items-start">
-                        <p class="text-sm font-medium text-slate-200">
-                          Auto-Remediation Attempt
-                        </p>
-                        <span class="text-xs text-slate-500 font-mono"
-                          >10:42:05 AM</span
-                        >
+                        <p class="text-sm font-medium text-slate-200">Auto-Remediation Attempt</p>
+                        <span class="text-xs text-slate-500 font-mono">10:42:05 AM</span>
                       </div>
                       <p class="text-xs text-slate-400 mt-1">
                         Reach Agent initiated "Scale Up Replicas".
@@ -509,24 +443,18 @@
                     <div
                       class="flex-shrink-0 z-10 w-8 h-8 rounded-full bg-slate-700 border border-slate-500 flex items-center justify-center"
                     >
-                      <span
-                        class="material-symbols-outlined text-slate-400 text-[16px]"
+                      <span class="material-symbols-outlined text-slate-400 text-[16px]"
                         >person</span
                       >
                     </div>
                     <div class="flex-1 pt-1">
                       <div class="flex justify-between items-start">
-                        <p class="text-sm font-medium text-slate-200">
-                          Escalated to On-Call
-                        </p>
-                        <span class="text-xs text-slate-500 font-mono"
-                          >10:43:00 AM</span
-                        >
+                        <p class="text-sm font-medium text-slate-200">Escalated to On-Call</p>
+                        <span class="text-xs text-slate-500 font-mono">10:43:00 AM</span>
                       </div>
                       <p class="text-xs text-slate-400 mt-1">
                         Paged user:
-                        <span class="text-primary">@sarah.jenkins</span> via
-                        PagerDuty.
+                        <span class="text-primary">@sarah.jenkins</span> via PagerDuty.
                       </p>
                     </div>
                   </div>
@@ -539,39 +467,23 @@
                 <div
                   class="px-4 py-3 border-b border-border-dark flex justify-between items-center bg-[#18202f]"
                 >
-                  <h3 class="text-sm font-semibold text-slate-200">
-                    Related Metrics
-                  </h3>
+                  <h3 class="text-sm font-semibold text-slate-200">Related Metrics</h3>
                   <div class="flex gap-2 text-xs">
                     <span class="text-slate-400">Time Range: Last 1h</span>
                   </div>
                 </div>
-                <div
-                  class="flex-1 relative bg-gradient-to-b from-slate-900 to-slate-900/50 p-4"
-                >
+                <div class="flex-1 relative bg-gradient-to-b from-slate-900 to-slate-900/50 p-4">
                   <!-- Simulated Graph lines using SVG -->
                   <svg class="w-full h-full" preserveaspectratio="none">
                     <defs>
-                      <lineargradient
-                        id="gradient"
-                        x1="0%"
-                        x2="0%"
-                        y1="0%"
-                        y2="100%"
-                      >
+                      <lineargradient id="gradient" x1="0%" x2="0%" y1="0%" y2="100%">
                         <stop
                           offset="0%"
-                          style="
-                            stop-color: rgba(239, 68, 68, 0.2);
-                            stop-opacity: 1;
-                          "
+                          style="stop-color: rgba(239, 68, 68, 0.2); stop-opacity: 1"
                         ></stop>
                         <stop
                           offset="100%"
-                          style="
-                            stop-color: rgba(239, 68, 68, 0);
-                            stop-opacity: 0;
-                          "
+                          style="stop-color: rgba(239, 68, 68, 0); stop-opacity: 0"
                         ></stop>
                       </lineargradient>
                     </defs>
@@ -596,13 +508,7 @@
                       y1="30"
                       y2="30"
                     ></line>
-                    <text
-                      fill="#fbbf24"
-                      font-family="monospace"
-                      font-size="10"
-                      x="10"
-                      y="25"
-                    >
+                    <text fill="#fbbf24" font-family="monospace" font-size="10" x="10" y="25">
                       Threshold (2000ms)
                     </text>
                   </svg>
@@ -612,13 +518,9 @@
             <!-- Right Column: Resources & Config -->
             <div class="col-span-12 lg:col-span-5 flex flex-col gap-6">
               <!-- Runbooks & Resources -->
-              <div
-                class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden"
-              >
+              <div class="bg-surface-dark border border-border-dark rounded-xl overflow-hidden">
                 <div class="px-4 py-3 border-b border-border-dark bg-[#18202f]">
-                  <h3 class="text-sm font-semibold text-slate-200">
-                    Suggested Remediation
-                  </h3>
+                  <h3 class="text-sm font-semibold text-slate-200">Suggested Remediation</h3>
                 </div>
                 <div class="p-2">
                   <a
@@ -628,9 +530,7 @@
                     <div
                       class="bg-primary/20 p-2 rounded text-primary group-hover:bg-primary group-hover:text-white transition"
                     >
-                      <span class="material-symbols-outlined text-[20px]"
-                        >menu_book</span
-                      >
+                      <span class="material-symbols-outlined text-[20px]">menu_book</span>
                     </div>
                     <div>
                       <h4
@@ -642,8 +542,7 @@
                         Automated runbook for horizontal scaling.
                       </p>
                     </div>
-                    <span
-                      class="ml-auto material-symbols-outlined text-slate-600 text-[18px]"
+                    <span class="ml-auto material-symbols-outlined text-slate-600 text-[18px]"
                       >chevron_right</span
                     >
                   </a>
@@ -655,9 +554,7 @@
                     <div
                       class="bg-primary/20 p-2 rounded text-primary group-hover:bg-primary group-hover:text-white transition"
                     >
-                      <span class="material-symbols-outlined text-[20px]"
-                        >restart_alt</span
-                      >
+                      <span class="material-symbols-outlined text-[20px]">restart_alt</span>
                     </div>
                     <div>
                       <h4
@@ -665,12 +562,9 @@
                       >
                         Rolling Restart Service
                       </h4>
-                      <p class="text-xs text-slate-500 mt-0.5">
-                        Graceful restart of pods.
-                      </p>
+                      <p class="text-xs text-slate-500 mt-0.5">Graceful restart of pods.</p>
                     </div>
-                    <span
-                      class="ml-auto material-symbols-outlined text-slate-600 text-[18px]"
+                    <span class="ml-auto material-symbols-outlined text-slate-600 text-[18px]"
                       >chevron_right</span
                     >
                   </a>
@@ -683,18 +577,14 @@
                 <div
                   class="px-4 py-3 border-b border-border-dark bg-[#18202f] flex justify-between items-center"
                 >
-                  <h3 class="text-sm font-semibold text-slate-200">
-                    Rule Configuration
-                  </h3>
+                  <h3 class="text-sm font-semibold text-slate-200">Rule Configuration</h3>
                   <div class="flex items-center gap-2">
                     <span
                       class="text-[10px] text-green-400 bg-green-900/30 px-2 py-0.5 rounded border border-green-900/50"
                       >Active</span
                     >
                     <button class="text-slate-400 hover:text-white">
-                      <span class="material-symbols-outlined text-[16px]"
-                        >edit</span
-                      >
+                      <span class="material-symbols-outlined text-[16px]">edit</span>
                     </button>
                   </div>
                 </div>
@@ -753,10 +643,7 @@
                 <div
                   class="bg-[#18202f] px-3 py-2 border-t border-border-dark flex items-center gap-2"
                 >
-                  <span
-                    class="material-symbols-outlined text-slate-500 text-[14px]"
-                    >history</span
-                  >
+                  <span class="material-symbols-outlined text-slate-500 text-[14px]">history</span>
                   <span class="text-[10px] text-slate-500"
                     >Last edited by <strong>admin</strong> 2 days ago</span
                   >

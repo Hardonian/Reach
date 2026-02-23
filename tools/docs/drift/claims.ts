@@ -71,10 +71,7 @@ function scanClaims() {
           const index = lowerContent.indexOf(claim.toLowerCase());
           const start = Math.max(0, index - 50);
           const end = Math.min(content.length, index + claim.length + 50);
-          const context = content
-            .substring(start, end)
-            .replace(/\n/g, " ")
-            .trim();
+          const context = content.substring(start, end).replace(/\n/g, " ").trim();
 
           issues.push({
             file: path.relative(REPO_ROOT, filePath),
@@ -101,9 +98,7 @@ function scanClaims() {
   if (issues.length > 0) {
     console.warn(`Found ${issues.length} high-risk marketing claims in docs:`);
     issues.forEach((issue) => {
-      console.log(
-        `[CLAIM] ${issue.file}: "${issue.claim}" found in context: ${issue.context}`,
-      );
+      console.log(`[CLAIM] ${issue.file}: "${issue.claim}" found in context: ${issue.context}`);
       console.log(
         `Action: Verify this claim in SECURITY.md or add to tools/docs/drift/claims.allowlist.json`,
       );

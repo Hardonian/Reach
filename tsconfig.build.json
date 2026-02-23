@@ -12,11 +12,7 @@
     "outDir": "./dist",
     "baseUrl": "../..",
     "paths": {
-      "@zeo/*": [
-        "packages/*/dist",
-        "packages/*/src/index.ts",
-        "packages/*/src"
-      ],
+      "@zeo/*": ["packages/*/dist", "packages/*/src/index.ts", "packages/*/src"],
       "@prisma/client": ["packages/db/src/prisma-client.d.ts"]
     },
     "emitDeclarationOnly": false

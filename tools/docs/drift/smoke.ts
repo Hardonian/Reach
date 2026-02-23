@@ -19,10 +19,7 @@ function getRoutes(): string[] {
         walk(filePath);
       } else if (file === "page.tsx" || file === "route.ts") {
         let routePath =
-          "/" +
-          path
-            .relative(ARCADE_APP_ROOT, path.dirname(filePath))
-            .replace(/\\/g, "/");
+          "/" + path.relative(ARCADE_APP_ROOT, path.dirname(filePath)).replace(/\\/g, "/");
         if (routePath === "/.") routePath = "/";
         // Skip catch-all and dynamic routes for simple smoke test
         if (!routePath.includes("[") && !routePath.includes("(")) {
@@ -41,11 +38,7 @@ async function runSmokeTests() {
   console.log(`Target: ${baseUrl}`);
 
   const routes = getRoutes().filter(
-    (r) =>
-      r.startsWith("/docs") ||
-      r === "/faq" ||
-      r === "/support" ||
-      r === "/pricing",
+    (r) => r.startsWith("/docs") || r === "/faq" || r === "/support" || r === "/pricing",
   );
   console.log(`Testing ${routes.length} documentation routes...`);
 

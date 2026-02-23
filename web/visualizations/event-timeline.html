@@ -168,9 +168,7 @@
   <body>
     <div class="header">
       <h1>📊 Event Timeline</h1>
-      <p class="subtitle">
-        Visualization of execution events with timing and metadata
-      </p>
+      <p class="subtitle">Visualization of execution events with timing and metadata</p>
     </div>
 
     <div class="stats">
@@ -237,8 +235,7 @@
           id: "evt-4",
           type: "success",
           title: "Step Completed: verify",
-          details:
-            'Output: "Every run produces identical output given the same inputs."',
+          details: 'Output: "Every run produces identical output given the same inputs."',
           timestamp: "2024-01-15T10:30:00.789Z",
           elapsed: "277ms",
           step: "step-3",
@@ -256,8 +253,7 @@
           id: "evt-6",
           type: "success",
           title: "Fingerprint Generated",
-          details:
-            "sha256:a3f7b2d8e9c1f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8",
+          details: "sha256:a3f7b2d8e9c1f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8",
           timestamp: "2024-01-15T10:30:00.812Z",
           elapsed: "11ms",
           step: "fingerprint",
@@ -277,8 +273,7 @@
         const timeline = document.getElementById("timeline");
         timeline.innerHTML = "";
 
-        const filtered =
-          filter === "all" ? events : events.filter((e) => e.type === filter);
+        const filtered = filter === "all" ? events : events.filter((e) => e.type === filter);
 
         for (const event of filtered) {
           const el = document.createElement("div");

@@ -256,9 +256,7 @@
   <body>
     <div class="header">
       <h1>🔄 Replay Diff</h1>
-      <p class="subtitle">
-        Compare original execution with replay to verify determinism
-      </p>
+      <p class="subtitle">Compare original execution with replay to verify determinism</p>
     </div>
 
     <div class="comparison-header">
@@ -340,10 +338,7 @@
             null,
             2,
           ),
-          differences: [
-            "step-1.duration: 245 → 267",
-            "step-2.duration: 512 → 548",
-          ],
+          differences: ["step-1.duration: 245 → 267", "step-2.duration: 512 → 548"],
         },
         {
           section: "Policy Results",
@@ -354,30 +349,14 @@
         {
           section: "Evidence Chain",
           status: "match",
-          original: JSON.stringify(
-            { evidence_count: 5, confidence: 0.82 },
-            null,
-            2,
-          ),
-          replay: JSON.stringify(
-            { evidence_count: 5, confidence: 0.82 },
-            null,
-            2,
-          ),
+          original: JSON.stringify({ evidence_count: 5, confidence: 0.82 }, null, 2),
+          replay: JSON.stringify({ evidence_count: 5, confidence: 0.82 }, null, 2),
         },
         {
           section: "Final Output",
           status: "match",
-          original: JSON.stringify(
-            { decision: "approve", confidence: 0.82 },
-            null,
-            2,
-          ),
-          replay: JSON.stringify(
-            { decision: "approve", confidence: 0.82 },
-            null,
-            2,
-          ),
+          original: JSON.stringify({ decision: "approve", confidence: 0.82 }, null, 2),
+          replay: JSON.stringify({ decision: "approve", confidence: 0.82 }, null, 2),
         },
       ];
 
@@ -385,10 +364,7 @@
         const container = document.getElementById("diffs");
         container.innerHTML = "";
 
-        const filtered =
-          filter === "all"
-            ? diffData
-            : diffData.filter((d) => d.status === filter);
+        const filtered = filter === "all" ? diffData : diffData.filter((d) => d.status === filter);
 
         for (const diff of filtered) {
           const section = document.createElement("div");

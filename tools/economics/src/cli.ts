@@ -75,12 +75,8 @@ program
 
       console.log(`Total Runs:       ${entries.length}`);
       console.log(`Total Cost:       $${totalCost.toFixed(4)}`);
-      console.log(
-        `Avg Cost/Run:     $${(totalCost / entries.length).toFixed(4)}`,
-      );
-      console.log(
-        `Avg Latency:      ${(totalDuration / entries.length).toFixed(0)}ms`,
-      );
+      console.log(`Avg Cost/Run:     $${(totalCost / entries.length).toFixed(4)}`);
+      console.log(`Avg Latency:      ${(totalDuration / entries.length).toFixed(0)}ms`);
       console.log(`Total Tokens:     ${totalTokens}`);
       console.log(`
 Top Expensive Workflows:`);
@@ -120,12 +116,8 @@ program
       console.log(`
 Results:`);
       console.log(`  Users to Break Even:       ${analysis.users_needed}`);
-      console.log(
-        `  Daily Runs to Break Even:  ${analysis.runs_per_day_needed}`,
-      );
-      console.log(
-        `  Contribution Margin/User:  $${analysis.current_margin.toFixed(2)}`,
-      );
+      console.log(`  Daily Runs to Break Even:  ${analysis.runs_per_day_needed}`);
+      console.log(`  Contribution Margin/User:  $${analysis.current_margin.toFixed(2)}`);
 
       console.log(`
 Scale Triggers:`);
@@ -156,9 +148,7 @@ program
     console.log(`Active Workflows: ${uniqueWorkflows}`);
     console.log(`Total Executions: ${entries.length}`);
     if (uniqueTenants > 0) {
-      console.log(
-        `Runs/Tenant:      ${(entries.length / uniqueTenants).toFixed(1)}`,
-      );
+      console.log(`Runs/Tenant:      ${(entries.length / uniqueTenants).toFixed(1)}`);
     }
   });
 

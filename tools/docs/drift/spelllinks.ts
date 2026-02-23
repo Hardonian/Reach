@@ -52,8 +52,7 @@ export async function auditSpelling(fix: boolean = false) {
       if (match) {
         if (
           fix &&
-          (rule.name === "Trailing whitespace" ||
-            rule.name === "No double spaces in titles")
+          (rule.name === "Trailing whitespace" || rule.name === "No double spaces in titles")
         ) {
           const original = content;
           if (rule.name === "Trailing whitespace") {
@@ -65,9 +64,7 @@ export async function auditSpelling(fix: boolean = false) {
             const fixedLines = lines.map((line) => {
               if (line.startsWith("#")) {
                 // Only replace multiple spaces that aren't leading or trailing
-                return line
-                  .trimEnd()
-                  .replace(/([^\s])[ \t]{2,}([^\s])/g, "$1 $2");
+                return line.trimEnd().replace(/([^\s])[ \t]{2,}([^\s])/g, "$1 $2");
               }
               return line;
             });

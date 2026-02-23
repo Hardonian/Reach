@@ -15,8 +15,7 @@ export function calculateBreakEven(
   const runs_per_user_month = 100;
 
   const variable_cost_per_user = runs_per_user_month * avg_cost_per_run;
-  const contribution_margin_per_user =
-    pricing_tier_monthly - variable_cost_per_user;
+  const contribution_margin_per_user = pricing_tier_monthly - variable_cost_per_user;
 
   if (contribution_margin_per_user <= 0) {
     return {
@@ -29,8 +28,7 @@ export function calculateBreakEven(
   return {
     users_needed: Math.ceil(fixed_costs_monthly / contribution_margin_per_user),
     runs_per_day_needed: Math.ceil(
-      (fixed_costs_monthly / contribution_margin_per_user) *
-        (runs_per_user_month / 30),
+      (fixed_costs_monthly / contribution_margin_per_user) * (runs_per_user_month / 30),
     ),
     current_margin: contribution_margin_per_user,
   };

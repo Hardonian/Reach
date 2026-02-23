@@ -54,9 +54,7 @@ const commands = {
 
       try {
         const content = JSON.parse(fs.readFileSync(schemaPath, "utf8"));
-        if (
-          content.$schema !== "https://json-schema.org/draft/2020-12/schema"
-        ) {
+        if (content.$schema !== "https://json-schema.org/draft/2020-12/schema") {
           console.error(`✗ ${schema}: Must declare draft 2020-12`);
           allValid = false;
         } else {

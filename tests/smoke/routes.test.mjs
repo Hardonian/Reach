@@ -67,9 +67,7 @@ async function testRoute(path, heading, allowRedirect = false) {
 
     // Check for heading text (case-insensitive substring)
     if (heading && !body.toLowerCase().includes(heading.toLowerCase())) {
-      console.warn(
-        `  WARN: ${path} → 200 but missing expected text "${heading}"`,
-      );
+      console.warn(`  WARN: ${path} → 200 but missing expected text "${heading}"`);
       // Don't fail on heading check — content may be client-rendered
     }
 
@@ -106,9 +104,7 @@ async function main() {
     await testRoute(route.path, route.heading, true);
   }
 
-  console.log(
-    `\n--- Results: ${passed} passed, ${failed} failed, ${skipped} skipped ---`,
-  );
+  console.log(`\n--- Results: ${passed} passed, ${failed} failed, ${skipped} skipped ---`);
 
   if (skipped > 0 && passed === 0) {
     console.log("Server not reachable — tests skipped (not a failure).");

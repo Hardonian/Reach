@@ -4,19 +4,14 @@
   <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>
-      Safe Ops Simulation &amp; Sandbox - Reach Agentic Orchestration
-    </title>
+    <title>Safe Ops Simulation &amp; Sandbox - Reach Agentic Orchestration</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap"
       rel="stylesheet"
     />
     <!-- Google Material Icons -->
-    <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
     <link
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
       rel="stylesheet"
@@ -94,9 +89,7 @@
       ></div>
     </div>
     <!-- Scanline Overlay -->
-    <div
-      class="fixed inset-0 pointer-events-none z-50 opacity-10 scanlines"
-    ></div>
+    <div class="fixed inset-0 pointer-events-none z-50 opacity-10 scanlines"></div>
     <!-- Header / Simulation Toggle -->
     <header
       class="relative z-20 border-b border-white/5 bg-surface-darker/80 backdrop-blur-md h-16 flex items-center justify-between px-6 shrink-0 shadow-lg"
@@ -116,9 +109,7 @@
         <div
           class="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-mono tracking-wider animate-pulse"
         >
-          <span
-            class="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_currentColor]"
-          ></span>
+          <span class="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_currentColor]"></span>
           SIMULATION MODE ACTIVE
         </div>
       </div>
@@ -128,9 +119,7 @@
         </div>
         <!-- Toggle Switch -->
         <div class="flex items-center gap-3">
-          <span class="text-sm font-medium text-slate-300"
-            >Simulation Mode</span
-          >
+          <span class="text-sm font-medium text-slate-300">Simulation Mode</span>
           <label class="relative inline-flex items-center cursor-pointer group">
             <input checked="" class="sr-only peer" type="checkbox" />
             <div
@@ -144,9 +133,7 @@
       </div>
     </header>
     <!-- Main Content Grid -->
-    <main
-      class="relative z-10 flex-1 grid grid-cols-12 gap-6 p-6 h-[calc(100vh-4rem)]"
-    >
+    <main class="relative z-10 flex-1 grid grid-cols-12 gap-6 p-6 h-[calc(100vh-4rem)]">
       <!-- Left Panel: Fault Injection & Config -->
       <aside
         class="col-span-12 lg:col-span-3 flex flex-col gap-6 overflow-y-auto pr-2 pb-6 scrollbar-hide"
@@ -160,12 +147,8 @@
           >
             <span class="material-icons-round text-6xl text-primary">bolt</span>
           </div>
-          <h2
-            class="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2"
-          >
-            <span class="material-icons-round text-primary text-base"
-              >tune</span
-            >
+          <h2 class="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
+            <span class="material-icons-round text-primary text-base">tune</span>
             FAULT INJECTION
           </h2>
           <div class="space-y-5">
@@ -194,25 +177,19 @@
                 type="range"
                 value="15"
               />
-              <div
-                class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono"
-              >
+              <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
                 <span>0%</span>
                 <span>CRITICAL &gt; 80%</span>
               </div>
             </div>
-            <div
-              class="p-3 bg-background-dark/50 rounded-lg border border-white/5"
-            >
+            <div class="p-3 bg-background-dark/50 rounded-lg border border-white/5">
               <div class="flex items-center gap-3 mb-2">
                 <input
                   class="rounded border-slate-600 bg-slate-700 text-primary focus:ring-primary focus:ring-offset-background-dark"
                   id="spike"
                   type="checkbox"
                 />
-                <label class="text-sm text-slate-300" for="spike"
-                  >Simulate Token Spike</label
-                >
+                <label class="text-sm text-slate-300" for="spike">Simulate Token Spike</label>
               </div>
               <p class="text-xs text-slate-500 pl-7">
                 Injects a 10x token load burst to test autoscaling limits.
@@ -221,8 +198,7 @@
             <button
               class="w-full bg-primary hover:bg-primary-hover active:bg-primary text-white py-3 rounded-lg font-medium shadow-glow transition-all flex items-center justify-center gap-2 group/btn"
             >
-              <span
-                class="material-icons-round text-sm group-hover/btn:animate-spin"
+              <span class="material-icons-round text-sm group-hover/btn:animate-spin"
                 >play_arrow</span
               >
               RUN SCENARIO
@@ -230,23 +206,13 @@
           </div>
         </div>
         <!-- 'What-If' Config Editor -->
-        <div
-          class="bg-surface-dark border border-white/5 rounded-xl p-5 shadow-lg flex-1"
-        >
+        <div class="bg-surface-dark border border-white/5 rounded-xl p-5 shadow-lg flex-1">
           <div class="flex items-center justify-between mb-4">
-            <h2
-              class="text-sm font-semibold text-slate-200 flex items-center gap-2"
-            >
-              <span class="material-icons-round text-primary text-base"
-                >science</span
-              >
+            <h2 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+              <span class="material-icons-round text-primary text-base">science</span>
               WHAT-IF CONFIG
             </h2>
-            <button
-              class="text-xs text-primary hover:text-white transition-colors"
-            >
-              Reset
-            </button>
+            <button class="text-xs text-primary hover:text-white transition-colors">Reset</button>
           </div>
           <p class="text-xs text-slate-400 mb-5">
             Temporarily lower guardrail thresholds to force trip breakers.
@@ -267,9 +233,7 @@
               </div>
               <div class="relative h-8 flex items-center">
                 <!-- Visual Slider implementation -->
-                <div
-                  class="w-full h-1 bg-slate-700 rounded-full overflow-hidden"
-                >
+                <div class="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
                   <div class="h-full bg-slate-500 w-[50%]"></div>
                 </div>
                 <div
@@ -291,9 +255,7 @@
                 />
               </div>
               <div class="relative h-8 flex items-center">
-                <div
-                  class="w-full h-1 bg-slate-700 rounded-full overflow-hidden"
-                >
+                <div class="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
                   <div class="h-full bg-slate-500 w-[20%]"></div>
                 </div>
                 <div
@@ -315,9 +277,7 @@
                 />
               </div>
               <div class="relative h-8 flex items-center">
-                <div
-                  class="w-full h-1 bg-slate-700 rounded-full overflow-hidden"
-                >
+                <div class="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
                   <div class="h-full bg-slate-500 w-[80%]"></div>
                 </div>
                 <div
@@ -334,9 +294,7 @@
       >
         <!-- Dashboard Header -->
         <div class="flex items-center justify-between">
-          <h2 class="text-lg font-bold text-white tracking-tight">
-            Circuit Breaker Status
-          </h2>
+          <h2 class="text-lg font-bold text-white tracking-tight">Circuit Breaker Status</h2>
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-success animate-pulse"></span>
             <span class="text-xs font-mono text-success">SYSTEM ONLINE</span>
@@ -350,16 +308,12 @@
           >
             <div class="flex justify-between items-start mb-6 z-10 relative">
               <div>
-                <p
-                  class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1"
-                >
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">
                   Projected Cost
                 </p>
                 <h3 class="text-3xl font-mono font-semibold text-white">
                   $42.80
-                  <span class="text-sm text-slate-500 font-normal"
-                    >/ $50.00</span
-                  >
+                  <span class="text-sm text-slate-500 font-normal">/ $50.00</span>
                 </h3>
               </div>
               <div
@@ -369,30 +323,22 @@
               </div>
             </div>
             <!-- Progress Bar Visual -->
-            <div
-              class="relative h-4 bg-slate-800 rounded-full overflow-hidden mb-2"
-            >
+            <div class="relative h-4 bg-slate-800 rounded-full overflow-hidden mb-2">
               <div
                 class="absolute top-0 left-0 h-full w-[85%] bg-gradient-to-r from-primary to-primary-light rounded-full shadow-[0_0_10px_rgba(127,19,236,0.5)]"
               ></div>
               <!-- Marker for threshold -->
-              <div
-                class="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10 right-[10%]"
-              ></div>
+              <div class="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10 right-[10%]"></div>
             </div>
             <div class="flex justify-between text-xs font-mono text-slate-500">
               <span>$0.00</span>
               <span class="text-red-400">Limit: $50.00</span>
             </div>
             <!-- Background abstract graph -->
-            <div
-              class="absolute bottom-0 right-0 w-1/2 h-full opacity-10 pointer-events-none"
-            >
+            <div class="absolute bottom-0 right-0 w-1/2 h-full opacity-10 pointer-events-none">
               <div
                 class="w-full h-full bg-gradient-to-t from-primary/20 to-transparent"
-                style="
-                  mask-image: linear-gradient(to right, transparent, black);
-                "
+                style="mask-image: linear-gradient(to right, transparent, black)"
               ></div>
             </div>
           </div>
@@ -402,9 +348,7 @@
           >
             <div class="flex justify-between items-start mb-2">
               <div>
-                <p
-                  class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1"
-                >
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">
                   Token Usage
                 </p>
                 <h3 class="text-2xl font-mono font-semibold text-white">
@@ -442,16 +386,12 @@
                   stroke-width="8"
                 ></circle>
               </svg>
-              <div
-                class="absolute inset-0 flex items-center justify-center flex-col"
-              >
+              <div class="absolute inset-0 flex items-center justify-center flex-col">
                 <span class="text-2xl font-bold text-white">80%</span>
                 <span class="text-[10px] text-slate-400">UTILIZATION</span>
               </div>
             </div>
-            <p class="text-center text-xs text-slate-500 mt-2">
-              Approaching 100k Limit
-            </p>
+            <p class="text-center text-xs text-slate-500 mt-2">Approaching 100k Limit</p>
           </div>
           <!-- Max Concurrency Card -->
           <div
@@ -459,9 +399,7 @@
           >
             <div class="flex justify-between items-start mb-4">
               <div>
-                <p
-                  class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1"
-                >
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">
                   Active Threads
                 </p>
                 <h3 class="text-2xl font-mono font-semibold text-white">
@@ -485,17 +423,12 @@
               <div class="w-1/12 bg-primary/40 h-[50%] rounded-sm"></div>
               <div class="w-1/12 bg-primary/20 h-[30%] rounded-sm"></div>
               <div class="w-1/12 bg-primary/60 h-[75%] rounded-sm"></div>
-              <div
-                class="w-1/12 bg-primary/80 h-[80%] rounded-sm animate-pulse"
-              ></div>
+              <div class="w-1/12 bg-primary/80 h-[80%] rounded-sm animate-pulse"></div>
               <!-- Current -->
               <div
                 class="w-1/12 border-t-2 border-dashed border-slate-600 h-full relative opacity-50"
               >
-                <span
-                  class="absolute top-0 right-0 text-[9px] text-slate-500 -mt-4"
-                  >Max</span
-                >
+                <span class="absolute top-0 right-0 text-[9px] text-slate-500 -mt-4">Max</span>
               </div>
             </div>
           </div>
@@ -531,29 +464,15 @@
               stroke-width="2"
             ></path>
             <defs>
-              <lineargradient
-                id="gradientPrimary"
-                x1="0%"
-                x2="0%"
-                y1="0%"
-                y2="100%"
-              >
-                <stop
-                  offset="0%"
-                  style="stop-color: #7f13ec; stop-opacity: 1"
-                ></stop>
-                <stop
-                  offset="100%"
-                  style="stop-color: #7f13ec; stop-opacity: 0"
-                ></stop>
+              <lineargradient id="gradientPrimary" x1="0%" x2="0%" y1="0%" y2="100%">
+                <stop offset="0%" style="stop-color: #7f13ec; stop-opacity: 1"></stop>
+                <stop offset="100%" style="stop-color: #7f13ec; stop-opacity: 0"></stop>
               </lineargradient>
             </defs>
           </svg>
           <!-- Data overlay -->
           <div class="absolute top-4 left-4">
-            <h4 class="text-xs text-slate-400 font-mono mb-1">
-              REAL-TIME TRAFFIC
-            </h4>
+            <h4 class="text-xs text-slate-400 font-mono mb-1">REAL-TIME TRAFFIC</h4>
             <div class="flex gap-4">
               <div class="flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-primary"></span>
@@ -579,15 +498,9 @@
       <aside
         class="col-span-12 lg:col-span-3 h-full flex flex-col bg-surface-darker border border-white/10 rounded-xl overflow-hidden shadow-2xl"
       >
-        <div
-          class="p-3 border-b border-white/5 bg-surface-dark flex justify-between items-center"
-        >
-          <h3
-            class="text-xs font-mono font-bold text-slate-300 flex items-center gap-2"
-          >
-            <span class="material-icons-round text-sm text-slate-500"
-              >terminal</span
-            >
+        <div class="p-3 border-b border-white/5 bg-surface-dark flex justify-between items-center">
+          <h3 class="text-xs font-mono font-bold text-slate-300 flex items-center gap-2">
+            <span class="material-icons-round text-sm text-slate-500">terminal</span>
             SIMULATION_LOG
           </h3>
           <div class="flex gap-2">
@@ -608,8 +521,8 @@
           <div class="flex gap-3 text-primary-light">
             <span class="text-slate-600 shrink-0">[14:02:15]</span>
             <span
-              ><span class="text-primary font-bold">&gt;&gt;</span> Mock load
-              injection started. (Type: Latency)</span
+              ><span class="text-primary font-bold">&gt;&gt;</span> Mock load injection started.
+              (Type: Latency)</span
             >
           </div>
           <!-- Log Entry: Info -->
@@ -634,9 +547,7 @@
             class="flex gap-3 text-red-400 border-l-2 border-red-500 pl-2 bg-red-500/10 rounded-r animate-pulse"
           >
             <span class="text-slate-600 shrink-0">[14:02:22]</span>
-            <span class="font-bold"
-              >CRITICAL: Max Concurrency threshold approached. (8/10)</span
-            >
+            <span class="font-bold">CRITICAL: Max Concurrency threshold approached. (8/10)</span>
           </div>
           <!-- Log Entry: System Action -->
           <div class="flex gap-3 text-blue-400">

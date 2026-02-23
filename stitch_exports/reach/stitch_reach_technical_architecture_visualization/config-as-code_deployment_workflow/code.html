@@ -73,9 +73,7 @@
   >
     <div class="relative flex h-screen w-full flex-row overflow-hidden">
       <!-- SIDEBAR (Background Context) -->
-      <div
-        class="hidden lg:flex w-72 flex-col border-r border-border-dark bg-background-dark"
-      >
+      <div class="hidden lg:flex w-72 flex-col border-r border-border-dark bg-background-dark">
         <div class="flex items-center gap-3 px-6 py-5">
           <div
             class="bg-center bg-no-repeat bg-cover rounded-full size-10"
@@ -85,9 +83,7 @@
             "
           ></div>
           <div class="flex flex-col">
-            <h1 class="text-white text-base font-semibold leading-normal">
-              Reach Control
-            </h1>
+            <h1 class="text-white text-base font-semibold leading-normal">Reach Control</h1>
             <p class="text-slate-400 text-xs font-normal">Orchestration v2.4</p>
           </div>
         </div>
@@ -95,33 +91,25 @@
           <div
             class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-dark cursor-pointer text-slate-400 hover:text-white transition-colors"
           >
-            <span class="material-symbols-outlined text-[20px]"
-              >donut_small</span
-            >
+            <span class="material-symbols-outlined text-[20px]">donut_small</span>
             <span class="text-sm font-medium">Dashboard</span>
           </div>
           <div
             class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-dark cursor-pointer text-slate-400 hover:text-white transition-colors"
           >
-            <span class="material-symbols-outlined text-[20px]"
-              >cloud_upload</span
-            >
+            <span class="material-symbols-outlined text-[20px]">cloud_upload</span>
             <span class="text-sm font-medium">Deployments</span>
           </div>
           <div
             class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary cursor-pointer"
           >
-            <span class="material-symbols-outlined text-[20px] fill-1"
-              >code</span
-            >
+            <span class="material-symbols-outlined text-[20px] fill-1">code</span>
             <span class="text-sm font-medium">Configuration</span>
           </div>
           <div
             class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-dark cursor-pointer text-slate-400 hover:text-white transition-colors"
           >
-            <span class="material-symbols-outlined text-[20px]"
-              >visibility</span
-            >
+            <span class="material-symbols-outlined text-[20px]">visibility</span>
             <span class="text-sm font-medium">Observability</span>
           </div>
           <div
@@ -137,20 +125,14 @@
         class="flex-1 flex flex-col bg-background-dark relative overflow-y-auto custom-scrollbar opacity-30 pointer-events-none select-none"
       >
         <!-- Header -->
-        <div
-          class="flex items-center justify-between px-8 py-5 border-b border-border-dark"
-        >
+        <div class="flex items-center justify-between px-8 py-5 border-b border-border-dark">
           <div class="flex flex-col gap-1">
             <div class="flex items-center gap-2 text-slate-400 text-sm">
               <span>Configuration</span>
-              <span class="material-symbols-outlined text-[14px]"
-                >chevron_right</span
-              >
+              <span class="material-symbols-outlined text-[14px]">chevron_right</span>
               <span class="text-white">Patch Generator</span>
             </div>
-            <h2 class="text-2xl font-bold text-white">
-              Configuration Management
-            </h2>
+            <h2 class="text-2xl font-bold text-white">Configuration Management</h2>
           </div>
           <div class="flex gap-3">
             <button
@@ -158,9 +140,7 @@
             >
               Sync Repo
             </button>
-            <button
-              class="px-4 py-2 bg-primary rounded-lg text-sm font-medium text-white"
-            >
+            <button class="px-4 py-2 bg-primary rounded-lg text-sm font-medium text-white">
               New Deployment
             </button>
           </div>
@@ -168,19 +148,13 @@
         <!-- Content Area Mockup -->
         <div class="p-8 grid grid-cols-3 gap-6">
           <!-- Card 1 -->
-          <div
-            class="col-span-2 rounded-xl border border-border-dark bg-surface-dark p-6"
-          >
-            <div
-              class="h-40 bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg mb-4"
-            ></div>
+          <div class="col-span-2 rounded-xl border border-border-dark bg-surface-dark p-6">
+            <div class="h-40 bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg mb-4"></div>
             <div class="h-4 w-1/3 bg-slate-700 rounded mb-2"></div>
             <div class="h-3 w-1/2 bg-slate-800 rounded"></div>
           </div>
           <!-- Card 2 -->
-          <div
-            class="col-span-1 rounded-xl border border-border-dark bg-surface-dark p-6"
-          >
+          <div class="col-span-1 rounded-xl border border-border-dark bg-surface-dark p-6">
             <div class="h-4 w-1/2 bg-slate-700 rounded mb-4"></div>
             <div class="space-y-2">
               <div class="h-10 bg-slate-800/50 rounded w-full"></div>
@@ -206,18 +180,14 @@
               <h3 class="text-lg font-bold text-white leading-tight">
                 Generate Configuration Patch
               </h3>
-              <p class="text-slate-400 text-sm">
-                Review changes before pushing to GitOps repo
-              </p>
+              <p class="text-slate-400 text-sm">Review changes before pushing to GitOps repo</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
             <span
               class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-500/10 text-yellow-500 text-xs font-medium border border-yellow-500/20"
             >
-              <span
-                class="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"
-              ></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
               Drafting Patch
             </span>
             <button
@@ -228,47 +198,32 @@
           </div>
         </div>
         <!-- Panel Content (Scrollable) -->
-        <div
-          class="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-8"
-        >
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-8">
           <!-- Target Repo Section -->
           <section class="flex flex-col gap-4">
             <div class="flex items-center justify-between">
-              <h4
-                class="text-sm font-semibold text-slate-300 uppercase tracking-wider"
-              >
+              <h4 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">
                 Target Repository
               </h4>
-              <div
-                class="flex items-center gap-1.5 text-emerald-500 text-xs font-medium"
-              >
-                <span class="material-symbols-outlined text-[14px]"
-                  >check_circle</span
-                >
+              <div class="flex items-center gap-1.5 text-emerald-500 text-xs font-medium">
+                <span class="material-symbols-outlined text-[14px]">check_circle</span>
                 Connected to reach-ops/production-config
               </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="flex flex-col gap-2">
-                <label class="text-xs font-medium text-slate-400"
-                  >Repository URL</label
-                >
+                <label class="text-xs font-medium text-slate-400">Repository URL</label>
                 <div
                   class="flex items-center gap-2 px-3 py-2.5 bg-background-dark border border-border-dark rounded-lg text-sm text-slate-300 font-mono"
                 >
-                  <span
-                    class="material-symbols-outlined text-slate-500 text-[18px]"
+                  <span class="material-symbols-outlined text-slate-500 text-[18px]"
                     >folder_data</span
                   >
-                  <span class="truncate"
-                    >github.com/reach-ops/production-config</span
-                  >
+                  <span class="truncate">github.com/reach-ops/production-config</span>
                 </div>
               </div>
               <div class="flex flex-col gap-2">
-                <label class="text-xs font-medium text-slate-400"
-                  >Base Branch</label
-                >
+                <label class="text-xs font-medium text-slate-400">Base Branch</label>
                 <div class="relative">
                   <select
                     class="w-full appearance-none bg-background-dark border border-border-dark rounded-lg text-sm text-white px-3 py-2.5 pr-8 focus:ring-1 focus:ring-primary focus:border-primary outline-none cursor-pointer"
@@ -289,12 +244,8 @@
               class="p-4 rounded-lg bg-surface-dark border border-border-dark flex flex-col gap-3"
             >
               <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-white"
-                  >Target Branch</span
-                >
-                <span class="text-xs text-slate-400"
-                  >New branch will be created</span
-                >
+                <span class="text-sm font-medium text-white">Target Branch</span>
+                <span class="text-xs text-slate-400">New branch will be created</span>
               </div>
               <div class="flex gap-2">
                 <span
@@ -314,25 +265,18 @@
           <!-- Change Summary -->
           <section class="flex flex-col gap-4">
             <div class="flex items-center justify-between">
-              <h4
-                class="text-sm font-semibold text-slate-300 uppercase tracking-wider"
-              >
+              <h4 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">
                 Staged Changes (3)
               </h4>
-              <span class="text-xs text-slate-500 font-mono"
-                >Last modified: 2 mins ago</span
-              >
+              <span class="text-xs text-slate-500 font-mono">Last modified: 2 mins ago</span>
             </div>
-            <div
-              class="rounded-lg border border-border-dark bg-surface-dark overflow-hidden"
-            >
+            <div class="rounded-lg border border-border-dark bg-surface-dark overflow-hidden">
               <!-- File 1 -->
               <div
                 class="group flex items-center justify-between p-3 border-b border-border-dark hover:bg-white/5 cursor-pointer transition-colors"
               >
                 <div class="flex items-center gap-3">
-                  <span
-                    class="material-symbols-outlined text-amber-500 text-[18px]"
+                  <span class="material-symbols-outlined text-amber-500 text-[18px]"
                     >description</span
                   >
                   <span class="text-sm text-slate-200 font-mono"
@@ -355,8 +299,7 @@
                 class="group flex items-center justify-between p-3 border-b border-border-dark hover:bg-white/5 cursor-pointer transition-colors"
               >
                 <div class="flex items-center gap-3">
-                  <span
-                    class="material-symbols-outlined text-emerald-500 text-[18px]"
+                  <span class="material-symbols-outlined text-emerald-500 text-[18px]"
                     >description</span
                   >
                   <span class="text-sm text-slate-200 font-mono"
@@ -379,13 +322,10 @@
                 class="group flex items-center justify-between p-3 hover:bg-white/5 cursor-pointer transition-colors"
               >
                 <div class="flex items-center gap-3">
-                  <span
-                    class="material-symbols-outlined text-rose-500 text-[18px]"
+                  <span class="material-symbols-outlined text-rose-500 text-[18px]"
                     >description</span
                   >
-                  <span class="text-sm text-slate-200 font-mono"
-                    >apps/legacy/config-v1.json</span
-                  >
+                  <span class="text-sm text-slate-200 font-mono">apps/legacy/config-v1.json</span>
                 </div>
                 <div class="flex items-center gap-3">
                   <span
@@ -403,9 +343,7 @@
           <!-- Diff Viewer -->
           <section class="flex flex-col gap-4 flex-1 min-h-[300px]">
             <div class="flex items-center justify-between">
-              <h4
-                class="text-sm font-semibold text-slate-300 uppercase tracking-wider"
-              >
+              <h4 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">
                 Preview Diff
               </h4>
               <div class="flex gap-2">
@@ -414,9 +352,7 @@
                 >
                   Split
                 </button>
-                <button
-                  class="px-2 py-1 rounded bg-white/10 text-xs text-white font-medium"
-                >
+                <button class="px-2 py-1 rounded bg-white/10 text-xs text-white font-medium">
                   Unified
                 </button>
               </div>
@@ -427,9 +363,7 @@
               <div
                 class="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-border-dark"
               >
-                <span class="text-slate-400"
-                  >apps/payment-service/deployment.yaml</span
-                >
+                <span class="text-slate-400">apps/payment-service/deployment.yaml</span>
                 <span class="text-slate-500">@@ -12,7 +12,7 @@</span>
               </div>
               <div class="p-4 overflow-x-auto custom-scrollbar">
@@ -481,9 +415,7 @@
                       >
                         +15
                       </td>
-                      <td class="pl-4 text-emerald-300">
-                        app: payment-service-v2
-                      </td>
+                      <td class="pl-4 text-emerald-300">app: payment-service-v2</td>
                     </tr>
                     <tr class="text-slate-500">
                       <td
@@ -507,9 +439,7 @@
                       >
                         +18
                       </td>
-                      <td class="pl-4 text-emerald-300">
-                        - name: sidecar-proxy
-                      </td>
+                      <td class="pl-4 text-emerald-300">- name: sidecar-proxy</td>
                     </tr>
                     <tr class="bg-emerald-900/10">
                       <td
@@ -526,8 +456,7 @@
           </section>
           <!-- Commit Message -->
           <section class="flex flex-col gap-3">
-            <label
-              class="text-sm font-semibold text-slate-300 uppercase tracking-wider"
+            <label class="text-sm font-semibold text-slate-300 uppercase tracking-wider"
               >Commit Details</label
             >
             <input
@@ -543,16 +472,12 @@
           </section>
         </div>
         <!-- Footer Actions -->
-        <div
-          class="px-6 py-5 border-t border-border-dark bg-[#111318] flex flex-col gap-4"
-        >
+        <div class="px-6 py-5 border-t border-border-dark bg-[#111318] flex flex-col gap-4">
           <div class="flex items-center gap-3">
             <button
               class="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white font-medium py-2.5 px-4 rounded-lg transition-all shadow-lg shadow-primary/20"
             >
-              <span class="material-symbols-outlined text-[20px]"
-                >call_merge</span
-              >
+              <span class="material-symbols-outlined text-[20px]">call_merge</span>
               Open Pull Request
             </button>
             <button
@@ -562,13 +487,10 @@
               Discard
             </button>
           </div>
-          <div
-            class="flex items-center justify-center gap-2 text-xs text-slate-500"
-          >
+          <div class="flex items-center justify-center gap-2 text-xs text-slate-500">
             <span class="material-symbols-outlined text-[14px]">lock</span>
             Authenticated as
-            <span class="text-slate-400 font-medium">dev-bot-01</span> via
-            GitHub App
+            <span class="text-slate-400 font-medium">dev-bot-01</span> via GitHub App
           </div>
         </div>
       </div>

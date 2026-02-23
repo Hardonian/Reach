@@ -31,9 +31,7 @@ interface TruthReport {
 
 function getPackageScripts(): Set<string> {
   const scripts = new Set<string>();
-  const rootPkg = JSON.parse(
-    fs.readFileSync(path.join(REPO_ROOT, "package.json"), "utf-8"),
-  );
+  const rootPkg = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, "package.json"), "utf-8"));
   Object.keys(rootPkg.scripts || {}).forEach((s) => scripts.add(s));
 
   // Also check apps/arcade
@@ -129,8 +127,7 @@ function validateTruth() {
     const envRegex = /`([A-Z][A-Z0-9_]{3,})`/g;
     while ((match = envRegex.exec(content)) !== null) {
       const envVar = match[1];
-      if (["LICENSE", "VERSION", "NOTICE", "README", "CI"].includes(envVar))
-        continue;
+      if (["LICENSE", "VERSION", "NOTICE", "README", "CI"].includes(envVar)) continue;
 
       if (!envs.has(envVar)) {
         issues.push({
@@ -166,9 +163,7 @@ function validateTruth() {
   if (issues.length > 0) {
     console.warn(`Found ${issues.length} drift issues in repo truth files:`);
     issues.forEach((issue) => {
-      console.log(
-        `[${issue.type.toUpperCase()}] ${issue.file}: ${issue.message}`,
-      );
+      console.log(`[${issue.type.toUpperCase()}] ${issue.file}: ${issue.message}`);
     });
     process.exit(1);
   } else {

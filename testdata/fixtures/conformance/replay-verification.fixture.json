@@ -7,9 +7,7 @@
     "engine_version": "0.2.0",
     "policy_version": "sha256:policy-strict-default-v1",
     "input_hash": "sha256:2c624232cdd221771294ef6ff482edb8b44e69d3e1d2c1b50e87a7a29d23abe5",
-    "artifact_hashes": [
-      "sha256:aab7cf32fe6e0ene12c1f40c7694a8d0b823b64f35d4e55dbfed5d7e1b5efc6c"
-    ],
+    "artifact_hashes": ["sha256:aab7cf32fe6e0ene12c1f40c7694a8d0b823b64f35d4e55dbfed5d7e1b5efc6c"],
     "output_hash": "sha256:4b4da8b53dabb5f44f5df5f7e001b6c3db0de7f97e11c56e8e36cce46e65a78c",
     "event_log_hash": "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
     "timestamp_epoch": 0,

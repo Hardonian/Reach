@@ -1,11 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  mkdtempSync,
-  mkdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { parseAgentsArgs, runAgentsCommand } from "../../src/cli/agents-cli.js";
@@ -15,10 +9,7 @@ import {
   validateMcpToolDefinitions,
 } from "../../src/cli/mcp-cli.js";
 import { executeZeoliteOperation } from "../../src/core/zeolite-core.js";
-import {
-  parseTranscriptArgs,
-  runTranscriptCommand,
-} from "../../src/cli/transcript-cli.js";
+import { parseTranscriptArgs, runTranscriptCommand } from "../../src/cli/transcript-cli.js";
 
 async function withTempCwd<T>(fn: (cwd: string) => Promise<T> | T): Promise<T> {
   const prev = process.cwd();
@@ -53,28 +44,17 @@ describe("agents lifecycle integration", () => {
         ),
       );
 
-      expect(
-        await runAgentsCommand(
-          parseAgentsArgs(["add", "source-agent", "--accept"]),
-        ),
-      ).toBe(0);
+      expect(await runAgentsCommand(parseAgentsArgs(["add", "source-agent", "--accept"]))).toBe(0);
       expect(await runAgentsCommand(parseAgentsArgs(["list"]))).toBe(0);
-      expect(
-        await runAgentsCommand(parseAgentsArgs(["inspect", "test-agent"])),
-      ).toBe(0);
+      expect(await runAgentsCommand(parseAgentsArgs(["inspect", "test-agent"]))).toBe(0);
 
       const lock = JSON.parse(
-        readFileSync(
-          join(cwd, ".zeo/agents/test-agent/zeo.agent.lock.json"),
-          "utf8",
-        ),
+        readFileSync(join(cwd, ".zeo/agents/test-agent/zeo.agent.lock.json"), "utf8"),
       ) as Record<string, unknown>;
       expect(lock.mode).toBe("proposal_only");
       expect((lock.sandbox as Record<string, boolean>).fs).toBe(false);
 
-      expect(
-        await runAgentsCommand(parseAgentsArgs(["remove", "test-agent"])),
-      ).toBe(0);
+      expect(await runAgentsCommand(parseAgentsArgs(["remove", "test-agent"]))).toBe(0);
     });
   });
 });
@@ -174,21 +154,10 @@ describe("transcript CLI and MCP parity", () => {
         contextId,
       }) as { transcript: unknown };
       const transcriptPath = join(cwd, "transcript.json");
-      writeFileSync(
-        transcriptPath,
-        JSON.stringify(exported.transcript, null, 2),
-      );
+      writeFileSync(transcriptPath, JSON.stringify(exported.transcript, null, 2));
 
-      expect(
-        await runTranscriptCommand(
-          parseTranscriptArgs(["verify", transcriptPath]),
-        ),
-      ).toBe(0);
-      expect(
-        await runTranscriptCommand(
-          parseTranscriptArgs(["replay", transcriptPath]),
-        ),
-      ).toBe(0);
+      expect(await runTranscriptCommand(parseTranscriptArgs(["verify", transcriptPath]))).toBe(0);
+      expect(await runTranscriptCommand(parseTranscriptArgs(["replay", transcriptPath]))).toBe(0);
     });
   });
 
@@ -205,9 +174,7 @@ describe("transcript CLI and MCP parity", () => {
     const parsed = JSON.parse(toolsListRaw ?? "{}") as {
       result?: { tools?: Array<{ name: string }> };
     };
-    const names = new Set(
-      (parsed.result?.tools ?? []).map((tool) => tool.name),
-    );
+    const names = new Set((parsed.result?.tools ?? []).map((tool) => tool.name));
     expect(names.has("export_transcript")).toBe(true);
     expect(names.has("verify_transcript")).toBe(true);
     expect(names.has("replay_transcript")).toBe(true);

@@ -79,12 +79,7 @@ function validate(data, schema, path = "root") {
   }
 
   // Required fields
-  if (
-    schema.required &&
-    typeof data === "object" &&
-    data !== null &&
-    !Array.isArray(data)
-  ) {
+  if (schema.required && typeof data === "object" && data !== null && !Array.isArray(data)) {
     for (const field of schema.required) {
       if (!(field in data)) {
         addError(`missing required field "${field}"`);
@@ -93,12 +88,7 @@ function validate(data, schema, path = "root") {
   }
 
   // Properties validation
-  if (
-    schema.properties &&
-    typeof data === "object" &&
-    data !== null &&
-    !Array.isArray(data)
-  ) {
+  if (schema.properties && typeof data === "object" && data !== null && !Array.isArray(data)) {
     for (const [key, propSchema] of Object.entries(schema.properties)) {
       if (key in data) {
         const propErrors = validate(data[key], propSchema, `${path}.${key}`);
@@ -129,18 +119,12 @@ function validate(data, schema, path = "root") {
   if (schema.oneOf && Array.isArray(schema.oneOf)) {
     const rootSchema = schema._rootSchema || schema;
     const validCount = schema.oneOf.filter((subSchema) => {
-      const subErrors = validate(
-        data,
-        { ...subSchema, _rootSchema: rootSchema },
-        path,
-      );
+      const subErrors = validate(data, { ...subSchema, _rootSchema: rootSchema }, path);
       return subErrors.length === 0;
     }).length;
 
     if (validCount !== 1) {
-      addError(
-        `expected exactly one of oneOf schemas to match, got ${validCount}`,
-      );
+      addError(`expected exactly one of oneOf schemas to match, got ${validCount}`);
     }
   }
 

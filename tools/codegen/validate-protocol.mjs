@@ -4,11 +4,7 @@ import process from "node:process";
 
 import { fileURLToPath } from "node:url";
 
-const repoRoot = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-);
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const protocolV1Dir = path.join(repoRoot, "protocol", "v1");
 const examplesDir = path.join(repoRoot, "protocol", "examples");
 
@@ -41,10 +37,7 @@ function validateSchemaShape(schema, expectedIdSuffix) {
   if (schema.$schema !== "https://json-schema.org/draft/2020-12/schema") {
     errors.push("schema must declare draft 2020-12.");
   }
-  if (
-    typeof schema.$id !== "string" ||
-    !schema.$id.endsWith(expectedIdSuffix)
-  ) {
+  if (typeof schema.$id !== "string" || !schema.$id.endsWith(expectedIdSuffix)) {
     errors.push(`$id must end with ${expectedIdSuffix}.`);
   }
   if (!isObject(schema.properties)) {
@@ -58,8 +51,7 @@ function validateSession(payload, ctx, errors) {
     errors.push(`${ctx} must be an object.`);
     return;
   }
-  if (payload.schemaVersion !== "1.0.0")
-    errors.push(`${ctx}.schemaVersion must be "1.0.0".`);
+  if (payload.schemaVersion !== "1.0.0") errors.push(`${ctx}.schemaVersion must be "1.0.0".`);
   mustString(payload.sessionId, `${ctx}.sessionId`, errors);
   mustString(payload.tenantId, `${ctx}.tenantId`, errors);
   mustString(payload.status, `${ctx}.status`, errors);
@@ -72,8 +64,7 @@ function validateSpawn(payload, ctx, errors) {
     errors.push(`${ctx} must be an object.`);
     return;
   }
-  if (payload.schemaVersion !== "1.0.0")
-    errors.push(`${ctx}.schemaVersion must be "1.0.0".`);
+  if (payload.schemaVersion !== "1.0.0") errors.push(`${ctx}.schemaVersion must be "1.0.0".`);
   mustString(payload.spawnId, `${ctx}.spawnId`, errors);
   mustString(payload.sessionId, `${ctx}.sessionId`, errors);
   mustString(payload.goal, `${ctx}.goal`, errors);
@@ -87,8 +78,7 @@ function validateConnector(payload, ctx, errors) {
     errors.push(`${ctx} must be an object.`);
     return;
   }
-  if (payload.schemaVersion !== "1.0.0")
-    errors.push(`${ctx}.schemaVersion must be "1.0.0".`);
+  if (payload.schemaVersion !== "1.0.0") errors.push(`${ctx}.schemaVersion must be "1.0.0".`);
   mustString(payload.connectorId, `${ctx}.connectorId`, errors);
   mustString(payload.provider, `${ctx}.provider`, errors);
   mustArray(payload.scopes, `${ctx}.scopes`, errors);
@@ -99,8 +89,7 @@ function validateCapsule(payload, ctx, errors) {
     errors.push(`${ctx} must be an object.`);
     return;
   }
-  if (payload.schemaVersion !== "1.0.0")
-    errors.push(`${ctx}.schemaVersion must be "1.0.0".`);
+  if (payload.schemaVersion !== "1.0.0") errors.push(`${ctx}.schemaVersion must be "1.0.0".`);
   mustString(payload.capsuleId, `${ctx}.capsuleId`, errors);
   validateSession(payload.session, `${ctx}.session`, errors);
   validateSpawn(payload.spawn, `${ctx}.spawn`, errors);
@@ -117,8 +106,7 @@ function validateEventFixture(event, fileName) {
   if (!isObject(event)) {
     return ["fixture must be a JSON object."];
   }
-  if (event.schemaVersion !== "1.0.0")
-    errors.push('event.schemaVersion must be "1.0.0".');
+  if (event.schemaVersion !== "1.0.0") errors.push('event.schemaVersion must be "1.0.0".');
   mustString(event.eventId, "event.eventId", errors);
   mustString(event.type, "event.type", errors);
   mustString(event.timestamp, "event.timestamp", errors);
@@ -135,11 +123,7 @@ function validateEventFixture(event, fileName) {
       if (event.payload.schemaVersion !== "1.0.0")
         errors.push('event.payload.schemaVersion must be "1.0.0".');
       mustString(event.payload.reason, "event.payload.reason", errors);
-      mustString(
-        event.payload.triggeredBy,
-        "event.payload.triggeredBy",
-        errors,
-      );
+      mustString(event.payload.triggeredBy, "event.payload.triggeredBy", errors);
       mustString(event.payload.runId, "event.payload.runId", errors);
       break;
     }
@@ -150,9 +134,7 @@ function validateEventFixture(event, fileName) {
       validateCapsule(event.payload, "event.payload", errors);
       break;
     default:
-      errors.push(
-        `unsupported event.type in ${fileName}: ${String(event.type)}.`,
-      );
+      errors.push(`unsupported event.type in ${fileName}: ${String(event.type)}.`);
   }
 
   return errors;

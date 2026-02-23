@@ -43,11 +43,7 @@ function getRoutes(): Set<string> {
     const parts = relative.split(path.sep);
 
     // Skip special files that aren't routes
-    if (
-      parts.some(
-        (p) => p.startsWith("_") || p.startsWith("(") || p.startsWith("["),
-      )
-    ) {
+    if (parts.some((p) => p.startsWith("_") || p.startsWith("(") || p.startsWith("["))) {
       // Logic for catch-all or grouped routes could be added here if needed
       // For now, we'll keep it simple
     }
@@ -56,13 +52,10 @@ function getRoutes(): Set<string> {
     if (filename === "page.tsx" || filename === "route.ts") {
       let routePath = "/" + parts.slice(0, -1).join("/");
       if (routePath === "//") routePath = "/";
-      if (routePath.length > 1 && routePath.endsWith("/"))
-        routePath = routePath.slice(0, -1);
+      if (routePath.length > 1 && routePath.endsWith("/")) routePath = routePath.slice(0, -1);
 
       // Clean up grouped routes and catch-all for mapping
-      const cleanRoute = routePath
-        .replace(/\/\([^)]+\)/g, "")
-        .replace(/\/\[[^\]]+\]/g, "/*");
+      const cleanRoute = routePath.replace(/\/\([^)]+\)/g, "").replace(/\/\[[^\]]+\]/g, "/*");
       routes.add(cleanRoute || "/");
     }
   });
@@ -98,11 +91,7 @@ function audit() {
   let fixesApplied = 0;
 
   walk(ARCADE_APP_ROOT, (filePath) => {
-    if (
-      !filePath.endsWith(".tsx") &&
-      !filePath.endsWith(".ts") &&
-      !filePath.endsWith(".mdx")
-    )
+    if (!filePath.endsWith(".tsx") && !filePath.endsWith(".ts") && !filePath.endsWith(".mdx"))
       return;
 
     totalFilesChecked++;
@@ -185,15 +174,11 @@ function audit() {
 
   if (issues.length > 0) {
     // In fix mode, if we applied fixes, some issues might still remain (404s)
-    const remainingIssues = IS_FIX_MODE
-      ? issues.filter((i) => i.type === "404")
-      : issues;
+    const remainingIssues = IS_FIX_MODE ? issues.filter((i) => i.type === "404") : issues;
     if (remainingIssues.length > 0) {
       console.warn(`Found ${remainingIssues.length} remaining issues:`);
       remainingIssues.forEach((issue) => {
-        console.log(
-          `[${issue.type.toUpperCase()}] ${issue.file}: ${issue.link}`,
-        );
+        console.log(`[${issue.type.toUpperCase()}] ${issue.file}: ${issue.link}`);
       });
       process.exit(1);
     } else {

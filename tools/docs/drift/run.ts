@@ -41,9 +41,7 @@ function runDoctor() {
   }
 
   if (failed) {
-    console.error(
-      "\n❌ Documentation drift detected! See reports in .artifacts/docs-drift/",
-    );
+    console.error("\n❌ Documentation drift detected! See reports in .artifacts/docs-drift/");
     process.exit(1);
   } else {
     console.log("\n✅ No documentation drift detected.");
