@@ -1130,7 +1130,7 @@ export function parseWorkflowArgs(argv: string[]): WorkflowArgs {
     case "export":
       return {
         ...baseArgs,
-        decision: positional(2),
+        decision: value("--decision") || positional(2),
         subcommand: positional(1) as
           | "md"
           | "ics"
