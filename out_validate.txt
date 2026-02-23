@@ -1,0 +1,2 @@
+Γ¥î Missing documentation entries in docs/README.md:
+   - glossary.md
