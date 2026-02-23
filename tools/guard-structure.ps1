@@ -128,25 +128,25 @@ $AllowedDirs = @(
     "ARTIFACTS"
 )
 
-$EntropyFound = $false
+$script:EntropyFound = $false
 
 Get-ChildItem -Path "." | ForEach-Object {
     $name = $_.Name
     if ($_.PSIsContainer) {
         if ($name -notin $AllowedDirs) {
             Write-Error "Entropy Detected: Unexpected directory found in root: $name"
-            $EntropyFound = $true
+            $script:EntropyFound = $true
         }
     }
     else {
         if ($name -notin $AllowedFiles) {
             Write-Error "Entropy Detected: Unexpected file found in root: $name"
-            $EntropyFound = $true
+            $script:EntropyFound = $true
         }
     }
 }
 
-if ($EntropyFound) {
+if ($script:EntropyFound) {
     Write-Host "`🚨 Structural violation detected. Maintain normalized structure.`" -ForegroundColor Red
     exit 1
 } else {
