@@ -7,7 +7,9 @@ This document outlines the stability guarantees, versioning policy, and what con
 The Reach CLI operates under a strict stability contract to ensure automation and CI/CD pipelines do not break unexpectedly.
 
 ### Stable Commands
+
 The following root `reach` and `reachctl` commands are considered **STABLE**. Their arguments, flags, and standard output formats (especially when using `--json`) will not change in a backwards-incompatible way without a major version bump:
+
 - `doctor`: System health checks.
 - `run`: Execution of packs and workflows.
 - `eval`: Regression testing against golden fixtures.
@@ -18,7 +20,9 @@ The following root `reach` and `reachctl` commands are considered **STABLE**. Th
 - `workflow *`: All workflow subcommands (`start`, `add-note`, `run`, `export`, `health`, `graph`).
 
 ### Experimental / Beta Commands
+
 The following commands are currently **EXPERIMENTAL** and their interfaces or outputs may change in minor releases:
+
 - `cost`: Unit economics and cost analysis.
 - `metrics`: GTM and usage analytics.
 - `wizard`: Guided generic run wizard.
@@ -34,6 +38,7 @@ Data exchanged with Reach must conform to versioned JSON schemas. Changes to the
 ## 3. Fingerprint & Canonicalization Guarantees
 
 Reach guarantees that decision executions are deterministic.
+
 - **Canonicalization**: All JSON outputs and intermediate states are strictly canonicalized (keys sorted, whitespace normalized) before hashing.
 - **Fingerprinting**: Each execution generates a deterministic SHA-256 `fingerprint` (e.g., `run_fingerprint`).
 - **Guarantee**: Given the same inputs, environment factors, and protocol version, Reach guarantees identical outputs and an identical cryptographic fingerprint. Any change to the engine that alters a fingerprint for historical runs is considered a **CRITICAL BREAKING CHANGE**.
@@ -43,15 +48,19 @@ Reach guarantees that decision executions are deterministic.
 Reach strictly adheres to **Semantic Versioning (SemVer) 2.0.0**.
 
 ### What constitutes a Breaking Change?
+
 A change is considered breaking (forcing a `MAJOR` version bump) if it:
+
 1. Removes or renames a STABLE CLI command, flag, or environment variable.
 2. Modifies the canonical serialization format in a way that alters historical fingerprints.
 3. Removes required fields or adds new required fields to a STABLE JSON schema without a fallback.
 4. Alters the evaluation logic of the Rust Decision Engine such that identical inputs yield a different decision output.
 
 ### Compatibility Guarantees
+
 - **Data Portability**: Execution capsules generated in version `N` will be verifiable in version `N` and `N+1`.
 - **API Stability**: Any `--json` CLI output will only append fields in `MINOR` or `PATCH` releases. Existing fields will not be removed or change data types.
 
 ---
-*Reach: Reducing entropy in autonomous systems.*
+
+_Reach: Reducing entropy in autonomous systems._

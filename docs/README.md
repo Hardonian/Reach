@@ -20,6 +20,9 @@ _(Note: Internal architecture specifications and planning documents have been mo
 - [Policy Gates](POLICY_GATE.md) - How governance and safety constraints are enforced.
 - [Federated Execution](FEDERATION.md) - Multi-node execution protocols.
 - [Network Topology](TOPOLOGY.md) - P2P and mesh connectivity.
+- [Stability Contract](stability.md) - Stability guarantees and versioning policy.
+- [Scaling Analysis](scaling.md) - Theoretical and practical scaling limits.
+- [Threat Model](threat-model.md) - Abuse scenarios and security mitigations.
 
 ## ⚙️ Operations & Configuration
 
