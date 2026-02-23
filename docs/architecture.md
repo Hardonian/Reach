@@ -1,58 +1,66 @@
 # Reach System Architecture
 
-## Overview
+Reach is a deterministic execution fabric designed for agentic workflows. It follows a layered approach to ensure strict separation of concerns between presentation, orchestration, and core deterministic computation.
 
-Reach is a deterministic execution fabric designed for agentic workflows. It follows a layered approach to ensure separation of concerns between presentation, orchestration, and core deterministic computation.
+## System Diagram
 
-### System Diagram
+```mermaid
+graph TD;
+    subgraph "CLI & Orchestration"
+        CLI[reach/reachctl CLI]
+        SDK[JS/TS SDK]
+    end
 
-```text
-┌────────────────────────────────┐
-│   Interface Layer (CLI/App)    │
-│  (reachctl, arcade, extensions)│
-└───────────────┬────────────────┘
-                │
-                ▼
-┌────────────────────────────────┐
-│      Orchestration Layer       │
-│  (Workflow, Policy, Registry)  │
-└───────────────┬────────────────┘
-                │
-                ▼
-┌────────────────────────────────┐
-│    Deterministic Core Layer    │
-│   (Rust Core, Evidence Chain)  │
-└────────────────────────────────┘
+    subgraph "Execution Layer"
+        Runner[Go Runner Service]
+        Engine[Rust Decision Engine]
+    end
+
+    subgraph "Governance & Extension"
+        Packs[Policy Packs]
+        Plugins[WASM/JS Plugins]
+    end
+
+    subgraph "Storage & Protocol"
+        Proto[Protocol Schemas]
+        DB[(SQLite / .zeo)]
+    end
+
+    CLI -->|Invokes| Runner
+    SDK -->|Invokes| Runner
+    Runner -->|Loads| Proto
+    Runner -->|Executes| Engine
+    Engine -->|Evaluates| Plugins
+    Engine -->|Enforces| Packs
+    Runner -->|Reads/Writes Events| DB
 ```
 
-## Component Breakdown
+## Layer Boundaries & Responsibilities
 
-1.  **Runner (`services/runner`)**:
-    - The primary service responsible for job queueing, runtime execution, and capability firewalls.
-    - Maintains the boundary between non-deterministic triggers and deterministic execution.
+### 1. Interface Layer (CLI & SDK)
+- **`reachctl` & `./reach`**: The primary entry points for developers and automation environments. Manage workspace orchestration, cryptographic signing, capsule generation, and command-line interactions.
+- Provides commands for running packs, evaluating regressions, health checking, and exporting decision logs.
+- Contains all user-facing flag logic and standard out formatting (`--json`).
 
-2.  **Core Decision Engine (`src/core`)**:
-    - Implements the decision logic and transcript generation.
-    - Provides both a high-performance Rust implementation (via WASM) and a TypeScript fallback for maximum compatibility.
+### 2. Execution Layer (`services/runner` & `crates/decision-engine`)
+**Responsibility:** The determinism boundary. This layer is responsible for running evaluations exactly the same way every time.
+- **Go Runner (`services/runner`)**: Orchestrates the heavier lift of preparing the environment, downloading remote assets if required, and booting the engine. Maintains the boundary between non-deterministic triggers and deterministic execution.
+- **Rust Decision Engine (`crates/decision-engine`)**: The high-performance, canonical core. It takes the context, events, and plugins, and computes the exact outcome and state mutations. It generates the deterministic `fingerprint`.
 
-3.  **Policy Engine (`services/policy-engine`)**:
-    - Enforces governance and safety constraints on every execution.
-    - Ensures that only authorized operations with verified provenance are permitted.
+### 3. Governance & Extension Layer (`policy-packs` & `plugins`)
+**Responsibility:** Providing modular, reusable rulesets and integrations without compromising the core engine.
+- **Policy Packs**: Declarative JSON schemas that define compliance checks, routing rules, or organizational guardrails.
+- **Plugins**: Sandboxed functions (often WASM or isolated JS) that perform custom evaluation logic (e.g., evaluating a complex AST).
 
-4.  **Provenance & Evidence Chain (`protocol/`)**:
-    - Defines the schemas and cryptographic protocols for evidence linking.
-    - Guarantees that every execution has an immutable and verifiable audit trail.
+### 4. Storage & Protocol Layer (`.zeo` & `protocol/`)
+**Responsibility:** Defining the rigid data contracts and maintaining the immutable event stream.
+- **Protocol Schemas**: Versioned JSON schemas dictating the exact structure of inputs, outputs, exceptions, and configuration data.
+- **Local Storage (`SQLite`)**: Reach is local-first. The `.zeo` directory contains the SQLite database maintaining the event-sourced transcript of every workflow, run state, and cryptographic key material. 
 
-## Data Flow
-
-1.  **Trigger**: A manual CLI command or a webhook triggers a workflow.
-2.  **Context Assembly**: Reach gathers all required evidence from the workspace and external sources.
-3.  **Policy Check**: The Policy Engine verifies if the execution is allowed under current governance.
-4.  **Execution**: The Decision Engine computes the outcome and generates a transcript.
-5.  **Finalization**: The transcript is hashed, signed, and stored in the Evidence Chain.
-
-## Trust Boundaries
+## Trust Boundaries & The Determinism Contract
 
 - **Runner** owns runtime execution and capability firewalls.
-- **Policy** owns allow/deny decisions based on signed provenance.
-- **Client Interfaces** (Arcade, CLI) are presentation-only and cannot contain domain logic or secrets.
+- **Policy Packs** own allow/deny decisions based on signed provenance.
+- **Client Interfaces** are presentation-only and cannot contain domain logic or secrets.
+
+Across all these boundaries, Data is strictly canonicalized before crossing. When the Engine yields a decision, the resulting JSON is canonicalized and hashed (SHA-256 fingerprint), which is then immutably committed to Storage.
