@@ -40,5 +40,8 @@
     "tailwindcss": "^4.2.0",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5"
+  },
+  "overrides": {
+    "minimatch": "^10.2.2"
   }
 }
