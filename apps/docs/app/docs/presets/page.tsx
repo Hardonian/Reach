@@ -1,35 +1,35 @@
-import { DocLayout } from '@/components/doc-layout'
-import { CodeBlock } from '@/components/code-block'
+import { DocLayout } from "@/components/doc-layout";
+import { CodeBlock } from "@/components/code-block";
 
 const presetPaths = [
   {
-    category: 'Policy',
-    description: 'Governance and compliance-focused configurations',
-    presets: ['security-basics', 'compliance-minimal', 'audit-ready'],
+    category: "Policy",
+    description: "Governance and compliance-focused configurations",
+    presets: ["security-basics", "compliance-minimal", "audit-ready"],
   },
   {
-    category: 'Trust',
-    description: 'Evidence and verification configurations',
-    presets: ['replay-first-ci', 'drift-hunter', 'evidence-strict'],
+    category: "Trust",
+    description: "Evidence and verification configurations",
+    presets: ["replay-first-ci", "drift-hunter", "evidence-strict"],
   },
   {
-    category: 'Decisions',
-    description: 'Decision workflow templates',
-    presets: ['fast-path', 'full-review', 'automated-gate'],
+    category: "Decisions",
+    description: "Decision workflow templates",
+    presets: ["fast-path", "full-review", "automated-gate"],
   },
   {
-    category: 'Junctions',
-    description: 'Junction rule packs for common patterns',
-    presets: ['ci-cd-gates', 'security-checks', 'cost-guards'],
+    category: "Junctions",
+    description: "Junction rule packs for common patterns",
+    presets: ["ci-cd-gates", "security-checks", "cost-guards"],
   },
-]
+];
 
 export default function PresetsPage() {
   return (
     <DocLayout currentPath="/docs/presets" title="Presets">
       <p className="text-lg text-slate-600 mb-8">
-        Choose your starting path. Presets are pre-configured policy packs, templates,
-        and junction rules optimized for specific use cases.
+        Choose your starting path. Presets are pre-configured policy packs,
+        templates, and junction rules optimized for specific use cases.
       </p>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Choose Your Path</h2>
@@ -102,5 +102,5 @@ export default function PresetsPage() {
         fully reversible.
       </p>
     </DocLayout>
-  )
+  );
 }

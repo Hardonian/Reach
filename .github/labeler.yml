@@ -3,66 +3,66 @@
 
 cli:
   - changed-files:
-    - any-glob-to-any-file:
-      - 'src/cli/**'
-      - 'reach'
-      - 'reachctl*'
+      - any-glob-to-any-file:
+          - "src/cli/**"
+          - "reach"
+          - "reachctl*"
 
 core:
   - changed-files:
-    - any-glob-to-any-file:
-      - 'crates/**'
-      - 'src/core/**'
-      - 'src/determinism/**'
+      - any-glob-to-any-file:
+          - "crates/**"
+          - "src/core/**"
+          - "src/determinism/**"
 
 documentation:
   - changed-files:
-    - any-glob-to-any-file:
-      - 'docs/**'
-      - '**/*.md'
-      - 'apps/docs/**'
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "**/*.md"
+          - "apps/docs/**"
 
 plugins:
   - changed-files:
-    - any-glob-to-any-file:
-      - 'plugins/**'
-      - 'src/cli/plugins-cli.ts'
+      - any-glob-to-any-file:
+          - "plugins/**"
+          - "src/cli/plugins-cli.ts"
 
 examples:
   - changed-files:
-    - any-glob-to-any-file:
-      - 'examples/**'
+      - any-glob-to-any-file:
+          - "examples/**"
 
 presets:
   - changed-files:
-    - any-glob-to-any-file:
-      - 'presets/**'
-      - 'policy-packs/**'
+      - any-glob-to-any-file:
+          - "presets/**"
+          - "policy-packs/**"
 
 tests:
   - changed-files:
-    - any-glob-to-any-file:
-      - '**/*.test.ts'
-      - '**/*.test.js'
-      - 'tests/**'
-      - 'src/**/__tests__/**'
+      - any-glob-to-any-file:
+          - "**/*.test.ts"
+          - "**/*.test.js"
+          - "tests/**"
+          - "src/**/__tests__/**"
 
 rust:
   - changed-files:
-    - any-glob-to-any-file:
-      - 'crates/**'
-      - '**/*.rs'
+      - any-glob-to-any-file:
+          - "crates/**"
+          - "**/*.rs"
 
 go:
   - changed-files:
-    - any-glob-to-any-file:
-      - 'services/**/*.go'
-      - 'tools/**/*.go'
-      - '**/*.go'
+      - any-glob-to-any-file:
+          - "services/**/*.go"
+          - "tools/**/*.go"
+          - "**/*.go"
 
 typescript:
   - changed-files:
-    - any-glob-to-any-file:
-      - 'src/**/*.ts'
-      - 'scripts/**/*.ts'
-      - '**/*.ts'
+      - any-glob-to-any-file:
+          - "src/**/*.ts"
+          - "scripts/**/*.ts"
+          - "**/*.ts"

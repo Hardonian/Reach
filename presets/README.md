@@ -32,31 +32,37 @@ presets/
 ## Starting Paths
 
 ### 🚀 CI/CD Integration
+
 **For:** DevOps engineers  
 **Presets:** `pack-replay-first-ci`, `fast-path`  
 **Goal:** Fast, deterministic CI gates
 
 ### 🛡️ Security Review
+
 **For:** Security teams  
 **Presets:** `pack-security-basics`, `full-review`  
 **Goal:** Policy enforcement with audit trails
 
 ### 📄 Compliance Audit
+
 **For:** Auditors  
 **Presets:** `audit-ready`, `evidence-strict`  
 **Goal:** Compliance-ready documentation
 
 ### 🔌 Plugin Development
+
 **For:** Developers  
 **Presets:** `plugin-dev`  
 **Goal:** Extend Reach with custom plugins
 
 ### 🔍 Policy Drift Detection
+
 **For:** Governance teams  
 **Presets:** `pack-drift-hunter`  
 **Goal:** Monitor policy compliance over time
 
 ### 📚 Learning & Exploration
+
 **For:** New users  
 **Presets:** None (examples only)  
 **Goal:** Learn Reach capabilities

@@ -27,24 +27,24 @@ Edit `plugins/security-review-template/index.js`:
 ```javascript
 /**
  * Security Review Junction Template
- * 
+ *
  * Pre-configured template for security review decisions.
  */
 
 const SECURITY_REVIEW_TEMPLATE = {
-  type: 'security-review',
+  type: "security-review",
   requiredEvidence: [
-    { type: 'threat-model', minCount: 1 },
-    { type: 'security-scan', minCount: 1 },
-    { type: 'review-approval', minCount: 1 },
+    { type: "threat-model", minCount: 1 },
+    { type: "security-scan", minCount: 1 },
+    { type: "review-approval", minCount: 1 },
   ],
-  policies: ['evidence-completeness', 'no-high-severity-issues'],
-  reviewHorizon: '7d',
-}
+  policies: ["evidence-completeness", "no-high-severity-issues"],
+  reviewHorizon: "7d",
+};
 
 function createSecurityReview(options = {}) {
-  const id = `sec-review-${options.id || 'default'}`
-  
+  const id = `sec-review-${options.id || "default"}`;
+
   return {
     id,
     template: SECURITY_REVIEW_TEMPLATE,
@@ -52,36 +52,36 @@ function createSecurityReview(options = {}) {
     config: {
       autoReview: options.autoReview ?? true,
       blockOnFailure: options.blockOnFailure ?? true,
-    }
-  }
+    },
+  };
 }
 
 function validateCompleteness(decision) {
-  const template = decision.template || SECURITY_REVIEW_TEMPLATE
-  const evidence = decision.evidence || []
-  
-  const missing = template.requiredEvidence.filter(req => {
-    const count = evidence.filter(e => e.type === req.type).length
-    return count < req.minCount
-  })
-  
+  const template = decision.template || SECURITY_REVIEW_TEMPLATE;
+  const evidence = decision.evidence || [];
+
+  const missing = template.requiredEvidence.filter((req) => {
+    const count = evidence.filter((e) => e.type === req.type).length;
+    return count < req.minCount;
+  });
+
   return {
     passed: missing.length === 0,
-    missing: missing.map(m => m.type).sort(), // Deterministic
-  }
+    missing: missing.map((m) => m.type).sort(), // Deterministic
+  };
 }
 
 module.exports = {
-  name: 'security-review-template',
-  version: '1.0.0',
-  
+  name: "security-review-template",
+  version: "1.0.0",
+
   register(hooks) {
-    hooks.registerDecisionType('security-review', {
+    hooks.registerDecisionType("security-review", {
       create: createSecurityReview,
       validate: validateCompleteness,
-    })
-  }
-}
+    });
+  },
+};
 ```
 
 ### 3. Update Manifest
@@ -113,9 +113,9 @@ Pre-configured template for security review decisions.
 ## Usage
 
 \`\`\`javascript
-const decision = createSecurityReview({ 
-  id: 'api-gateway',
-  autoReview: true 
+const decision = createSecurityReview({
+id: 'api-gateway',
+autoReview: true
 })
 \`\`\`
 ```

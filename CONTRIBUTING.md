@@ -70,6 +70,7 @@ To maintain our quality bar, all Pull Requests must adhere to the following rule
 ## 🎯 Good First Issues
 
 Look for issues labeled:
+
 - `good first issue` - Great for newcomers
 - `help wanted` - Community contributions welcome
 - `documentation` - Docs improvements
@@ -77,18 +78,24 @@ Look for issues labeled:
 ## 📝 Where to Contribute
 
 ### Examples
+
 Add examples to `examples/` following the numbered format:
+
 - Each example should be runnable with `node examples/XX-name/run.js`
 - Include a README explaining the concepts demonstrated
 
 ### Presets
+
 Add presets to `presets/`:
+
 - Create a directory under the appropriate category
 - Include a README with usage instructions
 - Add to `presets/map.json` if it's a new starting path
 
 ### Plugins
+
 Add plugins to `plugins/`:
+
 - Use `./reach plugins scaffold <name>` to get started
 - Ensure deterministic behavior
 - Include tests and documentation

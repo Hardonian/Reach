@@ -1,22 +1,22 @@
 /**
  * Export Postprocessor Plugin
- * 
+ *
  * Transforms export bundles with additional processing.
  * Deterministic: same bundle input → same output.
  */
 
 function postprocessBundle(bundle, options = {}) {
-  const format = options.format || 'standard'
-  
+  const format = options.format || "standard";
+
   switch (format) {
-    case 'minimal':
-      return createMinimalBundle(bundle)
-    case 'verbose':
-      return createVerboseBundle(bundle)
-    case 'hashes-only':
-      return createHashesOnlyBundle(bundle)
+    case "minimal":
+      return createMinimalBundle(bundle);
+    case "verbose":
+      return createVerboseBundle(bundle);
+    case "hashes-only":
+      return createHashesOnlyBundle(bundle);
     default:
-      return createStandardBundle(bundle)
+      return createStandardBundle(bundle);
   }
 }
 
@@ -26,9 +26,9 @@ function createStandardBundle(bundle) {
     metadata: {
       ...(bundle.metadata || {}),
       postprocessed: true,
-      processorVersion: '0.1.0',
-    }
-  }
+      processorVersion: "0.1.0",
+    },
+  };
 }
 
 function createMinimalBundle(bundle) {
@@ -38,10 +38,10 @@ function createMinimalBundle(bundle) {
     hash: bundle.hash,
     timestamp: bundle.timestamp,
     metadata: {
-      format: 'minimal',
+      format: "minimal",
       postprocessed: true,
-    }
-  }
+    },
+  };
 }
 
 function createVerboseBundle(bundle) {
@@ -50,56 +50,58 @@ function createVerboseBundle(bundle) {
     ...sortKeys(bundle),
     metadata: {
       ...(bundle.metadata || {}),
-      format: 'verbose',
+      format: "verbose",
       postprocessed: true,
-      processorVersion: '0.1.0',
+      processorVersion: "0.1.0",
       fieldCount: Object.keys(bundle).length,
-    }
-  }
+    },
+  };
 }
 
 function createHashesOnlyBundle(bundle) {
   // Deterministic: extract only hash-related fields
-  const hashes = {}
-  
+  const hashes = {};
+
   for (const [key, value] of Object.entries(bundle)) {
-    if (key.toLowerCase().includes('hash') || 
-        (typeof value === 'string' && value.length === 64)) {
-      hashes[key] = value
+    if (
+      key.toLowerCase().includes("hash") ||
+      (typeof value === "string" && value.length === 64)
+    ) {
+      hashes[key] = value;
     }
   }
-  
+
   // Deterministic: sort keys
   return {
     id: bundle.id,
     hashes: sortKeys(hashes),
     metadata: {
-      format: 'hashes-only',
+      format: "hashes-only",
       postprocessed: true,
-    }
-  }
+    },
+  };
 }
 
 function sortKeys(obj) {
   // Deterministic: recursively sort object keys
   if (Array.isArray(obj)) {
-    return obj.map(sortKeys)
+    return obj.map(sortKeys);
   }
-  if (obj && typeof obj === 'object') {
-    const sorted = {}
+  if (obj && typeof obj === "object") {
+    const sorted = {};
     for (const key of Object.keys(obj).sort()) {
-      sorted[key] = sortKeys(obj[key])
+      sorted[key] = sortKeys(obj[key]);
     }
-    return sorted
+    return sorted;
   }
-  return obj
+  return obj;
 }
 
 module.exports = {
-  name: 'export-postprocessor',
-  version: '0.1.0',
-  
+  name: "export-postprocessor",
+  version: "0.1.0",
+
   register(hooks) {
-    hooks.registerRenderer('export', postprocessBundle)
-  }
-}
+    hooks.registerRenderer("export", postprocessBundle);
+  },
+};

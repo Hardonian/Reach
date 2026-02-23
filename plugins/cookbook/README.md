@@ -5,6 +5,7 @@ Step-by-step recipes for common plugin patterns.
 ## Recipes
 
 ### a) Add a Deterministic Check
+
 Learn to implement custom validation logic that maintains determinism guarantees.
 
 **File:** [recipe-a-deterministic-check.md](recipe-a-deterministic-check.md)  
@@ -14,6 +15,7 @@ Learn to implement custom validation logic that maintains determinism guarantees
 ---
 
 ### b) Add a New Junction Template
+
 Create reusable decision templates that can be instantiated multiple times.
 
 **File:** [recipe-b-junction-template.md](recipe-b-junction-template.md)  
@@ -23,6 +25,7 @@ Create reusable decision templates that can be instantiated multiple times.
 ---
 
 ### c) Add an Evidence Metadata Enricher
+
 Augment evidence with computed metadata like source credibility or confidence scores.
 
 **File:** [recipe-c-evidence-enricher.md](recipe-c-evidence-enricher.md)  
@@ -32,6 +35,7 @@ Augment evidence with computed metadata like source credibility or confidence sc
 ---
 
 ### d) Add an Export Bundle Augmentor
+
 Extend export bundles with additional computed data or custom formats.
 
 **File:** [recipe-d-export-augmentor.md](recipe-d-export-augmentor.md)  
@@ -41,6 +45,7 @@ Extend export bundles with additional computed data or custom formats.
 ---
 
 ### e) Add a Policy Validator Hook
+
 Implement custom policy enforcement that runs at decision checkpoints.
 
 **File:** [recipe-e-policy-validator.md](recipe-e-policy-validator.md)  
@@ -50,6 +55,7 @@ Implement custom policy enforcement that runs at decision checkpoints.
 ---
 
 ### f) Add a Metrics Contributor
+
 Add custom telemetry and metrics collection for observability.
 
 **File:** [recipe-f-metrics-contributor.md](recipe-f-metrics-contributor.md)  
@@ -59,6 +65,7 @@ Add custom telemetry and metrics collection for observability.
 ---
 
 ### g) Add a Safe CLI Extension Command
+
 Extend the Reach CLI with new subcommands that follow safety patterns.
 
 **File:** [recipe-g-cli-extension.md](recipe-g-cli-extension.md)  
@@ -68,6 +75,7 @@ Extend the Reach CLI with new subcommands that follow safety patterns.
 ---
 
 ### h) Add a Formatter/Serializer Extension
+
 Create custom output formats for decisions and evidence.
 
 **File:** [recipe-h-formatter-extension.md](recipe-h-formatter-extension.md)  

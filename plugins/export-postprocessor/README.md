@@ -8,20 +8,20 @@ Transforms export bundles with additional processing options.
 
 ## Formats
 
-| Format | Description |
-|--------|-------------|
-| `standard` | Default processing, adds metadata |
-| `minimal` | Only essential fields (id, hash, timestamp) |
-| `verbose` | All fields, sorted, with metadata |
-| `hashes-only` | Only hash-related fields |
+| Format        | Description                                 |
+| ------------- | ------------------------------------------- |
+| `standard`    | Default processing, adds metadata           |
+| `minimal`     | Only essential fields (id, hash, timestamp) |
+| `verbose`     | All fields, sorted, with metadata           |
+| `hashes-only` | Only hash-related fields                    |
 
 ## Usage
 
 ```javascript
 // Postprocess with format option
 const processed = postprocessBundle(bundle, {
-  format: 'minimal'
-})
+  format: "minimal",
+});
 ```
 
 ## Determinism

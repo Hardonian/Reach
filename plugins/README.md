@@ -28,28 +28,28 @@ plugins/
 
 ## Official Plugins
 
-| Plugin | Description | Capabilities |
-|--------|-------------|--------------|
-| `evidence-enricher` | Adds metadata to evidence items | `registerEvidenceExtractor` |
-| `export-postprocessor` | Transforms export bundles | `registerRenderer` |
-| `junction-rule-pack` | Reusable junction rules | `registerPolicy` |
+| Plugin                 | Description                     | Capabilities                |
+| ---------------------- | ------------------------------- | --------------------------- |
+| `evidence-enricher`    | Adds metadata to evidence items | `registerEvidenceExtractor` |
+| `export-postprocessor` | Transforms export bundles       | `registerRenderer`          |
+| `junction-rule-pack`   | Reusable junction rules         | `registerPolicy`            |
 
 ## Sample Plugins
 
-| Plugin | Description | Use Case |
-|--------|-------------|----------|
-| `sample-deterministic-plugin` | Minimal deterministic example | Learning |
-| `sample-export-hook` | Export bundle augmentation | Reference |
-| `sample-junction-rule` | Junction rule implementation | Reference |
-| `sample-summarizer` | Evidence summarization | Reference |
+| Plugin                        | Description                   | Use Case  |
+| ----------------------------- | ----------------------------- | --------- |
+| `sample-deterministic-plugin` | Minimal deterministic example | Learning  |
+| `sample-export-hook`          | Export bundle augmentation    | Reference |
+| `sample-junction-rule`        | Junction rule implementation  | Reference |
+| `sample-summarizer`           | Evidence summarization        | Reference |
 
 ## Plugin Packs
 
-| Pack | Description |
-|------|-------------|
-| `pack-drift-hunter` | Detect policy drift |
+| Pack                   | Description                  |
+| ---------------------- | ---------------------------- |
+| `pack-drift-hunter`    | Detect policy drift          |
 | `pack-replay-first-ci` | CI-focused replay validation |
-| `pack-security-basics` | Security policy enforcement |
+| `pack-security-basics` | Security policy enforcement  |
 
 ## Capabilities Reference
 

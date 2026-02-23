@@ -9,6 +9,7 @@ Collection of reusable junction rules for common decision patterns.
 ## Rules
 
 ### min-evidence
+
 Requires minimum number of evidence items.
 
 ```javascript
@@ -16,6 +17,7 @@ Requires minimum number of evidence items.
 ```
 
 ### required-types
+
 Requires specific evidence types to be present.
 
 ```javascript
@@ -23,6 +25,7 @@ Requires specific evidence types to be present.
 ```
 
 ### block-high-risk
+
 Blocks decisions with high-risk evidence.
 
 ```javascript
@@ -30,6 +33,7 @@ Blocks decisions with high-risk evidence.
 ```
 
 ### require-signatures
+
 Requires all evidence to be cryptographically signed.
 
 ```javascript
@@ -37,6 +41,7 @@ Requires all evidence to be cryptographically signed.
 ```
 
 ### check-expiration
+
 Expires decisions older than specified age.
 
 ```javascript

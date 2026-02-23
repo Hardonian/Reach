@@ -33,6 +33,7 @@ Add to your CI pipeline:
 ## Determinism Checks
 
 This preset enables:
+
 - Strict mode for all decisions
 - Automatic transcript hashing
 - Bundle export on completion

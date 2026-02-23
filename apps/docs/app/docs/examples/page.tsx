@@ -1,57 +1,58 @@
-import { DocLayout } from '@/components/doc-layout'
-import { CodeBlock } from '@/components/code-block'
+import { DocLayout } from "@/components/doc-layout";
+import { CodeBlock } from "@/components/code-block";
 
 const examples = [
   {
-    id: '01',
-    name: 'Quickstart Local',
-    description: 'Your first Reach decision. Create a decision, add evidence, export results.',
-    command: 'node examples/01-quickstart-local/run.js',
-    concepts: ['Decision creation', 'Evidence', 'Export'],
+    id: "01",
+    name: "Quickstart Local",
+    description:
+      "Your first Reach decision. Create a decision, add evidence, export results.",
+    command: "node examples/01-quickstart-local/run.js",
+    concepts: ["Decision creation", "Evidence", "Export"],
   },
   {
-    id: '02',
-    name: 'Diff and Explain',
-    description: 'Compare two decisions and understand why outcomes differ.',
-    command: 'node examples/02-diff-and-explain/run.js',
-    concepts: ['Decision diffing', 'Explanation', 'Comparison'],
+    id: "02",
+    name: "Diff and Explain",
+    description: "Compare two decisions and understand why outcomes differ.",
+    command: "node examples/02-diff-and-explain/run.js",
+    concepts: ["Decision diffing", "Explanation", "Comparison"],
   },
   {
-    id: '03',
-    name: 'Junction to Decision',
-    description: 'Transform junction templates into executable decisions.',
-    command: 'node examples/03-junction-to-decision/run.js',
-    concepts: ['Junctions', 'Templates', 'Transformation'],
+    id: "03",
+    name: "Junction to Decision",
+    description: "Transform junction templates into executable decisions.",
+    command: "node examples/03-junction-to-decision/run.js",
+    concepts: ["Junctions", "Templates", "Transformation"],
   },
   {
-    id: '04',
-    name: 'Action Plan Execute Safe',
-    description: 'Generate action plans with safety checks and execute them.',
-    command: 'node examples/04-action-plan-execute-safe/run.js',
-    concepts: ['Action plans', 'Safety checks', 'Execution'],
+    id: "04",
+    name: "Action Plan Execute Safe",
+    description: "Generate action plans with safety checks and execute them.",
+    command: "node examples/04-action-plan-execute-safe/run.js",
+    concepts: ["Action plans", "Safety checks", "Execution"],
   },
   {
-    id: '05',
-    name: 'Export Verify Replay',
-    description: 'Export decision bundles and verify replay determinism.',
-    command: 'node examples/05-export-verify-replay/run.js',
-    concepts: ['Export bundles', 'Verification', 'Replay'],
+    id: "05",
+    name: "Export Verify Replay",
+    description: "Export decision bundles and verify replay determinism.",
+    command: "node examples/05-export-verify-replay/run.js",
+    concepts: ["Export bundles", "Verification", "Replay"],
   },
   {
-    id: '06',
-    name: 'Retention Compact Safety',
-    description: 'Manage evidence retention with compaction and safety bounds.',
-    command: 'node examples/06-retention-compact-safety/run.js',
-    concepts: ['Retention', 'Compaction', 'Safety'],
+    id: "06",
+    name: "Retention Compact Safety",
+    description: "Manage evidence retention with compaction and safety bounds.",
+    command: "node examples/06-retention-compact-safety/run.js",
+    concepts: ["Retention", "Compaction", "Safety"],
   },
-]
+];
 
 export default function ExamplesPage() {
   return (
     <DocLayout currentPath="/docs/examples" title="Examples">
       <p className="text-lg text-slate-600 mb-8">
-        Six complete examples that demonstrate Reach's core capabilities, from basic
-        decision creation to advanced replay verification.
+        Six complete examples that demonstrate Reach's core capabilities, from
+        basic decision creation to advanced replay verification.
       </p>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Run All Examples</h2>
@@ -103,5 +104,5 @@ pnpm run demo
 # Open http://localhost:3000`}
       />
     </DocLayout>
-  )
+  );
 }

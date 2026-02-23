@@ -1,20 +1,20 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 
 interface CodeBlockProps {
-  code: string
-  language?: string
+  code: string;
+  language?: string;
 }
 
-export function CodeBlock({ code, language = 'bash' }: CodeBlockProps) {
-  const [copied, setCopied] = useState(false)
+export function CodeBlock({ code, language = "bash" }: CodeBlockProps) {
+  const [copied, setCopied] = useState(false);
 
   const copyToClipboard = async () => {
-    await navigator.clipboard.writeText(code)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    await navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="relative">
@@ -23,10 +23,10 @@ export function CodeBlock({ code, language = 'bash' }: CodeBlockProps) {
       </pre>
       <button
         onClick={copyToClipboard}
-        className={`copy-button ${copied ? 'copied' : ''}`}
+        className={`copy-button ${copied ? "copied" : ""}`}
       >
-        {copied ? 'Copied!' : 'Copy'}
+        {copied ? "Copied!" : "Copy"}
       </button>
     </div>
-  )
+  );
 }

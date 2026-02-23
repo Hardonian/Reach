@@ -21,12 +21,12 @@ Essential security policies for production deployments.
 
 ## Policies
 
-| Policy | Description |
-|--------|-------------|
-| min-evidence | Requires at least 2 evidence items |
-| block-high-risk | Blocks if high/critical risk evidence present |
-| require-signatures | All evidence must be signed |
-| check-expiration | Evidence must be less than 7 days old |
+| Policy             | Description                                   |
+| ------------------ | --------------------------------------------- |
+| min-evidence       | Requires at least 2 evidence items            |
+| block-high-risk    | Blocks if high/critical risk evidence present |
+| require-signatures | All evidence must be signed                   |
+| check-expiration   | Evidence must be less than 7 days old         |
 
 ## Configuration
 

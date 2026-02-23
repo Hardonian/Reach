@@ -22,7 +22,7 @@ Create `scripts/my-command.ts`:
 #!/usr/bin/env tsx
 /**
  * Safe CLI Extension Example
- * 
+ *
  * Follows Reach CLI patterns:
  * - Consistent exit codes
  * - JSON output option
@@ -30,52 +30,52 @@ Create `scripts/my-command.ts`:
  * - No secrets required
  */
 
-import { exitCodes } from '../src/cli/exit-codes'
+import { exitCodes } from "../src/cli/exit-codes";
 
 interface Options {
-  json: boolean
-  output?: string
+  json: boolean;
+  output?: string;
 }
 
 function main(): void {
-  const args = process.argv.slice(2)
+  const args = process.argv.slice(2);
   const options: Options = {
-    json: args.includes('--json'),
-    output: args.find((_, i) => args[i - 1] === '--output'),
-  }
-  
+    json: args.includes("--json"),
+    output: args.find((_, i) => args[i - 1] === "--output"),
+  };
+
   try {
-    const result = runCommand(options)
-    
+    const result = runCommand(options);
+
     if (options.json) {
-      console.log(JSON.stringify(result, null, 2))
+      console.log(JSON.stringify(result, null, 2));
     } else {
-      console.log(result.message)
+      console.log(result.message);
     }
-    
-    process.exit(exitCodes.SUCCESS)
+
+    process.exit(exitCodes.SUCCESS);
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    
+    const message = error instanceof Error ? error.message : String(error);
+
     if (options.json) {
-      console.log(JSON.stringify({ error: message }))
+      console.log(JSON.stringify({ error: message }));
     } else {
-      console.error(`Error: ${message}`)
+      console.error(`Error: ${message}`);
     }
-    
-    process.exit(exitCodes.GENERIC_FAILURE)
+
+    process.exit(exitCodes.GENERIC_FAILURE);
   }
 }
 
 function runCommand(options: Options): { message: string; success: boolean } {
   // Your logic here
   return {
-    message: 'Command executed successfully',
+    message: "Command executed successfully",
     success: true,
-  }
+  };
 }
 
-main()
+main();
 ```
 
 ### 2. Register in reach CLI
@@ -104,7 +104,7 @@ export const exitCodes = {
   NOT_FOUND: 3,
   POLICY_BLOCKED: 4,
   VERIFICATION_FAILED: 5,
-} as const
+} as const;
 ```
 
 ### 4. Add Tests
@@ -112,24 +112,24 @@ export const exitCodes = {
 Create `scripts/my-command.test.ts`:
 
 ```typescript
-import { test, expect } from 'vitest'
-import { execSync } from 'child_process'
-import { exitCodes } from '../src/cli/exit-codes'
+import { test, expect } from "vitest";
+import { execSync } from "child_process";
+import { exitCodes } from "../src/cli/exit-codes";
 
-test('command exits with success on valid input', () => {
-  const result = execSync('npx tsx scripts/my-command.ts --json')
-  const output = JSON.parse(result.toString())
-  expect(output.success).toBe(true)
-})
+test("command exits with success on valid input", () => {
+  const result = execSync("npx tsx scripts/my-command.ts --json");
+  const output = JSON.parse(result.toString());
+  expect(output.success).toBe(true);
+});
 
-test('command exits with correct code on error', () => {
+test("command exits with correct code on error", () => {
   try {
-    execSync('npx tsx scripts/my-command.ts --invalid')
-    expect.fail('Should have thrown')
+    execSync("npx tsx scripts/my-command.ts --invalid");
+    expect.fail("Should have thrown");
   } catch (error: any) {
-    expect(error.status).toBe(exitCodes.INVALID_INPUT)
+    expect(error.status).toBe(exitCodes.INVALID_INPUT);
   }
-})
+});
 ```
 
 ## Key Patterns

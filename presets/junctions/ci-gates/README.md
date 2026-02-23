@@ -21,12 +21,12 @@ Junction rules for common CI/CD gate patterns.
 
 ## Rules
 
-| Rule | Description |
-|------|-------------|
-| build-passed | Requires successful build |
-| tests-passed | Requires all tests green |
-| checks-passed | Requires lint/typecheck pass |
-| docs-current | Requires doc updates for code changes |
+| Rule          | Description                           |
+| ------------- | ------------------------------------- |
+| build-passed  | Requires successful build             |
+| tests-passed  | Requires all tests green              |
+| checks-passed | Requires lint/typecheck pass          |
+| docs-current  | Requires doc updates for code changes |
 
 ## Integration
 

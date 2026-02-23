@@ -6,13 +6,13 @@
 
 ## Environment
 
-| Property | Value |
-|----------|-------|
-| Node.js | v25.5.0 |
-| Platform | win32 |
-| Architecture | x64 |
-| Go | go1.25.6 |
-| Rust | not found |
+| Property     | Value     |
+| ------------ | --------- |
+| Node.js      | v25.5.0   |
+| Platform     | win32     |
+| Architecture | x64       |
+| Go           | go1.25.6  |
+| Rust         | not found |
 
 ## Integrity
 
@@ -21,23 +21,28 @@
 ## Available Examples
 
 - **01-quickstart-local**: ```bash
-node examples/01-quickstart-local/run.js
-```
+  node examples/01-quickstart-local/run.js
+
+````
 - **02-diff-and-explain**: ```bash
 node examples/02-diff-and-explain/run.js
-```
+````
+
 - **03-junction-to-decision**: ```bash
-node examples/03-junction-to-decision/run.js
-```
+  node examples/03-junction-to-decision/run.js
+
+````
 - **04-action-plan-execute-safe**: ```bash
 node examples/04-action-plan-execute-safe/run.js
-```
+````
+
 - **05-export-verify-replay**: ```bash
-node examples/05-export-verify-replay/run.js
-```
+  node examples/05-export-verify-replay/run.js
+
+````
 - **06-retention-compact-safety**: ```bash
 node examples/06-retention-compact-safety/run.js
-```
+````
 
 ## Files
 

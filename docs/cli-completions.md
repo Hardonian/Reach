@@ -48,21 +48,26 @@ reach presets apply <Tab>  # shows preset names
 ## Available Completions
 
 ### Main Commands
+
 - `doctor`, `audit`, `eval`, `serve`, `federation`, `support`
 - `arcade`, `capsule`, `proof`, `graph`, `packs`, `init`
 - `explain`, `operator`, `pack`, `wizard`, `run`, `share`
 - `delegate`, `verify-proof`, `cost`, `metrics`, `gate`, `report`
 
 ### Report Subcommands
+
 - `demo` - Generate demo report
 - `verify` - Verify report integrity
 
 ### Presets
+
 - All preset names for `presets apply`
 - `--dry-run` and `--yes` flags
 
 ### Plugins
+
 - `scaffold`, `validate`, `list` subcommands
 
 ### Flags
+
 - `--help`, `--json`, `--verbose`

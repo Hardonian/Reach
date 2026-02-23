@@ -11,6 +11,7 @@ _(Note: Internal architecture specifications and planning documents have been mo
 - [Install Guide](INSTALL.md) - Detailed installation instructions for all platforms.
 - [Install Modes](INSTALL_MODES.md) - Guidance on different deployment topologies.
 - [CLI Reference](cli.md) - Comprehensive command-line documentation for `reachctl` and `./reach`.
+- [CLI Completions](cli-completions.md) - Shell auto-completions.
 
 ## 🏗️ Core Architecture
 

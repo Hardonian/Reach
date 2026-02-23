@@ -1,37 +1,39 @@
-import { DocLayout } from '@/components/doc-layout'
+import { DocLayout } from "@/components/doc-layout";
 
 const stabilityLevels = [
   {
-    level: 'Stable',
-    description: 'Production-ready. Breaking changes only in major versions with migration path.',
+    level: "Stable",
+    description:
+      "Production-ready. Breaking changes only in major versions with migration path.",
     items: [
-      'Core Rust deterministic evaluate loop',
-      'Transcript hashing and verification',
-      'Export bundle format',
-      'Replay semantics',
+      "Core Rust deterministic evaluate loop",
+      "Transcript hashing and verification",
+      "Export bundle format",
+      "Replay semantics",
     ],
   },
   {
-    level: 'Beta',
-    description: 'Feature-complete but may have API changes. Suitable for production with awareness.',
+    level: "Beta",
+    description:
+      "Feature-complete but may have API changes. Suitable for production with awareness.",
     items: [
-      'TypeScript SDK APIs',
-      'Plugin system (v1)',
-      'CLI command structure',
-      'Web interface',
+      "TypeScript SDK APIs",
+      "Plugin system (v1)",
+      "CLI command structure",
+      "Web interface",
     ],
   },
   {
-    level: 'Experimental',
-    description: 'Early access. APIs may change significantly or be removed.',
+    level: "Experimental",
+    description: "Early access. APIs may change significantly or be removed.",
     items: [
-      'Advanced metrics collection',
-      'Federation features',
-      'Custom decision types',
-      'Real-time collaboration',
+      "Advanced metrics collection",
+      "Federation features",
+      "Custom decision types",
+      "Real-time collaboration",
     ],
   },
-]
+];
 
 export default function StabilityPage() {
   return (
@@ -43,8 +45,7 @@ export default function StabilityPage() {
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
         <p className="text-blue-800">
-          <strong>Version:</strong> 0.3.1 |{' '}
-          <strong>Status:</strong> Beta |{' '}
+          <strong>Version:</strong> 0.3.1 | <strong>Status:</strong> Beta |{" "}
           <strong>Target 1.0:</strong> Q2 2025
         </p>
       </div>
@@ -158,5 +159,5 @@ export default function StabilityPage() {
         </li>
       </ul>
     </DocLayout>
-  )
+  );
 }

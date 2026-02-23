@@ -86,6 +86,7 @@ Full documentation is available in the [docs site](apps/docs/):
 - [Stability](apps/docs/app/docs/stability) - Versioning and roadmap
 
 Run locally:
+
 ```bash
 pnpm run docs:dev     # http://localhost:3001
 pnpm run docs:build   # Static export

@@ -27,57 +27,57 @@ Edit `plugins/deterministic-check/index.js`:
 ```javascript
 /**
  * Deterministic Check Plugin
- * 
+ *
  * Validates that decisions meet specific criteria.
  * Uses only deterministic operations.
  */
 
 // Deterministic: uses only input parameters, no random, no external state
 function validateEvidenceCount(decision, options = {}) {
-  const minEvidence = options.minEvidence || 1
-  const evidence = decision.evidence || []
-  
+  const minEvidence = options.minEvidence || 1;
+  const evidence = decision.evidence || [];
+
   return {
     passed: evidence.length >= minEvidence,
     details: {
       count: evidence.length,
       required: minEvidence,
       // Deterministic: sorted keys for consistent serialization
-      timestamp: evidence.map(e => e.timestamp).sort(),
-    }
-  }
+      timestamp: evidence.map((e) => e.timestamp).sort(),
+    },
+  };
 }
 
 function validateEvidenceFreshness(decision, options = {}) {
-  const maxAge = options.maxAgeMs || 7 * 24 * 60 * 60 * 1000 // 7 days
-  const evidence = decision.evidence || []
-  const now = options.referenceTime || 0 // Deterministic: passed in, not Date.now()
-  
-  const staleEvidence = evidence.filter(e => {
-    const age = now - (e.timestamp || 0)
-    return age > maxAge
-  })
-  
+  const maxAge = options.maxAgeMs || 7 * 24 * 60 * 60 * 1000; // 7 days
+  const evidence = decision.evidence || [];
+  const now = options.referenceTime || 0; // Deterministic: passed in, not Date.now()
+
+  const staleEvidence = evidence.filter((e) => {
+    const age = now - (e.timestamp || 0);
+    return age > maxAge;
+  });
+
   return {
     passed: staleEvidence.length === 0,
     details: {
       staleCount: staleEvidence.length,
       totalCount: evidence.length,
       // Deterministic: sorted for consistent output
-      staleIds: staleEvidence.map(e => e.id).sort(),
-    }
-  }
+      staleIds: staleEvidence.map((e) => e.id).sort(),
+    },
+  };
 }
 
 module.exports = {
-  name: 'deterministic-check',
-  version: '1.0.0',
-  
+  name: "deterministic-check",
+  version: "1.0.0",
+
   register(hooks) {
-    hooks.registerPolicy('evidence-count', validateEvidenceCount)
-    hooks.registerPolicy('evidence-freshness', validateEvidenceFreshness)
-  }
-}
+    hooks.registerPolicy("evidence-count", validateEvidenceCount);
+    hooks.registerPolicy("evidence-freshness", validateEvidenceFreshness);
+  },
+};
 ```
 
 ### 3. Update Plugin Manifest
@@ -118,11 +118,11 @@ Validates decisions against specific criteria.
 \`\`\`javascript
 // In your decision config
 {
-  "policies": ["evidence-count", "evidence-freshness"],
-  "policyConfig": {
-    "evidence-count": { "minEvidence": 3 },
-    "evidence-freshness": { "maxAgeMs": 86400000 }
-  }
+"policies": ["evidence-count", "evidence-freshness"],
+"policyConfig": {
+"evidence-count": { "minEvidence": 3 },
+"evidence-freshness": { "maxAgeMs": 86400000 }
+}
 }
 \`\`\`
 ```
@@ -144,21 +144,21 @@ Validates decisions against specific criteria.
 
 ```javascript
 // test.js
-const plugin = require('./index.js')
+const plugin = require("./index.js");
 
 const mockDecision = {
   evidence: [
-    { id: 'ev1', timestamp: 1000 },
-    { id: 'ev2', timestamp: 2000 },
-  ]
-}
+    { id: "ev1", timestamp: 1000 },
+    { id: "ev2", timestamp: 2000 },
+  ],
+};
 
 // Deterministic: always same result
-const result1 = plugin.validateEvidenceCount(mockDecision, { minEvidence: 2 })
-const result2 = plugin.validateEvidenceCount(mockDecision, { minEvidence: 2 })
+const result1 = plugin.validateEvidenceCount(mockDecision, { minEvidence: 2 });
+const result2 = plugin.validateEvidenceCount(mockDecision, { minEvidence: 2 });
 
-console.assert(result1.passed === result2.passed, 'Must be deterministic')
-console.log('✓ Test passed')
+console.assert(result1.passed === result2.passed, "Must be deterministic");
+console.log("✓ Test passed");
 ```
 
 ## Next Steps
