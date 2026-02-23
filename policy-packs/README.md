@@ -121,7 +121,7 @@ reach run my-pack.json --policies policy-packs/strict-safe-mode.json
 ### Data Lifecycle Policies
 
 #### 7. retention-conservative
-**File:** `policy-packs/retention-conservative.json`  
+**File:** `policy-packs/compliance/retention-conservative.json`  
 **Severity:** Blocking  
 **Use When:** Compliance-heavy, audit-critical environments
 
@@ -136,7 +136,7 @@ reach run my-pack.json --policies policy-packs/strict-safe-mode.json
 ---
 
 #### 8. retention-aggressive
-**File:** `policy-packs/retention-aggressive.json`  
+**File:** `policy-packs/compliance/retention-aggressive.json`  
 **Severity:** Warning  
 **Use When:** Storage-constrained, high-volume, non-critical data
 

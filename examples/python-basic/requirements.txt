@@ -1,2 +1,0 @@
-reach-sdk
-httpx>=0.24.0
