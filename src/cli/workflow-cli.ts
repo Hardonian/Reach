@@ -1594,6 +1594,39 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
     return 0;
   }
 
+  if (args.command === "streaks") {
+    const dirs = readdirSync(decisionsRoot(), { withFileTypes: true }).filter((d) =>
+      d.isDirectory(),
+    );
+    let fragilityImproved = 0;
+    let replaysVerified = 0;
+    let signed = 0;
+    let earlyInvalidations = 0;
+    for (const dir of dirs) {
+      const local = loadWorkspace(dir.name);
+      if (
+        local.runs.length > 1 &&
+        local.runs[local.runs.length - 1].flipDistance > local.runs[0].flipDistance
+      )
+        fragilityImproved += 1;
+      if (local.runs.length > 0) replaysVerified += 1;
+      if (local.runs.some((r) => r.signatureStatus === "signed")) signed += 1;
+      if (local.evidence.some((e) => e.expiresAt) && local.tasks.some((t) => t.completed))
+        earlyInvalidations += 1;
+    }
+    writeJsonOrText(
+      args,
+      {
+        fragilityImproved,
+        replaysVerified,
+        signedTranscripts: signed,
+        earlyInvalidations,
+      },
+      `fragility_improved=${fragilityImproved}\nreplays_verified=${replaysVerified}\nsigned_transcripts=${signed}\nearly_invalidations=${earlyInvalidations}`,
+    );
+    return 0;
+  }
+
   const decisionId = args.decision;
   if (!decisionId) throw new Error("--decision is required");
   const ws = loadWorkspace(decisionId);
@@ -1947,46 +1980,6 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
     const ws = loadWorkspace(target);
     const explanation = explainForAudience(ws, audience, args.type);
     writeJsonOrText(args, { decision: target, audience, explanation }, explanation);
-    return 0;
-  }
-
-  if (args.command === "summary") {
-    const audience = args.audience ?? "engineer";
-    const summary = buildTypeSummary(args.type, audience);
-    writeJsonOrText(args, { audience, type: args.type ?? null, rows: summary.rows }, summary.text);
-    return 0;
-  }
-
-  if (args.command === "streaks") {
-    const dirs = readdirSync(decisionsRoot(), { withFileTypes: true }).filter((d) =>
-      d.isDirectory(),
-    );
-    let fragilityImproved = 0;
-    let replaysVerified = 0;
-    let signed = 0;
-    let earlyInvalidations = 0;
-    for (const dir of dirs) {
-      const local = loadWorkspace(dir.name);
-      if (
-        local.runs.length > 1 &&
-        local.runs[local.runs.length - 1].flipDistance > local.runs[0].flipDistance
-      )
-        fragilityImproved += 1;
-      if (local.runs.length > 0) replaysVerified += 1;
-      if (local.runs.some((r) => r.signatureStatus === "signed")) signed += 1;
-      if (local.evidence.some((e) => e.expiresAt) && local.tasks.some((t) => t.completed))
-        earlyInvalidations += 1;
-    }
-    writeJsonOrText(
-      args,
-      {
-        fragilityImproved,
-        replaysVerified,
-        signedTranscripts: signed,
-        earlyInvalidations,
-      },
-      `fragility_improved=${fragilityImproved}\nreplays_verified=${replaysVerified}\nsigned_transcripts=${signed}\nearly_invalidations=${earlyInvalidations}`,
-    );
     return 0;
   }
 
