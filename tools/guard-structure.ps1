@@ -122,6 +122,8 @@ $AllowedDirs = @(
     "templates",
     "testdata",
     "tests",
+    "plans",
+    "plugins",
     "ARTIFACTS"
 )
 

@@ -1,0 +1,9 @@
+{
+  "id": "sample-deterministic-plugin",
+  "version": "1.0.0",
+  "apiVersion": "1.0.0",
+  "deterministic": true,
+  "permissions": { "network": false },
+  "capabilities": ["registerDecisionType"],
+  "entry": "index.js"
+}
