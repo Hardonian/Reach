@@ -1,0 +1,88 @@
+{
+  "id": "scale-up-plan",
+  "version": "1.0.0",
+  "name": "API Service Scale-Up Plan",
+  "description": "Step-by-step plan for safely scaling API service",
+  "decision_id": "scale-up-decision",
+  "deterministic": true,
+  "steps": [
+    {
+      "id": "step-1",
+      "sequence": 1,
+      "name": "Validate Current Resources",
+      "action": "validate_resources",
+      "safe": true,
+      "readonly": true,
+      "input": {
+        "service": "api-gateway",
+        "check_pods": true,
+        "check_services": true,
+        "check_ingress": true
+      },
+      "expected_duration": "5s",
+      "on_failure": "abort"
+    },
+    {
+      "id": "step-2",
+      "sequence": 2,
+      "name": "Check Resource Quotas",
+      "action": "check_quotas",
+      "safe": true,
+      "readonly": true,
+      "input": {
+        "namespace": "production",
+        "requested_replicas": 5,
+        "resource_type": "cpu",
+        "check_limits": true
+      },
+      "expected_duration": "3s",
+      "on_failure": "abort"
+    },
+    {
+      "id": "step-3",
+      "sequence": 3,
+      "name": "Scale Replicas (Dry Run)",
+      "action": "scale_replicas",
+      "safe": true,
+      "readonly": false,
+      "dry_run": true,
+      "input": {
+        "deployment": "api-gateway",
+        "namespace": "production",
+        "from": 3,
+        "to": 5,
+        "strategy": "rolling"
+      },
+      "expected_duration": "10s",
+      "on_failure": "abort"
+    },
+    {
+      "id": "step-4",
+      "sequence": 4,
+      "name": "Verify Health (Dry Run)",
+      "action": "verify_health",
+      "safe": true,
+      "readonly": false,
+      "dry_run": true,
+      "input": {
+        "service": "api-gateway",
+        "checks": ["readiness", "liveness", "connectivity"],
+        "timeout": "30s"
+      },
+      "expected_duration": "15s",
+      "on_failure": "abort"
+    }
+  ],
+  "rollback_plan": {
+    "enabled": true,
+    "steps": [
+      {
+        "action": "scale_replicas",
+        "input": {
+          "from": 5,
+          "to": 3
+        }
+      }
+    ]
+  }
+}

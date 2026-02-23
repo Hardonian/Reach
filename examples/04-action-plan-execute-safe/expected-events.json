@@ -1,0 +1,76 @@
+{
+  "event_schema_version": "1.0.0",
+  "event_types": [
+    {
+      "type": "plan.started",
+      "description": "Plan execution started",
+      "payload": {
+        "plan_id": "string",
+        "decision_id": "string",
+        "timestamp": "iso8601"
+      }
+    },
+    {
+      "type": "step.started",
+      "description": "Individual step started",
+      "payload": {
+        "step_id": "string",
+        "sequence": "number",
+        "action": "string",
+        "timestamp": "iso8601"
+      }
+    },
+    {
+      "type": "step.completed",
+      "description": "Individual step completed successfully",
+      "payload": {
+        "step_id": "string",
+        "sequence": "number",
+        "result": "object",
+        "duration_ms": "number",
+        "timestamp": "iso8601"
+      }
+    },
+    {
+      "type": "plan.completed",
+      "description": "All steps completed successfully",
+      "payload": {
+        "plan_id": "string",
+        "steps_completed": "number",
+        "total_duration_ms": "number",
+        "fingerprint": "string",
+        "timestamp": "iso8601"
+      }
+    }
+  ],
+  "expected_sequence": [
+    "plan.started",
+    "step.started:step-1",
+    "step.completed:step-1",
+    "step.started:step-2",
+    "step.completed:step-2",
+    "step.started:step-3",
+    "step.completed:step-3",
+    "step.started:step-4",
+    "step.completed:step-4",
+    "plan.completed"
+  ],
+  "journal_structure": {
+    "entries": [
+      {
+        "sequence": 1,
+        "type": "event",
+        "data": "object"
+      },
+      {
+        "sequence": 2,
+        "type": "state_snapshot",
+        "data": "object"
+      }
+    ],
+    "integrity": {
+      "chain_hash": "string",
+      "entry_count": "number"
+    }
+  }
+}

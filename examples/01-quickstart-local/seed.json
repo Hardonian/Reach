@@ -1,0 +1,29 @@
+{
+  "action": "analyze",
+  "target": "infrastructure",
+  "priority": "medium",
+  "context": {
+    "environment": "development",
+    "region": "local",
+    "version": "1.0.0"
+  },
+  "input": {
+    "resources": [
+      {
+        "type": "compute",
+        "name": "web-server",
+        "status": "running"
+      },
+      {
+        "type": "storage",
+        "name": "data-bucket",
+        "status": "active"
+      }
+    ],
+    "metrics": {
+      "cpu_utilization": 45.2,
+      "memory_utilization": 62.1,
+      "request_count": 1523
+    }
+  }
+}

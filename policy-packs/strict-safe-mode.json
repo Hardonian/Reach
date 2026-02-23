@@ -1,0 +1,67 @@
+{
+  "$schema": "./schema.json",
+  "id": "strict-safe-mode",
+  "version": "1.0.0",
+  "type": "security",
+  "severity": "blocking",
+  "description": "Maximum safety enforcement. All actions must be explicitly marked safe, readonly operations preferred, no network access without approval.",
+  "rules": [
+    {
+      "name": "require-safe-flag",
+      "condition": {
+        "field": "action.safe",
+        "operator": "equals",
+        "value": true
+      },
+      "message": "All actions must have safe=true in strict-safe-mode",
+      "suggestion": "Add 'safe: true' to your action definition or use a different policy pack"
+    },
+    {
+      "name": "block-unsafe-side-effects",
+      "condition": {
+        "field": "action.side_effects",
+        "operator": "not_exists"
+      },
+      "message": "Actions with side effects are blocked in strict-safe-mode",
+      "suggestion": "Refactor to use dry-run mode or readonly operations"
+    },
+    {
+      "name": "require-network-approval",
+      "condition": {
+        "field": "action.network",
+        "operator": "equals",
+        "value": false
+      },
+      "message": "Network access requires explicit approval in strict-safe-mode",
+      "suggestion": "Remove network dependency or use cached/offline data"
+    },
+    {
+      "name": "enforce-determinism",
+      "condition": {
+        "field": "deterministic",
+        "operator": "equals",
+        "value": true
+      },
+      "message": "Non-deterministic operations are blocked in strict-safe-mode",
+      "suggestion": "Use seeded random, avoid time.Now(), sort map iterations"
+    }
+  ],
+  "config": {
+    "allow_readonly": {
+      "type": "boolean",
+      "default": true,
+      "description": "Allow read-only operations without additional approval"
+    },
+    "dry_run_default": {
+      "type": "boolean",
+      "default": true,
+      "description": "Default all mutating operations to dry-run mode"
+    }
+  },
+  "metadata": {
+    "author": "Reach OSS",
+    "category": "safety",
+    "applies_to": ["all_executions"],
+    "tags": ["strict", "safe", "deterministic", "readonly"]
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "database_version": "1.0.0",
+  "generated_at": "2026-02-23T12:00:00Z",
+  "runs": [
+    {
+      "id": "run_001",
+      "created_at": "2026-02-23T10:00:00Z",
+      "age_days": 0,
+      "tier": "hot",
+      "status": "completed",
+      "fingerprint": "fp_abc001",
+      "event_count": 42,
+      "storage_bytes": 15360,
+      "tags": ["production", "critical"]
+    },
+    {
+      "id": "run_045",
+      "created_at": "2026-02-20T08:30:00Z",
+      "age_days": 3,
+      "tier": "hot",
+      "status": "completed",
+      "fingerprint": "fp_abc045",
+      "event_count": 38,
+      "storage_bytes": 12288,
+      "tags": ["production"]
+    },
+    {
+      "id": "run_100",
+      "created_at": "2026-02-10T14:00:00Z",
+      "age_days": 13,
+      "tier": "warm",
+      "status": "completed",
+      "fingerprint": "fp_abc100",
+      "event_count": 55,
+      "storage_bytes": 20480,
+      "tags": ["staging"]
+    },
+    {
+      "id": "run_200",
+      "created_at": "2026-01-15T09:00:00Z",
+      "age_days": 39,
+      "tier": "cold",
+      "status": "completed",
+      "fingerprint": "fp_abc200",
+      "event_count": 47,
+      "storage_bytes": 17408,
+      "tags": ["production"]
+    },
+    {
+      "id": "run_300",
+      "created_at": "2025-12-01T16:00:00Z",
+      "age_days": 84,
+      "tier": "cold",
+      "status": "completed",
+      "fingerprint": "fp_abc300",
+      "event_count": 33,
+      "storage_bytes": 12288,
+      "tags": ["experimental"]
+    },
+    {
+      "id": "run_400",
+      "created_at": "2025-10-15T11:00:00Z",
+      "age_days": 131,
+      "tier": "archive",
+      "status": "completed",
+      "fingerprint": "fp_abc400",
+      "event_count": 50,
+      "storage_bytes": 19456,
+      "tags": ["production"]
+    },
+    {
+      "id": "run_500",
+      "created_at": "2025-08-20T07:00:00Z",
+      "age_days": 187,
+      "tier": "archive",
+      "status": "completed",
+      "fingerprint": "fp_abc500",
+      "event_count": 41,
+      "storage_bytes": 15872,
+      "tags": ["staging"]
+    }
+  ],
+  "summary": {
+    "total_runs": 7,
+    "total_storage_bytes": 113152,
+    "tier_counts": {
+      "hot": 2,
+      "warm": 1,
+      "cold": 2,
+      "archive": 2
+    }
+  }
+}

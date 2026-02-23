@@ -1,0 +1,72 @@
+{
+  "id": "retention-conservative",
+  "version": "1.0.0",
+  "name": "Conservative Retention Policy",
+  "description": "Preserves data longer, compacts more gently",
+  "policy_type": "retention",
+  "tiers": [
+    {
+      "name": "hot",
+      "min_age_days": 0,
+      "max_age_days": 7,
+      "retention": {
+        "action": "keep",
+        "detail_level": "full",
+        "storage": "fast"
+      },
+      "query_performance": "immediate"
+    },
+    {
+      "name": "warm",
+      "min_age_days": 8,
+      "max_age_days": 30,
+      "retention": {
+        "action": "summarize",
+        "detail_level": "reduced",
+        "storage": "standard"
+      },
+      "query_performance": "fast"
+    },
+    {
+      "name": "cold",
+      "min_age_days": 31,
+      "max_age_days": 90,
+      "retention": {
+        "action": "compress",
+        "detail_level": "minimal",
+        "storage": "archive"
+      },
+      "query_performance": "slow"
+    },
+    {
+      "name": "archive",
+      "min_age_days": 91,
+      "max_age_days": null,
+      "retention": {
+        "action": "hash_only",
+        "detail_level": "proof_only",
+        "storage": "deep_archive"
+      },
+      "query_performance": "none",
+      "compliance": {
+        "retain_proof": true,
+        "audit_trail_required": true
+      }
+    }
+  ],
+  "compaction_rules": {
+    "safe_mode": true,
+    "preserve_fingerprints": true,
+    "preserve_metadata": true,
+    "preserve_evidence_refs": true,
+    "allow_event_summarization": true,
+    "allow_log_truncation": true,
+    "require_pre_compact_backup": true,
+    "verify_integrity_after": true
+  },
+  "compliance": {
+    "audit_compaction_actions": true,
+    "retain_compaction_log": true,
+    "minimum_retention_days": 2555
+  }
+}

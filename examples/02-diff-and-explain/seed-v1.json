@@ -1,0 +1,41 @@
+{
+  "action": "analyze",
+  "target": "infrastructure",
+  "priority": "medium",
+  "context": {
+    "environment": "production",
+    "region": "us-east-1",
+    "version": "2.1.0",
+    "alert_level": "none"
+  },
+  "input": {
+    "resources": [
+      {
+        "type": "compute",
+        "name": "web-server-01",
+        "status": "running",
+        "health": "healthy"
+      },
+      {
+        "type": "compute",
+        "name": "web-server-02",
+        "status": "running",
+        "health": "healthy"
+      },
+      {
+        "type": "database",
+        "name": "primary-db",
+        "status": "available",
+        "health": "healthy"
+      }
+    ],
+    "metrics": {
+      "cpu_utilization": 45.2,
+      "memory_utilization": 62.1,
+      "request_count": 1523,
+      "error_rate": 0.001,
+      "latency_p99": 120
+    },
+    "alerts": []
+  }
+}

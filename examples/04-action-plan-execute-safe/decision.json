@@ -1,0 +1,27 @@
+{
+  "id": "scale-up-decision",
+  "version": "1.0.0",
+  "name": "Scale Up API Service",
+  "description": "Increase replica count from 3 to 5 during high traffic",
+  "source_junction": "capacity-planning-junction",
+  "selected_option": "scale-up",
+  "confidence": 0.88,
+  "context": {
+    "service": "api-gateway",
+    "current_replicas": 3,
+    "target_replicas": 5,
+    "trigger": "high_cpu_utilization",
+    "cpu_threshold": 75.0,
+    "current_cpu": 82.3
+  },
+  "policies": [
+    "policy-packs/strict-safe-mode.json"
+  ],
+  "approval_required": false,
+  "safe_only": true,
+  "estimated_impact": {
+    "cost_increase": "$45/month",
+    "capacity_increase": "66%",
+    "downtime": "0s (rolling update)"
+  }
+}

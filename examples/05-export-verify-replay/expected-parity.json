@@ -1,0 +1,77 @@
+{
+  "parity_check_version": "1.0.0",
+  "comparison_fields": [
+    {
+      "field": "fingerprint",
+      "weight": 1.0,
+      "required_match": true,
+      "description": "Primary determinism indicator"
+    },
+    {
+      "field": "event_count",
+      "weight": 0.8,
+      "required_match": true,
+      "description": "Event log completeness"
+    },
+    {
+      "field": "event_types",
+      "weight": 0.6,
+      "required_match": true,
+      "description": "Event sequence matching"
+    },
+    {
+      "field": "output_hash",
+      "weight": 1.0,
+      "required_match": true,
+      "description": "Final output equivalence"
+    }
+  ],
+  "expected_result": {
+    "parity_score": 1.0,
+    "determinism_verified": true,
+    "all_fields_match": true,
+    "original_fingerprint": "fp_a3f5c8e2d9b1470e6f8a2c5d7e9b1f4a8c2d5e7f9a1b3c5d7e9f1a3b5c7d9e1f",
+    "replay_fingerprint": "fp_a3f5c8e2d9b1470e6f8a2c5d7e9b1f4a8c2d5e7f9a1b3c5d7e9f1a3b5c7d9e1f",
+    "fingerprints_match": true,
+    "verification_certificate": {
+      "verified_at": "iso8601",
+      "original_run_id": "string",
+      "replay_run_id": "string",
+      "parity_score": 1.0,
+      "determinism_proof": "valid"
+    }
+  },
+  "failure_modes": [
+    {
+      "name": "fingerprint_mismatch",
+      "description": "Original and replay fingerprints differ",
+      "severity": "critical",
+      "likely_causes": [
+        "Non-deterministic code in execution path",
+        "External state changes between runs",
+        "Timestamp dependencies",
+        "Random number usage"
+      ]
+    },
+    {
+      "name": "event_count_mismatch",
+      "description": "Different number of events in replay",
+      "severity": "critical",
+      "likely_causes": [
+        "Event loss during export/import",
+        "Different code paths taken",
+        "Conditional execution diverged"
+      ]
+    },
+    {
+      "name": "event_order_mismatch",
+      "description": "Events occurred in different order",
+      "severity": "high",
+      "likely_causes": [
+        "Race conditions",
+        "Async timing differences",
+        "Non-deterministic scheduling"
+      ]
+    }
+  ]
+}

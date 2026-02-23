@@ -1,0 +1,39 @@
+{
+  "id": "deployment-policies",
+  "version": "1.0.0",
+  "policies": [
+    {
+      "id": "min_confidence",
+      "type": "quality",
+      "severity": "blocking",
+      "rule": {
+        "field": "confidence",
+        "operator": ">=",
+        "value": 0.70
+      },
+      "description": "Only consider options with at least 70% confidence"
+    },
+    {
+      "id": "downtime_requirement",
+      "type": "infrastructure",
+      "severity": "blocking",
+      "rule": {
+        "field": "constraints.rollback_time",
+        "operator": "in",
+        "value": ["instant", "fast"]
+      },
+      "description": "Rollback must be possible within 5 minutes"
+    },
+    {
+      "id": "cost_ceiling",
+      "type": "cost",
+      "severity": "warning",
+      "rule": {
+        "field": "constraints.infrastructure_cost",
+        "operator": "!=",
+        "value": "2x"
+      },
+      "description": "Prefer lower infrastructure cost options"
+    }
+  ]
+}

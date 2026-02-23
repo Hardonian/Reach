@@ -1,0 +1,44 @@
+{
+  "id": "verify-config",
+  "version": "1.0.0",
+  "verification_settings": {
+    "integrity_checks": {
+      "manifest_hash": true,
+      "event_chain_hash": true,
+      "fingerprint_match": true
+    },
+    "signature_checks": {
+      "required": false,
+      "verify_certificate": true,
+      "allowed_signers": []
+    },
+    "replay_settings": {
+      "determinism_mode": "strict",
+      "verify_event_order": true,
+      "verify_event_content": true,
+      "allow_event_timestamp_variance": false
+    },
+    "parity_threshold": {
+      "minimum_match_percentage": 100.0,
+      "allowed_divergence_events": 0
+    }
+  },
+  "expected_structure": {
+    "bundle_contents": [
+      "manifest.json",
+      "events.jsonl",
+      "fingerprint.sha256",
+      "metadata.json"
+    ],
+    "manifest_fields": [
+      "id",
+      "version",
+      "created_at",
+      "source_run_id",
+      "event_count",
+      "fingerprint"
+    ],
+    "event_log_format": "jsonl",
+    "fingerprint_algorithm": "sha256"
+  }
+}

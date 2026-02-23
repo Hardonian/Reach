@@ -1,0 +1,67 @@
+{
+  "$schema": "./schema.json",
+  "id": "retention-aggressive",
+  "version": "1.0.0",
+  "type": "compliance",
+  "severity": "warning",
+  "description": "Minimize storage with aggressive compaction. Shorter retention, aggressive summarization. Suitable for high-volume, non-critical data.",
+  "rules": [
+    {
+      "name": "short-retention-period",
+      "condition": {
+        "field": "retention.archive_days",
+        "operator": "greater_than_or_equal",
+        "value": 30
+      },
+      "message": "Short retention period (advisory check)",
+      "suggestion": "Ensure this meets your compliance requirements"
+    },
+    {
+      "name": "aggressive-compaction-allowed",
+      "condition": {
+        "field": "compaction.aggressive_mode",
+        "operator": "allowed"
+      },
+      "message": "Aggressive compaction enabled",
+      "suggestion": "Review compliance requirements before using"
+    },
+    {
+      "name": "summarize-early",
+      "condition": {
+        "field": "retention.summarize_after_days",
+        "operator": "less_than",
+        "value": 7
+      },
+      "message": "Early summarization will reduce detail",
+      "suggestion": "Verify summary-level data meets query needs"
+    }
+  ],
+  "config": {
+    "archive_after_days": {
+      "type": "number",
+      "default": 30,
+      "description": "Days before moving to archive tier"
+    },
+    "retain_for_days": {
+      "type": "number",
+      "default": 90,
+      "description": "Total retention period (3 months)"
+    },
+    "summarize_after_days": {
+      "type": "number",
+      "default": 3,
+      "description": "Summarize detailed data after 3 days"
+    },
+    "compression_level": {
+      "type": "number",
+      "default": 9,
+      "description": "Maximum compression for archive tier"
+    }
+  },
+  "metadata": {
+    "author": "Reach OSS",
+    "category": "compliance",
+    "applies_to": ["retention", "compaction"],
+    "tags": ["aggressive", "storage-efficient", "high-volume", "short-term"]
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "comparison_type": "run_diff",
+  "fields_changed": [
+    {
+      "path": "input.priority",
+      "old": "medium",
+      "new": "high",
+      "change_type": "modified"
+    },
+    {
+      "path": "input.context.alert_level",
+      "old": "none",
+      "new": "warning",
+      "change_type": "modified"
+    },
+    {
+      "path": "input.resources[0].health",
+      "old": "healthy",
+      "new": "degraded",
+      "change_type": "modified"
+    },
+    {
+      "path": "input.metrics.cpu_utilization",
+      "old": 45.2,
+      "new": 78.5,
+      "change_type": "modified"
+    },
+    {
+      "path": "input.metrics.error_rate",
+      "old": 0.001,
+      "new": 0.015,
+      "change_type": "modified"
+    },
+    {
+      "path": "input.alerts",
+      "old": [],
+      "new": [{"severity": "warning", "message": "string"}],
+      "change_type": "added"
+    }
+  ],
+  "outputs_impacted": [
+    "recommendation.priority",
+    "action_required",
+    "escalation_level"
+  ],
+  "fingerprint_delta": {
+    "similarity": 0.72,
+    "significant_change": true
+  }
+}

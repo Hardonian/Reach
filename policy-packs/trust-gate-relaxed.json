@@ -1,0 +1,61 @@
+{
+  "$schema": "./schema.json",
+  "id": "trust-gate-relaxed",
+  "version": "1.0.0",
+  "type": "security",
+  "severity": "warning",
+  "description": "Relaxed trust boundaries for development and testing. Unsigned executions allowed, basic audit logging, suitable for local development.",
+  "rules": [
+    {
+      "name": "advisory-signing",
+      "condition": {
+        "field": "attestation.signature",
+        "operator": "exists"
+      },
+      "message": "Consider signing for better traceability (advisory)",
+      "suggestion": "Add signature for production deployments"
+    },
+    {
+      "name": "identity-optional",
+      "condition": {
+        "field": "actor.id",
+        "operator": "exists"
+      },
+      "message": "Actor identification recommended",
+      "suggestion": "Provide actor ID for better audit trail"
+    },
+    {
+      "name": "basic-audit",
+      "condition": {
+        "field": "audit.enabled",
+        "operator": "equals",
+        "value": true
+      },
+      "message": "Basic audit logging recommended",
+      "suggestion": "Enable audit for mutations at minimum"
+    }
+  ],
+  "config": {
+    "require_signature": {
+      "type": "boolean",
+      "default": false,
+      "description": "Signatures optional in relaxed mode"
+    },
+    "min_trust_tier": {
+      "type": "string",
+      "default": "anonymous",
+      "description": "Any actor tier allowed"
+    },
+    "audit_mutations_only": {
+      "type": "boolean",
+      "default": true,
+      "description": "Only audit mutating operations"
+    }
+  },
+  "metadata": {
+    "author": "Reach OSS",
+    "category": "security",
+    "applies_to": ["trust_gates", "development"],
+    "tags": ["relaxed", "development", "testing", "local"]
+  }
+}

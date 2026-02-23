@@ -1,0 +1,63 @@
+{
+  "$schema": "./schema.json",
+  "id": "low-noise-junctions",
+  "version": "1.0.0",
+  "type": "quality",
+  "severity": "advisory",
+  "description": "Reduce noise for rapid decision-making. Lower confidence thresholds, faster execution, suitable for non-critical choices.",
+  "rules": [
+    {
+      "name": "relaxed-confidence-threshold",
+      "condition": {
+        "field": "decision.confidence",
+        "operator": "greater_than_or_equal",
+        "value": 0.60
+      },
+      "message": "Consider gathering more evidence (advisory only)",
+      "suggestion": "For critical decisions, switch to high-signal-junctions policy"
+    },
+    {
+      "name": "single-source-acceptable",
+      "condition": {
+        "field": "evidence.sources",
+        "operator": "array_length_minimum",
+        "value": 1
+      },
+      "message": "Single evidence source is acceptable for low-noise decisions",
+      "suggestion": "Add more sources if decision impact is higher than expected"
+    },
+    {
+      "name": "fast-timeout",
+      "condition": {
+        "field": "decision.timeout_ms",
+        "operator": "less_than",
+        "value": 5000
+      },
+      "message": "Decision timeout should be under 5 seconds",
+      "suggestion": "Optimize evidence gathering for faster decisions"
+    }
+  ],
+  "config": {
+    "min_confidence": {
+      "type": "number",
+      "default": 0.60,
+      "description": "Minimum confidence threshold (lower for speed)"
+    },
+    "min_evidence_sources": {
+      "type": "number",
+      "default": 1,
+      "description": "Single source acceptable for low-noise decisions"
+    },
+    "max_decision_time_ms": {
+      "type": "number",
+      "default": 5000,
+      "description": "Maximum time allowed for decision"
+    }
+  },
+  "metadata": {
+    "author": "Reach OSS",
+    "category": "quality",
+    "applies_to": ["junctions", "decisions"],
+    "tags": ["fast", "low-noise", "non-critical", "exploratory"]
+  }
+}

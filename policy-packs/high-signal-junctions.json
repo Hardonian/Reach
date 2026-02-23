@@ -1,0 +1,72 @@
+{
+  "$schema": "./schema.json",
+  "id": "high-signal-junctions",
+  "version": "1.0.0",
+  "type": "quality",
+  "severity": "blocking",
+  "description": "Require high-confidence, high-evidence decisions. Suitable for critical choices where wrong answers are costly.",
+  "rules": [
+    {
+      "name": "minimum-confidence-threshold",
+      "condition": {
+        "field": "decision.confidence",
+        "operator": "greater_than_or_equal",
+        "value": 0.80
+      },
+      "message": "Decisions require minimum 80% confidence with high-signal-junctions",
+      "suggestion": "Gather more evidence or reduce option complexity"
+    },
+    {
+      "name": "require-multiple-evidence-sources",
+      "condition": {
+        "field": "evidence.sources",
+        "operator": "array_length_minimum",
+        "value": 2
+      },
+      "message": "At least 2 independent evidence sources required",
+      "suggestion": "Add evidence from additional sources to support decision"
+    },
+    {
+      "name": "evidence-freshness",
+      "condition": {
+        "field": "evidence.max_age_hours",
+        "operator": "less_than",
+        "value": 24
+      },
+      "message": "Evidence must be less than 24 hours old",
+      "suggestion": "Refresh stale evidence before making decision"
+    },
+    {
+      "name": "require-rationale",
+      "condition": {
+        "field": "decision.rationale",
+        "operator": "exists"
+      },
+      "message": "High-signal decisions require documented rationale",
+      "suggestion": "Add rationale explaining why this option was selected"
+    }
+  ],
+  "config": {
+    "min_confidence": {
+      "type": "number",
+      "default": 0.80,
+      "description": "Minimum confidence threshold for decisions"
+    },
+    "min_evidence_sources": {
+      "type": "number",
+      "default": 2,
+      "description": "Minimum number of evidence sources required"
+    },
+    "max_evidence_age_hours": {
+      "type": "number",
+      "default": 24,
+      "description": "Maximum age of evidence in hours"
+    }
+  },
+  "metadata": {
+    "author": "Reach OSS",
+    "category": "quality",
+    "applies_to": ["junctions", "decisions"],
+    "tags": ["high-confidence", "high-evidence", "critical"]
+  }
+}

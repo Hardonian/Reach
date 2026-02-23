@@ -1,0 +1,76 @@
+{
+  "id": "safe-analysis-actions",
+  "version": "1.0.0",
+  "actions": [
+    {
+      "id": "collect-metrics",
+      "name": "Collect Current Metrics",
+      "safety_class": "SAFE",
+      "description": "Read current performance metrics from monitoring system",
+      "read_only": true,
+      "side_effects": false,
+      "inputs": ["service_name", "metric_types"],
+      "outputs": ["metrics_snapshot"],
+      "estimated_duration_ms": 500
+    },
+    {
+      "id": "query-history",
+      "name": "Query Historical Data",
+      "safety_class": "SAFE",
+      "description": "Retrieve historical metrics for trend analysis",
+      "read_only": true,
+      "side_effects": false,
+      "inputs": ["service_name", "time_range"],
+      "outputs": ["historical_data"],
+      "estimated_duration_ms": 1000
+    },
+    {
+      "id": "analyze-trends",
+      "name": "Analyze Trends",
+      "safety_class": "SAFE",
+      "description": "Calculate trends and patterns from metrics",
+      "read_only": true,
+      "side_effects": false,
+      "inputs": ["current_metrics", "historical_data"],
+      "outputs": ["trend_analysis"],
+      "estimated_duration_ms": 300
+    },
+    {
+      "id": "generate-report",
+      "name": "Generate Analysis Report",
+      "safety_class": "SAFE",
+      "description": "Compile findings into structured report",
+      "read_only": true,
+      "side_effects": false,
+      "inputs": ["trend_analysis", "recommendations"],
+      "outputs": ["report"],
+      "estimated_duration_ms": 200
+    },
+    {
+      "id": "scale-resources",
+      "name": "Scale Resources",
+      "safety_class": "GUARDED",
+      "description": "Modify resource allocation (requires approval)",
+      "read_only": false,
+      "side_effects": true,
+      "inputs": ["scaling_recommendation"],
+      "outputs": ["scaling_result"],
+      "estimated_duration_ms": 5000,
+      "approval_required": true
+    },
+    {
+      "id": "restart-service",
+      "name": "Restart Service",
+      "safety_class": "DANGER",
+      "description": "Restart production service (requires explicit auth)",
+      "read_only": false,
+      "side_effects": true,
+      "destructive": true,
+      "inputs": ["service_name"],
+      "outputs": ["restart_result"],
+      "estimated_duration_ms": 30000,
+      "approval_required": true,
+      "authorization_required": true
+    }
+  ]
+}

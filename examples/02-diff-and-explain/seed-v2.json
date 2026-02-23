@@ -1,0 +1,52 @@
+{
+  "action": "analyze",
+  "target": "infrastructure",
+  "priority": "high",
+  "context": {
+    "environment": "production",
+    "region": "us-east-1",
+    "version": "2.1.0",
+    "alert_level": "warning"
+  },
+  "input": {
+    "resources": [
+      {
+        "type": "compute",
+        "name": "web-server-01",
+        "status": "running",
+        "health": "degraded"
+      },
+      {
+        "type": "compute",
+        "name": "web-server-02",
+        "status": "running",
+        "health": "healthy"
+      },
+      {
+        "type": "database",
+        "name": "primary-db",
+        "status": "available",
+        "health": "healthy"
+      }
+    ],
+    "metrics": {
+      "cpu_utilization": 78.5,
+      "memory_utilization": 85.3,
+      "request_count": 3421,
+      "error_rate": 0.015,
+      "latency_p99": 450
+    },
+    "alerts": [
+      {
+        "severity": "warning",
+        "message": "High CPU utilization on web-server-01",
+        "resource": "web-server-01"
+      },
+      {
+        "severity": "warning",
+        "message": "Elevated error rate detected",
+        "resource": "cluster"
+      }
+    ]
+  }
+}

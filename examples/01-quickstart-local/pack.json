@@ -1,0 +1,24 @@
+{
+  "id": "quickstart-local",
+  "version": "1.0.0",
+  "name": "Quickstart Local Demo",
+  "description": "Minimal deterministic execution demonstrating core Reach capabilities",
+  "deterministic": true,
+  "entry": {
+    "type": "analysis",
+    "action": "infrastructure_review"
+  },
+  "policies": [
+    "policy-packs/strict-safe-mode.json"
+  ],
+  "output": {
+    "format": "json",
+    "include_evidence": true,
+    "include_fingerprint": true
+  },
+  "metadata": {
+    "category": "demo",
+    "complexity": "beginner",
+    "estimated_duration": "30s"
+  }
+}

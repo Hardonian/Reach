@@ -1,0 +1,61 @@
+{
+  "trace_structure": {
+    "steps": [
+      {
+        "phase": "junction_created",
+        "timestamp": "iso8601",
+        "data": {
+          "junction_id": "string",
+          "options_count": "number"
+        }
+      },
+      {
+        "phase": "evidence_collected",
+        "timestamp": "iso8601",
+        "data": {
+          "evidence_items": "number",
+          "sources": "array"
+        }
+      },
+      {
+        "phase": "policies_evaluated",
+        "timestamp": "iso8601",
+        "data": {
+          "policies_checked": "number",
+          "violations": "array",
+          "passed": "boolean"
+        }
+      },
+      {
+        "phase": "options_ranked",
+        "timestamp": "iso8601",
+        "data": {
+          "ranking": "array",
+          "selected_option": "string"
+        }
+      },
+      {
+        "phase": "decision_recorded",
+        "timestamp": "iso8601",
+        "data": {
+          "decision_id": "string",
+          "fingerprint": "string"
+        }
+      }
+    ]
+  },
+  "expected_selection": {
+    "option_id": "blue-green",
+    "rationale": "Highest confidence (0.85) meets all policy requirements",
+    "rejected_options": [
+      {
+        "id": "canary",
+        "reason": "Lower confidence than blue-green"
+      },
+      {
+        "id": "rolling",
+        "reason": "Confidence below minimum threshold (0.65 < 0.70)"
+      }
+    ]
+  }
+}

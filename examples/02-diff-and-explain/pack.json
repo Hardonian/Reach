@@ -1,0 +1,26 @@
+{
+  "id": "diff-and-explain",
+  "version": "1.0.0",
+  "name": "Diff and Explain Demo",
+  "description": "Demonstrates change detection and explainability across two executions",
+  "deterministic": true,
+  "entry": {
+    "type": "comparison",
+    "action": "diff_analysis"
+  },
+  "policies": [
+    "policy-packs/balanced-ops.json"
+  ],
+  "output": {
+    "format": "json",
+    "include_diff": true,
+    "include_explanation": true,
+    "include_evidence": true
+  },
+  "metadata": {
+    "category": "demo",
+    "complexity": "beginner",
+    "estimated_duration": "45s",
+    "requires_multiple_runs": true
+  }
+}

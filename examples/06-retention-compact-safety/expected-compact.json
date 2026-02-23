@@ -1,0 +1,52 @@
+{
+  "compaction_version": "1.0.0",
+  "expected_results": {
+    "runs_processed": 7,
+    "runs_modified": 2,
+    "runs_unchanged": 5,
+    "storage_before_bytes": 113152,
+    "storage_after_bytes": 45056,
+    "storage_saved_bytes": 68196,
+    "storage_saved_percent": 60.3,
+    "integrity_check": {
+      "passed": true,
+      "fingerprints_preserved": 7,
+      "metadata_preserved": 7,
+      "evidence_refs_intact": 7,
+      "chain_hash_valid": true
+    },
+    "tier_changes": [
+      {
+        "tier": "hot",
+        "runs": 2,
+        "action": "unchanged",
+        "storage_impact": 0
+      },
+      {
+        "tier": "warm",
+        "runs": 1,
+        "action": "unchanged",
+        "storage_impact": 0
+      },
+      {
+        "tier": "cold",
+        "runs": 2,
+        "action": "unchanged",
+        "storage_impact": 0
+      },
+      {
+        "tier": "archive",
+        "runs": 2,
+        "action": "compact",
+        "storage_impact": -68196,
+        "details": "Events summarized, logs truncated"
+      }
+    ]
+  },
+  "compliance_verification": {
+    "audit_trail_complete": true,
+    "retention_proofs_valid": true,
+    "compaction_log_created": true,
+    "backup_created": true
+  }
+}

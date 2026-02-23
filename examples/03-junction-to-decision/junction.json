@@ -1,0 +1,98 @@
+{
+  "id": "deployment-strategy-junction",
+  "version": "1.0.0",
+  "name": "Deployment Strategy Decision",
+  "description": "Choose deployment strategy based on risk tolerance and constraints",
+  "deterministic": true,
+  "context": {
+    "environment": "production",
+    "service": "api-gateway",
+    "current_version": "2.1.0",
+    "target_version": "2.2.0"
+  },
+  "options": [
+    {
+      "id": "blue-green",
+      "name": "Blue-Green Deployment",
+      "description": "Parallel environments with instant switchover",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "type": "historical",
+          "source": "past_deployments",
+          "value": 0.92,
+          "description": "12 successful blue-green deployments in last 3 months"
+        },
+        {
+          "type": "metric",
+          "source": "downtime_analysis",
+          "value": 0.001,
+          "description": "Near-zero downtime (avg 15ms switchover)"
+        }
+      ],
+      "constraints": {
+        "infrastructure_cost": "2x",
+        "time_to_deploy": "medium",
+        "rollback_time": "instant"
+      }
+    },
+    {
+      "id": "canary",
+      "name": "Canary Deployment",
+      "description": "Gradual rollout with traffic splitting",
+      "confidence": 0.72,
+      "evidence": [
+        {
+          "type": "historical",
+          "source": "past_deployments",
+          "value": 0.78,
+          "description": "8 canary deployments, 1 rollback"
+        },
+        {
+          "type": "metric",
+          "source": "error_detection",
+          "value": 0.95,
+          "description": "Fast error detection with 5% traffic sampling"
+        }
+      ],
+      "constraints": {
+        "infrastructure_cost": "1.1x",
+        "time_to_deploy": "slow",
+        "rollback_time": "fast"
+      }
+    },
+    {
+      "id": "rolling",
+      "name": "Rolling Deployment",
+      "description": "Sequential instance updates",
+      "confidence": 0.65,
+      "evidence": [
+        {
+          "type": "historical",
+          "source": "past_deployments",
+          "value": 0.70,
+          "description": "20 rolling deployments, mixed results"
+        },
+        {
+          "type": "metric",
+          "source": "capacity_analysis",
+          "value": 0.85,
+          "description": "Maintains 75% capacity during deploy"
+        }
+      ],
+      "constraints": {
+        "infrastructure_cost": "1x",
+        "time_to_deploy": "fast",
+        "rollback_time": "slow"
+      }
+    }
+  ],
+  "policies": [
+    "policy-packs/high-signal-junctions.json"
+  ],
+  "selection_criteria": {
+    "primary": "confidence",
+    "minimum_confidence": 0.70,
+    "tiebreaker": "rollback_time"
+  }
+}

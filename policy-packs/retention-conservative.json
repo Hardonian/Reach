@@ -1,0 +1,73 @@
+{
+  "$schema": "./schema.json",
+  "id": "retention-conservative",
+  "version": "1.0.0",
+  "type": "compliance",
+  "severity": "blocking",
+  "description": "Preserve data longer, compact gently. Suitable for compliance-heavy environments where audit trails are critical.",
+  "rules": [
+    {
+      "name": "long-retention-period",
+      "condition": {
+        "field": "retention.archive_days",
+        "operator": "greater_than_or_equal",
+        "value": 2555
+      },
+      "message": "Conservative retention requires 7+ year archive",
+      "suggestion": "Extend retention period or use aggressive policy"
+    },
+    {
+      "name": "preserve-fingerprints",
+      "condition": {
+        "field": "compaction.preserve_fingerprints",
+        "operator": "equals",
+        "value": true
+      },
+      "message": "Fingerprints must never be deleted",
+      "suggestion": "Ensure compaction preserves all fingerprints"
+    },
+    {
+      "name": "require-backup-before-compact",
+      "condition": {
+        "field": "compaction.backup_required",
+        "operator": "equals",
+        "value": true
+      },
+      "message": "Backup required before any compaction",
+      "suggestion": "Enable pre-compact backups in configuration"
+    },
+    {
+      "name": "audit-compaction",
+      "condition": {
+        "field": "compaction.audit_enabled",
+        "operator": "equals",
+        "value": true
+      },
+      "message": "All compaction actions must be audited",
+      "suggestion": "Enable compaction audit logging"
+    }
+  ],
+  "config": {
+    "archive_after_days": {
+      "type": "number",
+      "default": 90,
+      "description": "Days before moving to archive tier"
+    },
+    "retain_for_days": {
+      "type": "number",
+      "default": 2555,
+      "description": "Total retention period (7 years)"
+    },
+    "compaction_safe_mode": {
+      "type": "boolean",
+      "default": true,
+      "description": "Always use safe compaction mode"
+    }
+  },
+  "metadata": {
+    "author": "Reach OSS",
+    "category": "compliance",
+    "applies_to": ["retention", "compaction"],
+    "tags": ["conservative", "compliance", "audit", "long-term"]
+  }
+}

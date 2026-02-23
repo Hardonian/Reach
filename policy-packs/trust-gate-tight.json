@@ -1,0 +1,72 @@
+{
+  "$schema": "./schema.json",
+  "id": "trust-gate-tight",
+  "version": "1.0.0",
+  "type": "security",
+  "severity": "blocking",
+  "description": "Strict trust boundary enforcement. Requires signed attestations, verified identities, audit logging for all access.",
+  "rules": [
+    {
+      "name": "require-signed-attestation",
+      "condition": {
+        "field": "attestation.signature",
+        "operator": "exists"
+      },
+      "message": "Tight trust gates require signed attestations",
+      "suggestion": "Sign your execution with a valid key"
+    },
+    {
+      "name": "verify-identity",
+      "condition": {
+        "field": "actor.verified",
+        "operator": "equals",
+        "value": true
+      },
+      "message": "Actor identity must be verified",
+      "suggestion": "Complete identity verification before execution"
+    },
+    {
+      "name": "require-audit-log",
+      "condition": {
+        "field": "audit.enabled",
+        "operator": "equals",
+        "value": true
+      },
+      "message": "Audit logging must be enabled",
+      "suggestion": "Enable audit logging in configuration"
+    },
+    {
+      "name": "minimum-trust-tier",
+      "condition": {
+        "field": "actor.trust_tier",
+        "operator": "in",
+        "value": ["verified", "trusted", "admin"]
+      },
+      "message": "Actor must have minimum 'verified' trust tier",
+      "suggestion": "Build trust history or request tier upgrade"
+    }
+  ],
+  "config": {
+    "require_signature": {
+      "type": "boolean",
+      "default": true,
+      "description": "Require cryptographic signatures"
+    },
+    "min_trust_tier": {
+      "type": "string",
+      "default": "verified",
+      "description": "Minimum trust tier for execution"
+    },
+    "audit_all": {
+      "type": "boolean",
+      "default": true,
+      "description": "Audit all actions including reads"
+    }
+  },
+  "metadata": {
+    "author": "Reach OSS",
+    "category": "security",
+    "applies_to": ["trust_gates", "access_control"],
+    "tags": ["strict", "signed", "verified", "audit"]
+  }
+}

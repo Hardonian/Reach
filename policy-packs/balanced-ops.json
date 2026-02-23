@@ -1,0 +1,67 @@
+{
+  "$schema": "./schema.json",
+  "id": "balanced-ops",
+  "version": "1.0.0",
+  "type": "quality",
+  "severity": "warning",
+  "description": "Balanced policy for typical operations. Allows safe mutations with dry-run verification, warns on potential issues, flexible for development and production.",
+  "rules": [
+    {
+      "name": "warn-on-unsafe-actions",
+      "condition": {
+        "field": "action.safe",
+        "operator": "equals",
+        "value": true
+      },
+      "message": "Consider marking action as safe for better auditability",
+      "suggestion": "Review action and add 'safe: true' if appropriate"
+    },
+    {
+      "name": "require-dry-run-for-mutations",
+      "condition": {
+        "field": "action.mutating",
+        "operator": "implies",
+        "value": { "field": "action.dry_run" }
+      },
+      "message": "Mutating actions should use dry-run verification",
+      "suggestion": "Add dry_run: true for initial verification"
+    },
+    {
+      "name": "warn-on-high-latency",
+      "condition": {
+        "field": "action.expected_duration_ms",
+        "operator": "less_than",
+        "value": 30000
+      },
+      "message": "Actions should complete within 30 seconds",
+      "suggestion": "Consider async execution or optimization"
+    },
+    {
+      "name": "require-rollback-plan",
+      "condition": {
+        "field": "rollback_plan",
+        "operator": "exists"
+      },
+      "message": "Mutating operations should have rollback capability",
+      "suggestion": "Define a rollback_plan in your configuration"
+    }
+  ],
+  "config": {
+    "max_action_duration_ms": {
+      "type": "number",
+      "default": 30000,
+      "description": "Maximum expected action duration before warning"
+    },
+    "require_evidence": {
+      "type": "boolean",
+      "default": true,
+      "description": "Require at least minimal evidence for decisions"
+    }
+  },
+  "metadata": {
+    "author": "Reach OSS",
+    "category": "balanced",
+    "applies_to": ["development", "production"],
+    "tags": ["balanced", "flexible", "production-ready"]
+  }
+}

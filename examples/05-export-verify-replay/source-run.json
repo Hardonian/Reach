@@ -1,0 +1,67 @@
+{
+  "id": "source-run-export-demo",
+  "version": "1.0.0",
+  "name": "Source Run for Export Demo",
+  "description": "Example run demonstrating export/replay capabilities",
+  "deterministic": true,
+  "started_at": "2026-02-23T10:00:00Z",
+  "completed_at": "2026-02-23T10:00:05Z",
+  "status": "completed",
+  "input": {
+    "action": "analyze",
+    "target": "infrastructure",
+    "priority": "high"
+  },
+  "events": [
+    {
+      "sequence": 1,
+      "timestamp": "2026-02-23T10:00:00.000Z",
+      "type": "run.started",
+      "data": { "run_id": "source-run-export-demo", "input_hash": "sha256:abc123" }
+    },
+    {
+      "sequence": 2,
+      "timestamp": "2026-02-23T10:00:01.000Z",
+      "type": "policy.loaded",
+      "data": { "policies": ["strict-safe-mode"] }
+    },
+    {
+      "sequence": 3,
+      "timestamp": "2026-02-23T10:00:02.000Z",
+      "type": "analysis.started",
+      "data": { "analyzer": "infrastructure", "input_size": 256 }
+    },
+    {
+      "sequence": 4,
+      "timestamp": "2026-02-23T10:00:03.000Z",
+      "type": "evidence.collected",
+      "data": { "evidence_items": 5, "sources": ["metrics", "logs", "config"] }
+    },
+    {
+      "sequence": 5,
+      "timestamp": "2026-02-23T10:00:04.000Z",
+      "type": "analysis.completed",
+      "data": { "result": "healthy", "recommendations": 2 }
+    },
+    {
+      "sequence": 6,
+      "timestamp": "2026-02-23T10:00:05.000Z",
+      "type": "run.completed",
+      "data": { "status": "success", "output_hash": "sha256:def456" }
+    }
+  ],
+  "output": {
+    "status": "healthy",
+    "recommendations": [
+      { "priority": "low", "action": "review_scaling_policy" },
+      { "priority": "info", "action": "update_documentation" }
+    ],
+    "metrics": {
+      "cpu_avg": 45.2,
+      "memory_avg": 62.1
+    }
+  },
+  "fingerprint": "fp_a3f5c8e2d9b1470e6f8a2c5d7e9b1f4a8c2d5e7f9a1b3c5d7e9f1a3b5c7d9e1f",
+  "evidence_count": 5,
+  "policies_applied": ["strict-safe-mode"]
+}
