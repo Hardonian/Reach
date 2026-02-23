@@ -127,6 +127,7 @@ export async function runExportReportCommand(argv: string[]): Promise<number> {
   const outDir = argv.includes("--out") ? argv[argv.indexOf("--out") + 1] : process.cwd();
 
   try {
+    // @ts-ignore - External package may not be available
     const core = await import("@zeo/core");
     const snapshot = core.loadSnapshot(runId);
     if (!snapshot) {

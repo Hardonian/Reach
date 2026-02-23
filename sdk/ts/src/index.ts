@@ -3,6 +3,11 @@ export interface DecisionSpec {
   title: string;
   context: string;
   createdAt: string;
+  decisionType?: string;
+  workspaceMode?: string;
+  decisionState?: string;
+  reviewAfter?: string;
+  expectedSignals?: string[];
   horizon: string;
   agents: any[];
   actions: any[];

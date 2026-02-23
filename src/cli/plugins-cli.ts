@@ -57,7 +57,8 @@ function pluginsRoots(): string[] {
     resolve(process.cwd(), "plugins"),
     resolve(process.cwd(), ".zeo", "plugins"),
   ];
-  if (loadConfig().ZEO_PLUGIN_PATH) roots.push(resolve(process.cwd(), loadConfig().ZEO_PLUGIN_PATH));
+  const pluginPath = loadConfig().ZEO_PLUGIN_PATH;
+  if (pluginPath) roots.push(resolve(process.cwd(), pluginPath));
   return roots;
 }
 

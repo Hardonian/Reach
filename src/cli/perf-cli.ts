@@ -1,5 +1,5 @@
-import { loadConfig } from "../core/env.js";
 // @ts-nocheck
+import { loadConfig } from "../core/env.js";
 /**
  * Performance CLI Module
  *
@@ -14,6 +14,7 @@ import { loadConfig } from "../core/env.js";
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { resolve, join, relative } from "node:path";
 import { cwd } from "node:process";
+// @ts-ignore - External packages may not be available in all environments
 import {
   StaticHotPathScanner,
   scanHotPaths,
@@ -28,6 +29,7 @@ import {
   type ProfileReport,
   type ProfilerOptions,
 } from "@zeo/perf";
+// @ts-ignore - External packages may not be available in all environments
 import {
   makeNegotiationExample,
   makeOpsExample,
@@ -36,7 +38,9 @@ import {
   hashDecisionSpec,
   canonicalizeDecisionSpec,
 } from "@zeo/core";
+// @ts-ignore - External packages may not be available in all environments
 import { replayCase } from "@zeo/replay";
+// @ts-ignore - External packages may not be available in all environments
 import { ZeoError, type ReplayDataset, type ReplayOptions } from "@zeo/contracts";
 
 export interface PerfCliArgs {

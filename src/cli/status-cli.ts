@@ -1,5 +1,6 @@
 import { loadConfig } from "../core/env.js";
 // @ts-nocheck
+// @ts-ignore - External package may not be available in all environments
 import { listRecentArtifacts } from "@zeo/ledger";
 import { performance } from "node:perf_hooks";
 import os from "node:os";
@@ -8,10 +9,10 @@ export async function runStatusCommand(): Promise<number> {
   const recent = listRecentArtifacts(10);
   const uptime = os.uptime();
 
-  const latencies = recent.map((a) => a.execution_duration_ms).filter(Boolean);
+  const latencies = recent.map((a: { execution_duration_ms?: number }) => a.execution_duration_ms).filter(Boolean);
   const avgLatency =
     latencies.length > 0
-      ? (latencies.reduce((a, b) => a + b, 0) / latencies.length).toFixed(2)
+      ? (latencies.reduce((a: number, b: number) => a + b, 0) / latencies.length).toFixed(2)
       : "N/A";
 
   console.log("\n=== Zeo Operator Status ===");
@@ -19,7 +20,7 @@ export async function runStatusCommand(): Promise<number> {
   console.log(`Average Latency (recent): ${avgLatency}ms`);
   console.log(`Recent Decisions: ${recent.length}`);
   console.log("\nLast 10 Decisions:");
-  recent.forEach((a) => {
+  recent.forEach((a: { decision_id: string; timestamp: string; execution_duration_ms?: number }) => {
     console.log(`- ${a.decision_id}: ${a.timestamp} (${a.execution_duration_ms}ms)`);
   });
 

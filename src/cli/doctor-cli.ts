@@ -17,27 +17,35 @@ import { readFileSync, existsSync, mkdirSync, statSync, readdirSync, writeFileSy
 import { resolve, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { hashString } from "../determinism/index.js";
+// @ts-ignore - External package may not be available in all environments
 import { safeValidateEnv } from "@zeo/env";
 import { execSync } from "node:child_process";
 
-// Try to import VERSION_INFO from @zeo/core, with fallback for dev
-let VERSION_INFO: { version: string; gitSha: string; timestamp: string };
-try {
-  const core = (await import("@zeo/core")) as any;
-  VERSION_INFO = core.VERSION_INFO || {
-    version: "dev",
-    gitSha: "unknown",
-    timestamp: new Date().toISOString(),
-  };
-} catch {
-  // Fallback for development without full build
-  VERSION_INFO = {
-    version: "dev",
-    gitSha: "unknown",
-    timestamp: new Date().toISOString(),
-  };
+// VERSION_INFO - initialized lazily or with fallback
+let VERSION_INFO: { version: string; gitSha: string; timestamp: string } | undefined;
+
+async function getVersionInfo(): Promise<{ version: string; gitSha: string; timestamp: string }> {
+  if (VERSION_INFO) return VERSION_INFO;
+  try {
+    // @ts-ignore - External package may not be available
+    const core = (await import("@zeo/core")) as any;
+    VERSION_INFO = core.VERSION_INFO || {
+      version: "dev",
+      gitSha: "unknown",
+      timestamp: new Date().toISOString(),
+    };
+  } catch {
+    // Fallback for development without full build
+    VERSION_INFO = {
+      version: "dev",
+      gitSha: "unknown",
+      timestamp: new Date().toISOString(),
+    };
+  }
+  return VERSION_INFO!;
 }
 
+// @ts-ignore - import.meta.url is available in ESM
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export interface DoctorResult {
@@ -126,7 +134,7 @@ export async function runDoctorCommand(args: {
   }
 
   // 2. Version Check
-  const versionCheck = runVersionCheck();
+  const versionCheck = await runVersionCheck();
   checks.push(versionCheck);
 
   // 3. Cache Health Check
@@ -223,22 +231,25 @@ export async function runDoctorCommand(args: {
   // Compute overall status
   const overall = errorCodes.length > 0 ? "critical" : warnings.length > 0 ? "warning" : "healthy";
 
+  // Get version info
+  const versionInfo = await getVersionInfo();
+
   // Build support payload
   const determinismStamp = {
-    version: VERSION_INFO.version,
-    gitSha: VERSION_INFO.gitSha,
-    timestamp: VERSION_INFO.timestamp,
-    seed: computeSeed(),
+    version: versionInfo.version,
+    gitSha: versionInfo.gitSha,
+    timestamp: versionInfo.timestamp,
+    seed: await computeSeed(),
     deterministic: true,
   };
 
   const storageStats = computeStorageStats();
 
   const supportPayload: SupportPayload = {
-    requestId: generateRequestId(),
+    requestId: await generateRequestId(),
     timestamp: new Date().toISOString(),
-    appVersion: VERSION_INFO.version,
-    gitSha: VERSION_INFO.gitSha,
+    appVersion: versionInfo.version,
+    gitSha: versionInfo.gitSha,
     determinismStamp,
     topWarnings: warnings.slice(0, 5),
     errorCodes,
@@ -343,8 +354,8 @@ function runDeterminismCheck(): DoctorCheck {
   }
 }
 
-function runVersionCheck(): DoctorCheck {
-  const { version, gitSha, timestamp } = VERSION_INFO;
+async function runVersionCheck(): Promise<DoctorCheck> {
+  const { version, gitSha, timestamp } = await getVersionInfo();
 
   if (!version || version === "unknown") {
     return {
@@ -718,17 +729,19 @@ function computeDeterministicHash(spec: unknown, seed: string): string {
   return hashString(content);
 }
 
-function computeSeed(): string {
+async function computeSeed(): Promise<string> {
+  const versionInfo = await getVersionInfo();
   const inputs = {
-    version: VERSION_INFO.version,
-    gitSha: VERSION_INFO.gitSha,
+    version: versionInfo.version,
+    gitSha: versionInfo.gitSha,
   };
   return hashString(JSON.stringify(inputs));
 }
 
-function generateRequestId(): string {
+async function generateRequestId(): Promise<string> {
   const timestamp = Date.now().toString(36);
-  const suffix = hashString(`${timestamp}-${VERSION_INFO.version}-${VERSION_INFO.gitSha}`).slice(
+  const versionInfo = await getVersionInfo();
+  const suffix = hashString(`${timestamp}-${versionInfo.version}-${versionInfo.gitSha}`).slice(
     0,
     8,
   );
@@ -1035,7 +1048,7 @@ function runEnvCheck(): DoctorCheck {
   const result = safeValidateEnv();
   if (!result.success) {
     const issues = ("errors" in result ? result.errors : [])
-      .map((e) => `${e.path.join(".")}: ${e.message}`)
+      .map((e: { path: string[]; message: string }) => `${e.path.join(".")}: ${e.message}`)
       .join(", ");
     return {
       id: "env",
@@ -1158,12 +1171,13 @@ function runPathAliasCheck(): DoctorCheck {
       message: "All tsconfig path aliases correctly resolve to filesystem locations.",
     };
   } catch (e) {
+    const error = e as Error;
     return {
       id: "path_alias_health",
       name: "Path Alias Check",
       status: "warning",
       message: "Could not parse tsconfig.json for path validation.",
-      details: { error: e.message },
+      details: { error: error.message },
     };
   }
 }

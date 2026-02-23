@@ -413,3 +413,23 @@ export function migrateTranscript(content: unknown, _version: string): unknown {
 export function migrateEnvelope(content: unknown, _version: string): unknown {
   return content;
 }
+
+// ---------------------------------------------------------------------------
+// Studio CLI stubs
+// ---------------------------------------------------------------------------
+
+export function loadSnapshot(_runId: string): { runId: string; createdAt: string; deterministic: boolean } | null {
+  return null;
+}
+
+export function replayRun(_runId: string): { success: boolean; hash: string } {
+  return { success: false, hash: "" };
+}
+
+export function loadEvidenceGraph(_id: string): { nodes: unknown[]; edges: unknown[] } | null {
+  return null;
+}
+
+export function getDefaultToolRegistry(): Record<string, unknown> {
+  return {};
+}
