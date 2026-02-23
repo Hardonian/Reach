@@ -72,3 +72,16 @@ All matched files use Prettier code style!
 
 --- Checking Config Consistency ---
 Γ£à Single ESLint config: eslint.config.js
+
+> @reach/decision-engine-monorepo@0.3.1 gates:reality
+> npx tsx scripts/check-v0.1-gates.ts
+
+================================================================
+PHASE 3 ΓÇö CI GUARDRAILS (ANTI-THEATRE + ANTI-BRITTLE HASHING)
+================================================================
+Checking No-Theatre Gate...
+Γ¥î ERROR: Found theatre logic in runtime path:
+README.md:15: - What is explicitly removed: Mesh networking, consensus simulation, and poee theatre have been purg
+Checking No Substring Hash Omission Gate...
+Γ£à No Substring Hash Omission Gate passed.
+Checking No go run CLI Gate...
