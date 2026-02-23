@@ -23,8 +23,7 @@ export const TelemetryEventSchema = z.object({
 });
 
 export class TelemetryEngine {
-  async track(event: TelemetryEvent): Promise<void> {
+  async track(_event: TelemetryEvent): Promise<void> {
     // Basic event tracking mock
-    console.log("Telemetry event:", event);
   }
 }
