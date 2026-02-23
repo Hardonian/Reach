@@ -13,7 +13,7 @@
 
 import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
-import { canonicalJson } from "../canonicalJson.ts";
+import { canonicalJson } from "./canonicalJson.ts";
 
 function sha256Hex(input: string): string {
   return createHash("sha256").update(input).digest("hex");
