@@ -35,9 +35,9 @@ case "$cmd" in
     shift
     (cd services/runner && ./reachctl arcade "$@")
     ;;
-  capsule)
+  transcript)
     shift
-    (cd services/runner && ./reachctl capsule "$@")
+    (cd services/runner && ./reachctl transcript "$@")
     ;;
   proof)
     shift
@@ -141,7 +141,7 @@ case "$cmd" in
     echo ""
     echo "VERIFICATION"
     echo "  audit                       Export/verify signed audit logs"
-    echo "  capsule                     Create/verify capsules"
+    echo "  transcript                     Create/verify transcripts"
     echo "  proof                       Verify execution proofs"
     echo "  report demo                 Generate demo report"
     echo "  report verify <path>        Verify report integrity"
@@ -179,7 +179,7 @@ case "$cmd" in
     echo "            4=policy blocked, 5=verification failed"
     ;;
   *)
-    echo "usage: reach doctor|audit|eval|release-check|serve|federation|support|arcade|capsule|proof|graph|packs|init|explain|operator|pack|wizard|run|share|delegate|verify-proof|cost|metrics|gate|report" >&2
+    echo "usage: reach doctor|audit|eval|release-check|serve|federation|support|arcade|transcript|proof|graph|packs|init|explain|operator|pack|wizard|run|share|delegate|verify-proof|cost|metrics|gate|report" >&2
     echo "       reach help for more info" >&2
     exit 1
     ;;

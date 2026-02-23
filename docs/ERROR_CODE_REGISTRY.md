@@ -52,4 +52,4 @@ All errors returned by Reach CLI and services follow this structured format:
 
 ## Determinism Policy
 
-Errors marked as `deterministic: true` must produce the same error code and message given the same inputs and state. This is critical for PoEE (Proof of Execution Evidence).
+Errors marked as `deterministic: true` must produce the same error code and message given the same inputs and state. This is critical for Execution Proof (Proof of Execution Evidence).

@@ -56,7 +56,7 @@ Use the canonical terms above instead of these legacy/incorrect terms:
 
 | Avoid | Use Instead | Reason |
 |-------|-------------|--------|
-| "Run" (as a noun for the artifact) | **Transcript** or **Capsule** | "Run" describes the action; Transcript is the artifact |
+| "Run" (as a noun for the artifact) | **Transcript** or **Transcript** | "Run" describes the action; Transcript is the artifact |
 | "Decision" | **Task** or **Output** | Decisions are one type of Task output |
 | "Workflow" | **Pack** | Packs are the executable unit |
 | "Log" | **Transcript** | Transcript implies ordering and integrity guarantees |
@@ -140,7 +140,7 @@ Use **Task** for units of work, **Pack** for the container, and **Event** for wh
 
 ### When Discussing Storage
 
-Use **Capsule** for the portable bundle format, **Transcript** for the event log within it.
+Use **Transcript** for the portable bundle format, **Transcript** for the event log within it.
 
 ---
 

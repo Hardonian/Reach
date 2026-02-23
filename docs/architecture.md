@@ -39,7 +39,7 @@ graph TD;
 
 ### 1. Interface Layer (CLI & SDK)
 
-- **`reachctl` & `./reach`**: The primary entry points for developers and automation environments. Manage workspace orchestration, cryptographic signing, capsule generation, and command-line interactions.
+- **`reachctl` & `./reach`**: The primary entry points for developers and automation environments. Manage workspace orchestration, cryptographic signing, transcript generation, and command-line interactions.
 - Provides commands for running packs, evaluating regressions, health checking, and exporting decision logs.
 - Contains all user-facing flag logic and standard out formatting (`--json`).
 

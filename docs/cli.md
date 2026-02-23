@@ -12,8 +12,8 @@ The root `./reach` script is the entry point for most developer tasks. It manage
 | `run <pack>` | Quickly execute a deterministic pack locally.                     |
 | `eval`       | Evaluate runs and check for regressions against golden fixtures.  |
 | `audit`      | Export and verify signed audit logs for compliance.               |
-| `capsule`    | Create or verify signed execution capsules for long-term storage. |
-| `proof`      | Verify cryptographic execution proofs (PoEE).                     |
+| `transcript`    | Create or verify signed execution transcripts for long-term storage. |
+| `proof`      | Verify cryptographic execution proofs (Execution Proof).                     |
 | `gate`       | Manage repository and release gates for CI/CD integration.        |
 | `cost`       | View unit economics and cost analysis for model executions.       |
 | `metrics`    | View GTM and usage analytics for the local node.                  |

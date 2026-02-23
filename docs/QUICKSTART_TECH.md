@@ -89,7 +89,7 @@ client = create_client(base_url="http://127.0.0.1:8787")
 
     print(f"Event: {event['type']}")
 
-# Create capsule capsule = client.create_capsule(run["id"])
+# Create transcript transcript = client.create_capsule(run["id"])
 
 ````
 
@@ -118,13 +118,13 @@ client = create_client(base_url="http://127.0.0.1:8787")
 |------|------|-------------|-------------|
 | `INVALID_REQUEST` | 400 | Request body invalid | Check JSON syntax |
 | `RUN_NOT_FOUND` | 404 | Run ID doesn't exist | Verify run ID |
-| `CAPSULE_NOT_FOUND` | 404 | Capsule not found | Check file path |
+| `CAPSULE_NOT_FOUND` | 404 | Transcript not found | Check file path |
 | `PACK_NOT_FOUND` | 404 | Pack not in registry | Search for correct name |
 | `INTERNAL_ERROR` | 500 | Server error | Check logs, retry |
 | `TIMEOUT` | - | Request timed out | Increase timeout |
 | `NETWORK_ERROR` | - | Connection failed | Check server status |
 
-## CI Recipes ### GitHub Actions
+## CI Tasks ### GitHub Actions
 
 ```yaml
 name: Reach Integration
@@ -259,7 +259,7 @@ reach = create_client()
 @app.post("/webhook/run-completed")
 async def on_run_completed(payload: dict):
 run_id = payload["run_id"]
-capsule = reach.create_capsule(run_id) # Archive capsule, send notification, etc.
+transcript = reach.create_capsule(run_id) # Archive transcript, send notification, etc.
 return {"status": "ok"}
 
 ```

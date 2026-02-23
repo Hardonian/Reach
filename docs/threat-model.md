@@ -10,13 +10,13 @@ As a deterministic execution engine, Reach is designed to be highly auditable an
 - **Strict Isolation:** All plugins must execute within a strict sandbox (e.g., WASM runtime or Deno/V8 isolations) with **zero default access** to network, file system, or environment variables.
 - **Capability Registration:** If a plugin requires external I/O (e.g., HTTP fetch), it must explicitly request this capability in its schema, requiring host node approval and routing through the Reach engine's controlled proxy.
 
-## 2. Tampered Bundles / Capsules
+## 2. Tampered Bundles / Transcripts
 
-**Scenario:** An attacker modifies a compiled decision bundle or an exported Execution Capsule to bypass a governance policy or forge an approval.
+**Scenario:** An attacker modifies a compiled decision bundle or an exported Execution Transcript to bypass a governance policy or forge an approval.
 **Mitigations:**
 
-- **Cryptographic Signatures:** Execution Capsules are cryptographically signed (e.g., via Ed25519) upon export.
-- **Verification Gate:** The `reachctl proof` and `reachctl verify` commands cryptographically validate the capsule signature against the author's public key before allowing execution or trust ingestion.
+- **Cryptographic Signatures:** Execution Transcripts are cryptographically signed (e.g., via Ed25519) upon export.
+- **Verification Gate:** The `reachctl proof` and `reachctl verify` commands cryptographically validate the transcript signature against the author's public key before allowing execution or trust ingestion.
 
 ## 3. Replay Poisoning
 

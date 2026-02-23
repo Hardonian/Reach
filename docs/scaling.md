@@ -9,7 +9,7 @@ This document outlines the theoretical and practical scaling limits, complexity 
 | **Event Replay**           | O(N) where N = number of events in transcript | O(E) where E = average event payload size | Replaying very long histories requires sequential processing.                 |
 | **Junction Detection**     | O(B) where B = number of branch/split points  | O(S) where S = active state size          | Evaluating divergent paths in complex decision trees requires state tracking. |
 | **Decision Evaluation**    | O(P) where P = plugin/WASM execution time     | O(M) where M = Engine memory limit        | Latency of external plugin execution or large sandboxed states.               |
-| **Capsule / Audit Export** | O(N)                                          | O(N) + cryptographic overhead             | Memory pressure during materialization of large transcripts.                  |
+| **Transcript / Audit Export** | O(N)                                          | O(N) + cryptographic overhead             | Memory pressure during materialization of large transcripts.                  |
 | **Data Retention**         | O(1) per run                                  | O(R) where R = total runs \* payload      | SQLite file size limits and disk IOPS over time.                              |
 
 ## 2. Risk Points & Mitigations
@@ -42,7 +42,7 @@ To maintain "Antigravity" principles (calm, deterministic, fast), operate within
 - **Max Decision Evaluation Time:** 100ms.
 - **Max Plugin Bundle Size:** 5MB.
 - **Max Concurrent Active Runs (Single Node SQLite):** ~500-1,000 depending on write volume.
-- **Retention Strategy:** Prune ephemeral run data after 30 days; archive signed capsules to cold storage (e.g., S3/GCS) for long-term auditability.
+- **Retention Strategy:** Prune ephemeral run data after 30 days; archive signed transcripts to cold storage (e.g., S3/GCS) for long-term auditability.
 
 ---
 

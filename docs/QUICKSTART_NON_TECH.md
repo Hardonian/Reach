@@ -52,18 +52,18 @@ This runs a safe demo workflow that demonstrates Reach's capabilities.
 
 This shows you what happened during the run.
 
-## Creating a Time Capsule A "time capsule" is a snapshot of a run that you can save for later verification:
+## Creating a Time Transcript A "time transcript" is a snapshot of a run that you can save for later verification:
 
 ```bash
-# Create a capsule from your run reach capsule create <run-id>
+# Create a transcript from your run reach transcript create <run-id>
 
-# Verify the capsule later reach capsule verify <path-to-capsule>
+# Verify the transcript later reach transcript verify <path-to-transcript>
 ````
 
 ## Replaying a Run You can replay any run to verify it produces the same results:
 
 ```bash
-reach capsule replay <path-to-capsule>
+reach transcript replay <path-to-transcript>
 ```
 
 ## Where Are My Files Stored? By default, Reach stores everything in:

@@ -14,8 +14,8 @@ The following root `reach` and `reachctl` commands are considered **STABLE**. Th
 - `run`: Execution of packs and workflows.
 - `eval`: Regression testing against golden fixtures.
 - `audit`: Export and verification of logs.
-- `capsule`: Creation and validation of execution capsules.
-- `proof`: Cryptographic execution proofs (PoEE).
+- `transcript`: Creation and validation of execution transcripts.
+- `proof`: Cryptographic execution proofs (Execution Proof).
 - `gate`: CI/CD gate management.
 - `workflow *`: All workflow subcommands (`start`, `add-note`, `run`, `export`, `health`, `graph`).
 
@@ -58,7 +58,7 @@ A change is considered breaking (forcing a `MAJOR` version bump) if it:
 
 ### Compatibility Guarantees
 
-- **Data Portability**: Execution capsules generated in version `N` will be verifiable in version `N` and `N+1`.
+- **Data Portability**: Execution transcripts generated in version `N` will be verifiable in version `N` and `N+1`.
 - **API Stability**: Any `--json` CLI output will only append fields in `MINOR` or `PATCH` releases. Existing fields will not be removed or change data types.
 
 ---

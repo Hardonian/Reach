@@ -1,4 +1,4 @@
-# Unified Correlation Model All edge-to-agent traffic carries the following fields in request headers, event envelopes, and structured logs:
+# Unified Correlation Model All edge-to-agent traffic carries the following fields in request headers, event events, and structured logs:
 
 - `trace_id`: distributed trace identifier (preferred from `traceparent` or `X-Trace-ID`).
 - `session_id`: collaboration/session channel identity.
@@ -23,7 +23,7 @@
 
 - `session-hub`: WebSocket session fanout (`GET /ws/session/{session_id}`).
 - `integration-hub`: HTTP APIs and inbound webhooks (`/webhooks/*`).
-- `capsule-sync`: HTTP APIs.
+- `transcript-sync`: HTTP APIs.
 - `ide-bridge`: HTTP APIs + WebSocket editor channel (`/v1/ws/{editor_id}`).
 
 ## Critical flow checkpoints 1. trigger -> first event
