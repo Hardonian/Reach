@@ -8,9 +8,14 @@ Reach is a high-performance, deterministic decision engine for autonomous agents
 
 ---
 
-## ⚡ 60-Second Quickstart
+## Reality Mode (v0.1)
 
-Get Reach running locally in under a minute:
+- What is real and production-grade: The deterministic execution engine, policy evaluations, and replay integrity.
+- What is optional: LLM planner bindings.
+- What is explicitly removed: Mesh networking, consensus simulation, and poee theatre have been purged.
+- What is intentionally out-of-scope for OSS: Multi-tenant operations and deep telemetry integrations.
+
+## ⚡ 60-Second Quickstart
 
 ```bash
 # 1. Clone the repository
