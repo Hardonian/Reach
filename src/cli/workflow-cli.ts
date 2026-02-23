@@ -177,7 +177,7 @@ function specFromWorkspace(ws: DecisionWorkspace): contracts.DecisionSpec {
       text: e.text,
       status: "fact",
       confidence: "high",
-      provenance: [{ kind: "text", sourceId: "user_note", offset: 0, length: e.text.length, capturedAt: e.assertedAt || nowIso(), checksum: e.provenance.hash }],
+      provenance: [{ kind: "text", sourceId: "user_note", offset: 0, length: e.text.length, capturedAt: e.assertedAt || ws.createdAt || nowIso(), checksum: e.provenance.hash }],
       tags: [] as string[]
     })),
     objectives: [{ id: "obj_robustness", metric: "robustness", weight: 1.0 }]
