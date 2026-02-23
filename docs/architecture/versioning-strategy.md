@@ -27,7 +27,7 @@ package.json:   0.3.1
 | Go Runner        | 0.3.1            | `go.mod` + embedded version     |
 | SQLite Schema    | Migration 005    | Sequential migration files      |
 | Protocol Schemas | v1               | `protocol/v1/` directory        |
-| Hash Algorithm   | SHA-256 + FNV-1a | Implicit (not versioned)        |
+| Hash Algorithm   | sha256-cjson-v1  | `HASH_VERSION` in `shim.ts`     |
 
 ---
 
@@ -119,10 +119,8 @@ A hash version bump is required when:
 
 ### Hash Version Identifier
 
-Currently, the hash algorithm is implicit — it is not recorded in the
-fingerprint or transcript. This is a gap.
-
-**Recommendation**: Include a `hashVersion` field in the transcript:
+Currently, the hash algorithm is versioned in transcripts via the `hashVersion`
+field and the `HASH_VERSION` constant exported from `src/core/shim.ts`:
 
 ```json
 {
@@ -199,7 +197,7 @@ user base is small.
 | VER-01  | `VERSION` file and `package.json` are synchronized       | HOLDS     |
 | VER-02  | Patch upgrades are replay-compatible                     | HOLDS     |
 | VER-03  | Minor upgrades are forward-compatible                    | HOLDS     |
-| VER-04  | Hash algorithm is versioned in transcripts               | **NO**    |
+| VER-04  | Hash algorithm is versioned in transcripts               | HOLDS     |
 | VER-05  | Database migrations are idempotent                       | HOLDS     |
 | VER-06  | Schema migration tracking table exists                   | **NO**    |
 | VER-07  | Transcript migration functions exist                     | HOLDS     |
