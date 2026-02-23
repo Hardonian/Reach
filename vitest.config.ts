@@ -44,6 +44,16 @@ const aliases = Object.entries(paths).map(([key, value]) => {
   };
 });
 
+// Fallback: ensure critical aliases exist even if tsconfig parsing fails
+const hasZeoCore = aliases.some(a => a.find.test("@zeo/core"));
+if (!hasZeoCore) {
+  aliases.unshift(
+    { find: /^@zeo\/core$/, replacement: path.resolve(__dirname, "./src/core/shim.ts") },
+    { find: /^@zeo\/contracts$/, replacement: path.resolve(__dirname, "./sdk/ts/src/index.ts") },
+    { find: /^@zeo\/(.*)$/, replacement: path.resolve(__dirname, "./src/$1") },
+  );
+}
+
 export default defineConfig({
   resolve: {
     alias: aliases,
