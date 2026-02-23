@@ -1,0 +1,34 @@
+{
+  "scenario": "export-verify-workflow",
+  "steps": [
+    {
+      "step": 1,
+      "action": "run",
+      "expected": "Run completes with run_id and fingerprint"
+    },
+    {
+      "step": 2,
+      "action": "export",
+      "expected": "Capsule created with .reach.zip extension"
+    },
+    {
+      "step": 3,
+      "action": "verify",
+      "expected": "Integrity and structure both VALID"
+    },
+    {
+      "step": 4,
+      "action": "import",
+      "expected": "Run stored in ~/.reach/runs/"
+    },
+    {
+      "step": 5,
+      "action": "replay",
+      "expected": "REPLAY_VERIFIED with matching fingerprints"
+    }
+  ],
+  "artifacts": {
+    "capsule": "workflow.reach.zip",
+    "contents": ["meta.json", "events.ndjson", "artifacts/", "policy.json"]
+  }
+}

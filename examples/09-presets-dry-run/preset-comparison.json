@@ -1,0 +1,34 @@
+{
+  "presets": {
+    "ci-cd-integration": {
+      "description": "Optimized for automated pipelines with fast checks and deterministic gates",
+      "filesCreated": [".reach/config.ci.yml", ".github/workflows/reach-ci.yml"],
+      "filesModified": [".reach/config.yml"],
+      "useCase": "DevOps engineers running automated deployments"
+    },
+    "security-review": {
+      "description": "Comprehensive security policy enforcement with evidence requirements",
+      "filesCreated": [".reach/policies/security.rego", ".reach/config.security.yml"],
+      "filesModified": [".reach/config.yml"],
+      "useCase": "Security teams and compliance officers"
+    },
+    "compliance-audit": {
+      "description": "Full documentation, retention policies, and compliance-ready reporting",
+      "filesCreated": [".reach/retention.yml", ".reach/audit.yml"],
+      "filesModified": [".reach/config.yml"],
+      "useCase": "Auditors and regulated industries"
+    },
+    "plugin-development": {
+      "description": "Starting point for building custom plugins and extensions",
+      "filesCreated": ["plugins/", ".reach/config.plugin.yml"],
+      "filesModified": [],
+      "useCase": "Developers extending Reach"
+    },
+    "policy-drift-detection": {
+      "description": "Monitor and detect when decisions drift from policies over time",
+      "filesCreated": [".reach/drift-rules.yml"],
+      "filesModified": [".reach/config.yml"],
+      "useCase": "Governance teams maintaining policy compliance"
+    }
+  }
+}

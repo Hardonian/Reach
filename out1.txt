@@ -1,0 +1,72 @@
+================================================================
+PHASE 3 ΓÇö CI GUARDRAILS (ANTI-THEATRE + ANTI-BRITTLE HASHING)
+================================================================
+Checking No-Theatre Gate...
+Γ¥î ERROR: Found theatre logic in runtime path:
+services/runner/cmd/reachctl/main.go:4769: // Check for byzantine subcommand
+services/runner/cmd/reachctl/main.go:4770: if len(args) > 0 && args[0] == "byzantine" {
+services/runner/cmd/reachctl/main.go:4771: return runByzantine(ctx, dataRoot, args[1:], out, errOut)
+services/runner/cmd/reachctl/main.go:5271: // runConsensus handles the consensus command for multi-node consensus simulation
+services/runner/cmd/reachctl/main.go:5321: report := consensus.SimulateConsensus(runID, config, proofHash, steps)
+services/runner/cmd/reachctl/main.go:5332: _, _ = fmt.Fprintln(out, "Consensus Simulation Report")
+services/runner/cmd/reachctl/main.go:5419: // runByzantine handles the byzantine fault simulation
+services/runner/cmd/reachctl/main.go:5420: func runByzantine(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writ
+services/runner/cmd/reachctl/main.go:5421: fs := flag.NewFlagSet("byzantine", flag.ContinueOnError)
+services/runner/cmd/reachctl/main.go:5448: // Configure byzantine simulation
+services/runner/cmd/reachctl/main.go:5449: config := consensus.ByzantineConfig{
+services/runner/cmd/reachctl/main.go:5456: report := consensus.SimulateByzantine(runID, config, proofHash, steps)
+services/runner/cmd/reachctl/main.go:5459: reportPath := filepath.Join(dataRoot, "byzantine-report.json")
+services/runner/cmd/reachctl/main.go:5467: _, _ = fmt.Fprintln(out, "Byzantine Fault Simulation Report")
+services/runner/internal/consensus/consensus.go:2: // This includes independent re-verification, multi-node consensus simulation,
+services/runner/internal/consensus/consensus.go:3: // byzantine fault detection, and peer trust indexing.
+services/runner/internal/consensus/consensus.go:130: // ConsensusConfig configuration for consensus simulation
+services/runner/internal/consensus/consensus.go:145: // ConsensusReport represents the result of consensus simulation
+services/runner/internal/consensus/consensus.go:157: // NodeResult result from a single node in consensus simulation
+services/runner/internal/consensus/consensus.go:176: // ByzantineConfig configuration for byzantine fault simulation
+services/runner/internal/consensus/consensus.go:177: type ByzantineConfig struct {
+services/runner/internal/consensus/consensus.go:184: // ByzantineReport result of byzantine fault simulation
+services/runner/internal/consensus/consensus.go:185: type ByzantineReport struct {
+services/runner/internal/consensus/consensus.go:189: Detections        []ByzantineDetection `json:"detections"`
+services/runner/internal/consensus/consensus.go:196: // ByzantineDetection detection of a byzantine fault
+services/runner/internal/consensus/consensus.go:197: type ByzantineDetection struct {
+services/runner/internal/consensus/consensus.go:471: // SimulateConsensus simulates consensus among multiple nodes
+services/runner/internal/consensus/consensus.go:472: func SimulateConsensus(runID string, config ConsensusConfig, baseProofHash string, steps []string) *
+services/runner/internal/consensus/consensus.go:586: // SimulateByzantine simulates byzantine faults and checks detection
+services/runner/internal/consensus/consensus.go:587: func SimulateByzantine(runID string, config ByzantineConfig, baseProofHash string, steps []string) *
+services/runner/internal/consensus/consensus.go:588: report := &ByzantineReport{
+services/runner/internal/consensus/consensus.go:592: Detections:       make([]ByzantineDetection, 0),
+services/runner/internal/consensus/consensus.go:629: detection := ByzantineDetection{
+Checking No Substring Hash Omission Gate...
+Γ¥î ERROR: Found substring-based hash omission in determinism code:
+services/runner/internal/consensus/consensus.go:334: if strings.Contains(lowerK, "timestamp") || strings.Contains(lowerK, "time") || lowerK == "now" {
+services/runner/internal/consensus/consensus.go:344: if strings.Contains(lowerK, "machine") || strings.Contains(lowerK, "host") || strings.Contains(low
+Checking No go run CLI Gate...
+Γ¥î ERROR: Found 'go run ./cmd' in normal execution path:
+.github/workflows/perf-gate.yml:33: RUNNER_METRICS_ENABLED=1 RUNNER_ADDR=:8080 go run ./cmd/runnerd > /tmp/runner.log 2>&1 &
+reach:24: (cd services/runner && go run ./cmd/reach-serve "$@")
+reach:28: (cd services/runner && go run ./cmd/reachctl federation "$@")
+reach:32: (cd services/runner && go run ./cmd/reachctl support "$@")
+reach:36: (cd services/runner && go run ./cmd/reachctl arcade "$@")
+reach:40: (cd services/runner && go run ./cmd/reachctl capsule "$@")
+reach:44: (cd services/runner && go run ./cmd/reachctl proof "$@")
+reach:48: (cd services/runner && go run ./cmd/reachctl graph "$@")
+reach:52: (cd services/runner && go run ./cmd/reachctl packs "$@")
+reach:56: (cd services/runner && go run ./cmd/reachctl init "$@")
+reach:60: (cd services/runner && go run ./cmd/reachctl config "$@")
+reach:64: (cd services/runner && go run ./cmd/reachctl explain "$@")
+reach:68: (cd services/runner && go run ./cmd/reachctl operator "$@")
+reach:72: (cd services/runner && go run ./cmd/reachctl pack "$@")
+reach:76: (cd services/runner && go run ./cmd/reachctl wizard "$@")
+reach:80: (cd services/runner && go run ./cmd/reachctl run "$@")
+reach:84: (cd services/runner && go run ./cmd/reachctl share "$@")
+reach:88: (cd services/runner && go run ./cmd/reachctl delegate "$@")
+reach:92: (cd services/runner && go run ./cmd/reachctl verify-proof "$@")
+reach:96: (cd services/runner && go run ./cmd/reachctl gate "$@")
+services/integration-hub/README.md:64: go run ./cmd/integration-hub
+tools/dev.sh:29: echo "Run: (cd services/runner && go run ./cmd/runnerd)"
+tools/mobile-smoke.sh:82: WIZARD_OUTPUT=$(cd services/runner && go run ./cmd/reachctl wizard --quick --json 2>/dev/null) || tr
+tools/mobile-smoke.sh:96: PROOF_OUTPUT=$(cd services/runner && go run ./cmd/reachctl proof verify "$RUN_ID" 2>/dev/null) |
+tools/mobile-smoke.sh:111: CAPSULE_OUTPUT=$(cd services/runner && go run ./cmd/reachctl capsule create "$RUN_ID" --output "
+tools/mobile-smoke.sh:116: VERIFY_OUTPUT=$(cd services/runner && go run ./cmd/reachctl capsule verify "$DATA_DIR/capsul
+tools/mobile-smoke.sh:133: SHARE_OUTPUT=$(cd services/runner && go run ./cmd/reachctl share run "$RUN_ID" 2>/dev/null) || t
+tools/mobile-smoke.sh:147: OPERATOR_OUTPUT=$(cd services/runner && go run ./cmd/reachctl operator 2>/dev/null) || true

@@ -1,0 +1,5 @@
+{
+  "action": "export-test",
+  "target": "workflow",
+  "description": "Sample input for export/verify workflow demonstration"
+}

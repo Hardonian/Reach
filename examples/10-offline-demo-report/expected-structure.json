@@ -1,0 +1,34 @@
+{
+  "reportSchema": "1.0.0",
+  "expectedFiles": {
+    "manifest.json": {
+      "description": "Report metadata and integrity hash",
+      "required": true,
+      "fields": ["generatedAt", "reachVersion", "environment", "manifest"]
+    },
+    "timeline.json": {
+      "description": "Ordered list of available examples",
+      "required": true,
+      "fields": ["type", "name", "status", "command"]
+    },
+    "env.json": {
+      "description": "Sanitized environment snapshot",
+      "required": true,
+      "fields": ["node", "platform", "arch", "versions"]
+    },
+    "index.md": {
+      "description": "Human-readable summary",
+      "required": true,
+      "contains": ["Report ID", "Environment", "Integrity"]
+    },
+    "outputs/": {
+      "description": "Example execution outputs",
+      "required": true,
+      "files": ["example-01.json"]
+    }
+  },
+  "sensitiveData": {
+    "excluded": ["API keys", "tokens", "passwords", "personal information"],
+    "included": ["version numbers", "platform info", "architecture"]
+  }
+}
