@@ -1,0 +1,5 @@
+{
+  "provider": "openrouter",
+  "payload": { "choices": [{ "message": { "content": "[1,2,3]" } }] },
+  "expectedSchemaError": "expected object, received array"
+}

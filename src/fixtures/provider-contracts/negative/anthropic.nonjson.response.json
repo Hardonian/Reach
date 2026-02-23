@@ -1,0 +1,5 @@
+{
+  "provider": "anthropic",
+  "payload": { "content": [{ "type": "text", "text": "not-json" }] },
+  "expectedError": "non-JSON"
+}

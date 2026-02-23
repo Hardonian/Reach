@@ -1,0 +1,5 @@
+{
+  "provider": "openai",
+  "payload": { "choices": [{ "message": { "content": "not-json" } }] },
+  "expectedError": "non-JSON"
+}

@@ -39,21 +39,67 @@ export interface ReplayResult {
   message?: string;
 }
 
-export interface DashboardPersona {
-  id: string;
-  name: string;
+export type DashboardPersona = "exec" | "tech" | "security";
+
+export interface DashboardGraphEdge {
+  from: string;
+  to: string;
+  type: "supports" | "violates" | "constrains" | "depends_on";
+  weight: number;
 }
 
 export interface DashboardViewModel {
-  nodes: any[];
-  edges: any[];
-  [key: string]: any;
+  schemaVersion: string;
+  id: string;
+  generatedAt: string;
+  persona: DashboardPersona;
+  verificationStatus: { verified: boolean; reason: string };
+  fingerprint: {
+    zeoVersion: string;
+    configHash: string;
+    policyHash: string | null;
+    inputsHash: string;
+    artifactsHash: string;
+  };
+  summary: {
+    riskScore: number;
+    evidenceCompleteness: number;
+    policyCompliance: number;
+    replayStability: number;
+    confidenceBand: "low" | "med" | "high";
+  };
+  story: {
+    mode: string;
+    statusLine: string;
+    changeLine: string;
+    causeLine: string;
+    actionLine: string;
+  };
+  trends: {
+    riskTrajectory: Array<{ t: string; v: number; source: string }>;
+    driftEvents: Array<{ t: string; type: "policy" | "evidence"; severity: 1 | 2 | 3 | 4 | 5; refId: string }>;
+    assumptionFlips: Array<{ t: string; assumptionId: string; from: string; to: string; severity: 1 | 2 | 3 | 4 | 5 }>;
+  };
+  graph: {
+    nodes: DashboardGraphNode[];
+    edges: DashboardGraphEdge[];
+  };
+  lists: {
+    findings: Array<Record<string, unknown>>;
+    evidence: Array<Record<string, unknown>>;
+    policies: Array<Record<string, unknown>>;
+  };
+  ctas: Array<{ command: string; label: string; severity?: number; [key: string]: unknown }>;
+  [key: string]: unknown;
 }
 
 export interface DashboardGraphNode {
   id: string;
+  type: "decision" | "evidence" | "policy" | "assumption" | "outcome";
   label: string;
-  [key: string]: any;
+  severity?: number;
+  meta?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 /**

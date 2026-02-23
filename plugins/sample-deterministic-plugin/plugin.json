@@ -1,0 +1,9 @@
+{
+  "id": "sample-deterministic-plugin",
+  "version": "0.1.0",
+  "apiVersion": "1.0.0",
+  "deterministic": true,
+  "permissions": { "network": false },
+  "capabilities": ["registerAnalyzePrAnalyzer"],
+  "entry": "index.js"
+}

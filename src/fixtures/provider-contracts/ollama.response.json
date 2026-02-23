@@ -1,0 +1,12 @@
+{
+  "provider": "ollama",
+  "payload": {
+    "message": { "content": "{\"verdict\":\"ok\"}" },
+    "prompt_eval_count": 10,
+    "eval_count": 5
+  },
+  "expected": {
+    "json": { "verdict": "ok" },
+    "usage": { "inputTokens": 10, "outputTokens": 5 }
+  }
+}

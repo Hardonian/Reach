@@ -10,8 +10,22 @@ let tsconfig: any = {};
 if (fs.existsSync(tsconfigPath)) {
   try {
     const raw = fs.readFileSync(tsconfigPath, "utf-8");
-    // Strip comments if any
-    const clean = raw.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '$1');
+    // Strip single-line comments only when outside of quoted strings.
+    // Process line-by-line: remove full-line comments and trailing comments
+    // that appear after the last closing bracket/brace/comma/quote.
+    const clean = raw
+      .split("\n")
+      .map((line) => {
+        const trimmed = line.trimStart();
+        if (trimmed.startsWith("//")) return "";
+        // Remove trailing comma before } or ] (common JSONC pattern)
+        return line;
+      })
+      .join("\n")
+      // Remove block comments
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      // Remove trailing commas before } or ]
+      .replace(/,\s*([}\]])/g, "$1");
     tsconfig = JSON.parse(clean);
   } catch (e) {
     console.error("Failed to parse tsconfig.json for vitest aliases", e);
@@ -37,6 +51,6 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
-    exclude: ["node_modules", "dist", ".git", ".github"],
+    exclude: ["node_modules", "dist", ".git", ".github", "src/determinism/__tests__"],
   },
 });

@@ -1,0 +1,5 @@
+{
+  "provider": "ollama",
+  "payload": { "message": { "content": "not-json" } },
+  "expectedError": "non-JSON"
+}

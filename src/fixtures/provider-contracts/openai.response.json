@@ -1,0 +1,11 @@
+{
+  "provider": "openai",
+  "payload": {
+    "choices": [{ "message": { "content": "{\"verdict\":\"ok\"}" } }],
+    "usage": { "prompt_tokens": 10, "completion_tokens": 5 }
+  },
+  "expected": {
+    "json": { "verdict": "ok" },
+    "usage": { "inputTokens": 10, "outputTokens": 5 }
+  }
+}
