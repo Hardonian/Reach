@@ -74,7 +74,9 @@ $AllowedFiles = @(
     "SKILLS.md",
     "SPEC_FORMALIZATION_SUMMARY.md",
     "SUPPORT.md",
-    "TRUST_NEGOTIATION_SPEC.md"
+    "TRUST_NEGOTIATION_SPEC.md",
+    ".AUDIT_REPORT.md",
+    "eslint.config.js"
 )
 
 $AllowedDirs = @(
@@ -99,6 +101,7 @@ $AllowedDirs = @(
     "compat",
     "config",
     "data",
+    "demo-report",
     "design",
     "docker",
     "docs",
@@ -113,6 +116,8 @@ $AllowedDirs = @(
     "pack-devkit",
     "packs",
     "policies",
+    "policy-packs",
+    "presets",
     "prompts",
     "protocol",
     "scripts",
@@ -125,6 +130,7 @@ $AllowedDirs = @(
     "tests",
     "plans",
     "plugins",
+    "web",
     "ARTIFACTS"
 )
 
