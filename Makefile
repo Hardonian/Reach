@@ -17,8 +17,10 @@ BINARY_NAME := reachctl
 REACH_WRAPPER := reach
 
 # Go build flags
-LDFLAGS := -ldflags "-X main.version=$(VERSION) -X main.commit=$(GIT_COMMIT) -X main.buildDate=$(BUILD_DATE)"
-RELEASE_LDFLAGS := -ldflags "-s -w -X main.version=$(VERSION) -X main.commit=$(GIT_COMMIT) -X main.buildDate=$(BUILD_DATE)"
+# -trimpath: Remove file system paths from binary for reproducibility and smaller size
+# -ldflags -s -w: Strip symbol table and debug info for smaller binaries
+LDFLAGS := -trimpath -ldflags "-X main.version=$(VERSION) -X main.commit=$(GIT_COMMIT) -X main.buildDate=$(BUILD_DATE)"
+RELEASE_LDFLAGS := -trimpath -ldflags "-s -w -X main.version=$(VERSION) -X main.commit=$(GIT_COMMIT) -X main.buildDate=$(BUILD_DATE)"
 
 # Default target
 help:
