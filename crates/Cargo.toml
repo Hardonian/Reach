@@ -1,6 +1,5 @@
 [workspace]
 members = [
-  "decision-engine",
   "engine-core",
   "engine",
   "ffi/uniffi",
