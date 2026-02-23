@@ -259,15 +259,13 @@ function fromAnalyzePrArtifact(
       label: id,
       severity: Math.round(riskScore / 20),
     },
-    ...sortedFindings
-      .slice(0, 10)
-      .map((finding) => ({
-        id: `finding:${finding.id}`,
-        type: "evidence" as const,
-        label: finding.title,
-        severity: finding.severity,
-        meta: { file: finding.file ?? null, citations: finding.rationaleRefs },
-      })),
+    ...sortedFindings.slice(0, 10).map((finding) => ({
+      id: `finding:${finding.id}`,
+      type: "evidence" as const,
+      label: finding.title,
+      severity: finding.severity,
+      meta: { file: finding.file ?? null, citations: finding.rationaleRefs },
+    })),
     ...policyNodes,
     ...assumptionNodes,
     outcomeNode,
@@ -324,17 +322,15 @@ function fromAnalyzePrArtifact(
         },
       })),
       edges: [
-        ...sortedFindings
-          .slice(0, 10)
-          .map((finding) => ({
-            from: `finding:${finding.id}`,
-            to: `decision:${id}`,
-            type:
-              finding.severity >= 5
-                ? ("violates" as const)
-                : ("supports" as const),
-            weight: finding.severity / 5,
-          })),
+        ...sortedFindings.slice(0, 10).map((finding) => ({
+          from: `finding:${finding.id}`,
+          to: `decision:${id}`,
+          type:
+            finding.severity >= 5
+              ? ("violates" as const)
+              : ("supports" as const),
+          weight: finding.severity / 5,
+        })),
         ...policyNodes.map((policy) => ({
           from: policy.id,
           to: `decision:${id}`,

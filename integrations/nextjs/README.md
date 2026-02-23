@@ -80,6 +80,7 @@ runId,
 }, [runId]);
 
 return (
+
 <ul>
 {events.map((event) => (
 <li key={event.id}>{event.type}</li>

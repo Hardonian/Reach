@@ -163,12 +163,10 @@ function collectRunners(root: string): Array<{ id: string; path: string }> {
   const plugins = listFilesRecursive(join(root, "plugins"), 3).filter((file) =>
     file.endsWith("plugin.json"),
   );
-  return plugins
-    .sort()
-    .map((file) => ({
-      id: basename(file, ".json"),
-      path: file.replace(`${root}/`, ""),
-    }));
+  return plugins.sort().map((file) => ({
+    id: basename(file, ".json"),
+    path: file.replace(`${root}/`, ""),
+  }));
 }
 
 function healthFromFailures(failures: number): Health {

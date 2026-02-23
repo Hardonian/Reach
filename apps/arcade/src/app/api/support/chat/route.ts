@@ -94,12 +94,10 @@ export async function POST(request: Request) {
   }
   return NextResponse.json({
     answer: ranked[0].entry.answer,
-    citations: ranked
-      .slice(0, 3)
-      .map((r) => ({
-        title: r.entry.title,
-        path: r.entry.path,
-        section: r.entry.section,
-      })),
+    citations: ranked.slice(0, 3).map((r) => ({
+      title: r.entry.title,
+      path: r.entry.path,
+      section: r.entry.section,
+    })),
   });
 }

@@ -357,9 +357,7 @@ export function recordTrustEvent(
   );
 }
 
-export function compactTrustProfiles(
-  root: string,
-): Array<{
+export function compactTrustProfiles(root: string): Array<{
   subject_type: string;
   subject_id: string;
   pass_count: number;
