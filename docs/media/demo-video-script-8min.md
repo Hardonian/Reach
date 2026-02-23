@@ -343,6 +343,7 @@ node examples/01-quickstart-local/run.js
 **[VISUAL: Output showing success]**
 
 **ON-SCREEN TEXT:**
+
 ```
 github.com/reach/reach
 
@@ -365,13 +366,13 @@ Examples: /examples
 
 ### Chapter Markers
 
-| Time | Chapter | Description |
-|------|---------|-------------|
-| 0:00 | Intro | Problem space |
-| 1:30 | Concepts | Core Reach concepts |
-| 3:30 | Demo | Live demonstration |
+| Time | Chapter  | Description           |
+| ---- | -------- | --------------------- |
+| 0:00 | Intro    | Problem space         |
+| 1:30 | Concepts | Core Reach concepts   |
+| 3:30 | Demo     | Live demonstration    |
 | 6:00 | Advanced | Policy and federation |
-| 7:15 | Outro | Summary and CTA |
+| 7:15 | Outro    | Summary and CTA       |
 
 ### Technical Requirements
 
@@ -405,6 +406,7 @@ export REACH_FROZEN_TIME=2026-02-23T12:00:00Z
 ## Companion Assets
 
 Create alongside this video:
+
 - [ ] 30-second cut for social media
 - [ ] 2-minute cut (see demo-video-script-2min.md)
 - [ ] Thumbnail image (1280x720)

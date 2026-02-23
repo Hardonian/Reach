@@ -47,14 +47,15 @@ export PS1="$ "
 
 **Purpose:** Marketing materials, README headers, launch posts
 
-| Shot | Command | Notes |
-|------|---------|-------|
-| Quickstart | `./reach doctor` passing | All green checkmarks |
-| Decision output | `./reach run ...` with fingerprint | Highlight fingerprint |
-| Verification | `./reach verify-determinism --n 5` | All fingerprints matching |
-| Replay | `./reach replay <run_id> --verify` | "Replay verified" message |
+| Shot            | Command                            | Notes                     |
+| --------------- | ---------------------------------- | ------------------------- |
+| Quickstart      | `./reach doctor` passing           | All green checkmarks      |
+| Decision output | `./reach run ...` with fingerprint | Highlight fingerprint     |
+| Verification    | `./reach verify-determinism --n 5` | All fingerprints matching |
+| Replay          | `./reach replay <run_id> --verify` | "Replay verified" message |
 
 **Styling:**
+
 - Full terminal window visible
 - Clean background (no desktop clutter)
 - Command prompt at top, output below
@@ -65,15 +66,16 @@ export PS1="$ "
 
 **Purpose:** Docs, tutorials, troubleshooting guides
 
-| Shot | Content | Annotations |
-|------|---------|-------------|
-| Doctor output | Full `reach doctor` output | Number each check |
-| Error example | Common failure with fix | Arrow to error message |
-| Decision matrix | Input JSON structure | Highlight key fields |
-| Replay trace | Execution steps | Step numbers |
-| Federation diagram | Multi-node output | Node labels |
+| Shot               | Content                    | Annotations            |
+| ------------------ | -------------------------- | ---------------------- |
+| Doctor output      | Full `reach doctor` output | Number each check      |
+| Error example      | Common failure with fix    | Arrow to error message |
+| Decision matrix    | Input JSON structure       | Highlight key fields   |
+| Replay trace       | Execution steps            | Step numbers           |
+| Federation diagram | Multi-node output          | Node labels            |
 
 **Styling:**
+
 - Crop to relevant content
 - Use red boxes for errors, green for success
 - Add callouts with Skitch/CleanShot
@@ -84,15 +86,16 @@ export PS1="$ "
 
 **Purpose:** Social media, blog posts, release notes
 
-| Feature | Command | Visual |
-|---------|---------|--------|
-| Determinism | `verify-determinism` | Fingerprint match animation |
-| Policies | Policy denied message | Lock icon overlay |
-| Federation | Multi-node consensus | Connected nodes graphic |
-| Replay | `replay --verify` | Timeline visualization |
-| Fingerprints | Close-up of hash | Magnified view |
+| Feature      | Command               | Visual                      |
+| ------------ | --------------------- | --------------------------- |
+| Determinism  | `verify-determinism`  | Fingerprint match animation |
+| Policies     | Policy denied message | Lock icon overlay           |
+| Federation   | Multi-node consensus  | Connected nodes graphic     |
+| Replay       | `replay --verify`     | Timeline visualization      |
+| Fingerprints | Close-up of hash      | Magnified view              |
 
 **Styling:**
+
 - Tight crop on relevant text
 - High contrast
 - 1200x630 for social sharing
@@ -190,13 +193,13 @@ convert screenshot.png \
 
 ### Colors
 
-| Use | Color | Hex |
-|-----|-------|-----|
-| Success/OK | Green | #4CAF50 |
-| Error/Fail | Red | #F44336 |
-| Warning | Yellow | #FFC107 |
-| Info/Highlight | Blue | #2196F3 |
-| Text/Arrows | White | #FFFFFF |
+| Use            | Color  | Hex     |
+| -------------- | ------ | ------- |
+| Success/OK     | Green  | #4CAF50 |
+| Error/Fail     | Red    | #F44336 |
+| Warning        | Yellow | #FFC107 |
+| Info/Highlight | Blue   | #2196F3 |
+| Text/Arrows    | White  | #FFFFFF |
 
 ### Arrow Style
 
@@ -215,15 +218,15 @@ convert screenshot.png \
 
 ## Common Mistakes to Avoid
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
-| Personal info in prompt | Use generic `user@host` or `$` |
+| ❌ Don't                 | ✅ Do                             |
+| ------------------------ | --------------------------------- |
+| Personal info in prompt  | Use generic `user@host` or `$`    |
 | Messy desktop background | Solid color or blurred background |
-| Typos in commands | Pre-type and copy-paste |
-| Wrong terminal size | Always 100x30 minimum |
-| Inconsistent fonts | Pick one monospace font |
-| Cursor visible in shot | Hide cursor or position carefully |
-| Sensitive data | Use fixtures/example data only |
+| Typos in commands        | Pre-type and copy-paste           |
+| Wrong terminal size      | Always 100x30 minimum             |
+| Inconsistent fonts       | Pick one monospace font           |
+| Cursor visible in shot   | Hide cursor or position carefully |
+| Sensitive data           | Use fixtures/example data only    |
 
 ---
 
@@ -342,6 +345,7 @@ Ensure screenshots are accessible:
 - [ ] Provide text equivalent for terminal output
 
 Example alt text:
+
 ```markdown
 ![Terminal showing Reach doctor output with all checks passing:
  git installed, go installed, node version >= 18, configuration check]
@@ -352,12 +356,14 @@ Example alt text:
 ## Version Tracking
 
 Update screenshots when:
+
 - [ ] New version released (update version strings)
 - [ ] UI output format changes
 - [ ] New features added
 - [ ] Brand colors updated
 
 Include screenshot version in filename:
+
 ```
 hero-doctor-v031-1920x1080.png
 ```

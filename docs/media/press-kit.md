@@ -6,23 +6,25 @@ Official press materials for media coverage, launch announcements, and partner c
 
 ## Quick Facts
 
-| | |
-|---|---|
-| **Product** | Reach - Deterministic Decision Engine |
-| **Version** | 0.3.1 (Beta) |
-| **License** | MIT |
-| **Founded** | 2025 |
-| **Repository** | github.com/reach/reach |
-| **Website** | reach.dev |
+|                |                                       |
+| -------------- | ------------------------------------- |
+| **Product**    | Reach - Deterministic Decision Engine |
+| **Version**    | 0.3.1 (Beta)                          |
+| **License**    | MIT                                   |
+| **Founded**    | 2025                                  |
+| **Repository** | github.com/reach/reach                |
+| **Website**    | reach.dev                             |
 
 ---
 
 ## Taglines
 
 ### Primary
+
 **"Prove Every Decision"**
 
 ### Secondary
+
 - "Deterministic AI for Production Systems"
 - "Cryptographic Provenance for AI Decisions"
 - "Build AI You Can Audit"
@@ -31,14 +33,17 @@ Official press materials for media coverage, launch announcements, and partner c
 ### Variations by Audience
 
 **Technical:**
+
 - "Bit-identical replay for autonomous agents"
 - "Deterministic evaluation with cryptographic fingerprints"
 
 **Business:**
+
 - "Compliance-ready AI decision tracking"
 - "Eliminate AI black boxes"
 
 **Short/Social:**
+
 - "Deterministic AI"
 - "Auditable decisions"
 - "Provable AI"
@@ -48,12 +53,15 @@ Official press materials for media coverage, launch announcements, and partner c
 ## Elevator Pitch
 
 ### 25 Words
+
 Reach makes AI decisions deterministic and auditable. Every decision gets a cryptographic fingerprint that can be replayed and verified—providing total transparency for production AI.
 
 ### 50 Words
+
 Reach is a deterministic decision engine for autonomous agents and complex workflows. It evaluates decisions under multiple scenarios, applies policies, and produces cryptographically-verifiable outputs. Same input always produces the same output with full audit trails. Essential for AI systems where you need to prove what happened and why.
 
 ### 100 Words
+
 Reach brings determinism and auditability to AI-powered decision-making. Unlike traditional AI systems that behave unpredictably, Reach guarantees that the same input always produces the same output—a critical requirement for production systems in finance, healthcare, and infrastructure.
 
 Every decision is fingerprinted using cryptographic hashing, creating an immutable record that can be replayed exactly as it happened. Policies enforce safety constraints at the engine level, while federation support enables distributed consensus across multiple nodes.
@@ -155,7 +163,7 @@ Reach represents a fundamental shift: from trusting AI to proving AI. In a world
 ❌ Change colors  
 ❌ Add effects (shadows, glows)  
 ❌ Rotate or tilt  
-❌ Place on busy backgrounds  
+❌ Place on busy backgrounds
 
 ---
 
@@ -163,29 +171,29 @@ Reach represents a fundamental shift: from trusting AI to proving AI. In a world
 
 ### Primary
 
-| Color | Hex | RGB | Usage |
-|-------|-----|-----|-------|
-| Reach Blue | #0066CC | rgb(0, 102, 204) | Primary brand, links |
-| Deep Blue | #004499 | rgb(0, 68, 153) | Headers, emphasis |
-| Light Blue | #E6F2FF | rgb(230, 242, 255) | Backgrounds |
+| Color      | Hex     | RGB                | Usage                |
+| ---------- | ------- | ------------------ | -------------------- |
+| Reach Blue | #0066CC | rgb(0, 102, 204)   | Primary brand, links |
+| Deep Blue  | #004499 | rgb(0, 68, 153)    | Headers, emphasis    |
+| Light Blue | #E6F2FF | rgb(230, 242, 255) | Backgrounds          |
 
 ### Secondary
 
-| Color | Hex | Usage |
-|-------|-----|-------|
-| Success Green | #4CAF50 | Passing checks, success states |
-| Warning Yellow | #FFC107 | Warnings, attention |
-| Error Red | #F44336 | Errors, failures |
-| Neutral Gray | #6B7280 | Secondary text |
+| Color          | Hex     | Usage                          |
+| -------------- | ------- | ------------------------------ |
+| Success Green  | #4CAF50 | Passing checks, success states |
+| Warning Yellow | #FFC107 | Warnings, attention            |
+| Error Red      | #F44336 | Errors, failures               |
+| Neutral Gray   | #6B7280 | Secondary text                 |
 
 ### Dark Theme
 
-| Color | Hex | Usage |
-|-------|-----|-------|
-| Dark BG | #0D1117 | Terminal backgrounds |
-| Darker BG | #010409 | Deep backgrounds |
-| Light Text | #C9D1D9 | Primary text |
-| Lighter Text | #F0F6FC | Headings |
+| Color        | Hex     | Usage                |
+| ------------ | ------- | -------------------- |
+| Dark BG      | #0D1117 | Terminal backgrounds |
+| Darker BG    | #010409 | Deep backgrounds     |
+| Light Text   | #C9D1D9 | Primary text         |
+| Lighter Text | #F0F6FC | Headings             |
 
 ---
 
@@ -252,13 +260,13 @@ Learn more: reach.dev
 
 Available in `assets/screenshots/`:
 
-| File | Description | Best For |
-|------|-------------|----------|
-| `hero-doctor-passing.png` | Doctor check passing | Hero images, README |
-| `feature-determinism.png` | Fingerprint verification | Feature highlights |
-| `feature-replay.png` | Replay verification | Documentation |
-| `feature-policy.png` | Policy enforcement | Security/compliance |
-| `feature-federation.png` | Multi-node federation | Enterprise sales |
+| File                      | Description              | Best For            |
+| ------------------------- | ------------------------ | ------------------- |
+| `hero-doctor-passing.png` | Doctor check passing     | Hero images, README |
+| `feature-determinism.png` | Fingerprint verification | Feature highlights  |
+| `feature-replay.png`      | Replay verification      | Documentation       |
+| `feature-policy.png`      | Policy enforcement       | Security/compliance |
+| `feature-federation.png`  | Multi-node federation    | Enterprise sales    |
 
 ---
 

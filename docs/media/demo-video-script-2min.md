@@ -138,6 +138,7 @@ All 5 fingerprints match.
 "Reach. Deterministic decisions for production AI. Open source, ready to use."
 
 **ON-SCREEN TEXT:**
+
 ```
 github.com/reach/reach
 
@@ -174,12 +175,12 @@ export REACH_DEMO_MODE=1
 
 ### Key Visual Elements
 
-| Timestamp | Element | Notes |
-|-----------|---------|-------|
-| 0:35 | Input JSON | Use `jq` for syntax highlighting |
-| 0:55 | Terminal output | Pause on fingerprint line |
-| 1:25 | Second run | Split screen to show match |
-| 1:45 | Verification | Zoom in on final result |
+| Timestamp | Element         | Notes                            |
+| --------- | --------------- | -------------------------------- |
+| 0:35      | Input JSON      | Use `jq` for syntax highlighting |
+| 0:55      | Terminal output | Pause on fingerprint line        |
+| 1:25      | Second run      | Split screen to show match       |
+| 1:45      | Verification    | Zoom in on final result          |
 
 ### B-Roll Shots
 

@@ -16,6 +16,7 @@ Welcome! These issues are curated for new contributors. Each has clear acceptanc
 ## Documentation
 
 ### 1. Fix Broken Links in INSTALL.md
+
 **Files:** `docs/INSTALL.md`  
 **Difficulty:** ⭐ Beginner  
 **Time:** 15 minutes
@@ -23,11 +24,13 @@ Welcome! These issues are curated for new contributors. Each has clear acceptanc
 **Description:** Several external links in the installation guide are outdated or 404.
 
 **Acceptance Criteria:**
+
 - [ ] All links return HTTP 200 (use `lychee` or similar)
 - [ ] Update Docker Hub links to current repository
 - [ ] Fix any redirected URLs
 
 **Test Expectations:**
+
 ```bash
 # Run link checker
 lychee docs/INSTALL.md
@@ -37,6 +40,7 @@ lychee docs/INSTALL.md
 ---
 
 ### 2. Add Code of Conduct Reference to README
+
 **Files:** `README.md`  
 **Difficulty:** ⭐ Beginner  
 **Time:** 10 minutes
@@ -44,16 +48,19 @@ lychee docs/INSTALL.md
 **Description:** The README links to CONTRIBUTING.md but not CODE_OF_CONDUCT.md.
 
 **Acceptance Criteria:**
+
 - [ ] Add "Code of Conduct" link in Contributing section
 - [ ] Place it adjacent to Contributing link
 
 **Test Expectations:**
+
 - [ ] Link resolves correctly
 - [ ] Markdown renders properly
 
 ---
 
 ### 3. Document Environment Variables
+
 **Files:** `docs/ENVIRONMENT_VARIABLES.md` (new file)  
 **Difficulty:** ⭐⭐ Beginner-Intermediate  
 **Time:** 1 hour
@@ -61,6 +68,7 @@ lychee docs/INSTALL.md
 **Description:** Create a comprehensive reference for all environment variables.
 
 **Acceptance Criteria:**
+
 - [ ] Document `REACH_DATA_DIR` (default, purpose, example)
 - [ ] Document `REACH_BASE_URL` (default, purpose, example)
 - [ ] Document `REACH_LOG_LEVEL` (valid values: debug, info, warn, error)
@@ -69,12 +77,14 @@ lychee docs/INSTALL.md
 - [ ] Add table format with Variable | Description | Default | Required
 
 **Test Expectations:**
+
 - [ ] File renders correctly in GitHub preview
 - [ ] All variables from `docs/INSTALL.md` are covered
 
 ---
 
 ### 4. Add Doc Comments to Example Scripts
+
 **Files:** `examples/*/run.js`  
 **Difficulty:** ⭐ Beginner  
 **Time:** 30 minutes
@@ -82,11 +92,13 @@ lychee docs/INSTALL.md
 **Description:** Add JSDoc comments to example runner scripts for better IDE support.
 
 **Acceptance Criteria:**
+
 - [ ] Add `@param` and `@returns` to functions
 - [ ] Add file-level description comments
 - [ ] Document the `main()` function purpose
 
 **Test Expectations:**
+
 - [ ] No functional changes to code
 - [ ] Examples still run: `node examples/01-quickstart-local/run.js`
 
@@ -95,6 +107,7 @@ lychee docs/INSTALL.md
 ## Testing
 
 ### 5. Add Unit Tests for Doctor Checks
+
 **Files:** `tools/doctor/doctor_test.go`  
 **Difficulty:** ⭐⭐ Intermediate  
 **Time:** 2 hours
@@ -102,11 +115,13 @@ lychee docs/INSTALL.md
 **Description:** The doctor tool lacks tests for individual checks.
 
 **Acceptance Criteria:**
+
 - [ ] Add test for `checkNodeVersion` with version 16, 18, 20
 - [ ] Add test for `checkEnvConfiguration` with/without .env
 - [ ] Mock `exec.LookPath` for testability
 
 **Test Expectations:**
+
 ```bash
 cd tools/doctor && go test -v
 # All new tests pass
@@ -116,6 +131,7 @@ cd tools/doctor && go test -v
 ---
 
 ### 6. Create Test Fixture Validator
+
 **Files:** `scripts/validate-fixtures.js` (new file)  
 **Difficulty:** ⭐⭐ Intermediate  
 **Time:** 1.5 hours
@@ -123,12 +139,14 @@ cd tools/doctor && go test -v
 **Description:** Script to validate all fixtures in `fixtures/` directory.
 
 **Acceptance Criteria:**
+
 - [ ] Validate JSON syntax for all `.json` files
 - [ ] Check required `_fixture` metadata exists
 - [ ] Verify `schema_version` matches expected format
 - [ ] Return exit code 0 on success, 1 on failure
 
 **Test Expectations:**
+
 ```bash
 node scripts/validate-fixtures.js
 # Should pass for all current fixtures
@@ -138,6 +156,7 @@ node scripts/validate-fixtures.js
 ---
 
 ### 7. Add Determinism Test for Simple Decision
+
 **Files:** `fixtures/decision/input/simple.json`, `tests/determinism/`  
 **Difficulty:** ⭐⭐ Intermediate  
 **Time:** 1 hour
@@ -145,11 +164,13 @@ node scripts/validate-fixtures.js
 **Description:** Verify the simple decision fixture produces consistent fingerprints.
 
 **Acceptance Criteria:**
+
 - [ ] Create test that runs decision 3 times
 - [ ] Verify all fingerprints match
 - [ ] Add to CI test suite
 
 **Test Expectations:**
+
 ```bash
 ./reach verify-determinism --n 3 \
   --input fixtures/decision/input/simple.json
@@ -161,6 +182,7 @@ node scripts/validate-fixtures.js
 ## Tooling/Scripts
 
 ### 8. Create Shell Completion Generator
+
 **Files:** `scripts/generate-completions.sh` (new file)  
 **Difficulty:** ⭐⭐⭐ Intermediate  
 **Time:** 2 hours
@@ -168,12 +190,14 @@ node scripts/validate-fixtures.js
 **Description:** Generate shell completions for bash, zsh, fish.
 
 **Acceptance Criteria:**
+
 - [ ] Generate bash completions
 - [ ] Generate zsh completions
 - [ ] Generate fish completions
 - [ ] Output to `completions/` directory
 
 **Test Expectations:**
+
 ```bash
 ./scripts/generate-completions.sh
 source completions/reach.bash
@@ -183,6 +207,7 @@ reach <TAB>  # Should show completions
 ---
 
 ### 9. Add Makefile Targets for Common Tasks
+
 **Files:** `Makefile`  
 **Difficulty:** ⭐ Beginner  
 **Time:** 30 minutes
@@ -190,12 +215,14 @@ reach <TAB>  # Should show completions
 **Description:** Add convenient make targets for development.
 
 **Acceptance Criteria:**
+
 - [ ] Add `make doctor` → `./reach doctor`
 - [ ] Add `make demo` → `node examples/01-quickstart-local/run.js`
 - [ ] Add `make fixtures` → validate all fixtures
 - [ ] Add `make clean` → remove node_modules, dist, etc.
 
 **Test Expectations:**
+
 ```bash
 make doctor  # Runs reach doctor
 make demo    # Runs demo
@@ -205,6 +232,7 @@ make clean   # Cleans build artifacts
 ---
 
 ### 10. Create Git Hook for Pre-commit Checks
+
 **Files:** `.githooks/pre-commit` (new file), `scripts/install-hooks.sh`  
 **Difficulty:** ⭐⭐ Intermediate  
 **Time:** 1 hour
@@ -212,12 +240,14 @@ make clean   # Cleans build artifacts
 **Description:** Optional git hook to run basic checks before commit.
 
 **Acceptance Criteria:**
+
 - [ ] Check JSON files are valid
 - [ ] Run `reach doctor` (warn only)
 - [ ] Check for trailing whitespace
 - [ ] Create install script
 
 **Test Expectations:**
+
 ```bash
 ./scripts/install-hooks.sh
 # Make a test commit
@@ -229,6 +259,7 @@ make clean   # Cleans build artifacts
 ## Examples
 
 ### 11. Add Python Example Runner
+
 **Files:** `examples/01-quickstart-local/run.py` (new file)  
 **Difficulty:** ⭐⭐ Intermediate  
 **Time:** 1 hour
@@ -236,12 +267,14 @@ make clean   # Cleans build artifacts
 **Description:** Python equivalent of the JavaScript example runner.
 
 **Acceptance Criteria:**
+
 - [ ] Equivalent functionality to run.js
 - [ ] Use subprocess to call reach
 - [ ] Handle errors gracefully
 - [ ] Add README section for Python users
 
 **Test Expectations:**
+
 ```bash
 python examples/01-quickstart-local/run.py
 # Same output as node run.js
@@ -250,6 +283,7 @@ python examples/01-quickstart-local/run.py
 ---
 
 ### 12. Create Example: Conditional Logic
+
 **Files:** `examples/11-conditional-logic/` (new directory)  
 **Difficulty:** ⭐⭐ Intermediate  
 **Time:** 2 hours
@@ -257,12 +291,14 @@ python examples/01-quickstart-local/run.py
 **Description:** Example demonstrating conditional decision branches.
 
 **Acceptance Criteria:**
+
 - [ ] Create pack.json with conditional logic
 - [ ] Create seed.json with test inputs
 - [ ] Create run.js runner
 - [ ] Add README.md explaining the logic
 
 **Test Expectations:**
+
 ```bash
 node examples/11-conditional-logic/run.js
 # Completes without errors
@@ -272,6 +308,7 @@ node examples/11-conditional-logic/run.js
 ---
 
 ### 13. Add Example Output Comparison Script
+
 **Files:** `examples/compare-outputs.js` (new file)  
 **Difficulty:** ⭐⭐ Intermediate  
 **Time:** 1 hour
@@ -279,12 +316,14 @@ node examples/11-conditional-logic/run.js
 **Description:** Script to compare outputs of different examples.
 
 **Acceptance Criteria:**
+
 - [ ] Run multiple examples
 - [ ] Compare fingerprints
 - [ ] Show which examples produce different outputs
 - [ ] Export comparison to JSON
 
 **Test Expectations:**
+
 ```bash
 node examples/compare-outputs.js
 # Produces comparison report
@@ -295,6 +334,7 @@ node examples/compare-outputs.js
 ## Fixtures
 
 ### 14. Add Multi-Scenario Event Fixture
+
 **Files:** `fixtures/events/multi-scenario.json` (new file)  
 **Difficulty:** ⭐ Beginner  
 **Time:** 30 minutes
@@ -302,12 +342,14 @@ node examples/compare-outputs.js
 **Description:** Create a fixture with 5+ scenarios for stress testing.
 
 **Acceptance Criteria:**
+
 - [ ] 5+ scenarios with varying probabilities
 - [ ] 3+ actions
 - [ ] Include adversarial flag on some scenarios
 - [ ] Follow `_fixture` metadata format
 
 **Test Expectations:**
+
 ```bash
 node -e "JSON.parse(require('fs').readFileSync('fixtures/events/multi-scenario.json'))"
 # Parses without errors
@@ -316,6 +358,7 @@ node -e "JSON.parse(require('fs').readFileSync('fixtures/events/multi-scenario.j
 ---
 
 ### 15. Create Fixture Usage Examples
+
 **Files:** `fixtures/USAGE_EXAMPLES.md` (new file)  
 **Difficulty:** ⭐ Beginner  
 **Time:** 45 minutes
@@ -323,12 +366,14 @@ node -e "JSON.parse(require('fs').readFileSync('fixtures/events/multi-scenario.j
 **Description:** Document practical usage of fixtures for testing.
 
 **Acceptance Criteria:**
+
 - [ ] Show how to use with `reach run`
 - [ ] Show how to compare outputs
 - [ ] Show how to use in CI
 - [ ] Include 3 complete examples
 
 **Test Expectations:**
+
 - [ ] All commands in examples work when copied
 
 ---
@@ -336,6 +381,7 @@ node -e "JSON.parse(require('fs').readFileSync('fixtures/events/multi-scenario.j
 ## Error Handling
 
 ### 16. Improve Error Messages for Invalid JSON
+
 **Files:** `services/runner/internal/errors/`  
 **Difficulty:** ⭐⭐⭐ Intermediate-Advanced  
 **Time:** 2 hours
@@ -343,11 +389,13 @@ node -e "JSON.parse(require('fs').readFileSync('fixtures/events/multi-scenario.j
 **Description:** When JSON parsing fails, show line number and context.
 
 **Acceptance Criteria:**
+
 - [ ] Parse error includes line number
 - [ ] Parse error includes column hint
 - [ ] Show snippet of invalid JSON (sanitized)
 
 **Test Expectations:**
+
 ```bash
 echo '{invalid}' | ./reach run -
 # Shows helpful error with line info
@@ -356,6 +404,7 @@ echo '{invalid}' | ./reach run -
 ---
 
 ### 17. Add Context to CONFIG_MISSING Error
+
 **Files:** `services/runner/internal/config/`  
 **Difficulty:** ⭐⭐ Intermediate  
 **Time:** 1 hour
@@ -363,11 +412,13 @@ echo '{invalid}' | ./reach run -
 **Description:** CONFIG_MISSING error should say WHICH config is missing.
 
 **Acceptance Criteria:**
+
 - [ ] Error message includes missing variable name
 - [ ] Suggest command to fix (`reach doctor --fix`)
 - [ ] List all required configs if multiple missing
 
 **Test Expectations:**
+
 ```bash
 unset REACH_DATA_DIR && ./reach run ...
 # Error: "CONFIG_MISSING: REACH_DATA_DIR not set. Run: reach doctor --fix"
@@ -378,6 +429,7 @@ unset REACH_DATA_DIR && ./reach run ...
 ## Performance
 
 ### 18. Add Benchmark for Decision Evaluation
+
 **Files:** `crates/engine/benches/decision_benchmark.rs`  
 **Difficulty:** ⭐⭐⭐ Intermediate  
 **Time:** 2 hours
@@ -385,11 +437,13 @@ unset REACH_DATA_DIR && ./reach run ...
 **Description:** Criterion benchmark for core decision evaluation.
 
 **Acceptance Criteria:**
+
 - [ ] Benchmark simple decision (2 actions, 2 scenarios)
 - [ ] Benchmark complex decision (10 actions, 5 scenarios)
 - [ ] Output to `target/criterion/`
 
 **Test Expectations:**
+
 ```bash
 cd crates/engine && cargo bench
 # Benchmarks run successfully
@@ -399,6 +453,7 @@ cd crates/engine && cargo bench
 ---
 
 ### 19. Create Performance Regression Script
+
 **Files:** `scripts/perf-check.sh` (new file)  
 **Difficulty:** ⭐⭐ Intermediate  
 **Time:** 1.5 hours
@@ -406,12 +461,14 @@ cd crates/engine && cargo bench
 **Description:** Script to check performance hasn't regressed.
 
 **Acceptance Criteria:**
+
 - [ ] Run benchmarks
 - [ ] Compare to baseline
 - [ ] Fail if >10% slower
 - [ ] Generate report
 
 **Test Expectations:**
+
 ```bash
 ./scripts/perf-check.sh
 # Passes if performance within threshold
@@ -422,6 +479,7 @@ cd crates/engine && cargo bench
 ## Accessibility/UX
 
 ### 20. Add Color Output Control
+
 **Files:** `services/runner/internal/output/`  
 **Difficulty:** ⭐⭐ Intermediate  
 **Time:** 1.5 hours
@@ -429,12 +487,14 @@ cd crates/engine && cargo bench
 **Description:** Support `NO_COLOR` environment variable.
 
 **Acceptance Criteria:**
+
 - [ ] Check `NO_COLOR` env var
 - [ ] Disable ANSI colors when set
 - [ ] Respect `FORCE_COLOR` for override
 - [ ] Document in troubleshooting
 
 **Test Expectations:**
+
 ```bash
 NO_COLOR=1 ./reach doctor
 # Output has no ANSI escape codes

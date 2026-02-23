@@ -1,0 +1,74 @@
+
+> @reach/decision-engine-monorepo@0.3.1 verify:fast
+> npm run typecheck && npm run lint:structure && npm run format:check && npm run docs:index:check && npm run health:check && npm run gates:reality && npm run gates:terminology && npm test
+
+
+> @reach/decision-engine-monorepo@0.3.1 typecheck
+> tsc --noEmit
+
+
+> @reach/decision-engine-monorepo@0.3.1 lint:structure
+> powershell ./tools/guard-structure.ps1
+
+C:\Users\scott\Documents\GitHub\Reach\t
+ools\guard-structure.ps1 : Entropy 
+Detected: Unexpected file found in 
+root: fast_out2.txt
+At line:1 char:1
++ ./tools/guard-structure.ps1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpeci 
+   fied: (:) [Write-Error], WriteErro  
+  rException
+    + FullyQualifiedErrorId : Microsof 
+   t.PowerShell.Commands.WriteErrorEx  
+  ception,guard-structure.ps1
+ 
+C:\Users\scott\Documents\GitHub\Reach\t
+ools\guard-structure.ps1 : Entropy 
+Detected: Unexpected file found in 
+root: out_validate.txt
+At line:1 char:1
++ ./tools/guard-structure.ps1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpeci 
+   fied: (:) [Write-Error], WriteErro  
+  rException
+    + FullyQualifiedErrorId : Microsof 
+   t.PowerShell.Commands.WriteErrorEx  
+  ception,guard-structure.ps1
+ 
+dYs" Structural violation detected. Maintain normalized structure." -ForegroundColor Red
+    exit 1
+} else {
+    Write-Host  âo. Structural integrity maintained."
+
+> @reach/decision-engine-monorepo@0.3.1 format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> @reach/decision-engine-monorepo@0.3.1 docs:index:check
+> npx tsx scripts/validate-docs-index.ts
+
+Γ£à All documentation files are listed in docs/README.md
+
+> @reach/decision-engine-monorepo@0.3.1 health:check
+> npx tsx scripts/repo-health.ts
+
+--- Checking Root Files ---
+Γ£à README.md exists
+Γ£à CONTRIBUTING.md exists
+Γ£à SECURITY.md exists
+Γ£à LICENSE exists
+Γ£à CHANGELOG.md exists
+
+--- Checking Package Scripts ---
+Γ£à script: lint exists
+Γ£à script: typecheck exists
+Γ£à script: test exists
+Γ£à script: build exists
+
+--- Checking Config Consistency ---
+Γ£à Single ESLint config: eslint.config.js
