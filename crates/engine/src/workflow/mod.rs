@@ -1,7 +1,8 @@
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 /// A deterministic workflow graph.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Workflow {
     pub id: String,
     pub start: String,
@@ -42,13 +43,13 @@ impl Workflow {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct WorkflowNode {
     pub kind: NodeKind,
     pub next: Vec<String>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum NodeKind {
     Task { name: String },
     Decision { expression: String },
