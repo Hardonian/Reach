@@ -93,6 +93,7 @@ crates/ffi/c_abi/target/
 .artifacts/
 playwright-report/
 test-results/
+ARTIFACTS/*.zip
 
 # ======================================
 # Build Outputs

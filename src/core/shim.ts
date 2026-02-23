@@ -8,6 +8,18 @@
 import { createHash, generateKeyPairSync } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { canonicalJson } from "../determinism/canonicalJson.js";
+
+// ---------------------------------------------------------------------------
+// Hash version constant
+// ---------------------------------------------------------------------------
+
+/**
+ * Canonical hash version identifier.
+ * Encodes: algorithm (sha256), serialization (cjson = canonical JSON with sorted keys), schema version.
+ * This MUST be bumped whenever the hash input set, algorithm, or serialization format changes.
+ */
+export const HASH_VERSION = "sha256-cjson-v1" as const;
 
 // ---------------------------------------------------------------------------
 // Deterministic timestamp
@@ -55,7 +67,9 @@ function hashInput(input: any): string {
     dependsOn: input?.dependsOn,
     informs: input?.informs,
   };
-  return createHash("sha256").update(JSON.stringify(stablePayload)).digest("hex");
+  // Use canonicalJson for deterministic key ordering at all nesting levels.
+  // Raw JSON.stringify relies on insertion order which is implementation-defined.
+  return createHash("sha256").update(canonicalJson(stablePayload)).digest("hex");
 }
 
 export function executeDecision(input: any): { result: any; transcript: any } {
@@ -64,7 +78,7 @@ export function executeDecision(input: any): { result: any; transcript: any } {
   const transcript = {
     transcript_id: `t_${inputHash.slice(0, 12)}`,
     transcript_hash: inputHash,
-    hashVersion: "sha256-cjson-v1",
+    hashVersion: HASH_VERSION,
     inputs: input,
     timestamp: ts,
     depends_on: input?.dependsOn ?? [],
@@ -106,7 +120,7 @@ export function createEnvelope(
   transcript: Record<string, unknown>,
   metadata: Record<string, unknown>,
 ): Envelope {
-  const hash = createHash("sha256").update(JSON.stringify(transcript)).digest("hex");
+  const hash = createHash("sha256").update(canonicalJson(transcript)).digest("hex");
   return {
     transcript_hash: hash,
     transcript,
@@ -227,7 +241,7 @@ export function verifyTranscriptChain(envelopes: Envelope[]): {
 
     // Verify the transcript_hash matches the actual transcript content
     const computedHash = createHash("sha256")
-      .update(JSON.stringify(env.transcript))
+      .update(canonicalJson(env.transcript))
       .digest("hex");
     if (computedHash !== env.transcript_hash) {
       errors.push(
