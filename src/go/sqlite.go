@@ -2,7 +2,9 @@ package storage
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -95,15 +97,20 @@ func (s *SqliteDriver) Write(ctx context.Context, key string, data []byte) error
 		return fmt.Errorf("failed to write blob: %w", err)
 	}
 
+	// Compute content hash for integrity verification
+	hash := sha256.Sum256(data)
+	contentHash := hex.EncodeToString(hash[:])
+
 	query := `
-	INSERT INTO artifacts (key, path, size, created_at)
-	VALUES (?, ?, ?, ?)
+	INSERT INTO artifacts (key, path, size, created_at, content_hash)
+	VALUES (?, ?, ?, ?, ?)
 	ON CONFLICT(key) DO UPDATE SET
 		path = excluded.path,
 		size = excluded.size,
-		created_at = excluded.created_at;
+		created_at = excluded.created_at,
+		content_hash = excluded.content_hash;
 	`
-	_, err := s.db.ExecContext(ctx, query, key, fullPath, len(data), time.Now())
+	_, err := s.db.ExecContext(ctx, query, key, fullPath, len(data), time.Now(), contentHash)
 	if err != nil {
 		return fmt.Errorf("failed to update metadata: %w", err)
 	}
@@ -113,8 +120,9 @@ func (s *SqliteDriver) Write(ctx context.Context, key string, data []byte) error
 
 func (s *SqliteDriver) Read(ctx context.Context, key string) ([]byte, error) {
 	var path string
-	query := `SELECT path FROM artifacts WHERE key = ?`
-	err := s.db.QueryRowContext(ctx, query, key).Scan(&path)
+	var contentHash sql.NullString
+	query := `SELECT path, content_hash FROM artifacts WHERE key = ?`
+	err := s.db.QueryRowContext(ctx, query, key).Scan(&path, &contentHash)
 	if err == sql.ErrNoRows {
 		return nil, os.ErrNotExist
 	}
@@ -126,6 +134,16 @@ func (s *SqliteDriver) Read(ctx context.Context, key string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to read blob: %w", err)
 	}
+
+	// Verify blob integrity if content_hash is available
+	if contentHash.Valid && contentHash.String != "" {
+		hash := sha256.Sum256(data)
+		actual := hex.EncodeToString(hash[:])
+		if actual != contentHash.String {
+			return nil, fmt.Errorf("blob integrity check failed for key %q: expected %s, got %s", key, contentHash.String, actual)
+		}
+	}
+
 	return data, nil
 }
 

@@ -5,7 +5,7 @@ package historical
 import (
 	"context"
 	"crypto/sha256"
-	"errors"
+
 	"fmt"
 	"os"
 	"path/filepath"
@@ -164,7 +164,7 @@ func (m *Manager) SeedHistoricalData(ctx context.Context, pipelineID string, num
 
 	for i := 0; i < numRuns; i++ {
 		runID := generateRunID(pipelineID, i)
-		now := time.Now().UTC().AddDate(0, 0, -numRuns+i)
+		_ = time.Now().UTC().AddDate(0, 0, -numRuns+i) // timestamp for this synthetic run
 		
 		// Generate events for this run
 		events := generateSeedEvents(runID, tools, plugins, i)

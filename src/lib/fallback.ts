@@ -79,7 +79,7 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
   const ranking = [...effectiveInput.actions].sort((a, b) => {
     const diff = maxRegret[a] - maxRegret[b];
     if (Math.abs(diff) < 1e-9) {
-      return a.localeCompare(b); // Tie-break
+      return a < b ? -1 : a > b ? 1 : 0; // Code-point comparison for deterministic tie-break
     }
     return diff;
   });
@@ -116,7 +116,7 @@ function weightedSumFallback(input: DecisionInput): DecisionOutput {
     const sB = scores[b];
     // Descending sort
     if (Math.abs(sA - sB) < 1e-9) {
-      return a.localeCompare(b);
+      return a < b ? -1 : a > b ? 1 : 0; // Code-point comparison for deterministic tie-break
     }
     return sB - sA;
   });
@@ -150,7 +150,7 @@ function maximinFallback(input: DecisionInput): DecisionOutput {
     const valB = minUtility[b];
     // Descending sort for utility
     if (Math.abs(valA - valB) < 1e-9) {
-      return a.localeCompare(b); // Tie-break
+      return a < b ? -1 : a > b ? 1 : 0; // Code-point comparison for deterministic tie-break
     }
     return valB - valA;
   });

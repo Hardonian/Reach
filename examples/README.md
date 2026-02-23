@@ -100,6 +100,48 @@ node examples/06-retention-compact-safety/run.js
 
 ---
 
+### [Example 11: Minimal Policy Run](./11-minimal-policy-run/)
+
+**Level:** Beginner | **Time:** 1 min
+
+Simplest possible pack execution with policy enforcement. Fastest intro to policies.
+
+```bash
+node examples/11-minimal-policy-run/run.js
+```
+
+**Demonstrates:** Minimal policy enforcement, quick execution, exit codes
+
+---
+
+### [Example 12: Replay-Only Validation](./12-replay-only-validation/)
+
+**Level:** Intermediate | **Time:** 2 min
+
+Replay a capsule for deterministic validation without re-execution.
+
+```bash
+node examples/12-replay-only-validation/run.js
+```
+
+**Demonstrates:** Capsule replay, integrity validation, deterministic parity
+
+---
+
+### [Example 13: Export + Verify Only](./13-export-verify-only/)
+
+**Level:** Intermediate | **Time:** 2 min
+
+Export and verify workflow for archival and attestation.
+
+```bash
+node examples/13-export-verify-only/run.js
+```
+
+**Demonstrates:** Export to capsule, cryptographic verification, attestation
+
+---
+
 ## Learning Path
 
 1. **Start Here** → Example 01 (understand core concepts)

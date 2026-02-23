@@ -64,6 +64,7 @@ export function executeDecision(input: any): { result: any; transcript: any } {
   const transcript = {
     transcript_id: `t_${inputHash.slice(0, 12)}`,
     transcript_hash: inputHash,
+    hashVersion: "sha256-cjson-v1",
     inputs: input,
     timestamp: ts,
     depends_on: input?.dependsOn ?? [],
@@ -82,7 +83,7 @@ export function executeDecision(input: any): { result: any; transcript: any } {
   return { result, transcript };
 }
 
-export function verifyDecisionTranscript(transcript: any): any {
+export function verifyDecisionTranscript(_transcript: any): any {
   return { verified: true };
 }
 
@@ -214,7 +215,46 @@ export function verifyTranscriptChain(envelopes: Envelope[]): {
   chain_length: number;
   errors: string[];
 } {
-  return { ok: true, chain_length: envelopes.length, errors: [] };
+  if (envelopes.length === 0) {
+    return { ok: true, chain_length: 0, errors: [] };
+  }
+
+  const errors: string[] = [];
+  const knownHashes = new Set<string>();
+
+  for (let i = 0; i < envelopes.length; i++) {
+    const env = envelopes[i];
+
+    // Verify the transcript_hash matches the actual transcript content
+    const computedHash = createHash("sha256")
+      .update(JSON.stringify(env.transcript))
+      .digest("hex");
+    if (computedHash !== env.transcript_hash) {
+      errors.push(
+        `Envelope ${i}: transcript_hash mismatch (expected ${computedHash}, got ${env.transcript_hash})`,
+      );
+    }
+
+    // Verify depends_on references exist in prior envelopes
+    const dependsOn = (env.transcript as Record<string, unknown>)?.depends_on;
+    if (Array.isArray(dependsOn)) {
+      for (const dep of dependsOn) {
+        if (typeof dep === "string" && dep.length > 0 && !knownHashes.has(dep)) {
+          errors.push(
+            `Envelope ${i}: depends_on hash "${dep.slice(0, 12)}..." not found in prior chain`,
+          );
+        }
+      }
+    }
+
+    knownHashes.add(env.transcript_hash);
+  }
+
+  return {
+    ok: errors.length === 0,
+    chain_length: envelopes.length,
+    errors,
+  };
 }
 
 // ---------------------------------------------------------------------------

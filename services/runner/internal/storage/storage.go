@@ -2,8 +2,10 @@ package storage
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"embed"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"os"
@@ -38,11 +40,12 @@ type AuditRecord struct {
 	CreatedAt             time.Time
 }
 type SnapshotRecord struct {
-	ID            int64
-	RunID         string
-	LastEventID   int64
-	StatePayload  []byte
-	CreatedAt     time.Time
+	ID           int64
+	RunID        string
+	LastEventID  int64
+	StatePayload []byte
+	StateHash    string
+	CreatedAt    time.Time
 }
 type SessionRecord struct {
 	ID, TenantID, UserID string
@@ -60,6 +63,7 @@ type EventsStore interface {
 	SaveSnapshot(context.Context, SnapshotRecord) (int64, error)
 	GetLatestSnapshot(context.Context, string) (SnapshotRecord, error)
 	PruneEvents(context.Context, string, int64) (int64, error)
+	SnapshotAndPrune(ctx context.Context, rec SnapshotRecord) (snapshotID int64, pruned int64, err error)
 }
 type AuditStore interface {
 	AppendAudit(context.Context, AuditRecord) error
@@ -106,17 +110,17 @@ type SQLiteStore struct {
 }
 
 type preparedOps struct {
-	createRun      *sql.Stmt
-	getRun         *sql.Stmt
-	appendEvent    *sql.Stmt
-	listEvents     *sql.Stmt
-	appendAudit    *sql.Stmt
-	listAudit      *sql.Stmt
-	enqueueJob     *sql.Stmt
-	getJobByKey    *sql.Stmt
-	getJobsByLease *sql.Stmt
-	upsertNode     *sql.Stmt
-	listNodes      *sql.Stmt
+	createRun         *sql.Stmt
+	getRun            *sql.Stmt
+	appendEvent       *sql.Stmt
+	listEvents        *sql.Stmt
+	appendAudit       *sql.Stmt
+	listAudit         *sql.Stmt
+	enqueueJob        *sql.Stmt
+	getJobByKey       *sql.Stmt
+	getJobsByLease    *sql.Stmt
+	upsertNode        *sql.Stmt
+	listNodes         *sql.Stmt
 	putSession        *sql.Stmt
 	getSession        *sql.Stmt
 	deleteSession     *sql.Stmt
@@ -208,11 +212,11 @@ func (s *SQLiteStore) prepareStmts() error {
 	if err != nil {
 		return err
 	}
-	s.ops.saveSnapshot, err = s.db.Prepare("INSERT INTO snapshots(run_id,last_event_id,state_payload,created_at) VALUES(?,?,?,?)")
+	s.ops.saveSnapshot, err = s.db.Prepare("INSERT INTO snapshots(run_id,last_event_id,state_payload,state_hash,created_at) VALUES(?,?,?,?,?)")
 	if err != nil {
 		return err
 	}
-	s.ops.getLatestSnapshot, err = s.db.Prepare("SELECT id,run_id,last_event_id,state_payload,created_at FROM snapshots WHERE run_id=? ORDER BY id DESC LIMIT 1")
+	s.ops.getLatestSnapshot, err = s.db.Prepare("SELECT id,run_id,last_event_id,state_payload,state_hash,created_at FROM snapshots WHERE run_id=? ORDER BY id DESC LIMIT 1")
 	if err != nil {
 		return err
 	}
@@ -385,7 +389,13 @@ func (s *SQLiteStore) ListEvents(ctx context.Context, tenantID, runID string, af
 func (s *SQLiteStore) SaveSnapshot(ctx context.Context, rec SnapshotRecord) (int64, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	res, err := s.ops.saveSnapshot.ExecContext(ctx, rec.RunID, rec.LastEventID, rec.StatePayload, rec.CreatedAt.UTC())
+	// Compute state hash if not already set
+	stateHash := rec.StateHash
+	if stateHash == "" {
+		h := sha256.Sum256(rec.StatePayload)
+		stateHash = hex.EncodeToString(h[:])
+	}
+	res, err := s.ops.saveSnapshot.ExecContext(ctx, rec.RunID, rec.LastEventID, rec.StatePayload, stateHash, rec.CreatedAt.UTC())
 	if err != nil {
 		return 0, err
 	}
@@ -397,7 +407,8 @@ func (s *SQLiteStore) GetLatestSnapshot(ctx context.Context, runID string) (Snap
 	defer s.mu.RUnlock()
 	var r SnapshotRecord
 	var created time.Time
-	err := s.ops.getLatestSnapshot.QueryRowContext(ctx, runID).Scan(&r.ID, &r.RunID, &r.LastEventID, &r.StatePayload, &created)
+	var stateHash sql.NullString
+	err := s.ops.getLatestSnapshot.QueryRowContext(ctx, runID).Scan(&r.ID, &r.RunID, &r.LastEventID, &r.StatePayload, &stateHash, &created)
 	if err == sql.ErrNoRows {
 		return r, ErrNotFound
 	}
@@ -405,6 +416,17 @@ func (s *SQLiteStore) GetLatestSnapshot(ctx context.Context, runID string) (Snap
 		return r, err
 	}
 	r.CreatedAt = created
+	if stateHash.Valid {
+		r.StateHash = stateHash.String
+	}
+	// Verify snapshot integrity if state_hash is available
+	if r.StateHash != "" {
+		h := sha256.Sum256(r.StatePayload)
+		actual := hex.EncodeToString(h[:])
+		if actual != r.StateHash {
+			return r, errors.New("snapshot state integrity check failed: hash mismatch")
+		}
+	}
 	return r, nil
 }
 
@@ -416,6 +438,57 @@ func (s *SQLiteStore) PruneEvents(ctx context.Context, runID string, upToEventID
 		return 0, err
 	}
 	return res.RowsAffected()
+}
+
+// SnapshotAndPrune atomically creates a snapshot and prunes events up to the
+// snapshot's last event ID within a single transaction. This prevents the
+// inconsistent state where a snapshot exists but old events were not pruned
+// (or vice versa) due to a crash between the two operations.
+func (s *SQLiteStore) SnapshotAndPrune(ctx context.Context, rec SnapshotRecord) (int64, int64, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// Compute state hash if not already set
+	stateHash := rec.StateHash
+	if stateHash == "" {
+		h := sha256.Sum256(rec.StatePayload)
+		stateHash = hex.EncodeToString(h[:])
+	}
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, 0, err
+	}
+	defer tx.Rollback()
+
+	// Insert snapshot
+	res, err := tx.ExecContext(ctx,
+		"INSERT INTO snapshots(run_id,last_event_id,state_payload,state_hash,created_at) VALUES(?,?,?,?,?)",
+		rec.RunID, rec.LastEventID, rec.StatePayload, stateHash, rec.CreatedAt.UTC())
+	if err != nil {
+		return 0, 0, err
+	}
+	snapshotID, err := res.LastInsertId()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	// Prune events up to the snapshot boundary
+	pruneRes, err := tx.ExecContext(ctx,
+		"DELETE FROM events WHERE run_id=? AND id<=?",
+		rec.RunID, rec.LastEventID)
+	if err != nil {
+		return 0, 0, err
+	}
+	pruned, err := pruneRes.RowsAffected()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return 0, 0, err
+	}
+	return snapshotID, pruned, nil
 }
 
 func (s *SQLiteStore) AppendAudit(ctx context.Context, a AuditRecord) error {

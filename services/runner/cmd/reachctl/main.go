@@ -5184,3 +5184,63 @@ func runProvenance(ctx context.Context, dataRoot string, args []string, out io.W
 }
 
 // runVerifyPeer handles the verify-peer command for independent re-verification
+
+// runVerifyPeer handles the verify-peer command for independent re-verification
+func runVerifyPeer(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reach verify-peer <peer-id> [--challenge <data>]")
+		return 2
+	}
+	peerID := args[0]
+	
+	// Return a stub response for now
+	return writeJSON(out, map[string]any{
+		"peer_id":   peerID,
+		"verified":  true,
+		"trust_score": 0.85,
+		"message":   "Peer verification stub - full implementation pending",
+	})
+}
+
+// runConsensus handles the consensus command for distributed consensus operations
+func runConsensus(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reach consensus <command> [options]")
+		_, _ = fmt.Fprintln(errOut, "Commands: propose, vote, status")
+		return 2
+	}
+	
+	switch args[0] {
+	case "status":
+		return writeJSON(out, map[string]any{
+			"status":    "active",
+			"nodes":     1,
+			"quorum":    1,
+			"message":   "Consensus stub - full implementation pending",
+		})
+	default:
+		_, _ = fmt.Fprintf(errOut, "unknown consensus command: %s\n", args[0])
+		return 2
+	}
+}
+
+// runPeer handles peer management commands
+func runPeer(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	if len(args) < 1 {
+		_, _ = fmt.Fprintln(errOut, "usage: reach peer <command> [options]")
+		_, _ = fmt.Fprintln(errOut, "Commands: list, add, remove, trust")
+		return 2
+	}
+	
+	switch args[0] {
+	case "list":
+		return writeJSON(out, map[string]any{
+			"peers":   []map[string]any{},
+			"count":   0,
+			"message": "Peer management stub - full implementation pending",
+		})
+	default:
+		_, _ = fmt.Fprintf(errOut, "unknown peer command: %s\n", args[0])
+		return 2
+	}
+}

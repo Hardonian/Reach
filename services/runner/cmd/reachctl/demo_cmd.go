@@ -12,9 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-
-	"reach/services/runner/internal/determinism"
-	"reach/services/runner/internal/storage"
 )
 
 // DemoData represents the demo data structure

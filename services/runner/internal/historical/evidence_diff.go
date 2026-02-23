@@ -6,7 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"math"
+
 	"os"
 	"path/filepath"
 	"sort"
@@ -295,6 +295,7 @@ func (m *EvidenceDiffManager) buildHistoricalOverlay(ctx context.Context, refere
 	}
 
 	// Add reference and comparison runs
+	now := time.Now().UTC()
 	points = append(points, HistoricalPoint{
 		Timestamp:   now,
 		RunID:       referenceRunID,
