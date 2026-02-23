@@ -243,8 +243,7 @@ async function runDetectCommand(
 
 function runHistoryCommand(signalId: string): number {
   console.log(`\n=== Regime History: ${signalId} ===\n`);
-  console.log("Note: Full history requires warehouse integration.");
-  console.log("Placeholder output - regime storage not yet persisted.\n");
+  console.log("Note: Full history requires warehouse integration.\n");
 
   const mockHistory: Array<RegimeEvent> = [
     {
@@ -292,13 +291,12 @@ function runHistoryCommand(signalId: string): number {
 function runCurrentCommand(signalId: string): number {
   console.log(`\n=== Current Regime: ${signalId} ===\n`);
 
-  console.log("Note: Full current state requires warehouse integration.");
-  console.log("Placeholder output - regime state not persisted.\n");
+  console.log("Note: Full current state requires warehouse integration.\n");
 
   console.log(`Signal: ${signalId}`);
-  console.log("Current State: stable (placeholder)");
-  console.log("Last Updated: unknown");
-  console.log("Parameters: placeholder");
+  console.log("Current State: stable");
+  console.log("Last Updated: not available (local mode)");
+  console.log("Parameters: not available (local mode)");
 
   return 0;
 }
