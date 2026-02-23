@@ -88,26 +88,54 @@ type AdversarialPlugin struct {
 	Detectable  bool   `json:"detectable"` // whether the adversarial pattern is detectable
 }
 
-// NondeterminismPatterns contains regex patterns for detecting nondeterminism.
-var NondeterminismPatterns = map[string]*regexp.Regexp{
-	"time.Now()":           regexp.MustCompile(`time\.Now\(\)`),
-	"rand.Int()":          regexp.MustCompile(`rand\.Int\(|\.Intn\(|math/rand`),
-	"UUID":                 regexp.MustCompile(`uuid|UUID|guid|GUID`),
-	"unordered-map":        regexp.MustCompile(`map\[.*\]`),
-	"os.Getenv":            regexp.MustCompile(`os\.Getenv\(`),
-	"math/rand":            regexp.MustCompile(`"math/rand"|'math/rand'`),
-	"crypto/rand":          regexp.MustCompile(`crypto/rand`),
-	"filepath.Glob":        regexp.MustCompile(`filepath\.Glob\(`),
-	"os.ReadDir":           regexp.MustCompile(`os\.ReadDir\(`),
+// nondeterminismPatterns contains regex patterns for detecting nondeterminism.
+// Access via GetNondeterminismPatterns() for lazy initialization.
+var nondeterminismPatterns map[string]*regexp.Regexp
+
+// GetNondeterminismPatterns returns the regex patterns for nondeterminism detection.
+// Patterns are compiled lazily on first use to reduce startup overhead.
+func GetNondeterminismPatterns() map[string]*regexp.Regexp {
+	if nondeterminismPatterns == nil {
+		nondeterminismPatterns = map[string]*regexp.Regexp{
+			"time.Now()":    regexp.MustCompile(`time\.Now\(\)`),
+			"rand.Int()":    regexp.MustCompile(`rand\.Int\(|\.Intn\(|math/rand`),
+			"UUID":          regexp.MustCompile(`uuid|UUID|guid|GUID`),
+			"unordered-map": regexp.MustCompile(`map\[.*\]`),
+			"os.Getenv":     regexp.MustCompile(`os\.Getenv\(`),
+			"math/rand":     regexp.MustCompile(`"math/rand"|'math/rand'`),
+			"crypto/rand":   regexp.MustCompile(`crypto/rand`),
+			"filepath.Glob": regexp.MustCompile(`filepath\.Glob\(`),
+			"os.ReadDir":    regexp.MustCompile(`os\.ReadDir\(`),
+		}
+	}
+	return nondeterminismPatterns
 }
 
-// ExternalCallPatterns contains patterns for detecting external calls.
-var ExternalCallPatterns = map[string]*regexp.Regexp{
-	"http.Get":    regexp.MustCompile(`http\.Get\(|http\.Client\.Do\(`),
-	"net.Dial":    regexp.MustCompile(`net\.Dial\(|net\.DialTimeout\(`),
-	"exec.Command": regexp.MustCompile(`exec\.Command\(`),
-	"grpc.Dial":   regexp.MustCompile(`grpc\.Dial\(`),
+// externalCallPatterns contains patterns for detecting external calls.
+// Access via GetExternalCallPatterns() for lazy initialization.
+var externalCallPatterns map[string]*regexp.Regexp
+
+// GetExternalCallPatterns returns the regex patterns for external call detection.
+// Patterns are compiled lazily on first use to reduce startup overhead.
+func GetExternalCallPatterns() map[string]*regexp.Regexp {
+	if externalCallPatterns == nil {
+		externalCallPatterns = map[string]*regexp.Regexp{
+			"http.Get":     regexp.MustCompile(`http\.Get\(|http\.Client\.Do\(`),
+			"net.Dial":     regexp.MustCompile(`net\.Dial\(|net\.DialTimeout\(`),
+			"exec.Command": regexp.MustCompile(`exec\.Command\(`),
+			"grpc.Dial":    regexp.MustCompile(`grpc\.Dial\(`),
+		}
+	}
+	return externalCallPatterns
 }
+
+// NondeterminismPatterns is kept for backward compatibility.
+// Deprecated: Use GetNondeterminismPatterns() instead.
+var NondeterminismPatterns = GetNondeterminismPatterns()
+
+// ExternalCallPatterns is kept for backward compatibility.
+// Deprecated: Use GetExternalCallPatterns() instead.
+var ExternalCallPatterns = GetExternalCallPatterns()
 
 // AuditPlugin performs a comprehensive audit of a plugin.
 func AuditPlugin(pluginPath string, manifest PluginManifest, sourceCode string) (*AuditResult, error) {

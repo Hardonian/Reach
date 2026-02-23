@@ -298,24 +298,37 @@ func (m *Metrics) Reset() {
 	m.timers = make(map[string][]time.Duration)
 }
 
-// Default metrics instance.
-var defaultMetrics = NewMetrics()
+// defaultMetrics is the package-level metrics instance, initialized lazily.
+var defaultMetrics *Metrics
+var metricsInitOnce sync.Once
 
-// DefaultMetrics returns the default metrics instance.
-func DefaultMetrics() *Metrics { return defaultMetrics }
-
-// M is a shorthand for DefaultMetrics().
-func M() *Metrics { return defaultMetrics }
-
-// InitDefaultSink initializes the default metrics sink from environment.
-func InitDefaultSink() error {
+// initDefaultMetrics initializes the default metrics with environment configuration.
+// This is called lazily on first use to reduce startup overhead.
+func initDefaultMetrics() {
+	defaultMetrics = NewMetrics()
+	// Initialize sink from environment if configured
 	if path := os.Getenv("REACH_METRICS_PATH"); path != "" {
-		_, err := defaultMetrics.WithSink(path)
-		return err
+		_, _ = defaultMetrics.WithSink(path)
 	}
-	return nil
 }
 
-func init() {
-	InitDefaultSink()
+// DefaultMetrics returns the default metrics instance, initializing it on first use.
+func DefaultMetrics() *Metrics {
+	metricsInitOnce.Do(initDefaultMetrics)
+	return defaultMetrics
+}
+
+// M is a shorthand for DefaultMetrics().
+func M() *Metrics { return DefaultMetrics() }
+
+// InitDefaultSink initializes the default metrics sink from environment.
+// Deprecated: Metrics are now initialized lazily. Set REACH_METRICS_PATH before first metrics call.
+func InitDefaultSink() error {
+	if defaultMetrics != nil {
+		if path := os.Getenv("REACH_METRICS_PATH"); path != "" {
+			_, err := defaultMetrics.WithSink(path)
+			return err
+		}
+	}
+	return nil
 }
