@@ -1,7 +1,7 @@
 /**
  * deterministicCompare — locale-independent string comparison
  *
- * String.prototype.localeCompare() uses the system default locale when
+ * The native locale-based string comparison function uses the system default locale when
  * called without explicit locale/collation options. This produces
  * nondeterministic output across platforms and environments.
  *

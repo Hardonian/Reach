@@ -81,6 +81,18 @@ if (goRunOutput.length > 0) {
   console.log("✅ No go run CLI Gate passed.");
 }
 
+// D) No localeCompare Gate (Determinism)
+console.log("Checking No localeCompare Gate...");
+const localeComparePattern = /\.localeCompare\(/;
+const localeCompareOutput = runManualGrep(localeComparePattern);
+if (localeCompareOutput.length > 0) {
+  console.error("❌ ERROR: Found '.localeCompare(' in runtime path. Use codePointCompare instead for determinism.");
+  localeCompareOutput.forEach((line) => console.error(line));
+  failed = true;
+} else {
+  console.log("✅ No localeCompare Gate passed.");
+}
+
 if (failed) {
   process.exit(1);
 }
