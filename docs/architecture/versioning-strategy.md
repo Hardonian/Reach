@@ -12,22 +12,22 @@ across releases.
 
 ## 1. Current Version State
 
-```
+```text
 VERSION file:   0.3.1
 package.json:   0.3.1
 ```
 
 ### Versioned Components
 
-| Component            | Current Version | Versioning Mechanism         |
-| :------------------- | :-------------- | :--------------------------- |
-| Monorepo             | 0.3.1           | `VERSION` file + `package.json` |
-| Schema (zeo.v1)      | v1              | `schemaVersion` field in output |
-| Rust Engine          | 0.3.1           | `Cargo.toml` in crates      |
-| Go Runner            | 0.3.1           | `go.mod` + embedded version  |
-| SQLite Schema        | Migration 005   | Sequential migration files    |
-| Protocol Schemas     | v1              | `protocol/v1/` directory      |
-| Hash Algorithm       | SHA-256 + FNV-1a| Implicit (not versioned)     |
+| Component        | Current Version | Versioning Mechanism              |
+| :--------------- | :-------------- | :-------------------------------- |
+| Monorepo         | 0.3.1           | `VERSION` file + `package.json`   |
+| Schema (zeo.v1)  | v1              | `schemaVersion` field in output   |
+| Rust Engine      | 0.3.1           | `Cargo.toml` in crates            |
+| Go Runner        | 0.3.1           | `go.mod` + embedded version       |
+| SQLite Schema    | Migration 005   | Sequential migration files        |
+| Protocol Schemas | v1              | `protocol/v1/` directory          |
+| Hash Algorithm   | SHA-256 + FNV-1a | Implicit (not versioned)         |
 
 ---
 
@@ -67,7 +67,7 @@ is embedded in the directory structure and in the output:
 
 SQLite schema is versioned by sequential migration files:
 
-```
+```text
 migrations/001_init.sql
 migrations/002_orchestration.sql
 migrations/003_hardware_attestation.sql
@@ -84,6 +84,7 @@ idempotency but not explicit version tracking.
 
 **Recommendation**: Add a `schema_migrations` table recording applied
 migration numbers and timestamps. This enables:
+
 - Detecting skipped migrations.
 - Preventing forward-incompatible schema states.
 - Audit trail for schema changes.
@@ -131,6 +132,7 @@ fingerprint or transcript. This is a gap.
 ```
 
 This would encode:
+
 - Hash algorithm: `sha256`
 - Serialization: `cjson` (canonical JSON with sorted keys)
 - Version: `v1`
@@ -157,18 +159,18 @@ pub fn patch_upgrade_replay_compatible(source: &str, target: &str) -> bool {
 
 ### Compatibility Rules
 
-| Change Type    | Version Bump | Replay Compatible | Migration Required |
-| :------------- | :----------- | :---------------- | :----------------- |
-| Bug fix        | Patch (0.3.x)| YES               | NO                 |
-| New optional field | Minor (0.x.0) | YES           | Maybe              |
-| Hash input change  | Major (x.0.0) | NO            | YES                |
-| Algorithm change   | Major (x.0.0) | NO            | YES                |
-| New SQL migration  | Minor (0.x.0) | YES           | Automatic          |
-| Schema version bump| Major (x.0.0) | NO            | YES                |
+| Change Type        | Version Bump  | Replay Compatible | Migration Required |
+| :----------------- | :------------ | :---------------- | :----------------- |
+| Bug fix            | Patch (0.3.x) | YES               | NO                 |
+| New optional field | Minor (0.x.0) | YES               | Maybe              |
+| Hash input change  | Major (x.0.0) | NO                | YES                |
+| Algorithm change   | Major (x.0.0) | NO                | YES                |
+| New SQL migration  | Minor (0.x.0) | YES               | Automatic          |
+| Schema version bump | Major (x.0.0) | NO               | YES                |
 
 ### Upgrade Path
 
-```
+```text
 1. User upgrades binary from 0.3.1 to 0.4.0
 2. On first run, runner detects new migrations
 3. Migrations are applied automatically (IF NOT EXISTS guards)
@@ -180,6 +182,7 @@ pub fn patch_upgrade_replay_compatible(source: &str, target: &str) -> bool {
 
 Currently, there is no downgrade mechanism. If a user upgrades and then
 needs to revert:
+
 - Transcripts created with the new version may not be readable by the old.
 - Database schema changes are not reversible (no `DOWN` migrations).
 
