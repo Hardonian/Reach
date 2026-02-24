@@ -199,6 +199,27 @@ export const TriggerGateRunSchema = z.object({
   branch: z.string().optional(),
 });
 
+// ── Governance Assistant ───────────────────────────────────────────────────
+export const GovernanceScopeSchema = z.enum(["global", "repo", "project"]);
+export const GovernanceRolloutModeSchema = z.enum(["dry-run", "enforced"]);
+
+export const GovernanceAssistantSchema = z.object({
+  intent: z.string().min(1).max(5000),
+  workspace_id: z.string().min(1).max(120).default("default"),
+  scope: GovernanceScopeSchema.default("project"),
+  rollout_mode: GovernanceRolloutModeSchema.optional(),
+  action: z.enum(["preview", "apply"]).default("preview"),
+  trigger: z.enum(["assistant", "user"]).default("assistant"),
+});
+
+export const GovernanceMemorySchema = z.object({
+  workspace_id: z.string().min(1).max(120).default("default"),
+  scope: GovernanceScopeSchema.default("project"),
+  memory_type: z.enum(["policy_preference", "risk_pattern", "eval_baseline", "cost_model"]),
+  content: z.record(z.string(), z.unknown()).default({}),
+  confidence: z.number().min(0).max(1).default(0.8),
+});
+
 // ── CI Ingest ─────────────────────────────────────────────────────────────
 export const CiIngestSchema = z.object({
   workspace_key: z.string().optional(),

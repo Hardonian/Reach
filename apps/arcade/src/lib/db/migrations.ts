@@ -671,6 +671,58 @@ export const MIGRATIONS: string[] = [
   CREATE INDEX IF NOT EXISTS idx_junctions_status ON junctions(status);
   CREATE INDEX IF NOT EXISTS idx_action_intents_decision ON action_intents(decision_id);
   `,
+
+  /* 015 — governance control plane memory/spec/artifacts */
+  `
+  CREATE TABLE IF NOT EXISTS governance_memory (
+    id           TEXT PRIMARY KEY,
+    org_id       TEXT NOT NULL REFERENCES tenants(id),
+    workspace_id TEXT NOT NULL,
+    scope        TEXT NOT NULL DEFAULT 'global',
+    memory_type  TEXT NOT NULL,
+    content_json TEXT NOT NULL DEFAULT '{}',
+    confidence   REAL NOT NULL DEFAULT 0.5,
+    created_at   TEXT NOT NULL,
+    updated_at   TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS governance_specs (
+    id                  TEXT PRIMARY KEY,
+    org_id              TEXT NOT NULL REFERENCES tenants(id),
+    workspace_id        TEXT NOT NULL,
+    scope               TEXT NOT NULL DEFAULT 'global',
+    version             INTEGER NOT NULL,
+    source_intent       TEXT NOT NULL,
+    governance_plan_json TEXT NOT NULL DEFAULT '{}',
+    spec_json           TEXT NOT NULL,
+    spec_hash           TEXT NOT NULL,
+    rollout_mode        TEXT NOT NULL DEFAULT 'dry-run',
+    risk_summary_json   TEXT NOT NULL DEFAULT '[]',
+    triggered_by        TEXT NOT NULL DEFAULT 'assistant',
+    actor_user_id       TEXT,
+    parent_spec_id      TEXT,
+    replay_link         TEXT,
+    created_at          TEXT NOT NULL,
+    UNIQUE(org_id, workspace_id, scope, version)
+  );
+
+  CREATE TABLE IF NOT EXISTS artifacts (
+    id           TEXT PRIMARY KEY,
+    org_id       TEXT NOT NULL REFERENCES tenants(id),
+    workspace_id TEXT NOT NULL,
+    spec_id      TEXT REFERENCES governance_specs(id),
+    artifact_type TEXT NOT NULL,
+    artifact_path TEXT NOT NULL,
+    content_text  TEXT NOT NULL,
+    content_hash  TEXT NOT NULL,
+    created_at    TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_governance_memory_org_workspace ON governance_memory(org_id, workspace_id, scope, memory_type);
+  CREATE INDEX IF NOT EXISTS idx_governance_specs_org_workspace ON governance_specs(org_id, workspace_id, scope, version DESC);
+  CREATE INDEX IF NOT EXISTS idx_governance_specs_hash ON governance_specs(spec_hash);
+  CREATE INDEX IF NOT EXISTS idx_artifacts_org_spec ON artifacts(org_id, spec_id, artifact_type);
+  `,
 ];
 
 export function applyMigrations(db: Database.Database): void {

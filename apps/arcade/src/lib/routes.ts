@@ -13,6 +13,8 @@ export const ROUTES = {
   PLAYGROUND: "/playground",
   SKILLS: "/skills",
   TOOLS: "/tools",
+  ASSISTANT: "/assistant",
+  APP_HOME: "/app",
   STUDIO: "/studio",
   LAB: "/studio",
   LIBRARY: "/library",
@@ -85,6 +87,7 @@ export const ROUTES = {
     SAFETY: "/console/safety",
     GOVERNANCE: {
       HOME: "/console/governance",
+      ASSISTANT: "/console/governance/assistant",
       GLOSSARY: "/console/governance/glossary",
       HISTORY: "/console/governance/history",
       CONFIG: "/console/governance/config-as-code",
@@ -144,6 +147,7 @@ export const ROUTES = {
     SAFETY: "/console/safety",
     GOVERNANCE: {
       HOME: "/console/governance",
+      ASSISTANT: "/console/governance/assistant",
       GLOSSARY: "/console/governance/glossary",
       HISTORY: "/console/governance/history",
       CONFIG: "/console/governance/config-as-code",

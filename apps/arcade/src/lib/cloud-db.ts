@@ -17,6 +17,7 @@ export * from "./db/entitlements";
 export * from "./db/ops";
 export * from "./db/gates";
 export * from "./db/scenarios";
+export * from "./db/governance";
 export * from "./db/seed";
 
 import { getDB } from "./db/connection";

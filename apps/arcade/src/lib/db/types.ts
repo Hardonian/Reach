@@ -393,6 +393,57 @@ export interface AlertRule {
   updated_at: string;
 }
 
+export type GovernanceScope = "global" | "repo" | "project";
+
+export type GovernanceMemoryType =
+  | "policy_preference"
+  | "risk_pattern"
+  | "eval_baseline"
+  | "cost_model";
+
+export interface GovernanceMemory {
+  id: string;
+  org_id: string;
+  workspace_id: string;
+  scope: GovernanceScope;
+  memory_type: GovernanceMemoryType;
+  content_json: string;
+  confidence: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GovernanceSpecVersion {
+  id: string;
+  org_id: string;
+  workspace_id: string;
+  scope: GovernanceScope;
+  version: number;
+  source_intent: string;
+  governance_plan_json: string;
+  spec_json: string;
+  spec_hash: string;
+  rollout_mode: "dry-run" | "enforced";
+  risk_summary_json: string;
+  triggered_by: "user" | "assistant";
+  actor_user_id: string | null;
+  parent_spec_id: string | null;
+  replay_link: string | null;
+  created_at: string;
+}
+
+export interface GovernanceArtifact {
+  id: string;
+  org_id: string;
+  workspace_id: string;
+  spec_id: string | null;
+  artifact_type: string;
+  artifact_path: string;
+  content_text: string;
+  content_hash: string;
+  created_at: string;
+}
+
 export interface ScenarioVariant {
   id: string;
   label: string;
