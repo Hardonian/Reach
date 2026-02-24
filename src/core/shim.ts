@@ -10,6 +10,7 @@ import { hashString } from "../determinism/index.js";
 import { generateKeyPairSync } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { SysCall } from "./syscall.js";
 import { canonicalJson } from "../determinism/canonicalJson.js";
 
 // ---------------------------------------------------------------------------
@@ -43,11 +44,13 @@ function resolveTimestamp(): number {
 let deterministicMode: {
   seed: string;
   clock?: { now: () => string; timestamp: () => number };
+  syscall?: SysCall;
 } | null = null;
 
 export function activateDeterministicMode(opts: {
   seed: string;
   clock?: { now: () => string; timestamp: () => number };
+  syscall?: SysCall;
 }): void {
   deterministicMode = opts;
 }
@@ -131,13 +134,19 @@ export function createEnvelope(
   };
 }
 
-export function signEnvelopeWithEd25519(
+export async function signEnvelopeWithEd25519(
   envelope: Envelope,
   keyPath: string,
   algorithm: string,
   passphrase?: string,
-): Envelope {
-  const pem = readFileSync(resolve(keyPath), "utf8");
+): Promise<Envelope> {
+  let pem: string;
+  if (deterministicMode?.syscall) {
+    pem = await deterministicMode.syscall.fs.readTextFile(keyPath);
+  } else {
+    pem = readFileSync(resolve(keyPath), "utf8");
+  }
+
   const data = Buffer.from(envelope.transcript_hash, "utf8");
   const { sign: cryptoSign } = require("node:crypto");
   const signature = cryptoSign(null, data, passphrase ? { key: pem, passphrase } : pem).toString(
@@ -154,23 +163,38 @@ export function signEnvelopeWithEd25519(
 // Ed25519 key management
 // ---------------------------------------------------------------------------
 
-export function generateEd25519Keypair(
+export async function generateEd25519Keypair(
   keyPath: string,
   passphrase?: string,
-): { fingerprint: string; publicKeyPem: string } {
+): Promise<{ fingerprint: string; publicKeyPem: string }> {
   const { publicKey, privateKey } = generateKeyPairSync("ed25519", {
     publicKeyEncoding: { type: "spki", format: "pem" },
     privateKeyEncoding: passphrase
       ? { type: "pkcs8", format: "pem", cipher: "aes-256-cbc", passphrase }
       : { type: "pkcs8", format: "pem" },
   });
-  writeFileSync(resolve(keyPath), privateKey, "utf8");
+
+  if (deterministicMode?.syscall) {
+    await deterministicMode.syscall.fs.writeTextFile(keyPath, privateKey);
+  } else {
+    writeFileSync(resolve(keyPath), privateKey, "utf8");
+  }
+
   const fingerprint = hashString(privateKey).slice(0, 16);
   return { fingerprint, publicKeyPem: publicKey };
 }
 
-export function exportPublicKeyFromPrivate(keyPath: string, passphrase?: string): string {
-  const pem = readFileSync(resolve(keyPath), "utf8");
+export async function exportPublicKeyFromPrivate(
+  keyPath: string,
+  passphrase?: string,
+): Promise<string> {
+  let pem: string;
+  if (deterministicMode?.syscall) {
+    pem = await deterministicMode.syscall.fs.readTextFile(keyPath);
+  } else {
+    pem = readFileSync(resolve(keyPath), "utf8");
+  }
+
   const { createPublicKey } = require("node:crypto");
   const pub = createPublicKey(passphrase ? { key: pem, format: "pem", passphrase } : pem);
   return pub.export({ type: "spki", format: "pem" }) as string;
@@ -180,16 +204,27 @@ export function exportPublicKeyFromPrivate(keyPath: string, passphrase?: string)
 // Envelope file I/O
 // ---------------------------------------------------------------------------
 
-export function loadEnvelopeFromFile(filePath: string): Envelope {
-  return JSON.parse(readFileSync(resolve(filePath), "utf8")) as Envelope;
+export async function loadEnvelopeFromFile(filePath: string): Promise<Envelope> {
+  let content: string;
+  if (deterministicMode?.syscall) {
+    content = await deterministicMode.syscall.fs.readTextFile(filePath);
+  } else {
+    content = readFileSync(resolve(filePath), "utf8");
+  }
+  return JSON.parse(content) as Envelope;
 }
 
-export function envelopeFilesInDir(dir: string): string[] {
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir)
-    .filter((f) => f.endsWith(".envelope.json"))
-    .sort()
-    .map((f) => join(dir, f));
+export async function envelopeFilesInDir(dir: string): Promise<string[]> {
+  let files: string[];
+  if (deterministicMode?.syscall) {
+    if (!(await deterministicMode.syscall.fs.exists(dir))) return [];
+    files = await deterministicMode.syscall.fs.listDir(dir);
+  } else {
+    if (!existsSync(dir)) return [];
+    files = readdirSync(dir).sort();
+  }
+
+  return files.filter((f) => f.endsWith(".envelope.json")).map((f) => join(dir, f));
 }
 
 // ---------------------------------------------------------------------------
@@ -275,13 +310,20 @@ export function verifyTranscriptChain(envelopes: Envelope[]): {
 // Keyring
 // ---------------------------------------------------------------------------
 
-export function addPublicKeyToKeyring(
+export async function addPublicKeyToKeyring(
   keyringDir: string,
   pubPem: string,
   label?: string,
   notes?: string,
-): { fingerprint: string; label: string } {
-  if (!existsSync(keyringDir)) mkdirSync(keyringDir, { recursive: true });
+): Promise<{ fingerprint: string; label: string }> {
+  if (deterministicMode?.syscall) {
+    if (!(await deterministicMode.syscall.fs.exists(keyringDir))) {
+      await deterministicMode.syscall.fs.makeDir(keyringDir);
+    }
+  } else {
+    if (!existsSync(keyringDir)) mkdirSync(keyringDir, { recursive: true });
+  }
+
   const fingerprint = hashString(pubPem).slice(0, 16);
   const entry = {
     fingerprint,
@@ -290,47 +332,93 @@ export function addPublicKeyToKeyring(
     notes: notes ?? "",
     addedAt: new Date(resolveTimestamp()).toISOString(),
   };
-  writeFileSync(join(keyringDir, `${fingerprint}.json`), JSON.stringify(entry, null, 2), "utf8");
+
+  const data = JSON.stringify(entry, null, 2);
+  const filePath = join(keyringDir, `${fingerprint}.json`);
+
+  if (deterministicMode?.syscall) {
+    await deterministicMode.syscall.fs.writeTextFile(filePath, data);
+  } else {
+    writeFileSync(filePath, data, "utf8");
+  }
+
   return { fingerprint, label: entry.label };
 }
 
-export function listKeyringEntries(
+export async function listKeyringEntries(
   keyringDir: string,
-): Array<{ fingerprint: string; label: string }> {
-  if (!existsSync(keyringDir)) return [];
-  return readdirSync(keyringDir)
-    .filter((f) => f.endsWith(".json"))
-    .sort()
-    .map((f) => {
-      const entry = JSON.parse(readFileSync(join(keyringDir, f), "utf8")) as {
-        fingerprint: string;
-        label: string;
-      };
-      return { fingerprint: entry.fingerprint, label: entry.label };
-    });
+): Promise<Array<{ fingerprint: string; label: string }>> {
+  let files: string[];
+  if (deterministicMode?.syscall) {
+    if (!(await deterministicMode.syscall.fs.exists(keyringDir))) return [];
+    files = await deterministicMode.syscall.fs.listDir(keyringDir);
+  } else {
+    if (!existsSync(keyringDir)) return [];
+    files = readdirSync(keyringDir).sort();
+  }
+
+  const results = [];
+  for (const f of files) {
+    if (!f.endsWith(".json")) continue;
+    const content = deterministicMode?.syscall
+      ? await deterministicMode.syscall.fs.readTextFile(join(keyringDir, f))
+      : readFileSync(join(keyringDir, f), "utf8");
+    const entry = JSON.parse(content) as { fingerprint: string; label: string };
+    results.push({ fingerprint: entry.fingerprint, label: entry.label });
+  }
+  return results;
 }
 
-export function revokeKeyringEntry(
+export async function revokeKeyringEntry(
   keyringDir: string,
   fingerprint: string,
-): { revoked: boolean; fingerprint: string } {
+): Promise<{ revoked: boolean; fingerprint: string }> {
   const entryPath = join(keyringDir, `${fingerprint}.json`);
-  if (!existsSync(entryPath)) return { revoked: false, fingerprint };
-  const entry = JSON.parse(readFileSync(entryPath, "utf8")) as Record<string, unknown>;
+  let exists = false;
+
+  if (deterministicMode?.syscall) {
+    exists = await deterministicMode.syscall.fs.exists(entryPath);
+  } else {
+    exists = existsSync(entryPath);
+  }
+
+  if (!exists) return { revoked: false, fingerprint };
+
+  let content: string;
+  if (deterministicMode?.syscall) {
+    content = await deterministicMode.syscall.fs.readTextFile(entryPath);
+  } else {
+    content = readFileSync(entryPath, "utf8");
+  }
+
+  const entry = JSON.parse(content) as Record<string, unknown>;
   entry.revoked = true;
-  writeFileSync(entryPath, JSON.stringify(entry, null, 2), "utf8");
+  const newContent = JSON.stringify(entry, null, 2);
+
+  if (deterministicMode?.syscall) {
+    await deterministicMode.syscall.fs.writeTextFile(entryPath, newContent);
+  } else {
+    writeFileSync(entryPath, newContent, "utf8");
+  }
+
   return { revoked: true, fingerprint };
 }
 
-export function keyringResolver(keyringDir: string): () => string {
-  return () => {
-    const entries = listKeyringEntries(keyringDir);
+export function keyringResolver(keyringDir: string): () => Promise<string> {
+  return async () => {
+    const entries = await listKeyringEntries(keyringDir);
     if (entries.length === 0) throw new Error("No keys in keyring");
     const first = entries[0];
     const entryPath = join(keyringDir, `${first.fingerprint}.json`);
-    const entry = JSON.parse(readFileSync(entryPath, "utf8")) as {
-      publicKey: string;
-    };
+
+    let content: string;
+    if (deterministicMode?.syscall) {
+      content = await deterministicMode.syscall.fs.readTextFile(entryPath);
+    } else {
+      content = readFileSync(entryPath, "utf8");
+    }
+
+    const entry = JSON.parse(content) as { publicKey: string };
     return entry.publicKey;
   };
 }
@@ -339,7 +427,7 @@ export function keyringResolver(keyringDir: string): () => string {
 // Trust profiles
 // ---------------------------------------------------------------------------
 
-export function recordTrustEvent(
+export async function recordTrustEvent(
   root: string,
   event: {
     subject_type: string;
@@ -349,50 +437,84 @@ export function recordTrustEvent(
     replay: string;
     adjudication: string;
   },
-): void {
+): Promise<void> {
   const dir = join(root, ".zeo", "trust");
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  if (deterministicMode?.syscall) {
+    if (!(await deterministicMode.syscall.fs.exists(dir))) {
+      await deterministicMode.syscall.fs.makeDir(dir);
+    }
+  } else {
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  }
+
   const file = join(dir, `${event.subject_id}.ndjson`);
   const line = JSON.stringify({
     ...event,
     timestamp: new Date(resolveTimestamp()).toISOString(),
   });
-  writeFileSync(
-    file,
-    existsSync(file) ? `${readFileSync(file, "utf8").trimEnd()}\n${line}\n` : `${line}\n`,
-    "utf8",
-  );
+
+  let existing = "";
+  if (deterministicMode?.syscall) {
+    if (await deterministicMode.syscall.fs.exists(file)) {
+      existing = await deterministicMode.syscall.fs.readTextFile(file);
+    }
+  } else {
+    if (existsSync(file)) {
+      existing = readFileSync(file, "utf8");
+    }
+  }
+
+  const content = existing ? `${existing.trimEnd()}\n${line}\n` : `${line}\n`;
+
+  if (deterministicMode?.syscall) {
+    await deterministicMode.syscall.fs.writeTextFile(file, content);
+  } else {
+    writeFileSync(file, content, "utf8");
+  }
 }
 
-export function compactTrustProfiles(root: string): Array<{
+export async function compactTrustProfiles(root: string): Promise<Array<{
   subject_type: string;
   subject_id: string;
   pass_count: number;
   fail_count: number;
-}> {
+}>> {
   const dir = join(root, ".zeo", "trust");
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir)
-    .filter((f) => f.endsWith(".ndjson"))
-    .sort()
-    .map((f) => {
-      const lines = readFileSync(join(dir, f), "utf8").trim().split("\n").filter(Boolean);
-      const events = lines.map(
-        (l) =>
-          JSON.parse(l) as {
-            subject_type: string;
-            subject_id: string;
-            verify: string;
-          },
-      );
-      const first = events[0];
-      return {
-        subject_type: first?.subject_type ?? "key",
-        subject_id: first?.subject_id ?? f.replace(".ndjson", ""),
-        pass_count: events.filter((e) => e.verify === "pass").length,
-        fail_count: events.filter((e) => e.verify !== "pass").length,
-      };
+  let files: string[];
+
+  if (deterministicMode?.syscall) {
+    if (!(await deterministicMode.syscall.fs.exists(dir))) return [];
+    files = await deterministicMode.syscall.fs.listDir(dir);
+  } else {
+    if (!existsSync(dir)) return [];
+    files = readdirSync(dir).sort();
+  }
+
+  const results = [];
+  for (const f of files) {
+    if (!f.endsWith(".ndjson")) continue;
+    const content = deterministicMode?.syscall
+      ? await deterministicMode.syscall.fs.readTextFile(join(dir, f))
+      : readFileSync(join(dir, f), "utf8");
+
+    const lines = content.trim().split("\n").filter(Boolean);
+    const events = lines.map(
+      (l) =>
+        JSON.parse(l) as {
+          subject_type: string;
+          subject_id: string;
+          verify: string;
+        },
+    );
+    const first = events[0];
+    results.push({
+      subject_type: first?.subject_type ?? "key",
+      subject_id: first?.subject_id ?? f.replace(".ndjson", ""),
+      pass_count: events.filter((e) => e.verify === "pass").length,
+      fail_count: events.filter((e) => e.verify !== "pass").length,
     });
+  }
+  return results;
 }
 
 export function deriveTrustTier(profile: { pass_count: number; fail_count: number }): string {

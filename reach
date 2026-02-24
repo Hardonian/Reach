@@ -5,15 +5,42 @@ cmd="${1:-}"
 case "$cmd" in
   doctor)
     shift
-    (cd tools/doctor && go run . "$@")
+    if [ -f "build/doctor" ]; then
+      ./build/doctor "$@"
+    elif [ -f "tools/doctor/doctor" ]; then
+      (cd tools/doctor && ./doctor "$@" )
+    elif [ -f "tools/doctor/doctor.exe" ]; then
+      (cd tools/doctor && ./doctor.exe "$@" )
+    else
+      echo "Warning: Running via 'go run' (slow). Run 'make build' for faster starts." >&2
+      (cd tools/doctor && go run . "$@")
+    fi
     ;;
   audit)
     shift
-    (cd tools/reach-audit && go run . "$@")
+    if [ -f "build/reach-audit" ]; then
+      ./build/reach-audit "$@"
+    elif [ -f "tools/reach-audit/reach-audit" ]; then
+      (cd tools/reach-audit && ./reach-audit "$@" )
+    elif [ -f "tools/reach-audit/reach-audit.exe" ]; then
+      (cd tools/reach-audit && ./reach-audit.exe "$@" )
+    else
+      echo "Warning: Running via 'go run' (slow). Run 'make build' for faster starts." >&2
+      (cd tools/reach-audit && go run . "$@")
+    fi
     ;;
   eval)
     shift
-    (cd tools/reach-eval && go run . "$@")
+    if [ -f "build/reach-eval" ]; then
+      ./build/reach-eval "$@"
+    elif [ -f "tools/reach-eval/reach-eval" ]; then
+      (cd tools/reach-eval && ./reach-eval "$@" )
+    elif [ -f "tools/reach-eval/reach-eval.exe" ]; then
+      (cd tools/reach-eval && ./reach-eval.exe "$@" )
+    else
+      echo "Warning: Running via 'go run' (slow). Run 'make build' for faster starts." >&2
+      (cd tools/reach-eval && go run . "$@")
+    fi
     ;;
   release-check)
     shift

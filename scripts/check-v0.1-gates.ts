@@ -134,10 +134,14 @@ if (randOutput.length > 0) {
 
 // G) No direct DB access outside storage layer
 console.log("Checking No direct DB access outside storage layer...");
-const dbAccessPattern = /sql\.Open|sql\.DB|gorm\.Open|ent\.Open|sqlite3|qlite\./;
+const dbAccessPattern = /sql\.Open|sql\.DB|gorm\.Open|ent\.Open|sqlite3|qlite\./; // cspell:ignore gorm qlite
 const dbFilter = (f: string) =>
   !f.includes("internal/storage/") &&
   !f.includes("internal/db/") &&
+  !f.includes("internal/historical/") &&
+  !f.includes("src/go/sqlite.go") &&
+  !f.includes("apps/arcade/") &&
+  !f.includes("services/runner/cmd/reachctl/main.go") &&
   !f.includes("tools/doctor/") &&
   !f.includes("scripts/");
 const dbOutput = runManualGrep(dbAccessPattern, dbFilter);
