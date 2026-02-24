@@ -1,0 +1,11 @@
+{
+  "allowlisted_endpoints": [],
+  "allowlisted_status_shifts": [
+    {
+      "endpoint": "GET /health",
+      "from": 200,
+      "to": 204
+    }
+  ],
+  "path_prefixes": ["/"]
+}

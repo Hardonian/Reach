@@ -5,7 +5,8 @@ export type DglViolationType =
   | "trust_boundary"
   | "api_contract"
   | "dependency_graph"
-  | "memory_context";
+  | "memory_context"
+  | "openapi";
 
 export interface DglViolation {
   type: DglViolationType;
@@ -30,6 +31,19 @@ export interface DglReport {
     semantic_drift_score: number;
     trust_boundary_change_score: number;
     calibration_score: number;
+  };
+  timings_ms?: {
+    language_scan: number;
+    intent: number;
+    openapi: number;
+    semantic: number;
+    trust_boundary: number;
+    report_write: number;
+  };
+  openapi_compat_summary?: {
+    scanned_specs: string[];
+    breaking: number;
+    warnings: number;
   };
   violations: DglViolation[];
   provider_matrix?: Array<{ provider: string; model: string; pass_rate: number; revert_ratio: number; calibration_score: number }>;

@@ -1,0 +1,46 @@
+{
+  "violations": [
+    {
+      "type": "openapi",
+      "severity": "error",
+      "paths": [
+        "dgl/fixtures/openapi/head-breaking.json"
+      ],
+      "line": 1,
+      "evidence": "New required parameter query:locale in GET /users/{id}",
+      "suggested_fix": "Make parameter optional, version the endpoint, or acknowledge intentionally breaking change."
+    },
+    {
+      "type": "openapi",
+      "severity": "error",
+      "paths": [
+        "dgl/fixtures/openapi/head-breaking.json"
+      ],
+      "line": 1,
+      "evidence": "Response schema change for GET /users/{id}",
+      "suggested_fix": "Keep response backward compatible or acknowledge intentional contract break."
+    }
+  ],
+  "summary": {
+    "scanned_specs": [
+      "dgl/fixtures/openapi/base.json",
+      "dgl/fixtures/openapi/head-breaking.json"
+    ],
+    "breaking": 2,
+    "warnings": 0
+  },
+  "endpoint_diffs": [
+    {
+      "method": "*",
+      "path": "dgl/fixtures/openapi/head-breaking.json",
+      "level": "error",
+      "message": "New required parameter query:locale in GET /users/{id}"
+    },
+    {
+      "method": "*",
+      "path": "dgl/fixtures/openapi/head-breaking.json",
+      "level": "error",
+      "message": "Response schema change for GET /users/{id}"
+    }
+  ]
+}
