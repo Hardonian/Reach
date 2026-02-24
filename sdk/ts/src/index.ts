@@ -1,3 +1,44 @@
+export interface DecisionAgent {
+  id: string;
+  name: string;
+  role: string;
+}
+
+export interface DecisionAction {
+  id: string;
+  label: string;
+  actorId: string;
+  kind: string;
+}
+
+export interface DecisionConstraint {
+  id: string;
+  description: string;
+}
+
+export interface DecisionAssumption {
+  id: string;
+  text: string;
+  status: string;
+  confidence: string;
+  provenance: {
+    kind: string;
+    sourceId: string;
+    offset: number;
+    length: number;
+    capturedAt: string;
+    checksum: string;
+  }[];
+  tags: string[];
+}
+
+export interface DecisionObjective {
+  id: string;
+  description?: string;
+  metric: string;
+  weight: number;
+}
+
 export interface DecisionSpec {
   id: string;
   title: string;
@@ -9,11 +50,11 @@ export interface DecisionSpec {
   reviewAfter?: string;
   expectedSignals?: string[];
   horizon: string;
-  agents: any[];
-  actions: any[];
-  constraints: any[];
-  assumptions: any[];
-  objectives: any[];
+  agents: DecisionAgent[];
+  actions: DecisionAction[];
+  constraints: DecisionConstraint[];
+  assumptions: DecisionAssumption[];
+  objectives: DecisionObjective[];
 }
 
 export interface EvidenceEvent {
