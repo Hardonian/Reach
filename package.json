@@ -14,7 +14,7 @@
     "docs:build": "npm run build --workspace @reach/docs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint src",
+    "lint": "eslint src -f json",
     "lint:structure": "node scripts/guard-structure.mjs",
     "typecheck": "tsc --noEmit && npm run typecheck --workspaces --if-present",
     "governance:demo": "node --import tsx/esm scripts/governance-demo.ts",
