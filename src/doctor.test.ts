@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { doctor } from "../../src/cli/commands/doctor.js";
-import { resetConfigCache } from "../../src/core/env.js";
+import { doctor } from "./cli/commands/doctor.js";
+import { resetConfigCache } from "./core/env.js";
 
 describe("doctor command", () => {
   beforeEach(() => {
