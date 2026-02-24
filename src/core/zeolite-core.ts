@@ -1,5 +1,5 @@
 import { hashString } from "../determinism/index.js";
-import type { DecisionSpec, EvidenceEvent, FinalizedDecisionTranscript } from "@zeo/contracts";
+import type { DecisionSpec, EvidenceEvent, FinalizedDecisionTranscript, DecisionAssumption } from "@zeo/contracts";
 // @ts-ignore - resolve missing core module
 import { executeDecision, verifyDecisionTranscript } from "@zeo/core";
 
@@ -126,7 +126,7 @@ function resolveSpec(example?: unknown): DecisionSpec {
 function envelope(spec: DecisionSpec, whatWouldChange: string[]): Record<string, unknown> {
   return {
     schemaVersion: "zeo.v1",
-    assumptions: spec.assumptions.map((a: any) => a.id),
+    assumptions: spec.assumptions.map((a: DecisionAssumption) => a.id),
     limits: [
       "deterministic synthetic example",
       "not medical or legal advice",
@@ -142,12 +142,12 @@ function deriveFlipDistances(
   spec: DecisionSpec,
 ): Array<{ variableId: string; flipDistance: number; newTopAction: string }> {
   return spec.assumptions
-    .map((a: any, idx: number) => ({
+    .map((a: DecisionAssumption, idx: number) => ({
       variableId: a.id,
       flipDistance: Number((0.2 + idx * 0.05).toFixed(4)),
       newTopAction: spec.actions[1]?.id ?? spec.actions[0]?.id ?? "unknown",
     }))
-    .sort((a: any, b: any) => a.flipDistance - b.flipDistance);
+    .sort((a, b) => a.flipDistance - b.flipDistance);
 }
 
 function deriveVoiRankings(
@@ -160,7 +160,7 @@ function deriveVoiRankings(
   rationale: string[];
 }> {
   return spec.assumptions
-    .map((assumption: any, idx: number) => {
+    .map((assumption: DecisionAssumption, idx: number) => {
       const evoi = Number((1 / (idx + 1.25)).toFixed(6));
       const recommendation =
         evoi > minEvoi * 2 ? "do_now" : evoi > minEvoi ? "plan_later" : "defer";
@@ -174,7 +174,7 @@ function deriveVoiRankings(
         ],
       };
     })
-    .sort((a: any, b: any) => b.evoi - a.evoi);
+    .sort((a, b) => b.evoi - a.evoi);
 }
 
 function createTranscriptForContext(context: ZeoliteContext): FinalizedDecisionTranscript {
@@ -211,7 +211,7 @@ export function executeZeoliteOperation(
     const contextId = stableId(JSON.stringify({ specId: spec.id, depth, seed }));
 
     const whatWouldChange = spec.assumptions.map(
-      (a: any, idx: number) => `${a.id}: threshold shift ${(idx + 1) * 10}% can alter ranking`,
+      (a: DecisionAssumption, idx: number) => `${a.id}: threshold shift ${(idx + 1) * 10}% can alter ranking`,
     );
     contexts.set(contextId, { id: contextId, spec, evidence: [] });
 
