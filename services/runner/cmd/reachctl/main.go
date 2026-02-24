@@ -177,6 +177,9 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 	case "run":
 		return runQuick(args[1:], out, errOut)
 	case "validate":
+		if len(args) > 1 && args[1] == "remote" {
+			return runValidateRemote(args[2:], out, errOut)
+		}
 		return runPackValidate(args[1:], out, errOut)
 	case "replay":
 		// Alias for transcript replay
@@ -251,6 +254,10 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runOSSOnlyNotice("peer", errOut)
 	case "artifact":
 		return runArtifact(ctx, dataRoot, args[1:], out, errOut)
+	case "cache":
+		return runCache(args[1:], out, errOut)
+	case "memory":
+		return runMemory(args[1:], out, errOut)
 	case "ingest":
 		// Alias for artifact ingest
 		return runArtifact(ctx, dataRoot, append([]string{"ingest"}, args[1:]...), out, errOut)
@@ -3031,6 +3038,9 @@ func runPackDevKit(args []string, out io.Writer, errOut io.Writer) int {
 	case "docs":
 		return runPackDocs(args[1:], out, errOut)
 	case "validate":
+		if len(args) > 1 && args[1] == "remote" {
+			return runValidateRemote(args[2:], out, errOut)
+		}
 		return runPackValidate(args[1:], out, errOut)
 	case "help":
 		usagePack(out)
@@ -4507,6 +4517,8 @@ Core Commands:
   operator                        View local operator dashboard
   data-dir                        Show current data directory path
   benchmark                       Benchmark pack performance
+  cache <status|gc>               Local content-addressable cache operations
+  memory hash <file|->            Deterministic memory hashing bridge
 
 Advanced Commands:
   diff-run <runA> <runB>          Compare two execution runs
@@ -4529,6 +4541,8 @@ Evidence-First Commands (V2):
 
 Global Flags:
   --trace-determinism             Enable internal trace logging for hashing
+
+  validate remote --url --capsule Optional remote replay validation
 
 See 'reach <command> --help' for details on specific commands.
 `)
