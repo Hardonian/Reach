@@ -1,46 +1,16 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://reach.dev'; // Replace with actual production domain
-  
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://reach-cli.com';
+
   const routes = [
-    '',
-    '/docs',
-    '/docs/getting-started',
-    '/docs/architecture',
-    '/docs/agents',
-    '/docs/mcp',
-    '/docs/deployment',
-    '/docs/security',
-    '/docs/api',
-    '/docs/cli',
-    '/docs/integrations',
-    '/faq',
-    '/support',
-    '/support/status',
-    '/support/contact',
-    '/marketplace',
-    '/skills',
-    '/tools',
-    '/playground',
-    '/templates',
-    '/studio',
-    '/dashboard',
-    '/governance',
-    '/legal',
-    '/legal/privacy',
-    '/legal/terms',
-    '/legal/cookies',
-    '/security',
-    '/transparency',
-    '/responsible-disclosure',
-    '/pricing',
+    '', '/', '/docs', '/gallery', '/download', '/security', '/whitepaper', '/roadmap', '/enterprise', '/contact',
   ];
 
-  return routes.map((route) => ({
-    url: `${baseUrl}${route}`,
+  return [...new Set(routes)].map((route) => ({
+    url: `${baseUrl}${route === '/' ? '' : route}`,
     lastModified: new Date(),
     changeFrequency: 'weekly',
-    priority: route === '' ? 1 : 0.8,
+    priority: route === '' || route === '/' ? 1 : 0.7,
   }));
 }

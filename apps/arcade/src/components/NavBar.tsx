@@ -3,43 +3,43 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { ROUTES } from '@/lib/routes';
-import { BRAND_NAME } from '@/lib/brand';
 import { track } from '@/lib/analytics';
-import { OSSModeBanner } from './OSSModeBanner';
+import type { SiteConfig } from '@/lib/site';
 
-const primaryNav = [
-  { href: ROUTES.PLAYGROUND, label: 'Playground' },
-  { href: ROUTES.SKILLS, label: 'Skills' },
-  { href: ROUTES.TOOLS, label: 'Tools' },
-  { href: ROUTES.STUDIO, label: 'Studio' },
-  { href: ROUTES.TEMPLATES, label: 'Templates' },
-  { href: ROUTES.LIBRARY, label: 'Build (Library)' },
-  { href: ROUTES.REPORTS, label: 'Run (Reports)' },
-  { href: ROUTES.SIMULATE, label: 'Simulation' },
-  { href: ROUTES.DOCS, label: 'Docs' },
-  { href: ROUTES.PRICING, label: 'Pricing' },
-  { href: ROUTES.SETTINGS.HOME, label: 'Manage' },
+type NavBarProps = {
+  site: SiteConfig;
+};
+
+const legacyNav = [
+  { href: '/playground', label: 'Playground' },
+  { href: '/skills', label: 'Skills' },
+  { href: '/tools', label: 'Tools' },
+  { href: '/studio', label: 'Studio' },
+  { href: '/templates', label: 'Templates' },
+  { href: '/library', label: 'Build (Library)' },
+  { href: '/reports', label: 'Run (Reports)' },
+  { href: '/simulate', label: 'Simulation' },
+  { href: '/docs', label: 'Docs' },
+  { href: '/pricing', label: 'Pricing' },
+  { href: '/settings', label: 'Manage' },
 ];
 
-export function NavBar() {
+export function NavBar({ site }: NavBarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const primaryNav = site.mode === 'oss' || site.mode === 'enterprise' ? site.nav : legacyNav;
 
   return (
     <header className="sticky top-0 z-50 glass-panel border-b border-border">
-      <OSSModeBanner />
       <nav className="section-container">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href={ROUTES.HOME} className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center logo-gradient">
               <span className="text-white font-bold text-lg">R</span>
             </div>
-            <span className="font-bold text-xl text-gradient">{BRAND_NAME}</span>
+            <span className="font-bold text-xl text-gradient">{site.brand}</span>
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
             {primaryNav.map((item) => (
               <Link
@@ -56,24 +56,19 @@ export function NavBar() {
             ))}
           </div>
 
-          {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Link
-              href={ROUTES.LOGIN}
-              className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
-            >
-              Sign in
+            <Link href="/contact" className="text-gray-400 hover:text-white transition-colors text-sm font-medium">
+              Contact
             </Link>
             <Link
-              href={ROUTES.PLAYGROUND}
+              href={site.mode === 'enterprise' ? '/enterprise' : '/download'}
               className="btn-primary text-sm py-2 px-4"
-              onClick={() => track('cta_clicked', { source: 'navbar', cta: 'run_demo' })}
+              onClick={() => track('cta_clicked', { source: 'navbar', cta: site.mode })}
             >
-              Run demo (free)
+              {site.mode === 'enterprise' ? 'Enterprise roadmap' : 'Install Reach CLI'}
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="md:hidden p-2 rounded-lg hover:bg-white/5"
@@ -89,7 +84,6 @@ export function NavBar() {
           </button>
         </div>
 
-        {/* Mobile Navigation */}
         {isOpen && (
           <div className="md:hidden py-4 border-t border-border animate-fade-in">
             <div className="flex flex-col gap-1">
@@ -107,14 +101,6 @@ export function NavBar() {
                   {item.label}
                 </Link>
               ))}
-              <div className="mt-4 pt-4 border-t border-border flex flex-col gap-2">
-                <Link href={ROUTES.LOGIN} className="btn-secondary text-center text-sm py-2">
-                  Sign in
-                </Link>
-                <Link href={ROUTES.PLAYGROUND} className="btn-primary text-center text-sm py-2">
-                  Run demo (free)
-                </Link>
-              </div>
             </div>
           </div>
         )}
