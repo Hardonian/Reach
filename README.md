@@ -39,12 +39,18 @@ sudo mv reachctl reach /usr/local/bin/
 Requirements: Go 1.22+, Node.js 18+
 
 ```bash
-# Clone the repository
+# 1. Clone the repository
 git clone https://github.com/reach/reach.git
 cd reach
 
-# Build using Make
+# 2. Install dependencies
+pnpm install
+
+# 3. Build binaries
 make build
+
+# 4. Verify your setup
+./reach doctor
 
 # Or install to system
 sudo make install
@@ -63,18 +69,32 @@ reach version
 | macOS    | ARM64        | ✅ Supported (Apple Silicon) |
 | Windows  | AMD64        | ✅ Supported                 |
 
-## ⚡ 60-Second Quickstart
+## ⚡ 10-Minute Quickstart
 
-```bash
-# 1. Check installation
-reach doctor
+1. **Verify Environment**:
 
-# 2. Run quick demo
-make demo
+   ```bash
+   ./reach doctor
+   ```
 
-# 3. Or run examples directly
-node examples/01-quickstart-local/run.js
-```
+2. **Build from Source**:
+
+   ```bash
+   make build
+   ```
+
+3. **Run a Simple Decision**:
+
+   ```bash
+   node examples/01-quickstart-local/run.js
+   ```
+
+### 🚩 Common Pitfalls & Fixes
+
+- **"Go binary not found"**: Ensure `go` is in your PATH. Reach needs Go 1.22+.
+- **"better-sqlite3" install failure**: You may need build tools (`gcc`, `g++`) for Node.js native modules.
+- **"Non-deterministic drift detected"**: If you modified core engine logic, ensure you aren't using `time.Now()` or unsalted hashes. Use `codeshift` or `codePointCompare` for strings.
+- **"Permission denied"**: The `reach` wrapper needs execution permissions: `chmod +x reach`.
 
 ## 💻 CLI Example
 
@@ -96,9 +116,11 @@ Execution Time: 14ms
 Experience the deterministic visualization of decisions and evidence chains.
 
 1. Start the web simulator:
+
    ```bash
    pnpm run demo
    ```
+
 2. Open [http://localhost:3000](http://localhost:3000) to view the execution graph.
 
 _(For a live hosted environment, check out our [Playground](docs/PLAYGROUND.md))_
