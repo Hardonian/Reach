@@ -32,8 +32,10 @@
     "smoke:m1": "bash scripts/smoke-test.sh",
     "validate:packs": "bash scripts/validate-packs.sh",
     "validate:oss-purity": "npm run validate:boundaries",
-    "verify:oss": "npm run validate:language && npm run validate:boundaries && npm run validate:oss-purity && npm run validate:engines && npm run validate:packs",
-    "validate:engines": "node scripts/validate-node-engines.js"
+    "verify:oss": "npm run validate:language && npm run validate:boundaries && npm run validate:oss-purity && npm run validate:site-claims && npm run validate:site-boundaries && npm run validate:engines && npm run validate:packs",
+    "validate:engines": "node scripts/validate-node-engines.js",
+    "validate:site-claims": "npx tsx scripts/validate-site-claims.ts",
+    "validate:site-boundaries": "npx tsx scripts/enforce-site-boundaries.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",

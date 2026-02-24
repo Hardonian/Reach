@@ -62,9 +62,25 @@ function resolveSiteByHost(host: string | null): SiteConfig {
   return OSS_SITE;
 }
 
+function resolveSiteByMode(mode: string | undefined): SiteConfig {
+  return mode === 'enterprise' ? ENTERPRISE_SITE : OSS_SITE;
+}
+
+export function getSiteConfigFromEnv(): SiteConfig {
+  const mode = process.env.SITE_MODE ?? process.env.NEXT_PUBLIC_SITE_MODE;
+  if (mode) return resolveSiteByMode(mode);
+  return resolveSiteByHost(process.env.SITE_HOST_OVERRIDE ?? process.env.NEXT_PUBLIC_BASE_URL ?? null);
+}
+
+export function getSiteBaseUrl(site: SiteConfig): string {
+  return `https://${site.domain}`;
+}
+
 export async function getSiteConfig(): Promise<SiteConfig> {
+  const envMode = process.env.SITE_MODE ?? process.env.NEXT_PUBLIC_SITE_MODE;
+  if (envMode) return resolveSiteByMode(envMode);
+
   const h = await headers();
-  const host =
-    process.env.SITE_HOST_OVERRIDE ?? h.get('x-forwarded-host') ?? h.get('host');
+  const host = process.env.SITE_HOST_OVERRIDE ?? h.get('x-forwarded-host') ?? h.get('host');
   return resolveSiteByHost(host);
 }

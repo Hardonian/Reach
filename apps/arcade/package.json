@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "verify": "npm run typecheck && npm run lint && npm run build",
     "smoke:evidence": "node ./scripts/evidence-viewer-smoke.mjs",
-    "check:links": "node ./scripts/check-internal-links.mjs"
+    "check:links": "node ./scripts/check-internal-links.mjs",
+    "check:mode-links": "node ./scripts/check-mode-links.mjs"
   },
   "dependencies": {
     "@xyflow/react": "^12.10.1",
