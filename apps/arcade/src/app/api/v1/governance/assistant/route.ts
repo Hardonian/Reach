@@ -14,8 +14,9 @@ import {
   type GovernanceMemoryEntry,
   type GovernanceSpec,
 } from "@/lib/governance/compiler";
-import { generateGovernanceArtifacts } from "@/lib/governance/codegen";
+import { generateGovernanceArtifacts, GOVERNANCE_CODEGEN_ENGINE } from "@/lib/governance/codegen";
 import { diffGovernanceSpec } from "@/lib/governance/diff";
+import { validateGovernanceApplyGuard } from "@/lib/governance/apply-guard";
 
 export const runtime = "nodejs";
 
@@ -92,6 +93,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       ciEnforcement: compiled.ciEnforcement,
     });
 
+    const previewArtifacts = generated.artifacts.map((artifact) => ({
+      type: artifact.artifactType,
+      path: artifact.path,
+      hash: artifact.hash,
+      output_hash: artifact.outputHash,
+      spec_hash: compiled.specHash,
+      engine_name: artifact.engine.name,
+      engine_version: artifact.engine.version,
+    }));
+
     const preview = {
       plan: compiled.plan,
       spec: compiled.spec,
@@ -100,13 +111,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       impact_preview: compiled.impactPreview,
       explainability: generated.explainability,
       diff,
-      artifacts: generated.artifacts.map((artifact) => ({
-        type: artifact.artifactType,
-        path: artifact.path,
-        hash: artifact.hash,
-      })),
+      artifacts: previewArtifacts,
       rollout_mode: compiled.spec.rolloutMode,
       source_intent: payload.intent,
+      codegen_engine: GOVERNANCE_CODEGEN_ENGINE,
     };
 
     if (payload.action === "preview") {
@@ -115,6 +123,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         applied: false,
         ...preview,
       });
+    }
+
+    const applyGuardError = validateGovernanceApplyGuard({
+      action: payload.action,
+      compiledSpecHash: compiled.specHash,
+      previewSpecHash: payload.preview_spec_hash,
+    });
+    if (applyGuardError) {
+      return governanceError(
+        applyGuardError.message,
+        409,
+        applyGuardError.code,
+        applyGuardError.hint,
+      );
     }
 
     if (!requireRole(ctx, "admin")) {
@@ -148,8 +170,26 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         artifactPath: artifact.path,
         contentText: artifact.content,
         contentHash: artifact.hash,
+        sourceIntent: payload.intent,
+        governancePlan: compiled.plan as unknown as Record<string, unknown>,
+        specHash: compiled.specHash,
+        outputHash: artifact.outputHash,
+        engineName: artifact.engine.name,
+        engineVersion: artifact.engine.version,
+        actorType: "user",
+        actorUserId: ctx.userId,
+        triggeredBy: payload.trigger,
       }),
     );
+
+    const appliedArtifacts = previewArtifacts.map((artifact, index) => {
+      const artifactRecord = artifactRecords[index];
+      return {
+        ...artifact,
+        id: artifactRecord?.id,
+        link: artifactRecord ? `/api/v1/governance/artifacts/${artifactRecord.id}` : null,
+      };
+    });
 
     for (const seed of buildMemorySeed({
       orgId: ctx.tenantId,
@@ -189,6 +229,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       replay_link: specRecord.replay_link,
       artifact_ids: artifactRecords.map((artifact) => artifact.id),
       ...preview,
+      artifacts: appliedArtifacts,
     });
   } catch {
     return governanceError(

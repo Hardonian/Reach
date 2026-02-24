@@ -15,21 +15,21 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint src",
-    "lint:structure": "powershell ./tools/guard-structure.ps1",
+    "lint:structure": "node scripts/guard-structure.mjs",
     "typecheck": "tsc --noEmit && npm run typecheck --workspaces --if-present",
-    "governance:demo": "npx tsx scripts/governance-demo.ts",
-    "validate:oss-purity": "npx tsx scripts/validate-oss-purity.ts",
+    "governance:demo": "node --import tsx/esm scripts/governance-demo.ts",
+    "validate:oss-purity": "node scripts/validate-oss-purity.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "docs:check": "npx tsx tools/docs/drift/run.ts",
-    "docs:index:check": "npx tsx scripts/validate-docs-index.ts",
-    "health:check": "npx tsx scripts/repo-health.ts",
-    "gates:reality": "npx tsx scripts/check-v0.1-gates.ts",
-    "gates:terminology": "npx tsx scripts/check-terminology.ts",
+    "docs:check": "node --import tsx/esm tools/docs/drift/run.ts",
+    "docs:index:check": "node --import tsx/esm scripts/validate-docs-index.ts",
+    "health:check": "node --import tsx/esm scripts/repo-health.ts",
+    "gates:reality": "node --import tsx/esm scripts/check-v0.1-gates.ts",
+    "gates:terminology": "node --import tsx/esm scripts/check-terminology.ts",
     "verify:boundaries": "node scripts/verify-boundaries.mjs",
-    "verify:oss": "npm run validate:oss-purity && npm run verify:boundaries",
+    "verify:oss": "node scripts/verify-oss.mjs",
     "verify:routes": "node scripts/verify-routes.mjs",
-    "verify:determinism": "npx tsx scripts/verify-determinism.ts",
+    "verify:determinism": "node --import tsx/esm scripts/verify-determinism.ts",
     "verify:fast": "npm run typecheck && npm run lint:structure && npm run format:check && npm run docs:index:check && npm run health:check && npm run gates:reality && npm run gates:terminology && npm test",
     "verify": "npm run verify:fast && npm run verify:oss && npm run verify:routes && npm run verify:determinism && npm run build",
     "verify:full": "npm run verify"
@@ -42,10 +42,11 @@
     "prettier": "^3.8.1",
     "tsx": "^4.21.0",
     "typescript": "^5.0.0",
-    "typescript-eslint": "^8.56.0"
+    "typescript-eslint": "^8.56.0",
+    "vitest": "^4.0.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.9.0"
   },
   "repository": {
     "type": "git",

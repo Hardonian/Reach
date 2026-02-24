@@ -47,6 +47,15 @@ export interface GovernanceArtifactRecord {
   artifact_path: string;
   content_text: string;
   content_hash: string;
+  source_intent: string | null;
+  governance_plan: Record<string, unknown> | null;
+  spec_hash: string | null;
+  output_hash: string | null;
+  engine_name: string | null;
+  engine_version: string | null;
+  actor_type: "user" | "system" | null;
+  actor_user_id: string | null;
+  triggered_by: "user" | "assistant" | null;
   created_at: string;
 }
 
@@ -77,6 +86,9 @@ function parseSpec(row: GovernanceSpecVersion): GovernanceSpecRecord {
 function parseArtifact(row: GovernanceArtifact): GovernanceArtifactRecord {
   return {
     ...row,
+    governance_plan: row.governance_plan_json
+      ? parseJson<Record<string, unknown>>(row.governance_plan_json, {})
+      : null,
   };
 }
 
@@ -280,6 +292,15 @@ export function createGovernanceArtifact(input: {
   artifactPath: string;
   contentText: string;
   contentHash: string;
+  sourceIntent?: string;
+  governancePlan?: Record<string, unknown>;
+  specHash?: string;
+  outputHash?: string;
+  engineName?: string;
+  engineVersion?: string;
+  actorType?: "user" | "system";
+  actorUserId?: string | null;
+  triggeredBy?: "user" | "assistant";
 }): GovernanceArtifactRecord {
   const db = getDB();
   const id = newId("gart");
@@ -287,8 +308,10 @@ export function createGovernanceArtifact(input: {
 
   db.prepare(
     `INSERT INTO artifacts
-      (id, org_id, workspace_id, spec_id, artifact_type, artifact_path, content_text, content_hash, created_at)
-     VALUES (?,?,?,?,?,?,?,?,?)`,
+      (id, org_id, workspace_id, spec_id, artifact_type, artifact_path, content_text, content_hash,
+       source_intent, governance_plan_json, spec_hash, output_hash, engine_name, engine_version,
+       actor_type, actor_user_id, triggered_by, created_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
   ).run(
     id,
     input.orgId,
@@ -298,6 +321,15 @@ export function createGovernanceArtifact(input: {
     input.artifactPath,
     input.contentText,
     input.contentHash,
+    input.sourceIntent ?? null,
+    input.governancePlan ? JSON.stringify(input.governancePlan) : null,
+    input.specHash ?? null,
+    input.outputHash ?? input.contentHash,
+    input.engineName ?? null,
+    input.engineVersion ?? null,
+    input.actorType ?? "user",
+    input.actorUserId ?? null,
+    input.triggeredBy ?? null,
     now,
   );
 

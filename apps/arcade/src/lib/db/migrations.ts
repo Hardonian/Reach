@@ -723,6 +723,21 @@ export const MIGRATIONS: string[] = [
   CREATE INDEX IF NOT EXISTS idx_governance_specs_hash ON governance_specs(spec_hash);
   CREATE INDEX IF NOT EXISTS idx_artifacts_org_spec ON artifacts(org_id, spec_id, artifact_type);
   `,
+
+  /* 016 — governance artifact provenance metadata */
+  `
+  ALTER TABLE artifacts ADD COLUMN source_intent TEXT;
+  ALTER TABLE artifacts ADD COLUMN governance_plan_json TEXT;
+  ALTER TABLE artifacts ADD COLUMN spec_hash TEXT;
+  ALTER TABLE artifacts ADD COLUMN output_hash TEXT;
+  ALTER TABLE artifacts ADD COLUMN engine_name TEXT;
+  ALTER TABLE artifacts ADD COLUMN engine_version TEXT;
+  ALTER TABLE artifacts ADD COLUMN actor_type TEXT;
+  ALTER TABLE artifacts ADD COLUMN actor_user_id TEXT;
+  ALTER TABLE artifacts ADD COLUMN triggered_by TEXT;
+
+  CREATE INDEX IF NOT EXISTS idx_artifacts_org_spec_hash ON artifacts(org_id, workspace_id, spec_hash);
+  `,
 ];
 
 export function applyMigrations(db: Database.Database): void {

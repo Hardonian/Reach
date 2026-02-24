@@ -31,7 +31,17 @@ interface AssistantResponse {
     type: string;
     path: string;
     hash: string;
+    output_hash: string;
+    spec_hash: string;
+    engine_name: string;
+    engine_version: string;
+    id?: string;
+    link?: string | null;
   }>;
+  codegen_engine?: {
+    name: string;
+    version: string;
+  };
   spec_id?: string;
   spec_version?: number;
   replay_link?: string;
@@ -85,6 +95,11 @@ export default function GovernanceAssistantPage() {
   );
 
   async function submit(action: "preview" | "apply") {
+    if (action === "apply" && !preview?.spec_hash) {
+      setError("Preview required before apply. Run preview first, then apply the same spec hash.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -106,6 +121,7 @@ export default function GovernanceAssistantPage() {
           workspace_id: workspaceId,
           scope: "project",
           action,
+          preview_spec_hash: action === "apply" ? preview?.spec_hash : undefined,
         }),
       });
 
@@ -173,7 +189,7 @@ export default function GovernanceAssistantPage() {
               {loading ? "Compiling..." : "Preview (dry-run)"}
             </button>
             <button
-              disabled={loading}
+              disabled={loading || !preview}
               onClick={() => void submit("apply")}
               className="btn-secondary disabled:opacity-60"
             >
@@ -236,6 +252,11 @@ export default function GovernanceAssistantPage() {
                 <p className="mt-2 text-xs text-gray-500">Diff: {preview.diff.summary}</p>
                 <p className="mt-2 text-xs text-gray-500">Determinism hash: {preview.spec_hash}</p>
                 <p className="mt-2 text-xs text-gray-500">Rollout mode: {preview.rollout_mode}</p>
+                {preview.codegen_engine && (
+                  <p className="mt-2 text-xs text-gray-500">
+                    Engine: {preview.codegen_engine.name}@{preview.codegen_engine.version}
+                  </p>
+                )}
                 {preview.replay_link && (
                   <a
                     href={preview.replay_link}
@@ -287,13 +308,46 @@ export default function GovernanceAssistantPage() {
 
               <div className="rounded-lg border border-border bg-background/50 p-3">
                 <div className="text-gray-500 text-xs uppercase tracking-wide">
-                  Generated CI artifact
+                  Generated Artifacts
                 </div>
-                <p className="mt-2 text-sm text-gray-300">
-                  {workflowArtifact
-                    ? `${workflowArtifact.path} (${workflowArtifact.hash.slice(0, 12)})`
-                    : "No CI workflow generated."}
-                </p>
+                {preview.artifacts.length > 0 ? (
+                  <ul className="mt-2 space-y-2 text-xs text-gray-300">
+                    {preview.artifacts.map((artifact) => (
+                      <li
+                        key={`${artifact.path}:${artifact.hash}`}
+                        className="rounded border border-border/60 p-2"
+                      >
+                        <p className="font-mono">{artifact.path}</p>
+                        <p className="text-[11px] text-emerald-300">
+                          Artifact hash: {artifact.output_hash}
+                        </p>
+                        <p className="text-[11px] text-gray-500">Spec hash: {artifact.spec_hash}</p>
+                        <p className="text-[11px] text-gray-500">
+                          Engine: {artifact.engine_name}@{artifact.engine_version}
+                        </p>
+                        {artifact.link ? (
+                          <a
+                            href={`${artifact.link}?download=1`}
+                            className="mt-1 inline-block text-accent hover:underline"
+                          >
+                            Download artifact
+                          </a>
+                        ) : (
+                          <span className="mt-1 inline-block text-gray-500">
+                            Persisted artifact link appears after apply.
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-2 text-sm text-gray-500">No artifacts generated.</p>
+                )}
+                {workflowArtifact && (
+                  <p className="mt-3 text-[11px] text-gray-500">
+                    CI workflow: {workflowArtifact.path}
+                  </p>
+                )}
               </div>
             </>
           ) : (

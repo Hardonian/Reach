@@ -51,6 +51,14 @@ function isEnterpriseFile(relPath) {
   );
 }
 
+function isMarketingFile(relPath) {
+  return relPath.startsWith("apps/docs/");
+}
+
+function isArcadeFile(relPath) {
+  return relPath.startsWith("apps/arcade/");
+}
+
 function runBaseBoundaryScript() {
   try {
     execSync("node scripts/validate-import-boundaries.js", { stdio: "inherit" });
@@ -87,16 +95,32 @@ function main() {
       }
 
       // Marketing/docs must never import app internals from arcade.
-      if (rel.startsWith("apps/docs/")) {
+      if (isMarketingFile(rel)) {
         if (
           normalized.includes("apps/arcade/") ||
           normalized.includes("../arcade/") ||
           normalized.includes("../../arcade/") ||
-          normalized.includes("../../../arcade/")
+          normalized.includes("../../../arcade/") ||
+          normalized.includes("@/app/api/") ||
+          normalized.includes("@/lib/db/") ||
+          normalized.includes("@/lib/cloud-") ||
+          normalized.includes("@/lib/enterprise/")
         ) {
           violations.push(
             `[Marketing Boundary] ${rel} imports arcade internals via "${normalized}"`,
           );
+        }
+      }
+
+      // App/console must not import marketing app internals from docs.
+      if (isArcadeFile(rel)) {
+        if (
+          normalized.includes("apps/docs/") ||
+          normalized.includes("../docs/") ||
+          normalized.includes("../../docs/") ||
+          normalized.includes("../../../docs/")
+        ) {
+          violations.push(`[App↔Marketing] ${rel} imports docs internals via "${normalized}"`);
         }
       }
     }

@@ -4,6 +4,7 @@ import {
   type GovernanceMemoryEntry,
 } from "../../apps/arcade/src/lib/governance/compiler.js";
 import { generateGovernanceArtifacts } from "../../apps/arcade/src/lib/governance/codegen.js";
+import { validateGovernanceApplyGuard } from "../../apps/arcade/src/lib/governance/apply-guard.js";
 import type { GovernanceScope } from "../../apps/arcade/src/lib/governance/types.js";
 
 interface MemoryRow {
@@ -46,6 +47,15 @@ interface ArtifactRow {
   artifact_path: string;
   content_text: string;
   content_hash: string;
+  source_intent: string | null;
+  governance_plan_json: string | null;
+  spec_hash: string | null;
+  output_hash: string | null;
+  engine_name: string | null;
+  engine_version: string | null;
+  actor_type: "user" | "system" | null;
+  actor_user_id: string | null;
+  triggered_by: "user" | "assistant" | null;
   created_at: string;
 }
 
@@ -342,6 +352,15 @@ function createStatement(sql: string, store: FakeStore): Statement {
         artifactPath,
         contentText,
         contentHash,
+        sourceIntent,
+        governancePlanJson,
+        specHash,
+        outputHash,
+        engineName,
+        engineVersion,
+        actorType,
+        actorUserId,
+        triggeredBy,
         createdAt,
       ) => {
         store.artifacts.push({
@@ -353,6 +372,15 @@ function createStatement(sql: string, store: FakeStore): Statement {
           artifact_path: String(artifactPath),
           content_text: String(contentText),
           content_hash: String(contentHash),
+          source_intent: sourceIntent === null ? null : String(sourceIntent),
+          governance_plan_json: governancePlanJson === null ? null : String(governancePlanJson),
+          spec_hash: specHash === null ? null : String(specHash),
+          output_hash: outputHash === null ? null : String(outputHash),
+          engine_name: engineName === null ? null : String(engineName),
+          engine_version: engineVersion === null ? null : String(engineVersion),
+          actor_type: actorType === null ? null : (actorType as "user" | "system"),
+          actor_user_id: actorUserId === null ? null : String(actorUserId),
+          triggered_by: triggeredBy === null ? null : (triggeredBy as "user" | "assistant"),
           created_at: String(createdAt),
         });
         return undefined;
@@ -628,5 +656,66 @@ describe("governance hardening", () => {
     expect(updatedPreview.specHash).not.toBe(previewA.specHash);
     expect(reloadedStoredSpec?.spec_hash).toBe(storedSpec.spec_hash);
     expect(reloadedStoredSpec?.version).toBe(storedSpec.version);
+  });
+
+  it("requires preview acknowledgement before apply", () => {
+    const missingPreview = validateGovernanceApplyGuard({
+      action: "apply",
+      compiledSpecHash: "a".repeat(64),
+    });
+    expect(missingPreview).toEqual({
+      code: "GOV_APPLY_PREVIEW_REQUIRED",
+      message: "Apply requires an explicit preview acknowledgement",
+      hint: "Run preview first and resubmit apply with preview_spec_hash.",
+    });
+
+    const stalePreview = validateGovernanceApplyGuard({
+      action: "apply",
+      compiledSpecHash: "a".repeat(64),
+      previewSpecHash: "b".repeat(64),
+    });
+    expect(stalePreview).toEqual({
+      code: "GOV_APPLY_PREVIEW_STALE",
+      message: "Preview hash mismatch. Governance intent changed since preview.",
+      hint: "Re-run preview and apply the latest spec hash.",
+    });
+
+    const acceptedApply = validateGovernanceApplyGuard({
+      action: "apply",
+      compiledSpecHash: "a".repeat(64),
+      previewSpecHash: "a".repeat(64),
+    });
+    expect(acceptedApply).toBeNull();
+  });
+
+  it("stores artifact provenance metadata alongside deterministic hashes", () => {
+    const created = governanceDb.createGovernanceArtifact({
+      orgId: "org-prov",
+      workspaceId: "workspace-prov",
+      specId: "spec-prov",
+      artifactType: "gate-config",
+      artifactPath: "governance/reach.governance.json",
+      contentText: "{}",
+      contentHash: "artifact-hash",
+      sourceIntent: "Require replay + provenance",
+      governancePlan: { summary: "plan" },
+      specHash: "spec-hash",
+      outputHash: "artifact-hash",
+      engineName: "reach.governance.codegen",
+      engineVersion: "1.0.0",
+      actorType: "user",
+      actorUserId: "user-123",
+      triggeredBy: "assistant",
+    });
+
+    expect(created.source_intent).toBe("Require replay + provenance");
+    expect(created.governance_plan).toEqual({ summary: "plan" });
+    expect(created.spec_hash).toBe("spec-hash");
+    expect(created.output_hash).toBe("artifact-hash");
+    expect(created.engine_name).toBe("reach.governance.codegen");
+    expect(created.engine_version).toBe("1.0.0");
+    expect(created.actor_type).toBe("user");
+    expect(created.actor_user_id).toBe("user-123");
+    expect(created.triggered_by).toBe("assistant");
   });
 });

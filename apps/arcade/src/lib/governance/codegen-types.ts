@@ -1,5 +1,10 @@
 import type { CIEnforcementRule, GovernanceSpec } from "./types";
 
+export interface GovernanceCodegenEngine {
+  name: string;
+  version: string;
+}
+
 export interface GovernanceGeneratedArtifact {
   artifactType:
     | "gate-config"
@@ -10,6 +15,8 @@ export interface GovernanceGeneratedArtifact {
   path: string;
   content: string;
   hash: string;
+  outputHash: string;
+  engine: GovernanceCodegenEngine;
 }
 
 export interface GenerateGovernanceArtifactsInput {

@@ -38,7 +38,12 @@ export async function GET(
       id: artifact.id,
       type: artifact.artifact_type,
       path: artifact.artifact_path,
-      hash: artifact.content_hash,
+      hash: artifact.output_hash ?? artifact.content_hash,
+      output_hash: artifact.output_hash ?? artifact.content_hash,
+      spec_hash: artifact.spec_hash,
+      engine_name: artifact.engine_name,
+      engine_version: artifact.engine_version,
+      link: `/api/v1/governance/artifacts/${artifact.id}`,
     }));
 
     return NextResponse.json({

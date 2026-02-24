@@ -6,8 +6,20 @@ import path from "node:path";
 
 const host = "127.0.0.1";
 const preferredPort = Number.parseInt(process.env.REACH_VERIFY_PORT ?? "3337", 10);
+const minNodeMajor = 20;
+const minNodeMinor = 9;
 
-const routes = ["/", "/docs", "/app"];
+const routes = [
+  "/",
+  "/docs",
+  "/app",
+  "/app/assistant",
+  "/assistant",
+  "/app/governance/history",
+  "/console/governance/history",
+  "/console/artifacts",
+  "/console/evaluation",
+];
 
 const nextBinCandidates = [
   path.resolve("apps/arcade/node_modules/next/dist/bin/next"),
@@ -22,6 +34,30 @@ if (!nextBin) {
 }
 
 let bootLog = "";
+
+function assertNodeVersion() {
+  const [majorRaw, minorRaw] = process.versions.node.split(".");
+  const major = Number.parseInt(majorRaw ?? "0", 10);
+  const minor = Number.parseInt(minorRaw ?? "0", 10);
+  const supported = major > minNodeMajor || (major === minNodeMajor && minor >= minNodeMinor);
+
+  if (supported) return;
+
+  console.error("❌ verify:routes failed");
+  console.error(
+    `Node ${process.versions.node} is unsupported for Next.js routing checks. Require >=${minNodeMajor}.${minNodeMinor}.0.`,
+  );
+  process.exit(1);
+}
+
+function withTimeout(ms) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), ms);
+  return {
+    signal: controller.signal,
+    clear: () => clearTimeout(timeout),
+  };
+}
 
 function reservePort(port) {
   return new Promise((resolve, reject) => {
@@ -58,6 +94,7 @@ function startServer(port) {
     env: {
       ...process.env,
       NODE_ENV: "test",
+      NEXT_TELEMETRY_DISABLED: "1",
     },
   });
 
@@ -75,15 +112,22 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function waitForServer(baseUrl, timeoutMs = 120_000) {
+async function waitForServer(baseUrl, child, timeoutMs = 120_000) {
   const startedAt = Date.now();
 
   while (Date.now() - startedAt < timeoutMs) {
+    if (child.exitCode !== null) {
+      throw new Error(`Next.js exited before readiness (exit code ${child.exitCode}).`);
+    }
+
+    const timeout = withTimeout(5000);
     try {
-      const response = await fetch(baseUrl, { redirect: "manual" });
+      const response = await fetch(baseUrl, { redirect: "manual", signal: timeout.signal });
       if (response.status > 0) return;
     } catch {
       // Keep polling until timeout.
+    } finally {
+      timeout.clear();
     }
     await sleep(1000);
   }
@@ -95,9 +139,22 @@ async function runChecks(baseUrl) {
   const results = [];
 
   for (const route of routes) {
-    const response = await fetch(`${baseUrl}${route}`, { redirect: "manual" });
-    const pass = response.status < 500;
-    results.push({ route, status: response.status, pass });
+    const timeout = withTimeout(20_000);
+    let status = 599;
+    try {
+      const response = await fetch(`${baseUrl}${route}`, {
+        redirect: "manual",
+        signal: timeout.signal,
+      });
+      status = response.status;
+    } catch {
+      status = 599;
+    } finally {
+      timeout.clear();
+    }
+
+    const pass = status > 0 && status < 500;
+    results.push({ route, status, pass });
   }
 
   const failed = results.filter((result) => !result.pass);
@@ -117,23 +174,30 @@ async function runChecks(baseUrl) {
   }
 }
 
+async function stopServer(child) {
+  if (!child) return;
+
+  child.kill("SIGTERM");
+  await sleep(750);
+  if (child.exitCode === null) {
+    child.kill("SIGKILL");
+    await sleep(250);
+  }
+}
+
 async function main() {
+  assertNodeVersion();
+
   let child;
   try {
     const port = await findAvailablePort(preferredPort);
     const baseUrl = `http://${host}:${port}`;
     child = startServer(port);
-    await waitForServer(baseUrl);
+    await waitForServer(baseUrl, child);
     await runChecks(baseUrl);
     console.log("✅ verify:routes passed");
   } finally {
-    if (child) {
-      child.kill("SIGTERM");
-      await sleep(500);
-      if (!child.killed) {
-        child.kill("SIGKILL");
-      }
-    }
+    await stopServer(child);
   }
 }
 
@@ -142,7 +206,7 @@ main().catch((error) => {
   console.error(String(error));
   if (bootLog.trim().length > 0) {
     console.error("--- server log ---");
-    console.error(bootLog.slice(-4000));
+    console.error(bootLog.slice(-6000));
   }
   process.exit(1);
 });

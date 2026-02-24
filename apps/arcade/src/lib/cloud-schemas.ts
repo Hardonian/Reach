@@ -209,6 +209,10 @@ export const GovernanceAssistantSchema = z.object({
   scope: GovernanceScopeSchema.default("project"),
   rollout_mode: GovernanceRolloutModeSchema.optional(),
   action: z.enum(["preview", "apply"]).default("preview"),
+  preview_spec_hash: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/i, "preview_spec_hash must be a 64-character hex hash")
+    .optional(),
   trigger: z.enum(["assistant", "user"]).default("assistant"),
 });
 

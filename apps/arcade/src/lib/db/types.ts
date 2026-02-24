@@ -441,6 +441,15 @@ export interface GovernanceArtifact {
   artifact_path: string;
   content_text: string;
   content_hash: string;
+  source_intent: string | null;
+  governance_plan_json: string | null;
+  spec_hash: string | null;
+  output_hash: string | null;
+  engine_name: string | null;
+  engine_version: string | null;
+  actor_type: "user" | "system" | null;
+  actor_user_id: string | null;
+  triggered_by: "user" | "assistant" | null;
   created_at: string;
 }
 

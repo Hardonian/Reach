@@ -2,8 +2,14 @@ import { compareStrings, sha256Hex, stableStringifyPretty } from "./deterministi
 import type {
   GenerateGovernanceArtifactsInput,
   GenerateGovernanceArtifactsOutput,
+  GovernanceCodegenEngine,
   GovernanceGeneratedArtifact,
 } from "./codegen-types";
+
+const CODEGEN_ENGINE: GovernanceCodegenEngine = Object.freeze({
+  name: "reach.governance.codegen",
+  version: "1.0.0",
+});
 
 function makeGateConfigArtifact(
   input: GenerateGovernanceArtifactsInput,
@@ -15,11 +21,14 @@ function makeGateConfigArtifact(
     generatedSpec: input.spec,
   });
 
+  const outputHash = sha256Hex(content);
   return {
     artifactType: "gate-config",
     path: "governance/reach.governance.json",
     content,
-    hash: sha256Hex(content),
+    hash: outputHash,
+    outputHash,
+    engine: CODEGEN_ENGINE,
   };
 }
 
@@ -36,11 +45,14 @@ function makeReplayValidatorArtifact(
     },
   });
 
+  const outputHash = sha256Hex(content);
   return {
     artifactType: "replay-validator",
     path: "governance/replay.validator.json",
     content,
-    hash: sha256Hex(content),
+    hash: outputHash,
+    outputHash,
+    engine: CODEGEN_ENGINE,
   };
 }
 
@@ -65,11 +77,14 @@ function makePolicyModuleArtifact(
   ];
   const content = `${lines.join("\n")}`;
 
+  const outputHash = sha256Hex(content);
   return {
     artifactType: "policy-module",
     path: "governance/policy.rego",
     content,
-    hash: sha256Hex(content),
+    hash: outputHash,
+    outputHash,
+    engine: CODEGEN_ENGINE,
   };
 }
 
@@ -85,11 +100,14 @@ function makeEvalAdapterArtifact(
     })),
   });
 
+  const outputHash = sha256Hex(content);
   return {
     artifactType: "eval-adapter",
     path: "governance/eval.adapter.json",
     content,
-    hash: sha256Hex(content),
+    hash: outputHash,
+    outputHash,
+    engine: CODEGEN_ENGINE,
   };
 }
 
@@ -131,11 +149,14 @@ function makeWorkflowArtifact(
 
   const content = lines.join("\n");
 
+  const outputHash = sha256Hex(content);
   return {
     artifactType: "ci-workflow",
     path: ".github/workflows/reach-gates.yml",
     content,
-    hash: sha256Hex(content),
+    hash: outputHash,
+    outputHash,
+    engine: CODEGEN_ENGINE,
   };
 }
 
@@ -166,7 +187,9 @@ export function generateGovernanceArtifacts(
 }
 
 export type {
+  GovernanceCodegenEngine,
   GovernanceGeneratedArtifact,
   GenerateGovernanceArtifactsInput,
   GenerateGovernanceArtifactsOutput,
 } from "./codegen-types";
+export { CODEGEN_ENGINE as GOVERNANCE_CODEGEN_ENGINE };
