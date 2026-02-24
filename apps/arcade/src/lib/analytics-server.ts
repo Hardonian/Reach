@@ -14,7 +14,7 @@ import type { AnalyticsEvent } from "./analytics";
 export function recordEvent(event: AnalyticsEvent): void {
   void (async () => {
     try {
-      const { appendEvent } = await import("./cloud-db");
+      const { appendEvent } = await import("./cloud-db.js");
       appendEvent(event.event, event.properties ?? {}, event.ts ?? new Date().toISOString());
     } catch {
       // DB not available — log only

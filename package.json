@@ -4,7 +4,8 @@
   "private": true,
   "description": "Decision engine monorepo with Rust core and TypeScript wrapper",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
     "build": "echo 'Build handled by individual language compilers'",

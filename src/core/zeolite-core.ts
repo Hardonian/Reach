@@ -66,13 +66,14 @@ function makeNegotiationSpec(): DecisionSpec {
         kind: "commit",
       },
     ],
-    constraints: [{ id: "deadline", name: "deadline", value: "7d", status: "assumption" }],
+    constraints: [{ id: "deadline", description: "deadline-7d" }],
     assumptions: [
       {
         id: "timeline_pressure",
         text: "Timeline is strict",
         status: "assumption",
         confidence: "medium",
+        provenance: [],
         tags: [],
       },
       {
@@ -80,6 +81,7 @@ function makeNegotiationSpec(): DecisionSpec {
         text: "Counterparty follows through",
         status: "assumption",
         confidence: "medium",
+        provenance: [],
         tags: [],
       },
     ],
@@ -98,6 +100,7 @@ function makeOpsSpec(): DecisionSpec {
         text: "Scope remains bounded",
         status: "assumption",
         confidence: "medium",
+        provenance: [],
         tags: [],
       },
       {
@@ -105,6 +108,7 @@ function makeOpsSpec(): DecisionSpec {
         text: "Rollback window remains open",
         status: "assumption",
         confidence: "medium",
+        provenance: [],
         tags: [],
       },
     ],

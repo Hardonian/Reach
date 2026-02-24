@@ -48,7 +48,7 @@ describe("GitHub webhook signature validation", () => {
 
 describe("CI ingest schema", () => {
   it("accepts valid minimal ingest payload", async () => {
-    const { CiIngestSchema } = await import("../lib/cloud-schemas");
+    const { CiIngestSchema } = await import("../lib/cloud-schemas.js");
     const result = CiIngestSchema.safeParse({
       commit_sha: "abc1234",
       branch: "main",
@@ -73,7 +73,7 @@ describe("Alert threshold evaluation", () => {
       created_at: "",
       updated_at: "",
     };
-    const { shouldAlert } = await import("../lib/alert-service");
+    const { shouldAlert } = await import("../lib/alert-service.js");
     expect(shouldAlert(signal, 6000)).toBe(true);
     expect(shouldAlert(signal, 3000)).toBe(false);
   });
