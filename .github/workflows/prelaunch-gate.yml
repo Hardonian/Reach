@@ -1,0 +1,90 @@
+name: prelaunch-gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  verify-oss:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify OSS governance gates
+        run: npm run verify:oss
+
+  site-builds:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build reach-cli.com site mode
+        working-directory: apps/arcade
+        run: npm run build:oss
+      - name: Build ready-layer.com site mode
+        working-directory: apps/arcade
+        run: npm run build:enterprise
+      - name: Validate canonical host links
+        working-directory: apps/arcade
+        run: npm run check:mode-links
+      - name: Validate internal links
+        working-directory: apps/arcade
+        run: npm run check:links
+
+  demo-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.7'
+      - name: Build Reach CLI
+        working-directory: services/runner
+        run: go build -trimpath -o ./reach ./cmd/reachctl
+      - name: Run demo smoke path
+        working-directory: services/runner
+        run: ./reach demo
+
+  install-smoke-unix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.7'
+      - name: Install from script
+        run: |
+          export REACH_BIN_DIR="$RUNNER_TEMP/reach/bin"
+          ./scripts/install.sh
+          export PATH="$REACH_BIN_DIR:$PATH"
+          reach version
+          reach doctor
+
+  install-smoke-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.7'
+      - name: Install from PowerShell script
+        shell: pwsh
+        run: |
+          $env:REACH_BIN_DIR = Join-Path $env:RUNNER_TEMP 'reach/bin'
+          ./scripts/install.ps1
+          $env:Path = "$env:REACH_BIN_DIR;$env:Path"
+          reach version
+          reach doctor
