@@ -1,14 +1,23 @@
-# DGL Report (dgl_1771973744890)
+# DGL Report (dgl_1771977041566)
 
-- Base: 9720a30a0791515be43e243b9eced0f4baf8fae7
-- Head: 89cf84d653bb98d6a3fa3d084ba285e0442d2f05
-# DGL Report (dgl_1771972447876)
-
-- Base: bfbb5f956cedea346e32509c106b88b0ac48e2c2
-- Head: 53c004c13ec60d385622303f2fb91802b8c732b1
-- Intent Alignment: 100
-- Semantic Drift: 100
+- Base: HEAD~1
+- Head: HEAD
+- Context Hash: 4309af6cf90dd950a69d696c29506d4d8cdae9c393123ed2b2cca4b13f3e7b2e
+- Blast Radius: 100
+- Drift Forecast: 89.5%
+- Intent Alignment: 60
+- Semantic Drift: 70
+- OpenAPI Breaking: 0
 
 ## Violations
 - **WARN** [dependency_graph] package.json#L1 — Review high-risk deps (auth/network/crypto/telemetry) before merge.
-No violations detected.
+- **WARN** [semantic] src/dgl/index.ts#L77 — Verify downstream compatibility and update callers/contracts.
+- **WARN** [semantic] src/dgl/types.ts#L1 — Verify downstream compatibility and update callers/contracts.
+- **WARN** [semantic] src/dgl/types.ts#L20 — Verify downstream compatibility and update callers/contracts.
+- **WARN** [performance] apps/arcade/src/app/api/dgl/runs/[id]/route.ts#L1 — Use async non-blocking IO on route-layer paths.
+- **WARN** [performance] apps/arcade/src/app/api/dgl/runs/[id]/turbulence/route.ts#L1 — Use async non-blocking IO on route-layer paths.
+- **WARN** [performance] apps/arcade/src/app/api/dgl/runs/[id]/violations/route.ts#L1 — Use async non-blocking IO on route-layer paths.
+- **WARN** [performance] apps/arcade/src/app/api/dgl/runs/route.ts#L1 — Use async non-blocking IO on route-layer paths.
+- **WARN** [performance] src/cli/reach-cli.ts#L1 — Refactor nested loops or add indexing to reduce worst-case complexity.
+- **ERROR** [performance] src/dgl/index.ts#L1 — Refactor nested loops or add indexing to reduce worst-case complexity.
+- **ERROR** [performance] src/dgl/openapi-compat.ts#L1 — Refactor nested loops or add indexing to reduce worst-case complexity.

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.dev/schemas/dgl/agent-contract.schema.json",
+  "title": "Reach Agent Operating Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "provider": { "type": "string", "minLength": 1 },
+    "model": { "type": "string", "minLength": 1 },
+    "agent_id": { "type": "string", "minLength": 1 },
+    "task_class": { "type": "string", "enum": ["refactor", "bugfix", "docs", "security", "perf", "ui", "infra"] },
+    "changed_paths": { "type": "array", "items": { "type": "string" } },
+    "risk_summary": { "type": "string" },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "claimed_invariants_changed": { "type": "array", "items": { "type": "string" } },
+    "requires_acknowledgement": { "type": "boolean" },
+    "context_hash": { "type": "string" }
+  },
+  "required": ["provider", "model", "agent_id", "task_class", "changed_paths", "risk_summary", "confidence", "claimed_invariants_changed", "requires_acknowledgement"]
+}

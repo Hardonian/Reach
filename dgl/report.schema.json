@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.dev/schemas/dgl/report.schema.json",
+  "title": "Reach DGL Report",
+  "type": "object",
+  "required": ["schema_version", "run_id", "timestamp", "repo", "base_sha", "head_sha", "summary", "violations", "turbulence_hotspots"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "run_id": { "type": "string" },
+    "timestamp": { "type": "string" },
+    "repo": { "type": "string" },
+    "base_sha": { "type": "string" },
+    "head_sha": { "type": "string" },
+    "context_hash": { "type": "string" },
+    "blast_radius": {
+      "type": "object",
+      "properties": { "score": { "type": "number" } }
+    },
+    "openapi_compat_summary": {
+      "type": "object",
+      "properties": {
+        "breaking": { "type": "number" },
+        "warnings": { "type": "number" }
+      }
+    },
+    "summary": { "type": "object" },
+    "violations": { "type": "array", "items": { "type": "object" } },
+    "economics": { "type": "object" },
+    "drift_forecast_score": { "type": "number" },
+    "turbulence_hotspots": { "type": "array", "items": { "type": "object" } }
+  }
+}

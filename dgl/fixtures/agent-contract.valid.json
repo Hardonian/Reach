@@ -1,0 +1,11 @@
+{
+  "provider": "openai",
+  "model": "gpt-5.2-codex",
+  "agent_id": "agent_supervisory_01",
+  "task_class": "infra",
+  "changed_paths": ["src/dgl/index.ts", "apps/arcade/src/app/governance/dgl/page.tsx"],
+  "risk_summary": "Touches governance orchestration and dashboard rendering.",
+  "confidence": 0.82,
+  "claimed_invariants_changed": ["none"],
+  "requires_acknowledgement": false
+}

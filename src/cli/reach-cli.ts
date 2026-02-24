@@ -697,6 +697,17 @@ async function dglCommand(subcommand: string | undefined, rest: string[], opts: 
   }
 }
 
+
+async function agentCommand(subcommand: string | undefined, rest: string[], opts: CliOptions): Promise<void> {
+  if (subcommand !== 'validate') throw new Error('Unsupported agent command. Use: reach agent validate <file>');
+  const file = rest[0];
+  if (!file) throw new Error('Missing file path. Use: reach agent validate <file>');
+  const cmd = `npx tsx scripts/dgl-gate.ts agent-validate ${file}`;
+  const out = execSync(cmd, { encoding: 'utf-8' });
+  if (opts.json) printJson(jsonOutput({ command: cmd, output: out.trim() }));
+  else console.log(out.trim());
+}
+
 // ============================================================================
 // Main CLI dispatcher
 // ============================================================================
@@ -860,6 +871,10 @@ async function main(): Promise<void> {
         await dglCommand(subcommand, rest, opts);
         break;
 
+      case 'agent':
+        await agentCommand(subcommand, rest, opts);
+        break;
+
       case 'run':
         switch (subcommand) {
           case 'show':
@@ -961,6 +976,9 @@ Commands:
   dgl route --task-class    Recommend provider/model for task
   dgl openapi               Run OpenAPI compatibility checks
   dgl doctor                Show DGL operational diagnostics
+  dgl context               Print context snapshot hash
+  dgl economics             Print economic telemetry from latest run
+  agent validate <file>     Validate Agent Operating Contract payload
   run show <id>             Show a DGL run record
   run list                  List DGL run records
   run export --zip <path>   Export run artifacts to zip
