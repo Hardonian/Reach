@@ -12,7 +12,7 @@ const getFiles = () => {
       .split("\n")
       .map((f) => f.trim())
       .filter(Boolean);
-    // exclude tests, docs, scripts, readmes
+    // exclude tests, docs, scripts, readmes, binaries, data
     return filesMatch.filter(
       (f) =>
         !f.includes("test") &&
@@ -20,7 +20,16 @@ const getFiles = () => {
         !f.includes("scripts/") &&
         !f.includes(".test.") &&
         !f.includes(".spec.") &&
-        !f.toLowerCase().endsWith(".md"),
+        !f.toLowerCase().endsWith(".md") &&
+        !f.toLowerCase().endsWith(".exe") &&
+        !f.toLowerCase().endsWith(".json") &&
+        !f.toLowerCase().endsWith(".lock") &&
+        !f.toLowerCase().endsWith(".txt") &&
+        !f.toLowerCase().endsWith(".tsbuildinfo") &&
+        !f.includes("node_modules/") &&
+        !f.includes("dist/") &&
+        !f.includes("build/") &&
+        !f.includes("ARTIFACTS/"),
     );
   } catch {
     return [];
