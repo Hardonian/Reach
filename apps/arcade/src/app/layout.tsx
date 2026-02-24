@@ -4,11 +4,12 @@ import '@/components/stitch/stitch.css';
 
 import { NavBar } from '@/components/NavBar';
 import { Footer } from '@/components/Footer';
-import { getSiteConfig } from '@/lib/site';
+import { getSiteBaseUrl, getSiteConfig } from '@/lib/site';
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getSiteConfig();
   const base = site.mode === 'enterprise' ? 'https://ready-layer.com' : 'https://reach-cli.com';
+  const base = getSiteBaseUrl(site);
 
   return {
     metadataBase: new URL(base),
@@ -31,9 +32,24 @@ export async function generateMetadata(): Promise<Metadata> {
       title: site.title,
       description: site.description,
       images: ['/twitter-image.png'],
+      images: [{ url: '/og-image.png', width: 1200, height: 630, alt: `${site.brand} platform` }],
     },
     alternates: {
-      canonical: base,
+      canonical: '/',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: site.title,
+      description: site.description,
+      images: ['/twitter-image.png'],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+      },
     },
   };
 }

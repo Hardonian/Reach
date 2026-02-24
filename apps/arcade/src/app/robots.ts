@@ -1,7 +1,10 @@
 import { MetadataRoute } from 'next';
+import { getSiteBaseUrl, getSiteConfigFromEnv } from '@/lib/site';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://reach.dev';
+  const site = getSiteConfigFromEnv();
+  const baseUrl = getSiteBaseUrl(site);
+
   return {
     rules: {
       userAgent: '*',
@@ -9,5 +12,6 @@ export default function robots(): MetadataRoute.Robots {
       disallow: ['/api/', '/admin/', '/_next/', '/static/'],
     },
     sitemap: `${baseUrl}/sitemap.xml`,
+    host: site.domain,
   };
 }

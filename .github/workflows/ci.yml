@@ -290,6 +290,35 @@ jobs:
       - name: verify full
         run: npm run verify:full
 
+
+  site-mode-matrix:
+    name: site mode matrix (oss + enterprise)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [oss, enterprise]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: install
+        run: npm install
+      - name: build arcade (${{ matrix.mode }})
+        run: npm --prefix apps/arcade run build
+        env:
+          SITE_MODE: ${{ matrix.mode }}
+      - name: start + mode link integrity (${{ matrix.mode }})
+        run: |
+          cd apps/arcade
+          npm run start -- -p 3000 &
+          sleep 8
+          SITE_MODE=${{ matrix.mode }} BASE_URL=http://localhost:3000 npm run check:mode-links
+        env:
+          SITE_MODE: ${{ matrix.mode }}
+
   route-smoke:
     name: route smoke tests
     runs-on: ubuntu-latest
@@ -302,7 +331,7 @@ jobs:
       - name: install
         run: npm install
       - name: build arcade
-        run: npm run build -w arcade
+        run: npm --prefix apps/arcade run build
       - name: start server and smoke test
         run: |
           cd apps/arcade && npx next start -p 3000 &
