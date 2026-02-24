@@ -125,7 +125,7 @@ export function loadConfig(): ReachConfig {
   };
 
   // Fail fast validations
-  if (config.PORT && isNaN(config.PORT)) {
+  if (process.env.PORT && isNaN(config.PORT as number)) {
     throw new Error("PORT must be a valid number");
   }
 
