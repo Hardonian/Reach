@@ -65,7 +65,7 @@ type Server struct {
 	registry       *NodeRegistry
 	metaMu         sync.RWMutex
 	runMeta        map[string]runMeta
-	autonomMu      sync.RWMutex
+	autonomousMu   sync.RWMutex
 	autonomous     map[string]*autoControl
 	metrics        *metrics
 	shareMu        sync.RWMutex

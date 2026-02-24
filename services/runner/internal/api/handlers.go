@@ -135,8 +135,8 @@ func (s *Server) handleAutonomousStart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.autonomMu.Lock()
-	defer s.autonomMu.Unlock()
+	s.autonomousMu.Lock()
+	defer s.autonomousMu.Unlock()
 
 	if _, active := s.autonomous[runID]; active {
 		writeError(w, http.StatusConflict, "autonomous controls already active")
@@ -151,12 +151,12 @@ func (s *Server) handleAutonomousStart(w http.ResponseWriter, r *http.Request) {
 		sleepTime:    time.Duration(body.SleepSeconds) * time.Second,
 		started:      time.Now(),
 	}
-	
+
 	// Initialize budget if specified
 	if body.BudgetUSD > 0 {
 		s.store.GetBudgetController(runID, tenant, body.BudgetUSD)
 	}
-	
+
 	s.autonomous[runID] = ctrl
 
 	// Log event
@@ -172,8 +172,8 @@ func (s *Server) handleAutonomousStart(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleAutonomousStop(w http.ResponseWriter, r *http.Request) {
 	runID := r.PathValue("id")
 
-	s.autonomMu.Lock()
-	defer s.autonomMu.Unlock()
+	s.autonomousMu.Lock()
+	defer s.autonomousMu.Unlock()
 
 	if ctrl, ok := s.autonomous[runID]; ok {
 		if ctrl.cancel != nil {
@@ -188,8 +188,8 @@ func (s *Server) handleAutonomousStop(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleAutonomousStatus(w http.ResponseWriter, r *http.Request) {
 	runID := r.PathValue("id")
 
-	s.autonomMu.RLock()
-	defer s.autonomMu.RUnlock()
+	s.autonomousMu.RLock()
+	defer s.autonomousMu.RUnlock()
 
 	_, active := s.autonomous[runID]
 	status := "inactive"

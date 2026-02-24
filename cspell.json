@@ -1,0 +1,28 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "autonom",
+    "healthz",
+    "sess",
+    "CUST",
+    "replayable",
+    "AKIA",
+    "VCALENDAR",
+    "PRODID",
+    "VEVENT",
+    "DTSTART",
+    "viewmodels",
+    "viewmodel",
+    "nowIso",
+    "REACH",
+    "Zeonite",
+    "Hardonian"
+  ],
+  "ignorePaths": [
+    "node_modules",
+    "dist",
+    "build",
+    "*.log"
+  ]
+}
