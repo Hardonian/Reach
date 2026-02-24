@@ -16,6 +16,7 @@ describe("doctor command", () => {
     delete process.env.OPENROUTER_API_KEY;
     delete process.env.ZEO_LLM_API_KEY;
     delete process.env.PORT;
+    delete process.env.DEBUG;
   });
 
   afterEach(() => {
@@ -54,5 +55,13 @@ describe("doctor command", () => {
 
     expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Health check failed: PORT must be a valid number"));
     expect(process.exit).toHaveBeenCalledWith(1);
+  });
+
+  it("correctly reports DEBUG status when enabled", async () => {
+    process.env.DEBUG = "true";
+
+    await doctor.parseAsync(["node", "reach-doctor"]);
+
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining("DEBUG:            true"));
   });
 });
