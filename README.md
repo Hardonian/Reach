@@ -64,10 +64,8 @@ Then open `http://localhost:3000/demo/evidence-viewer` and click **Load sample r
 ## Security & SBOM
 
 - CI runs dependency scans with `npm audit --audit-level=high` and `govulncheck`.
-- CycloneDX SBOMs are generated in CI at:
-  - `sbom/go-reachctl.cdx.json`
-  - `sbom/node-root.cdx.json`
-- Release assets also include `sbom-go.cdx.json`, `sbom-node.cdx.json`, and `SHA256SUMS`.
+- CycloneDX SBOMs are generated during the release workflow and uploaded as release assets (`sbom-go.cdx.json`, `sbom-node.cdx.json`).
+- Release assets also include `SHA256SUMS` for binary checksum verification.
 
 ## Supported platforms
 
@@ -98,8 +96,7 @@ Explicitly stubbed (enterprise):
 - **`reach` not found**: add `$HOME/.reach/bin` to `PATH`.
 - **Replay needs a run ID**: generate a run first (`reach run demo-pack --json`).
 - **Viewer verify/replay says fallback mode**: CLI is unavailable; install with `./scripts/install.sh` and retry.
-- **Need diagnostics for bug reports**: include `reach doctor
-reach bugreport --json` output.
+- **Need diagnostics for bug reports**: include `reach doctor --json` and `reach bugreport --json` output, then attach the bugreport bundle to the Bug Report issue template.
 
 ## Contributing + feedback
 
