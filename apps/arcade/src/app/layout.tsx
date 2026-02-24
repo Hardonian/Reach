@@ -4,6 +4,7 @@ import '@/components/stitch/stitch.css';
 
 import { NavBar } from '@/components/NavBar';
 import { Footer } from '@/components/Footer';
+import { getSiteConfig } from '@/lib/site';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL ?? 'https://reach.dev'),
@@ -54,25 +55,39 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
-  },
-};
+    description: site.description,
+    openGraph: {
+      type: 'website',
+      locale: 'en_US',
+      url: base,
+      siteName: site.brand,
+      title: site.title,
+      description: site.description,
+    },
+    alternates: {
+      canonical: base,
+    },
+  };
+}
 
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const site = await getSiteConfig();
+
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col font-sans">
-        <NavBar />
+        <NavBar site={site} />
         <main className="flex-1">{children}</main>
-        <Footer />
+        <Footer site={site} />
       </body>
     </html>
   );

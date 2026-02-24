@@ -1,220 +1,55 @@
-import { HeroMedia } from '@/components/HeroMedia';
 import Link from 'next/link';
-import { ROUTES } from '@/lib/routes';
-import { HERO_VARIANTS, CTA, HOW_IT_WORKS, CAPABILITIES, BEFORE_AFTER } from '@/lib/copy';
-import { resolveVariant } from '@/lib/ab';
-import { HomepageClient, HomepageExtraCapabilities } from '@/components/HomepageClient';
+import { getSiteConfig } from '@/lib/site';
 
-interface HomePageProps {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
-}
+export default async function Home() {
+  const site = await getSiteConfig();
 
-export default async function Home({ searchParams }: HomePageProps) {
-  const params = searchParams ? await searchParams : {};
-  const variant = resolveVariant(params);
-  const hero = HERO_VARIANTS[variant];
-  const primaryCaps = CAPABILITIES.filter((c) => c.primary);
-  const extraCaps = CAPABILITIES.filter((c) => !c.primary);
-
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'ReadyLayer',
-    url: 'https://reach.dev',
-    description: 'Global orchestration platform for distributed AI agents.',
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: 'https://reach.dev/marketplace?q={search_term_string}',
-      'query-input': 'required name=search_term_string',
-    },
-  };
+  if (site.mode === 'enterprise') {
+    return (
+      <div className="section-container py-16 space-y-10">
+        <section className="card p-10">
+          <h1 className="text-5xl font-bold mb-4">Governance for deterministic agent systems</h1>
+          <p className="text-gray-300 text-lg">
+            ReadyLayer is the enterprise roadmap and beta program built on the Reach OSS engine.
+          </p>
+          <p className="text-sm text-gray-400 mt-4">
+            Available now: architecture reviews, pilot planning, and OSS deployment support. Roadmap: policy packs,
+            enterprise identity integration, and managed control-plane workflows.
+          </p>
+          <div className="mt-6 flex gap-3">
+            <Link className="btn-primary" href="/enterprise">See enterprise roadmap</Link>
+            <Link className="btn-secondary" href="/contact">Contact team</Link>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      {/* Hero Section */}
-      <section className="relative min-h-[85vh] flex items-center">
-        <HeroMedia
-          videoSrc="/hero/reach-hero.mp4"
-          fallbackSrc="/hero/reach-hero-fallback.png"
-          className="absolute inset-0"
-        />
-
-        <div className="section-container relative z-10 py-20">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 mb-6">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-sm text-gray-300">{hero.badge}</span>
-            </div>
-
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 leading-tight">
-              {hero.headline.split('.').map((part, i, arr) => (
-                <span key={i} className={i === arr.length - 1 ? 'text-gradient' : ''}>
-                  {part}{i < arr.length - 1 ? '.' : ''}{' '}
-                </span>
-              ))}
-            </h1>
-
-            <p className="text-xl text-gray-400 mb-3 max-w-2xl">
-              {hero.subhead}
-            </p>
-
-            <p className="text-base text-emerald-400 font-medium mb-8">
-              First check runs in under 30 seconds. No configuration required.
-            </p>
-
-            <div className="flex flex-wrap gap-4 mb-4">
-              <Link href={ROUTES.PLAYGROUND} className="btn-primary text-lg">
-                {CTA.primary}
-              </Link>
-              <Link href={ROUTES.REGISTER} className="btn-secondary text-lg">
-                {CTA.secondary}
-              </Link>
-              <Link
-                href={ROUTES.CONTACT}
-                className="text-gray-400 hover:text-white transition-colors text-base self-center"
-              >
-                {CTA.sales} →
-              </Link>
-            </div>
-
-            <p className="text-sm text-gray-500">{CTA.reassurance}</p>
-          </div>
+    <div className="section-container py-16 space-y-10">
+      <section className="card p-10">
+        <h1 className="text-5xl font-bold mb-4">Deterministic event orchestration in OSS</h1>
+        <p className="text-gray-300 text-lg mb-6">
+          Reach CLI helps teams run, verify, and replay execution with consistent fingerprints.
+        </p>
+        <div className="grid md:grid-cols-2 gap-4 text-sm">
+          <Link href="/docs" className="btn-secondary">Docs</Link>
+          <Link href="/download" className="btn-secondary">Download</Link>
+          <Link href="/gallery" className="btn-secondary">Gallery</Link>
+          <Link href="/security" className="btn-secondary">Security</Link>
+          <Link href="/whitepaper" className="btn-secondary">Whitepaper</Link>
+          <Link href="/roadmap" className="btn-secondary">Roadmap</Link>
         </div>
       </section>
-
-      {/* See it work — inline demo */}
-      <section className="py-16 bg-surface/40 border-y border-border">
-        <div className="section-container">
-          <div className="max-w-2xl mx-auto text-center mb-8">
-            <h2 className="text-2xl font-bold mb-2">See it work — right now</h2>
-            <p className="text-gray-400">No account. No setup. Just click.</p>
-          </div>
-          <HomepageClient variant={variant} />
-        </div>
+      <section className="card p-10">
+        <h2 className="text-2xl font-bold mb-3">Install in ~60 seconds</h2>
+        <pre className="bg-black/40 p-4 rounded-lg overflow-x-auto text-sm">
+{`curl -fsSL https://reach-cli.com/install.sh | sh
+reachctl run --pack packs/security-basics
+reachctl verify --run <id>
+reachctl replay --run <id>`}
+        </pre>
       </section>
-
-      {/* How it works */}
-      <section className="py-24 bg-surface/30">
-        <div className="section-container">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">How it works</h2>
-            <p className="text-gray-400 max-w-xl mx-auto">
-              From first run to shipping — in three steps.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {HOW_IT_WORKS.map((item) => (
-              <div key={item.step} className="card gradient-border">
-                <div className="text-3xl mb-4 text-accent">{item.icon}</div>
-                <div className="text-xs font-mono text-accent mb-2">{item.step}</div>
-                <h3 className="text-xl font-bold mb-3">{item.title}</h3>
-                <p className="text-gray-400 text-sm">{item.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Capabilities */}
-      <section className="py-24">
-        <div className="section-container">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">What ReadyLayer checks</h2>
-            <p className="text-gray-400 max-w-xl mx-auto">
-              Every run covers the things that break in production.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 mb-4">
-            {primaryCaps.map((cap) => (
-              <Link
-                key={cap.title}
-                href={cap.href}
-                className="card group hover:border-accent/50 transition-all"
-              >
-                <h3 className="font-bold mb-2 group-hover:text-accent transition-colors">{cap.title}</h3>
-                <p className="text-gray-400 text-sm">{cap.description}</p>
-                <div className="mt-4 flex items-center text-accent text-sm font-medium">
-                  Learn more
-                  <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          <HomepageExtraCapabilities caps={extraCaps} />
-        </div>
-      </section>
-
-      {/* Before vs After */}
-      <section className="py-24 bg-surface/30">
-        <div className="section-container">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Before vs After</h2>
-          </div>
-
-          <div className="max-w-3xl mx-auto">
-            <div className="grid grid-cols-2 gap-0 rounded-xl overflow-hidden border border-border">
-              <div className="bg-red-950/30 border-b border-border px-6 py-3 text-sm font-semibold text-red-400">
-                Before
-              </div>
-              <div className="bg-emerald-950/30 border-b border-border px-6 py-3 text-sm font-semibold text-emerald-400 border-l border-border">
-                After
-              </div>
-              {BEFORE_AFTER.map((row, i) => (
-                <>
-                  <div
-                    key={`b-${i}`}
-                    className="px-6 py-4 text-sm text-gray-400 border-b border-border bg-red-950/10"
-                  >
-                    {row.before}
-                  </div>
-                  <div
-                    key={`a-${i}`}
-                    className="px-6 py-4 text-sm text-gray-200 border-b border-border border-l bg-emerald-950/10"
-                  >
-                    {'✓ '}{row.after}
-                  </div>
-                </>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-b from-accent/5 to-transparent" />
-        <div className="section-container relative z-10">
-          <div className="card max-w-3xl mx-auto text-center p-12 gradient-border">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Start free. Ship with confidence.
-            </h2>
-            <p className="text-gray-400 mb-2 max-w-lg mx-auto">
-              No credit card. No configuration. One click to your first check.
-            </p>
-            <p className="text-sm text-gray-500 mb-8">OSS-friendly · Works locally · Team plans available</p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link href={ROUTES.PLAYGROUND} className="btn-primary">
-                {CTA.primary}
-              </Link>
-              <Link href={ROUTES.REGISTER} className="btn-secondary">
-                {CTA.secondary}
-              </Link>
-              <Link href={ROUTES.CONTACT} className="btn-secondary">
-                {CTA.sales}
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-    </>
+    </div>
   );
 }

@@ -1,60 +1,31 @@
 import Link from 'next/link';
-import { ROUTES } from '@/lib/routes';
-import { BRAND_NAME } from '@/lib/brand';
+import type { SiteConfig } from '@/lib/site';
 
-export function Footer() {
+export function Footer({ site }: { site: SiteConfig }) {
   return (
     <footer className="border-t border-border mt-auto">
       <div className="section-container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center logo-gradient">
                 <span className="text-white font-bold text-lg">R</span>
               </div>
-              <span className="font-bold text-xl text-gradient">{BRAND_NAME}</span>
+              <span className="font-bold text-xl text-gradient">{site.brand}</span>
             </div>
-            <p className="text-gray-400 text-sm max-w-sm">
-              Ship reliable AI agents. Run a readiness check in minutes.
+            <p className="text-gray-400 text-sm max-w-2xl">
+              {site.mode === 'enterprise'
+                ? 'Reach (reach-cli.com) is OSS. ReadyLayer (ready-layer.com) is enterprise roadmap/beta.'
+                : 'Open-source deterministic orchestration for reproducible runs with verifiable evidence.'}
             </p>
-            <p className="text-gray-500 text-xs mt-2">
-              Free to start · No credit card · OSS-friendly
-            </p>
           </div>
-
-          {/* Product */}
           <div>
-            <h4 className="font-semibold mb-4">Product</h4>
+            <h4 className="font-semibold mb-4">Links</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href={ROUTES.PLAYGROUND} className="hover:text-white transition-colors">Playground</Link></li>
-              <li><Link href={ROUTES.LAB} className="hover:text-white transition-colors">Lab</Link></li>
-              <li><Link href={ROUTES.TEMPLATES} className="hover:text-white transition-colors">Templates</Link></li>
-              <li><Link href={ROUTES.DOCS} className="hover:text-white transition-colors">Docs</Link></li>
-              <li><Link href={ROUTES.PRICING} className="hover:text-white transition-colors">Pricing</Link></li>
+              {site.footerLinks.map((link) => (
+                <li key={link.href}><Link href={link.href} className="hover:text-white transition-colors">{link.label}</Link></li>
+              ))}
             </ul>
-          </div>
-
-          {/* Company */}
-          <div>
-            <h4 className="font-semibold mb-4">Company</h4>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href={ROUTES.SUPPORT} className="hover:text-white transition-colors">Support</Link></li>
-              <li><Link href="/support/status" className="hover:text-white transition-colors">Status</Link></li>
-              <li><Link href={ROUTES.CHANGELOG} className="hover:text-white transition-colors">Changelog</Link></li>
-              <li><Link href={ROUTES.SECURITY} className="hover:text-white transition-colors">Security</Link></li>
-              <li><Link href={ROUTES.FAQ} className="hover:text-white transition-colors">FAQ</Link></li>
-              <li><Link href={ROUTES.CONTACT} className="hover:text-white transition-colors">Contact</Link></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-          <p suppressHydrationWarning>&copy; {new Date().getFullYear()} {BRAND_NAME}. All rights reserved.</p>
-          <div className="flex gap-6">
-            <Link href={ROUTES.TRUST.HOME} className="hover:text-white transition-colors">Trust Center</Link>
-            <Link href={ROUTES.TRUST.PRIVACY} className="hover:text-white transition-colors">Privacy</Link>
-            <Link href={ROUTES.TRUST.TERMS} className="hover:text-white transition-colors">Terms</Link>
           </div>
         </div>
       </div>
