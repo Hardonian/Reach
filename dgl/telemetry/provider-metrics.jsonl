@@ -1,0 +1,3 @@
+{"provider":"openai","model":"gpt-5.2-codex","ci_pass":true,"reverted":false,"self_confidence":0.89,"trust_boundary_touch":false,"openapi_break":false,"route_test_fail":false,"diff_magnitude":42}
+{"provider":"anthropic","model":"claude-sonnet","ci_pass":true,"reverted":false,"self_confidence":0.78,"trust_boundary_touch":true,"openapi_break":false,"route_test_fail":false,"diff_magnitude":57}
+{"provider":"openrouter","model":"mixtral","ci_pass":false,"reverted":true,"self_confidence":0.9,"trust_boundary_touch":true,"openapi_break":true,"route_test_fail":true,"diff_magnitude":121}

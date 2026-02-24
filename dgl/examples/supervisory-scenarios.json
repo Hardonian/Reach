@@ -1,0 +1,9 @@
+{
+  "scenarios": [
+    "openapi_break",
+    "trust_boundary_change",
+    "performance_regression",
+    "large_blast_radius",
+    "agent_overconfidence"
+  ]
+}

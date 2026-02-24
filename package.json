@@ -51,7 +51,10 @@
     "reach:run:show": "npx tsx scripts/dgl-gate.ts run-show",
     "reach:run:list": "npx tsx scripts/dgl-gate.ts run-list",
     "reach:run:export": "npx tsx scripts/dgl-gate.ts run-export",
-    "test:routes": "vitest run src/dgl/routes-integration.test.ts"
+    "test:routes": "vitest run src/dgl/routes-integration.test.ts",
+    "reach:dgl:context": "npx tsx scripts/dgl-gate.ts context",
+    "reach:dgl:economics": "npx tsx scripts/dgl-gate.ts economics",
+    "reach:agent:validate": "npx tsx scripts/dgl-gate.ts agent-validate dgl/fixtures/agent-contract.valid.json"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",

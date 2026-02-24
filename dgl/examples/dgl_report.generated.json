@@ -1,46 +1,353 @@
 {
-  "schema_version": "1.0.0",
-  "run_id": "dgl_1771971648407",
-  "timestamp": "2026-02-24T22:20:48.407Z",
+  "schema_version": "1.1.0",
+  "run_id": "dgl_1771977041566",
+  "timestamp": "2026-02-24T23:50:41.566Z",
   "repo": "Reach",
-  "base_sha": "ac11857d063f6ea2950fb0368e3b20127acd75d7",
-  "head_sha": "9720a30a0791515be43e243b9eced0f4baf8fae7",
+  "base_sha": "HEAD~1",
+  "head_sha": "HEAD",
+  "context_hash": "4309af6cf90dd950a69d696c29506d4d8cdae9c393123ed2b2cca4b13f3e7b2e",
+  "blast_radius": {
+    "score": 100,
+    "subsystems_touched": 9,
+    "dependency_depth_impacted": 10,
+    "public_api_surface_affected": 11,
+    "openapi_endpoints_touched": 15,
+    "bundle_sensitive_files_touched": 1
+  },
+  "economics": {
+    "tokens_consumed": 0,
+    "diff_size": 960,
+    "passes_to_converge": 1,
+    "repair_cycles": 0,
+    "cost_per_accepted_change": 0
+  },
   "summary": {
-    "intent_alignment_score": 100,
+    "intent_alignment_score": 60,
     "terminology_drift_score": 100,
-    "semantic_drift_score": 90,
+    "semantic_drift_score": 70,
     "trust_boundary_change_score": 100,
-    "calibration_score": 50
+    "calibration_score": 50,
+    "blast_radius_score": 100
+  },
+  "timings_ms": {
+    "language_scan": 0,
+    "intent": 17,
+    "openapi": 12,
+    "semantic": 1639,
+    "trust_boundary": 0,
+    "report_write": 2
+  },
+  "openapi_compat_summary": {
+    "scanned_specs": [
+      "/workspace/Reach/openapi/reach.openapi.yaml",
+      "/workspace/Reach/openapi/reach.openapi.yaml"
+    ],
+    "breaking": 0,
+    "warnings": 0
   },
   "violations": [
     {
       "type": "dependency_graph",
       "severity": "warn",
       "paths": [
-        "apps/arcade/package.json"
+        "package.json"
       ],
       "evidence": "Dependency declaration changed.",
-      "suggested_fix": "Review high-risk deps (auth/network/crypto/telemetry) before merge."
+      "suggested_fix": "Review high-risk deps (auth/network/crypto/telemetry) before merge.",
+      "line": 1
+    },
+    {
+      "type": "semantic",
+      "severity": "warn",
+      "paths": [
+        "src/dgl/index.ts"
+      ],
+      "evidence": "Export 'scanDgl' signature changed: fn(baseSha,headSha):DglReport -> fn(baseSha,headSha,changedOnly):DglReport.",
+      "suggested_fix": "Verify downstream compatibility and update callers/contracts.",
+      "line": 77
+    },
+    {
+      "type": "semantic",
+      "severity": "warn",
+      "paths": [
+        "src/dgl/types.ts"
+      ],
+      "evidence": "Export 'DglViolationType' signature changed: type:| \"terminology\"\n  | \"intent\"\n  | \"semantic\"\n  | \"trust_boundary\"\n  | \"api_contract\"\n  | \"dependency_graph\"\n  | \"memory_context\" -> type:| \"terminology\"\n  | \"intent\"\n  | \"semantic\"\n  | \"trust_boundary\"\n  | \"api_contract\"\n  | \"dependency_graph\"\n  | \"memory_context\"\n  | \"openapi\".",
+      "suggested_fix": "Verify downstream compatibility and update callers/contracts.",
+      "line": 1
+    },
+    {
+      "type": "semantic",
+      "severity": "warn",
+      "paths": [
+        "src/dgl/types.ts"
+      ],
+      "evidence": "Export 'DglReport' signature changed: interface:11 -> interface:13.",
+      "suggested_fix": "Verify downstream compatibility and update callers/contracts.",
+      "line": 20
+    },
+    {
+      "type": "performance",
+      "severity": "warn",
+      "paths": [
+        "apps/arcade/src/app/api/dgl/runs/[id]/route.ts"
+      ],
+      "evidence": "Synchronous blocking call found in route layer.",
+      "suggested_fix": "Use async non-blocking IO on route-layer paths.",
+      "line": 1
+    },
+    {
+      "type": "performance",
+      "severity": "warn",
+      "paths": [
+        "apps/arcade/src/app/api/dgl/runs/[id]/turbulence/route.ts"
+      ],
+      "evidence": "Synchronous blocking call found in route layer.",
+      "suggested_fix": "Use async non-blocking IO on route-layer paths.",
+      "line": 1
+    },
+    {
+      "type": "performance",
+      "severity": "warn",
+      "paths": [
+        "apps/arcade/src/app/api/dgl/runs/[id]/violations/route.ts"
+      ],
+      "evidence": "Synchronous blocking call found in route layer.",
+      "suggested_fix": "Use async non-blocking IO on route-layer paths.",
+      "line": 1
+    },
+    {
+      "type": "performance",
+      "severity": "warn",
+      "paths": [
+        "apps/arcade/src/app/api/dgl/runs/route.ts"
+      ],
+      "evidence": "Synchronous blocking call found in route layer.",
+      "suggested_fix": "Use async non-blocking IO on route-layer paths.",
+      "line": 1
+    },
+    {
+      "type": "performance",
+      "severity": "warn",
+      "paths": [
+        "src/cli/reach-cli.ts"
+      ],
+      "evidence": "Detected 4 loops; threshold 2.",
+      "suggested_fix": "Refactor nested loops or add indexing to reduce worst-case complexity.",
+      "line": 1
+    },
+    {
+      "type": "performance",
+      "severity": "error",
+      "paths": [
+        "src/dgl/index.ts"
+      ],
+      "evidence": "Detected 5 loops; threshold 2.",
+      "suggested_fix": "Refactor nested loops or add indexing to reduce worst-case complexity.",
+      "line": 1
+    },
+    {
+      "type": "performance",
+      "severity": "error",
+      "paths": [
+        "src/dgl/openapi-compat.ts"
+      ],
+      "evidence": "Detected 9 loops; threshold 2.",
+      "suggested_fix": "Refactor nested loops or add indexing to reduce worst-case complexity.",
+      "line": 1
     }
   ],
+  "provider_matrix": [
+    {
+      "provider": "openai",
+      "model": "gpt-5.2-codex",
+      "pass_rate": 1,
+      "revert_ratio": 0,
+      "trust_boundary_touch_rate": 0,
+      "openapi_break_frequency": 0,
+      "route_test_failure_frequency": 0,
+      "calibration_score": 0.89,
+      "diff_magnitude_avg": 42
+    },
+    {
+      "provider": "anthropic",
+      "model": "claude-sonnet",
+      "pass_rate": 1,
+      "revert_ratio": 0,
+      "trust_boundary_touch_rate": 1,
+      "openapi_break_frequency": 0,
+      "route_test_failure_frequency": 0,
+      "calibration_score": 0.78,
+      "diff_magnitude_avg": 57
+    },
+    {
+      "provider": "openrouter",
+      "model": "mixtral",
+      "pass_rate": 0,
+      "revert_ratio": 1,
+      "trust_boundary_touch_rate": 1,
+      "openapi_break_frequency": 1,
+      "route_test_failure_frequency": 1,
+      "calibration_score": 0.09999999999999998,
+      "diff_magnitude_avg": 121
+    },
+    {
+      "provider": "local",
+      "model": "gpt-5.2-codex",
+      "pass_rate": 1,
+      "revert_ratio": 0,
+      "trust_boundary_touch_rate": 0,
+      "openapi_break_frequency": 0,
+      "route_test_failure_frequency": 0,
+      "calibration_score": 0.8,
+      "diff_magnitude_avg": 0
+    },
+    {
+      "provider": "openrouter",
+      "model": "gemini-pro",
+      "pass_rate": 0,
+      "revert_ratio": 1,
+      "trust_boundary_touch_rate": 0,
+      "openapi_break_frequency": 0,
+      "route_test_failure_frequency": 0,
+      "calibration_score": 0.30000000000000004,
+      "diff_magnitude_avg": 0
+    }
+  ],
+  "drift_forecast_score": 0.8945454545454545,
   "turbulence_hotspots": [
     {
-      "path": ".github/workflows/prelaunch-gate.yml",
+      "path": "VERIFY_DGL.md",
       "reason": "recently changed",
       "count": 1
     },
     {
-      "path": "README.md",
+      "path": "apps/arcade/src/app/api/dgl/runs/[id]/route.ts",
       "reason": "recently changed",
       "count": 1
     },
     {
-      "path": "apps/arcade/package.json",
+      "path": "apps/arcade/src/app/api/dgl/runs/[id]/turbulence/route.ts",
       "reason": "recently changed",
       "count": 1
     },
     {
-      "path": "apps/arcade/src/app/layout.tsx",
+      "path": "apps/arcade/src/app/api/dgl/runs/[id]/violations/route.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "apps/arcade/src/app/api/dgl/runs/route.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "apps/arcade/src/lib/dgl-runs-api.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "config/dgl-openapi.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "dgl/examples/openapi_compat.breaking.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "dgl/examples/openapi_compat.warn.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "dgl/fixtures/openapi/base.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "dgl/fixtures/openapi/base.yaml",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "dgl/fixtures/openapi/head-breaking.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "dgl/fixtures/openapi/head-breaking.yaml",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "dgl/fixtures/openapi/head-warn.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "dgl/fixtures/openapi/head-warn.yaml",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "docs/architecture/dgl.md",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "package-lock.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "package.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "scripts/dgl-gate.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "scripts/smoke-dgl.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "scripts/verify-dgl.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "src/cli/reach-cli.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "src/dgl/index.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "src/dgl/openapi-compat.test.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "src/dgl/openapi-compat.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "src/dgl/routes-integration.test.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "src/dgl/types.ts",
       "reason": "recently changed",
       "count": 1
     }

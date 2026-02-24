@@ -1,0 +1,9 @@
+{
+  "nested_loop_threshold": 2,
+  "import_graph_growth_warn": 30,
+  "import_graph_growth_error": 80,
+  "cyclomatic_warn": 15,
+  "cyclomatic_error": 30,
+  "bundle_diff_warn_kb": 100,
+  "bundle_diff_error_kb": 250
+}

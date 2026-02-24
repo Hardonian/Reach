@@ -86,3 +86,18 @@ New auth-gated endpoints:
 - `GET /api/dgl/runs/:id/turbulence?page&limit&severity&pathPrefix`
 
 All endpoints return structured 404/401 states and stable ordering for paginated tables.
+
+## Supervisory Intelligence Layer
+
+Reach now adds a supervisory layer on top of Determinism + Divergence with these primitives:
+
+- **Agent Operating Contract (AOC)**: strict output envelope at `dgl/agent-contract.schema.json`; validate via `reach agent validate <file>`.
+- **Capability profiling**: telemetry store at `dgl/telemetry/provider-metrics.jsonl` feeding `reach dgl provider-matrix`.
+- **Memory cohesion**: `context_snapshot_hash` combines architecture docs + canonical language + intent manifest hashes, exposed via `reach dgl context`.
+- **Blast radius estimation**: DGL report includes blast radius score and impact dimensions.
+- **Performance guard**: static checks configured in `config/dgl-performance.json`.
+- **Security boundary guard**: high-risk zones in `config/dgl-security-boundaries.json` elevate severity + acknowledgement requirements.
+- **Economic telemetry**: report includes diff size / convergence loops / optional token & cost metadata, exposed via `reach dgl economics`.
+- **Drift forecasting + routing**: Bayesian-like drift estimate included in report and used by `reach dgl route --task-class X --subsystem Y --blast-radius N`.
+
+The ReadyLayer supervisory preset composes determinism + divergence + openapi + performance + security + route integration test checks under release gating.

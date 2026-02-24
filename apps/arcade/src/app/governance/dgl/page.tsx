@@ -9,10 +9,14 @@ type DglApiResponse = {
       summary?: {
         intent_alignment_score?: number;
         semantic_drift_score?: number;
+        blast_radius_score?: number;
       };
+      blast_radius?: { score?: number };
+      economics?: { diff_size?: number; passes_to_converge?: number; repair_cycles?: number };
+      drift_forecast_score?: number;
       turbulence_hotspots?: Array<{ path: string; reason: string; count: number }>;
     } | null;
-    provider_matrix: Array<{ provider: string; model: string; pass_rate: number; calibration_score: number }>;
+    provider_matrix: Array<{ provider: string; model: string; pass_rate: number; calibration_score: number; revert_ratio?: number; trust_boundary_touch_rate?: number }>;
     violations: Array<{ type: string; severity: string; paths: string[]; line?: number }>;
     turbulence_hotspots: Array<{ path: string; reason: string; count: number }>;
   };
@@ -26,6 +30,7 @@ export default function DglGovernancePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState<DglApiResponse['data']>();
+  const [sortBy, setSortBy] = useState<'pass_rate' | 'calibration_score'>('pass_rate');
 
   const query = useMemo(() => {
     const params = new URLSearchParams();
@@ -34,6 +39,8 @@ export default function DglGovernancePage() {
     if (subsystem) params.set('subsystem', subsystem);
     return params.toString();
   }, [branch, provider, subsystem]);
+
+  const sortedProviderMatrix = useMemo(() => [...(data?.provider_matrix ?? [])].sort((a, b) => (Number(b[sortBy] ?? 0) - Number(a[sortBy] ?? 0))), [data?.provider_matrix, sortBy]);
 
   useEffect(() => {
     let cancelled = false;
@@ -98,21 +105,36 @@ export default function DglGovernancePage() {
             </div>
           </section>
 
+          <section className="grid md:grid-cols-3 gap-4">
+            <div className="rounded-lg border border-border p-4 bg-surface">
+              <p className="text-sm text-gray-400">Blast Radius</p>
+              <p className="text-3xl font-semibold">{data.report.blast_radius?.score ?? data.report.summary?.blast_radius_score ?? 0}</p>
+            </div>
+            <div className="rounded-lg border border-border p-4 bg-surface">
+              <p className="text-sm text-gray-400">Drift Forecast</p>
+              <p className="text-3xl font-semibold">{Math.round((data.report.drift_forecast_score ?? 0) * 100)}%</p>
+            </div>
+            <div className="rounded-lg border border-border p-4 bg-surface">
+              <p className="text-sm text-gray-400">Economic Diff Size</p>
+              <p className="text-3xl font-semibold">{data.report.economics?.diff_size ?? 0}</p>
+            </div>
+          </section>
+
           <section className="rounded-lg border border-border p-4 bg-surface">
             <h2 className="text-lg font-semibold mb-3">Provider Drift Matrix</h2>
-            {data.provider_matrix.length === 0 ? (
+            <div className="mb-3 flex items-center gap-2 text-sm"><label htmlFor="provider-sort" className="text-gray-400">Sort by</label><select id="provider-sort" className="px-2 py-1 rounded border border-border bg-surface" value={sortBy} onChange={(e) => setSortBy(e.target.value as "pass_rate" | "calibration_score")}><option value="pass_rate">Pass rate</option><option value="calibration_score">Calibration</option></select></div>{data.provider_matrix.length === 0 ? (
               <p className="text-gray-400">No provider telemetry found.</p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-gray-400 border-b border-border">
-                    <th className="py-2">Provider</th><th>Model</th><th>CI Pass</th><th>Calibration</th>
+                    <th className="py-2">Provider</th><th>Model</th><th>CI Pass</th><th>Calibration</th><th>Revert</th><th>Trust Touch</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.provider_matrix.map((p) => (
+                  {sortedProviderMatrix.map((p) => (
                     <tr key={`${p.provider}-${p.model}`} className="border-b border-border/50">
-                      <td className="py-2">{p.provider}</td><td>{p.model}</td><td>{Math.round((p.pass_rate ?? 0) * 100)}%</td><td>{(p.calibration_score ?? 0).toFixed(2)}</td>
+                      <td className="py-2">{p.provider}</td><td>{p.model}</td><td>{Math.round((p.pass_rate ?? 0) * 100)}%</td><td>{(p.calibration_score ?? 0).toFixed(2)}</td><td>{Math.round((p.revert_ratio ?? 0) * 100)}%</td><td>{Math.round((p.trust_boundary_touch_rate ?? 0) * 100)}%</td>
                     </tr>
                   ))}
                 </tbody>
