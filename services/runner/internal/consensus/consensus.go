@@ -572,7 +572,10 @@ func calculateConsensusScore(agreementRate float64, nodeCount int) int {
 		score += 5
 	}
 	
-	if (score -gt 100) { return 100 }; return score
+	if score > 100 {
+		return 100
+	}
+	return score
 }
 
 func hashStrings(strs []string) string {

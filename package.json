@@ -22,11 +22,14 @@
     "docs:check": "npx tsx tools/docs/drift/run.ts",
     "docs:index:check": "npx tsx scripts/validate-docs-index.ts",
     "health:check": "npx tsx scripts/repo-health.ts",
-    "verify:fast": "npm run typecheck && npm run lint:structure && npm run format:check && npm run docs:index:check && npm run validate:boundaries && npm run health:check && npm test",
-    "verify": "npm run verify:fast && npm run build",
+    "verify:fast": "npm run typecheck && npm run lint:structure && npm run format:check && npm run docs:index:check && npm run validate:language && npm run validate:boundaries && npm run health:check && npm test",
+    "verify": "npm run lint && npm run typecheck && npm run test && npm run build && npm run smoke:m1 && npm run boundary:lint",
     "verify:full": "npm run verify",
     "ci": "npm run typecheck && npm test && npm run test:system",
-    "validate:boundaries": "npx tsx scripts/validate-import-boundaries.ts"
+    "validate:boundaries": "npx tsx scripts/validate-import-boundaries.ts",
+    "validate:language": "npx tsx scripts/validate-canonical-language.ts",
+    "boundary:lint": "npx tsx scripts/validate-boundary-dominance.ts",
+    "smoke:m1": "bash scripts/smoke-test.sh"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",

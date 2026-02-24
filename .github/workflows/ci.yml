@@ -217,9 +217,30 @@ jobs:
       - name: validate:oss-purity
         run: npm run validate:oss-purity
 
+  boundary-dominance:
+    name: boundary dominance gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.7'
+          cache: true
+      - name: install
+        run: npm install
+      - name: boundary linter
+        run: npm run boundary:lint
+      - name: smoke suite
+        run: npm run smoke:m1
+
+
   verify-full:
     name: verify full
-    needs: [hygiene, language-enforcement, protocol, spec-conformance, rust, go, go-module-sanity, oss-gate]
+    needs: [hygiene, language-enforcement, protocol, spec-conformance, rust, go, go-module-sanity, oss-gate, boundary-dominance]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

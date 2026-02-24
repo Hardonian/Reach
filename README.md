@@ -68,3 +68,14 @@ Explicitly stubbed (enterprise):
 - Contribution guide: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Issue templates: [.github/ISSUE_TEMPLATE](.github/ISSUE_TEMPLATE)
 - Required diagnostics for execution bugs: `reachctl doctor --json`, plus replay/verify command output.
+
+
+## How we avoid auth bleed + hard-500s
+
+In plain language:
+- Public marketing pages stay isolated from authenticated provider code. CI blocks imports from app-only auth/provider modules into marketing surfaces.
+- Marketing pages also cannot depend on import-time env guards that throw during bundle load. CI fails if those imports appear.
+- Deterministic run boundaries are scanned for non-deterministic primitives (`time.Now`, random generators, locale-dependent sorting).
+- Demo and API routes return structured JSON errors instead of crashing paths.
+
+If one of these rules is broken, CI fails before merge.
