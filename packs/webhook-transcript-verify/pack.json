@@ -1,0 +1,34 @@
+{
+  "spec_version": "1.0",
+  "metadata": {
+    "id": "com.reach.webhook-transcript-verify",
+    "name": "webhook-transcript-verify",
+    "version": "1.0.0",
+    "description": "Ingest webhook payload, produce transcript, then verify and replay"
+  },
+  "deterministic": true,
+  "execution_graph": {
+    "steps": [
+      {
+        "id": "normalize-webhook",
+        "tool": "tool.summarize",
+        "input": "deterministic starter output"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "normalize-webhook",
+        "type": "Action",
+        "action": "tool.summarize",
+        "inputs": {
+          "text": "deterministic starter output"
+        }
+      }
+    ],
+    "edges": []
+  },
+  "specVersion": "1.0",
+  "declared_tools": [
+    "tool.summarize"
+  ]
+}
