@@ -186,6 +186,12 @@ export function DemoClient() {
               >
                 ← Back to Home
               </a>
+              <a
+                href="/demo/evidence-viewer"
+                className="px-4 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Open Evidence Viewer
+              </a>
               <button
                 onClick={resetDemo}
                 className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
