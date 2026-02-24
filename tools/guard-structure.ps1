@@ -61,6 +61,7 @@ $AllowedFiles = @(
     "GRAPH_EXECUTION_SPEC.md",
     "IMPORT_RULES.md",
     "KIP.md",
+    "LAUNCHKIT.md",
     "MOBILE_MILESTONE_SUMMARY.md",
     "MODEL_ROUTING_SPEC.md",
     "MODEL_SPEC.md",
