@@ -100,6 +100,21 @@ services:
         </table>
       </section>
 
+
+      <section className="space-y-6">
+        <h2 className="text-2xl font-bold border-b border-border pb-2">Vercel Project Alignment</h2>
+        <p className="text-gray-400">
+          Keep project settings aligned with repository configuration so builds remain deterministic.
+          Use <code className="bg-white/5 px-1 rounded">apps/arcade</code> as the project root,
+          keep Node.js in the 18-22 range, and ensure build/install commands match <code className="bg-white/5 px-1 rounded">vercel.json</code>.
+        </p>
+        <div className="bg-black/40 border border-border rounded-xl p-6 font-mono text-sm overflow-x-auto">
+{`Root Directory: apps/arcade
+Install Command: npm install
+Build Command: npm run build
+Node.js: 18.x or 22.x (must satisfy >=18 <23)`}
+        </div>
+      </section>
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">Static Asset Preparation</h2>
         <p className="text-gray-400">

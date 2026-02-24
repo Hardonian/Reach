@@ -1,16 +1,9 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import '@/components/stitch/stitch.css';
 
 import { NavBar } from '@/components/NavBar';
 import { Footer } from '@/components/Footer';
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-sans',
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL ?? 'https://reach.dev'),
@@ -75,10 +68,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={inter.variable}>
-      <head>
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-      </head>
+    <html lang="en">
       <body className="min-h-screen flex flex-col font-sans">
         <NavBar />
         <main className="flex-1">{children}</main>

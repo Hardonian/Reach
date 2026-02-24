@@ -12,7 +12,7 @@ export const metadata = {
 };
 
 export default async function EventsPage() {
-  let events: Awaited<ReturnType<typeof getDemoEngine>['getEvents']> = [];
+  let events: Awaited<ReturnType<ReturnType<typeof getDemoEngine>['getEvents']>> = [];
   let error: string | null = null;
 
   try {

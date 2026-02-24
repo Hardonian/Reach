@@ -12,7 +12,7 @@ export const metadata = {
 };
 
 export default async function JunctionsPage() {
-  let junctions: Awaited<ReturnType<typeof getDemoEngine>['getJunctions']> = [];
+  let junctions: Awaited<ReturnType<ReturnType<typeof getDemoEngine>['getJunctions']>> = [];
   let error: string | null = null;
 
   try {

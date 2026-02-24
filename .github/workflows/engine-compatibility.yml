@@ -1,0 +1,28 @@
+name: engine-compatibility
+
+on:
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'apps/arcade/package.json'
+      - 'scripts/validate-node-engines.js'
+      - '.github/workflows/engine-compatibility.yml'
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'package.json'
+      - 'apps/arcade/package.json'
+      - 'scripts/validate-node-engines.js'
+
+jobs:
+  validate-engine-compatibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Node engine compatibility
+        run: node scripts/validate-node-engines.js
