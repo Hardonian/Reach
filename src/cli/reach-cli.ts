@@ -860,6 +860,23 @@ async function main(): Promise<void> {
         await dglCommand(subcommand, rest, opts);
         break;
 
+      case 'run':
+        switch (subcommand) {
+          case 'show':
+            await dglCommand('run-show', ['--id', rest[0] || ''], opts);
+            break;
+          case 'list':
+            await dglCommand('run-list', rest, opts);
+            break;
+          case 'export':
+            await dglCommand('run-export', rest, opts);
+            break;
+          default:
+            printError('UNKNOWN_SUBCOMMAND', `Unknown subcommand: ${subcommand}. Use: show, list, export`);
+            process.exit(1);
+        }
+        break;
+
       case 'vitals':
         switch (subcommand) {
           case 'summary':
@@ -942,6 +959,11 @@ Commands:
   dgl gate                  Execute DGL merge gate
   dgl provider-matrix       Compute provider drift matrix
   dgl route --task-class    Recommend provider/model for task
+  dgl openapi               Run OpenAPI compatibility checks
+  dgl doctor                Show DGL operational diagnostics
+  run show <id>             Show a DGL run record
+  run list                  List DGL run records
+  run export --zip <path>   Export run artifacts to zip
   vitals summary            Vitals summary
   vitals trend <metric>     Vitals trend
 

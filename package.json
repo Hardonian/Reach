@@ -45,7 +45,13 @@
     "reach:dgl:gate": "npx tsx scripts/dgl-gate.ts gate",
     "reach:dgl:provider-matrix": "npx tsx scripts/dgl-gate.ts provider-matrix",
     "reach:dgl:route": "npx tsx scripts/dgl-gate.ts route --task-class bugfix --subsystem core",
-    "readylayer:gates:dgl": "npm run validate:language && npm run validate:intent && npm run validate:semantic && npm run validate:dgl"
+    "readylayer:gates:dgl": "npm run validate:language && npm run validate:intent && npm run validate:semantic && npm run validate:dgl",
+    "reach:dgl:openapi": "npx tsx scripts/dgl-gate.ts openapi",
+    "reach:dgl:doctor": "npx tsx scripts/dgl-gate.ts doctor",
+    "reach:run:show": "npx tsx scripts/dgl-gate.ts run-show",
+    "reach:run:list": "npx tsx scripts/dgl-gate.ts run-list",
+    "reach:run:export": "npx tsx scripts/dgl-gate.ts run-export",
+    "test:routes": "vitest run src/dgl/routes-integration.test.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",

@@ -1,0 +1,30 @@
+{
+  "violations": [
+    {
+      "type": "openapi",
+      "severity": "warn",
+      "paths": [
+        "dgl/fixtures/openapi/head-warn.json"
+      ],
+      "line": 1,
+      "evidence": "Response schema change for GET /users/{id}",
+      "suggested_fix": "Keep response backward compatible or acknowledge intentional contract break."
+    }
+  ],
+  "summary": {
+    "scanned_specs": [
+      "dgl/fixtures/openapi/base.json",
+      "dgl/fixtures/openapi/head-warn.json"
+    ],
+    "breaking": 0,
+    "warnings": 1
+  },
+  "endpoint_diffs": [
+    {
+      "method": "*",
+      "path": "dgl/fixtures/openapi/head-warn.json",
+      "level": "warn",
+      "message": "Response schema change for GET /users/{id}"
+    }
+  ]
+}
