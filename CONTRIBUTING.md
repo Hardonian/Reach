@@ -223,6 +223,21 @@ cargo clippy -- -D warnings
 cargo check
 ```
 
+### Rust Offline/Vendored Dependencies
+
+Reach supports an offline Rust gate for environments where crates.io is blocked.
+
+1. On a connected machine, vendor dependencies from `Cargo.lock`:
+   ```bash
+   cargo vendor third_party/rust/vendor
+   ```
+2. Run Rust gates through the wrapper script (auto-detects vendored mode):
+   ```bash
+   ./tools/ci/rust_gate.sh clippy --workspace --all-targets -- -D warnings
+   ./tools/ci/rust_gate.sh test -p engine-core
+   ```
+3. In CI, the vendored directory is cached by `Cargo.lock` hash and reused for offline execution.
+
 ### TypeScript/JavaScript - Use TypeScript strict mode
 - Follow ESLint configuration
 - Use Prettier for formatting
