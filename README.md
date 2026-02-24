@@ -26,6 +26,7 @@ Installers download the latest GitHub release, verify `SHA256SUMS`, and install 
 ```bash
 reach version
 reach doctor
+reach bugreport
 ```
 
 ## Offline build path
@@ -42,13 +43,13 @@ This path skips remote downloads and compiles `services/runner/cmd/reachctl` loc
 
 ## 10-minute quickstart
 
-### 1) Produce and verify a sample run
+### 1) One-command sample lifecycle
 
 ```bash
-reach run demo-pack --json
-reach list --limit 1 --json
-reach verify-determinism --n=2 --json
+reach demo
 ```
+
+This command performs run → capsule create → capsule verify → capsule replay using the local OSS path.
 
 ### 2) Open the OSS demo Evidence Viewer
 
@@ -97,7 +98,8 @@ Explicitly stubbed (enterprise):
 - **`reach` not found**: add `$HOME/.reach/bin` to `PATH`.
 - **Replay needs a run ID**: generate a run first (`reach run demo-pack --json`).
 - **Viewer verify/replay says fallback mode**: CLI is unavailable; install with `./scripts/install.sh` and retry.
-- **Need diagnostics for bug reports**: include `reach doctor --json` output.
+- **Need diagnostics for bug reports**: include `reach doctor
+reach bugreport --json` output.
 
 ## Contributing + feedback
 

@@ -12,12 +12,12 @@ import (
 // This ensures backward compatibility across engine versions.
 
 type FixtureManifest struct {
-	Comment           string   `json:"_comment"`
-	FixtureVersion    string   `json:"fixture_version"`
-	Description       string   `json:"description"`
-	Run               RunData  `json:"run"`
-	RequiredFields    []string `json:"required_fields"`
-	ConformanceRules  []string `json:"conformance_rules"`
+	Comment          string   `json:"_comment"`
+	FixtureVersion   string   `json:"fixture_version"`
+	Description      string   `json:"description"`
+	Run              RunData  `json:"run"`
+	RequiredFields   []string `json:"required_fields"`
+	ConformanceRules []string `json:"conformance_rules"`
 }
 
 type RunData struct {
@@ -36,7 +36,7 @@ type RunData struct {
 // TestCompatibility_HelloDeterministic verifies the hello-deterministic fixture
 // can be loaded and its required fields are present.
 func TestCompatibility_HelloDeterministic(t *testing.T) {
-	fixturePath := filepath.Join("..", "..", "testdata", "fixtures", "conformance", "hello-deterministic.fixture.json")
+	fixturePath := filepath.Join("..", "..", "..", "testdata", "fixtures", "conformance", "hello-deterministic.fixture.json")
 	data, err := os.ReadFile(fixturePath)
 	if err != nil {
 		t.Fatalf("failed to read fixture: %v", err)
@@ -75,7 +75,7 @@ func TestCompatibility_HelloDeterministic(t *testing.T) {
 // TestCompatibility_CapsuleManifest verifies the capsule manifest fixture
 // has all required version fields.
 func TestCompatibility_CapsuleManifest(t *testing.T) {
-	fixturePath := filepath.Join("..", "..", "testdata", "fixtures", "conformance", "capsule-manifest.fixture.json")
+	fixturePath := filepath.Join("..", "..", "..", "testdata", "fixtures", "conformance", "capsule-manifest.fixture.json")
 	data, err := os.ReadFile(fixturePath)
 	if err != nil {
 		t.Fatalf("failed to read fixture: %v", err)
@@ -115,7 +115,7 @@ func TestCompatibility_CapsuleManifest(t *testing.T) {
 // TestCompatibility_VersionOutput verifies the version output fixture
 // has all required fields for machine-readable output.
 func TestCompatibility_VersionOutput(t *testing.T) {
-	fixturePath := filepath.Join("..", "..", "testdata", "fixtures", "conformance", "version-output.fixture.json")
+	fixturePath := filepath.Join("..", "..", "..", "testdata", "fixtures", "conformance", "version-output.fixture.json")
 	data, err := os.ReadFile(fixturePath)
 	if err != nil {
 		t.Fatalf("failed to read fixture: %v", err)
@@ -157,7 +157,7 @@ func TestCompatibility_VersionOutput(t *testing.T) {
 // TestCompatibility_DecisionOutput verifies the decision output fixture
 // has all required fields for policy decisions.
 func TestCompatibility_DecisionOutput(t *testing.T) {
-	fixturePath := filepath.Join("..", "..", "testdata", "fixtures", "conformance", "decision-output.fixture.json")
+	fixturePath := filepath.Join("..", "..", "..", "testdata", "fixtures", "conformance", "decision-output.fixture.json")
 	data, err := os.ReadFile(fixturePath)
 	if err != nil {
 		t.Fatalf("failed to read fixture: %v", err)

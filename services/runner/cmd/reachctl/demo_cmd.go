@@ -1,277 +1,87 @@
 package main
 
 import (
-	"archive/zip"
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"time"
+	"strings"
 )
 
-// DemoData represents the demo data structure
-type DemoData struct {
-	Runs             []DemoRun        `json:"runs"`
-	DriftAlerts      []DemoDriftAlert `json:"drift_alerts"`
-	PolicyViolations []DemoViolation  `json:"policy_violations"`
-	DecisionItems    []DemoDecision   `json:"decision_items"`
-}
-
-// DemoRun represents a demo run
-type DemoRun struct {
-	RunID       string `json:"run_id"`
-	PackName    string `json:"pack_name"`
-	Status      string `json:"status"`
-	Fingerprint string `json:"fingerprint"`
-	EventCount  int    `json:"event_count"`
-	CreatedAt   string `json:"created_at"`
-}
-
-// DemoDriftAlert represents a drift alert
-type DemoDriftAlert struct {
-	AlertID     string `json:"alert_id"`
-	RunID       string `json:"run_id"`
-	Severity    string `json:"severity"`
-	Description string `json:"description"`
-	DetectedAt  string `json:"detected_at"`
-}
-
-// DemoViolation represents a policy violation
-type DemoViolation struct {
-	ViolationID string `json:"violation_id"`
-	RunID       string `json:"run_id"`
-	PolicyName  string `json:"policy_name"`
-	Severity    string `json:"severity"`
-	Message     string `json:"message"`
-	OccurredAt  string `json:"occurred_at"`
-}
-
-// DemoDecision represents a decision item
-type DemoDecision struct {
-	DecisionID  string   `json:"decision_id"`
-	Title       string   `json:"title"`
-	Status      string   `json:"status"`
-	Priority    string   `json:"priority"`
-	Options     []string `json:"options"`
-	Recommended string   `json:"recommended"`
-	CreatedAt   string   `json:"created_at"`
-}
-
-// DemoReportBundle represents the exported demo report bundle
-type DemoReportBundle struct {
-	Manifest DemoReportManifest `json:"manifest"`
-	Data     DemoData           `json:"data"`
-}
-
-// DemoReportManifest represents the manifest for demo reports
-type DemoReportManifest struct {
-	BundleID    string `json:"bundle_id"`
-	GeneratedAt string `json:"generated_at"`
-	Version     string `json:"version"`
-	ContentHash string `json:"content_hash"`
-}
-
-// runDemo handles demo-related commands
 func runDemo(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
-	if len(args) < 1 {
-		fmt.Fprintln(errOut, "Usage: reachctl demo <run|report|status>")
-		return 1
+	if len(args) == 0 {
+		return runDemoFlow(ctx, dataRoot, out, errOut)
 	}
-
-	switch args[0] {
-	case "run":
-		return runDemoRun(ctx, dataRoot, args[1:], out, errOut)
-	case "report":
-		return runDemoReport(ctx, dataRoot, args[1:], out, errOut)
-	case "status":
-		return runDemoStatus(ctx, dataRoot, args[1:], out, errOut)
-	default:
-		fmt.Fprintf(errOut, "Unknown demo command: %s\n", args[0])
-		return 1
+	if args[0] == "run" {
+		return runDemoFlow(ctx, dataRoot, out, errOut)
 	}
+	if args[0] == "status" {
+		return runDemoStatus(dataRoot, out)
+	}
+	fmt.Fprintf(errOut, "usage: reach demo [run|status]\n")
+	return 1
 }
 
-// runDemoRun seeds sample data and creates demo runs
-func runDemoRun(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
-	fs := flag.NewFlagSet("demo run", flag.ContinueOnError)
-	_ = fs.Parse(args)
-
-	fmt.Fprintln(out, "Setting up demo environment...")
-
-	// Create demo data
-	now := time.Now().UTC()
-	demoData := DemoData{
-		Runs: []DemoRun{
-			{
-				RunID:       generateDeterministicID("demo-run-1"),
-				PackName:    "hello-deterministic",
-				Status:      "completed",
-				Fingerprint: "abc123def456",
-				EventCount:  10,
-				CreatedAt:   now.Add(-2 * time.Hour).Format(time.RFC3339),
-			},
-			{
-				RunID:       generateDeterministicID("demo-run-2"),
-				PackName:    "security-basics",
-				Status:      "completed",
-				Fingerprint: "def456ghi789",
-				EventCount:  15,
-				CreatedAt:   now.Add(-1 * time.Hour).Format(time.RFC3339),
-			},
-		},
-		DriftAlerts: []DemoDriftAlert{
-			{
-				AlertID:     generateDeterministicID("drift-alert-1"),
-				RunID:       generateDeterministicID("demo-run-2"),
-				Severity:    "medium",
-				Description: "Detected environment drift between runs",
-				DetectedAt:  now.Add(-30 * time.Minute).Format(time.RFC3339),
-			},
-		},
-		PolicyViolations: []DemoViolation{
-			{
-				ViolationID: generateDeterministicID("violation-1"),
-				RunID:       generateDeterministicID("demo-run-2"),
-				PolicyName:  "no-external-calls",
-				Severity:    "high",
-				Message:     "External network call detected",
-				OccurredAt:  now.Add(-45 * time.Minute).Format(time.RFC3339),
-			},
-		},
-		DecisionItems: []DemoDecision{
-			{
-				DecisionID:  generateDeterministicID("decision-1"),
-				Title:       "Approve security patch",
-				Status:      "pending",
-				Priority:    "high",
-				Options:     []string{"approve", "reject", "defer"},
-				Recommended: "approve",
-				CreatedAt:   now.Format(time.RFC3339),
-			},
-		},
+func runDemoFlow(ctx context.Context, dataRoot string, out io.Writer, errOut io.Writer) int {
+	_ = ctx
+	packName := "arcadeSafe.demo"
+	_ = os.Remove(filepath.Join(dataRoot, "packs", packName+".json"))
+	if code := runQuick([]string{packName}, out, errOut); code != 0 {
+		return code
 	}
 
-	// Save demo data to file
-	demoDataPath := filepath.Join(dataRoot, "demo_data.json")
-	data, _ := json.MarshalIndent(demoData, "", "  ")
-	os.WriteFile(demoDataPath, data, 0644)
-
-	fmt.Fprintf(out, "Demo data created successfully!\n")
-	fmt.Fprintf(out, "- %d runs\n", len(demoData.Runs))
-	fmt.Fprintf(out, "- %d drift alerts\n", len(demoData.DriftAlerts))
-	fmt.Fprintf(out, "- %d policy violations\n", len(demoData.PolicyViolations))
-	fmt.Fprintf(out, "- %d decision items\n", len(demoData.DecisionItems))
-
-	return writeJSON(out, map[string]any{
-		"demo_data_path": demoDataPath,
-		"runs":           demoData.Runs,
-		"drift_alerts":   demoData.DriftAlerts,
-		"violations":     demoData.PolicyViolations,
-		"decisions":      demoData.DecisionItems,
-	})
-}
-
-// runDemoReport exports a shareable demo bundle
-func runDemoReport(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
-	fs := flag.NewFlagSet("demo report", flag.ContinueOnError)
-	outputPath := fs.String("output", "", "Output path for the bundle")
-	_ = fs.Parse(args)
-
-	// Load demo data
-	demoDataPath := filepath.Join(dataRoot, "demo_data.json")
-	data, err := os.ReadFile(demoDataPath)
+	runID, err := latestRunID(dataRoot)
 	if err != nil {
-		fmt.Fprintf(errOut, "No demo data found. Run 'reachctl demo run' first.\n")
+		_, _ = fmt.Fprintf(errOut, "failed to locate demo run: %v\n", err)
 		return 1
 	}
 
-	var demoData DemoData
-	json.Unmarshal(data, &demoData)
-
-	// Generate bundle
-	bundle := DemoReportBundle{
-		Manifest: DemoReportManifest{
-			BundleID:    generateDeterministicID("demo-bundle"),
-			GeneratedAt: time.Now().UTC().Format(time.RFC3339),
-			Version:     "1.0",
-			ContentHash: "",
-		},
-		Data: demoData,
+	capsulePath := filepath.Join(dataRoot, "capsules", runID+".capsule.json")
+	if code := runCapsule(ctx, dataRoot, []string{"create", runID, "--output", capsulePath}, out, errOut); code != 0 {
+		return code
 	}
-
-	// Calculate content hash
-	contentBytes, _ := json.Marshal(demoData)
-	hash := sha256.Sum256(contentBytes)
-	bundle.Manifest.ContentHash = hex.EncodeToString(hash[:])
-
-	// Determine output path
-	if *outputPath == "" {
-		*outputPath = filepath.Join(dataRoot, "demo_report.zip")
+	if code := runCapsule(ctx, dataRoot, []string{"verify", capsulePath}, out, errOut); code != 0 {
+		return code
 	}
-
-	// Create zip bundle
-	zipFile, err := os.Create(*outputPath)
-	if err != nil {
-		fmt.Fprintf(errOut, "Error creating bundle: %v\n", err)
-		return 1
+	if code := runCapsule(ctx, dataRoot, []string{"replay", capsulePath}, out, errOut); code != 0 {
+		return code
 	}
-	defer zipFile.Close()
-
-	zipWriter := zip.NewWriter(zipFile)
-	defer zipWriter.Close()
-
-	// Add manifest.json
-	manifestFile, _ := zipWriter.Create("manifest.json")
-	manifestBytes, _ := json.MarshalIndent(bundle.Manifest, "", "  ")
-	manifestFile.Write(manifestBytes)
-
-	// Add data.json
-	dataFile, _ := zipWriter.Create("data.json")
-	dataFile.Write(contentBytes)
-
-	fmt.Fprintf(out, "Demo report exported to: %s\n", *outputPath)
-	return writeJSON(out, bundle.Manifest)
+	_, _ = fmt.Fprintf(out, "Demo complete: run=%s capsule=%s\n", runID, capsulePath)
+	return 0
 }
 
-// runDemoStatus shows current demo status
-func runDemoStatus(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
-	fs := flag.NewFlagSet("demo status", flag.ContinueOnError)
+func runDemoStatus(dataRoot string, out io.Writer) int {
+	_, err := latestRunID(dataRoot)
+	status := "not_initialized"
+	if err == nil {
+		status = "ready"
+	}
+	return writeJSON(out, map[string]any{"status": status})
+}
+
+func latestRunID(dataRoot string) (string, error) {
+	entries, err := os.ReadDir(filepath.Join(dataRoot, "runs"))
+	if err != nil {
+		return "", err
+	}
+	latest := ""
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".json") {
+			continue
+		}
+		if entry.Name() > latest {
+			latest = entry.Name()
+		}
+	}
+	if latest == "" {
+		return "", fmt.Errorf("no runs found")
+	}
+	return strings.TrimSuffix(latest, ".json"), nil
+}
+
+func parseDemoFlags(args []string) {
+	fs := flag.NewFlagSet("demo", flag.ContinueOnError)
 	_ = fs.Parse(args)
-
-	// Check if demo data exists
-	demoDataPath := filepath.Join(dataRoot, "demo_data.json")
-	_, err := os.ReadFile(demoDataPath)
-
-	if err != nil {
-		return writeJSON(out, map[string]any{
-			"status":     "not_initialized",
-			"message":    "No demo data found. Run 'reachctl demo run' to initialize.",
-			"can_export": false,
-		})
-	}
-
-	var demoData DemoData
-	data, _ := os.ReadFile(demoDataPath)
-	json.Unmarshal(data, &demoData)
-
-	return writeJSON(out, map[string]any{
-		"status":           "initialized",
-		"runs_count":       len(demoData.Runs),
-		"alerts_count":     len(demoData.DriftAlerts),
-		"violations_count": len(demoData.PolicyViolations),
-		"decisions_count":  len(demoData.DecisionItems),
-		"can_export":       true,
-	})
-}
-
-// generateDeterministicID generates a deterministic ID based on input
-func generateDeterministicID(input string) string {
-	data := fmt.Sprintf("%s-%s", input, "2026-01-01")
-	hash := sha256.Sum256([]byte(data))
-	return hex.EncodeToString(hash[:16])
 }

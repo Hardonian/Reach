@@ -62,3 +62,24 @@ See [docs/INSTALL_MODES.md](docs/INSTALL_MODES.md) for installation options.
 ## Key rotation - Integration Hub token encryption uses AES-GCM master key from `REACH_ENCRYPTION_KEY_BASE64`.
 - Rotate by deploying a new key and re-authorizing providers (or migrating stored encrypted blobs in maintenance).
 - Webhook secrets should be rotated per provider/tenant and previous deliveries must expire from replay guard window.
+
+## Secret scanning guidance
+
+Use the built-in CI secret scan and run this locally before pushing high-risk changes:
+
+```bash
+git grep -nE '(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36,}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN (RSA|EC|OPENSSH|PGP) PRIVATE KEY-----|sk_live_[A-Za-z0-9]{10,}|AIza[0-9A-Za-z\-_]{35})' -- .
+```
+
+If a credential is found, revoke/rotate immediately and scrub history where needed.
+
+## Archive and capsule hardening
+
+- Capsule import/read paths enforce size limits to reduce denial-of-service risk from oversized payloads.
+- Pack archive extraction (zip/tar) rejects traversal paths and enforces both entry-count and unpacked-size limits.
+- Remote validation uses bounded request body reads and protocol version checks.
+- Registry/network-facing fetch behavior should default to metadata-first validation before heavy downloads.
+
+## Unsafe pack warning posture
+
+`reach run <pack>` warns when pack names are not explicitly marked safe. Treat these warnings as a manual review gate before running packs that can access files, network, or external systems.
