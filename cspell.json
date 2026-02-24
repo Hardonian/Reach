@@ -17,7 +17,10 @@
     "nowIso",
     "REACH",
     "Zeonite",
-    "Hardonian"
+    "Zeolite",
+    "Hardonian",
+    "evoi",
+    "counterfactuals"
   ],
   "ignorePaths": [
     "node_modules",
