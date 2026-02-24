@@ -187,7 +187,6 @@ function specFromWorkspace(ws: DecisionWorkspace): contracts.DecisionSpec {
     title: ws.title,
     context: ws.title,
     createdAt: ws.createdAt ?? nowIso(),
-    decisionType: ws.decisionType,
     workspaceMode: ws.workspaceMode,
     decisionState: ws.state,
     reviewAfter: ws.reviewAt ? `${ws.reviewAt}T00:00:00.000Z` : undefined,
@@ -711,13 +710,13 @@ async function runDecisionInWorkspace(
   }
 
   const robustActions =
-    result.evaluations.find((e) => e.lens === "robustness")?.robustActions || [];
+    result.evaluations.find((e: { lens: string; robustActions?: string[] }) => e.lens === "robustness")?.robustActions || [];
   const recommendedAction =
     robustActions.length > 0
       ? `Action(s) ${robustActions.join(", ")} are robust.`
       : "No robust actions found. Gather more evidence.";
 
-  const flipDistances = transcript.analysis.flip_distances.map((f) => parseFloat(f.distance));
+  const flipDistances = transcript.analysis.flip_distances.map((f: { distance: string }) => parseFloat(f.distance));
   const minFlipDistance = flipDistances.length > 0 ? Math.min(...flipDistances) : Infinity;
 
   const fragility =
@@ -744,7 +743,7 @@ async function runDecisionInWorkspace(
         decay: classifyDecay(e, asOfDate),
       })),
     plan: {
-      nextSteps: result.nextBestEvidence.slice(0, 3).map((item) => item.prompt),
+      nextSteps: result.nextBestEvidence.slice(0, 3).map((item: { prompt: string }) => item.prompt),
       stopConditions: transcript.plan.stop_conditions,
     },
     signatureStatus:
@@ -1916,8 +1915,8 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
         health,
         manifest.manifestHash,
         manifest.treeHash,
-        args.signed && signatureValid === true,
-        signatureValid,
+        !!(args.signed && signatureValid === true),
+        signatureValid ?? null,
       );
       const manifestPayload = {
         schemaVersion: "1.0.0",

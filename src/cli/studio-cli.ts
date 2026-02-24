@@ -1,5 +1,5 @@
-import { loadConfig } from "../core/env.js";
 // @ts-nocheck
+import { loadConfig } from "../core/env.js";
 /**
  * Studio CLI Module
  *
@@ -171,7 +171,7 @@ export async function runExportReportCommand(argv: string[]): Promise<number> {
       | undefined;
     try {
       console.log("  🔁 Running replay verification...");
-      const replayResult = core.replayRun(runId);
+      const replayResult = (core as { replayRun: (id: string) => { verdict: string; originalOutputHash: string; replayOutputHash: string; durationMs: number } }).replayRun(runId);
       replayData = {
         verdict: replayResult.verdict,
         originalOutputHash: replayResult.originalOutputHash,
@@ -186,14 +186,14 @@ export async function runExportReportCommand(argv: string[]): Promise<number> {
     // Evidence
     let evidenceNodes: unknown[] = [];
     try {
-      const graph = core.loadEvidenceGraph();
+      const graph = (core as { loadEvidenceGraph: () => { nodes: unknown[] } }).loadEvidenceGraph();
       evidenceNodes = graph.nodes;
     } catch {
       // No evidence graph
     }
 
     // Tools
-    const toolRegistry = core.getDefaultToolRegistry();
+    const toolRegistry = (core as { getDefaultToolRegistry: () => Record<string, unknown> }).getDefaultToolRegistry();
 
     // Build report
     const report: Record<string, unknown> = {

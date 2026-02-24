@@ -1,5 +1,5 @@
-import { loadConfig } from "../core/env.js";
 // @ts-nocheck
+import { loadConfig } from "../core/env.js";
 import { hashString } from "../determinism/index.js";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
