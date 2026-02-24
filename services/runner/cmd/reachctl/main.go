@@ -65,9 +65,32 @@ type capsuleManifest struct {
 	CreatedAt            string             `json:"created_at"`
 }
 
+type capsuleLockRef struct {
+	FormatVersion string                    `json:"format_version"`
+	Packs         map[string]packLockRecord `json:"packs"`
+}
+
+type capsuleInputs struct {
+	Values map[string]any `json:"values"`
+}
+
+type capsuleExpectedOutputs struct {
+	RunFingerprint string `json:"run_fingerprint"`
+	Steps          int    `json:"steps"`
+}
+
+type capsuleEvidence struct {
+	AuditChain []string `json:"audit_chain,omitempty"`
+	AuditRoot  string   `json:"audit_root,omitempty"`
+}
+
 type capsuleFile struct {
-	Manifest capsuleManifest  `json:"manifest"`
-	EventLog []map[string]any `json:"event_log"`
+	Manifest        capsuleManifest        `json:"manifest"`
+	Lock            capsuleLockRef         `json:"lock"`
+	Inputs          capsuleInputs          `json:"inputs"`
+	ExpectedOutputs capsuleExpectedOutputs `json:"expected_outputs"`
+	Evidence        capsuleEvidence        `json:"evidence,omitempty"`
+	EventLog        []map[string]any       `json:"event_log"`
 }
 
 func main() {
@@ -323,12 +346,13 @@ func runCapsule(ctx context.Context, dataRoot string, args []string, out io.Writ
 	switch args[0] {
 	case "create":
 		if len(args) < 2 {
-			_, _ = fmt.Fprintln(errOut, "usage: reachctl capsule create <runId> [--output file]")
+			_, _ = fmt.Fprintln(errOut, "usage: reachctl capsule create <runId> [--output file] [--inputs key=value]")
 			return 1
 		}
 		runID := args[1]
 		fs := flag.NewFlagSet("capsule create", flag.ContinueOnError)
 		output := fs.String("output", filepath.Join(dataRoot, "capsules", runID+".capsule.json"), "output file")
+		inputsFlag := fs.String("inputs", "", "comma-separated key=value inputs")
 		_ = fs.Parse(args[2:])
 		record, err := loadRunRecord(dataRoot, runID)
 		if err != nil {
@@ -336,6 +360,23 @@ func runCapsule(ctx context.Context, dataRoot string, args []string, out io.Writ
 			return 1
 		}
 		cap := buildCapsule(record)
+		cap.Inputs = capsuleInputs{Values: map[string]any{}}
+		if recordInputs, ok := record.Pack["inputs"].(map[string]any); ok {
+			cap.Inputs.Values = recordInputs
+		}
+		if strings.TrimSpace(*inputsFlag) != "" {
+			for _, part := range strings.Split(*inputsFlag, ",") {
+				kv := strings.SplitN(strings.TrimSpace(part), "=", 2)
+				if len(kv) == 2 {
+					cap.Inputs.Values[kv[0]] = kv[1]
+				}
+			}
+		}
+		cap.ExpectedOutputs = capsuleExpectedOutputs{RunFingerprint: cap.Manifest.RunFingerprint, Steps: len(cap.EventLog)}
+		cap.Evidence = capsuleEvidence{AuditChain: record.AuditChain, AuditRoot: cap.Manifest.AuditRoot}
+		if lock, err := readPackLock(dataRoot); err == nil {
+			cap.Lock = capsuleLockRef{FormatVersion: lock.FormatVersion, Packs: lock.Packs}
+		}
 		if err := os.MkdirAll(filepath.Dir(*output), 0o755); err != nil {
 			_, _ = fmt.Fprintln(errOut, err)
 			return 1
@@ -357,6 +398,15 @@ func runCapsule(ctx context.Context, dataRoot string, args []string, out io.Writ
 		}
 		recomputed := stableHash(map[string]any{"event_log": cap.EventLog, "run_id": cap.Manifest.RunID})
 		ok := recomputed == cap.Manifest.RunFingerprint
+		if cap.ExpectedOutputs.RunFingerprint != "" {
+			ok = ok && cap.ExpectedOutputs.RunFingerprint == recomputed
+		}
+		if cap.ExpectedOutputs.Steps > 0 {
+			ok = ok && cap.ExpectedOutputs.Steps == len(cap.EventLog)
+		}
+		if !ok {
+			_, _ = fmt.Fprintln(errOut, "capsule verification failed: fingerprint or expected outputs mismatch")
+		}
 		return writeJSON(out, map[string]any{"verified": ok, "run_id": cap.Manifest.RunID, "run_fingerprint": cap.Manifest.RunFingerprint, "recomputed_fingerprint": recomputed, "audit_root": cap.Manifest.AuditRoot})
 	case "replay":
 		if len(args) < 2 {
@@ -369,7 +419,11 @@ func runCapsule(ctx context.Context, dataRoot string, args []string, out io.Writ
 			return 1
 		}
 		verification := stableHash(map[string]any{"event_log": cap.EventLog, "run_id": cap.Manifest.RunID}) == cap.Manifest.RunFingerprint
-		return writeJSON(out, map[string]any{"run_id": cap.Manifest.RunID, "replay_verified": verification, "steps": len(cap.EventLog), "policy": cap.Manifest.Policy})
+		if !verification {
+			_, _ = fmt.Fprintln(errOut, "capsule replay rejected: deterministic fingerprint mismatch")
+			return 1
+		}
+		return writeJSON(out, map[string]any{"run_id": cap.Manifest.RunID, "replay_verified": verification, "steps": len(cap.EventLog), "policy": cap.Manifest.Policy, "inputs": cap.Inputs.Values})
 	default:
 		usage(out)
 		return 1
@@ -2960,6 +3014,8 @@ func runPackDevKit(args []string, out io.Writer, errOut io.Writer) int {
 	}
 
 	switch args[0] {
+	case "search", "add", "remove", "update", "list":
+		return runPackRegistry(context.Background(), args, out, errOut)
 	case "test":
 		return runPackTest(args[1:], out, errOut)
 	case "lint":
@@ -3369,6 +3425,11 @@ func runPackValidate(args []string, out io.Writer, errOut io.Writer) int {
 	if _, err := os.Stat(filepath.Join(packPath, "README.md")); err != nil {
 		warnings = append(warnings, "README.md not found")
 	}
+	if hits, err := scanPackNonDeterministicAPIs(packPath); err == nil && len(hits) > 0 {
+		for _, h := range hits {
+			errorsList = append(errorsList, fmt.Sprintf("nondeterministic API forbidden in pack execution context: %s", h))
+		}
+	}
 	if _, err := os.Stat(filepath.Join(packPath, "transcripts", "sample-transcript.json")); err != nil {
 		warnings = append(warnings, "transcripts/sample-transcript.json not found (recommended for starter and template packs)")
 	}
@@ -3409,6 +3470,11 @@ func usagePack(out io.Writer) {
 	_, _ = io.WriteString(out, `usage: reach pack <command> [options]
 
 Commands:
+  search [query]                     Search local pack registry
+  add <source> [--replace]           Add pack from path/git/tar/zip into local registry
+  remove <name>                      Remove pack from local registry
+  update <name>                      Update existing pack using its recorded source
+  list                               List locally registered packs
   test <path> [--fixture <name>]     Run conformance tests
   lint <path> [--json]               Lint pack for issues
   doctor <path> [--json]             Full health check
@@ -3769,7 +3835,26 @@ func runQuick(args []string, out, errOut io.Writer) int {
 		}
 	}
 
-	// 2. Lint and Register
+	// 2. Enforce compatibility contract when present
+	type runtimePackCompatibility struct {
+		Compatibility struct {
+			ReachVersionRange  string `json:"reach_version_range"`
+			SchemaVersionRange string `json:"schema_version_range"`
+		} `json:"compatibility"`
+	}
+	var runtimeMeta runtimePackCompatibility
+	if raw, err := os.ReadFile(packPath); err == nil {
+		_ = json.Unmarshal(raw, &runtimeMeta)
+	}
+	if err := enforceCompatibility(packCompatibility{
+		ReachVersionRange:  runtimeMeta.Compatibility.ReachVersionRange,
+		SchemaVersionRange: runtimeMeta.Compatibility.SchemaVersionRange,
+	}); err != nil {
+		fmt.Fprintf(errOut, "Compatibility check failed: %v\n", err)
+		return 1
+	}
+
+	// 3. Lint and Register
 	lintRes, err := pack.Lint(packPath)
 	if err != nil || !lintRes.Valid {
 		fmt.Fprintf(errOut, "Pack lint failed: %v %v\n", err, lintRes.Errors)
@@ -3779,7 +3864,7 @@ func runQuick(args []string, out, errOut io.Writer) int {
 	registry := pack.NewPackRegistry()
 	cid := registry.Register(lintRes)
 
-	// 3. Execute with MCP enforcement
+	// 4. Execute with MCP enforcement
 	mcpSrv := mcpserver.NewMockServer("../../")
 	client := &mcpserver.LocalMCPClient{Server: mcpSrv}
 
@@ -3794,7 +3879,7 @@ func runQuick(args []string, out, errOut io.Writer) int {
 	runID := fmt.Sprintf("run-%d", time.Now().Unix())
 	fmt.Fprintf(out, "✓ Execution complete: %s\n", runID)
 
-	// 4. Scoring
+	// 5. Scoring
 	eval := evaluation.NewEvaluator()
 	test := &evaluation.TestDefinition{
 		ID:               "demo-smoke",
@@ -3808,7 +3893,7 @@ func runQuick(args []string, out, errOut io.Writer) int {
 			scoreRes.Score, scoreRes.Grounding, scoreRes.PolicyCompliance, scoreRes.ToolCorrectness)
 	}
 
-	// 5. Save Record
+	// 6. Save Record
 	record := runRecord{
 		RunID:      runID,
 		Latency:    state.Latency,
