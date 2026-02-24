@@ -7,7 +7,7 @@ import {
   __internal,
   SUPPORTED_PROVIDER_FIXTURE_NAMES,
 } from "./llm-provider.ts";
-import type { LlmConfig } from "../cli/llm-cli.ts";
+import type { LlmConfig } from "../core/llm-types.ts";
 
 const baseConfig: LlmConfig = {
   provider: "openai",

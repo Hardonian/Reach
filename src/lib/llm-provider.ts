@@ -1,6 +1,4 @@
-import type { LlmConfig, LlmProviderName } from "../cli/llm-cli.ts";
-// @ts-ignore
-import { LlmCli } from "../cli/llm-cli.ts";
+import type { LlmConfig, LlmProviderName } from "../core/llm-types.ts";
 
 export interface LlmMessage {
   role: "system" | "user" | "assistant";
