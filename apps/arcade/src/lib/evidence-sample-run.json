@@ -1,0 +1,19 @@
+{
+  "run": {
+    "id": "run_demo_20260222_001",
+    "pack": "demo-pack",
+    "startedAt": "2026-02-22T10:00:00.000Z",
+    "status": "success",
+    "engineVersion": "0.3.1-oss",
+    "fingerprint": "sha256:cb61a4e18267f7781d5dd4477674c8b719f728ec26ca08d5f76813fdfa6f9ca0"
+  },
+  "events": [
+    { "id": "evt-1", "timestamp": "2026-02-22T10:00:00.000Z", "type": "input.loaded", "stepId": "step-1", "message": "Input accepted", "proofHash": "sha256:1111a4e18267f7781d5dd4477674c8b719f728ec26ca08d5f76813fdfa6f9ca0" },
+    { "id": "evt-2", "timestamp": "2026-02-22T10:00:01.000Z", "type": "policy.evaluated", "stepId": "step-2", "message": "Policy gates passed", "proofHash": "sha256:2222a4e18267f7781d5dd4477674c8b719f728ec26ca08d5f76813fdfa6f9ca0" },
+    { "id": "evt-3", "timestamp": "2026-02-22T10:00:02.000Z", "type": "execution.completed", "stepId": "step-3", "message": "Execution completed", "proofHash": "sha256:3333a4e18267f7781d5dd4477674c8b719f728ec26ca08d5f76813fdfa6f9ca0" }
+  ],
+  "verify": {
+    "whatIsVerified": ["Event log ordering", "Run fingerprint format", "Replay equivalence result"],
+    "whatIsNotVerified": ["External service trust guarantees", "Key custody outside OSS"]
+  }
+}

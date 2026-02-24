@@ -1,42 +1,70 @@
-# Reach: The Deterministic Spine for Agentic Intelligence
+# Reach OSS
 
-[![CI Status](https://github.com/reach/reach/actions/workflows/ci.yml/badge.svg)](https://github.com/reach/reach/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.3.1-blue.svg)](VERSION)
+Reach is a deterministic execution and replay platform. The OSS demo path is built around one run lifecycle:
+**run → transcript → verify → replay**.
 
-Reach is a high-performance, deterministic decision engine designed for autonomous agents and complex workflows. Built with a Rust core for precision and a TypeScript wrapper for flexibility, Reach provides the cryptographic provenance and bit-identical replayability required for production-grade agentic systems.
+## 10-minute quickstart
 
----
+### 1) Install CLI
 
-## 🚀 Start Here
+**macOS / Linux**
+```bash
+./scripts/install.sh
+export PATH="$HOME/.reach/bin:$PATH"
+```
 
-...
+**Windows (PowerShell)**
+```powershell
+./scripts/install.ps1
+$env:Path = "$HOME/.reach/bin;" + $env:Path
+```
 
-## 🧠 Core Concepts
+### 2) Validate local environment
 
-...
+```bash
+reachctl doctor
+```
 
-## 📖 Documentation
+### 3) Produce and verify a sample run
 
-- [Documentation Index](docs/README.md)
-- [Architecture & Design](docs/architecture.md)
-- [CLI Reference](docs/cli.md)
-- [Troubleshooting](docs/troubleshooting.md)
-- [API Versioning](docs/API_VERSIONING.md)
-- [API Versioning](docs/API_VERSIONING.md)
+```bash
+reachctl run demo-pack --json
+reachctl list --limit 1 --json
+reachctl verify-determinism --n=2 --json
+```
 
----
+### 4) Open the OSS demo Evidence Viewer
 
-## 🤝 Contributing
+```bash
+cd apps/arcade
+npm install
+npm run dev
+```
+Then open `http://localhost:3000/demo/evidence-viewer` and click **Load sample run**.
 
-We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and our [AGENTS.md](AGENTS.md) for guidelines on contributing AI-assisted code.
+## OSS demo scope
 
----
+Fully working in OSS:
+- Run metadata + transcript timeline viewing.
+- Proof hash rendering when present in evidence.
+- Verify/replay adapter via local `reachctl` when installed.
+- Graceful fallback to static evidence viewing when CLI is unavailable.
+- JSON evidence export from the viewer.
 
-## 🛡️ Security
+Explicitly stubbed (enterprise):
+- Team RBAC automation.
+- Cloud key custody and signing orchestration.
+- Multi-tenant cloud audit stream management.
 
-Security is paramount. Please review our [SECURITY.md](SECURITY.md) for reporting vulnerabilities and our threat model. Reach includes a built-in dependency firewall to ensure the integrity of the ecosystem.
+## Troubleshooting
 
----
+- **`reachctl` not found**: add `$HOME/.reach/bin` to `PATH`.
+- **Replay needs a run ID**: generate a run first (`reachctl run demo-pack --json`).
+- **Viewer verify/replay says fallback mode**: CLI is unavailable; install with `./scripts/install.sh` and retry.
+- **Need diagnostics for bug reports**: include `reachctl doctor --json` output.
 
-*Reach: Reducing entropy in autonomous systems.*
+## Contributing + feedback
+
+- Contribution guide: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Issue templates: [.github/ISSUE_TEMPLATE](.github/ISSUE_TEMPLATE)
+- Required diagnostics for execution bugs: `reachctl doctor --json`, plus replay/verify command output.
