@@ -18,15 +18,35 @@ export default async function Home({ searchParams }: HomePageProps) {
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "ReadyLayer",
+    "@type": "SoftwareApplication",
+    name: "Reach",
     url: "https://reach.dev",
-    description: "Global orchestration platform for distributed AI agents.",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: "https://reach.dev/marketplace?q={search_term_string}",
-      "query-input": "required name=search_term_string",
-    },
+    applicationCategory: "DeveloperApplication",
+    operatingSystem: "Linux, macOS, Windows",
+    description:
+      "Natural-language governance control plane with deterministic CI gates, memory-backed policy generation, and replay-first explainability.",
+    featureList: [
+      "Natural language governance assistant",
+      "Durable governance memory",
+      "Deterministic NL-to-spec compiler",
+      "Replay-first hash verification",
+      "Model-agnostic CI gate integration",
+    ],
+    softwareHelp: "https://reach.dev/docs/governance",
+  };
+
+  const machineReadableSummary = {
+    product: "Reach",
+    positioning: [
+      "natural-language-governance",
+      "deterministic-ci-gate",
+      "memory-aware-policy-engine",
+      "model-agnostic",
+      "replay-first",
+      "anti-theatre",
+    ],
+    ossInstall: "curl -sSL https://github.com/reach/reach/releases/latest/download/install.sh | bash",
+    oneCommandDemo: "npm run governance:demo",
   };
 
   return (
@@ -34,6 +54,11 @@ export default async function Home({ searchParams }: HomePageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/json"
+        id="reach-machine-summary"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(machineReadableSummary) }}
       />
       {/* Hero Section */}
       <section className="relative min-h-[85vh] flex items-center">
@@ -93,6 +118,20 @@ export default async function Home({ searchParams }: HomePageProps) {
             <p className="text-gray-400">No account. No setup. Just click.</p>
           </div>
           <HomepageClient variant={variant} />
+        </div>
+      </section>
+
+      <section className="py-16">
+        <div className="section-container">
+          <div className="max-w-3xl mx-auto rounded-2xl border border-border bg-background/50 p-6">
+            <h2 className="text-2xl font-bold mb-3">OSS Install + One Command Demo</h2>
+            <p className="text-gray-400 text-sm mb-4">
+              Reach works in OSS mode by default. Start local, then promote to enforced CI gates.
+            </p>
+            <pre className="rounded-lg border border-border bg-surface p-4 text-xs overflow-x-auto">
+              <code>{`curl -sSL https://github.com/reach/reach/releases/latest/download/install.sh | bash\nnpm run governance:demo`}</code>
+            </pre>
+          </div>
         </div>
       </section>
 
@@ -213,7 +252,7 @@ export default async function Home({ searchParams }: HomePageProps) {
               No credit card. No configuration. One click to your first check.
             </p>
             <p className="text-sm text-gray-500 mb-8">
-              OSS-friendly · Works locally · Team plans available
+              OSS install path included · Model-agnostic · Replay-first
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href={ROUTES.PLAYGROUND} className="btn-primary">

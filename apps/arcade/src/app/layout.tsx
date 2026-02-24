@@ -19,12 +19,15 @@ export const metadata: Metadata = {
     template: `%s | ${process.env.NEXT_PUBLIC_BRAND_NAME ?? "ReadyLayer"}`,
   },
   description:
-    "Global orchestration platform for distributed agents, marketplace, and deterministic governance.",
+    "Reach is a natural-language governance control plane with durable memory, deterministic CI gates, and replay-first enforcement.",
   keywords: [
     "AI agents",
     "orchestration",
     "determinism",
     "governance",
+    "natural language governance",
+    "control plane",
+    "replay-first",
     "readylayer",
     "reach protocol",
   ],
@@ -43,7 +46,7 @@ export const metadata: Metadata = {
     siteName: "ReadyLayer",
     title: "ReadyLayer - Deterministic Orchestration Fabric",
     description:
-      "Scale AI agents with confidence. Deterministic governance and lifecycle management.",
+      "Natural-language governance for AI teams with deterministic CI enforcement and replayable decisions.",
     images: [
       {
         url: "/og-image.png",
@@ -57,7 +60,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "ReadyLayer - Deterministic Orchestration Fabric",
     description:
-      "Scale AI agents with confidence. Deterministic governance and lifecycle management.",
+      "Natural-language governance for AI teams with deterministic CI enforcement and replayable decisions.",
     images: ["/twitter-image.png"],
     creator: "@readylayer",
   },

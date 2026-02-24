@@ -98,6 +98,7 @@ $AllowedDirs = @(
     "dist",
     "agents",
     "apps",
+    "packages",
     "compat",
     "config",
     "data",

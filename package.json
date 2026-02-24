@@ -17,6 +17,8 @@
     "lint": "eslint src",
     "lint:structure": "powershell ./tools/guard-structure.ps1",
     "typecheck": "tsc --noEmit && npm run typecheck --workspaces --if-present",
+    "governance:demo": "npx tsx scripts/governance-demo.ts",
+    "validate:oss-purity": "npx tsx scripts/validate-oss-purity.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "docs:check": "npx tsx tools/docs/drift/run.ts",
@@ -24,8 +26,12 @@
     "health:check": "npx tsx scripts/repo-health.ts",
     "gates:reality": "npx tsx scripts/check-v0.1-gates.ts",
     "gates:terminology": "npx tsx scripts/check-terminology.ts",
+    "verify:boundaries": "node scripts/verify-boundaries.mjs",
+    "verify:oss": "npm run validate:oss-purity && npm run verify:boundaries",
+    "verify:routes": "node scripts/verify-routes.mjs",
+    "verify:determinism": "npx tsx scripts/verify-determinism.ts",
     "verify:fast": "npm run typecheck && npm run lint:structure && npm run format:check && npm run docs:index:check && npm run health:check && npm run gates:reality && npm run gates:terminology && npm test",
-    "verify": "npm run verify:fast && npm run build",
+    "verify": "npm run verify:fast && npm run verify:oss && npm run verify:routes && npm run verify:determinism && npm run build",
     "verify:full": "npm run verify"
   },
   "devDependencies": {
