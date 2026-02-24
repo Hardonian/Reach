@@ -122,7 +122,7 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 	case "debug":
 		return runDebug(ctx, dataRoot, args[1:], out, errOut)
 	case "federation":
-		return runFederation(ctx, dataRoot, args[1:], out, errOut)
+		return runOSSOnlyNotice("federation", errOut)
 	case "support":
 		return runSupport(args[1:], out, errOut)
 	case "arcade":
@@ -154,7 +154,7 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 	case "run":
 		return runQuick(args[1:], out, errOut)
 	case "replay":
-		// Alias for capsule replay
+		// Alias for transcript replay
 		return runCapsule(ctx, dataRoot, append([]string{"replay"}, args[1:]...), out, errOut)
 	case "explain-failure":
 		// Alias for explain
@@ -165,9 +165,9 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 	case "share":
 		return runShare(ctx, dataRoot, args[1:], out, errOut)
 	case "mesh":
-		return runMesh(ctx, dataRoot, args[1:], out, errOut)
+		return runOSSOnlyNotice("mesh", errOut)
 	case "delegate":
-		return runDelegate(ctx, dataRoot, args[1:], out, errOut)
+		return runOSSOnlyNotice("delegate", errOut)
 	case "verify-proof":
 		return runVerifyProof(ctx, dataRoot, args[1:], out, errOut)
 	case "runs":
@@ -185,7 +185,7 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 	case "chaos":
 		return runChaos(ctx, dataRoot, args[1:], out, errOut)
 	case "trust":
-		return runTrust(ctx, dataRoot, args[1:], out, errOut)
+		return runOSSOnlyNotice("trust", errOut)
 	case "policy":
 		return runPolicyCommand(ctx, dataRoot, args[1:], out, errOut)
 	case "bench":
@@ -219,11 +219,11 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		// Alias for historical metrics
 		return runHistorical(ctx, append([]string{"metrics"}, args[1:]...), out, errOut)
 	case "verify-peer":
-		return runVerifyPeer(ctx, dataRoot, args[1:], out, errOut)
+		return runOSSOnlyNotice("verify-peer", errOut)
 	case "consensus":
-		return runConsensus(ctx, dataRoot, args[1:], out, errOut)
+		return runOSSOnlyNotice("consensus", errOut)
 	case "peer":
-		return runPeer(ctx, dataRoot, args[1:], out, errOut)
+		return runOSSOnlyNotice("peer", errOut)
 	case "artifact":
 		return runArtifact(ctx, dataRoot, args[1:], out, errOut)
 	case "ingest":
@@ -241,6 +241,11 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		usage(out)
 		return 1
 	}
+}
+
+func runOSSOnlyNotice(command string, errOut io.Writer) int {
+	_, _ = fmt.Fprintf(errOut, "'%s' is not available in OSS mode. Reach OSS runs in a single local process with local verification and replay.\n", command)
+	return 1
 }
 
 func runFederation(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
@@ -391,7 +396,7 @@ func runProof(ctx context.Context, dataRoot string, args []string, out io.Writer
 // runProofVerify handles 'reach proof verify <runId>'
 func runProofVerify(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
-		_, _ = fmt.Fprintln(errOut, "usage: reach proof verify <runId|capsule> [--json]")
+		_, _ = fmt.Fprintln(errOut, "usage: reach proof verify <runId|transcript> [--json]")
 		return 1
 	}
 	target := args[0]
@@ -402,10 +407,10 @@ func runProofVerify(ctx context.Context, dataRoot string, args []string, out io.
 			return 1
 		}
 		return writeJSON(out, map[string]any{
-			"target":         target,
-			"audit_root":     cap.Manifest.AuditRoot,
+			"target":          target,
+			"audit_root":      cap.Manifest.AuditRoot,
 			"run_fingerprint": cap.Manifest.RunFingerprint,
-			"deterministic":  stableHash(map[string]any{"event_log": cap.EventLog, "run_id": cap.Manifest.RunID}) == cap.Manifest.RunFingerprint,
+			"deterministic":   stableHash(map[string]any{"event_log": cap.EventLog, "run_id": cap.Manifest.RunID}) == cap.Manifest.RunFingerprint,
 		})
 	}
 	record, err := loadRunRecord(dataRoot, target)
@@ -512,7 +517,7 @@ func usageProof(out io.Writer) {
 	_, _ = io.WriteString(out, `usage: reach proof <command> [options]
 
 Commands:
-  verify <runId|capsule>       Verify execution proof
+  verify <runId|transcript>    Verify execution proof
   explain <runId> [--step N]  Explain proof components
   diff-hash <runA> <runB>    Compare proof hashes between runs
 
@@ -1053,14 +1058,14 @@ func runPlugins(dataRoot string, args []string, out io.Writer, errOut io.Writer)
 
 // PluginManifest declares the plugin's determinism contract and resource limits.
 type PluginManifest struct {
-	Name                string            `json:"name"`
-	Version             string            `json:"version"`
-	Deterministic       bool              `json:"deterministic"`
-	ExternalDependencies []string         `json:"external_dependencies"`
-	ResourceLimits      map[string]string `json:"resource_limits"`
-	ChecksumSHA256      string            `json:"checksum_sha256"`
-	SignatureHex        string            `json:"signature_hex,omitempty"`
-	Capabilities        []string          `json:"capabilities"`
+	Name                 string            `json:"name"`
+	Version              string            `json:"version"`
+	Deterministic        bool              `json:"deterministic"`
+	ExternalDependencies []string          `json:"external_dependencies"`
+	ResourceLimits       map[string]string `json:"resource_limits"`
+	ChecksumSHA256       string            `json:"checksum_sha256"`
+	SignatureHex         string            `json:"signature_hex,omitempty"`
+	Capabilities         []string          `json:"capabilities"`
 }
 
 func runPluginsList(dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
@@ -1104,12 +1109,12 @@ func runPluginsVerify(dataRoot string, args []string, out io.Writer, errOut io.W
 	}
 
 	checks := map[string]bool{
-		"manifest_present":   true,
-		"deterministic":      manifest.Deterministic,
-		"checksum_present":   manifest.ChecksumSHA256 != "",
-		"resource_limits":    len(manifest.ResourceLimits) > 0,
-		"no_external_deps":   len(manifest.ExternalDependencies) == 0,
-		"signed":             manifest.SignatureHex != "",
+		"manifest_present": true,
+		"deterministic":    manifest.Deterministic,
+		"checksum_present": manifest.ChecksumSHA256 != "",
+		"resource_limits":  len(manifest.ResourceLimits) > 0,
+		"no_external_deps": len(manifest.ExternalDependencies) == 0,
+		"signed":           manifest.SignatureHex != "",
 	}
 
 	allPassed := true
@@ -1511,14 +1516,20 @@ Generated by reachctl init
 		_, _ = fmt.Fprintf(out, "    %s\n", p)
 	}
 	_, _ = fmt.Fprintln(out, "\n  Next steps:")
-	_, _ = fmt.Fprintln(out, "    cd " + dirName)
-	_, _ = fmt.Fprintln(out, "    reach run " + dirName)
+	_, _ = fmt.Fprintln(out, "    cd "+dirName)
+	_, _ = fmt.Fprintln(out, "    reach run "+dirName)
 
 	return writeJSON(out, map[string]any{
-		"status":   "success",
+		"status":    "success",
 		"pack_name": dirName,
-		"path":     base,
-		"files":    func() []string { f := []string{}; for k := range files { f = append(f, k) }; return f }(),
+		"path":      base,
+		"files": func() []string {
+			f := []string{}
+			for k := range files {
+				f = append(f, k)
+			}
+			return f
+		}(),
 	})
 }
 
@@ -1542,7 +1553,7 @@ func runExplain(ctx context.Context, dataRoot string, args []string, out io.Writ
 		"policy":          fmt.Sprintf("Policy %s because %v.", status, rec.Policy["reason"]),
 		"delegation":      rec.FederationPath,
 		"replay":          map[string]any{"fingerprint": stableHash(map[string]any{"event_log": rec.EventLog, "run_id": rec.RunID}), "mismatch": false},
-		"safe_next_steps": []string{"Review policy contract", "Re-run with --proof", "Create time capsule for audit"},
+		"safe_next_steps": []string{"Review policy contract", "Re-run with --proof", "Create run transcript for audit"},
 		"docs":            []string{"docs/EXECUTION_SPEC.md", "docs/POLICY_GATE.md", "docs/TIME_CAPSULE.md"},
 	}
 	return writeJSON(out, msg)
@@ -4314,7 +4325,7 @@ Core Commands:
   doctor                          Check local environment health
   init [--name <name>]            Initialize a new pack (minimal, governed, full)
   run <pack>                      Quick run a pack locally
-  replay <runId|capsule>          Replay a run for verification
+  replay <runId|transcript>       Replay a run for verification
   explain <runId>                 Explain a run's failure or outcome
   explain-failure <runId>         Alias for explain
   operator                        View local operator dashboard
@@ -4324,7 +4335,7 @@ Core Commands:
 Advanced Commands:
   diff-run <runA> <runB>          Compare two execution runs
   verify-determinism              Execute identical trials to verify stability
-  capsule <command>               Manage signed execution capsules
+  export <runId>                  Export a run transcript
   proof <command>                 Verify execution proofs
   graph <command>                 Export or view execution graphs
 
@@ -4337,7 +4348,7 @@ Evidence-First Commands (V2):
   simulate <pipelineId>           Simulate run against history
   chaos <runId> --level <1-5>     Run chaos testing
   provenance <runId>              Show provenance information
-  trust <runId>                   Calculate trust score
+  export <runId>                  Export a run transcript
   assistant <on|off|suggest|help> Copilot mode
 
 Global Flags:
@@ -4361,12 +4372,12 @@ func runVersion(args []string, out io.Writer) int {
 
 	if *jsonFlag {
 		return writeJSON(out, map[string]any{
-			"engineVersion":    engineVersion,
-			"specVersion":      specVersion,
-			"schemaVersion":    specVersion,
-			"gitCommit":        gitCommit,
+			"engineVersion":       engineVersion,
+			"specVersion":         specVersion,
+			"schemaVersion":       specVersion,
+			"gitCommit":           gitCommit,
 			"compatibilityPolicy": "backward_compatible",
-			"supportedVersions": []string{specVersion},
+			"supportedVersions":   []string{specVersion},
 		})
 	}
 
@@ -4839,9 +4850,9 @@ func runCheckpoint(ctx context.Context, dataRoot string, args []string, out io.W
 
 	result := map[string]any{
 		"checkpoint_id": runID + "-" + time.Now().Format("20060102150405"),
-		"run_id":      runID,
-		"path":        checkpointPath,
-		"status":      "created",
+		"run_id":        runID,
+		"path":          checkpointPath,
+		"status":        "created",
 	}
 
 	if *jsonFlag {
@@ -4876,9 +4887,9 @@ func runRewind(ctx context.Context, dataRoot string, args []string, out io.Write
 
 	result := map[string]any{
 		"checkpoint_id": checkpointID,
-		"path":         checkpointPath,
-		"status":       "restored",
-		"run_id":       strings.TrimSuffix(checkpointID, "-" + strings.Split(checkpointID, "-")[len(strings.Split(checkpointID, "-"))-1]),
+		"path":          checkpointPath,
+		"status":        "restored",
+		"run_id":        strings.TrimSuffix(checkpointID, "-"+strings.Split(checkpointID, "-")[len(strings.Split(checkpointID, "-"))-1]),
 	}
 
 	if *jsonFlag {
@@ -4904,12 +4915,12 @@ func runSimulate(ctx context.Context, dataRoot string, args []string, out io.Wri
 
 	result := map[string]any{
 		"simulated_against": *against,
-		"rules_version":    rules,
-		"historical_runs":  0,
-		"would_fail":       0,
-		"would_pass":       0,
-		"status":           "no_history",
-		"message":          "No historical runs found. Run some packs first to build history.",
+		"rules_version":     rules,
+		"historical_runs":   0,
+		"would_fail":        0,
+		"would_pass":        0,
+		"status":            "no_history",
+		"message":           "No historical runs found. Run some packs first to build history.",
 	}
 
 	if *jsonFlag {
@@ -5027,14 +5038,14 @@ func runChaos(ctx context.Context, dataRoot string, args []string, out io.Writer
 	}
 
 	report := map[string]any{
-		"pipeline_id":        pipelineID,
-		"chaos_level":        *level,
-		"seeds_tested":       *seeds,
-		"drift_count":        driftCount,
-		"instability_pct":    instabilityPct,
+		"pipeline_id":          pipelineID,
+		"chaos_level":          *level,
+		"seeds_tested":         *seeds,
+		"drift_count":          driftCount,
+		"instability_pct":      instabilityPct,
 		"invariant_violations": violations,
-		"runs":               runs,
-		"status":             map[bool]string{true: "unstable", false: "stable"}[driftCount > 0],
+		"runs":                 runs,
+		"status":               map[bool]string{true: "unstable", false: "stable"}[driftCount > 0],
 	}
 
 	// Persist chaos report
@@ -5095,7 +5106,7 @@ func runTrust(ctx context.Context, dataRoot string, args []string, out io.Writer
 		suggestions = append(suggestions, fmt.Sprintf("Fix %d policy violation(s): run policy enforce --dry-run", violations))
 	}
 	if len(suggestions) == 0 {
-		suggestions = append(suggestions, "Workspace is healthy — consider signing and publishing a capsule")
+		suggestions = append(suggestions, "Workspace is healthy — consider exporting a run transcript")
 	}
 
 	result := map[string]any{
@@ -5171,27 +5182,27 @@ func runSteps(ctx context.Context, dataRoot string, args []string, out io.Writer
 
 		// Compute proof for this step
 		eventHash := determinism.Hash(event)
-		
+
 		step := map[string]any{
-			"seq":          i + 1,
-			"step_id":      stepID,
-			"status":       "complete",
-			"event_hash":   eventHash,
+			"seq":        i + 1,
+			"step_id":    stepID,
+			"status":     "complete",
+			"event_hash": eventHash,
 		}
-		
+
 		if *verboseFlag {
 			step["event"] = event
 		} else {
 			step["event_hash_short"] = eventHash[:16]
 		}
-		
+
 		steps = append(steps, step)
 	}
 
 	result := map[string]any{
-		"run_id":     runID,
-		"step_count": len(steps),
-		"steps":      steps,
+		"run_id":          runID,
+		"step_count":      len(steps),
+		"steps":           steps,
 		"run_fingerprint": stableHash(map[string]any{"event_log": record.EventLog, "run_id": record.RunID}),
 	}
 
@@ -5203,7 +5214,7 @@ func runSteps(ctx context.Context, dataRoot string, args []string, out io.Writer
 	_, _ = fmt.Fprintf(out, "Steps for run %s\n", runID)
 	_, _ = fmt.Fprintln(out, "================")
 	_, _ = fmt.Fprintf(out, "Total steps: %d\n\n", len(steps))
-	
+
 	for _, step := range steps {
 		stepID := step["step_id"].(string)
 		seq := step["seq"].(int)
@@ -5243,18 +5254,18 @@ func runProvenance(ctx context.Context, dataRoot string, args []string, out io.W
 
 	// Gather provenance info
 	provenance := map[string]any{
-		"run_id":           runID,
-		"spec_version":     specVersion,
-		"engine_version":   engineVersion,
-		"event_count":      len(record.EventLog),
-		"timestamp":        time.Now().Format(time.RFC3339),
-		"environment":      record.Environment,
-		"registry_hash":    record.RegistrySnapshotHash,
-		"federation_path":  record.FederationPath,
-		"input_sources":    []map[string]string{},
-		"secrets_present":  false,
-		"git_commit":       "unknown",
-		"git_dirty":        false,
+		"run_id":          runID,
+		"spec_version":    specVersion,
+		"engine_version":  engineVersion,
+		"event_count":     len(record.EventLog),
+		"timestamp":       time.Now().Format(time.RFC3339),
+		"environment":     record.Environment,
+		"registry_hash":   record.RegistrySnapshotHash,
+		"federation_path": record.FederationPath,
+		"input_sources":   []map[string]string{},
+		"secrets_present": false,
+		"git_commit":      "unknown",
+		"git_dirty":       false,
 	}
 
 	// Try to get git info
@@ -5268,9 +5279,9 @@ func runProvenance(ctx context.Context, dataRoot string, args []string, out io.W
 	// If step specified, show step-level provenance
 	if *stepID != "" {
 		stepProv := map[string]any{
-			"step_id":     *stepID,
-			"run_id":      runID,
-			"provenance":  "Step-level provenance tracking not yet implemented",
+			"step_id":    *stepID,
+			"run_id":     runID,
+			"provenance": "Step-level provenance tracking not yet implemented",
 		}
 		if *jsonFlag {
 			return writeJSON(out, stepProv)
@@ -5362,10 +5373,10 @@ func runVerifyPeer(ctx context.Context, dataRoot string, args []string, out io.W
 		_ = os.WriteFile(vfPath, vfJSON, 0644)
 
 		result := map[string]any{
-			"run_id":          runID,
+			"run_id":            runID,
 			"verification_file": vfPath,
-			"status":          "exported",
-			"proof_hash":      vf.Meta.OriginalProofHash,
+			"status":            "exported",
+			"proof_hash":        vf.Meta.OriginalProofHash,
 		}
 
 		if *jsonFlag {
@@ -5397,11 +5408,11 @@ func runVerifyPeer(ctx context.Context, dataRoot string, args []string, out io.W
 		}
 
 		result := map[string]any{
-			"run_id":                report.RunID,
-			"original_proof_hash":   report.OriginalProofHash,
-			"local_proof_hash":     report.LocalProofHash,
-			"proof_match":          report.ProofMatch,
-			"divergence_score":     report.DivergenceScore,
+			"run_id":              report.RunID,
+			"original_proof_hash": report.OriginalProofHash,
+			"local_proof_hash":    report.LocalProofHash,
+			"proof_match":         report.ProofMatch,
+			"divergence_score":    report.DivergenceScore,
 			"step_key_comparison": map[string]any{
 				"matching_steps": report.StepKeyComparison.MatchingSteps,
 				"total_steps":    report.StepKeyComparison.TotalSteps,
@@ -5642,4 +5653,3 @@ func runByzantine(ctx context.Context, dataRoot string, args []string, out io.Wr
 	_, _ = fmt.Fprintf(out, "\nReport saved: %s\n", reportPath)
 	return 0
 }
-

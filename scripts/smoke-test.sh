@@ -122,7 +122,7 @@ test_create_run() {
         return 1
     fi
     
-    RUN_ID=$(echo "$response" | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
+    RUN_ID=$(echo "$response" | sed -n 's/.*"id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
     if [ -z "$RUN_ID" ]; then
         log_error "Create run failed - no run ID in response: $response"
         return 1

@@ -571,7 +571,7 @@ func calculateConsensusScore(agreementRate float64, nodeCount int) int {
 	} else if nodeCount >= 3 {
 		score += 5
 	}
-
+	
 	if score > 100 {
 		return 100
 	}
