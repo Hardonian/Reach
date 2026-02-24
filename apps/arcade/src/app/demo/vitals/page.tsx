@@ -12,7 +12,7 @@ export const metadata = {
 };
 
 export default async function VitalsPage() {
-  let vitals: Awaited<ReturnType<typeof getDemoEngine>['getVitalsSummary']> | null = null;
+  let vitals: Awaited<ReturnType<ReturnType<typeof getDemoEngine>['getVitalsSummary']>> | null = null;
   let error: string | null = null;
 
   try {

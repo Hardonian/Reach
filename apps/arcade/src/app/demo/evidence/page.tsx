@@ -12,8 +12,8 @@ export const metadata = {
 };
 
 export default async function EvidencePage() {
-  let junctions: Awaited<ReturnType<typeof getDemoEngine>['getJunctions']> = [];
-  let decisions: Awaited<ReturnType<typeof getDemoEngine>['getDecisions']> = [];
+  let junctions: Awaited<ReturnType<ReturnType<typeof getDemoEngine>['getJunctions']>> = [];
+  let decisions: Awaited<ReturnType<ReturnType<typeof getDemoEngine>['getDecisions']>> = [];
   let error: string | null = null;
 
   try {

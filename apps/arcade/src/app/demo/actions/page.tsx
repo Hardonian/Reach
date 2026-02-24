@@ -12,7 +12,7 @@ export const metadata = {
 };
 
 export default async function ActionsPage() {
-  let actions: Awaited<ReturnType<typeof getDemoEngine>['getActions']> = [];
+  let actions: Awaited<ReturnType<ReturnType<typeof getDemoEngine>['getActions']>> = [];
   let error: string | null = null;
 
   try {

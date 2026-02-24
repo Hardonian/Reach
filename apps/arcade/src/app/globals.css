@@ -285,3 +285,21 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;
 }
+
+@layer components {
+  .material-symbols-outlined {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+  }
+}

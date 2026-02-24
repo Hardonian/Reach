@@ -69,7 +69,7 @@ export function getEnterpriseStubMessage(feature: EnterpriseFeature): string {
     SSO_ENABLED: 'SSO/SAML authentication is available in Enterprise. Configure your identity provider in the Enterprise dashboard.',
     MULTI_TENANT: 'Multi-tenant workspaces are available in Enterprise. Upgrade to manage multiple organizations.',
     CLOUD_STORAGE: 'Cloud storage integration is available in Enterprise. Connect your S3/GCS/Azure Blob storage.',
-    MANAGED_POLICY: 'Managed policy packs are available in Enterprise. Access pre-built compliance policies.',
+    MANAGED_POLICIES: 'Managed policy packs are available in Enterprise. Access pre-built compliance policies.',
     AUDIT_EXPORT: 'Audit log export is available in Enterprise. Export to external SIEM systems.',
     ADVANCED_ANALYTICS: 'Advanced analytics are available in Enterprise. Get custom dashboards and reports.',
     COLLABORATION: 'Real-time collaboration is available in Enterprise. Enable team workspaces.',
