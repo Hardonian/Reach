@@ -17,5 +17,5 @@
       "@zeo/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*", "test/**/*", "scripts/**/*", "apps/**/*"]
+  "include": ["src/**/*", "test/**/*", "scripts/**/*"]
 }
