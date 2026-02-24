@@ -1,1 +1,22 @@
-{"manifest":{"spec_version":"1.0","run_id":"run-1771964294","run_fingerprint":"f9956d0b60abca78adb22ae54cc53be97dc91b626ac794d12f1c5acdfa472510","registry_snapshot_hash":"","pack":{"input":{"mode":"safe","output_format":"json","timeout":"30"},"name":"arcadeSafe.demo"},"policy":{"decision":"allow","reason":"wizard-run"},"federation_path":null,"audit_root":"e6845188b1d2aebdf19d13c1613d7a49b5806a7fe336ec775fa182b36719bbc1","environment":{"arch":"amd64","os":"windows","wizard":"1"},"created_at":"1970-01-01T00:00:00Z"},"event_log":[{"action":"init","step":1,"ts":"2026-02-24T20:18:14Z"},{"action":"execute","pack":"arcadeSafe.demo","step":2},{"action":"complete","status":"success","step":3}]}
+{
+  "manifest": {
+    "spec_version": "1.0",
+    "run_id": "run-1771964294",
+    "run_fingerprint": "f9956d0b60abca78adb22ae54cc53be97dc91b626ac794d12f1c5acdfa472510",
+    "registry_snapshot_hash": "",
+    "pack": {
+      "input": { "mode": "safe", "output_format": "json", "timeout": "30" },
+      "name": "arcadeSafe.demo"
+    },
+    "policy": { "decision": "allow", "reason": "wizard-run" },
+    "federation_path": null,
+    "audit_root": "e6845188b1d2aebdf19d13c1613d7a49b5806a7fe336ec775fa182b36719bbc1",
+    "environment": { "arch": "amd64", "os": "windows", "wizard": "1" },
+    "created_at": "1970-01-01T00:00:00Z"
+  },
+  "event_log": [
+    { "action": "init", "step": 1, "ts": "2026-02-24T20:18:14Z" },
+    { "action": "execute", "pack": "arcadeSafe.demo", "step": 2 },
+    { "action": "complete", "status": "success", "step": 3 }
+  ]
+}

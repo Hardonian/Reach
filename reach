@@ -35,7 +35,13 @@ run_reachctl() {
   fi
 
   if [ "$IN_REPO_LAYOUT" = true ] && [ -f "$SELF_DIR/services/runner/cmd/reachctl/main.go" ] && command -v go >/dev/null 2>&1; then
-    (cd "$SELF_DIR/services/runner" && go run ./cmd/reachctl "$@")
+    local build_dir="${REACH_BUILD_DIR:-$SELF_DIR/build}"
+    local fallback_bin="${build_dir}/reachctl"
+    mkdir -p "$build_dir"
+    if [ ! -x "$fallback_bin" ] || [ "$SELF_DIR/services/runner/cmd/reachctl/main.go" -nt "$fallback_bin" ]; then
+      (cd "$SELF_DIR/services/runner" && go build -o "$fallback_bin" ./cmd/reachctl)
+    fi
+    "$fallback_bin" "$@"
     return 0
   fi
 

@@ -1,1 +1,18 @@
-{"run_id":"run-1771964294","pack":{"input":{"mode":"safe","output_format":"json","timeout":"30"},"name":"arcadeSafe.demo"},"policy":{"decision":"allow","reason":"wizard-run"},"registry_snapshot_hash":"","event_log":[{"action":"init","step":1,"ts":"2026-02-24T20:18:14Z"},{"action":"execute","pack":"arcadeSafe.demo","step":2},{"action":"complete","status":"success","step":3}],"federation_path":null,"trust_scores":null,"audit_chain":null,"environment":{"arch":"amd64","os":"windows","wizard":"1"}}
+{
+  "run_id": "run-1771964294",
+  "pack": {
+    "input": { "mode": "safe", "output_format": "json", "timeout": "30" },
+    "name": "arcadeSafe.demo"
+  },
+  "policy": { "decision": "allow", "reason": "wizard-run" },
+  "registry_snapshot_hash": "",
+  "event_log": [
+    { "action": "init", "step": 1, "ts": "2026-02-24T20:18:14Z" },
+    { "action": "execute", "pack": "arcadeSafe.demo", "step": 2 },
+    { "action": "complete", "status": "success", "step": 3 }
+  ],
+  "federation_path": null,
+  "trust_scores": null,
+  "audit_chain": null,
+  "environment": { "arch": "amd64", "os": "windows", "wizard": "1" }
+}

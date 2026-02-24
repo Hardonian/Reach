@@ -1,5 +1,6 @@
-import { loadConfig } from "../core/env.js";
+import { loadConfig } from "./env.js";
 import { hashString } from "../determinism/index.js";
+// cspell:ignore cjson Keypair
 /**
  * @zeo/core shim — deterministic fallback when the WASM/native core is unavailable.
  *
@@ -501,7 +502,7 @@ export async function compactTrustProfiles(root: string): Promise<
 
     const lines = content.trim().split("\n").filter(Boolean);
     const events = lines.map(
-      (l) =>
+      (l: string) =>
         JSON.parse(l) as {
           subject_type: string;
           subject_id: string;
@@ -512,8 +513,8 @@ export async function compactTrustProfiles(root: string): Promise<
     results.push({
       subject_type: first?.subject_type ?? "key",
       subject_id: first?.subject_id ?? f.replace(".ndjson", ""),
-      pass_count: events.filter((e) => e.verify === "pass").length,
-      fail_count: events.filter((e) => e.verify !== "pass").length,
+      pass_count: events.filter((e: any) => e.verify === "pass").length,
+      fail_count: events.filter((e: any) => e.verify !== "pass").length,
     });
   }
   return results;

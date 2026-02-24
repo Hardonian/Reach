@@ -1,6 +1,7 @@
 # Reach CLI Reference
 
 Reach provides:
+
 - `reachctl` (core binary)
 - `reach` (wrapper script that forwards to `reachctl` and repository tools)
 

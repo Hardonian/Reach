@@ -1,1 +1,14 @@
-{"metadata":{"id":"","version":"1.0.0","name":"arcadeSafe.demo","description":""},"specVersion":"1.0","declared_tools":null,"declared_permissions":null,"execution_graph":{"nodes":[{"id":"node1","type":"Action","action":"read_file","inputs":{"path":"VERSION"}},{"id":"node2","type":"Action","action":"summarize"}],"edges":null},"deterministic":false}
+{
+  "metadata": { "id": "", "version": "1.0.0", "name": "arcadeSafe.demo", "description": "" },
+  "specVersion": "1.0",
+  "declared_tools": null,
+  "declared_permissions": null,
+  "execution_graph": {
+    "nodes": [
+      { "id": "node1", "type": "Action", "action": "read_file", "inputs": { "path": "VERSION" } },
+      { "id": "node2", "type": "Action", "action": "summarize" }
+    ],
+    "edges": null
+  },
+  "deterministic": false
+}

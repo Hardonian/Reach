@@ -32,15 +32,16 @@ function platformBinaryName() {
   const arch = mapArch[process.arch];
   const osName = mapOs[process.platform];
   if (!arch || !osName) {
-    throw new Error(`Unsupported platform for installer smoke: ${process.platform}/${process.arch}`);
+    throw new Error(
+      `Unsupported platform for installer smoke: ${process.platform}/${process.arch}`,
+    );
   }
   const ext = osName === "windows" ? ".exe" : "";
   return `reachctl-${osName}-${arch}${ext}`;
 }
 
 function writeChecksums(files) {
-  const hasSha256sum =
-    spawnSync("sha256sum", ["--version"], { stdio: "ignore" }).status === 0;
+  const hasSha256sum = spawnSync("sha256sum", ["--version"], { stdio: "ignore" }).status === 0;
   const hasShasum =
     !hasSha256sum && spawnSync("shasum", ["--version"], { stdio: "ignore" }).status === 0;
   if (!hasSha256sum && !hasShasum) {
@@ -69,8 +70,14 @@ function main() {
 
   run("go", ["build", "-o", binaryPath, "./services/runner/cmd/reachctl"], { cwd: ROOT });
   fs.copyFileSync(path.join(ROOT, "reach"), path.join(RELEASE_DIR, "reach"));
-  fs.copyFileSync(path.join(ROOT, "scripts/release/install.sh"), path.join(RELEASE_DIR, "install.sh"));
-  fs.copyFileSync(path.join(ROOT, "scripts/release/install.ps1"), path.join(RELEASE_DIR, "install.ps1"));
+  fs.copyFileSync(
+    path.join(ROOT, "scripts/release/install.sh"),
+    path.join(RELEASE_DIR, "install.sh"),
+  );
+  fs.copyFileSync(
+    path.join(ROOT, "scripts/release/install.ps1"),
+    path.join(RELEASE_DIR, "install.ps1"),
+  );
   fs.copyFileSync(path.join(ROOT, "VERSION"), path.join(RELEASE_DIR, "VERSION"));
   fs.chmodSync(path.join(RELEASE_DIR, "reach"), 0o755);
   fs.chmodSync(path.join(RELEASE_DIR, "install.sh"), 0o755);
@@ -91,9 +98,13 @@ function main() {
   run(path.join(installDir, "reach"), ["version"]);
   runAllowingDoctorFailure(path.join(installDir, "reach"), ["doctor"]);
 
-  const pwsh = spawnSync("pwsh", ["-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"], {
-    encoding: "utf8",
-  });
+  const pwsh = spawnSync(
+    "pwsh",
+    ["-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"],
+    {
+      encoding: "utf8",
+    },
+  );
   if (pwsh.status === 0) {
     const winInstallDir = fs.mkdtempSync(path.join(os.tmpdir(), "reach-install-ps-"));
     console.log(`Running install.ps1 smoke into ${winInstallDir} ...`);

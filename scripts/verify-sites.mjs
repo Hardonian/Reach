@@ -20,41 +20,28 @@ function main() {
   run("node", ["scripts/verify-canonical-urls.mjs"]);
 
   // Build OSS marketing/app site mode.
-  run(
-    "npm",
-    ["run", "build", "--workspace", "arcade"],
-    {
-      ...process.env,
-      NEXT_PUBLIC_BASE_URL: "https://reach.dev",
-      NEXT_PUBLIC_BRAND_NAME: "ReadyLayer",
-      REACH_CLOUD_ENABLED: "false",
-    },
-  );
+  run("npm", ["run", "build", "--workspace", "arcade"], {
+    ...process.env,
+    NEXT_PUBLIC_BASE_URL: "https://reach.dev",
+    NEXT_PUBLIC_BRAND_NAME: "ReadyLayer",
+    REACH_CLOUD_ENABLED: "false",
+  });
 
   // Build docs site mode.
-  run(
-    "npm",
-    ["run", "build", "--workspace", "@reach/docs"],
-    {
-      ...process.env,
-      NEXT_PUBLIC_DOCS_BASE_URL: "https://reach-cli.com",
-    },
-  );
+  run("npm", ["run", "build", "--workspace", "@reach/docs"], {
+    ...process.env,
+    NEXT_PUBLIC_DOCS_BASE_URL: "https://reach-cli.com",
+  });
 
   // Build enterprise stub mode (no enterprise secrets required).
-  run(
-    "npm",
-    ["run", "build", "--workspace", "arcade"],
-    {
-      ...process.env,
-      NEXT_PUBLIC_BASE_URL: "https://app.reach.dev",
-      NEXT_PUBLIC_BRAND_NAME: "ReadyLayer",
-      REACH_CLOUD_ENABLED: "true",
-    },
-  );
+  run("npm", ["run", "build", "--workspace", "arcade"], {
+    ...process.env,
+    NEXT_PUBLIC_BASE_URL: "https://app.reach.dev",
+    NEXT_PUBLIC_BRAND_NAME: "ReadyLayer",
+    REACH_CLOUD_ENABLED: "true",
+  });
 
   console.log("✅ verify:sites passed");
 }
 
 main();
-

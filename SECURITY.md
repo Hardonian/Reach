@@ -5,6 +5,7 @@
 Please report vulnerabilities privately to `security@reach.dev`.
 
 Include:
+
 - affected component(s)
 - reproduction steps
 - impact
@@ -60,6 +61,7 @@ These checks are enforced in CLI code paths and tested in CI.
 Reach blocks known toxic/deprecated packages at CI/review time.
 
 Examples include:
+
 - `clawdbot`
 - `codex`
 - `connect`

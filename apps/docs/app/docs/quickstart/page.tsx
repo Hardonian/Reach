@@ -26,8 +26,10 @@ make build`}
       />
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">2. Verify Your Setup</h2>
-      <CodeBlock code={`./reach version
-./reach doctor`} />
+      <CodeBlock
+        code={`./reach version
+./reach doctor`}
+      />
       <p className="mt-4">
         The doctor command checks all dependencies, file permissions, and deterministic environment
         requirements. You should see all checks pass.
@@ -40,9 +42,7 @@ make build`}
       </p>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">4. Verify Determinism</h2>
-      <p>
-        Use the generated capsule to verify and replay deterministically.
-      </p>
+      <p>Use the generated capsule to verify and replay deterministically.</p>
       <CodeBlock
         code={`reach capsule verify data/capsules/<run-id>.capsule.json
 reach capsule replay data/capsules/<run-id>.capsule.json`}

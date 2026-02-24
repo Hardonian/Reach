@@ -8,18 +8,18 @@ const checks = [
   {
     file: "apps/arcade/src/app/layout.tsx",
     mustContain: [
-      "metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL ?? \"https://reach.dev\")",
-      "url: process.env.NEXT_PUBLIC_BASE_URL ?? \"https://reach.dev\"",
+      'metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL ?? "https://reach.dev")',
+      'url: process.env.NEXT_PUBLIC_BASE_URL ?? "https://reach.dev"',
     ],
   },
   {
     file: "apps/arcade/src/app/sitemap.ts",
-    mustContain: ["const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? \"https://reach.dev\";"],
+    mustContain: ['const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://reach.dev";'],
   },
   {
     file: "apps/docs/app/layout.tsx",
     mustContain: [
-      "metadataBase: new URL(process.env.NEXT_PUBLIC_DOCS_BASE_URL ?? \"https://reach-cli.com\")",
+      'metadataBase: new URL(process.env.NEXT_PUBLIC_DOCS_BASE_URL ?? "https://reach-cli.com")',
     ],
   },
 ];
@@ -49,4 +49,3 @@ if (failures.length > 0) {
 }
 
 console.log("✅ verify:canonical-urls passed");
-

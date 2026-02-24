@@ -45,6 +45,7 @@ sudo mv reach /usr/local/bin/reach
 ## Build From Source
 
 Requirements:
+
 - Go 1.22+
 - Node.js 20+
 - Rust toolchain (for core engine development)
@@ -67,6 +68,7 @@ reach bugreport
 ```
 
 Attach the generated zip to:
+
 - https://github.com/reach/reach/issues/new?template=bug_report.yml
 
 ## Uninstall

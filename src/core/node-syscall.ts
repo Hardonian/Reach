@@ -1,7 +1,7 @@
 import { access, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import { dirname } from "node:path";
-import { SysCall } from "../core/syscall.js";
+import { SysCall } from "./syscall.js";
 
 /**
  * NodeSysCall
