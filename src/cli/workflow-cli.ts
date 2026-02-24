@@ -688,7 +688,9 @@ async function runDecisionInWorkspace(
 
   if (existsSync(defaultKeyPath)) {
     // Create and sign envelope
-    const envelope = core.createEnvelope(transcript, { created_by: "zeo-cli" });
+    const envelope = core.createEnvelope(transcript as unknown as Record<string, unknown>, {
+      created_by: "zeo-cli",
+    });
     const signedEnvelope = core.signEnvelopeWithEd25519(
       envelope,
       defaultKeyPath,

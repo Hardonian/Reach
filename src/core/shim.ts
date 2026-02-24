@@ -13,6 +13,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { join, resolve } from "node:path";
 import { SysCall } from "./syscall.js";
 import { canonicalJson } from "../determinism/canonicalJson.js";
+import type { FinalizedDecisionTranscript } from "@zeo/contracts";
 
 // ---------------------------------------------------------------------------
 // Hash version constant
@@ -64,7 +65,7 @@ export function deactivateDeterministicMode(): void {
 // Core decision execution
 // ---------------------------------------------------------------------------
 
-function hashInput(input: any): string {
+function hashInput(input: Record<string, unknown> | null | undefined): string {
   // Hash only decision-stable fields; exclude logicalTimestamp and opts
   // which change between runs but don't alter the decision outcome.
   const stablePayload = {
@@ -78,17 +79,50 @@ function hashInput(input: any): string {
   return hashString(canonicalJson(stablePayload));
 }
 
-export function executeDecision(input: any): { result: any; transcript: any } {
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === "string");
+}
+
+interface DecisionEvaluation {
+  lens: string;
+  robustActions: string[];
+}
+
+interface DecisionEvidenceHint {
+  prompt: string;
+}
+
+type DecisionExecutionTranscript = FinalizedDecisionTranscript & {
+  hashVersion: typeof HASH_VERSION;
+  inputs: Record<string, unknown> | null | undefined;
+  depends_on: string[];
+  informs: string[];
+  analysis: {
+    flip_distances: Array<{ action: string; distance: string }>;
+  };
+  plan: {
+    stop_conditions: string[];
+  };
+};
+
+export function executeDecision(input: Record<string, unknown> | null | undefined): {
+  result: {
+    evaluations: DecisionEvaluation[];
+    nextBestEvidence: DecisionEvidenceHint[];
+  };
+  transcript: DecisionExecutionTranscript;
+} {
   const ts = deterministicMode?.clock?.timestamp?.() ?? resolveTimestamp();
   const inputHash = hashInput(input);
-  const transcript = {
+  const transcript: DecisionExecutionTranscript = {
     transcript_id: `t_${inputHash.slice(0, 12)}`,
     transcript_hash: inputHash,
     hashVersion: HASH_VERSION,
     inputs: input,
     timestamp: ts,
-    depends_on: input?.dependsOn ?? [],
-    informs: input?.informs ?? [],
+    depends_on: asStringArray(input?.dependsOn),
+    informs: asStringArray(input?.informs),
     analysis: {
       flip_distances: [] as Array<{ action: string; distance: string }>,
     },
@@ -96,14 +130,17 @@ export function executeDecision(input: any): { result: any; transcript: any } {
       stop_conditions: ["All high-severity findings resolved", "Evidence completeness >= 90%"],
     },
   };
-  const result = {
-    evaluations: [] as Array<{ lens: string; robustActions: string[] }>,
-    nextBestEvidence: [] as Array<{ prompt: string }>,
+  const result: {
+    evaluations: DecisionEvaluation[];
+    nextBestEvidence: DecisionEvidenceHint[];
+  } = {
+    evaluations: [],
+    nextBestEvidence: [],
   };
   return { result, transcript };
 }
 
-export function verifyDecisionTranscript(_transcript: any): any {
+export function verifyDecisionTranscript(_transcript: unknown): Record<string, unknown> {
   return { verified: true };
 }
 
@@ -375,13 +412,9 @@ export async function revokeKeyringEntry(
   fingerprint: string,
 ): Promise<{ revoked: boolean; fingerprint: string }> {
   const entryPath = join(keyringDir, `${fingerprint}.json`);
-  let exists = false;
-
-  if (deterministicMode?.syscall) {
-    exists = await deterministicMode.syscall.fs.exists(entryPath);
-  } else {
-    exists = existsSync(entryPath);
-  }
+  const exists = deterministicMode?.syscall
+    ? await deterministicMode.syscall.fs.exists(entryPath)
+    : existsSync(entryPath);
 
   if (!exists) return { revoked: false, fingerprint };
 
@@ -513,8 +546,8 @@ export async function compactTrustProfiles(root: string): Promise<
     results.push({
       subject_type: first?.subject_type ?? "key",
       subject_id: first?.subject_id ?? f.replace(".ndjson", ""),
-      pass_count: events.filter((e: any) => e.verify === "pass").length,
-      fail_count: events.filter((e: any) => e.verify !== "pass").length,
+      pass_count: events.filter((e: Record<string, unknown>) => e.verify === "pass").length,
+      fail_count: events.filter((e: Record<string, unknown>) => e.verify !== "pass").length,
     });
   }
   return results;

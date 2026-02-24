@@ -9,6 +9,10 @@ const RELEASE_DIR = path.join(ROOT, "dist", "release-smoke");
 
 function run(cmd, args, options = {}) {
   const result = spawnSync(cmd, args, { stdio: "inherit", ...options });
+  if (result.error) {
+    console.error(`Failed to execute '${cmd} ${args.join(" ")}': ${result.error.message}`);
+    process.exit(1);
+  }
   if (result.status !== 0) {
     process.exit(result.status ?? 1);
   }
@@ -16,6 +20,10 @@ function run(cmd, args, options = {}) {
 
 function runAllowingDoctorFailure(cmd, args, options = {}) {
   const result = spawnSync(cmd, args, { stdio: "inherit", ...options });
+  if (result.error) {
+    console.error(`Failed to execute '${cmd} ${args.join(" ")}': ${result.error.message}`);
+    process.exit(1);
+  }
   if (result.status !== 0 && result.status !== 1) {
     process.exit(result.status ?? 1);
   }
@@ -68,7 +76,30 @@ function main() {
   const binary = platformBinaryName();
   const binaryPath = path.join(RELEASE_DIR, binary);
 
-  run("go", ["build", "-o", binaryPath, "./services/runner/cmd/reachctl"], { cwd: ROOT });
+  const hasGo = spawnSync("go", ["version"], { stdio: "ignore" }).status === 0;
+  const fallbackBinaries = [
+    path.join(ROOT, "reachctl"),
+    path.join(ROOT, "services", "runner", "reachctl"),
+  ];
+  const fallbackBinary = fallbackBinaries.find((candidate) => fs.existsSync(candidate));
+
+  if (hasGo) {
+    run("go", ["build", "-o", binaryPath, "./services/runner/cmd/reachctl"], { cwd: ROOT });
+  } else if (fallbackBinary) {
+    fs.copyFileSync(fallbackBinary, binaryPath);
+  } else {
+    const message =
+      `No native installer smoke binary available for ${process.platform}/${process.arch}: ` +
+      "go toolchain not installed and no local reachctl binary present.";
+    if (process.env.CI === "true") {
+      console.error(message);
+      process.exit(1);
+    }
+    console.warn(`⚠️  ${message}`);
+    console.warn("⚠️  Skipping installer execution checks in local mode.");
+    return;
+  }
+
   fs.copyFileSync(path.join(ROOT, "reach"), path.join(RELEASE_DIR, "reach"));
   fs.copyFileSync(
     path.join(ROOT, "scripts/release/install.sh"),

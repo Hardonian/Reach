@@ -91,7 +91,9 @@ $AllowedFiles = @(
     "typecheck_errors_v2.txt",
     "typecheck_errors_v3.txt",
     "typecheck_errors_v4.txt",
-    "typecheck_errors_v5.txt"
+    "typecheck_errors_v5.txt",
+    "tsc_output_latest.txt",
+    "typecheck_output.txt"
 )
 
 $AllowedDirs = @(
