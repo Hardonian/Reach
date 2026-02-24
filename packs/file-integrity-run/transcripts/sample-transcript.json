@@ -1,0 +1,9 @@
+{
+  "run_id": "sample-run",
+  "event_log": [
+    {
+      "step": "example",
+      "output": "deterministic output"
+    }
+  ]
+}

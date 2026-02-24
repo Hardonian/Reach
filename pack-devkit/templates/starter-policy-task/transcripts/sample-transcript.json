@@ -1,0 +1,11 @@
+{
+  "run_id": "sample-starter-run",
+  "event_log": [
+    {
+      "step": "task-1",
+      "tool": "echo",
+      "output": "deterministic starter output"
+    }
+  ],
+  "notes": "Reference transcript for expected deterministic output."
+}

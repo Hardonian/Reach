@@ -1,0 +1,43 @@
+{
+  "spec_version": "1.0",
+  "metadata": {
+    "id": "{{PACK_ID}}",
+    "version": "1.0.0",
+    "spec_version": "1.0",
+    "name": "{{PACK_NAME}}",
+    "description": "Starter pack with policy contract and deterministic single-step task",
+    "author": "your-name",
+    "created": "2024-01-01T00:00:00Z"
+  },
+  "declared_tools": [
+    "tool.summarize"
+  ],
+  "declared_permissions": [
+    "fs:read"
+  ],
+  "execution_graph": {
+    "steps": [
+      {
+        "id": "task-1",
+        "tool": "tool.summarize",
+        "input": "deterministic starter output"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "task-1",
+        "type": "Action",
+        "action": "tool.summarize",
+        "inputs": {
+          "text": "deterministic starter output"
+        }
+      }
+    ],
+    "edges": []
+  },
+  "deterministic": true,
+  "governed": true,
+  "policy_contract": "policy.rego",
+  "signature_hash": "",
+  "specVersion": "1.0"
+}

@@ -1,0 +1,34 @@
+{
+  "spec_version": "1.0",
+  "metadata": {
+    "id": "com.reach.dry-run-simulation",
+    "name": "dry-run-simulation",
+    "version": "1.0.0",
+    "description": "Run simulation mode without side effects and without claiming consensus"
+  },
+  "deterministic": true,
+  "execution_graph": {
+    "steps": [
+      {
+        "id": "simulate",
+        "tool": "tool.summarize",
+        "input": "deterministic starter output"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "simulate",
+        "type": "Action",
+        "action": "tool.summarize",
+        "inputs": {
+          "text": "deterministic starter output"
+        }
+      }
+    ],
+    "edges": []
+  },
+  "specVersion": "1.0",
+  "declared_tools": [
+    "tool.summarize"
+  ]
+}
