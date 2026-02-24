@@ -5,7 +5,6 @@ package historical
 import (
 	"context"
 	"crypto/sha256"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -19,14 +18,14 @@ import (
 
 // Manager is the main entry point for all historical intelligence features.
 type Manager struct {
-	index     *LineageIndex
-	drift     *DriftDetector
-	baseline  *BaselineManager
-	trends    *TrendMetricsManager
-	diff      *EvidenceDiffManager
+	index    *LineageIndex
+	drift    *DriftDetector
+	baseline *BaselineManager
+	trends   *TrendMetricsManager
+	diff     *EvidenceDiffManager
 
-	mu       sync.RWMutex
-	dataDir  string
+	mu      sync.RWMutex
+	dataDir string
 }
 
 // Config holds configuration for the historical manager.
@@ -164,11 +163,9 @@ func (m *Manager) SeedHistoricalData(ctx context.Context, pipelineID string, num
 
 	for i := 0; i < numRuns; i++ {
 		runID := generateRunID(pipelineID, i)
-		now := time.Now().UTC().AddDate(0, 0, -numRuns+i)
-		
 		// Generate events for this run
 		events := generateSeedEvents(runID, tools, plugins, i)
-		
+
 		// Index events
 		if err := m.index.IndexRun(ctx, runID, events); err != nil {
 			return err
@@ -179,7 +176,7 @@ func (m *Manager) SeedHistoricalData(ctx context.Context, pipelineID string, num
 		trustScore := 0.90 - float64(i)*0.02
 		chaosSens := 0.05 + float64(i)*0.01 // Slight increase
 
-		if err := m.drift.RecordRunMetrics(ctx, runID, pipelineID, 
+		if err := m.drift.RecordRunMetrics(ctx, runID, pipelineID,
 			reproScore, trustScore, chaosSens, len(events), ""); err != nil {
 			return err
 		}
@@ -215,19 +212,19 @@ func generateSeedEvents(runID string, tools, plugins []string, runIndex int) []m
 		plugin := plugins[i%len(plugins)]
 
 		event := map[string]interface{}{
-			"type":         "tool.call",
-			"tool":         tool,
-			"plugin":       plugin,
-			"timestamp":    time.Now().Add(time.Duration(i) * time.Second).Format(time.RFC3339),
-			"run_id":       runID,
-			"step_index":   i,
+			"type":          "tool.call",
+			"tool":          tool,
+			"plugin":        plugin,
+			"timestamp":     time.Now().Add(time.Duration(i) * time.Second).Format(time.RFC3339),
+			"run_id":        runID,
+			"step_index":    i,
 			"artifact_hash": generateArtifactHash(runID, i),
 		}
 
 		// Add some variability
 		if i%3 == 0 {
 			event["result"] = map[string]interface{}{
-				"output": "success",
+				"output":      "success",
 				"duration_ms": 100 + runIndex*10,
 			}
 		}

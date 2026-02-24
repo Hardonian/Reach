@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"math"
 	"os"
 	"path/filepath"
 	"sort"
@@ -22,13 +21,13 @@ import (
 
 // EvidenceDiff represents a comprehensive diff between two runs with visualization data.
 type EvidenceDiff struct {
-	ReferenceRunID   string              `json:"reference_run_id"`
-	ComparisonRunID  string              `json:"comparison_run_id"`
-	GeneratedAt      time.Time           `json:"generated_at"`
-	HistoricalOverlay []HistoricalPoint   `json:"historical_overlay"`
-	ChangeIntensity  ChangeIntensity     `json:"change_intensity"`
-	StepVolatility   []StepVolatility   `json:"step_volatility"`
-	Visualization    VisualizationData   `json:"visualization"`
+	ReferenceRunID    string            `json:"reference_run_id"`
+	ComparisonRunID   string            `json:"comparison_run_id"`
+	GeneratedAt       time.Time         `json:"generated_at"`
+	HistoricalOverlay []HistoricalPoint `json:"historical_overlay"`
+	ChangeIntensity   ChangeIntensity   `json:"change_intensity"`
+	StepVolatility    []StepVolatility  `json:"step_volatility"`
+	Visualization     VisualizationData `json:"visualization"`
 }
 
 // HistoricalPoint represents a point in the historical overlay.
@@ -43,34 +42,34 @@ type HistoricalPoint struct {
 
 // ChangeIntensity represents the change intensity analysis.
 type ChangeIntensity struct {
-	Score          float64         `json:"score"` // 0-1
-	Level          string          `json:"level"` // "minimal", "low", "moderate", "high", "extreme"
-	ModifiedSteps  int             `json:"modified_steps"`
-	AddedSteps     int             `json:"added_steps"`
-	RemovedSteps   int             `json:"removed_steps"`
+	Score             float64      `json:"score"` // 0-1
+	Level             string       `json:"level"` // "minimal", "low", "moderate", "high", "extreme"
+	ModifiedSteps     int          `json:"modified_steps"`
+	AddedSteps        int          `json:"added_steps"`
+	RemovedSteps      int          `json:"removed_steps"`
 	ModifiedArtifacts int          `json:"modified_artifacts"`
-	StepBreakdown []StepChange     `json:"step_breakdown"`
+	StepBreakdown     []StepChange `json:"step_breakdown"`
 }
 
 // StepChange represents a change to a specific step.
 type StepChange struct {
-	StepIndex    int     `json:"step_index"`
-	StepKey      string  `json:"step_key"`
-	ChangeType   string  `json:"change_type"` // "added", "removed", "modified", "unchanged"
-	Intensity    float64 `json:"intensity"` // 0-1
-	HashBefore   string  `json:"hash_before,omitempty"`
-	HashAfter    string  `json:"hash_after,omitempty"`
-	RiskLevel    string  `json:"risk_level"` // "low", "medium", "high"
+	StepIndex  int     `json:"step_index"`
+	StepKey    string  `json:"step_key"`
+	ChangeType string  `json:"change_type"` // "added", "removed", "modified", "unchanged"
+	Intensity  float64 `json:"intensity"`   // 0-1
+	HashBefore string  `json:"hash_before,omitempty"`
+	HashAfter  string  `json:"hash_after,omitempty"`
+	RiskLevel  string  `json:"risk_level"` // "low", "medium", "high"
 }
 
 // StepVolatility represents the volatility ranking of a step.
 type StepVolatility struct {
-	StepKey       string    `json:"step_key"`
-	Rank          int       `json:"rank"`
-	Volatility    float64   `json:"volatility"` // 0-1
-	History       []HistoryPoint `json:"history"`
-	TrendDirection string   `json:"trend_direction"` // "increasing", "decreasing", "stable"
-	RiskScore     float64   `json:"risk_score"`
+	StepKey        string         `json:"step_key"`
+	Rank           int            `json:"rank"`
+	Volatility     float64        `json:"volatility"` // 0-1
+	History        []HistoryPoint `json:"history"`
+	TrendDirection string         `json:"trend_direction"` // "increasing", "decreasing", "stable"
+	RiskScore      float64        `json:"risk_score"`
 }
 
 // HistoryPoint represents a single historical data point.
@@ -81,23 +80,23 @@ type HistoryPoint struct {
 
 // VisualizationData contains data for visualization rendering.
 type VisualizationData struct {
-	GraphType     string         `json:"graph_type"` // "timeline", "heatmap", "diff"
-	Nodes         []VisualNode   `json:"nodes"`
-	Edges         []VisualEdge   `json:"edges"`
-	ColorScheme   ColorScheme    `json:"color_scheme"`
-	Layout        LayoutConfig   `json:"layout"`
-	Legend        LegendConfig   `json:"legend"`
-	Annotations   []Annotation  `json:"annotations"`
+	GraphType   string       `json:"graph_type"` // "timeline", "heatmap", "diff"
+	Nodes       []VisualNode `json:"nodes"`
+	Edges       []VisualEdge `json:"edges"`
+	ColorScheme ColorScheme  `json:"color_scheme"`
+	Layout      LayoutConfig `json:"layout"`
+	Legend      LegendConfig `json:"legend"`
+	Annotations []Annotation `json:"annotations"`
 }
 
 // VisualNode represents a node in the visualization.
 type VisualNode struct {
-	ID         string                 `json:"id"`
-	Label      string                 `json:"label"`
-	Type       string                 `json:"type"` // "step", "artifact", "event"
-	Position   Position               `json:"position"`
-	Style      NodeStyle              `json:"style"`
-	Metadata   map[string]interface{} `json:"metadata,omitempty"`
+	ID       string                 `json:"id"`
+	Label    string                 `json:"label"`
+	Type     string                 `json:"type"` // "step", "artifact", "event"
+	Position Position               `json:"position"`
+	Style    NodeStyle              `json:"style"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // Position represents a 2D position.
@@ -135,38 +134,38 @@ type EdgeStyle struct {
 
 // ColorScheme defines the color scheme for visualization.
 type ColorScheme struct {
-	Added    string `json:"added"`
-	Removed  string `json:"removed"`
-	Modified string `json:"modified"`
-	Unchanged string `json:"unchanged"`
-	HighRisk string `json:"high_risk"`
-	LowRisk  string `json:"low_risk"`
-	Timeline []string `json:"timeline"`
+	Added     string   `json:"added"`
+	Removed   string   `json:"removed"`
+	Modified  string   `json:"modified"`
+	Unchanged string   `json:"unchanged"`
+	HighRisk  string   `json:"high_risk"`
+	LowRisk   string   `json:"low_risk"`
+	Timeline  []string `json:"timeline"`
 }
 
 // LayoutConfig defines layout configuration.
 type LayoutConfig struct {
-	Type       string  `json:"type"` // "horizontal", "vertical", "radial"
-	Direction  string  `json:"direction"`
-	Spacing    float64 `json:"spacing"`
-	Animation  bool    `json:"animation"`
+	Type      string  `json:"type"` // "horizontal", "vertical", "radial"
+	Direction string  `json:"direction"`
+	Spacing   float64 `json:"spacing"`
+	Animation bool    `json:"animation"`
 }
 
 // LegendConfig defines legend configuration.
 type LegendConfig struct {
-	Show       bool    `json:"show"`
-	Position   string  `json:"position"` // "top", "bottom", "left", "right"
+	Show        bool   `json:"show"`
+	Position    string `json:"position"`    // "top", "bottom", "left", "right"
 	Orientation string `json:"orientation"` // "horizontal", "vertical"
 }
 
 // Annotation represents an annotation on the visualization.
 type Annotation struct {
-	Type      string   `json:"type"` // "arrow", "box", "text"
-	X         float64  `json:"x"`
-	Y         float64  `json:"y"`
-	Content   string   `json:"content"`
-	Style     string   `json:"style,omitempty"`
-	Direction string   `json:"direction,omitempty"`
+	Type      string  `json:"type"` // "arrow", "box", "text"
+	X         float64 `json:"x"`
+	Y         float64 `json:"y"`
+	Content   string  `json:"content"`
+	Style     string  `json:"style,omitempty"`
+	Direction string  `json:"direction,omitempty"`
 }
 
 // ============================================================================
@@ -236,9 +235,9 @@ func (m *EvidenceDiffManager) Close() error {
 // ============================================================================
 
 // ComputeEvidenceDiff computes a comprehensive evidence diff between two runs.
-func (m *EvidenceDiffManager) ComputeEvidenceDiff(ctx context.Context, referenceRunID, comparisonRunID string, 
+func (m *EvidenceDiffManager) ComputeEvidenceDiff(ctx context.Context, referenceRunID, comparisonRunID string,
 	referenceEvents, comparisonEvents []map[string]interface{}) (*EvidenceDiff, error) {
-	
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -281,7 +280,7 @@ func (m *EvidenceDiffManager) buildHistoricalOverlay(ctx context.Context, refere
 
 	// Get runs with similar artifacts
 	similarRuns, _ := m.index.SearchSimilar(ctx, referenceRunID, 10)
-	
+
 	for i, run := range similarRuns {
 		colorIdx := i % len(colors)
 		points = append(points, HistoricalPoint{
@@ -293,6 +292,8 @@ func (m *EvidenceDiffManager) buildHistoricalOverlay(ctx context.Context, refere
 			Color:       colors[colorIdx],
 		})
 	}
+
+	now := time.Now().UTC()
 
 	// Add reference and comparison runs
 	points = append(points, HistoricalPoint{
@@ -356,7 +357,7 @@ func (m *EvidenceDiffManager) computeChangeIntensity(referenceEvents, comparison
 			ci.RemovedSteps++
 			ci.StepBreakdown = append(ci.StepBreakdown, StepChange{
 				StepIndex:  ref.Index,
-				StepKey:   key,
+				StepKey:    key,
 				ChangeType: "removed",
 				Intensity:  1.0,
 				HashBefore: ref.ProofHash,
@@ -369,7 +370,7 @@ func (m *EvidenceDiffManager) computeChangeIntensity(referenceEvents, comparison
 			ci.ModifiedSteps++
 			ci.StepBreakdown = append(ci.StepBreakdown, StepChange{
 				StepIndex:  comp.Index,
-				StepKey:   key,
+				StepKey:    key,
 				ChangeType: "modified",
 				Intensity:  computeHashDistance(ref.ProofHash, comp.ProofHash),
 				HashBefore: ref.ProofHash,
@@ -379,7 +380,7 @@ func (m *EvidenceDiffManager) computeChangeIntensity(referenceEvents, comparison
 		} else {
 			ci.StepBreakdown = append(ci.StepBreakdown, StepChange{
 				StepIndex:  comp.Index,
-				StepKey:   key,
+				StepKey:    key,
 				ChangeType: "unchanged",
 				Intensity:  0.0,
 				RiskLevel:  "low",
@@ -392,12 +393,12 @@ func (m *EvidenceDiffManager) computeChangeIntensity(referenceEvents, comparison
 		if _, exists := refSteps[key]; !exists {
 			ci.AddedSteps++
 			ci.StepBreakdown = append(ci.StepBreakdown, StepChange{
-				StepIndex: comp.Index,
-				StepKey:   key,
+				StepIndex:  comp.Index,
+				StepKey:    key,
 				ChangeType: "added",
-				Intensity: 0.5,
-				HashAfter: comp.ProofHash,
-				RiskLevel: "medium",
+				Intensity:  0.5,
+				HashAfter:  comp.ProofHash,
+				RiskLevel:  "medium",
 			})
 		}
 	}
@@ -451,7 +452,7 @@ func (m *EvidenceDiffManager) computeStepVolatility(ctx context.Context, referen
 
 	// Get top volatile steps
 	type stepVol struct {
-		key        string
+		key         string
 		changeCount int
 	}
 	var steps []stepVol
@@ -484,12 +485,12 @@ func (m *EvidenceDiffManager) computeStepVolatility(ctx context.Context, referen
 		}
 
 		volatilities = append(volatilities, StepVolatility{
-			StepKey:       s.key,
-			Rank:          rank + 1,
-			Volatility:    vol,
-			History:       []HistoryPoint{}, // Would come from DB in practice
+			StepKey:        s.key,
+			Rank:           rank + 1,
+			Volatility:     vol,
+			History:        []HistoryPoint{}, // Would come from DB in practice
 			TrendDirection: trend,
-			RiskScore:     riskScore,
+			RiskScore:      riskScore,
 		})
 	}
 
@@ -521,7 +522,7 @@ func (m *EvidenceDiffManager) buildVisualizationData(diff *EvidenceDiff) Visuali
 	nodeMap := make(map[string]*VisualNode)
 	for i, change := range diff.ChangeIntensity.StepBreakdown {
 		nodeID := fmt.Sprintf("step_%d", change.StepIndex)
-		
+
 		var fill string
 		switch change.ChangeType {
 		case "added":
@@ -547,7 +548,7 @@ func (m *EvidenceDiffManager) buildVisualizationData(diff *EvidenceDiff) Visuali
 				Stroke:      "#333",
 				StrokeWidth: 2,
 				Opacity:     1.0,
-				Radius:     20,
+				Radius:      20,
 			},
 			Metadata: map[string]interface{}{
 				"change_type": change.ChangeType,
@@ -637,7 +638,7 @@ func (m *EvidenceDiffManager) WriteDiffMarkdown(diff *EvidenceDiff, path string)
 		md.WriteString("| Step Key | Type | Intensity | Risk |\n")
 		md.WriteString("|----------|------|------------|------|\n")
 		for _, change := range diff.ChangeIntensity.StepBreakdown {
-			md.WriteString(fmt.Sprintf("| %s | %s | %.2f | %s |\n", 
+			md.WriteString(fmt.Sprintf("| %s | %s | %.2f | %s |\n",
 				change.StepKey, change.ChangeType, change.Intensity, change.RiskLevel))
 		}
 		md.WriteString("\n")
@@ -652,7 +653,7 @@ func (m *EvidenceDiffManager) WriteDiffMarkdown(diff *EvidenceDiff, path string)
 			if vol.Rank > 10 {
 				break
 			}
-			md.WriteString(fmt.Sprintf("| %d | %s | %.2f | %s | %.1f |\n", 
+			md.WriteString(fmt.Sprintf("| %d | %s | %.2f | %s | %.1f |\n",
 				vol.Rank, vol.StepKey, vol.Volatility, vol.TrendDirection, vol.RiskScore))
 		}
 		md.WriteString("\n")
@@ -665,7 +666,7 @@ func (m *EvidenceDiffManager) WriteDiffMarkdown(diff *EvidenceDiff, path string)
 		md.WriteString("| Run ID | Similarity | Timestamp |\n")
 		md.WriteString("|--------|-------------|----------|\n")
 		for _, point := range diff.HistoricalOverlay {
-			md.WriteString(fmt.Sprintf("| %s | %.2f | %s |\n", 
+			md.WriteString(fmt.Sprintf("| %s | %.2f | %s |\n",
 				point.RunID[:8], point.Similarity, point.Timestamp.Format("2006-01-02 15:04")))
 		}
 		md.WriteString("\n")
@@ -700,14 +701,12 @@ func computeHashDistance(hash1, hash2 string) float64 {
 
 func defaultColorScheme() ColorScheme {
 	return ColorScheme{
-		Added:     "#4CAF50",   // Green
-		Removed:   "#F44336",   // Red
-		Modified:  "#FF9800",   // Orange
-		Unchanged: "#9E9E9E",   // Gray
-		HighRisk:  "#D32F2F",   // Dark Red
-		LowRisk:   "#388E3C",   // Dark Green
+		Added:     "#4CAF50", // Green
+		Removed:   "#F44336", // Red
+		Modified:  "#FF9800", // Orange
+		Unchanged: "#9E9E9E", // Gray
+		HighRisk:  "#D32F2F", // Dark Red
+		LowRisk:   "#388E3C", // Dark Green
 		Timeline:  []string{"#E3F2FD", "#BBDEFB", "#90CAF9", "#64B5F6", "#42A5F5", "#2196F3", "#1E88E5", "#1976D2", "#1565C0", "#0D47A1"},
 	}
 }
-
-

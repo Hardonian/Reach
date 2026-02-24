@@ -26,6 +26,8 @@ Cargo.lock
 bin/
 pkg/
 *.test
+*.exe
+*.out
 coverage.out
 
 # ======================================

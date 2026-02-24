@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -117,9 +116,9 @@ func runSearch(ctx context.Context, dataRoot string, args []string, out io.Write
 	}
 
 	return writeJSON(out, map[string]interface{}{
-		"command":  "search",
-		"results":  results,
-		"count":    getResultCount(results),
+		"command": "search",
+		"results": results,
+		"count":   getResultCount(results),
 	})
 }
 
@@ -186,10 +185,10 @@ func runDrift(ctx context.Context, dataRoot string, args []string, out io.Writer
 	}
 
 	return writeJSON(out, map[string]interface{}{
-		"command":       "drift",
-		"pipeline_id":   *pipelineID,
-		"window_days":   *window,
-		"report":        report,
+		"command":     "drift",
+		"pipeline_id": *pipelineID,
+		"window_days": *window,
+		"report":      report,
 	})
 }
 
@@ -307,8 +306,8 @@ func runBaselineCompare(ctx context.Context, dataRoot string, args []string, out
 	}
 
 	return writeJSON(out, map[string]interface{}{
-		"command":      "baseline compare",
-		"comparison":   comparison,
+		"command":    "baseline compare",
+		"comparison": comparison,
 	})
 }
 
@@ -452,10 +451,10 @@ func runDiff(ctx context.Context, dataRoot string, args []string, out io.Writer,
 	}
 
 	return writeJSON(out, map[string]interface{}{
-		"command":          "diff",
+		"command":           "diff",
 		"reference_run_id":  *referenceRunID,
 		"comparison_run_id": *comparisonRunID,
-		"diff":             diff,
+		"diff":              diff,
 	})
 }
 
@@ -505,11 +504,11 @@ func generateSampleEvents(runID string) []map[string]interface{} {
 
 	for i, tool := range tools {
 		events = append(events, map[string]interface{}{
-			"type":         "tool.call",
-			"tool":         tool,
-			"run_id":       runID,
-			"step_index":   i,
-			"timestamp":    time.Now().Add(time.Duration(i) * time.Second).Format(time.RFC3339),
+			"type":          "tool.call",
+			"tool":          tool,
+			"run_id":        runID,
+			"step_index":    i,
+			"timestamp":     time.Now().Add(time.Duration(i) * time.Second).Format(time.RFC3339),
 			"artifact_hash": fmt.Sprintf("%x", []byte(runID+string(rune('0'+i))))[:16],
 		})
 	}

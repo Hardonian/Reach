@@ -11,7 +11,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 )
@@ -48,53 +47,53 @@ type BaselineMetrics struct {
 
 // BaselineComparison represents the result of comparing a run to a baseline.
 type BaselineComparison struct {
-	BaselineID       string             `json:"baseline_id"`
-	BaselineRunID    string             `json:"baseline_run_id"`
-	ComparisonRunID  string             `json:"comparison_run_id"`
-	ComparedAt       time.Time          `json:"compared_at"`
-	DeltaRisk        DeltaRisk          `json:"delta_risk"`
-	StepDeltas       []StepDelta        `json:"step_deltas"`
-	ArtifactDeltas   []ArtifactDelta    `json:"artifact_deltas"`
-	MetricDeltas     MetricDeltas       `json:"metric_deltas"`
-	Recommendation   string             `json:"recommendation"`
-	Approved         bool               `json:"approved"`
+	BaselineID      string          `json:"baseline_id"`
+	BaselineRunID   string          `json:"baseline_run_id"`
+	ComparisonRunID string          `json:"comparison_run_id"`
+	ComparedAt      time.Time       `json:"compared_at"`
+	DeltaRisk       DeltaRisk       `json:"delta_risk"`
+	StepDeltas      []StepDelta     `json:"step_deltas"`
+	ArtifactDeltas  []ArtifactDelta `json:"artifact_deltas"`
+	MetricDeltas    MetricDeltas    `json:"metric_deltas"`
+	Recommendation  string          `json:"recommendation"`
+	Approved        bool            `json:"approved"`
 }
 
 // DeltaRisk represents the overall risk assessment of changes.
 type DeltaRisk struct {
-	OverallRiskScore float64 `json:"overall_risk_score"` // 0-100
-	RiskLevel        string  `json:"risk_level"`        // "low", "medium", "high", "critical"
-	ChangeIntensity  float64 `json:"change_intensity"`  // 0-1
-	BreakingChanges  int     `json:"breaking_changes"`
+	OverallRiskScore float64  `json:"overall_risk_score"` // 0-100
+	RiskLevel        string   `json:"risk_level"`         // "low", "medium", "high", "critical"
+	ChangeIntensity  float64  `json:"change_intensity"`   // 0-1
+	BreakingChanges  int      `json:"breaking_changes"`
 	NewRisks         []string `json:"new_risks"`
 }
 
 // StepDelta represents a change in a step.
 type StepDelta struct {
-	StepKey       string    `json:"step_key"`
-	StepIndex     int       `json:"step_index"`
-	DeltaType     string    `json:"delta_type"` // "added", "removed", "modified", "unchanged"
-	BaselineProof string    `json:"baseline_proof,omitempty"`
-	CurrentProof  string    `json:"current_proof,omitempty"`
-	RiskImpact    float64   `json:"risk_impact"` // 0-1
-	Details       string    `json:"details,omitempty"`
+	StepKey       string  `json:"step_key"`
+	StepIndex     int     `json:"step_index"`
+	DeltaType     string  `json:"delta_type"` // "added", "removed", "modified", "unchanged"
+	BaselineProof string  `json:"baseline_proof,omitempty"`
+	CurrentProof  string  `json:"current_proof,omitempty"`
+	RiskImpact    float64 `json:"risk_impact"` // 0-1
+	Details       string  `json:"details,omitempty"`
 }
 
 // ArtifactDelta represents a change in an artifact.
 type ArtifactDelta struct {
-	ArtifactName  string `json:"artifact_name"`
-	DeltaType     string `json:"delta_type"` // "added", "removed", "modified", "unchanged"
-	BaselineHash  string `json:"baseline_hash,omitempty"`
-	CurrentHash   string `json:"current_hash,omitempty"`
-	RiskImpact    float64 `json:"risk_impact"`
+	ArtifactName string  `json:"artifact_name"`
+	DeltaType    string  `json:"delta_type"` // "added", "removed", "modified", "unchanged"
+	BaselineHash string  `json:"baseline_hash,omitempty"`
+	CurrentHash  string  `json:"current_hash,omitempty"`
+	RiskImpact   float64 `json:"risk_impact"`
 }
 
 // MetricDeltas represents changes in metrics.
 type MetricDeltas struct {
-	ReproducibilityDelta float64 `json:"reproducibility_delta"`
-	TrustScoreDelta      float64 `json:"trust_score_delta"`
+	ReproducibilityDelta  float64 `json:"reproducibility_delta"`
+	TrustScoreDelta       float64 `json:"trust_score_delta"`
 	ChaosSensitivityDelta float64 `json:"chaos_sensitivity_delta"`
-	StepCountDelta       int     `json:"step_count_delta"`
+	StepCountDelta        int     `json:"step_count_delta"`
 }
 
 // ErrBaselineImmutable is returned when attempting to modify a frozen baseline.
@@ -109,9 +108,9 @@ var ErrBaselineNotFound = errors.New("baseline not found")
 
 // BaselineManager manages frozen baselines.
 type BaselineManager struct {
-	db      *sql.DB
-	mu      sync.RWMutex
-	dataDir string
+	db       *sql.DB
+	mu       sync.RWMutex
+	dataDir  string
 	detector *DriftDetector
 }
 
@@ -187,12 +186,12 @@ func (m *BaselineManager) FreezeBaseline(ctx context.Context, pipelineID, runID 
 
 	// Check if baseline already exists for this pipeline
 	var existingID string
-	err := m.db.QueryRowContext(ctx, 
+	err := m.db.QueryRowContext(ctx,
 		"SELECT id FROM baselines WHERE pipeline_id = ?", pipelineID).Scan(&existingID)
 	if err == nil {
 		// Check if it's immutable
 		var immutable bool
-		err = m.db.QueryRowContext(ctx, 
+		err = m.db.QueryRowContext(ctx,
 			"SELECT immutable FROM baselines WHERE id = ?", existingID).Scan(&immutable)
 		if err == nil && immutable {
 			return nil, fmt.Errorf("%w: baseline %s exists and is immutable", ErrBaselineImmutable, existingID)
@@ -241,7 +240,7 @@ func (m *BaselineManager) FreezeBaseline(ctx context.Context, pipelineID, runID 
 		RunID:          runID,
 		FrozenAt:       now,
 		FrozenBy:       frozenBy,
-		Immutable:       true,
+		Immutable:      true,
 		Metrics:        metrics,
 		StepProofs:     stepProofs,
 		ArtifactHashes: artifactHashes,
@@ -283,7 +282,7 @@ func (m *BaselineManager) GetBaseline(ctx context.Context, id string) (*Baseline
 		SELECT id, pipeline_id, run_id, frozen_at, frozen_by, immutable, metrics_json, 
 		       step_proofs_json, artifact_hashes_json, event_log_hash, fingerprint, signature, metadata_json
 		FROM baselines WHERE id = ?
-	`, id).Scan(&baseline.ID, &baseline.PipelineID, &baseline.RunID, &baseline.FrozenAt, 
+	`, id).Scan(&baseline.ID, &baseline.PipelineID, &baseline.RunID, &baseline.FrozenAt,
 		&frozenBy, &baseline.Immutable, &metricsJSON, &stepProofsJSON, &artifactHashesJSON,
 		&baseline.EventLogHash, &baseline.Fingerprint, &signature, &metadataJSON)
 	if err == sql.ErrNoRows {
@@ -309,8 +308,8 @@ func (m *BaselineManager) GetBaselineByPipeline(ctx context.Context, pipelineID 
 	defer m.mu.RUnlock()
 
 	var id string
-	err := m.db.QueryRowContext(ctx, 
-		"SELECT id FROM baselines WHERE pipeline_id = ? ORDER BY frozen_at DESC LIMIT 1", 
+	err := m.db.QueryRowContext(ctx,
+		"SELECT id FROM baselines WHERE pipeline_id = ? ORDER BY frozen_at DESC LIMIT 1",
 		pipelineID).Scan(&id)
 	if err == sql.ErrNoRows {
 		return nil, ErrBaselineNotFound
@@ -621,7 +620,7 @@ func (m *BaselineManager) computeDeltaRisk(comparison *BaselineComparison) Delta
 	for _, delta := range comparison.ArtifactDeltas {
 		if delta.DeltaType == "removed" {
 			riskScore += 10
-			risk.NewRisks = append(risk.NewRisks, 
+			risk.NewRisks = append(risk.NewRisks,
 				fmt.Sprintf("Artifact '%s' removed", delta.ArtifactName))
 		}
 		if delta.DeltaType == "modified" {

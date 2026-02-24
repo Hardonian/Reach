@@ -1,0 +1,37 @@
+name: sbom
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  generate-sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.7'
+          cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Generate Go SBOM (reachctl)
+        run: |
+          mkdir -p sbom
+          go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.8.0
+          cyclonedx-gomod app -json -output sbom/go-reachctl.cdx.json ./services/runner/cmd/reachctl
+
+      - name: Generate Node SBOM (root)
+        run: |
+          npm ci --ignore-scripts
+          npx --yes @cyclonedx/cyclonedx-npm --output-file sbom/node-root.cdx.json --output-format json
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom/*.json
