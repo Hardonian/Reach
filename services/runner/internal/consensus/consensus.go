@@ -1,4 +1,4 @@
-package api
+package consensus
 
 import (
 	"crypto/sha256"

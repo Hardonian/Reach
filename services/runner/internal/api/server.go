@@ -24,6 +24,7 @@ import (
 	"reach/core/config/tenant"
 	"reach/services/runner/internal/adaptive"
 	"reach/services/runner/internal/arcade/gamification"
+	"reach/services/runner/internal/consensus"
 	"reach/services/runner/internal/federation"
 	"reach/services/runner/internal/jobs"
 	"reach/services/runner/internal/model"
@@ -74,7 +75,7 @@ type Server struct {
 	requestCounter atomic.Uint64
 	federation     *federation.Coordinator
 	gamification   *gamification.Store
-	consensus      *ConsensusManager // New: BFT Consensus
+	consensus      *consensus.ConsensusManager // New: BFT Consensus
 	runsCreated    atomic.Uint64
 	spawnAttempts  atomic.Uint64
 	spawnDenied    atomic.Uint64
@@ -115,7 +116,7 @@ func NewServer(db *storage.SQLiteStore, version string) *Server {
 		rateLimiter:  NewRateLimiterMiddleware(DefaultRateLimitConfig()),
 	}
 	server.initAdaptiveEngine()
-	server.consensus = NewConsensusManager()
+	server.consensus = consensus.NewConsensusManager()
 	server.store.WithObserver(server.observeEvent)
 	return server
 }
