@@ -1,0 +1,28 @@
+{
+  "subsystems": [
+    "cli",
+    "governance",
+    "runner",
+    "api",
+    "ui"
+  ],
+  "invariants": [
+    "No hard-500 user routes; return structured errors.",
+    "Tenant isolation for all user and run metadata.",
+    "No cloud-only dependency in OSS core paths.",
+    "Determinism for fingerprint-contributing paths.",
+    "Least-privilege handling for auth and webhook boundaries."
+  ],
+  "stable_public_terminology": [
+    "workflow",
+    "step",
+    "execution proof",
+    "pack identifier",
+    "run"
+  ],
+  "must_not_change_without_ack": [
+    "apps/arcade/src/app/api",
+    "services/integration-hub/internal/security",
+    "protocol/schemas"
+  ]
+}

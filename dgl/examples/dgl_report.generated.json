@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "dgl_1771971648407",
+  "timestamp": "2026-02-24T22:20:48.407Z",
+  "repo": "Reach",
+  "base_sha": "ac11857d063f6ea2950fb0368e3b20127acd75d7",
+  "head_sha": "9720a30a0791515be43e243b9eced0f4baf8fae7",
+  "summary": {
+    "intent_alignment_score": 100,
+    "terminology_drift_score": 100,
+    "semantic_drift_score": 90,
+    "trust_boundary_change_score": 100,
+    "calibration_score": 50
+  },
+  "violations": [
+    {
+      "type": "dependency_graph",
+      "severity": "warn",
+      "paths": [
+        "apps/arcade/package.json"
+      ],
+      "evidence": "Dependency declaration changed.",
+      "suggested_fix": "Review high-risk deps (auth/network/crypto/telemetry) before merge."
+    }
+  ],
+  "turbulence_hotspots": [
+    {
+      "path": ".github/workflows/prelaunch-gate.yml",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "README.md",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "apps/arcade/package.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "apps/arcade/src/app/layout.tsx",
+      "reason": "recently changed",
+      "count": 1
+    }
+  ]
+}

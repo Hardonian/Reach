@@ -17,6 +17,7 @@
  */
 
 import { createHash } from 'crypto';
+import { execSync } from 'child_process';
 
 // ============================================================================
 // Types
@@ -673,6 +674,29 @@ async function vitalsTrend(metric: string, opts: CliOptions): Promise<void> {
   }
 }
 
+
+
+// ============================================================================
+// DGL commands
+// ============================================================================
+
+async function dglCommand(subcommand: string | undefined, rest: string[], opts: CliOptions): Promise<void> {
+  const sub = subcommand || 'scan';
+  const passthrough = rest.join(' ');
+  const cmd = `npx tsx scripts/dgl-gate.ts ${sub} ${passthrough}`.trim();
+  try {
+    const out = execSync(cmd, { encoding: 'utf-8' });
+    if (opts.json) {
+      printJson(jsonOutput({ command: cmd, output: out.trim() }));
+    } else {
+      console.log(out.trim());
+    }
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'dgl command failed';
+    throw new Error(`DGL command failed. Run ${cmd}. ${msg}`);
+  }
+}
+
 // ============================================================================
 // Main CLI dispatcher
 // ============================================================================
@@ -832,6 +856,10 @@ async function main(): Promise<void> {
         }
         break;
 
+      case 'dgl':
+        await dglCommand(subcommand, rest, opts);
+        break;
+
       case 'vitals':
         switch (subcommand) {
           case 'summary':
@@ -908,6 +936,12 @@ Commands:
   retention status          Retention status
   retention compact         Compact storage
   retention prune           Prune old data
+  dgl scan                  Run DGL scan and emit JSON/SARIF/Markdown reports
+  dgl report                Alias for scan report output
+  dgl baseline --intent     Update intent baseline
+  dgl gate                  Execute DGL merge gate
+  dgl provider-matrix       Compute provider drift matrix
+  dgl route --task-class    Recommend provider/model for task
   vitals summary            Vitals summary
   vitals trend <metric>     Vitals trend
 

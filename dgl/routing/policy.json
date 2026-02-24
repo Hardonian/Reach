@@ -1,0 +1,15 @@
+{
+  "priors": {
+    "refactor": 0.45,
+    "bugfix": 0.25,
+    "docs": 0.1,
+    "security": 0.55,
+    "perf": 0.4,
+    "ui": 0.2
+  },
+  "providers": [
+    { "provider": "local", "model": "gpt-5.2-codex", "bias": -0.1 },
+    { "provider": "openrouter", "model": "claude-sonnet", "bias": 0.0 },
+    { "provider": "openrouter", "model": "gemini-pro", "bias": 0.05 }
+  ]
+}

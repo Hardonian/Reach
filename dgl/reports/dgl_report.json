@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "dgl_1771972447876",
+  "timestamp": "2026-02-24T22:34:07.876Z",
+  "repo": "Reach",
+  "base_sha": "bfbb5f956cedea346e32509c106b88b0ac48e2c2",
+  "head_sha": "53c004c13ec60d385622303f2fb91802b8c732b1",
+  "summary": {
+    "intent_alignment_score": 100,
+    "terminology_drift_score": 100,
+    "semantic_drift_score": 100,
+    "trust_boundary_change_score": 100,
+    "calibration_score": 50
+  },
+  "violations": [],
+  "turbulence_hotspots": [
+    {
+      "path": "apps/arcade/src/app/api/governance/dgl/route.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "apps/arcade/src/app/governance/dgl/page.tsx",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "dgl/reports/dgl_report.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "dgl/reports/dgl_report.md",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "dgl/reports/dgl_report.sarif",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "docs/architecture/dgl.md",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "src/dgl/api-contract-diff.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "src/dgl/ast-diff.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "src/dgl/dgl.test.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "src/dgl/index.ts",
+      "reason": "recently changed",
+      "count": 1
+    }
+  ]
+}
