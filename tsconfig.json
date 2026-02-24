@@ -11,7 +11,7 @@
     "forceConsistentCasingInFileNames": true,
     "jsx": "react-jsx",
     "paths": {
-      "@/*": ["./packages/*", "./apps/arcade/src/*"],
+      "@/*": ["./packages/*", "./apps/arcade/src/*", "./apps/docs/*"],
       "@zeo/core": ["./src/core/shim.ts"],
       "@zeo/contracts": ["./sdk/ts/src/index.ts"],
       "@zeo/*": ["./src/*"]

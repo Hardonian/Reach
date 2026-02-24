@@ -3,6 +3,7 @@
   "version": "0.3.1",
   "private": true,
   "description": "Decision engine monorepo with Rust core and TypeScript wrapper",
+  "type": "module",
   "workspaces": [
     "packages/*",
     "apps/*"
