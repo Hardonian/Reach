@@ -1,0 +1,23 @@
+name: pack-validation
+
+on:
+  pull_request:
+    paths:
+      - 'packs/**'
+      - '.github/workflows/pack-validation.yml'
+
+jobs:
+  validate-packs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Validate packs
+        run: |
+          for d in packs/*; do
+            if [ -d "$d" ]; then
+              go run ./services/runner/cmd/reachctl pack validate "$d"
+            fi
+          done

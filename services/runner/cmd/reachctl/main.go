@@ -408,6 +408,10 @@ func runCapsule(ctx context.Context, dataRoot string, args []string, out io.Writ
 			_, _ = fmt.Fprintln(errOut, "capsule verification failed: fingerprint or expected outputs mismatch")
 		}
 		return writeJSON(out, map[string]any{"verified": ok, "run_id": cap.Manifest.RunID, "run_fingerprint": cap.Manifest.RunFingerprint, "recomputed_fingerprint": recomputed, "audit_root": cap.Manifest.AuditRoot})
+	case "sign":
+		return runCapsuleSign(args[1:], out, errOut)
+	case "verify-signature":
+		return runCapsuleVerifySignature(args[1:], out, errOut)
 	case "replay":
 		if len(args) < 2 {
 			_, _ = fmt.Fprintln(errOut, "usage: reachctl capsule replay <file>")
@@ -3024,6 +3028,14 @@ func runPackDevKit(args []string, out io.Writer, errOut io.Writer) int {
 		return runPackDoctor(args[1:], out, errOut)
 	case "publish":
 		return runPackPublish(args[1:], out, errOut)
+	case "sign":
+		return runPackSign(args[1:], out, errOut)
+	case "verify-signature":
+		return runPackVerifySignature(args[1:], out, errOut)
+	case "index":
+		return runPackIndex(args[1:], out, errOut)
+	case "info":
+		return runPackInfo(args[1:], out, errOut)
 	case "init":
 		return runPackInit(args[1:], out, errOut)
 	case "score":
@@ -3422,6 +3434,16 @@ func runPackValidate(args []string, out io.Writer, errOut io.Writer) int {
 		}
 	}
 
+	strictSign := strings.EqualFold(strings.TrimSpace(os.Getenv("REACH_REQUIRE_PACK_SIGNATURE")), "1")
+	if _, err := os.Stat(filepath.Join(packPath, "pack.manifest.json")); err != nil {
+		if strictSign {
+			errorsList = append(errorsList, "signature required: pack.manifest.json missing")
+		} else {
+			warnings = append(warnings, "unsigned pack; run 'reach pack sign <path>'")
+		}
+	} else if runPackVerifySignature([]string{packPath}, io.Discard, io.Discard) != 0 {
+		errorsList = append(errorsList, "pack signature verification failed")
+	}
 	if _, err := os.Stat(filepath.Join(packPath, "README.md")); err != nil {
 		warnings = append(warnings, "README.md not found")
 	}
@@ -3482,6 +3504,10 @@ Commands:
   docs <path> [--output <path>]      Generate documentation (Autopack)
   validate <path> [--json]           Validate pack structure (no execution)
   publish <path> --registry <url>    Prepare for publishing
+  sign <path>                         Sign pack manifest with ed25519
+  verify-signature <path>             Verify pack signature
+  index <build|validate> ...          Build/validate public pack index
+  info <name>                         Show trust and compatibility metadata
   init [--template <name>] <name>    Create new pack from template
 
 Featured templates:
