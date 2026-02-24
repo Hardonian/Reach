@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -81,6 +82,10 @@ func (s *SqliteDriver) initSchema() error {
 }
 
 func (s *SqliteDriver) Write(ctx context.Context, key string, data []byte) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
 	cleanKey := filepath.Clean(key)
 	if strings.Contains(cleanKey, "..") || strings.HasPrefix(cleanKey, "/") || strings.HasPrefix(cleanKey, "\\") {
 		return fmt.Errorf("invalid key: %s", key)
@@ -91,7 +96,7 @@ func (s *SqliteDriver) Write(ctx context.Context, key string, data []byte) error
 		return fmt.Errorf("failed to create blob directory: %w", err)
 	}
 
-	if err := os.WriteFile(fullPath, data, 0644); err != nil {
+	if err := writeFileAtomic(ctx, fullPath, data); err != nil {
 		return fmt.Errorf("failed to write blob: %w", err)
 	}
 
@@ -103,7 +108,7 @@ func (s *SqliteDriver) Write(ctx context.Context, key string, data []byte) error
 		size = excluded.size,
 		created_at = excluded.created_at;
 	`
-	_, err := s.db.ExecContext(ctx, query, key, fullPath, len(data), time.Now())
+	_, err := s.db.ExecContext(ctx, query, key, fullPath, len(data), time.Now().UTC())
 	if err != nil {
 		return fmt.Errorf("failed to update metadata: %w", err)
 	}
@@ -112,6 +117,10 @@ func (s *SqliteDriver) Write(ctx context.Context, key string, data []byte) error
 }
 
 func (s *SqliteDriver) Read(ctx context.Context, key string) ([]byte, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
 	var path string
 	query := `SELECT path FROM artifacts WHERE key = ?`
 	err := s.db.QueryRowContext(ctx, query, key).Scan(&path)
@@ -137,17 +146,60 @@ func (s *SqliteDriver) List(ctx context.Context, prefix string) ([]string, error
 	}
 	defer rows.Close()
 
-	var keys []string
+	keys := make([]string, 0, 256)
 	for rows.Next() {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+
 		var k string
 		if err := rows.Scan(&k); err != nil {
 			return nil, err
 		}
 		keys = append(keys, k)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 	return keys, nil
 }
 
 func (s *SqliteDriver) Close() error {
 	return s.db.Close()
+}
+
+func writeFileAtomic(ctx context.Context, targetPath string, data []byte) (err error) {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	tmpFile, err := os.CreateTemp(filepath.Dir(targetPath), ".reach-write-*")
+	if err != nil {
+		return err
+	}
+	defer func() {
+		closeErr := tmpFile.Close()
+		if err == nil && closeErr != nil {
+			err = closeErr
+		}
+		if removeErr := os.Remove(tmpFile.Name()); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) && err == nil {
+			err = removeErr
+		}
+	}()
+
+	if _, err := tmpFile.Write(data); err != nil {
+		return err
+	}
+	if err := tmpFile.Sync(); err != nil {
+		return err
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	if err := os.Rename(tmpFile.Name(), targetPath); err != nil {
+		return err
+	}
+
+	return nil
 }
