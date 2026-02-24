@@ -8,9 +8,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"time"
-
-	"reach/services/runner/internal/storage"
 )
 
 // Capability represents a capability/permission in the system
@@ -25,17 +22,17 @@ type Capability struct {
 
 // CapabilityRegistry holds all registered capabilities
 type CapabilityRegistry struct {
-	CoreCapabilities     []Capability `json:"core_capabilities"`
-	PluginCapabilities   []Capability `json:"plugin_capabilities"`
-	SystemCapabilities   []Capability `json:"system_capabilities"`
+	CoreCapabilities   []Capability `json:"core_capabilities"`
+	PluginCapabilities []Capability `json:"plugin_capabilities"`
+	SystemCapabilities []Capability `json:"system_capabilities"`
 }
 
 // CapabilityCheckResult represents the result of a capability check
 type CapabilityCheckResult struct {
-	Allowed       bool     `json:"allowed"`
-	Reason        string   `json:"reason"`
+	Allowed         bool   `json:"allowed"`
+	Reason          string `json:"reason"`
 	RequiresConfirm bool   `json:"requires_confirmation"`
-	RiskLevel     string   `json:"risk_level"`
+	RiskLevel       string `json:"risk_level"`
 }
 
 // runCapability handles capability-related commands
@@ -130,13 +127,13 @@ func runCapabilityRegister(ctx context.Context, dataRoot string, args []string, 
 	// Save to capabilities file
 	capPath := filepath.Join(dataRoot, "capabilities.json")
 	var caps []Capability
-	
+
 	if data, err := os.ReadFile(capPath); err == nil {
 		json.Unmarshal(data, &caps)
 	}
-	
+
 	caps = append(caps, cap)
-	
+
 	if data, err := json.MarshalIndent(caps, "", "  "); err == nil {
 		os.WriteFile(capPath, data, 0644)
 	}
@@ -148,29 +145,29 @@ func runCapabilityRegister(ctx context.Context, dataRoot string, args []string, 
 // checkCapability checks if an action is allowed with current settings
 func checkCapability(action string) CapabilityCheckResult {
 	registry := getDefaultCapabilities()
-	
+
 	// Check if action exists in any capability
 	allCaps := append(registry.CoreCapabilities, registry.PluginCapabilities...)
 	allCaps = append(allCaps, registry.SystemCapabilities...)
-	
+
 	for _, cap := range allCaps {
 		for _, a := range cap.AllowedActions {
 			if a == action {
 				return CapabilityCheckResult{
-					Allowed:        true,
-					Reason:         fmt.Sprintf("Action '%s' is allowed by capability '%s'", action, cap.Name),
+					Allowed:         true,
+					Reason:          fmt.Sprintf("Action '%s' is allowed by capability '%s'", action, cap.Name),
 					RequiresConfirm: cap.RequiresConfirm,
-					RiskLevel:      cap.RiskLevel,
+					RiskLevel:       cap.RiskLevel,
 				}
 			}
 		}
 	}
-	
+
 	return CapabilityCheckResult{
-		Allowed:       false,
-		Reason:        fmt.Sprintf("Action '%s' is not registered", action),
+		Allowed:         false,
+		Reason:          fmt.Sprintf("Action '%s' is not registered", action),
 		RequiresConfirm: false,
-		RiskLevel:     "unknown",
+		RiskLevel:       "unknown",
 	}
 }
 

@@ -12,27 +12,24 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-
-	"reach/services/runner/internal/determinism"
-	"reach/services/runner/internal/storage"
 )
 
 // DemoData represents the demo data structure
 type DemoData struct {
-	Runs             []DemoRun         `json:"runs"`
-	DriftAlerts     []DemoDriftAlert  `json:"drift_alerts"`
-	PolicyViolations []DemoViolation   `json:"policy_violations"`
-	DecisionItems   []DemoDecision    `json:"decision_items"`
+	Runs             []DemoRun        `json:"runs"`
+	DriftAlerts      []DemoDriftAlert `json:"drift_alerts"`
+	PolicyViolations []DemoViolation  `json:"policy_violations"`
+	DecisionItems    []DemoDecision   `json:"decision_items"`
 }
 
 // DemoRun represents a demo run
 type DemoRun struct {
-	RunID           string            `json:"run_id"`
-	PackName        string            `json:"pack_name"`
-	Status          string            `json:"status"`
-	Fingerprint     string            `json:"fingerprint"`
-	EventCount      int               `json:"event_count"`
-	CreatedAt       string            `json:"created_at"`
+	RunID       string `json:"run_id"`
+	PackName    string `json:"pack_name"`
+	Status      string `json:"status"`
+	Fingerprint string `json:"fingerprint"`
+	EventCount  int    `json:"event_count"`
+	CreatedAt   string `json:"created_at"`
 }
 
 // DemoDriftAlert represents a drift alert
@@ -56,19 +53,19 @@ type DemoViolation struct {
 
 // DemoDecision represents a decision item
 type DemoDecision struct {
-	DecisionID   string         `json:"decision_id"`
-	Title        string         `json:"title"`
-	Status       string         `json:"status"`
-	Priority     string         `json:"priority"`
-	Options      []string       `json:"options"`
-	Recommended  string         `json:"recommended"`
-	CreatedAt    string         `json:"created_at"`
+	DecisionID  string   `json:"decision_id"`
+	Title       string   `json:"title"`
+	Status      string   `json:"status"`
+	Priority    string   `json:"priority"`
+	Options     []string `json:"options"`
+	Recommended string   `json:"recommended"`
+	CreatedAt   string   `json:"created_at"`
 }
 
 // DemoReportBundle represents the exported demo report bundle
 type DemoReportBundle struct {
 	Manifest DemoReportManifest `json:"manifest"`
-	Data     DemoData          `json:"data"`
+	Data     DemoData           `json:"data"`
 }
 
 // DemoReportManifest represents the manifest for demo reports
@@ -253,7 +250,7 @@ func runDemoStatus(ctx context.Context, dataRoot string, args []string, out io.W
 	if err != nil {
 		return writeJSON(out, map[string]any{
 			"status":     "not_initialized",
-			"message":   "No demo data found. Run 'reachctl demo run' to initialize.",
+			"message":    "No demo data found. Run 'reachctl demo run' to initialize.",
 			"can_export": false,
 		})
 	}
@@ -263,12 +260,12 @@ func runDemoStatus(ctx context.Context, dataRoot string, args []string, out io.W
 	json.Unmarshal(data, &demoData)
 
 	return writeJSON(out, map[string]any{
-		"status":          "initialized",
-		"runs_count":      len(demoData.Runs),
-		"alerts_count":    len(demoData.DriftAlerts),
+		"status":           "initialized",
+		"runs_count":       len(demoData.Runs),
+		"alerts_count":     len(demoData.DriftAlerts),
 		"violations_count": len(demoData.PolicyViolations),
-		"decisions_count": len(demoData.DecisionItems),
-		"can_export":     true,
+		"decisions_count":  len(demoData.DecisionItems),
+		"can_export":       true,
 	})
 }
 

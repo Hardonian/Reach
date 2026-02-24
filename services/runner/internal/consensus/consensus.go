@@ -38,28 +38,28 @@ type VerificationFile struct {
 
 // VerificationMeta contains metadata about the verification file
 type VerificationMeta struct {
-	RunID           string    `json:"run_id"`
-	CreatedAt       time.Time `json:"created_at"`
-	ExporterNodeID  string    `json:"exporter_node_id"`
-	FileVersion     string    `json:"file_version"`
-	OriginalProofHash string  `json:"original_proof_hash"`
+	RunID             string    `json:"run_id"`
+	CreatedAt         time.Time `json:"created_at"`
+	ExporterNodeID    string    `json:"exporter_node_id"`
+	FileVersion       string    `json:"file_version"`
+	OriginalProofHash string    `json:"original_proof_hash"`
 }
 
 // ProofChain contains the cryptographic proof chain
 type ProofChain struct {
-	Events    []string `json:"events"`    // hashes of each event
-	Steps     []string `json:"steps"`     // hashes of each step
+	Events    []string `json:"events"`     // hashes of each event
+	Steps     []string `json:"steps"`      // hashes of each step
 	RootProof string   `json:"root_proof"` // final proof hash
 }
 
 // ProvenanceSnapshot contains provenance information
 type ProvenanceSnapshot struct {
-	RegistryHash   string    `json:"registry_hash"`
-	PolicyHash     string    `json:"policy_hash"`
-	PackHash       string    `json:"pack_hash"`
-	Timestamp      time.Time `json:"timestamp"`
-	FedPath        []string  `json:"fed_path"`
-	TrustScores    map[string]float64 `json:"trust_scores"`
+	RegistryHash string             `json:"registry_hash"`
+	PolicyHash   string             `json:"policy_hash"`
+	PackHash     string             `json:"pack_hash"`
+	Timestamp    time.Time          `json:"timestamp"`
+	FedPath      []string           `json:"fed_path"`
+	TrustScores  map[string]float64 `json:"trust_scores"`
 }
 
 // DeterminismMetadata contains determinism-related metadata
@@ -72,9 +72,9 @@ type DeterminismMetadata struct {
 
 // EnvironmentFingerprint contains normalized machine environment info
 type EnvironmentFingerprint struct {
-	OS             string `json:"os"`
-	Arch           string `json:"arch"`
-	EngineVersion  string `json:"engine_version"`
+	OS             string            `json:"os"`
+	Arch           string            `json:"arch"`
+	EngineVersion  string            `json:"engine_version"`
 	PluginVersions map[string]string `json:"plugin_versions"`
 	// Normalized paths (relative, not absolute)
 	NormalizedPaths []string `json:"normalized_paths"`
@@ -84,24 +84,24 @@ type EnvironmentFingerprint struct {
 
 // PeerVerificationReport represents the result of peer verification
 type PeerVerificationReport struct {
-	RunID                string           `json:"run_id"`
-	VerificationFilePath string           `json:"verification_file_path"`
-	OriginalProofHash    string           `json:"original_proof_hash"`
-	LocalProofHash       string           `json:"local_proof_hash"`
-	ProofMatch           bool             `json:"proof_match"`
-	StepKeyComparison    StepKeyComparison `json:"step_key_comparison"`
-	DivergenceScore      float64          `json:"divergence_score"` // 0-100, 0 = identical
+	RunID                 string                `json:"run_id"`
+	VerificationFilePath  string                `json:"verification_file_path"`
+	OriginalProofHash     string                `json:"original_proof_hash"`
+	LocalProofHash        string                `json:"local_proof_hash"`
+	ProofMatch            bool                  `json:"proof_match"`
+	StepKeyComparison     StepKeyComparison     `json:"step_key_comparison"`
+	DivergenceScore       float64               `json:"divergence_score"` // 0-100, 0 = identical
 	DivergenceFingerprint DivergenceFingerprint `json:"divergence_fingerprint,omitempty"`
-	Timestamp           time.Time        `json:"timestamp"`
-	Status              string           `json:"status"` // "verified", "diverged", "error"
+	Timestamp             time.Time             `json:"timestamp"`
+	Status                string                `json:"status"` // "verified", "diverged", "error"
 }
 
 // StepKeyComparison compares step keys between original and local
 type StepKeyComparison struct {
-	OriginalSteps []string `json:"original_steps"`
-	LocalSteps    []string `json:"local_steps"`
-	MatchingSteps int      `json:"matching_steps"`
-	TotalSteps    int      `json:"total_steps"`
+	OriginalSteps   []string       `json:"original_steps"`
+	LocalSteps      []string       `json:"local_steps"`
+	MatchingSteps   int            `json:"matching_steps"`
+	TotalSteps      int            `json:"total_steps"`
 	MismatchDetails []StepMismatch `json:"mismatch_details"`
 }
 
@@ -115,8 +115,8 @@ type StepMismatch struct {
 
 // DivergenceFingerprint contains information about the divergence
 type DivergenceFingerprint struct {
-	FirstDivergenceStep int      `json:"first_divergence_step"`
-	DivergentSteps      []int    `json:"divergent_steps"`
+	FirstDivergenceStep int         `json:"first_divergence_step"`
+	DivergentSteps      []int       `json:"divergent_steps"`
 	ProbableRootCauses  []RootCause `json:"probable_root_causes"`
 }
 
@@ -129,99 +129,99 @@ type RootCause struct {
 
 // ConsensusConfig configuration for consensus simulation
 type ConsensusConfig struct {
-	NodeCount     int            `json:"node_count"`
-	RandomSeeds   []int          `json:"random_seeds"`
+	NodeCount     int                `json:"node_count"`
+	RandomSeeds   []int              `json:"random_seeds"`
 	NodeOverrides map[int]NodeConfig `json:"node_overrides"`
 }
 
 // NodeConfig configuration for a specific node in consensus
 type NodeConfig struct {
-	NodeID       string            `json:"node_id"`
-	OS           string            `json:"os"`
-	Arch         string            `json:"arch"`
-	NonCritical  map[string]string `json:"non_critical"` // can be randomized
+	NodeID      string            `json:"node_id"`
+	OS          string            `json:"os"`
+	Arch        string            `json:"arch"`
+	NonCritical map[string]string `json:"non_critical"` // can be randomized
 }
 
 // ConsensusReport represents the result of consensus simulation
 type ConsensusReport struct {
-	RunID           string          `json:"run_id"`
-	NodeCount       int             `json:"node_count"`
-	Nodes           []NodeResult    `json:"nodes"`
-	AgreementRate   float64         `json:"agreement_rate"` // 0-100
-	MajorityProofHash string        `json:"majority_proof_hash"`
-	ConsensusScore  int             `json:"consensus_score"` // 0-100
+	RunID              string             `json:"run_id"`
+	NodeCount          int                `json:"node_count"`
+	Nodes              []NodeResult       `json:"nodes"`
+	AgreementRate      float64            `json:"agreement_rate"` // 0-100
+	MajorityProofHash  string             `json:"majority_proof_hash"`
+	ConsensusScore     int                `json:"consensus_score"` // 0-100
 	DivergenceAnalysis DivergenceAnalysis `json:"divergence_analysis"`
-	Timestamp       time.Time       `json:"timestamp"`
+	Timestamp          time.Time          `json:"timestamp"`
 }
 
 // NodeResult result from a single node in consensus simulation
 type NodeResult struct {
-	NodeID       string `json:"node_id"`
-	OS           string `json:"os"`
-	Arch         string `json:"arch"`
-	ProofHash    string `json:"proof_hash"`
-	StepKeys     []string `json:"step_keys"`
-	IsMajority   bool   `json:"is_majority"`
+	NodeID     string   `json:"node_id"`
+	OS         string   `json:"os"`
+	Arch       string   `json:"arch"`
+	ProofHash  string   `json:"proof_hash"`
+	StepKeys   []string `json:"step_keys"`
+	IsMajority bool     `json:"is_majority"`
 }
 
 // DivergenceAnalysis analysis of divergence in consensus
 type DivergenceAnalysis struct {
-	TotalNodes       int     `json:"total_nodes"`
-	MajorityCount    int     `json:"majority_count"`
-	MinorityCount    int     `json:"minority_count"`
-	MinorityNodes    []string `json:"minority_nodes"`
-	DivergenceTypes  []string `json:"divergence_types"`
+	TotalNodes      int      `json:"total_nodes"`
+	MajorityCount   int      `json:"majority_count"`
+	MinorityCount   int      `json:"minority_count"`
+	MinorityNodes   []string `json:"minority_nodes"`
+	DivergenceTypes []string `json:"divergence_types"`
 }
 
 // ByzantineConfig configuration for byzantine fault simulation
 type ByzantineConfig struct {
-	RunID            string   `json:"run_id"`
-	MutationTypes    []string `json:"mutation_types"` // "step_output", "plugin_output", "dependency_order"
-	MutationRate     float64  `json:"mutation_rate"`   // 0-1
-	SimulationCount  int      `json:"simulation_count"`
+	RunID           string   `json:"run_id"`
+	MutationTypes   []string `json:"mutation_types"` // "step_output", "plugin_output", "dependency_order"
+	MutationRate    float64  `json:"mutation_rate"`  // 0-1
+	SimulationCount int      `json:"simulation_count"`
 }
 
 // ByzantineReport result of byzantine fault simulation
 type ByzantineReport struct {
-	RunID             string            `json:"run_id"`
-	SimulationCount   int               `json:"simulation_count"`
-	MutationsApplied  int               `json:"mutations_applied"`
-	Detections        []ByzantineDetection `json:"detections"`
-	DetectionRate     float64           `json:"detection_rate"` // 0-100
-	FalsePositives    int               `json:"false_positives"`
-	Timestamp         time.Time         `json:"timestamp"`
-	Status            string            `json:"status"` // "detected", "undetected", "partial"
+	RunID            string               `json:"run_id"`
+	SimulationCount  int                  `json:"simulation_count"`
+	MutationsApplied int                  `json:"mutations_applied"`
+	Detections       []ByzantineDetection `json:"detections"`
+	DetectionRate    float64              `json:"detection_rate"` // 0-100
+	FalsePositives   int                  `json:"false_positives"`
+	Timestamp        time.Time            `json:"timestamp"`
+	Status           string               `json:"status"` // "detected", "undetected", "partial"
 }
 
 // ByzantineDetection detection of a byzantine fault
 type ByzantineDetection struct {
-	SimulationID    int      `json:"simulation_id"`
-	MutationType   string   `json:"mutation_type"`
-	ProofMismatch  bool     `json:"proof_mismatch"`
-	ChainInvalidated bool   `json:"chain_invalidated"`
-	SignatureInvalid bool   `json:"signature_invalid"`
-	DetectionTime  float64  `json:"detection_time_ms"`
+	SimulationID     int     `json:"simulation_id"`
+	MutationType     string  `json:"mutation_type"`
+	ProofMismatch    bool    `json:"proof_mismatch"`
+	ChainInvalidated bool    `json:"chain_invalidated"`
+	SignatureInvalid bool    `json:"signature_invalid"`
+	DetectionTime    float64 `json:"detection_time_ms"`
 }
 
 // PeerTrustReport peer trust index report
 type PeerTrustReport struct {
-	RunID              string          `json:"run_id"`
-	PeerCount          int             `json:"peer_count"`
-	DeterminismConfidence int          `json:"determinism_confidence"`
-	ConsensusScore     int             `json:"consensus_score"`
-	PluginCertificationScore int       `json:"plugin_certification_score"`
-	PeerTrustScore     int             `json:"peer_trust_score"` // 0-100
-	PeerDetails        []PeerDetail    `json:"peer_details"`
-	Timestamp          time.Time       `json:"timestamp"`
+	RunID                    string       `json:"run_id"`
+	PeerCount                int          `json:"peer_count"`
+	DeterminismConfidence    int          `json:"determinism_confidence"`
+	ConsensusScore           int          `json:"consensus_score"`
+	PluginCertificationScore int          `json:"plugin_certification_score"`
+	PeerTrustScore           int          `json:"peer_trust_score"` // 0-100
+	PeerDetails              []PeerDetail `json:"peer_details"`
+	Timestamp                time.Time    `json:"timestamp"`
 }
 
 // PeerDetail details about a single peer
 type PeerDetail struct {
-	PeerID          string  `json:"peer_id"`
-	TrustScore      float64 `json:"trust_score"`
-	DeterminismScore int    `json:"determinism_score"`
-	ConsensusScore  int     `json:"consensus_score"`
-	IsCertified    bool    `json:"is_certified"`
+	PeerID           string  `json:"peer_id"`
+	TrustScore       float64 `json:"trust_score"`
+	DeterminismScore int     `json:"determinism_score"`
+	ConsensusScore   int     `json:"consensus_score"`
+	IsCertified      bool    `json:"is_certified"`
 }
 
 // NewVerificationFile creates a new verification file from a run
@@ -231,33 +231,33 @@ func NewVerificationFile(runID, engineVersion string, plugins map[string]string,
 		Events: make([]string, len(eventLog)),
 		Steps:  make([]string, len(steps)),
 	}
-	
+
 	for i, event := range eventLog {
 		proofChain.Events[i] = hashEvent(event)
 	}
 	copy(proofChain.Steps, steps)
 	proofChain.RootProof = proofHash
-	
+
 	// Create canonical inputs (hash-only for large data)
 	canonicalInputs := make(map[string]string)
 	canonicalInputs["event_log_hash"] = HashEvents(eventLog)
-	
+
 	// Use deterministic timestamp derived from runID for reproducibility
 	deterministicTime := deterministicTimestamp(runID)
-	
+
 	return &VerificationFile{
 		Meta: VerificationMeta{
-			RunID:              runID,
-			CreatedAt:          deterministicTime,
-			ExporterNodeID:     GetMachineID(),
-			FileVersion:        "1.0",
-			OriginalProofHash:  proofHash,
+			RunID:             runID,
+			CreatedAt:         deterministicTime,
+			ExporterNodeID:    GetMachineID(),
+			FileVersion:       "1.0",
+			OriginalProofHash: proofHash,
 		},
 		ProofChain:         proofChain,
 		CanonicalInputs:    canonicalInputs,
 		ProvenanceSnapshot: provenance,
-		PluginVersions:    plugins,
-		EngineVersion:     engineVersion,
+		PluginVersions:     plugins,
+		EngineVersion:      engineVersion,
 		DeterminismMetadata: DeterminismMetadata{
 			ConfidenceScore:    confidence,
 			StableSteps:        steps,
@@ -270,11 +270,11 @@ func NewVerificationFile(runID, engineVersion string, plugins map[string]string,
 // NewEnvironmentFingerprint creates a normalized environment fingerprint
 func NewEnvironmentFingerprint(engineVersion string, plugins map[string]string) EnvironmentFingerprint {
 	return EnvironmentFingerprint{
-		OS:             normalizeOS(runtime.GOOS),
-		Arch:           normalizeArch(runtime.GOARCH),
-		EngineVersion:  engineVersion,
-		PluginVersions: plugins,
-		NormalizedPaths: []string{}, // No absolute paths
+		OS:                normalizeOS(runtime.GOOS),
+		Arch:              normalizeArch(runtime.GOARCH),
+		EngineVersion:     engineVersion,
+		PluginVersions:    plugins,
+		NormalizedPaths:   []string{}, // No absolute paths
 		DeterministicSalt: hashStrings([]string{engineVersion, "deterministic"}),
 	}
 }
@@ -358,37 +358,37 @@ func RunPeerVerification(runID string, vf VerificationFile) (*PeerVerificationRe
 		Timestamp:            deterministicTimestamp(runID),
 		Status:               "error",
 	}
-	
+
 	// Simulate local computation (in production, this would re-run the actual computation)
 	// For now, we'll compute a deterministic local hash
 	localProofHash := computeLocalProof(runID, vf)
 	report.LocalProofHash = localProofHash
 	report.ProofMatch = localProofHash == vf.Meta.OriginalProofHash
-	
+
 	// Compare step keys
 	stepComparison := compareStepKeys(vf.ProofChain.Steps, vf.DeterminismMetadata.StableSteps)
 	report.StepKeyComparison = stepComparison
-	
+
 	// Compute divergence score
 	report.DivergenceScore = computeDivergenceScore(report.ProofMatch, stepComparison)
-	
+
 	if report.DivergenceScore > 0 {
 		report.Status = "diverged"
 		report.DivergenceFingerprint = generateDivergenceFingerprint(stepComparison)
 	} else {
 		report.Status = "verified"
 	}
-	
+
 	return report, nil
 }
 
 func computeLocalProof(runID string, vf VerificationFile) string {
 	// Compute deterministic local proof hash
 	data := map[string]any{
-		"run_id":       runID,
-		"engine":       vf.EngineVersion,
-		"plugins":      vf.PluginVersions,
-		"events_hash":  vf.CanonicalInputs["event_log_hash"],
+		"run_id":      runID,
+		"engine":      vf.EngineVersion,
+		"plugins":     vf.PluginVersions,
+		"events_hash": vf.CanonicalInputs["event_log_hash"],
 	}
 	h := sha256.New()
 	b, _ := json.Marshal(data)
@@ -402,7 +402,7 @@ func compareStepKeys(original, local []string) StepKeyComparison {
 		LocalSteps:    local,
 		TotalSteps:    len(original),
 	}
-	
+
 	matching := 0
 	for i := range original {
 		if i < len(local) && original[i] == local[i] {
@@ -424,34 +424,34 @@ func computeDivergenceScore(proofMatch bool, stepComparison StepKeyComparison) f
 	if proofMatch && stepComparison.MatchingSteps == stepComparison.TotalSteps {
 		return 0.0
 	}
-	
+
 	// Score based on mismatch severity
 	proofPenalty := 50.0
 	if proofMatch {
 		proofPenalty = 0
 	}
-	
+
 	stepPenalty := 0.0
 	if stepComparison.TotalSteps > 0 {
 		mismatchRatio := float64(len(stepComparison.MismatchDetails)) / float64(stepComparison.TotalSteps)
 		stepPenalty = mismatchRatio * 50.0
 	}
-	
+
 	return math.Min(100.0, proofPenalty+stepPenalty)
 }
 
 func generateDivergenceFingerprint(stepComparison StepKeyComparison) DivergenceFingerprint {
 	fingerprint := DivergenceFingerprint{
-		DivergentSteps: make([]int, 0),
+		DivergentSteps:     make([]int, 0),
 		ProbableRootCauses: make([]RootCause, 0),
 	}
-	
+
 	for _, mismatch := range stepComparison.MismatchDetails {
 		fingerprint.DivergentSteps = append(fingerprint.DivergentSteps, mismatch.StepIndex)
 		if fingerprint.FirstDivergenceStep == 0 || mismatch.StepIndex < fingerprint.FirstDivergenceStep {
 			fingerprint.FirstDivergenceStep = mismatch.StepIndex
 		}
-		
+
 		// Rank root causes
 		fingerprint.ProbableRootCauses = append(fingerprint.ProbableRootCauses, RootCause{
 			StepIndex: mismatch.StepIndex,
@@ -459,12 +459,12 @@ func generateDivergenceFingerprint(stepComparison StepKeyComparison) DivergenceF
 			Severity:  100.0 - float64(mismatch.Rank*10),
 		})
 	}
-	
+
 	// Sort by severity
 	sort.Slice(fingerprint.ProbableRootCauses, func(i, j int) bool {
 		return fingerprint.ProbableRootCauses[i].Severity > fingerprint.ProbableRootCauses[j].Severity
 	})
-	
+
 	return fingerprint
 }
 
@@ -477,24 +477,24 @@ func SimulateConsensus(runID string, config ConsensusConfig, baseProofHash strin
 		AgreementRate: 0,
 		Timestamp:     deterministicTimestamp(runID),
 	}
-	
+
 	// Use deterministic RNG seeded from runID for reproducibility
 	rng := deterministicRNG(runID)
 	_ = rng // Use RNG for deterministic behavior
 	proofHashes := make(map[string]int)
-	
+
 	for i := 0; i < config.NodeCount; i++ {
 		nodeID := fmt.Sprintf("node-%d", i)
 		os := "linux"
 		arch := "x64"
-		
+
 		// Apply node-specific configuration
 		if override, ok := config.NodeOverrides[i]; ok {
 			nodeID = override.NodeID
 			os = override.OS
 			arch = override.Arch
 		}
-		
+
 		// Simulate proof hash (deterministic for same inputs, varies for different non-critical params)
 		proofHash := baseProofHash
 		if i > 0 && len(config.RandomSeeds) > 0 {
@@ -502,7 +502,7 @@ func SimulateConsensus(runID string, config ConsensusConfig, baseProofHash strin
 			seed := config.RandomSeeds[i%len(config.RandomSeeds)]
 			proofHash = hashStrings([]string{baseProofHash, fmt.Sprintf("seed-%d", seed), os, arch})
 		}
-		
+
 		nodeResult := NodeResult{
 			NodeID:     nodeID,
 			OS:         os,
@@ -511,11 +511,11 @@ func SimulateConsensus(runID string, config ConsensusConfig, baseProofHash strin
 			StepKeys:   steps,
 			IsMajority: false,
 		}
-		
+
 		report.Nodes = append(report.Nodes, nodeResult)
 		proofHashes[proofHash]++
 	}
-	
+
 	// Find majority
 	majorityHash := ""
 	majorityCount := 0
@@ -525,18 +525,18 @@ func SimulateConsensus(runID string, config ConsensusConfig, baseProofHash strin
 			majorityCount = count
 		}
 	}
-	
+
 	// Mark majority nodes
 	for i := range report.Nodes {
 		if report.Nodes[i].ProofHash == majorityHash {
 			report.Nodes[i].IsMajority = true
 		}
 	}
-	
+
 	report.MajorityProofHash = majorityHash
 	report.AgreementRate = float64(majorityCount) / float64(config.NodeCount) * 100
 	report.ConsensusScore = calculateConsensusScore(report.AgreementRate, config.NodeCount)
-	
+
 	// Divergence analysis
 	minorityCount := config.NodeCount - majorityCount
 	minorityNodes := make([]string, 0)
@@ -545,7 +545,7 @@ func SimulateConsensus(runID string, config ConsensusConfig, baseProofHash strin
 			minorityNodes = append(minorityNodes, node.NodeID)
 		}
 	}
-	
+
 	report.DivergenceAnalysis = DivergenceAnalysis{
 		TotalNodes:      config.NodeCount,
 		MajorityCount:   majorityCount,
@@ -553,26 +553,29 @@ func SimulateConsensus(runID string, config ConsensusConfig, baseProofHash strin
 		MinorityNodes:   minorityNodes,
 		DivergenceTypes: []string{},
 	}
-	
+
 	if minorityCount > 0 {
 		report.DivergenceAnalysis.DivergenceTypes = append(report.DivergenceAnalysis.DivergenceTypes, "parameter_variance")
 	}
-	
+
 	return report
 }
 
 func calculateConsensusScore(agreementRate float64, nodeCount int) int {
 	// Base score from agreement rate
 	score := int(agreementRate)
-	
+
 	// Bonus for more nodes (more robust consensus)
 	if nodeCount >= 5 {
 		score += 10
 	} else if nodeCount >= 3 {
 		score += 5
 	}
-	
-	if (score -gt 100) { return 100 }; return score
+
+	if score > 100 {
+		return 100
+	}
+	return score
 }
 
 func hashStrings(strs []string) string {
@@ -593,22 +596,22 @@ func SimulateByzantine(runID string, config ByzantineConfig, baseProofHash strin
 		Timestamp:        deterministicTimestamp(runID),
 		Status:           "detected",
 	}
-	
+
 	// Use deterministic RNG seeded from runID for reproducibility
 	rng := deterministicRNG(runID)
-	
+
 	for i := 0; i < config.SimulationCount; i++ {
 		simID := i
-		
+
 		// Apply mutations based on config
 		proofHash := baseProofHash
 		chainValid := true
 		sigValid := true
-		
+
 		for _, mutType := range config.MutationTypes {
 			if rng.Float64() < config.MutationRate {
 				report.MutationsApplied++
-				
+
 				// Mutate based on type
 				switch mutType {
 				case "step_output":
@@ -622,26 +625,26 @@ func SimulateByzantine(runID string, config ByzantineConfig, baseProofHash strin
 				}
 			}
 		}
-		
+
 		// Detection: in production, this would verify the proof chain
 		detected := (proofHash != baseProofHash) || !chainValid || !sigValid
-		
+
 		detection := ByzantineDetection{
 			SimulationID:     simID,
 			MutationType:     strings.Join(config.MutationTypes, ","),
-			ProofMismatch:   proofHash != baseProofHash,
+			ProofMismatch:    proofHash != baseProofHash,
 			ChainInvalidated: !chainValid,
 			SignatureInvalid: !sigValid,
 			DetectionTime:    float64(rng.Intn(100) + 10), // Simulated detection time
 		}
-		
+
 		report.Detections = append(report.Detections, detection)
-		
+
 		if !detected {
 			report.Status = "undetected"
 		}
 	}
-	
+
 	// Calculate detection rate
 	detectedCount := 0
 	for _, d := range report.Detections {
@@ -649,9 +652,9 @@ func SimulateByzantine(runID string, config ByzantineConfig, baseProofHash strin
 			detectedCount++
 		}
 	}
-	
+
 	report.DetectionRate = float64(detectedCount) / float64(report.SimulationCount) * 100
-	
+
 	if report.DetectionRate >= 80 {
 		report.Status = "detected"
 	} else if report.DetectionRate >= 50 {
@@ -659,54 +662,54 @@ func SimulateByzantine(runID string, config ByzantineConfig, baseProofHash strin
 	} else {
 		report.Status = "undetected"
 	}
-	
+
 	return report
 }
 
 // ComputePeerTrust computes the peer trust index
 func ComputePeerTrust(runID string, determinismConfidence, consensusScore, pluginCertScore int, peers []string) *PeerTrustReport {
 	report := &PeerTrustReport{
-		RunID:              runID,
-		PeerCount:          len(peers),
-		DeterminismConfidence: determinismConfidence,
-		ConsensusScore:     consensusScore,
+		RunID:                    runID,
+		PeerCount:                len(peers),
+		DeterminismConfidence:    determinismConfidence,
+		ConsensusScore:           consensusScore,
 		PluginCertificationScore: pluginCertScore,
-		PeerDetails:        make([]PeerDetail, 0),
-		Timestamp:          deterministicTimestamp(runID),
+		PeerDetails:              make([]PeerDetail, 0),
+		Timestamp:                deterministicTimestamp(runID),
 	}
-	
+
 	// Calculate weighted trust score
 	// Weights: determinism 40%, consensus 35%, plugin cert 25%
 	determinismWeight := 0.4
 	consensusWeight := 0.35
 	pluginWeight := 0.25
-	
+
 	weightedScore := float64(determinismConfidence)*determinismWeight +
 		float64(consensusScore)*consensusWeight +
 		float64(pluginCertScore)*pluginWeight
-	
+
 	report.PeerTrustScore = int(math.Round(weightedScore))
-	
+
 	// Use deterministic RNG for peer score variations
 	rng := deterministicRNG(runID + "-peers")
-	
+
 	// Generate peer details
 	for _, peerID := range peers {
 		// Deterministic peer-specific scores derived from runID and peerID
 		peerDetScore := determinismConfidence - rng.Intn(20)
 		peerConsScore := consensusScore - rng.Intn(15)
-		
+
 		detail := PeerDetail{
 			PeerID:           peerID,
 			TrustScore:       float64(peerDetScore+peerConsScore) / 2,
 			DeterminismScore: peerDetScore,
 			ConsensusScore:   peerConsScore,
-			IsCertified:     peerDetScore >= 80,
+			IsCertified:      peerDetScore >= 80,
 		}
-		
+
 		report.PeerDetails = append(report.PeerDetails, detail)
 	}
-	
+
 	return report
 }
 

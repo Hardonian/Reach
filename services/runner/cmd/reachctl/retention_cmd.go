@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -22,31 +21,31 @@ type RetentionConfig struct {
 
 // RetentionStatus represents the current retention status
 type RetentionStatus struct {
-	TotalRuns           int             `json:"total_runs"`
-	TotalEvents         int             `json:"total_events"`
-	TotalProofs         int             `json:"total_proofs"`
-	StorageSizeBytes    int64           `json:"storage_size_bytes"`
-	OldestRecord        string          `json:"oldest_record"`
-	NewestRecord        string          `json:"newest_record"`
-	Policy              RetentionConfig `json:"policy"`
-	ReclaimableBytes    int64           `json:"reclaimable_bytes"`
+	TotalRuns        int             `json:"total_runs"`
+	TotalEvents      int             `json:"total_events"`
+	TotalProofs      int             `json:"total_proofs"`
+	StorageSizeBytes int64           `json:"storage_size_bytes"`
+	OldestRecord     string          `json:"oldest_record"`
+	NewestRecord     string          `json:"newest_record"`
+	Policy           RetentionConfig `json:"policy"`
+	ReclaimableBytes int64           `json:"reclaimable_bytes"`
 }
 
 // RetentionPruneResult represents the result of a prune operation
 type RetentionPruneResult struct {
-	DeletedRuns      int   `json:"deleted_runs"`
-	DeletedEvents    int   `json:"deleted_events"`
-	DeletedProofs    int   `json:"deleted_proofs"`
-	ReclaimedBytes  int64 `json:"reclaimed_bytes"`
+	DeletedRuns    int   `json:"deleted_runs"`
+	DeletedEvents  int   `json:"deleted_events"`
+	DeletedProofs  int   `json:"deleted_proofs"`
+	ReclaimedBytes int64 `json:"reclaimed_bytes"`
 }
 
 // RetentionCompactResult represents the result of a compact operation
 type RetentionCompactResult struct {
-	CompactedRuns    int   `json:"compacted_runs"`
-	CompactedEvents  int   `json:"compacted_events"`
+	CompactedRuns   int   `json:"compacted_runs"`
+	CompactedEvents int   `json:"compacted_events"`
 	BeforeSizeBytes int64 `json:"before_size_bytes"`
-	AfterSizeBytes   int64 `json:"after_size_bytes"`
-	SavedBytes       int64 `json:"saved_bytes"`
+	AfterSizeBytes  int64 `json:"after_size_bytes"`
+	SavedBytes      int64 `json:"saved_bytes"`
 }
 
 // runRetention handles retention-related commands
@@ -141,11 +140,11 @@ func runRetentionCompact(ctx context.Context, dataRoot string, args []string, ou
 
 	// Mock compaction result
 	result := RetentionCompactResult{
-		CompactedRuns:    0,
-		CompactedEvents:  0,
-		BeforeSizeBytes:  beforeSize,
-		AfterSizeBytes:   beforeSize,
-		SavedBytes:       0,
+		CompactedRuns:   0,
+		CompactedEvents: 0,
+		BeforeSizeBytes: beforeSize,
+		AfterSizeBytes:  beforeSize,
+		SavedBytes:      0,
 	}
 
 	if !*dryRun {
@@ -192,8 +191,8 @@ func runRetentionPrune(ctx context.Context, dataRoot string, args []string, out 
 	// Mock prune result - in real impl, query DB and delete
 	result := RetentionPruneResult{
 		DeletedRuns:    0,
-		DeletedEvents: 0,
-		DeletedProofs: 0,
+		DeletedEvents:  0,
+		DeletedProofs:  0,
 		ReclaimedBytes: 0,
 	}
 

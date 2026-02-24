@@ -10,6 +10,8 @@ rm -rf "$DIST_DIR"
 mkdir -p "$TMP_DIR"
 
 services=(
+  runner:cmd/reachctl:reach
+  runner:cmd/reachctl:reachctl
   runner:cmd/runnerd:runnerd
   runner:cmd/runner-mcp:runner-mcp
   integration-hub:cmd/integration-hub:integration-hub
@@ -37,7 +39,7 @@ done
 
 (
   cd "$TMP_DIR"
-  find . -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum > "$DIST_DIR/SHA256SUMS"
+  find . -maxdepth 1 -type f -printf '%f\0' | sort -z | xargs -0 sha256sum > "$DIST_DIR/SHA256SUMS"
 )
 mv "$TMP_DIR"/* "$DIST_DIR"/
 rmdir "$TMP_DIR"

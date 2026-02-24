@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 )
@@ -20,16 +21,16 @@ import (
 
 // DriftReport represents a comprehensive drift analysis report.
 type DriftReport struct {
-	PipelineID        string          `json:"pipeline_id"`
-	AnalysisWindow    TimeWindow      `json:"analysis_window"`
-	GeneratedAt       time.Time       `json:"generated_at"`
-	StepProofVariance VarianceMetric  `json:"step_proof_variance"`
-	Reproducibility   TrendMetric     `json:"reproducibility"`
-	TrustScore        TrendMetric     `json:"trust_score"`
-	ChaosSensitivity  TrendMetric     `json:"chaos_sensitivity"`
+	PipelineID        string            `json:"pipeline_id"`
+	AnalysisWindow    TimeWindow        `json:"analysis_window"`
+	GeneratedAt       time.Time         `json:"generated_at"`
+	StepProofVariance VarianceMetric    `json:"step_proof_variance"`
+	Reproducibility   TrendMetric       `json:"reproducibility"`
+	TrustScore        TrendMetric       `json:"trust_score"`
+	ChaosSensitivity  TrendMetric       `json:"chaos_sensitivity"`
 	StepVolatility    []VolatilityEntry `json:"step_volatility"`
-	Alerts            []DriftAlert    `json:"alerts"`
-	Summary           DriftSummary    `json:"summary"`
+	Alerts            []DriftAlert      `json:"alerts"`
+	Summary           DriftSummary      `json:"summary"`
 }
 
 // TimeWindow represents a time range for analysis.
@@ -41,22 +42,22 @@ type TimeWindow struct {
 
 // VarianceMetric tracks variance statistics.
 type VarianceMetric struct {
-	Mean         float64   `json:"mean"`
-	Variance     float64   `json:"variance"`
-	StdDev       float64   `json:"std_dev"`
-	Min          float64   `json:"min"`
-	Max          float64   `json:"max"`
-	SampleCount  int       `json:"sample_count"`
-	DataPoints   []DataPoint `json:"data_points"`
+	Mean        float64     `json:"mean"`
+	Variance    float64     `json:"variance"`
+	StdDev      float64     `json:"std_dev"`
+	Min         float64     `json:"min"`
+	Max         float64     `json:"max"`
+	SampleCount int         `json:"sample_count"`
+	DataPoints  []DataPoint `json:"data_points"`
 }
 
 // TrendMetric tracks a metric's trend over time.
 type TrendMetric struct {
 	Name          string      `json:"name"`
 	Values        []DataPoint `json:"values"`
-	Slope         float64     `json:"slope"`         // Trend direction
-	R2            float64     `json:"r_squared"`     // Goodness of fit
-	Trend         string      `json:"trend"`         // "improving", "degrading", "stable"
+	Slope         float64     `json:"slope"`     // Trend direction
+	R2            float64     `json:"r_squared"` // Goodness of fit
+	Trend         string      `json:"trend"`     // "improving", "degrading", "stable"
 	ChangePercent float64     `json:"change_percent"`
 }
 
@@ -69,31 +70,31 @@ type DataPoint struct {
 
 // VolatilityEntry represents volatility for a specific step.
 type VolatilityEntry struct {
-	StepKey       string    `json:"step_key"`
-	Volatility    float64   `json:"volatility"`
-	ChangeCount   int       `json:"change_count"`
-	LastChanged   time.Time `json:"last_changed"`
-	RiskLevel     string    `json:"risk_level"` // "low", "medium", "high"
+	StepKey     string    `json:"step_key"`
+	Volatility  float64   `json:"volatility"`
+	ChangeCount int       `json:"change_count"`
+	LastChanged time.Time `json:"last_changed"`
+	RiskLevel   string    `json:"risk_level"` // "low", "medium", "high"
 }
 
 // DriftAlert represents a detected drift condition.
 type DriftAlert struct {
-	Type        string    `json:"type"`        // "variance_high", "trend_degrading", "volatility_spike"
-	Severity    string    `json:"severity"`    // "info", "warning", "critical"
-	Message     string    `json:"message"`
-	StepKey     string    `json:"step_key,omitempty"`
-	Value       float64   `json:"value,omitempty"`
-	Threshold   float64   `json:"threshold,omitempty"`
-	Timestamp   time.Time `json:"timestamp"`
+	Type      string    `json:"type"`     // "variance_high", "trend_degrading", "volatility_spike"
+	Severity  string    `json:"severity"` // "info", "warning", "critical"
+	Message   string    `json:"message"`
+	StepKey   string    `json:"step_key,omitempty"`
+	Value     float64   `json:"value,omitempty"`
+	Threshold float64   `json:"threshold,omitempty"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 // DriftSummary provides a high-level summary.
 type DriftSummary struct {
-	OverallHealth     string  `json:"overall_health"` // "healthy", "degraded", "critical"
-	RiskScore         float64 `json:"risk_score"`     // 0-100
-	Recommendation    string  `json:"recommendation"`
-	RunsAnalyzed      int     `json:"runs_analyzed"`
-	StepsAnalyzed     int     `json:"steps_analyzed"`
+	OverallHealth  string  `json:"overall_health"` // "healthy", "degraded", "critical"
+	RiskScore      float64 `json:"risk_score"`     // 0-100
+	Recommendation string  `json:"recommendation"`
+	RunsAnalyzed   int     `json:"runs_analyzed"`
+	StepsAnalyzed  int     `json:"steps_analyzed"`
 }
 
 // ============================================================================
@@ -102,10 +103,10 @@ type DriftSummary struct {
 
 // DriftDetector analyzes historical runs for drift patterns.
 type DriftDetector struct {
-	db       *sql.DB
-	mu       sync.RWMutex
-	dataDir  string
-	index    *LineageIndex
+	db      *sql.DB
+	mu      sync.RWMutex
+	dataDir string
+	index   *LineageIndex
 }
 
 // NewDriftDetector creates a new drift detector.
@@ -180,7 +181,7 @@ func (d *DriftDetector) Close() error {
 // ============================================================================
 
 // RecordRunMetrics records metrics for a completed run.
-func (d *DriftDetector) RecordRunMetrics(ctx context.Context, runID, pipelineID string, 
+func (d *DriftDetector) RecordRunMetrics(ctx context.Context, runID, pipelineID string,
 	reproScore, trustScore, chaosSens float64, stepCount int, fingerprint string) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -609,7 +610,7 @@ func (d *DriftDetector) WriteReportMarkdown(report *DriftReport, path string) er
 
 	md.WriteString(fmt.Sprintf("# Drift Analysis Report\n\n"))
 	md.WriteString(fmt.Sprintf("**Pipeline:** %s\n\n", report.PipelineID))
-	md.WriteString(fmt.Sprintf("**Analysis Window:** %s to %s (%d days)\n\n", 
+	md.WriteString(fmt.Sprintf("**Analysis Window:** %s to %s (%d days)\n\n",
 		report.AnalysisWindow.Start.Format("2006-01-02"),
 		report.AnalysisWindow.End.Format("2006-01-02"),
 		report.AnalysisWindow.Days))
@@ -634,11 +635,11 @@ func (d *DriftDetector) WriteReportMarkdown(report *DriftReport, path string) er
 	md.WriteString("### Trends\n\n")
 	md.WriteString(fmt.Sprintf("| Metric | Trend | Change | R² |\n"))
 	md.WriteString("|--------|-------|--------|----|\n")
-	md.WriteString(fmt.Sprintf("| Reproducibility | %s | %.1f%% | %.3f |\n", 
+	md.WriteString(fmt.Sprintf("| Reproducibility | %s | %.1f%% | %.3f |\n",
 		report.Reproducibility.Trend, report.Reproducibility.ChangePercent, report.Reproducibility.R2))
-	md.WriteString(fmt.Sprintf("| Trust Score | %s | %.1f%% | %.3f |\n", 
+	md.WriteString(fmt.Sprintf("| Trust Score | %s | %.1f%% | %.3f |\n",
 		report.TrustScore.Trend, report.TrustScore.ChangePercent, report.TrustScore.R2))
-	md.WriteString(fmt.Sprintf("| Chaos Sensitivity | %s | %.1f%% | %.3f |\n\n", 
+	md.WriteString(fmt.Sprintf("| Chaos Sensitivity | %s | %.1f%% | %.3f |\n\n",
 		report.ChaosSensitivity.Trend, report.ChaosSensitivity.ChangePercent, report.ChaosSensitivity.R2))
 
 	// Step Volatility
@@ -647,7 +648,7 @@ func (d *DriftDetector) WriteReportMarkdown(report *DriftReport, path string) er
 		md.WriteString("| Step Key | Volatility | Risk Level | Changes |\n")
 		md.WriteString("|----------|------------|------------|--------|\n")
 		for _, entry := range report.StepVolatility {
-			md.WriteString(fmt.Sprintf("| %s | %.2f | %s | %d |\n", 
+			md.WriteString(fmt.Sprintf("| %s | %.2f | %s | %d |\n",
 				entry.StepKey, entry.Volatility, entry.RiskLevel, entry.ChangeCount))
 		}
 		md.WriteString("\n")
@@ -725,11 +726,11 @@ func linearRegression(points []DataPoint) (slope, r2 float64) {
 	}
 
 	n := float64(len(points))
-	
+
 	// Convert timestamps to numeric (days since first point)
 	t0 := points[0].Timestamp
 	var sumX, sumY, sumXY, sumX2, sumY2 float64
-	
+
 	for _, p := range points {
 		x := p.Timestamp.Sub(t0).Hours() / 24.0
 		y := p.Value
@@ -753,7 +754,7 @@ func linearRegression(points []DataPoint) (slope, r2 float64) {
 	for _, p := range points {
 		x := p.Timestamp.Sub(t0).Hours() / 24.0
 		y := p.Value
-		yPred := meanY + slope*(x - sumX/n)
+		yPred := meanY + slope*(x-sumX/n)
 		ssTotal += (y - meanY) * (y - meanY)
 		ssResidual += (y - yPred) * (y - yPred)
 	}
