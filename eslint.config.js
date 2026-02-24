@@ -1,8 +1,11 @@
-const { defineConfig } = require("eslint/config");
-const js = require("@eslint/js");
-const tseslint = require("typescript-eslint");
+import { defineConfig } from "eslint/config";
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
+import { fileURLToPath } from "node:url";
 
-module.exports = defineConfig([
+const tsconfigRootDir = fileURLToPath(new URL(".", import.meta.url));
+
+export default defineConfig([
   js.configs.recommended,
   tseslint.configs.recommended,
   {
@@ -10,7 +13,7 @@ module.exports = defineConfig([
     languageOptions: {
       parserOptions: {
         project: true,
-        tsconfigRootDir: __dirname,
+        tsconfigRootDir,
       },
     },
     rules: {

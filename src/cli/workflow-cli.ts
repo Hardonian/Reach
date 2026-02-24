@@ -709,13 +709,17 @@ async function runDecisionInWorkspace(
   }
 
   const robustActions =
-    result.evaluations.find((e: { lens: string; robustActions?: string[] }) => e.lens === "robustness")?.robustActions || [];
+    result.evaluations.find(
+      (e: { lens: string; robustActions?: string[] }) => e.lens === "robustness",
+    )?.robustActions || [];
   const recommendedAction =
     robustActions.length > 0
       ? `Action(s) ${robustActions.join(", ")} are robust.`
       : "No robust actions found. Gather more evidence.";
 
-  const flipDistances = transcript.analysis.flip_distances.map((f: { distance: string }) => parseFloat(f.distance));
+  const flipDistances = transcript.analysis.flip_distances.map((f: { distance: string }) =>
+    parseFloat(f.distance),
+  );
   const minFlipDistance = flipDistances.length > 0 ? Math.min(...flipDistances) : Infinity;
 
   const fragility =

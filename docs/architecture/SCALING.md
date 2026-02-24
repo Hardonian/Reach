@@ -8,12 +8,12 @@ At 100k events, linear processing breaks down. The architecture must shift from 
 
 ### Bottlenecks & Breakpoints
 
-| Component | Breakpoint | Symptom | Mitigation |
-| :--- | :--- | :--- | :--- |
-| **Event Log** | ~10k events | JSON Parse/Stringify overhead blocks main thread | Streaming JSON parser (SAX-style) or binary format (Protobuf/CBOR) |
-| **Replay Engine** | ~50k events | Memory exhaustion (O(n) state accumulation) | Periodic Snapshots (every 1k events) |
-| **Network** | ~5MB payload | HTTP body limits / Timeout | Pagination / Chunked Transfer |
-| **Verification** | ~10s latency | User perceived hang | Incremental Hashing (Merkle Tree) |
+| Component         | Breakpoint   | Symptom                                          | Mitigation                                                         |
+| :---------------- | :----------- | :----------------------------------------------- | :----------------------------------------------------------------- |
+| **Event Log**     | ~10k events  | JSON Parse/Stringify overhead blocks main thread | Streaming JSON parser (SAX-style) or binary format (Protobuf/CBOR) |
+| **Replay Engine** | ~50k events  | Memory exhaustion (O(n) state accumulation)      | Periodic Snapshots (every 1k events)                               |
+| **Network**       | ~5MB payload | HTTP body limits / Timeout                       | Pagination / Chunked Transfer                                      |
+| **Verification**  | ~10s latency | User perceived hang                              | Incremental Hashing (Merkle Tree)                                  |
 
 ## 2. Storage & I/O Strategy
 

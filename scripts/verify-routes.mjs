@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import path from "node:path";
 
 const host = "127.0.0.1";
@@ -8,8 +9,19 @@ const baseUrl = `http://${host}:${port}`;
 
 const routes = ["/", "/docs", "/app"];
 
-const nextBin = path.resolve("apps/arcade/node_modules/next/dist/bin/next");
-const child = spawn("node", [nextBin, "dev", "-p", String(port), "-H", host], {
+const nextBinCandidates = [
+  path.resolve("apps/arcade/node_modules/next/dist/bin/next"),
+  path.resolve("node_modules/next/dist/bin/next"),
+];
+const nextBin = nextBinCandidates.find((candidate) => existsSync(candidate));
+
+if (!nextBin) {
+  console.error("❌ verify:routes failed");
+  console.error("Could not locate Next.js binary in app or repo node_modules.");
+  process.exit(1);
+}
+
+const child = spawn(process.execPath, [nextBin, "dev", "-p", String(port), "-H", host], {
   cwd: path.resolve("apps/arcade"),
   stdio: ["ignore", "pipe", "pipe"],
   env: {

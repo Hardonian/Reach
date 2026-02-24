@@ -5,15 +5,7 @@ import { execSync } from "node:child_process";
 
 const root = process.cwd();
 const exts = new Set([".ts", ".tsx", ".js", ".mjs"]);
-const skipDirs = new Set([
-  "node_modules",
-  ".git",
-  ".next",
-  "dist",
-  "build",
-  "coverage",
-  "target",
-]);
+const skipDirs = new Set(["node_modules", ".git", ".next", "dist", "build", "coverage", "target"]);
 
 function walk(dir, output = []) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });

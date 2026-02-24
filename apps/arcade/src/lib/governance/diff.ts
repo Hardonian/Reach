@@ -35,7 +35,10 @@ function countChanged<T extends { id: string }>(next: T[], prev: T[]): number {
   return changed;
 }
 
-export function diffGovernanceSpec(previous: GovernanceSpec | null, next: GovernanceSpec): GovernanceSpecDiff {
+export function diffGovernanceSpec(
+  previous: GovernanceSpec | null,
+  next: GovernanceSpec,
+): GovernanceSpecDiff {
   if (!previous) {
     return {
       hasChanges: true,
@@ -62,8 +65,12 @@ export function diffGovernanceSpec(previous: GovernanceSpec | null, next: Govern
   const gateRemoved = previous.gates.filter((gate) => !nextGates.has(gate.id)).length;
   const gateChanged = countChanged(next.gates, previous.gates);
 
-  const thresholdAdded = next.thresholds.filter((threshold) => !prevThresholds.has(threshold.id)).length;
-  const thresholdRemoved = previous.thresholds.filter((threshold) => !nextThresholds.has(threshold.id)).length;
+  const thresholdAdded = next.thresholds.filter(
+    (threshold) => !prevThresholds.has(threshold.id),
+  ).length;
+  const thresholdRemoved = previous.thresholds.filter(
+    (threshold) => !nextThresholds.has(threshold.id),
+  ).length;
   const thresholdChanged = countChanged(next.thresholds, previous.thresholds);
 
   const hasChanges =

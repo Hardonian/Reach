@@ -9,7 +9,9 @@ export async function runStatusCommand(): Promise<number> {
   const recent = listRecentArtifacts(10);
   const uptime = os.uptime();
 
-  const latencies = recent.map((a: { execution_duration_ms?: number }) => a.execution_duration_ms).filter(Boolean);
+  const latencies = recent
+    .map((a: { execution_duration_ms?: number }) => a.execution_duration_ms)
+    .filter(Boolean);
   const avgLatency =
     latencies.length > 0
       ? (latencies.reduce((a: number, b: number) => a + b, 0) / latencies.length).toFixed(2)
@@ -20,9 +22,11 @@ export async function runStatusCommand(): Promise<number> {
   console.log(`Average Latency (recent): ${avgLatency}ms`);
   console.log(`Recent Decisions: ${recent.length}`);
   console.log("\nLast 10 Decisions:");
-  recent.forEach((a: { decision_id: string; timestamp: string; execution_duration_ms?: number }) => {
-    console.log(`- ${a.decision_id}: ${a.timestamp} (${a.execution_duration_ms}ms)`);
-  });
+  recent.forEach(
+    (a: { decision_id: string; timestamp: string; execution_duration_ms?: number }) => {
+      console.log(`- ${a.decision_id}: ${a.timestamp} (${a.execution_duration_ms}ms)`);
+    },
+  );
 
   console.log("\nConfig Summary:");
   console.log(`- NODE_ENV: ${loadConfig().NODE_ENV}`);

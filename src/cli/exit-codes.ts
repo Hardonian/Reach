@@ -7,4 +7,8 @@
  * @deprecated Use ErrorCodes from '../core/errors.js' instead. This file is kept for backwards compatibility.
  */
 
-export { ErrorCodes as exitCodes, type ErrorCode as ExitCode, getErrorCodeDescription } from "../core/errors.js";
+export {
+  ErrorCodes as exitCodes,
+  type ErrorCode as ExitCode,
+  getErrorCodeDescription,
+} from "../core/errors.js";

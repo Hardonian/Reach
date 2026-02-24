@@ -41,7 +41,9 @@ describe("nl-compiler determinism", () => {
       defaultRolloutMode: "dry-run",
     });
 
-    const evalThreshold = compiled.spec.thresholds.find((threshold) => threshold.metric === "evaluation_score");
+    const evalThreshold = compiled.spec.thresholds.find(
+      (threshold) => threshold.metric === "evaluation_score",
+    );
     const hallucinationThreshold = compiled.spec.thresholds.find(
       (threshold) => threshold.metric === "hallucination_risk",
     );

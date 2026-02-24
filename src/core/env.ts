@@ -87,7 +87,9 @@ export function loadConfig(): ReachConfig {
     CI: parseBoolean(process.env.CI, false),
     DEBUG: parseBoolean(process.env.DEBUG, false),
 
-    ZEO_STRICT: process.env.ZE0_STRICT ? process.env.ZE0_STRICT !== "0" && process.env.ZE0_STRICT !== "false" : parseBoolean(process.env.ZEO_STRICT, true),
+    ZEO_STRICT: process.env.ZE0_STRICT
+      ? process.env.ZE0_STRICT !== "0" && process.env.ZE0_STRICT !== "false"
+      : parseBoolean(process.env.ZEO_STRICT, true),
     ZEO_FIXED_TIME: process.env.ZEO_FIXED_TIME,
     ZEO_WORKSPACE_ID: process.env.ZEO_WORKSPACE_ID?.trim() || "default",
     PORT: process.env.PORT ? parseInt(process.env.PORT, 10) : undefined,

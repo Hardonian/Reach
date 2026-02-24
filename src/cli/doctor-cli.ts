@@ -778,7 +778,9 @@ function runLlmConfigCheck(): DoctorCheck {
   const hasConfig =
     existsSync(resolve(process.cwd(), ".zeo", "config.json")) ||
     Boolean(
-      loadConfig().OPENAI_API_KEY || loadConfig().ANTHROPIC_API_KEY || loadConfig().OPENROUTER_API_KEY,
+      loadConfig().OPENAI_API_KEY ||
+      loadConfig().ANTHROPIC_API_KEY ||
+      loadConfig().OPENROUTER_API_KEY,
     );
   return hasConfig
     ? {

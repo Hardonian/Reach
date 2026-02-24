@@ -1,4 +1,4 @@
-import type { CIEnforcementRule, GovernanceSpec } from "../nl-compiler/types.js";
+import type { CIEnforcementRule, GovernanceSpec } from "./types";
 
 export interface GovernanceGeneratedArtifact {
   artifactType:

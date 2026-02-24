@@ -1,14 +1,12 @@
 import { Command } from "commander";
 import { resolve } from "node:path";
-import { compactTrustProfiles, deriveTrustTier } from "../../core/shim.js";
+import { compactTrustProfiles, deriveTrustTier } from "./shim.js";
 
 export const trust = new Command("trust");
 
-trust
-  .description("Manage trust profiles and reputation")
-  .action(() => {
-    trust.help();
-  });
+trust.description("Manage trust profiles and reputation").action(() => {
+  trust.help();
+});
 
 trust
   .command("list")
@@ -31,7 +29,7 @@ trust
           Tier: deriveTrustTier(p),
           Pass: p.pass_count,
           Fail: p.fail_count,
-        }))
+        })),
       );
     } catch (err: any) {
       console.error("Error listing trust profiles:", err.message);

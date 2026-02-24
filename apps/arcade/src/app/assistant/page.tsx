@@ -66,7 +66,8 @@ export default function GovernanceAssistantPage() {
   const [chat, setChat] = useState<ChatItem[]>([]);
 
   const workflowArtifact = useMemo(
-    () => preview?.artifacts.find((artifact) => artifact.path === ".github/workflows/reach-gates.yml"),
+    () =>
+      preview?.artifacts.find((artifact) => artifact.path === ".github/workflows/reach-gates.yml"),
     [preview],
   );
 
@@ -168,7 +169,9 @@ export default function GovernanceAssistantPage() {
             </button>
             <button
               disabled={!preview}
-              onClick={() => preview && downloadJson(`governance-spec-${preview.spec_hash}.json`, preview.spec)}
+              onClick={() =>
+                preview && downloadJson(`governance-spec-${preview.spec_hash}.json`, preview.spec)
+              }
               className="btn-secondary disabled:opacity-60"
             >
               Export config
@@ -222,7 +225,10 @@ export default function GovernanceAssistantPage() {
                 <p className="mt-2 text-xs text-gray-500">Determinism hash: {preview.spec_hash}</p>
                 <p className="mt-2 text-xs text-gray-500">Rollout mode: {preview.rollout_mode}</p>
                 {preview.replay_link && (
-                  <a href={preview.replay_link} className="mt-2 inline-block text-xs text-accent hover:underline">
+                  <a
+                    href={preview.replay_link}
+                    className="mt-2 inline-block text-xs text-accent hover:underline"
+                  >
                     Replay link
                   </a>
                 )}
@@ -230,10 +236,14 @@ export default function GovernanceAssistantPage() {
 
               <div className="grid sm:grid-cols-2 gap-3 text-sm">
                 <div className="rounded-lg border border-border bg-background/50 p-3">
-                  <div className="text-gray-500 text-xs uppercase tracking-wide">Would fail today</div>
+                  <div className="text-gray-500 text-xs uppercase tracking-wide">
+                    Would fail today
+                  </div>
                   <ul className="mt-2 space-y-1 text-gray-300">
                     {preview.impact_preview.wouldFailToday.length > 0 ? (
-                      preview.impact_preview.wouldFailToday.map((line) => <li key={line}>• {line}</li>)
+                      preview.impact_preview.wouldFailToday.map((line) => (
+                        <li key={line}>• {line}</li>
+                      ))
                     ) : (
                       <li>• No immediate failures predicted.</li>
                     )}
@@ -242,8 +252,12 @@ export default function GovernanceAssistantPage() {
 
                 <div className="rounded-lg border border-border bg-background/50 p-3">
                   <div className="text-gray-500 text-xs uppercase tracking-wide">Delta</div>
-                  <p className="mt-2 text-gray-300">Cost: +{preview.impact_preview.costDeltaPct.toFixed(1)}%</p>
-                  <p className="text-gray-300">Eval: +{preview.impact_preview.evalDeltaPct.toFixed(1)}%</p>
+                  <p className="mt-2 text-gray-300">
+                    Cost: +{preview.impact_preview.costDeltaPct.toFixed(1)}%
+                  </p>
+                  <p className="text-gray-300">
+                    Eval: +{preview.impact_preview.evalDeltaPct.toFixed(1)}%
+                  </p>
                   <p className="text-gray-300">
                     Repos: {preview.impact_preview.affectedRepos.join(", ")}
                   </p>
@@ -260,7 +274,9 @@ export default function GovernanceAssistantPage() {
               </div>
 
               <div className="rounded-lg border border-border bg-background/50 p-3">
-                <div className="text-gray-500 text-xs uppercase tracking-wide">Generated CI artifact</div>
+                <div className="text-gray-500 text-xs uppercase tracking-wide">
+                  Generated CI artifact
+                </div>
                 <p className="mt-2 text-sm text-gray-300">
                   {workflowArtifact
                     ? `${workflowArtifact.path} (${workflowArtifact.hash.slice(0, 12)})`
@@ -284,10 +300,14 @@ export default function GovernanceAssistantPage() {
                   <div
                     key={item.id}
                     className={`rounded-md px-3 py-2 text-sm ${
-                      item.role === "user" ? "bg-accent/20 text-slate-100" : "bg-surface text-gray-300"
+                      item.role === "user"
+                        ? "bg-accent/20 text-slate-100"
+                        : "bg-surface text-gray-300"
                     }`}
                   >
-                    <span className="mr-2 text-xs uppercase tracking-wide text-gray-500">{item.role}</span>
+                    <span className="mr-2 text-xs uppercase tracking-wide text-gray-500">
+                      {item.role}
+                    </span>
                     {item.text}
                   </div>
                 ))

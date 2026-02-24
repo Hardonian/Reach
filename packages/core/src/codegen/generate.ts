@@ -5,7 +5,9 @@ import type {
   GovernanceGeneratedArtifact,
 } from "./types.js";
 
-function makeGateConfigArtifact(input: GenerateGovernanceArtifactsInput): GovernanceGeneratedArtifact {
+function makeGateConfigArtifact(
+  input: GenerateGovernanceArtifactsInput,
+): GovernanceGeneratedArtifact {
   const content = stableStringifyPretty({
     version: "reach.governance.gate.v1",
     sourceIntent: input.intent,
@@ -42,7 +44,9 @@ function makeReplayValidatorArtifact(
   };
 }
 
-function makePolicyModuleArtifact(input: GenerateGovernanceArtifactsInput): GovernanceGeneratedArtifact {
+function makePolicyModuleArtifact(
+  input: GenerateGovernanceArtifactsInput,
+): GovernanceGeneratedArtifact {
   const lines = [
     "package reach.governance",
     "",
@@ -53,9 +57,9 @@ function makePolicyModuleArtifact(input: GenerateGovernanceArtifactsInput): Gove
     "}",
     "",
     "deny[msg] if {",
-    "  input.spec.rolloutMode == \"enforced\"",
-    "  input.result.verdict == \"failed\"",
-    "  msg := \"Governance gate failed\"",
+    '  input.spec.rolloutMode == "enforced"',
+    '  input.result.verdict == "failed"',
+    '  msg := "Governance gate failed"',
     "}",
     "",
   ];
@@ -69,7 +73,9 @@ function makePolicyModuleArtifact(input: GenerateGovernanceArtifactsInput): Gove
   };
 }
 
-function makeEvalAdapterArtifact(input: GenerateGovernanceArtifactsInput): GovernanceGeneratedArtifact {
+function makeEvalAdapterArtifact(
+  input: GenerateGovernanceArtifactsInput,
+): GovernanceGeneratedArtifact {
   const content = stableStringifyPretty({
     version: "reach.eval.adapter.v1",
     metrics: input.spec.thresholds.map((threshold) => ({
@@ -87,7 +93,9 @@ function makeEvalAdapterArtifact(input: GenerateGovernanceArtifactsInput): Gover
   };
 }
 
-function makeWorkflowArtifact(input: GenerateGovernanceArtifactsInput): GovernanceGeneratedArtifact {
+function makeWorkflowArtifact(
+  input: GenerateGovernanceArtifactsInput,
+): GovernanceGeneratedArtifact {
   const verifyCommand =
     input.ciEnforcement[0]?.verifyCommand ??
     "reach verify --spec governance/reach.governance.json --format json --out .reach/gate-report.json";
@@ -109,7 +117,7 @@ function makeWorkflowArtifact(input: GenerateGovernanceArtifactsInput): Governan
     "        with:",
     "          node-version: '20'",
     "      - name: Install Reach CLI",
-    "        run: npm i -g @reach/cli || echo \"Using repository reach binary\"",
+    '        run: npm i -g @reach/cli || echo "Using repository reach binary"',
     "      - name: Verify governance gates",
     `        run: ${verifyCommand}`,
     "      - name: Upload governance report",

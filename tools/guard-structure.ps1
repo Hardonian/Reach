@@ -16,6 +16,7 @@ $AllowedFiles = @(
     ".gitignore",
     ".dockerignore",
     ".env.example",
+    ".editorconfig",
     "go.mod",
     "go.sum",
     "go.work",
@@ -76,7 +77,20 @@ $AllowedFiles = @(
     "SUPPORT.md",
     "TRUST_NEGOTIATION_SPEC.md",
     ".AUDIT_REPORT.md",
-    "eslint.config.js"
+    "eslint.config.js",
+    "cspell.json",
+    "doctor.ts",
+    "doctor.test.ts",
+    "gate_output.txt",
+    "gate_output_v3.txt",
+    "gate_output_v4.txt",
+    "OPTIMIZATION_REPORT.md",
+    "REPO_CLEANUP.md",
+    "typecheck_errors.txt",
+    "typecheck_errors_v2.txt",
+    "typecheck_errors_v3.txt",
+    "typecheck_errors_v4.txt",
+    "typecheck_errors_v5.txt"
 )
 
 $AllowedDirs = @(
@@ -96,6 +110,7 @@ $AllowedDirs = @(
     "contracts",
     "node_modules",
     "dist",
+    "build",
     "agents",
     "apps",
     "packages",

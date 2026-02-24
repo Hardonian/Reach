@@ -38,7 +38,9 @@ describe("doctor command", () => {
 
     await doctor.parseAsync(["node", "reach-doctor"]);
 
-    expect(console.log).toHaveBeenCalledWith(expect.stringContaining("⚠️  Warning: ZEO_PROVIDER is 'openai' but no API keys found."));
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining("⚠️  Warning: ZEO_PROVIDER is 'openai' but no API keys found."),
+    );
   });
 
   it("does not warn when ZEO_PROVIDER is local", async () => {
@@ -46,7 +48,9 @@ describe("doctor command", () => {
 
     await doctor.parseAsync(["node", "reach-doctor"]);
 
-    expect(console.log).not.toHaveBeenCalledWith(expect.stringContaining("⚠️  Warning: ZEO_PROVIDER"));
+    expect(console.log).not.toHaveBeenCalledWith(
+      expect.stringContaining("⚠️  Warning: ZEO_PROVIDER"),
+    );
   });
 
   it("exits with error on invalid configuration", async () => {
@@ -54,7 +58,9 @@ describe("doctor command", () => {
 
     await doctor.parseAsync(["node", "reach-doctor"]);
 
-    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Health check failed: PORT must be a valid number"));
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining("Health check failed: PORT must be a valid number"),
+    );
     expect(process.exit).toHaveBeenCalledWith(1);
   });
 
@@ -71,6 +77,8 @@ describe("doctor command", () => {
 
     await doctor.parseAsync(["node", "reach-doctor"]);
 
-    expect(console.log).toHaveBeenCalledWith(expect.stringContaining("ZEO_PLUGIN_PATH:  /custom/plugins"));
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining("ZEO_PLUGIN_PATH:  /custom/plugins"),
+    );
   });
 });

@@ -1,6 +1,11 @@
 import { getDB } from "./connection";
 import { newId } from "./helpers";
-import type { GovernanceArtifact, GovernanceMemory, GovernanceScope, GovernanceSpecVersion } from "./types";
+import type {
+  GovernanceArtifact,
+  GovernanceMemory,
+  GovernanceScope,
+  GovernanceSpecVersion,
+} from "./types";
 
 export interface GovernanceMemoryRecord {
   id: string;
@@ -115,7 +120,9 @@ export function upsertGovernanceMemory(input: {
       `SELECT id FROM governance_memory
        WHERE org_id=? AND workspace_id=? AND scope=? AND memory_type=?`,
     )
-    .get(input.orgId, input.workspaceId, input.scope, input.memoryType) as { id: string } | undefined;
+    .get(input.orgId, input.workspaceId, input.scope, input.memoryType) as
+    | { id: string }
+    | undefined;
 
   if (existing) {
     db.prepare(
@@ -152,9 +159,9 @@ export function getGovernanceMemoryById(
   orgId: string,
 ): GovernanceMemoryRecord | undefined {
   const db = getDB();
-  const row = db.prepare("SELECT * FROM governance_memory WHERE id=? AND org_id=?").get(id, orgId) as
-    | GovernanceMemory
-    | undefined;
+  const row = db
+    .prepare("SELECT * FROM governance_memory WHERE id=? AND org_id=?")
+    .get(id, orgId) as GovernanceMemory | undefined;
   return row ? parseMemory(row) : undefined;
 }
 
@@ -177,9 +184,9 @@ export function getLatestGovernanceSpec(
 
 export function getGovernanceSpecById(id: string, orgId: string): GovernanceSpecRecord | undefined {
   const db = getDB();
-  const row = db.prepare("SELECT * FROM governance_specs WHERE id=? AND org_id=?").get(id, orgId) as
-    | GovernanceSpecVersion
-    | undefined;
+  const row = db
+    .prepare("SELECT * FROM governance_specs WHERE id=? AND org_id=?")
+    .get(id, orgId) as GovernanceSpecVersion | undefined;
   return row ? parseSpec(row) : undefined;
 }
 

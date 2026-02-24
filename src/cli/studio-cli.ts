@@ -171,7 +171,16 @@ export async function runExportReportCommand(argv: string[]): Promise<number> {
       | undefined;
     try {
       console.log("  🔁 Running replay verification...");
-      const replayResult = (core as { replayRun: (id: string) => { verdict: string; originalOutputHash: string; replayOutputHash: string; durationMs: number } }).replayRun(runId);
+      const replayResult = (
+        core as {
+          replayRun: (id: string) => {
+            verdict: string;
+            originalOutputHash: string;
+            replayOutputHash: string;
+            durationMs: number;
+          };
+        }
+      ).replayRun(runId);
       replayData = {
         verdict: replayResult.verdict,
         originalOutputHash: replayResult.originalOutputHash,
@@ -193,7 +202,9 @@ export async function runExportReportCommand(argv: string[]): Promise<number> {
     }
 
     // Tools
-    const toolRegistry = (core as { getDefaultToolRegistry: () => Record<string, unknown> }).getDefaultToolRegistry();
+    const toolRegistry = (
+      core as { getDefaultToolRegistry: () => Record<string, unknown> }
+    ).getDefaultToolRegistry();
 
     // Build report
     const report: Record<string, unknown> = {

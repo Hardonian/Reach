@@ -473,12 +473,14 @@ export async function recordTrustEvent(
   }
 }
 
-export async function compactTrustProfiles(root: string): Promise<Array<{
-  subject_type: string;
-  subject_id: string;
-  pass_count: number;
-  fail_count: number;
-}>> {
+export async function compactTrustProfiles(root: string): Promise<
+  Array<{
+    subject_type: string;
+    subject_id: string;
+    pass_count: number;
+    fail_count: number;
+  }>
+> {
   const dir = join(root, ".zeo", "trust");
   let files: string[];
 
@@ -540,7 +542,9 @@ export function migrateEnvelope(content: unknown, _version: string): unknown {
 // Studio CLI stubs
 // ---------------------------------------------------------------------------
 
-export function loadSnapshot(_runId: string): { runId: string; createdAt: string; deterministic: boolean } | null {
+export function loadSnapshot(
+  _runId: string,
+): { runId: string; createdAt: string; deterministic: boolean } | null {
   return null;
 }
 

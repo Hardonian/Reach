@@ -1,12 +1,9 @@
 import { Command } from "commander";
-import { trust } from "./commands/trust.js";
+import { trust } from "./trust.js";
 
 export const program = new Command();
 
-program
-  .name("reach")
-  .description("Reach CLI - Deterministic Execution Fabric")
-  .version("0.1.0");
+program.name("reach").description("Reach CLI - Deterministic Execution Fabric").version("0.1.0");
 
 program.addCommand(trust);
 

@@ -33,7 +33,7 @@ graph TD
     cli --> core_ts
     core_ts --> det
     core_rs --> det
-    
+
     %% Note: Layer 0 (Determinism) must NEVER depend on anything above it.
 ```
 

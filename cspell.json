@@ -23,10 +23,5 @@
     "Zeolite",
     "Zeonite"
   ],
-  "ignorePaths": [
-    "node_modules",
-    "dist",
-    "build",
-    "*.log"
-  ]
+  "ignorePaths": ["node_modules", "dist", "build", "*.log"]
 }

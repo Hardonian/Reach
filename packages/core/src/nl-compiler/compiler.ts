@@ -1,9 +1,4 @@
-import {
-  compareNumbers,
-  compareStrings,
-  sha256Hex,
-  stableStringify,
-} from "./deterministic.js";
+import { compareNumbers, compareStrings, sha256Hex, stableStringify } from "./deterministic.js";
 import { parseGovernanceIntent } from "./intent-parser.js";
 import type {
   CIEnforcementRule,
@@ -57,7 +52,9 @@ function dedupeThresholds(thresholds: EvalThreshold[]): EvalThreshold[] {
   return output;
 }
 
-function toThresholds(parsed: ReturnType<typeof parseGovernanceIntent>["thresholds"]): EvalThreshold[] {
+function toThresholds(
+  parsed: ReturnType<typeof parseGovernanceIntent>["thresholds"],
+): EvalThreshold[] {
   return parsed.map((threshold) => ({
     id: thresholdId(threshold.metric, threshold.operator, threshold.value),
     metric: threshold.metric,
@@ -182,7 +179,10 @@ function buildCiEnforcementRules(requireCiEnforcement: boolean): CIEnforcementRu
   ];
 }
 
-function buildPlan(parsed: ReturnType<typeof parseGovernanceIntent>, memorySignals: string[]): GovernancePlan {
+function buildPlan(
+  parsed: ReturnType<typeof parseGovernanceIntent>,
+  memorySignals: string[],
+): GovernancePlan {
   const summary =
     parsed.intents.length > 0
       ? `Compiled ${parsed.intents.length} governance intent(s) into deterministic gate config.`
@@ -197,11 +197,15 @@ function buildPlan(parsed: ReturnType<typeof parseGovernanceIntent>, memorySigna
 }
 
 function buildImpactPreview(spec: GovernanceSpec): CompileGovernanceIntentOutput["impactPreview"] {
-  const evalThreshold = spec.thresholds.find((threshold) => threshold.metric === "evaluation_score");
+  const evalThreshold = spec.thresholds.find(
+    (threshold) => threshold.metric === "evaluation_score",
+  );
 
   const wouldFailToday: string[] = [];
   if (evalThreshold && evalThreshold.value > 0.85) {
-    wouldFailToday.push(`Pipelines below evaluation score ${evalThreshold.value.toFixed(2)} would fail.`);
+    wouldFailToday.push(
+      `Pipelines below evaluation score ${evalThreshold.value.toFixed(2)} would fail.`,
+    );
   }
 
   const hallucinationThreshold = spec.thresholds.find(
@@ -274,7 +278,9 @@ export function compileGovernanceIntent(
     spec.rolloutMode === "dry-run"
       ? "Draft mode enabled: no runtime mutation until explicit apply."
       : "Enforced mode requested: gates will fail CI on violations.",
-    parsed.requireReplay ? "Replay policy enabled for regression attribution." : "Replay policy unchanged.",
+    parsed.requireReplay
+      ? "Replay policy enabled for regression attribution."
+      : "Replay policy unchanged.",
   ].sort(compareStrings);
 
   return {
@@ -301,7 +307,9 @@ export function buildMemorySeed(args: {
 }): GovernanceMemoryEntry[] {
   const memory: GovernanceMemoryEntry[] = [];
 
-  const evalThreshold = args.spec.thresholds.find((threshold) => threshold.metric === "evaluation_score");
+  const evalThreshold = args.spec.thresholds.find(
+    (threshold) => threshold.metric === "evaluation_score",
+  );
   if (evalThreshold) {
     memory.push({
       orgId: args.orgId,

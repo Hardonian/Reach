@@ -11,7 +11,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   try {
     const workspaceId = req.nextUrl.searchParams.get("workspace_id") ?? "default";
-    const scopeResult = GovernanceScopeSchema.safeParse(req.nextUrl.searchParams.get("scope") ?? "project");
+    const scopeResult = GovernanceScopeSchema.safeParse(
+      req.nextUrl.searchParams.get("scope") ?? "project",
+    );
     if (!scopeResult.success) {
       return cloudErrorResponse(scopeResult.error.issues[0]?.message ?? "Invalid scope", 400);
     }

@@ -25,7 +25,9 @@ export default async function GovernanceHistoryPage() {
       <ConsoleLayout>
         <div className="p-8">
           <h1 className="text-2xl font-bold">Governance Timeline</h1>
-          <p className="mt-2 text-sm text-gray-400">Sign in to view tenant-scoped governance history.</p>
+          <p className="mt-2 text-sm text-gray-400">
+            Sign in to view tenant-scoped governance history.
+          </p>
         </div>
       </ConsoleLayout>
     );
@@ -104,7 +106,11 @@ export default async function GovernanceHistoryPage() {
               {rows.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-6 text-gray-500">
-                    No governance history yet. Start in <Link href="/assistant" className="text-accent hover:underline">Assistant</Link>.
+                    No governance history yet. Start in{" "}
+                    <Link href="/assistant" className="text-accent hover:underline">
+                      Assistant
+                    </Link>
+                    .
                   </td>
                 </tr>
               ) : (
@@ -113,7 +119,9 @@ export default async function GovernanceHistoryPage() {
                     <td className="px-4 py-3 font-mono">v{row.version}</td>
                     <td className="px-4 py-3">
                       <div className="capitalize">{row.triggeredBy}</div>
-                      <div className="text-xs text-gray-500">{new Date(row.createdAt).toLocaleString()}</div>
+                      <div className="text-xs text-gray-500">
+                        {new Date(row.createdAt).toLocaleString()}
+                      </div>
                     </td>
                     <td className="px-4 py-3 max-w-[360px] text-gray-300">{row.sourceIntent}</td>
                     <td className="px-4 py-3 text-gray-300">{row.diff}</td>

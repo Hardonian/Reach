@@ -31,8 +31,8 @@ describe("governance codegen", () => {
       [...first.artifacts.map((artifact) => artifact.path)].sort(),
     );
     expect(first.artifacts).toEqual(second.artifacts);
-    expect(first.artifacts.some((artifact) => artifact.path === ".github/workflows/reach-gates.yml")).toBe(
-      true,
-    );
+    expect(
+      first.artifacts.some((artifact) => artifact.path === ".github/workflows/reach-gates.yml"),
+    ).toBe(true);
   });
 });

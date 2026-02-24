@@ -129,7 +129,7 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
       const keyPath = value(argv, "--out") ?? join(process.cwd(), ".zeo", "keys", "id_ed25519.pem");
       const passphrase = value(argv, "--passphrase");
       mkdirSync(resolve(keyPath, ".."), { recursive: true });
-      const key = generateEd25519Keypair(keyPath, passphrase ?? undefined);
+      const key = await generateEd25519Keypair(keyPath, passphrase ?? undefined);
       process.stdout.write(
         `${JSON.stringify({ key_path: keyPath, fingerprint: key.fingerprint, public_key: key.publicKeyPem }, null, 2)}\n`,
       );
@@ -139,11 +139,17 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
     if (entity === "key" && action === "export") {
       const keyPath = value(argv, "--key");
       if (!keyPath) throw new Error("--key is required");
-      const publicKey = exportPublicKeyFromPrivate(
+      const publicKey = await exportPublicKeyFromPrivate(
         keyPath,
         value(argv, "--passphrase") ?? undefined,
       );
-      process.stdout.write(`${publicKey.trim()}\n`);
+      const publicKeyText =
+        typeof publicKey === "string"
+          ? publicKey
+          : typeof publicKey?.publicKeyPem === "string"
+            ? publicKey.publicKeyPem
+            : String(publicKey);
+      process.stdout.write(`${publicKeyText.trim()}\n`);
       return 0;
     }
 
@@ -159,7 +165,7 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
         string,
         unknown
       >;
-      const envelope = signEnvelopeWithEd25519(
+      const envelope = await signEnvelopeWithEd25519(
         createEnvelope(transcript, { created_by: "zeo-cli" }),
         keyPath,
         "zeo.transcript.signature.v1",
@@ -227,14 +233,14 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
         throw new Error(
           "Usage: zeo transcript verify <envelope.json> [--pubkey <path> | --keyring <dir>]",
         );
-      const envelope = loadEnvelopeFromFile(input);
+      const envelope = await loadEnvelopeFromFile(input);
       const pubkeyPath = value(argv, "--pubkey");
       const keyring = value(argv, "--keyring") ?? join(process.cwd(), ".zeo", "keyring");
       const verify = verifyEnvelope(
         envelope,
         pubkeyPath
-          ? () => readFileSync(resolve(pubkeyPath), "utf8")
-          : keyringResolver(resolve(keyring)),
+          ? readFileSync(resolve(pubkeyPath), "utf8")
+          : await keyringResolver(resolve(keyring))(),
       );
       process.stdout.write(`${JSON.stringify(verify, null, 2)}\n`);
       return verify.ok ? 0 : 1;
@@ -244,7 +250,7 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
       const input = argv[2];
       if (!input) throw new Error("Usage: zeo transcript inspect <envelope.json>");
       process.stdout.write(
-        `${JSON.stringify(inspectEnvelope(loadEnvelopeFromFile(input)), null, 2)}\n`,
+        `${JSON.stringify(inspectEnvelope(await loadEnvelopeFromFile(input)), null, 2)}\n`,
       );
       return 0;
     }
@@ -252,7 +258,8 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
     if (entity === "transcript" && action === "chain" && argv[2] === "verify") {
       const dir = argv[3];
       if (!dir) throw new Error("Usage: zeo transcript chain verify <dir>");
-      const envelopes = envelopeFilesInDir(resolve(dir)).map(loadEnvelopeFromFile);
+      const envelopePaths = await envelopeFilesInDir(resolve(dir));
+      const envelopes = await Promise.all(envelopePaths.map(loadEnvelopeFromFile));
       const result = verifyTranscriptChain(envelopes);
       process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
       return result.ok ? 0 : 1;
@@ -261,7 +268,7 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
     if (entity === "transcript" && action === "qr") {
       const input = argv[2];
       if (!input) throw new Error("Usage: zeo transcript qr <envelope.json>");
-      const envelope = loadEnvelopeFromFile(input);
+      const envelope = await loadEnvelopeFromFile(input);
       const payload = JSON.stringify({
         transcript_hash: envelope.transcript_hash,
         envelope_hash: envelope.transcript_hash,
@@ -282,7 +289,7 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
       if (!envelopePath) throw new Error("Missing envelope_file in payload");
       if (!readFileSync(resolve(envelopePath), "utf8"))
         throw new Error("Envelope file not found for offline verification");
-      const envelope = loadEnvelopeFromFile(envelopePath);
+      const envelope = await loadEnvelopeFromFile(envelopePath);
       const ok = envelope.transcript_hash === payload.transcript_hash;
       process.stdout.write(
         `${JSON.stringify({ ok, reason: ok ? "offline verification passed" : "transcript hash mismatch" }, null, 2)}\n`,
@@ -294,7 +301,7 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
       const pubPath = argv[2];
       const keyringDir = value(argv, "--keyring") ?? join(process.cwd(), ".zeo", "keyring");
       if (!pubPath) throw new Error("Usage: zeo keys add <pubkey>");
-      const entry = addPublicKeyToKeyring(
+      const entry = await addPublicKeyToKeyring(
         resolve(keyringDir),
         readFileSync(resolve(pubPath), "utf8"),
         value(argv, "--label") ?? undefined,
@@ -306,7 +313,9 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
 
     if (entity === "keys" && action === "list") {
       const keyringDir = value(argv, "--keyring") ?? join(process.cwd(), ".zeo", "keyring");
-      process.stdout.write(`${JSON.stringify(listKeyringEntries(resolve(keyringDir)), null, 2)}\n`);
+      process.stdout.write(
+        `${JSON.stringify(await listKeyringEntries(resolve(keyringDir)), null, 2)}\n`,
+      );
       return 0;
     }
 
@@ -315,7 +324,7 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
       const keyringDir = value(argv, "--keyring") ?? join(process.cwd(), ".zeo", "keyring");
       if (!fingerprint) throw new Error("Usage: zeo keys revoke <fingerprint>");
       process.stdout.write(
-        `${JSON.stringify(revokeKeyringEntry(resolve(keyringDir), fingerprint), null, 2)}\n`,
+        `${JSON.stringify(await revokeKeyringEntry(resolve(keyringDir), fingerprint), null, 2)}\n`,
       );
       return 0;
     }
@@ -325,10 +334,10 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
       if (!envPath) throw new Error("Usage: zeo trust record --from <envelope.json>");
       const root = process.cwd();
       const keyringDir = value(argv, "--keyring") ?? join(root, ".zeo", "keyring");
-      const envelope = loadEnvelopeFromFile(envPath);
-      const verify = verifyEnvelope(envelope, keyringResolver(resolve(keyringDir)));
+      const envelope = await loadEnvelopeFromFile(envPath);
+      const verify = verifyEnvelope(envelope, await keyringResolver(resolve(keyringDir))());
       for (const fingerprint of verify.signerFingerprints) {
-        recordTrustEvent(root, {
+        await recordTrustEvent(root, {
           subject_type: "key",
           subject_id: fingerprint,
           transcript_hash: envelope.transcript_hash,
@@ -337,7 +346,7 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
           adjudication: "modified",
         });
       }
-      const profiles = compactTrustProfiles(root);
+      const profiles = await compactTrustProfiles(root);
       process.stdout.write(`${JSON.stringify(profiles, null, 2)}\n`);
       return verify.ok ? 0 : 1;
     }
@@ -345,7 +354,7 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
     if (entity === "trust" && action === "show") {
       const subject = argv[2];
       if (!subject) throw new Error("Usage: zeo trust show <subject_type:subject_id>");
-      const profiles = compactTrustProfiles(process.cwd());
+      const profiles = await compactTrustProfiles(process.cwd());
       const match = profiles.find((p) => `${p.subject_type}:${p.subject_id}` === subject);
       if (!match) throw new Error(`Subject not found: ${subject}`);
       process.stdout.write(
@@ -355,7 +364,7 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
     }
 
     if (entity === "trust" && action === "list") {
-      const profiles = compactTrustProfiles(process.cwd()).map((p) => ({
+      const profiles = (await compactTrustProfiles(process.cwd())).map((p) => ({
         ...p,
         tier: deriveTrustTier(p),
       }));
@@ -364,7 +373,9 @@ export async function runTranscriptCommand(argv: string[]): Promise<number> {
     }
 
     if (entity === "trust" && action === "compact") {
-      process.stdout.write(`${JSON.stringify(compactTrustProfiles(process.cwd()), null, 2)}\n`);
+      process.stdout.write(
+        `${JSON.stringify(await compactTrustProfiles(process.cwd()), null, 2)}\n`,
+      );
       return 0;
     }
 

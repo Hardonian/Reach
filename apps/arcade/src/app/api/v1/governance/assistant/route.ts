@@ -19,7 +19,9 @@ import { diffGovernanceSpec } from "@/lib/governance/diff";
 
 export const runtime = "nodejs";
 
-function toCompilerMemory(records: ReturnType<typeof listGovernanceMemory>): GovernanceMemoryEntry[] {
+function toCompilerMemory(
+  records: ReturnType<typeof listGovernanceMemory>,
+): GovernanceMemoryEntry[] {
   return records.map((record) => ({
     id: record.id,
     orgId: record.org_id,

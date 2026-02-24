@@ -1,5 +1,10 @@
 import { hashString } from "../determinism/index.js";
-import type { DecisionSpec, EvidenceEvent, FinalizedDecisionTranscript, DecisionAssumption } from "@zeo/contracts";
+import type {
+  DecisionSpec,
+  EvidenceEvent,
+  FinalizedDecisionTranscript,
+  DecisionAssumption,
+} from "@zeo/contracts";
 // @ts-ignore - resolve missing core module
 import { executeDecision, verifyDecisionTranscript } from "@zeo/core";
 
@@ -211,7 +216,8 @@ export function executeZeoliteOperation(
     const contextId = stableId(JSON.stringify({ specId: spec.id, depth, seed }));
 
     const whatWouldChange = spec.assumptions.map(
-      (a: DecisionAssumption, idx: number) => `${a.id}: threshold shift ${(idx + 1) * 10}% can alter ranking`,
+      (a: DecisionAssumption, idx: number) =>
+        `${a.id}: threshold shift ${(idx + 1) * 10}% can alter ranking`,
     );
     contexts.set(contextId, { id: contextId, spec, evidence: [] });
 

@@ -20,7 +20,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   try {
     const workspaceId = req.nextUrl.searchParams.get("workspace_id") ?? "default";
-    const limit = Math.max(1, Math.min(Number.parseInt(req.nextUrl.searchParams.get("limit") ?? "50", 10), 200));
+    const limit = Math.max(
+      1,
+      Math.min(Number.parseInt(req.nextUrl.searchParams.get("limit") ?? "50", 10), 200),
+    );
 
     const scopeParam = req.nextUrl.searchParams.get("scope");
     const scope = scopeParam

@@ -10,8 +10,8 @@ export default function GovernanceHistoryPublicPage() {
       <div className="max-w-3xl mx-auto rounded-2xl border border-border bg-surface/40 p-8">
         <h1 className="text-3xl font-bold">Governance Timeline</h1>
         <p className="mt-3 text-gray-400">
-          View deterministic governance changes with diff, actor attribution, replay links, and
-          hash proofs.
+          View deterministic governance changes with diff, actor attribution, replay links, and hash
+          proofs.
         </p>
 
         <div className="mt-6 flex flex-wrap gap-3">

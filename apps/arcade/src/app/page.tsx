@@ -45,7 +45,8 @@ export default async function Home({ searchParams }: HomePageProps) {
       "replay-first",
       "anti-theatre",
     ],
-    ossInstall: "curl -sSL https://github.com/reach/reach/releases/latest/download/install.sh | bash",
+    ossInstall:
+      "curl -sSL https://github.com/reach/reach/releases/latest/download/install.sh | bash",
     oneCommandDemo: "npm run governance:demo",
   };
 
