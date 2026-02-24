@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { loadConfig } from "../../src/core/env.js";
+import { loadConfig } from "../../core/env.js";
 
 export const doctor = new Command("doctor");
 
