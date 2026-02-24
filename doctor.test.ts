@@ -17,6 +17,7 @@ describe("doctor command", () => {
     delete process.env.ZEO_LLM_API_KEY;
     delete process.env.PORT;
     delete process.env.DEBUG;
+    delete process.env.ZEO_PLUGIN_PATH;
   });
 
   afterEach(() => {
@@ -63,5 +64,13 @@ describe("doctor command", () => {
     await doctor.parseAsync(["node", "reach-doctor"]);
 
     expect(console.log).toHaveBeenCalledWith(expect.stringContaining("DEBUG:            true"));
+  });
+
+  it("outputs ZEO_PLUGIN_PATH when set", async () => {
+    process.env.ZEO_PLUGIN_PATH = "/custom/plugins";
+
+    await doctor.parseAsync(["node", "reach-doctor"]);
+
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining("ZEO_PLUGIN_PATH:  /custom/plugins"));
   });
 });
