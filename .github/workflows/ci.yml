@@ -86,12 +86,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      - name: restore vendored rust cache
+        uses: actions/cache@v4
+        with:
+          path: third_party/rust/vendor
+          key: rust-vendor-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
       - name: fmt
         run: cargo fmt --check
       - name: clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
+        run: ./tools/ci/rust_gate.sh clippy --workspace --all-targets -- -D warnings
       - name: test engine-core
-        run: cargo test -p engine-core
+        run: ./tools/ci/rust_gate.sh test -p engine-core
 
   go:
     name: go checks
@@ -237,10 +242,35 @@ jobs:
       - name: smoke suite
         run: npm run smoke:m1
 
+  dual-site-gates:
+    name: dual site claims + link gates
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/arcade
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: install
+        run: npm install
+      - name: claims lint
+        run: npm run claims:lint
+      - name: canonical host checks
+        run: npm run check:site-hosts
+      - name: link integrity
+        run: npm run check:links
+      - name: build OSS site mode
+        run: npm run build:oss
+      - name: build enterprise site mode
+        run: npm run build:enterprise
+
 
   verify-full:
     name: verify full
-    needs: [hygiene, language-enforcement, protocol, spec-conformance, rust, go, go-module-sanity, oss-gate, boundary-dominance, site-mode-matrix]
+    needs: [hygiene, language-enforcement, protocol, spec-conformance, rust, go, go-module-sanity, oss-gate, boundary-dominance, dual-site-gates]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

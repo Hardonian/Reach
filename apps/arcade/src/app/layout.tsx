@@ -8,6 +8,7 @@ import { getSiteBaseUrl, getSiteConfig } from '@/lib/site';
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getSiteConfig();
+  const base = site.mode === 'enterprise' ? 'https://ready-layer.com' : 'https://reach-cli.com';
   const base = getSiteBaseUrl(site);
 
   return {
@@ -24,6 +25,13 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: site.brand,
       title: site.title,
       description: site.description,
+      images: [{ url: '/og-image.png', width: 1200, height: 630, alt: `${site.brand} site` }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: site.title,
+      description: site.description,
+      images: ['/twitter-image.png'],
       images: [{ url: '/og-image.png', width: 1200, height: 630, alt: `${site.brand} platform` }],
     },
     alternates: {

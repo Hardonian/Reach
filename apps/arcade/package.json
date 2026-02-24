@@ -14,6 +14,10 @@
     "verify": "npm run typecheck && npm run lint && npm run build",
     "smoke:evidence": "node ./scripts/evidence-viewer-smoke.mjs",
     "check:links": "node ./scripts/check-internal-links.mjs",
+    "claims:lint": "node ./scripts/claims-lint.mjs",
+    "check:site-hosts": "node ./scripts/validate-site-hosts.mjs",
+    "build:oss": "SITE_HOST_OVERRIDE=reach-cli.com next build",
+    "build:enterprise": "SITE_HOST_OVERRIDE=ready-layer.com next build"
     "check:mode-links": "node ./scripts/check-mode-links.mjs"
   },
   "dependencies": {

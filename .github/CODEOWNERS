@@ -1,0 +1,18 @@
+# Global owners
+* @reach/maintainers
+
+# Engine and determinism
+/crates/engine-core/ @reach/engine
+/services/runner/internal/determinism/ @reach/engine
+
+# CLI + release + install
+/services/runner/cmd/reachctl/ @reach/cli
+/scripts/install.sh @reach/cli
+/scripts/install.ps1 @reach/cli
+/.github/workflows/release.yml @reach/release
+
+# Docs and governance
+/docs/ @reach/docs
+/README.md @reach/docs
+/CONTRIBUTING.md @reach/docs
+/SECURITY.md @reach/security

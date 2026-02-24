@@ -223,6 +223,21 @@ cargo clippy -- -D warnings
 cargo check
 ```
 
+### Rust Offline/Vendored Dependencies
+
+Reach supports an offline Rust gate for environments where crates.io is blocked.
+
+1. On a connected machine, vendor dependencies from `Cargo.lock`:
+   ```bash
+   cargo vendor third_party/rust/vendor
+   ```
+2. Run Rust gates through the wrapper script (auto-detects vendored mode):
+   ```bash
+   ./tools/ci/rust_gate.sh clippy --workspace --all-targets -- -D warnings
+   ./tools/ci/rust_gate.sh test -p engine-core
+   ```
+3. In CI, the vendored directory is cached by `Cargo.lock` hash and reused for offline execution.
+
 ### TypeScript/JavaScript - Use TypeScript strict mode
 - Follow ESLint configuration
 - Use Prettier for formatting
@@ -516,3 +531,31 @@ git push origin v1.2.3
 - Added to the organization (for significant contributions)
 
 Thank you for contributing to Reach!
+
+## OSS launch verification commands
+
+Run these before opening a launch-sensitive PR:
+
+```bash
+npm run verify:oss
+cargo clippy --workspace
+cargo test -p engine-core
+go vet ./...
+go test ./...
+(cd apps/arcade && npm run build:oss && npm run build:enterprise && npm run check:links)
+reach demo
+```
+
+## Adding a pack
+
+1. Author a pack manifest in JSON.
+2. Install locally: `reach pack add <path|git|archive>`.
+3. Lint it: `reach packs lint <path>`.
+4. Validate compatibility and determinism guardrails (no non-deterministic APIs in execution paths).
+5. Add/refresh docs in `docs/packs/`.
+
+## Updating docs and specs
+
+- User-facing capability changes must update docs in `docs/` and any matching top-level docs (`README.md`, `LAUNCHKIT.md`, `RELEASE.md`).
+- Execution feature changes must update `docs/EVIDENCE_CHAIN_MODEL.md` and protocol schema files when event types change.
+- Keep OSS-vs-enterprise wording explicit (enterprise roadmap/beta must be labeled as optional/non-OSS).

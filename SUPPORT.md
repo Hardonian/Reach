@@ -33,3 +33,7 @@ Before opening an issue, please ensure you have:
 ## Security Issues
 
 **Do not open public issues for security vulnerabilities.** Please follow the [SECURITY.md](SECURITY.md) guidelines and email [security@reach.dev](mailto:security@reach.dev).
+
+## Bug report bundle
+
+Use `reach bugreport` to create a redacted diagnostic zip (`data/support/reach-bugreport-*.zip`) and attach it to bug reports.

@@ -32,8 +32,9 @@ import (
 )
 
 const (
-	specVersion   = "1.0.0"
-	engineVersion = "0.3.1"
+	specVersion     = "1.0.0"
+	engineVersion   = "0.3.1"
+	maxCapsuleBytes = 8 * 1024 * 1024
 )
 
 type runRecord struct {
@@ -174,6 +175,8 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runWizard(ctx, dataRoot, args[1:], out, errOut)
 	case "doctor":
 		return runDoctor(args[1:], out, errOut)
+	case "bugreport":
+		return runBugreport(args[1:], out, errOut)
 	case "run":
 		return runQuick(args[1:], out, errOut)
 	case "validate":
@@ -2114,6 +2117,13 @@ func buildCapsule(rec runRecord) capsuleFile {
 
 func readCapsule(path string) (capsuleFile, error) {
 	var c capsuleFile
+	info, err := os.Stat(path)
+	if err != nil {
+		return c, err
+	}
+	if info.Size() > maxCapsuleBytes {
+		return c, fmt.Errorf("capsule exceeds size limit (%d bytes)", maxCapsuleBytes)
+	}
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return c, err
@@ -3830,6 +3840,9 @@ func runQuick(args []string, out, errOut io.Writer) int {
 
 	packName := args[0]
 	dataRoot := getenv("REACH_DATA_DIR", "data")
+	if !strings.Contains(strings.ToLower(packName), "safe") {
+		_, _ = fmt.Fprintf(errOut, "warning: pack %q may perform external or destructive actions; inspect pack policy before running (docs: https://github.com/reach/reach/tree/main/docs/packs).\n", packName)
+	}
 
 	// Parse inputs
 	inputs := map[string]interface{}{"mode": "safe"}
@@ -3866,7 +3879,7 @@ func runQuick(args []string, out, errOut io.Writer) int {
 			_ = os.MkdirAll(filepath.Dir(packPath), 0755)
 			_ = os.WriteFile(packPath, data, 0644)
 		} else {
-			fmt.Fprintf(errOut, "Pack %s not found at %s. Install it first using 'reach packs install'.\n", packName, packPath)
+			fmt.Fprintf(errOut, "Pack %s not found at %s. Install it first using 'reach packs install'. See docs: https://github.com/reach/reach/tree/main/docs/packs and issue template: https://github.com/reach/reach/issues/new?template=bug_report.yml\n", packName, packPath)
 			return 1
 		}
 	}
@@ -4534,6 +4547,7 @@ func usage(out io.Writer) {
 Core Commands:
   version                         Print version information
   doctor                          Check local environment health
+  bugreport                       Generate a redacted support bundle
   init [--name <name>]            Initialize a new pack (minimal, governed, full)
   validate <path>                  Validate pack structure before running
   run <pack>                      Quick run a pack locally

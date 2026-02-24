@@ -19,6 +19,11 @@ import (
 	"time"
 )
 
+const (
+	maxPackArchiveBytes   int64 = 32 * 1024 * 1024
+	maxPackArchiveEntries       = 1024
+)
+
 type packCompatibility struct {
 	ReachVersionRange  string   `json:"reach_version_range,omitempty"`
 	SchemaVersionRange string   `json:"schema_version_range,omitempty"`
@@ -435,11 +440,23 @@ func extractZip(src string) (string, func(), error) {
 		_ = r.Close()
 		return "", nil, err
 	}
+	totalBytes := int64(0)
+	entryCount := 0
 	for _, f := range r.File {
-		if strings.HasPrefix(f.Name, "../") {
+		cleanName := filepath.Clean(f.Name)
+		if strings.HasPrefix(cleanName, "..") || filepath.IsAbs(cleanName) {
 			continue
 		}
-		target := filepath.Join(tmp, f.Name)
+		entryCount++
+		if entryCount > maxPackArchiveEntries {
+			_ = r.Close()
+			_ = os.RemoveAll(tmp)
+			return "", nil, fmt.Errorf("archive exceeds file entry limit (%d)", maxPackArchiveEntries)
+		}
+		target := filepath.Join(tmp, cleanName)
+		if !strings.HasPrefix(target, tmp+string(filepath.Separator)) && target != tmp {
+			continue
+		}
 		if f.FileInfo().IsDir() {
 			_ = os.MkdirAll(target, 0o755)
 			continue
@@ -455,12 +472,19 @@ func extractZip(src string) (string, func(), error) {
 			_ = os.RemoveAll(tmp)
 			return "", nil, err
 		}
-		data, err := io.ReadAll(rc)
+		limited := io.LimitReader(rc, maxPackArchiveBytes-totalBytes+1)
+		data, err := io.ReadAll(limited)
 		_ = rc.Close()
 		if err != nil {
 			_ = r.Close()
 			_ = os.RemoveAll(tmp)
 			return "", nil, err
+		}
+		totalBytes += int64(len(data))
+		if totalBytes > maxPackArchiveBytes {
+			_ = r.Close()
+			_ = os.RemoveAll(tmp)
+			return "", nil, fmt.Errorf("archive exceeds unpacked size limit (%d bytes)", maxPackArchiveBytes)
 		}
 		if err := os.WriteFile(target, data, 0o644); err != nil {
 			_ = r.Close()
@@ -493,6 +517,8 @@ func extractTarball(src string) (string, func(), error) {
 	if err != nil {
 		return "", nil, err
 	}
+	totalBytes := int64(0)
+	entryCount := 0
 	for {
 		hdr, err := tr.Next()
 		if errors.Is(err, io.EOF) {
@@ -502,10 +528,19 @@ func extractTarball(src string) (string, func(), error) {
 			_ = os.RemoveAll(tmp)
 			return "", nil, err
 		}
-		if strings.HasPrefix(hdr.Name, "../") {
+		cleanName := filepath.Clean(hdr.Name)
+		if strings.HasPrefix(cleanName, "..") || filepath.IsAbs(cleanName) {
 			continue
 		}
-		target := filepath.Join(tmp, hdr.Name)
+		entryCount++
+		if entryCount > maxPackArchiveEntries {
+			_ = os.RemoveAll(tmp)
+			return "", nil, fmt.Errorf("archive exceeds file entry limit (%d)", maxPackArchiveEntries)
+		}
+		target := filepath.Join(tmp, cleanName)
+		if !strings.HasPrefix(target, tmp+string(filepath.Separator)) && target != tmp {
+			continue
+		}
 		switch hdr.Typeflag {
 		case tar.TypeDir:
 			_ = os.MkdirAll(target, 0o755)
@@ -514,10 +549,15 @@ func extractTarball(src string) (string, func(), error) {
 				_ = os.RemoveAll(tmp)
 				return "", nil, err
 			}
-			data, err := io.ReadAll(tr)
+			data, err := io.ReadAll(io.LimitReader(tr, maxPackArchiveBytes-totalBytes+1))
 			if err != nil {
 				_ = os.RemoveAll(tmp)
 				return "", nil, err
+			}
+			totalBytes += int64(len(data))
+			if totalBytes > maxPackArchiveBytes {
+				_ = os.RemoveAll(tmp)
+				return "", nil, fmt.Errorf("archive exceeds unpacked size limit (%d bytes)", maxPackArchiveBytes)
 			}
 			if err := os.WriteFile(target, data, 0o644); err != nil {
 				_ = os.RemoveAll(tmp)

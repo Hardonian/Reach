@@ -6,9 +6,11 @@ This document describes the process for preparing and executing a Reach release.
 
 ### 1. Verification
 
-- [ ] Run `npm run verify:full` (Lints, Types, Tests, Drift).
+- [ ] Run OSS gate: `npm run verify:oss`.
+- [ ] Run language/runtime checks: `cargo clippy --workspace`, `cargo test -p engine-core`, `go vet ./...`, `go test ./...`.
+- [ ] Build both site modes: `(cd apps/arcade && npm run build:oss && npm run build:enterprise)`.
+- [ ] Run demo smoke path: `reach demo`.
 - [ ] Verify `reach doctor` passes on clean install.
-- [ ] Check smoke tests for the Arcade (Docs/FAQ/Support).
 
 ### 2. Preparation
 
@@ -20,12 +22,15 @@ This document describes the process for preparing and executing a Reach release.
 
 - [ ] Tag the release: `git tag -a vX.Y.Z -m "Release vX.Y.Z"`.
 - [ ] Push tags: `git push origin --tags`.
-- [ ] Monitor CI for successful artifact generation (Docker, binaries).
+- [ ] Monitor `.github/workflows/release.yml` for artifacts on Linux/macOS/Windows (amd64/arm64).
+- [ ] Confirm `SHA256SUMS` was generated and uploaded with the release assets.
+- [ ] Confirm SBOMs (`sbom-go.cdx.json`, `sbom-node.cdx.json`) were published.
 
 ### 4. Post-Release
 
-- [ ] Verify the live `/status` page reflects any maintenance windows.
-- [ ] Announce in Discord/GitHub Discussions.
+- [ ] Validate fresh install from release scripts (`scripts/install.sh` and `scripts/install.ps1`).
+- [ ] Validate `reach version` and `reach doctor` in a clean shell.
+- [ ] Announce release and include install + verification commands.
 
 ## Versioning Strategy
 
