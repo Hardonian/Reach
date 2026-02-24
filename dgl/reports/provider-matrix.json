@@ -1,0 +1,16 @@
+[
+  {
+    "provider": "local",
+    "model": "gpt-5.2-codex",
+    "pass_rate": 1,
+    "revert_ratio": 0,
+    "calibration_score": 0.8
+  },
+  {
+    "provider": "openrouter",
+    "model": "gemini-pro",
+    "pass_rate": 0,
+    "revert_ratio": 1,
+    "calibration_score": 0.30000000000000004
+  }
+]

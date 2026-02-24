@@ -1,0 +1,31 @@
+{
+  "public_terms": {
+    "DAG": "workflow",
+    "MCP": "tool integration",
+    "CID": "pack identifier",
+    "POEE": "execution proof",
+    "vertex": "step",
+    "topological sort": "execution ordering"
+  },
+  "banned_terms": [
+    "DAG",
+    "topological sort",
+    "vertex",
+    "vertices",
+    "POEE",
+    "CID",
+    "graph traversal",
+    "in-degree",
+    "out-degree"
+  ],
+  "allowed_paths": [
+    "docs/architecture",
+    "docs/DETERMINISM_SPEC.md",
+    "protocol/",
+    "internal/"
+  ],
+  "forbidden_paths": [
+    "apps/arcade/src/app",
+    "apps/arcade/src/components"
+  ]
+}

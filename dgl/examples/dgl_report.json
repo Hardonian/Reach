@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "dgl_example",
+  "timestamp": "2026-02-24T00:00:00.000Z",
+  "repo": "Reach",
+  "base_sha": "base",
+  "head_sha": "head",
+  "summary": {
+    "intent_alignment_score": 92,
+    "terminology_drift_score": 100,
+    "semantic_drift_score": 88,
+    "trust_boundary_change_score": 100,
+    "calibration_score": 55
+  },
+  "violations": [
+    {
+      "type": "api_contract",
+      "severity": "warn",
+      "paths": ["protocol/schemas/events.schema.json"],
+      "evidence": "API schema changed.",
+      "suggested_fix": "Regenerate contracts and document compatibility impact."
+    }
+  ],
+  "turbulence_hotspots": [
+    { "path": "protocol/schemas/events.schema.json", "reason": "recently changed", "count": 2 }
+  ]
+}
