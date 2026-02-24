@@ -1,6 +1,6 @@
 # Reach Architecture Boundaries
 
-This document defines the authoritative dependency layers and boundary enforcement rules for the Reach project.
+This document defines the authoritative dependency layers, boundary enforcement rules, and anti-patterns for the Reach project.
 
 ## Layer Diagram
 
@@ -25,6 +25,7 @@ graph TD
         det[src/determinism]
     end
 
+    %% Allowed Flows
     apps --> services
     apps --> cli
     services --> core_ts
@@ -32,6 +33,8 @@ graph TD
     cli --> core_ts
     core_ts --> det
     core_rs --> det
+    
+    %% Note: Layer 0 (Determinism) must NEVER depend on anything above it.
 ```
 
 ## Boundary Rules

@@ -27,8 +27,9 @@ const getFiles = () => {
   }
 };
 
-const runManualGrep = (pattern: RegExp) => {
-  const files = getFiles();
+const runManualGrep = (pattern: RegExp, fileFilter?: (f: string) => boolean) => {
+  const allFiles = getFiles();
+  const files = fileFilter ? allFiles.filter(fileFilter) : allFiles;
   const matched = [];
   for (const f of files) {
     if (!fs.existsSync(f)) continue;
@@ -94,6 +95,49 @@ if (localeCompareOutput.length > 0) {
   failed = true;
 } else {
   console.log("✅ No localeCompare Gate passed.");
+}
+
+// E) No time.Now in Determinism Boundary
+console.log("Checking No time.Now in Determinism Boundary...");
+const timeNowPattern = /time\.Now\(/;
+const determinismFilter = (f: string) =>
+  f.includes("internal/determinism/") || f.includes("crates/engine/");
+const timeNowOutput = runManualGrep(timeNowPattern, determinismFilter);
+if (timeNowOutput.length > 0) {
+  console.error("❌ ERROR: Found 'time.Now(' in determinism boundary:");
+  timeNowOutput.forEach((line) => console.error(line));
+  failed = true;
+} else {
+  console.log("✅ No time.Now in Determinism Boundary passed.");
+}
+
+// F) No rand in Determinism Boundary
+console.log("Checking No rand in Determinism Boundary...");
+const randPattern = /math\/rand|crypto\/rand|rand\.Seed|rand\.Int/;
+const randOutput = runManualGrep(randPattern, determinismFilter);
+if (randOutput.length > 0) {
+  console.error("❌ ERROR: Found non-deterministic rand usage in determinism boundary:");
+  randOutput.forEach((line) => console.error(line));
+  failed = true;
+} else {
+  console.log("✅ No rand in Determinism Boundary passed.");
+}
+
+// G) No direct DB access outside storage layer
+console.log("Checking No direct DB access outside storage layer...");
+const dbAccessPattern = /sql\.Open|sql\.DB|gorm\.Open|ent\.Open|sqlite3|qlite\./;
+const dbFilter = (f: string) =>
+  !f.includes("internal/storage/") &&
+  !f.includes("internal/db/") &&
+  !f.includes("tools/doctor/") &&
+  !f.includes("scripts/");
+const dbOutput = runManualGrep(dbAccessPattern, dbFilter);
+if (dbOutput.length > 0) {
+  console.error("❌ ERROR: Found direct DB/SQL access outside storage layer:");
+  dbOutput.forEach((line) => console.error(line));
+  failed = true;
+} else {
+  console.log("✅ No direct DB access outside storage layer passed.");
 }
 
 if (failed) {
