@@ -9,7 +9,9 @@
     "skipLibCheck": true,
     "declaration": true,
     "forceConsistentCasingInFileNames": true,
+    "jsx": "react-jsx",
     "paths": {
+      "@/*": ["./packages/*", "./apps/arcade/src/*"],
       "@zeo/core": ["./src/core/shim.ts"],
       "@zeo/contracts": ["./sdk/ts/src/index.ts"],
       "@zeo/*": ["./src/*"]

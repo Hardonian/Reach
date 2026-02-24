@@ -1,0 +1,52 @@
+
+> @reach/decision-engine-monorepo@0.3.1 typecheck
+> tsc --noEmit
+
+apps/arcade/src/__tests__/readylayer-suite.test.ts(51,45): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean '../lib/cloud-schemas.js'?
+apps/arcade/src/__tests__/readylayer-suite.test.ts(76,42): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean '../lib/alert-service.js'?
+apps/arcade/src/app/api/v1/auth/github/callback/route.ts(116,22): error TS2307: Cannot find module '@/lib/cloud-db' or its corresponding type declarations.
+apps/arcade/src/app/api/v1/auth/magic-link/route.ts(100,22): error TS2307: Cannot find module '@/lib/cloud-db' or its corresponding type declarations.
+apps/arcade/src/app/api/v1/auth/magic-link/route.ts(101,47): error TS2307: Cannot find module '@/lib/cloud-auth' or its corresponding type declarations.
+apps/arcade/src/app/api/v1/billing/webhook/route.ts(127,52): error TS2307: Cannot find module '@/lib/cloud-db' or its corresponding type declarations.
+apps/arcade/src/lib/analytics-server.ts(17,44): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean './cloud-db.js'?
+apps/docs/app/docs/examples/page.tsx(1,27): error TS2307: Cannot find module '@/components/doc-layout' or its corresponding type declarations.
+apps/docs/app/docs/examples/page.tsx(2,27): error TS2307: Cannot find module '@/components/code-block' or its corresponding type declarations.
+apps/docs/app/docs/examples/page.tsx(51,5): error TS2875: This JSX tag requires the module path 'react/jsx-runtime' to exist, but none could be found. Make sure you have types for the appropriate package installed.
+apps/docs/app/docs/plugins/page.tsx(1,27): error TS2307: Cannot find module '@/components/doc-layout' or its corresponding type declarations.
+apps/docs/app/docs/plugins/page.tsx(2,27): error TS2307: Cannot find module '@/components/code-block' or its corresponding type declarations.
+apps/docs/app/docs/plugins/page.tsx(61,5): error TS2875: This JSX tag requires the module path 'react/jsx-runtime' to exist, but none could be found. Make sure you have types for the appropriate package installed.
+apps/docs/app/docs/presets/page.tsx(1,27): error TS2307: Cannot find module '@/components/doc-layout' or its corresponding type declarations.
+apps/docs/app/docs/presets/page.tsx(2,27): error TS2307: Cannot find module '@/components/code-block' or its corresponding type declarations.
+apps/docs/app/docs/presets/page.tsx(29,5): error TS2875: This JSX tag requires the module path 'react/jsx-runtime' to exist, but none could be found. Make sure you have types for the appropriate package installed.
+apps/docs/app/docs/quickstart/page.tsx(1,27): error TS2307: Cannot find module '@/components/doc-layout' or its corresponding type declarations.
+apps/docs/app/docs/quickstart/page.tsx(2,27): error TS2307: Cannot find module '@/components/code-block' or its corresponding type declarations.
+apps/docs/app/docs/quickstart/page.tsx(6,5): error TS2875: This JSX tag requires the module path 'react/jsx-runtime' to exist, but none could be found. Make sure you have types for the appropriate package installed.
+apps/docs/app/docs/stability/page.tsx(1,27): error TS2307: Cannot find module '@/components/doc-layout' or its corresponding type declarations.
+apps/docs/app/docs/stability/page.tsx(34,5): error TS2875: This JSX tag requires the module path 'react/jsx-runtime' to exist, but none could be found. Make sure you have types for the appropriate package installed.
+apps/docs/app/docs/troubleshooting/page.tsx(1,27): error TS2307: Cannot find module '@/components/doc-layout' or its corresponding type declarations.
+apps/docs/app/docs/troubleshooting/page.tsx(2,27): error TS2307: Cannot find module '@/components/code-block' or its corresponding type declarations.
+apps/docs/app/docs/troubleshooting/page.tsx(29,5): error TS2875: This JSX tag requires the module path 'react/jsx-runtime' to exist, but none could be found. Make sure you have types for the appropriate package installed.
+apps/docs/app/layout.tsx(1,31): error TS2307: Cannot find module 'next' or its corresponding type declarations.
+apps/docs/app/layout.tsx(12,5): error TS2875: This JSX tag requires the module path 'react/jsx-runtime' to exist, but none could be found. Make sure you have types for the appropriate package installed.
+apps/docs/app/page.tsx(1,18): error TS2307: Cannot find module 'next/link' or its corresponding type declarations.
+apps/docs/app/page.tsx(2,27): error TS2307: Cannot find module '@/components/code-block' or its corresponding type declarations.
+apps/docs/app/page.tsx(6,5): error TS2875: This JSX tag requires the module path 'react/jsx-runtime' to exist, but none could be found. Make sure you have types for the appropriate package installed.
+apps/docs/components/code-block.tsx(3,26): error TS2307: Cannot find module 'react' or its corresponding type declarations.
+apps/docs/components/code-block.tsx(20,5): error TS2875: This JSX tag requires the module path 'react/jsx-runtime' to exist, but none could be found. Make sure you have types for the appropriate package installed.
+apps/docs/components/doc-layout.tsx(11,5): error TS2875: This JSX tag requires the module path 'react/jsx-runtime' to exist, but none could be found. Make sure you have types for the appropriate package installed.
+apps/docs/components/nav.tsx(1,18): error TS2307: Cannot find module 'next/link' or its corresponding type declarations.
+apps/docs/components/nav.tsx(18,5): error TS2875: This JSX tag requires the module path 'react/jsx-runtime' to exist, but none could be found. Make sure you have types for the appropriate package installed.
+apps/docs/tailwind.config.ts(1,29): error TS2307: Cannot find module 'tailwindcss' or its corresponding type declarations.
+scripts/__tests__/fixtures/clean-component.tsx(4,5): error TS2875: This JSX tag requires the module path 'react/jsx-runtime' to exist, but none could be found. Make sure you have types for the appropriate package installed.
+scripts/__tests__/fixtures/escaped-component.tsx(4,5): error TS2875: This JSX tag requires the module path 'react/jsx-runtime' to exist, but none could be found. Make sure you have types for the appropriate package installed.
+scripts/__tests__/fixtures/violation-component.tsx(4,5): error TS2875: This JSX tag requires the module path 'react/jsx-runtime' to exist, but none could be found. Make sure you have types for the appropriate package installed.
+scripts/repo-health.ts(5,34): error TS1470: The 'import.meta' meta-property is not allowed in files which will build into CommonJS output.
+scripts/validate-brand.ts(17,34): error TS1470: The 'import.meta' meta-property is not allowed in files which will build into CommonJS output.
+scripts/validate-canonical-language.ts(22,34): error TS1470: The 'import.meta' meta-property is not allowed in files which will build into CommonJS output.
+scripts/validate-docs-index.ts(5,34): error TS1470: The 'import.meta' meta-property is not allowed in files which will build into CommonJS output.
+scripts/validate-simplicity.ts(25,34): error TS1470: The 'import.meta' meta-property is not allowed in files which will build into CommonJS output.
+src/core/zeolite-core.ts(69,37): error TS2353: Object literal may only specify known properties, and 'name' does not exist in type 'DecisionConstraint'.
+src/core/zeolite-core.ts(71,7): error TS2741: Property 'provenance' is missing in type '{ id: string; text: string; status: string; confidence: string; tags: never[]; }' but required in type 'DecisionAssumption'.
+src/core/zeolite-core.ts(78,7): error TS2741: Property 'provenance' is missing in type '{ id: string; text: string; status: string; confidence: string; tags: never[]; }' but required in type 'DecisionAssumption'.
+src/core/zeolite-core.ts(96,7): error TS2741: Property 'provenance' is missing in type '{ id: string; text: string; status: string; confidence: string; tags: never[]; }' but required in type 'DecisionAssumption'.
+src/core/zeolite-core.ts(103,7): error TS2741: Property 'provenance' is missing in type '{ id: string; text: string; status: string; confidence: string; tags: never[]; }' but required in type 'DecisionAssumption'.
