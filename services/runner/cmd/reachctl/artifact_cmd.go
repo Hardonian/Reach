@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -24,7 +26,12 @@ const (
 	ArtifactTypeDecision   = "decision"
 	ArtifactTypeLogs       = "logs"
 	ArtifactTypeCapsule    = "capsule"
+	maxArtifactFileBytes   = 32 * 1024 * 1024
+	maxArtifactBundleBytes = 64 * 1024 * 1024
+	maxArtifactZipEntries  = 2048
 )
+
+var windowsDrivePathPattern = regexp.MustCompile(`^[a-zA-Z]:`)
 
 // ArtifactRecord represents an ingested artifact
 type ArtifactRecord struct {
@@ -379,6 +386,14 @@ func computeContentHash(path string) (string, int64, error) {
 		return "", 0, fmt.Errorf("URL support not yet implemented")
 	}
 
+	info, err := os.Stat(path)
+	if err != nil {
+		return "", 0, err
+	}
+	if info.Size() > maxArtifactBundleBytes {
+		return "", 0, fmt.Errorf("artifact exceeds size limit (%d bytes > %d bytes)", info.Size(), maxArtifactBundleBytes)
+	}
+
 	// Handle zip files - compute hash of contents
 	if strings.HasSuffix(strings.ToLower(path), ".zip") {
 		return computeZipHash(path)
@@ -399,6 +414,9 @@ func computeZipHash(path string) (string, int64, error) {
 		return "", 0, err
 	}
 	defer r.Close()
+	if len(r.File) > maxArtifactZipEntries {
+		return "", 0, fmt.Errorf("zip has too many entries (%d > %d)", len(r.File), maxArtifactZipEntries)
+	}
 
 	var totalSize int64
 	var contents []string
@@ -411,6 +429,9 @@ func computeZipHash(path string) (string, int64, error) {
 	sort.Strings(files)
 
 	for _, name := range files {
+		if err := validateArchiveEntryName(name); err != nil {
+			return "", 0, err
+		}
 		// Find the file in the zip
 		var targetFile *zip.File
 		for _, f := range r.File {
@@ -422,18 +443,27 @@ func computeZipHash(path string) (string, int64, error) {
 		if targetFile == nil {
 			continue
 		}
+		if targetFile.UncompressedSize64 > uint64(maxArtifactFileBytes) {
+			return "", 0, fmt.Errorf("zip entry %q exceeds per-entry size limit", targetFile.Name)
+		}
 
 		f, err := targetFile.Open()
 		if err != nil {
 			return "", 0, err
 		}
-		data, err := io.ReadAll(f)
+		data, err := io.ReadAll(io.LimitReader(f, maxArtifactFileBytes+1))
 		f.Close()
 		if err != nil {
 			return "", 0, err
 		}
+		if int64(len(data)) > maxArtifactFileBytes {
+			return "", 0, fmt.Errorf("zip entry %q exceeds per-entry size limit", targetFile.Name)
+		}
 		contents = append(contents, name+":"+string(data))
 		totalSize += int64(len(data))
+		if totalSize > maxArtifactBundleBytes {
+			return "", 0, fmt.Errorf("zip payload exceeds size limit (%d bytes > %d bytes)", totalSize, maxArtifactBundleBytes)
+		}
 	}
 
 	hash := determinism.Hash(strings.Join(contents, "|"))
@@ -567,6 +597,9 @@ func writeExportBundle(path string, bundle *ArtifactExportBundle) error {
 
 	// Write artifacts
 	for _, art := range bundle.Artifacts {
+		if err := validateArchiveEntryName(art.Name); err != nil {
+			return err
+		}
 		artFile, err := zipWriter.Create(art.Name)
 		if err != nil {
 			return err
@@ -579,26 +612,51 @@ func writeExportBundle(path string, bundle *ArtifactExportBundle) error {
 }
 
 func readExportBundle(path string) (*ArtifactExportBundle, error) {
+	info, statErr := os.Stat(path)
+	if statErr != nil {
+		return nil, statErr
+	}
+	if info.Size() > maxArtifactBundleBytes {
+		return nil, fmt.Errorf("bundle exceeds size limit (%d bytes > %d bytes)", info.Size(), maxArtifactBundleBytes)
+	}
+
 	r, err := zip.OpenReader(path)
 	if err != nil {
 		return nil, err
 	}
 	defer r.Close()
+	if len(r.File) > maxArtifactZipEntries {
+		return nil, fmt.Errorf("bundle has too many entries (%d > %d)", len(r.File), maxArtifactZipEntries)
+	}
 
 	var bundle ArtifactExportBundle
 	var manifestData []byte
 
 	// Read all files
 	files := make(map[string][]byte)
+	var totalSize int64
 	for _, f := range r.File {
+		if err := validateArchiveEntryName(f.Name); err != nil {
+			return nil, err
+		}
+		if f.UncompressedSize64 > uint64(maxArtifactFileBytes) {
+			return nil, fmt.Errorf("bundle entry %q exceeds per-entry size limit", f.Name)
+		}
 		rc, err := f.Open()
 		if err != nil {
 			return nil, err
 		}
-		data, err := io.ReadAll(rc)
+		data, err := io.ReadAll(io.LimitReader(rc, maxArtifactFileBytes+1))
 		rc.Close()
 		if err != nil {
 			return nil, err
+		}
+		if int64(len(data)) > maxArtifactFileBytes {
+			return nil, fmt.Errorf("bundle entry %q exceeds per-entry size limit", f.Name)
+		}
+		totalSize += int64(len(data))
+		if totalSize > maxArtifactBundleBytes {
+			return nil, fmt.Errorf("bundle payload exceeds size limit (%d bytes > %d bytes)", totalSize, maxArtifactBundleBytes)
 		}
 		files[f.Name] = data
 		if f.Name == "manifest.json" {
@@ -626,4 +684,21 @@ func readExportBundle(path string) (*ArtifactExportBundle, error) {
 	}
 
 	return &bundle, nil
+}
+
+func validateArchiveEntryName(name string) error {
+	if name == "" {
+		return fmt.Errorf("invalid archive entry: empty name")
+	}
+	if strings.ContainsRune(name, '\x00') {
+		return fmt.Errorf("invalid archive entry %q: contains NUL byte", name)
+	}
+	if strings.HasPrefix(name, "/") || strings.HasPrefix(name, "\\") || windowsDrivePathPattern.MatchString(name) {
+		return fmt.Errorf("path traversal blocked for archive entry %q", name)
+	}
+	clean := path.Clean(name)
+	if clean == ".." || strings.HasPrefix(clean, "../") {
+		return fmt.Errorf("path traversal blocked for archive entry %q", name)
+	}
+	return nil
 }

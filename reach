@@ -1,138 +1,129 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cmd="${1:-}"
+SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+IN_REPO_LAYOUT=false
+if [ -d "$SELF_DIR/services/runner" ]; then
+  IN_REPO_LAYOUT=true
+fi
+
+find_reachctl() {
+  if [ "$IN_REPO_LAYOUT" = true ] && [ -x "$SELF_DIR/services/runner/reachctl" ]; then
+    echo "$SELF_DIR/services/runner/reachctl"
+    return 0
+  fi
+  if command -v reachctl >/dev/null 2>&1; then
+    command -v reachctl
+    return 0
+  fi
+  if [ -x "$SELF_DIR/reachctl" ]; then
+    echo "$SELF_DIR/reachctl"
+    return 0
+  fi
+  if [ -x "$SELF_DIR/reachctl.exe" ]; then
+    echo "$SELF_DIR/reachctl.exe"
+    return 0
+  fi
+  return 1
+}
+
+run_reachctl() {
+  local reachctl_bin
+  if [ "$IN_REPO_LAYOUT" = true ] && [ -x "$SELF_DIR/services/runner/reachctl" ]; then
+    (cd "$SELF_DIR/services/runner" && ./reachctl "$@")
+    return 0
+  fi
+
+  if [ "$IN_REPO_LAYOUT" = true ] && [ -f "$SELF_DIR/services/runner/cmd/reachctl/main.go" ]; then
+    (cd "$SELF_DIR/services/runner" && go run ./cmd/reachctl "$@")
+    return 0
+  fi
+
+  if ! reachctl_bin="$(find_reachctl)"; then
+    echo "error: reachctl not found in PATH." >&2
+    echo "Install from releases or run from the repository root." >&2
+    exit 1
+  fi
+  "$reachctl_bin" "$@"
+}
+
+print_help() {
+  echo "Reach - Deterministic Execution Fabric"
+  echo ""
+  echo "QUICK START"
+  echo "  reach doctor               Check system health"
+  echo "  reach version              Show version information"
+  echo "  reach demo                 One-command demo (run, verify, replay, capsule)"
+  echo "  reach bugreport            Collect redacted diagnostics"
+  echo ""
+  echo "CORE COMMANDS"
+  echo "  doctor|version|run|proof|capsule|packs|wizard|gate|demo|bugreport"
+  echo ""
+  echo "DOCUMENTATION"
+  echo "  https://reach-cli.com"
+}
+
+cmd="${1:-help}"
 case "$cmd" in
   doctor)
     shift
-    if [ -f "build/doctor" ]; then
-      ./build/doctor "$@"
-    elif [ -f "tools/doctor/doctor" ]; then
-      (cd tools/doctor && ./doctor "$@" )
-    elif [ -f "tools/doctor/doctor.exe" ]; then
-      (cd tools/doctor && ./doctor.exe "$@" )
+    if [ "$IN_REPO_LAYOUT" = true ]; then
+      if [ -f "$SELF_DIR/build/doctor" ]; then
+        "$SELF_DIR/build/doctor" "$@"
+      elif [ -f "$SELF_DIR/tools/doctor/doctor" ]; then
+        (cd "$SELF_DIR/tools/doctor" && ./doctor "$@" )
+      elif [ -f "$SELF_DIR/tools/doctor/doctor.exe" ]; then
+        (cd "$SELF_DIR/tools/doctor" && ./doctor.exe "$@" )
+      else
+        echo "Warning: Running via 'go run' (slow). Run 'make build' for faster starts." >&2
+        (cd "$SELF_DIR/tools/doctor" && go run . "$@")
+      fi
     else
-      echo "Warning: Running via 'go run' (slow). Run 'make build' for faster starts." >&2
-      (cd tools/doctor && go run . "$@")
+      run_reachctl doctor "$@"
     fi
     ;;
   audit)
     shift
-    if [ -f "build/reach-audit" ]; then
-      ./build/reach-audit "$@"
-    elif [ -f "tools/reach-audit/reach-audit" ]; then
-      (cd tools/reach-audit && ./reach-audit "$@" )
-    elif [ -f "tools/reach-audit/reach-audit.exe" ]; then
-      (cd tools/reach-audit && ./reach-audit.exe "$@" )
+    if [ "$IN_REPO_LAYOUT" = true ]; then
+      if [ -f "$SELF_DIR/build/reach-audit" ]; then
+        "$SELF_DIR/build/reach-audit" "$@"
+      elif [ -f "$SELF_DIR/tools/reach-audit/reach-audit" ]; then
+        (cd "$SELF_DIR/tools/reach-audit" && ./reach-audit "$@" )
+      elif [ -f "$SELF_DIR/tools/reach-audit/reach-audit.exe" ]; then
+        (cd "$SELF_DIR/tools/reach-audit" && ./reach-audit.exe "$@" )
+      else
+        echo "Warning: Running via 'go run' (slow). Run 'make build' for faster starts." >&2
+        (cd "$SELF_DIR/tools/reach-audit" && go run . "$@")
+      fi
     else
-      echo "Warning: Running via 'go run' (slow). Run 'make build' for faster starts." >&2
-      (cd tools/reach-audit && go run . "$@")
+      run_reachctl audit "$@"
     fi
     ;;
   eval)
     shift
-    if [ -f "build/reach-eval" ]; then
-      ./build/reach-eval "$@"
-    elif [ -f "tools/reach-eval/reach-eval" ]; then
-      (cd tools/reach-eval && ./reach-eval "$@" )
-    elif [ -f "tools/reach-eval/reach-eval.exe" ]; then
-      (cd tools/reach-eval && ./reach-eval.exe "$@" )
+    if [ "$IN_REPO_LAYOUT" = true ]; then
+      if [ -f "$SELF_DIR/build/reach-eval" ]; then
+        "$SELF_DIR/build/reach-eval" "$@"
+      elif [ -f "$SELF_DIR/tools/reach-eval/reach-eval" ]; then
+        (cd "$SELF_DIR/tools/reach-eval" && ./reach-eval "$@" )
+      elif [ -f "$SELF_DIR/tools/reach-eval/reach-eval.exe" ]; then
+        (cd "$SELF_DIR/tools/reach-eval" && ./reach-eval.exe "$@" )
+      else
+        echo "Warning: Running via 'go run' (slow). Run 'make build' for faster starts." >&2
+        (cd "$SELF_DIR/tools/reach-eval" && go run . "$@")
+      fi
     else
-      echo "Warning: Running via 'go run' (slow). Run 'make build' for faster starts." >&2
-      (cd tools/reach-eval && go run . "$@")
+      run_reachctl eval "$@"
     fi
     ;;
   release-check)
     shift
-    ./tools/release-check.sh "$@"
-    ;;
-  serve)
-    shift
-    (cd services/runner && ./reach-serve "$@")
-    ;;
-  federation)
-    shift
-    (cd services/runner && ./reachctl federation "$@")
-    ;;
-  support)
-    shift
-    (cd services/runner && ./reachctl support "$@")
-    ;;
-  arcade)
-    shift
-    (cd services/runner && ./reachctl arcade "$@")
-    ;;
-  transcript)
-    shift
-    (cd services/runner && ./reachctl transcript "$@")
-    ;;
-  proof)
-    shift
-    (cd services/runner && ./reachctl proof "$@")
-    ;;
-  graph)
-    shift
-    (cd services/runner && ./reachctl graph "$@")
-    ;;
-  packs)
-    shift
-    (cd services/runner && ./reachctl packs "$@")
-    ;;
-  init)
-    shift
-    (cd services/runner && ./reachctl init "$@")
-    ;;
-  config)
-    shift
-    (cd services/runner && ./reachctl config "$@")
-    ;;
-  explain)
-    shift
-    (cd services/runner && ./reachctl explain "$@")
-    ;;
-  operator)
-    shift
-    (cd services/runner && ./reachctl operator "$@")
-    ;;
-  pack)
-    shift
-    (cd services/runner && ./reachctl pack "$@")
-    ;;
-  wizard)
-    shift
-    (cd services/runner && ./reachctl wizard "$@")
-    ;;
-  run)
-    shift
-    (cd services/runner && ./reachctl run "$@")
-    ;;
-  share)
-    shift
-    (cd services/runner && ./reachctl share "$@")
-    ;;
-  delegate)
-    shift
-    (cd services/runner && ./reachctl delegate "$@")
-    ;;
-  verify-proof)
-    shift
-    (cd services/runner && ./reachctl verify-proof "$@")
-    ;;
-  gate)
-    shift
-    (cd services/runner && ./reachctl gate "$@")
-    ;;
-  cost)
-    shift
-    # Ensure dependencies are installed for the tool
-    (cd tools/economics && npm install --silent && npm start --silent -- report "$@")
-    ;;
-  metrics)
-    shift
-    case "${1:-}" in
-      gtm) shift; (cd tools/economics && npm install --silent && npm start --silent -- metrics "$@") ;;
-      *) (cd tools/economics && npm install --silent && npm start --silent -- metrics "$@") ;;
-    esac
+    if [ "$IN_REPO_LAYOUT" = true ] && [ -f "$SELF_DIR/tools/release-check.sh" ]; then
+      "$SELF_DIR/tools/release-check.sh" "$@"
+    else
+      echo "error: release-check is only available from a source checkout." >&2
+      exit 2
+    fi
     ;;
   report)
     shift
@@ -140,11 +131,20 @@ case "$cmd" in
     case "$subcmd" in
       demo)
         shift
-        npx tsx scripts/report/generate-demo-report.ts "$@"
+        if [ "$IN_REPO_LAYOUT" = true ]; then
+          (cd "$SELF_DIR" && node --import tsx/esm scripts/report/generate-demo-report.ts "$@")
+        else
+          run_reachctl demo report "$@"
+        fi
         ;;
       verify)
         shift
-        npx tsx scripts/report/verify-report.ts "$@"
+        if [ "$IN_REPO_LAYOUT" = true ]; then
+          (cd "$SELF_DIR" && node --import tsx/esm scripts/report/verify-report.ts "$@")
+        else
+          echo "error: 'reach report verify' requires a source checkout. Use 'reachctl artifact verify <bundle.zip>'." >&2
+          exit 2
+        fi
         ;;
       *)
         echo "usage: reach report demo|verify" >&2
@@ -152,67 +152,48 @@ case "$cmd" in
         ;;
     esac
     ;;
+  cost)
+    shift
+    if [ "$IN_REPO_LAYOUT" = true ]; then
+      (cd "$SELF_DIR/tools/economics" && npm install --silent && npm start --silent -- report "$@")
+    else
+      echo "error: cost command is only available from a source checkout." >&2
+      exit 2
+    fi
+    ;;
+  metrics)
+    shift
+    if [ "$IN_REPO_LAYOUT" = true ]; then
+      case "${1:-}" in
+        gtm) shift; (cd "$SELF_DIR/tools/economics" && npm install --silent && npm start --silent -- metrics "$@") ;;
+        *) (cd "$SELF_DIR/tools/economics" && npm install --silent && npm start --silent -- metrics "$@") ;;
+      esac
+    else
+      echo "error: metrics command is only available from a source checkout." >&2
+      exit 2
+    fi
+    ;;
+  demo)
+    shift
+    if [ "$#" -eq 0 ]; then
+      run_reachctl demo smoke
+    else
+      run_reachctl demo "$@"
+    fi
+    ;;
   version|--version|-v)
-    (cd services/runner && ./reachctl version "$@")
+    shift
+    run_reachctl version "$@"
+    ;;
+  bugreport)
+    shift
+    run_reachctl bugreport "$@"
     ;;
   help|--help|-h)
-    echo "Reach - Deterministic Execution Fabric"
-    echo ""
-    echo "QUICK START"
-    echo "  ./reach doctor              Check system health"
-    echo "  ./reach version             Show version information"
-    echo "  ./reach report demo         Generate demo report"
-    echo ""
-    echo "CORE COMMANDS"
-    echo "  doctor                      System health check"
-    echo "  eval                        Evaluate runs and regressions"
-    echo "  wizard                      Guided run wizard (mobile-friendly)"
-    echo "  run <pack>                  Quick run a pack"
-    echo "  share                       Share runs via QR/text"
-    echo ""
-    echo "VERIFICATION"
-    echo "  audit                       Export/verify signed audit logs"
-    echo "  transcript                     Create/verify transcripts"
-    echo "  proof                       Verify execution proofs"
-    echo "  report demo                 Generate demo report"
-    echo "  report verify <path>        Verify report integrity"
-    echo ""
-    echo "PACKS & PRESETS"
-    echo "  packs                       Search/install packs"
-    echo "  presets list                List available presets"
-    echo "  presets apply <name>        Apply a preset (--dry-run, --yes)"
-    echo ""
-    echo "PLUGINS"
-    echo "  plugins scaffold <name>     Create new plugin from template"
-    echo "  plugins validate <path>     Validate plugin manifest"
-    echo "  plugins list                List installed plugins"
-    echo ""
-    echo "OPERATIONS"
-    echo "  operator                    View operator dashboard"
-    echo "  graph                       View evidence graph"
-    echo "  explain <decision>          Explain a decision"
-    echo "  gate                        Manage repository release gates"
-    echo "  cost                        View cost analysis"
-    echo "  metrics                     View GTM and usage metrics"
-    echo ""
-    echo "SERVER"
-    echo "  serve                       Start the Reach server"
-    echo "  federation                  Manage federation"
-    echo "  support                     Support utilities"
-    echo "  arcade                      Arcade mode"
-    echo ""
-    echo "DOCUMENTATION"
-    echo "  https://github.com/reach/reach/tree/main/apps/docs"
-    echo ""
-    echo "For mobile/Termux: Install with scripts/install-termux.sh"
-    echo ""
-    echo "Exit codes: 0=success, 1=failure, 2=invalid input, 3=not found,"
-    echo "            4=policy blocked, 5=verification failed"
+    print_help
     ;;
   *)
-    echo "usage: reach doctor|version|audit|eval|release-check|serve|federation|support|arcade|transcript|proof|graph|packs|init|explain|operator|pack|wizard|run|share|delegate|verify-proof|cost|metrics|gate|report" >&2
-    echo "       reach help for more info" >&2
-    exit 1
+    # Default behavior: forward to reachctl for compatibility.
+    run_reachctl "$cmd" "${@:2}"
     ;;
-
 esac

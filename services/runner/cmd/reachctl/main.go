@@ -1,6 +1,8 @@
 package main
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/json"
@@ -31,7 +33,9 @@ import (
 )
 
 const (
-	specVersion = "1.0"
+	specVersion      = "1.0"
+	maxCapsuleBytes  = 25 * 1024 * 1024
+	maxBugreportEnvs = 256
 )
 
 type runRecord struct {
@@ -234,6 +238,8 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runCapability(ctx, dataRoot, args[1:], out, errOut)
 	case "demo":
 		return runDemo(ctx, dataRoot, args[1:], out, errOut)
+	case "bugreport":
+		return runBugreport(ctx, dataRoot, args[1:], out, errOut)
 	case "version", "--version", "-v":
 		return runVersion(out)
 	default:
@@ -906,7 +912,19 @@ func runPacks(ctx context.Context, dataRoot string, args []string, out io.Writer
 			_, _ = fmt.Fprintln(errOut, err)
 			return 1
 		}
-		return writeJSON(out, map[string]any{"installed": p.Name, "path": installPath, "verified_badge": p.Verified})
+		unsafe := !p.Verified || strings.TrimSpace(p.Signature) == ""
+		warningCode := ""
+		if unsafe {
+			warningCode = "UNSAFE_PACK_UNVERIFIED"
+			_, _ = fmt.Fprintln(errOut, "warning: pack metadata is unverified; review source and run 'reachctl packs verify <name>' before use.")
+		}
+		return writeJSON(out, map[string]any{
+			"installed":      p.Name,
+			"path":           installPath,
+			"verified_badge": p.Verified,
+			"unsafe":         unsafe,
+			"warning_code":   warningCode,
+		})
 	case "verify":
 		if len(args) < 2 {
 			_, _ = fmt.Fprintln(errOut, "usage: reachctl packs verify <name>")
@@ -1896,6 +1914,13 @@ func buildCapsule(rec runRecord) capsuleFile {
 
 func readCapsule(path string) (capsuleFile, error) {
 	var c capsuleFile
+	info, statErr := os.Stat(path)
+	if statErr != nil {
+		return c, statErr
+	}
+	if info.Size() > maxCapsuleBytes {
+		return c, fmt.Errorf("capsule exceeds size limit (%d bytes > %d bytes)", info.Size(), maxCapsuleBytes)
+	}
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return c, err
@@ -4196,7 +4221,9 @@ USAGE:
 
 CORE COMMANDS:
   doctor                Check local environment health
+  bugreport             Collect redacted diagnostics into a zip
   version               Show version information
+  demo                  One-command demo (run, verify, replay, capsule)
   init pack --governed  Initialize a new governed pack
   run <pack>            Quick run a pack locally
   replay <runId>        Replay a run for verification
@@ -4232,6 +4259,9 @@ EXAMPLES:
   # Check system health
   $ reach doctor
 
+  # One-command demo (run, verify, replay, capsule)
+  $ reach demo
+
   # Run a pack and export capsule
   $ reach run my-pack
   $ reach capsule create <run-id>
@@ -4243,6 +4273,9 @@ EXAMPLES:
   # Show version
   $ reach version
 
+  # Collect diagnostics for support
+  $ reach bugreport
+
 EXIT CODES:
   0  Success
   1  General failure
@@ -4251,7 +4284,7 @@ EXIT CODES:
   4  Policy blocked
   5  Verification failed
 
-For more help: https://github.com/reach/reach/docs
+For more help: https://reach-cli.com
 `)
 }
 
@@ -4690,6 +4723,162 @@ func runDoctor(args []string, out, errOut io.Writer) int {
 		fmt.Fprintln(errOut, "\nâš ï¸ Some issues were detected. See above for details.")
 		return 1
 	}
+}
+
+func runBugreport(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	_ = ctx
+
+	fs := flag.NewFlagSet("bugreport", flag.ContinueOnError)
+	outputPath := fs.String("output", "", "output zip file")
+	if err := fs.Parse(args); err != nil {
+		_, _ = fmt.Fprintf(errOut, "failed to parse bugreport args: %v\n", err)
+		return 1
+	}
+
+	if *outputPath == "" {
+		stamp := time.Now().UTC().Format("20060102T150405Z")
+		*outputPath = filepath.Join(dataRoot, "bugreports", fmt.Sprintf("reach-bugreport-%s.zip", stamp))
+	}
+	if err := os.MkdirAll(filepath.Dir(*outputPath), 0o755); err != nil {
+		_, _ = fmt.Fprintf(errOut, "failed to prepare output directory: %v\n", err)
+		return 1
+	}
+
+	var versionOut bytes.Buffer
+	_ = runVersion(&versionOut)
+
+	var doctorOut bytes.Buffer
+	var doctorErr bytes.Buffer
+	doctorExit := runDoctor(nil, &doctorOut, &doctorErr)
+
+	envSummary := collectBugreportEnvSummary()
+	metadata := map[string]any{
+		"created_at":        time.Now().UTC().Format(time.RFC3339),
+		"platform":          runtime.GOOS + "/" + runtime.GOARCH,
+		"go_version":        runtime.Version(),
+		"doctor_exit_code":  doctorExit,
+		"docs_url":          "https://reach-cli.com/docs/troubleshooting",
+		"issue_template_url": "https://github.com/reach/reach/issues/new?template=bug_report.yml",
+	}
+
+	if err := writeBugreportZip(*outputPath, metadata, envSummary, versionOut.String(), doctorOut.String(), doctorErr.String()); err != nil {
+		_, _ = fmt.Fprintf(errOut, "failed to write bugreport: %v\n", err)
+		return 1
+	}
+
+	return writeJSON(out, map[string]any{
+		"bugreport":        *outputPath,
+		"doctor_exit_code": doctorExit,
+		"redacted_env_vars": len(envSummary),
+		"next_steps": []string{
+			"Attach the zip to https://github.com/reach/reach/issues/new?template=bug_report.yml",
+			"Include the command that failed and expected behavior.",
+		},
+	})
+}
+
+func writeBugreportZip(
+	outputPath string,
+	metadata map[string]any,
+	envSummary map[string]string,
+	versionText string,
+	doctorStdout string,
+	doctorStderr string,
+) error {
+	file, err := os.Create(outputPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	zw := zip.NewWriter(file)
+	defer zw.Close()
+
+	if err := writeBugreportJSONFile(zw, "metadata.json", metadata); err != nil {
+		return err
+	}
+	if err := writeBugreportJSONFile(zw, "env-summary.json", envSummary); err != nil {
+		return err
+	}
+	if err := writeBugreportTextFile(zw, "version.txt", versionText); err != nil {
+		return err
+	}
+	if err := writeBugreportTextFile(zw, "doctor.stdout.txt", doctorStdout); err != nil {
+		return err
+	}
+	if err := writeBugreportTextFile(zw, "doctor.stderr.txt", doctorStderr); err != nil {
+		return err
+	}
+	return zw.Close()
+}
+
+func writeBugreportJSONFile(zw *zip.Writer, name string, payload any) error {
+	data, err := json.MarshalIndent(payload, "", "  ")
+	if err != nil {
+		return err
+	}
+	return writeBugreportTextFile(zw, name, string(data)+"\n")
+}
+
+func writeBugreportTextFile(zw *zip.Writer, name, content string) error {
+	writer, err := zw.Create(name)
+	if err != nil {
+		return err
+	}
+	_, err = io.WriteString(writer, content)
+	return err
+}
+
+func collectBugreportEnvSummary() map[string]string {
+	summary := map[string]string{}
+	count := 0
+	for _, pair := range os.Environ() {
+		parts := strings.SplitN(pair, "=", 2)
+		if len(parts) == 0 {
+			continue
+		}
+		key := parts[0]
+		if !shouldIncludeBugreportEnvKey(key) {
+			continue
+		}
+		value := ""
+		if len(parts) > 1 {
+			value = parts[1]
+		}
+		summary[key] = redactBugreportEnvValue(key, value)
+		count++
+		if count >= maxBugreportEnvs {
+			break
+		}
+	}
+	return summary
+}
+
+func shouldIncludeBugreportEnvKey(key string) bool {
+	return strings.HasPrefix(key, "REACH_") ||
+		strings.HasPrefix(key, "NEXT_PUBLIC_") ||
+		strings.HasPrefix(key, "GITHUB_") ||
+		strings.HasPrefix(key, "STRIPE_") ||
+		strings.HasPrefix(key, "READYLAYER_") ||
+		key == "NODE_ENV" ||
+		key == "BILLING_ENABLED"
+}
+
+func redactBugreportEnvValue(key, value string) string {
+	lower := strings.ToLower(key)
+	markers := []string{"secret", "token", "key", "password", "cookie", "private"}
+	for _, marker := range markers {
+		if strings.Contains(lower, marker) {
+			if value == "" {
+				return ""
+			}
+			return "[REDACTED]"
+		}
+	}
+	if len(value) > 256 {
+		return value[:256] + "...[truncated]"
+	}
+	return value
 }
 
 // runCheckpoint creates a checkpoint of a run for time travel

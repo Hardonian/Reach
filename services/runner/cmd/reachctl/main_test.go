@@ -1,9 +1,11 @@
 package main
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -334,6 +336,105 @@ func TestIntegrationWizardToShare(t *testing.T) {
 	shareOutput := shareOut.String()
 	if !strings.Contains(shareOutput, "reach://share/") {
 		t.Error("expected share URL in output")
+	}
+}
+
+func TestRunDemoSmokeCreatesVerifiedCapsule(t *testing.T) {
+	tmpDir := t.TempDir()
+	os.Setenv("REACH_DATA_DIR", tmpDir)
+	defer os.Unsetenv("REACH_DATA_DIR")
+
+	var out, errOut bytes.Buffer
+	code := runDemo(context.Background(), tmpDir, []string{"smoke", "--json"}, &out, &errOut)
+	if code != 0 {
+		t.Fatalf("demo smoke failed: %d, err: %s", code, errOut.String())
+	}
+
+	var payload map[string]any
+	if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid demo smoke JSON: %v", err)
+	}
+
+	if payload["status"] != "ok" {
+		t.Fatalf("expected status ok, got %v", payload["status"])
+	}
+	if verified, _ := payload["verified"].(bool); !verified {
+		t.Fatalf("expected capsule verify=true, got %v", payload["verified"])
+	}
+	if replayVerified, _ := payload["replay_verified"].(bool); !replayVerified {
+		t.Fatalf("expected replay_verified=true, got %v", payload["replay_verified"])
+	}
+	capsulePath, _ := payload["capsule"].(string)
+	if capsulePath == "" {
+		t.Fatal("expected capsule path in demo output")
+	}
+	if _, err := os.Stat(capsulePath); err != nil {
+		t.Fatalf("expected capsule file to exist: %v", err)
+	}
+}
+
+func TestReadCapsuleRejectsOversizedFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	largePath := filepath.Join(tmpDir, "large.capsule.json")
+	file, err := os.Create(largePath)
+	if err != nil {
+		t.Fatalf("create file: %v", err)
+	}
+	defer file.Close()
+	if err := file.Truncate(maxCapsuleBytes + 1); err != nil {
+		t.Fatalf("truncate file: %v", err)
+	}
+
+	if _, err := readCapsule(largePath); err == nil {
+		t.Fatal("expected oversized capsule error")
+	}
+}
+
+func TestRunBugreportRedactsSecrets(t *testing.T) {
+	tmpDir := t.TempDir()
+	os.Setenv("REACH_DATA_DIR", tmpDir)
+	os.Setenv("REACH_API_SECRET", "top-secret-value")
+	defer os.Unsetenv("REACH_DATA_DIR")
+	defer os.Unsetenv("REACH_API_SECRET")
+
+	reportPath := filepath.Join(tmpDir, "bugreport.zip")
+	var out, errOut bytes.Buffer
+	code := runBugreport(context.Background(), tmpDir, []string{"--output", reportPath}, &out, &errOut)
+	if code != 0 {
+		t.Fatalf("bugreport failed: %d, err: %s", code, errOut.String())
+	}
+
+	reader, err := zip.OpenReader(reportPath)
+	if err != nil {
+		t.Fatalf("open bugreport zip: %v", err)
+	}
+	defer reader.Close()
+
+	var envSummary []byte
+	for _, f := range reader.File {
+		if f.Name != "env-summary.json" {
+			continue
+		}
+		rc, openErr := f.Open()
+		if openErr != nil {
+			t.Fatalf("open env-summary.json: %v", openErr)
+		}
+		envSummary, err = io.ReadAll(rc)
+		_ = rc.Close()
+		if err != nil {
+			t.Fatalf("read env-summary.json: %v", err)
+		}
+	}
+	if len(envSummary) == 0 {
+		t.Fatal("env-summary.json missing from bugreport")
+	}
+
+	var env map[string]string
+	if err := json.Unmarshal(envSummary, &env); err != nil {
+		t.Fatalf("parse env-summary.json: %v", err)
+	}
+	if got := env["REACH_API_SECRET"]; got != "[REDACTED]" {
+		t.Fatalf("expected REACH_API_SECRET to be redacted, got %q", got)
 	}
 }
 
