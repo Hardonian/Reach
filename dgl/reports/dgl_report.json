@@ -5,6 +5,11 @@
   "repo": "Reach",
   "base_sha": "9720a30a0791515be43e243b9eced0f4baf8fae7",
   "head_sha": "89cf84d653bb98d6a3fa3d084ba285e0442d2f05",
+  "run_id": "dgl_1771972447876",
+  "timestamp": "2026-02-24T22:34:07.876Z",
+  "repo": "Reach",
+  "base_sha": "bfbb5f956cedea346e32509c106b88b0ac48e2c2",
+  "head_sha": "53c004c13ec60d385622303f2fb91802b8c732b1",
   "summary": {
     "intent_alignment_score": 100,
     "terminology_drift_score": 100,
@@ -27,9 +32,8 @@
   "turbulence_hotspots": [
     {
       "path": ".github/workflows/verify.yml",
-      "reason": "recently changed",
-      "count": 1
-    },
+  "violations": [],
+  "turbulence_hotspots": [
     {
       "path": "apps/arcade/src/app/api/governance/dgl/route.ts",
       "reason": "recently changed",
@@ -41,37 +45,50 @@
       "count": 1
     },
     {
+      "path": "apps/arcade/src/app/governance/dgl/page.tsx",
+      "path": "dgl/reports/dgl_report.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
       "path": "apps/arcade/src/lib/dgl-governance-api.ts",
+      "path": "dgl/reports/dgl_report.md",
       "reason": "recently changed",
       "count": 1
     },
     {
       "path": "config/canonical-language.json",
+      "path": "dgl/reports/dgl_report.sarif",
       "reason": "recently changed",
       "count": 1
     },
     {
       "path": "dgl/baselines/intent/work.json",
+      "path": "docs/architecture/dgl.md",
       "reason": "recently changed",
       "count": 1
     },
     {
       "path": "dgl/examples/dgl_report.generated.json",
+      "path": "src/dgl/api-contract-diff.ts",
       "reason": "recently changed",
       "count": 1
     },
     {
       "path": "dgl/examples/dgl_report.generated.md",
+      "path": "src/dgl/ast-diff.ts",
       "reason": "recently changed",
       "count": 1
     },
     {
       "path": "dgl/examples/dgl_report.json",
+      "path": "src/dgl/dgl.test.ts",
       "reason": "recently changed",
       "count": 1
     },
     {
       "path": "dgl/examples/dgl_report.md",
+      "path": "src/dgl/index.ts",
       "reason": "recently changed",
       "count": 1
     }
