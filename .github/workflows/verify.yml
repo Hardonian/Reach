@@ -21,6 +21,13 @@ jobs:
         run: npm install
       - name: Verify Fast
         run: npm run verify:fast
+      - name: Validate DGL
+        run: npm run validate:dgl
+      - name: Upload DGL SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: dgl/reports/dgl_report.sarif
       - name: Docs Link Check
         run: npm run docs:check
       - name: Build (if present)

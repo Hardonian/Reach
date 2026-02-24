@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "dgl_1771973744890",
+  "timestamp": "2026-02-24T22:55:44.890Z",
+  "repo": "Reach",
+  "base_sha": "9720a30a0791515be43e243b9eced0f4baf8fae7",
+  "head_sha": "89cf84d653bb98d6a3fa3d084ba285e0442d2f05",
+  "summary": {
+    "intent_alignment_score": 100,
+    "terminology_drift_score": 100,
+    "semantic_drift_score": 100,
+    "trust_boundary_change_score": 100,
+    "calibration_score": 50
+  },
+  "violations": [
+    {
+      "type": "dependency_graph",
+      "severity": "warn",
+      "paths": [
+        "package.json"
+      ],
+      "evidence": "Dependency declaration changed.",
+      "suggested_fix": "Review high-risk deps (auth/network/crypto/telemetry) before merge.",
+      "line": 1
+    }
+  ],
+  "turbulence_hotspots": [
+    {
+      "path": ".github/workflows/verify.yml",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "apps/arcade/src/app/api/governance/dgl/route.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "apps/arcade/src/app/governance/dgl/page.tsx",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "apps/arcade/src/lib/dgl-governance-api.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "config/canonical-language.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "dgl/baselines/intent/work.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "dgl/examples/dgl_report.generated.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "dgl/examples/dgl_report.generated.md",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "dgl/examples/dgl_report.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "dgl/examples/dgl_report.md",
+      "reason": "recently changed",
+      "count": 1
+    }
+  ]
+}

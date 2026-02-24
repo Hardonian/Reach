@@ -1,0 +1,2 @@
+{"provider":"local","model":"gpt-5.2-codex","ci_pass":true,"reverted":false,"self_confidence":0.8}
+{"provider":"openrouter","model":"gemini-pro","ci_pass":false,"reverted":true,"self_confidence":0.7}
