@@ -1,6 +1,5 @@
 {
   "buildCommand": "cd apps/arcade && npm run build",
-  "installCommand": "npm install",
-  "framework": "nextjs",
+  "installCommand": "cd apps/arcade && npm install",
   "outputDirectory": "apps/arcade/.next"
 }
