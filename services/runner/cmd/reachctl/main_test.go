@@ -359,3 +359,30 @@ func BenchmarkWizard(b *testing.B) {
 		wizard.Run(ctx)
 	}
 }
+
+func TestRunMemoryHash(t *testing.T) {
+	tmp := t.TempDir()
+	input := filepath.Join(tmp, "memory.json")
+	if err := os.WriteFile(input, []byte(`{"version":"1","items":[{"memory_id":"m1","type":"prompt","content":"hello"}]}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+	var out, errOut bytes.Buffer
+	code := run(context.Background(), []string{"memory", "hash", input}, &out, &errOut)
+	if code != 0 {
+		t.Fatalf("memory hash failed: %s", errOut.String())
+	}
+	if !strings.Contains(out.String(), "\"hash\":") {
+		t.Fatalf("expected hash in output: %s", out.String())
+	}
+}
+
+func TestRunCacheStatus(t *testing.T) {
+	var out, errOut bytes.Buffer
+	code := run(context.Background(), []string{"cache", "status"}, &out, &errOut)
+	if code != 0 {
+		t.Fatalf("cache status failed: %s", errOut.String())
+	}
+	if !strings.Contains(out.String(), "format_version") {
+		t.Fatalf("expected format_version in output: %s", out.String())
+	}
+}
