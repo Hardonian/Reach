@@ -1,0 +1,10 @@
+# Default ownership
+* @reach/maintainers
+
+# Security-sensitive surfaces
+SECURITY.md @reach/security
+scripts/release/* @reach/release
+.github/workflows/release.yml @reach/release
+services/runner/cmd/reachctl/* @reach/core-cli
+apps/arcade/src/lib/db/* @reach/platform
+apps/arcade/src/app/api/* @reach/platform

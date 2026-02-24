@@ -14,7 +14,7 @@
 
 ## Checklist
 
-- [ ] I have run `pnpm run verify:fast` and all checks pass
+- [ ] I have run `npm run verify:fast` and all checks pass
 - [ ] My code follows the project's style guidelines
 - [ ] I have made corresponding changes to the documentation
 - [ ] My changes generate no new warnings

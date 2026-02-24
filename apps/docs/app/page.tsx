@@ -35,13 +35,12 @@ export default function Home() {
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold mb-8 text-center">Install in Seconds</h2>
           <CodeBlock
-            code={`# Clone and install
-git clone https://github.com/reach/reach.git
-cd reach
-pnpm install
+            code={`# Install from latest GitHub release
+curl -fsSL https://github.com/reach/reach/releases/latest/download/install.sh | bash
 
-# Verify your setup
-./reach doctor`}
+# Verify install
+reach version
+reach doctor`}
             language="bash"
           />
         </div>
@@ -52,14 +51,12 @@ pnpm install
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold mb-8 text-center">See It In Action</h2>
           <CodeBlock
-            code={`$ reach explain decision-01.json
-✔ Workflow parsed successfully
-✔ Deterministic evaluation verified (Hash: 9f86d081...)
-✔ Policy checks passed
-
-Result: Approved
-Confidence: 0.98
-Execution Time: 14ms`}
+            code={`$ reach demo
+Demo smoke completed.
+Run ID: run-...
+Capsule: .../capsules/run-....capsule.json
+Verified: true
+Replay Verified: true`}
             language="bash"
           />
           <div className="text-center mt-6">

@@ -51,6 +51,12 @@ function Get-ChecksumMap {
     if ($parts.Length -lt 2) { continue }
     $hash = $parts[0].Trim().ToLowerInvariant()
     $name = $parts[1].Trim()
+    if ($name.StartsWith("./")) {
+      $name = $name.Substring(2)
+    }
+    if ($name.StartsWith(".\\")) {
+      $name = $name.Substring(2)
+    }
     $map[$name] = $hash
   }
   return $map
@@ -126,4 +132,3 @@ function Install-Reach {
 }
 
 Install-Reach
-

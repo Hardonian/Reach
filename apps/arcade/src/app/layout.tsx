@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://reach.dev",
+    url: process.env.NEXT_PUBLIC_BASE_URL ?? "https://reach.dev",
     siteName: "ReadyLayer",
     title: "ReadyLayer - Deterministic Orchestration Fabric",
     description:

@@ -1,65 +1,40 @@
 # Reach CLI Reference
 
-Reach provides two primary CLI interfaces: `reachctl` (the core binary) and the root `./reach` wrapper script (for developer hygiene and cross-tool orchestration).
+Reach provides:
+- `reachctl` (core binary)
+- `reach` (wrapper script that forwards to `reachctl` and repository tools)
 
-## Root Wrapper (`./reach`)
+## Core Commands
 
-The root `./reach` script is the entry point for most developer tasks. It manages dependencies and provides a unified interface for sub-tools.
+- `reach version`
+- `reach doctor`
+- `reach demo`
+- `reach run <pack>`
+- `reach capsule create <run-id>`
+- `reach capsule verify <file>`
+- `reach capsule replay <file>`
+- `reach proof verify <run-id|capsule>`
+- `reach packs search [query]`
+- `reach packs install <name>`
+- `reach bugreport`
 
-| Command      | Description                                                          |
-| :----------- | :------------------------------------------------------------------- |
-| `doctor`     | Perform a full system health check (Go, Node, Rust, SQLite).         |
-| `run <pack>` | Quickly execute a deterministic pack locally.                        |
-| `eval`       | Evaluate runs and check for regressions against golden fixtures.     |
-| `audit`      | Export and verify signed audit logs for compliance.                  |
-| `transcript` | Create or verify signed execution transcripts for long-term storage. |
-| `proof`      | Verify cryptographic execution proofs (Execution Proof).             |
-| `gate`       | Manage repository and release gates for CI/CD integration.           |
-| `cost`       | View unit economics and cost analysis for model executions.          |
-| `metrics`    | View GTM and usage analytics for the local node.                     |
-| `wizard`     | Guided run wizard optimized for mobile/CLI interaction.              |
-
-### Usage Example
-
-```bash
-./reach doctor
-./reach run security-baseline --json
-```
-
-## Workflow CLI
-
-The workflow-specific commands manage long-running decision processes within a `.zeo` workspace.
-
-| Command             | Description                                                   |
-| :------------------ | :------------------------------------------------------------ |
-| `workflow start`    | Initialize a new decision workspace with a title and type.    |
-| `workflow add-note` | Append evidence, observations, or assertions to the decision. |
-| `workflow run`      | Trigger the decision engine to compute recommended actions.   |
-| `workflow export`   | Export the decision (MD, ICS, or portable bundle).            |
-| `workflow health`   | View health scores, replay stability, and asset volatility.   |
-| `workflow graph`    | Visualize decision dependencies and impact chains.            |
-
-## Installation & Setup
-
-### Core Binary (`reachctl`)
-
-The core binary is built from the Go sources in the runner service.
+## One-Command Demo
 
 ```bash
-cd services/runner
-go build -o ../../reachctl ./cmd/reachctl
+reach demo
 ```
 
-### Mobile/Termux Support
+This flow runs a sample pack, verifies output integrity, replays the capsule, and stores artifacts under `REACH_DATA_DIR` (default: `data`).
 
-Reach is optimized for mobile execution via Termux.
+## Diagnostics
 
 ```bash
-bash scripts/install-termux.sh
+reach doctor
+reach bugreport
 ```
 
-## Global Flags
+`reach bugreport` creates a redacted zip bundle for support/issue filing.
 
-- `--json`: Output result in machine-readable JSON format for automation.
-- `--help`: Display detailed help and flag descriptions for any command.
-- `--as-of`: (Workflow) Simulate execution as of a specific UTC date.
+## Installation
+
+See [docs/INSTALL.md](./INSTALL.md).

@@ -14,10 +14,10 @@ git clone https://github.com/reach/reach.git
 cd reach
 
 # 2. Install dependencies
-pnpm install
+npm install
 
 # 3. Verify your setup
-./reachctl doctor
+./reach doctor
 ```
 
 ## 🧪 Running Tests
@@ -26,7 +26,10 @@ Reach requires absolute determinism. Ensure all tests pass before submitting you
 
 ```bash
 # Run the full validation suite (lint, typecheck, tests)
-pnpm run verify:full
+npm run verify:full
+
+# Site split checks (claims, links, boundaries, canonical URLs)
+npm run verify:sites
 
 # Testing the Core Rust Engine
 cd crates/engine && cargo test
@@ -41,7 +44,7 @@ To test your changes against the visual evidence graph, you can run the local de
 
 ```bash
 # Start the web interface
-pnpm run demo
+npm run dev --workspace arcade
 
 # Open your browser to http://localhost:3000
 ```
@@ -99,6 +102,23 @@ Add plugins to `plugins/`:
 - Use `./reach plugins scaffold <name>` to get started
 - Ensure deterministic behavior
 - Include tests and documentation
+
+### Packs
+
+Add packs under `packs/` or `examples/packs/`:
+
+- Validate pack shape: `reach pack lint <path>`
+- Run pack doctor: `reach pack doctor <path>`
+- If publishing metadata, use `reach pack publish <path> --dry-run` first
+
+### Docs and Spec Updates
+
+When command behavior or security posture changes, update:
+
+- `README.md`
+- `docs/cli.md` and `docs/INSTALL.md`
+- `docs/threat-model.md` (if threat/mitigation changed)
+- `spec/REACH_PROTOCOL_v1.md` (for protocol changes)
 
 ## 📝 Commit Expectations
 

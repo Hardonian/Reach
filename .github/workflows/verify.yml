@@ -23,5 +23,7 @@ jobs:
         run: npm run verify:fast
       - name: Docs Link Check
         run: npm run docs:check
+      - name: Site Split Check
+        run: npm run verify:sites
       - name: Build (if present)
         run: npm run build || echo "build skipped"

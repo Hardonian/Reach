@@ -1,71 +1,76 @@
-# Security Policy & Threat Model ## Reporting a vulnerability
+# Security Policy
 
-Please report security issues privately by emailing **security@reach.dev** with:
+## Reporting a Vulnerability
 
+Please report vulnerabilities privately to `security@reach.dev`.
+
+Include:
 - affected component(s)
 - reproduction steps
-- impact assessment
-- any proof-of-concept details
+- impact
+- proof-of-concept details (if available)
 
-Do not open public GitHub issues for undisclosed vulnerabilities.
+Do not open a public GitHub issue for undisclosed vulnerabilities.
 
-## Assets - Session cookies and tenant identity.
+## Disclosure Process
 
-- OAuth access/refresh tokens.
-- Webhook secrets and delivery integrity metadata.
-- Run artifacts, capsule exports/imports, and audit logs.
-- Approval/gate decisions for dangerous operations.
+1. We acknowledge reports within 72 hours.
+2. We triage severity and scope.
+3. We prepare a fix and coordinate disclosure timing.
+4. We publish remediation notes in release notes when applicable.
 
-## Trust boundaries - Mobile apps / VS Code extension / IDE bridge clients → hub services.
+## Security Baseline (OSS)
 
-- Hub services (session-hub, integration-hub, capsule-sync) → runner.
-- Runner → connectors/plugins and external networks.
-- External SaaS providers → integration-hub webhooks.
+- Least privilege by default.
+- Deterministic replay and proof verification remain mandatory.
+- No secrets in logs.
+- OSS mode must run with enterprise-only env vars unset.
 
-## Attacker profiles - Malicious user in a valid tenant trying cross-tenant access.
+## Secret Scanning Guidance
 
-- Compromised client attempting session/token misuse.
-- Forged webhook sender and replay attacker.
-- Rogue or over-privileged connector/plugin.
-- Network attacker attempting request tampering or disclosure.
-
-## Top risks and concrete mitigations - **Spoofing / CSRF**: OAuth callbacks consume single-use state tied to tenant/provider and reject invalid state.
-
-- **Tampering**: Webhook signatures are verified per-provider, with strict timestamp window checks and replay nonce storage.
-- **Repudiation**: Audit and event logs are written for OAuth, webhook, and approval flows.
-- **Information disclosure**: OAuth tokens are encrypted at rest; auth headers are required; sensitive token material is not logged.
-- **Denial of service**: Webhook payload size cap and per-tenant route rate limiting prevent oversized request abuse.
-- **Privilege escalation**: Runner requires authenticated session, tenant-scoped run lookups, capability checks, and tenant ownership checks for gate resolution.
-
-## Security expectations - Never log API keys, OAuth tokens, or raw secrets.
-
-- Validate webhook/OAuth inputs and reject malformed or stale payloads.
-- Apply least privilege per tenant/session and keep run access tenant-scoped.
-- Keep dependencies updated and pinned via each ecosystem's lock/manifest conventions.
-
-## Dependency Firewall Reach implements a production dependency firewall to prevent vulnerable packages from entering the runtime:
-
-### Blocked Packages The following packages are explicitly blocked via npm overrides:
-
-- `clawdbot` - Malicious/untrusted
-- `codex` - Name collision prevention
-- `connect` - Deprecated middleware
-- `request` - Deprecated HTTP client
-- `marked` - XSS vulnerabilities (older versions)
-- `hono` - Not used in Reach
-- `node-llama-cpp` - Optional local LLM only
-
-### Security Checks All CI builds run:
+Before opening a PR, run:
 
 ```bash
-npm run verify:no-toxic-deps    # Block clawdbot, codex, etc.
-npm run verify:prod-install      # Verify clean prod install
-npm run security:audit          # Run npm audit on all workspaces
+npm run verify:no-toxic-deps
+npm run verify:prod-install
 ```
 
-See [docs/INSTALL_MODES.md](docs/INSTALL_MODES.md) for installation options.
+CI also runs pattern-based secret scanning for tracked files.
 
-## Key rotation - Integration Hub token encryption uses AES-GCM master key from `REACH_ENCRYPTION_KEY_BASE64`.
+## Artifact and Bundle Hardening
 
-- Rotate by deploying a new key and re-authorizing providers (or migrating stored encrypted blobs in maintenance).
-- Webhook secrets should be rotated per provider/tenant and previous deliveries must expire from replay guard window.
+Reach enforces the following on artifact/bundle ingest and verification paths:
+
+- archive path traversal entries are rejected (`..`, absolute paths, drive-letter paths)
+- per-entry size limit
+- total bundle size limit
+- max archive entry count
+- capsule file size limit
+
+These checks are enforced in CLI code paths and tested in CI.
+
+## Registry and Pack Safety
+
+- Registry index handling is metadata-first.
+- Pack install paths emit warnings for unverified/unsigned metadata.
+- Treat unverified packs as unsafe until reviewed and verified.
+
+## Dependency Firewall
+
+Reach blocks known toxic/deprecated packages at CI/review time.
+
+Examples include:
+- `clawdbot`
+- `codex`
+- `connect`
+- `request`
+- `marked`
+- `hono`
+- `node-llama-cpp`
+
+## Operational Expectations
+
+- Validate OAuth/webhook inputs and reject malformed payloads.
+- Keep tenant/session scope checks in place for protected operations.
+- Rotate provider secrets and encryption keys regularly.
+- Use `reach bugreport` for redacted diagnostics when filing issues.

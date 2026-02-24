@@ -922,6 +922,7 @@ func runPacks(ctx context.Context, dataRoot string, args []string, out io.Writer
 			"installed":      p.Name,
 			"path":           installPath,
 			"verified_badge": p.Verified,
+			"metadata_only":  true,
 			"unsafe":         unsafe,
 			"warning_code":   warningCode,
 		})
@@ -3553,6 +3554,8 @@ func runQuick(args []string, out, errOut io.Writer) int {
 			_ = os.WriteFile(packPath, data, 0644)
 		} else {
 			fmt.Fprintf(errOut, "Pack %s not found at %s. Install it first using 'reach packs install'.\n", packName, packPath)
+			fmt.Fprintln(errOut, "Docs: https://reach-cli.com/docs/troubleshooting")
+			fmt.Fprintln(errOut, "Report issue: https://github.com/reach/reach/issues/new?template=bug_report.yml")
 			return 1
 		}
 	}

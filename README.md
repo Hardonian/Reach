@@ -12,7 +12,7 @@ Reach is a high-performance, deterministic decision engine for autonomous agents
 ## Reality Mode (v0.1)
 
 - What is real and production-grade: The deterministic execution engine, policy evaluations, and replay integrity.
-- What is optional: LLM planner bindings.
+- What is optional: LLM planner bindings, cloud/billing integrations, and enterprise analytics surfaces.
 - What is explicitly removed: Mesh networking, consensus simulation, and poee theatre have been purged.
 - What is intentionally out-of-scope for OSS: Multi-tenant operations and deep telemetry integrations.
 
@@ -23,20 +23,30 @@ Reach is a high-performance, deterministic decision engine for autonomous agents
 Download pre-built binaries for your platform from the [releases page](https://github.com/reach/reach/releases):
 
 ```bash
-# Linux/macOS - Using install script
-curl -sSL https://github.com/reach/reach/releases/latest/download/install.sh | bash
+# Linux/macOS (checksums verified)
+curl -fsSL https://github.com/reach/reach/releases/latest/download/install.sh | bash
 
-# Or manually download and install
+# Manual install with checksum verification
 VERSION=$(curl -s https://raw.githubusercontent.com/reach/reach/main/VERSION)
-curl -L -o reachctl https://github.com/reach/reach/releases/download/v${VERSION}/reachctl-linux-amd64
-curl -L -o reach https://github.com/reach/reach/releases/download/v${VERSION}/reach
-chmod +x reachctl reach
-sudo mv reachctl reach /usr/local/bin/
+BASE="https://github.com/reach/reach/releases/download/v${VERSION}"
+curl -fsSL -O "${BASE}/reachctl-linux-amd64"
+curl -fsSL -O "${BASE}/reach"
+curl -fsSL -O "${BASE}/SHA256SUMS"
+grep "reachctl-linux-amd64" SHA256SUMS | sha256sum -c -
+grep "reach$" SHA256SUMS | sha256sum -c -
+chmod +x reachctl-linux-amd64 reach
+sudo mv reachctl-linux-amd64 /usr/local/bin/reachctl
+sudo mv reach /usr/local/bin/reach
+```
+
+```powershell
+# Windows PowerShell installer (checksums verified)
+irm https://github.com/reach/reach/releases/latest/download/install.ps1 | iex
 ```
 
 ### Build from Source
 
-Requirements: Go 1.22+, Node.js 18+
+Requirements: Go 1.22+, Node.js 20+
 
 ```bash
 # 1. Clone the repository
@@ -44,12 +54,13 @@ git clone https://github.com/reach/reach.git
 cd reach
 
 # 2. Install dependencies
-pnpm install
+npm install
 
 # 3. Build binaries
 make build
 
 # 4. Verify your setup
+./reach version
 ./reach doctor
 
 # Or install to system
@@ -77,16 +88,16 @@ reach version
    ./reach doctor
    ```
 
-2. **Build from Source**:
+2. **Run One Command Demo**:
 
    ```bash
-   make build
+   ./reach demo
    ```
 
-3. **Run a Simple Decision**:
+3. **Collect a Support Bundle (optional)**:
 
    ```bash
-   node examples/01-quickstart-local/run.js
+   ./reach bugreport
    ```
 
 ### 🚩 Common Pitfalls & Fixes
@@ -98,17 +109,15 @@ reach version
 
 ## 💻 CLI Example
 
-Reach verifies decisions deterministically. Here is an example of running a decision workflow:
+Reach verifies decisions deterministically with replayable artifacts:
 
 ```console
-$ reachctl explain decision-01.json
-✔ Workflow parsed successfully
-✔ Deterministic evaluation verified (Hash: 9f86d081884c7d659a2feaa0c55ad015)
-✔ Policy checks passed
-
-Result: Approved
-Confidence: 0.98
-Execution Time: 14ms
+$ reach demo
+Demo smoke completed.
+Run ID: run-...
+Capsule: data/capsules/run-....capsule.json
+Verified: true
+Replay Verified: true
 ```
 
 ## 🌐 Web Demo
@@ -118,7 +127,7 @@ Experience the deterministic visualization of decisions and evidence chains.
 1. Start the web simulator:
 
    ```bash
-   pnpm run demo
+   npm run dev --workspace arcade
    ```
 
 2. Open [http://localhost:3000](http://localhost:3000) to view the execution graph.
@@ -150,7 +159,7 @@ node examples/06-retention-compact-safety/run.js
 
 ## 📖 Documentation
 
-Full documentation is available in the [docs site](apps/docs/):
+Full documentation is available at [reach-cli.com](https://reach-cli.com) and in the local [docs site](apps/docs/):
 
 - [Quickstart](apps/docs/app/docs/quickstart) - Get up and running in 60 seconds
 - [Examples](apps/docs/app/docs/examples) - Six complete walkthroughs
@@ -162,8 +171,8 @@ Full documentation is available in the [docs site](apps/docs/):
 Run locally:
 
 ```bash
-pnpm run docs:dev     # http://localhost:3001
-pnpm run docs:build   # Static export
+npm run docs:dev     # http://localhost:3001
+npm run docs:build   # Static export
 ```
 
 ## 🤝 Contributing
@@ -178,9 +187,9 @@ We actively welcome community contributions! Please review our [Contribution Gui
 
 ## 💬 Feedback & Discussions
 
-- **Found a bug?** Submit a [Bug Report](../../issues/new?template=bug_report.yml).
-- **Have an idea?** Submit a [Feature Request](../../issues/new?template=feature_request.yml).
-- **Need help?** Start a thread in our [GitHub Discussions](../../discussions).
+- **Found a bug?** Submit a [Bug Report](https://github.com/reach/reach/issues/new?template=bug_report.yml).
+- **Have an idea?** Submit a [Feature Request](https://github.com/reach/reach/issues/new?template=feature_request.yml).
+- **Need help?** Start a thread in our [GitHub Discussions](https://github.com/reach/reach/discussions).
 
 ## 🗺️ Stability & Roadmap Transparency
 

@@ -87,7 +87,9 @@ DEBUG=reach* ./reach doctor
         <li>
           Demo report artifact: <code>./reach report demo</code>
         </li>
-        <li>Environment details (OS, Node version, etc.)</li>
+        <li>
+          Bug report bundle: <code>./reach bugreport</code>
+        </li>
       </ol>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Getting Help</h2>

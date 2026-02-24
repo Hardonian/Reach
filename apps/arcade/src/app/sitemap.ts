@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://reach.dev"; // Replace with actual production domain
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://reach.dev";
 
   const routes = [
     "",

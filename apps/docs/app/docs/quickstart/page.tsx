@@ -11,9 +11,9 @@ export default function QuickstartPage() {
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Prerequisites</h2>
       <ul className="list-disc pl-6 space-y-2">
-        <li>Node.js 18+</li>
-        <li>Go 1.21+</li>
-        <li>Rust 1.75+</li>
+        <li>Node.js 20+</li>
+        <li>Go 1.22+</li>
+        <li>Rust (for core engine development)</li>
         <li>Git</li>
       </ul>
 
@@ -21,35 +21,31 @@ export default function QuickstartPage() {
       <CodeBlock
         code={`git clone https://github.com/reach/reach.git
 cd reach
-pnpm install`}
+npm install
+make build`}
       />
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">2. Verify Your Setup</h2>
-      <CodeBlock code={`./reach doctor`} />
+      <CodeBlock code={`./reach version
+./reach doctor`} />
       <p className="mt-4">
         The doctor command checks all dependencies, file permissions, and deterministic environment
         requirements. You should see all checks pass.
       </p>
 
-      <h2 className="text-2xl font-semibold mt-8 mb-4">3. Run Your First Example</h2>
-      <CodeBlock code={`node examples/01-quickstart-local/run.js`} />
+      <h2 className="text-2xl font-semibold mt-8 mb-4">3. Run One-Command Demo</h2>
+      <CodeBlock code={`./reach demo`} />
       <p className="mt-4">
-        This creates a local decision, adds evidence, and outputs a deterministic result card.
+        This runs the sample pack, verifies and replays it, and creates a portable capsule.
       </p>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">4. Verify Determinism</h2>
       <p>
-        Run the same command twice. The transcript hash will be identical—this is Reach's core
-        guarantee.
+        Use the generated capsule to verify and replay deterministically.
       </p>
       <CodeBlock
-        code={`# Run once
-node examples/01-quickstart-local/run.js | grep "Transcript hash"
-
-# Run again
-node examples/01-quickstart-local/run.js | grep "Transcript hash"
-
-# Hashes match ✓`}
+        code={`reach capsule verify data/capsules/<run-id>.capsule.json
+reach capsule replay data/capsules/<run-id>.capsule.json`}
       />
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Next Steps</h2>

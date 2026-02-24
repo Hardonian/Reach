@@ -87,49 +87,12 @@ jobs:
         run: |
           mkdir -p dist
           cp reach dist/reach
+          cp scripts/release/install.sh dist/install.sh
+          cp scripts/release/install.ps1 dist/install.ps1
           cp README.md dist/README.md
           cp LICENSE dist/LICENSE
           cp VERSION dist/VERSION
-
-      - name: Create install script
-        run: |
-          cat > dist/install.sh << 'EOF'
-          #!/usr/bin/env bash
-          # Reach Installation Script
-          set -e
-
-          VERSION=$(cat VERSION)
-          INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
-
-          detect_platform() {
-            local os=$(uname -s | tr '[:upper:]' '[:lower:]')
-            local arch=$(uname -m)
-            case "$arch" in
-              x86_64) arch="amd64" ;;
-              aarch64|arm64) arch="arm64" ;;
-              *) echo "Unsupported architecture: $arch"; exit 1 ;;
-            esac
-            echo "${os}-${arch}"
-          }
-
-          PLATFORM=$(detect_platform)
-          BINARY="reachctl-${PLATFORM}"
-
-          echo "Installing Reach v${VERSION} for ${PLATFORM}..."
-          echo "Download URL: https://github.com/reach/reach/releases/download/v${VERSION}/${BINARY}"
-
-          # Download binary
-          curl -L -o "${INSTALL_DIR}/reachctl" "https://github.com/reach/reach/releases/download/v${VERSION}/${BINARY}"
-          chmod +x "${INSTALL_DIR}/reachctl"
-
-          # Install wrapper script
-          curl -L -o "${INSTALL_DIR}/reach" "https://github.com/reach/reach/releases/download/v${VERSION}/reach"
-          chmod +x "${INSTALL_DIR}/reach"
-
-          echo "Reach v${VERSION} installed to ${INSTALL_DIR}"
-          echo "Run 'reach version' to verify"
-          EOF
-          chmod +x dist/install.sh
+          chmod +x dist/reach dist/install.sh
 
       - name: Upload extras
         uses: actions/upload-artifact@v4
@@ -150,9 +113,14 @@ jobs:
             binary: reachctl-darwin-amd64
     runs-on: ${{ matrix.os }}
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.binary }}
+          path: dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: extras
           path: dist
 
       - name: Test binary
@@ -160,10 +128,66 @@ jobs:
           chmod +x dist/${{ matrix.binary }}
           ./dist/${{ matrix.binary }} version
 
+      - name: Simulate install script
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v sha256sum >/dev/null 2>&1; then
+            (cd dist && sha256sum "${{ matrix.binary }}" reach > SHA256SUMS)
+          else
+            (cd dist && shasum -a 256 "${{ matrix.binary }}" reach | awk '{print $1"  "$2}' > SHA256SUMS)
+          fi
+          INSTALL_DIR="${RUNNER_TEMP}/reach-bin"
+          VERSION="$(cat VERSION)"
+          REACH_VERSION="${VERSION}" REACH_RELEASE_DIR="${PWD}/dist" INSTALL_DIR="${INSTALL_DIR}" bash dist/install.sh
+          "${INSTALL_DIR}/reach" version
+          set +e
+          "${INSTALL_DIR}/reach" doctor
+          doctor_exit=$?
+          set -e
+          if [ "$doctor_exit" -ne 0 ] && [ "$doctor_exit" -ne 1 ]; then
+            echo "doctor command failed unexpectedly with code ${doctor_exit}" >&2
+            exit "$doctor_exit"
+          fi
+
+  test-windows-installer:
+    needs: [build-matrix, build-extras]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: reachctl-windows-amd64.exe
+          path: dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: extras
+          path: dist
+      - name: Simulate PowerShell installer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $dist = Resolve-Path "dist"
+          $hashExe = (Get-FileHash -Path (Join-Path $dist "reachctl-windows-amd64.exe") -Algorithm SHA256).Hash.ToLowerInvariant()
+          $hashReach = (Get-FileHash -Path (Join-Path $dist "reach") -Algorithm SHA256).Hash.ToLowerInvariant()
+          @(
+            "$hashExe  reachctl-windows-amd64.exe"
+            "$hashReach  reach"
+          ) | Set-Content -Path (Join-Path $dist "SHA256SUMS")
+
+          $version = (Get-Content "VERSION" -Raw).Trim()
+          $installDir = Join-Path $env:RUNNER_TEMP "reach-bin"
+          & (Join-Path $dist "install.ps1") -Version $version -InstallDir $installDir -ReleaseDir $dist
+          & (Join-Path $installDir "reachctl.exe") version
+          & (Join-Path $installDir "reachctl.exe") doctor
+          if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 1) {
+            throw "doctor command failed unexpectedly with exit code $LASTEXITCODE"
+          }
+
   # Create GitHub Release and publish artifacts
   publish:
     runs-on: ubuntu-latest
-    needs: [build-matrix, build-extras, test-binaries]
+    needs: [build-matrix, build-extras, test-binaries, test-windows-installer]
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/download-artifact@v4
@@ -179,6 +203,11 @@ jobs:
 
       - name: List artifacts
         run: ls -la artifacts/
+
+      - name: Generate release checksums
+        run: |
+          cd artifacts
+          find . -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -208,12 +237,18 @@ jobs:
             "reachctl-windows-amd64.exe"
             "reach"
             "install.sh"
+            "install.ps1"
+            "SHA256SUMS"
           )
 
           for asset in "${ASSETS[@]}"; do
             URL="https://github.com/reach/reach/releases/download/v${VERSION}/${asset}"
             echo "Checking: $URL"
-            curl -sI "$URL" | grep -q "200 OK" || (echo "Missing: $asset" && exit 1)
+            STATUS_CODE="$(curl -sIL -o /dev/null -w "%{http_code}" "$URL")"
+            if [[ "$STATUS_CODE" != "200" ]]; then
+              echo "Missing: $asset (status $STATUS_CODE)"
+              exit 1
+            fi
           done
 
           echo "All release assets verified!"

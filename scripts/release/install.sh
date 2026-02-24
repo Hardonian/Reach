@@ -63,11 +63,13 @@ download_asset() {
 verify_checksum() {
   local file="$1"
   local sums_file="$2"
+  local asset_name
+  asset_name="$(basename "$file")"
   local expected
 
-  expected="$(grep -E "[[:space:]]${file}$" "$sums_file" | awk '{print $1}')"
+  expected="$(grep -E "[[:space:]](\./)?${asset_name}$" "$sums_file" | awk '{print $1}')"
   if [ -z "$expected" ]; then
-    echo "No checksum entry found for ${file}" >&2
+    echo "No checksum entry found for ${asset_name}" >&2
     exit 1
   fi
 
@@ -82,7 +84,7 @@ verify_checksum() {
   fi
 
   if [ "$expected" != "$actual" ]; then
-    echo "Checksum mismatch for $(basename "$file")" >&2
+    echo "Checksum mismatch for ${asset_name}" >&2
     exit 1
   fi
 }
@@ -152,4 +154,3 @@ main() {
 }
 
 main "$@"
-
