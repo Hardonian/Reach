@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { envValidation } from "@/lib/env";
 
 export const metadata = {
   title: "Governance App | Reach",
@@ -25,6 +26,16 @@ export default function AppHomePage() {
             Governance Docs
           </Link>
         </div>
+
+        {!envValidation.ok && (
+          <div className="mt-6 rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-200">
+            <p className="font-medium">Some environment values were ignored.</p>
+            <p className="mt-1">
+              Governance routes stay available in degraded mode. Fix configuration for full cloud
+              behavior.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

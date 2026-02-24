@@ -51,8 +51,75 @@ const envSchema = z.object({
   REACH_ENTERPRISE_MAX_SPAWN_DEPTH: z.coerce.number().default(4),
 });
 
+type NodeEnv = "development" | "test" | "production";
+
+export interface EnvValidationIssue {
+  key: string;
+  message: string;
+}
+
+function normalizeNodeEnv(value: string | undefined, issues: EnvValidationIssue[]): NodeEnv {
+  if (value === "development" || value === "test" || value === "production") {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim().length > 0) {
+    issues.push({
+      key: "NODE_ENV",
+      message: `Invalid value "${value}" was ignored; defaulted to "development".`,
+    });
+  }
+
+  return "development";
+}
+
+function sanitizeOptionalUrl(
+  key: string,
+  value: string | undefined,
+  issues: EnvValidationIssue[],
+): string | undefined {
+  if (!value || value.trim().length === 0) {
+    return undefined;
+  }
+
+  try {
+    const parsed = new URL(value);
+    return parsed.toString();
+  } catch {
+    issues.push({
+      key,
+      message: `Invalid URL was ignored for ${key}.`,
+    });
+    return undefined;
+  }
+}
+
+function sanitizeOptionalEmail(
+  key: string,
+  value: string | undefined,
+  issues: EnvValidationIssue[],
+): string | undefined {
+  if (!value || value.trim().length === 0) {
+    return undefined;
+  }
+
+  const normalized = value.trim();
+  const result = z.string().email().safeParse(normalized);
+  if (result.success) {
+    return normalized;
+  }
+
+  issues.push({
+    key,
+    message: `Invalid email was ignored for ${key}.`,
+  });
+  return undefined;
+}
+
+const envValidationIssues: EnvValidationIssue[] = [];
+
 export const env = envSchema.parse({
-  NODE_ENV: process.env.NODE_ENV,
+  NODE_ENV: normalizeNodeEnv(process.env.NODE_ENV, envValidationIssues),
   REACH_CLOUD_ENABLED: process.env.REACH_CLOUD_ENABLED,
   REACH_ENCRYPTION_KEY_BASE64: process.env.REACH_ENCRYPTION_KEY_BASE64,
   CLOUD_DB_PATH: process.env.CLOUD_DB_PATH,
@@ -68,15 +135,32 @@ export const env = envSchema.parse({
   STRIPE_PRICE_ENTERPRISE: process.env.STRIPE_PRICE_ENTERPRISE,
   GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
   GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
-  GITHUB_REDIRECT_URL: process.env.GITHUB_REDIRECT_URL,
+  GITHUB_REDIRECT_URL: sanitizeOptionalUrl(
+    "GITHUB_REDIRECT_URL",
+    process.env.GITHUB_REDIRECT_URL,
+    envValidationIssues,
+  ),
   GITHUB_WEBHOOK_SECRET: process.env.GITHUB_WEBHOOK_SECRET,
   GITHUB_APP_ID: process.env.GITHUB_APP_ID,
   GITHUB_APP_PRIVATE_KEY: process.env.GITHUB_APP_PRIVATE_KEY,
-  READYLAYER_BASE_URL: process.env.READYLAYER_BASE_URL,
-  READYLAYER_ALERT_EMAIL_FROM: process.env.READYLAYER_ALERT_EMAIL_FROM,
+  READYLAYER_BASE_URL: sanitizeOptionalUrl(
+    "READYLAYER_BASE_URL",
+    process.env.READYLAYER_BASE_URL,
+    envValidationIssues,
+  ),
+  READYLAYER_ALERT_EMAIL_FROM: sanitizeOptionalEmail(
+    "READYLAYER_ALERT_EMAIL_FROM",
+    process.env.READYLAYER_ALERT_EMAIL_FROM,
+    envValidationIssues,
+  ),
   SMTP_HOST: process.env.SMTP_HOST,
   SMTP_PORT: process.env.SMTP_PORT,
   SMTP_USER: process.env.SMTP_USER,
   SMTP_PASS: process.env.SMTP_PASS,
   REACH_ENTERPRISE_MAX_SPAWN_DEPTH: process.env.REACH_ENTERPRISE_MAX_SPAWN_DEPTH,
 });
+
+export const envValidation = {
+  ok: envValidationIssues.length === 0,
+  issues: envValidationIssues,
+};

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
+import net from "node:net";
 import path from "node:path";
 
 const host = "127.0.0.1";
-const port = Number.parseInt(process.env.REACH_VERIFY_PORT ?? "3337", 10);
-const baseUrl = `http://${host}:${port}`;
+const preferredPort = Number.parseInt(process.env.REACH_VERIFY_PORT ?? "3337", 10);
 
 const routes = ["/", "/docs", "/app"];
 
@@ -21,28 +21,61 @@ if (!nextBin) {
   process.exit(1);
 }
 
-const child = spawn(process.execPath, [nextBin, "dev", "-p", String(port), "-H", host], {
-  cwd: path.resolve("apps/arcade"),
-  stdio: ["ignore", "pipe", "pipe"],
-  env: {
-    ...process.env,
-    NODE_ENV: "test",
-  },
-});
-
 let bootLog = "";
-child.stdout.on("data", (chunk) => {
-  bootLog += chunk.toString();
-});
-child.stderr.on("data", (chunk) => {
-  bootLog += chunk.toString();
-});
+
+function reservePort(port) {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.unref();
+    server.once("error", (error) => reject(error));
+    server.listen(port, host, () => {
+      const address = server.address();
+      const selectedPort =
+        address && typeof address === "object" ? address.port : Number.parseInt(String(port), 10);
+      server.close((closeErr) => {
+        if (closeErr) {
+          reject(closeErr);
+          return;
+        }
+        resolve(selectedPort);
+      });
+    });
+  });
+}
+
+async function findAvailablePort(port) {
+  try {
+    return await reservePort(port);
+  } catch {
+    return reservePort(0);
+  }
+}
+
+function startServer(port) {
+  const child = spawn(process.execPath, [nextBin, "dev", "-p", String(port), "-H", host], {
+    cwd: path.resolve("apps/arcade"),
+    stdio: ["ignore", "pipe", "pipe"],
+    env: {
+      ...process.env,
+      NODE_ENV: "test",
+    },
+  });
+
+  child.stdout.on("data", (chunk) => {
+    bootLog += chunk.toString();
+  });
+  child.stderr.on("data", (chunk) => {
+    bootLog += chunk.toString();
+  });
+
+  return child;
+}
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function waitForServer(timeoutMs = 120_000) {
+async function waitForServer(baseUrl, timeoutMs = 120_000) {
   const startedAt = Date.now();
 
   while (Date.now() - startedAt < timeoutMs) {
@@ -58,7 +91,7 @@ async function waitForServer(timeoutMs = 120_000) {
   throw new Error(`Timed out waiting for server at ${baseUrl}`);
 }
 
-async function runChecks() {
+async function runChecks(baseUrl) {
   const results = [];
 
   for (const route of routes) {
@@ -85,15 +118,21 @@ async function runChecks() {
 }
 
 async function main() {
+  let child;
   try {
-    await waitForServer();
-    await runChecks();
+    const port = await findAvailablePort(preferredPort);
+    const baseUrl = `http://${host}:${port}`;
+    child = startServer(port);
+    await waitForServer(baseUrl);
+    await runChecks(baseUrl);
     console.log("✅ verify:routes passed");
   } finally {
-    child.kill("SIGTERM");
-    await sleep(500);
-    if (!child.killed) {
-      child.kill("SIGKILL");
+    if (child) {
+      child.kill("SIGTERM");
+      await sleep(500);
+      if (!child.killed) {
+        child.kill("SIGKILL");
+      }
     }
   }
 }

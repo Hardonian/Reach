@@ -19,6 +19,15 @@ import { diffGovernanceSpec } from "@/lib/governance/diff";
 
 export const runtime = "nodejs";
 
+function governanceError(
+  message: string,
+  status: number,
+  code: string,
+  hint?: string,
+): NextResponse {
+  return cloudErrorResponse(message, status, undefined, { code, hint });
+}
+
 function toCompilerMemory(
   records: ReturnType<typeof listGovernanceMemory>,
 ): GovernanceMemoryEntry[] {
@@ -50,7 +59,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const body = await req.json().catch(() => ({}));
     const parsed = parseBody(GovernanceAssistantSchema, body);
     if ("errors" in parsed) {
-      return cloudErrorResponse(parsed.errors.issues[0]?.message ?? "Invalid request", 400);
+      return governanceError(
+        parsed.errors.issues[0]?.message ?? "Invalid request",
+        400,
+        "GOV_ASSISTANT_INVALID_REQUEST",
+      );
     }
 
     const payload = parsed.data;
@@ -105,7 +118,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     if (!requireRole(ctx, "admin")) {
-      return cloudErrorResponse("Applying governance specs requires admin role", 403);
+      return governanceError(
+        "Applying governance specs requires admin role",
+        403,
+        "GOV_APPLY_ADMIN_REQUIRED",
+      );
     }
 
     const specRecord = createGovernanceSpec({
@@ -174,6 +191,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       ...preview,
     });
   } catch {
-    return cloudErrorResponse("Governance assistant is temporarily unavailable", 503);
+    return governanceError(
+      "Governance assistant is temporarily unavailable",
+      503,
+      "GOV_ASSISTANT_UNAVAILABLE",
+      "Try preview mode again. If this persists, verify cloud DB configuration.",
+    );
   }
 }

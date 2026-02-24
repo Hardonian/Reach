@@ -41,18 +41,40 @@ export interface ErrorContext {
   correlationId: string;
 }
 
+export interface CloudErrorOptions {
+  code?: string;
+  hint?: string;
+  details?: Record<string, unknown>;
+}
+
 function correlationId(): string {
   return `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function cloudErrorResponse(msg: string, status: number, corrId?: string): NextResponse {
-  return NextResponse.json(
-    {
-      error: msg,
-      correlation_id: corrId ?? correlationId(),
-    },
-    { status },
-  );
+export function cloudErrorResponse(
+  msg: string,
+  status: number,
+  corrId?: string,
+  options?: CloudErrorOptions,
+): NextResponse {
+  const payload: Record<string, unknown> = {
+    error: msg,
+    correlation_id: corrId ?? correlationId(),
+  };
+
+  if (options?.code) {
+    payload.error_code = options.code;
+  }
+
+  if (options?.hint) {
+    payload.hint = options.hint;
+  }
+
+  if (options?.details) {
+    payload.details = options.details;
+  }
+
+  return NextResponse.json(payload, { status });
 }
 
 const AUTH_CACHE_TTL = 60; // seconds
@@ -100,11 +122,16 @@ export async function resolveAuth(
 
       const result = lookupApiKey(rawKey);
       if (!result) {
-        return cloudErrorResponse("Invalid or revoked API key", 401, corrId);
+        return cloudErrorResponse("Invalid or revoked API key", 401, corrId, {
+          code: "AUTH_INVALID_API_KEY",
+        });
       }
       const { key, tenant } = result;
       const user = getUserById(key.user_id);
-      if (!user) return cloudErrorResponse("User not found", 401, corrId);
+      if (!user)
+        return cloudErrorResponse("User not found", 401, corrId, {
+          code: "AUTH_USER_NOT_FOUND",
+        });
       const membership = getMembership(tenant.id, key.user_id);
       const role: Role = membership?.role ?? "member";
 
@@ -133,9 +160,15 @@ export async function resolveAuth(
       }
 
       const session = getSession(sessionId);
-      if (!session) return cloudErrorResponse("Session expired or invalid", 401, corrId);
+      if (!session)
+        return cloudErrorResponse("Session expired or invalid", 401, corrId, {
+          code: "AUTH_SESSION_INVALID",
+        });
       const user = getUserById(session.user_id);
-      if (!user) return cloudErrorResponse("User not found", 401, corrId);
+      if (!user)
+        return cloudErrorResponse("User not found", 401, corrId, {
+          code: "AUTH_USER_NOT_FOUND",
+        });
 
       // Determine tenantId: from session, override param, or query
       const tenantId =
@@ -145,13 +178,22 @@ export async function resolveAuth(
           "No tenant context. Pass X-Tenant-Id header or login to a tenant.",
           400,
           corrId,
+          {
+            code: "AUTH_TENANT_CONTEXT_REQUIRED",
+          },
         );
 
       const tenant = getTenant(tenantId);
-      if (!tenant) return cloudErrorResponse("Tenant not found", 404, corrId);
+      if (!tenant)
+        return cloudErrorResponse("Tenant not found", 404, corrId, {
+          code: "AUTH_TENANT_NOT_FOUND",
+        });
 
       const membership = getMembership(tenantId, user.id);
-      if (!membership) return cloudErrorResponse("Not a member of this tenant", 403, corrId);
+      if (!membership)
+        return cloudErrorResponse("Not a member of this tenant", 403, corrId, {
+          code: "AUTH_FORBIDDEN_TENANT",
+        });
 
       const ctx: AuthContext = {
         userId: user.id,
@@ -169,6 +211,9 @@ export async function resolveAuth(
       "Authentication required. Use Bearer API key or session cookie.",
       401,
       corrId,
+      {
+        code: "AUTH_REQUIRED",
+      },
     );
   } catch (err) {
     if (err instanceof CloudDisabledError) {
@@ -176,10 +221,16 @@ export async function resolveAuth(
         "Cloud features are disabled (REACH_CLOUD_ENABLED not set)",
         503,
         corrId,
+        {
+          code: "CLOUD_DISABLED",
+          hint: "Set REACH_CLOUD_ENABLED=true and configure CLOUD_DB_PATH before using cloud routes.",
+        },
       );
     }
     logger.error("Authentication error", err, { url: req.url }, corrId);
-    return cloudErrorResponse("Internal authentication error", 500, corrId);
+    return cloudErrorResponse("Internal authentication error", 500, corrId, {
+      code: "AUTH_INTERNAL",
+    });
   }
 }
 
@@ -322,20 +373,31 @@ export async function requireCiAuth(
         "CI token required. Set Authorization: Bearer <rk_...>",
         401,
         corrId,
+        {
+          code: "CI_AUTH_REQUIRED",
+        },
       );
     }
     const rawKey = authHeader.slice(7);
     const result = lookupApiKey(rawKey);
-    if (!result) return cloudErrorResponse("Invalid or revoked CI token", 401, corrId);
+    if (!result)
+      return cloudErrorResponse("Invalid or revoked CI token", 401, corrId, {
+        code: "CI_AUTH_INVALID",
+      });
 
     const { key, tenant } = result;
     // Check scope: key must have the required scope or wildcard '*'
     if (!key.scopes.includes("*") && !key.scopes.includes(scope)) {
-      return cloudErrorResponse(`Token missing required scope: ${scope}`, 403, corrId);
+      return cloudErrorResponse(`Token missing required scope: ${scope}`, 403, corrId, {
+        code: "CI_AUTH_SCOPE_MISSING",
+      });
     }
 
     const user = getUserById(key.user_id);
-    if (!user) return cloudErrorResponse("User not found", 401, corrId);
+    if (!user)
+      return cloudErrorResponse("User not found", 401, corrId, {
+        code: "AUTH_USER_NOT_FOUND",
+      });
     const membership = getMembership(tenant.id, key.user_id);
     return {
       userId: key.user_id,
@@ -347,9 +409,14 @@ export async function requireCiAuth(
     };
   } catch (err) {
     if (err instanceof CloudDisabledError) {
-      return cloudErrorResponse("Cloud features are disabled", 503, corrId);
+      return cloudErrorResponse("Cloud features are disabled", 503, corrId, {
+        code: "CLOUD_DISABLED",
+        hint: "Set REACH_CLOUD_ENABLED=true and configure CLOUD_DB_PATH before using cloud routes.",
+      });
     }
     logger.error("CI auth error", err);
-    return cloudErrorResponse("Authentication error", 500, corrId);
+    return cloudErrorResponse("Authentication error", 500, corrId, {
+      code: "AUTH_INTERNAL",
+    });
   }
 }

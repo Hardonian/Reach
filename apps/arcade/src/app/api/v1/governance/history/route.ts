@@ -7,6 +7,15 @@ import { diffGovernanceSpec } from "@/lib/governance/diff";
 
 export const runtime = "nodejs";
 
+function governanceError(
+  message: string,
+  status: number,
+  code: string,
+  hint?: string,
+): NextResponse {
+  return cloudErrorResponse(message, status, undefined, { code, hint });
+}
+
 function asGovernanceSpec(value: Record<string, unknown>): GovernanceSpec | null {
   if (!value || typeof value !== "object") return null;
   if (!Array.isArray(value.gates) || !Array.isArray(value.thresholds)) return null;
@@ -31,7 +40,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       : ({ success: true, data: undefined } as const);
 
     if (!scope.success) {
-      return cloudErrorResponse(scope.error.issues[0]?.message ?? "Invalid scope", 400);
+      return governanceError(
+        scope.error.issues[0]?.message ?? "Invalid scope",
+        400,
+        "GOV_HISTORY_INVALID_SCOPE",
+      );
     }
 
     const history = listGovernanceSpecs({
@@ -94,6 +107,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       timeline,
     });
   } catch {
-    return cloudErrorResponse("Governance history unavailable", 503);
+    return governanceError(
+      "Governance history unavailable",
+      503,
+      "GOV_HISTORY_UNAVAILABLE",
+      "Verify cloud configuration and try again.",
+    );
   }
 }

@@ -33,46 +33,64 @@ export default async function GovernanceHistoryPage() {
     );
   }
 
-  const specs = listGovernanceSpecs({
-    orgId: auth.tenantId,
-    workspaceId,
-    limit: 100,
-  });
+  let rows: Array<{
+    id: string;
+    version: number;
+    sourceIntent: string;
+    triggeredBy: string;
+    specHash: string;
+    replayLink: string | null;
+    createdAt: string;
+    diff: string;
+    artifactCount: number;
+  }> = [];
+  let loadError: string | null = null;
 
-  const ordered = [...specs].sort((a, b) => {
-    if (a.created_at < b.created_at) return 1;
-    if (a.created_at > b.created_at) return -1;
-    return b.version - a.version;
-  });
-
-  const rows = ordered.map((entry, index) => {
-    const previous = ordered[index + 1];
-    const currentSpec = asGovernanceSpec(entry.spec);
-    const previousSpec = previous ? asGovernanceSpec(previous.spec) : null;
-    const diff = currentSpec
-      ? diffGovernanceSpec(previousSpec, currentSpec)
-      : {
-          summary: "No structured diff available.",
-        };
-
-    const artifacts = listGovernanceArtifacts({
+  try {
+    const specs = listGovernanceSpecs({
       orgId: auth.tenantId,
       workspaceId,
-      specId: entry.id,
+      limit: 100,
     });
 
-    return {
-      id: entry.id,
-      version: entry.version,
-      sourceIntent: entry.source_intent,
-      triggeredBy: entry.triggered_by,
-      specHash: entry.spec_hash,
-      replayLink: entry.replay_link,
-      createdAt: entry.created_at,
-      diff: diff.summary,
-      artifactCount: artifacts.length,
-    };
-  });
+    const ordered = [...specs].sort((a, b) => {
+      if (a.created_at < b.created_at) return 1;
+      if (a.created_at > b.created_at) return -1;
+      return b.version - a.version;
+    });
+
+    rows = ordered.map((entry, index) => {
+      const previous = ordered[index + 1];
+      const currentSpec = asGovernanceSpec(entry.spec);
+      const previousSpec = previous ? asGovernanceSpec(previous.spec) : null;
+      const diff = currentSpec
+        ? diffGovernanceSpec(previousSpec, currentSpec)
+        : {
+            summary: "No structured diff available.",
+          };
+
+      const artifacts = listGovernanceArtifacts({
+        orgId: auth.tenantId,
+        workspaceId,
+        specId: entry.id,
+      });
+
+      return {
+        id: entry.id,
+        version: entry.version,
+        sourceIntent: entry.source_intent,
+        triggeredBy: entry.triggered_by,
+        specHash: entry.spec_hash,
+        replayLink: entry.replay_link,
+        createdAt: entry.created_at,
+        diff: diff.summary,
+        artifactCount: artifacts.length,
+      };
+    });
+  } catch {
+    loadError =
+      "Governance history is temporarily unavailable. Verify cloud DB configuration and try again.";
+  }
 
   return (
     <ConsoleLayout>
@@ -89,59 +107,67 @@ export default async function GovernanceHistoryPage() {
           </Link>
         </div>
 
-        <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-surface/40">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-border bg-background/40 text-xs uppercase tracking-wide text-gray-500">
-              <tr>
-                <th className="px-4 py-3">Version</th>
-                <th className="px-4 py-3">Triggered</th>
-                <th className="px-4 py-3">Intent</th>
-                <th className="px-4 py-3">Diff</th>
-                <th className="px-4 py-3">Determinism Hash</th>
-                <th className="px-4 py-3">Artifacts</th>
-                <th className="px-4 py-3">Replay</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.length === 0 ? (
+        {loadError ? (
+          <div className="mt-6 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-200">
+            {loadError}
+          </div>
+        ) : (
+          <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-surface/40">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b border-border bg-background/40 text-xs uppercase tracking-wide text-gray-500">
                 <tr>
-                  <td colSpan={7} className="px-4 py-6 text-gray-500">
-                    No governance history yet. Start in{" "}
-                    <Link href="/assistant" className="text-accent hover:underline">
-                      Assistant
-                    </Link>
-                    .
-                  </td>
+                  <th className="px-4 py-3">Version</th>
+                  <th className="px-4 py-3">Triggered</th>
+                  <th className="px-4 py-3">Intent</th>
+                  <th className="px-4 py-3">Diff</th>
+                  <th className="px-4 py-3">Determinism Hash</th>
+                  <th className="px-4 py-3">Artifacts</th>
+                  <th className="px-4 py-3">Replay</th>
                 </tr>
-              ) : (
-                rows.map((row) => (
-                  <tr key={row.id} className="border-b border-border/60 align-top">
-                    <td className="px-4 py-3 font-mono">v{row.version}</td>
-                    <td className="px-4 py-3">
-                      <div className="capitalize">{row.triggeredBy}</div>
-                      <div className="text-xs text-gray-500">
-                        {new Date(row.createdAt).toLocaleString()}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 max-w-[360px] text-gray-300">{row.sourceIntent}</td>
-                    <td className="px-4 py-3 text-gray-300">{row.diff}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-emerald-300">{row.specHash}</td>
-                    <td className="px-4 py-3">{row.artifactCount}</td>
-                    <td className="px-4 py-3">
-                      {row.replayLink ? (
-                        <a href={row.replayLink} className="text-accent hover:underline">
-                          Replay
-                        </a>
-                      ) : (
-                        <span className="text-gray-500">N/A</span>
-                      )}
+              </thead>
+              <tbody>
+                {rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-6 text-gray-500">
+                      No governance history yet. Start in{" "}
+                      <Link href="/assistant" className="text-accent hover:underline">
+                        Assistant
+                      </Link>
+                      .
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  rows.map((row) => (
+                    <tr key={row.id} className="border-b border-border/60 align-top">
+                      <td className="px-4 py-3 font-mono">v{row.version}</td>
+                      <td className="px-4 py-3">
+                        <div className="capitalize">{row.triggeredBy}</div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(row.createdAt).toLocaleString()}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 max-w-[360px] text-gray-300">{row.sourceIntent}</td>
+                      <td className="px-4 py-3 text-gray-300">{row.diff}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-emerald-300">
+                        {row.specHash}
+                      </td>
+                      <td className="px-4 py-3">{row.artifactCount}</td>
+                      <td className="px-4 py-3">
+                        {row.replayLink ? (
+                          <a href={row.replayLink} className="text-accent hover:underline">
+                            Replay
+                          </a>
+                        ) : (
+                          <span className="text-gray-500">N/A</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </ConsoleLayout>
   );

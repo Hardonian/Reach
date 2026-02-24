@@ -5,18 +5,31 @@ import { buildEnterpriseGovernanceAnalytics } from "@/lib/enterprise/governance-
 
 export const runtime = "nodejs";
 
+function governanceError(
+  message: string,
+  status: number,
+  code: string,
+  hint?: string,
+): NextResponse {
+  return cloudErrorResponse(message, status, undefined, { code, hint });
+}
+
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const ctx = await requireAuth(req);
   if (ctx instanceof NextResponse) return ctx;
 
   if (!requireRole(ctx, "admin")) {
-    return cloudErrorResponse("Admin role required", 403);
+    return governanceError("Admin role required", 403, "GOV_ENTERPRISE_ADMIN_REQUIRED");
   }
 
   try {
     const entitlement = getEntitlement(ctx.tenantId);
     if (entitlement?.plan !== "enterprise") {
-      return cloudErrorResponse("Enterprise plan required for cross-org governance analytics", 403);
+      return governanceError(
+        "Enterprise plan required for cross-org governance analytics",
+        403,
+        "GOV_ENTERPRISE_PLAN_REQUIRED",
+      );
     }
 
     const workspaceId = req.nextUrl.searchParams.get("workspace_id") ?? "default";
@@ -31,6 +44,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       analytics: buildEnterpriseGovernanceAnalytics(specs),
     });
   } catch {
-    return cloudErrorResponse("Enterprise governance analytics unavailable", 503);
+    return governanceError(
+      "Enterprise governance analytics unavailable",
+      503,
+      "GOV_ENTERPRISE_UNAVAILABLE",
+      "Check enterprise entitlements and data-plane health.",
+    );
   }
 }

@@ -43,6 +43,12 @@ interface ChatItem {
   text: string;
 }
 
+interface ApiErrorPayload {
+  error?: string;
+  error_code?: string;
+  hint?: string;
+}
+
 function downloadJson(filename: string, payload: unknown): void {
   const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -51,6 +57,13 @@ function downloadJson(filename: string, payload: unknown): void {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function renderApiError(payload: ApiErrorPayload, fallback: string): string {
+  const message = payload.error ?? fallback;
+  const code = payload.error_code ? ` [${payload.error_code}]` : "";
+  const hint = payload.hint ? ` ${payload.hint}` : "";
+  return `${message}${code}${hint}`;
 }
 
 export default function GovernanceAssistantPage() {
@@ -96,12 +109,11 @@ export default function GovernanceAssistantPage() {
         }),
       });
 
-      const payload = (await response.json().catch(() => ({}))) as AssistantResponse & {
-        error?: string;
-      };
+      const payload = (await response.json().catch(() => ({}))) as AssistantResponse &
+        ApiErrorPayload;
 
       if (!response.ok) {
-        setError(payload.error ?? "Request failed");
+        setError(renderApiError(payload, "Request failed"));
         return;
       }
 
@@ -122,7 +134,7 @@ export default function GovernanceAssistantPage() {
         setShowSpec(true);
       }
     } catch {
-      setError("Governance assistant unavailable");
+      setError("Governance assistant unavailable. Check cloud configuration and try again.");
     } finally {
       setLoading(false);
     }

@@ -5,6 +5,15 @@ import { GovernanceMemorySchema, GovernanceScopeSchema, parseBody } from "@/lib/
 
 export const runtime = "nodejs";
 
+function governanceError(
+  message: string,
+  status: number,
+  code: string,
+  hint?: string,
+): NextResponse {
+  return cloudErrorResponse(message, status, undefined, { code, hint });
+}
+
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const ctx = await requireAuth(req);
   if (ctx instanceof NextResponse) return ctx;
@@ -15,7 +24,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       req.nextUrl.searchParams.get("scope") ?? "project",
     );
     if (!scopeResult.success) {
-      return cloudErrorResponse(scopeResult.error.issues[0]?.message ?? "Invalid scope", 400);
+      return governanceError(
+        scopeResult.error.issues[0]?.message ?? "Invalid scope",
+        400,
+        "GOV_MEMORY_INVALID_SCOPE",
+      );
     }
 
     const memory = listGovernanceMemory(ctx.tenantId, workspaceId, scopeResult.data);
@@ -25,7 +38,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       memory,
     });
   } catch {
-    return cloudErrorResponse("Governance memory unavailable", 503);
+    return governanceError(
+      "Governance memory unavailable",
+      503,
+      "GOV_MEMORY_UNAVAILABLE",
+      "Verify cloud configuration and try again.",
+    );
   }
 }
 
@@ -34,14 +52,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (ctx instanceof NextResponse) return ctx;
 
   if (!requireRole(ctx, "admin")) {
-    return cloudErrorResponse("Admin role required to update governance memory", 403);
+    return governanceError(
+      "Admin role required to update governance memory",
+      403,
+      "GOV_MEMORY_ADMIN_REQUIRED",
+    );
   }
 
   try {
     const body = await req.json().catch(() => ({}));
     const parsed = parseBody(GovernanceMemorySchema, body);
     if ("errors" in parsed) {
-      return cloudErrorResponse(parsed.errors.issues[0]?.message ?? "Invalid memory payload", 400);
+      return governanceError(
+        parsed.errors.issues[0]?.message ?? "Invalid memory payload",
+        400,
+        "GOV_MEMORY_INVALID_PAYLOAD",
+      );
     }
 
     const payload = parsed.data;
@@ -71,6 +97,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       memory,
     });
   } catch {
-    return cloudErrorResponse("Governance memory unavailable", 503);
+    return governanceError(
+      "Governance memory unavailable",
+      503,
+      "GOV_MEMORY_UNAVAILABLE",
+      "Verify cloud configuration and try again.",
+    );
   }
 }

@@ -5,6 +5,15 @@ import { sha256Hex, stableStringify } from "@/lib/governance/compiler";
 
 export const runtime = "nodejs";
 
+function governanceError(
+  message: string,
+  status: number,
+  code: string,
+  hint?: string,
+): NextResponse {
+  return cloudErrorResponse(message, status, undefined, { code, hint });
+}
+
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> },
@@ -15,7 +24,7 @@ export async function GET(
   try {
     const { id } = await context.params;
     const spec = getGovernanceSpecById(id, ctx.tenantId);
-    if (!spec) return cloudErrorResponse("Governance spec not found", 404);
+    if (!spec) return governanceError("Governance spec not found", 404, "GOV_REPLAY_NOT_FOUND");
 
     const canonical = stableStringify(spec.spec);
     const recomputedHash = sha256Hex(canonical);
@@ -45,6 +54,11 @@ export async function GET(
       spec: spec.spec,
     });
   } catch {
-    return cloudErrorResponse("Replay verification unavailable", 503);
+    return governanceError(
+      "Replay verification unavailable",
+      503,
+      "GOV_REPLAY_UNAVAILABLE",
+      "Retry shortly. If this persists, verify governance spec storage health.",
+    );
   }
 }
