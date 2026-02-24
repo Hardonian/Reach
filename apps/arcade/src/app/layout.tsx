@@ -4,56 +4,17 @@ import '@/components/stitch/stitch.css';
 
 import { NavBar } from '@/components/NavBar';
 import { Footer } from '@/components/Footer';
-import { getSiteConfig } from '@/lib/site';
+import { getSiteBaseUrl, getSiteConfig } from '@/lib/site';
 
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL ?? 'https://reach.dev'),
-  title: {
-    default: `${process.env.NEXT_PUBLIC_BRAND_NAME ?? 'ReadyLayer'} - Deterministic Orchestration Fabric`,
-    template: `%s | ${process.env.NEXT_PUBLIC_BRAND_NAME ?? 'ReadyLayer'}`,
-  },
-  description: 'Global orchestration platform for distributed agents, marketplace, and deterministic governance.',
-  keywords: ['AI agents', 'orchestration', 'determinism', 'governance', 'readylayer', 'reach protocol'],
-  authors: [{ name: 'ReadyLayer Team' }],
-  creator: 'ReadyLayer',
-  publisher: 'ReadyLayer',
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://reach.dev',
-    siteName: 'ReadyLayer',
-    title: 'ReadyLayer - Deterministic Orchestration Fabric',
-    description: 'Scale AI agents with confidence. Deterministic governance and lifecycle management.',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'ReadyLayer Platform',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'ReadyLayer - Deterministic Orchestration Fabric',
-    description: 'Scale AI agents with confidence. Deterministic governance and lifecycle management.',
-    images: ['/twitter-image.png'],
-    creator: '@readylayer',
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSiteConfig();
+  const base = getSiteBaseUrl(site);
+
+  return {
+    metadataBase: new URL(base),
+    title: {
+      default: site.title,
+      template: `%s | ${site.brand}`,
     },
     description: site.description,
     openGraph: {
@@ -63,9 +24,24 @@ export const metadata: Metadata = {
       siteName: site.brand,
       title: site.title,
       description: site.description,
+      images: [{ url: '/og-image.png', width: 1200, height: 630, alt: `${site.brand} platform` }],
     },
     alternates: {
-      canonical: base,
+      canonical: '/',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: site.title,
+      description: site.description,
+      images: ['/twitter-image.png'],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+      },
     },
   };
 }
