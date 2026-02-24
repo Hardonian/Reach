@@ -12,7 +12,7 @@ export const metadata = {
 };
 
 export default async function DecisionsPage() {
-  let decisions: Awaited<ReturnType<typeof getDemoEngine>['getDecisions']> = [];
+  let decisions: Awaited<ReturnType<ReturnType<typeof getDemoEngine>['getDecisions']>> = [];
   let error: string | null = null;
 
   try {

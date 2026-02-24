@@ -12,7 +12,7 @@ export const metadata = {
 };
 
 export default async function ExportsPage() {
-  let bundle: Awaited<ReturnType<typeof getDemoEngine>['exportBundle']> | null = null;
+  let bundle: Awaited<ReturnType<ReturnType<typeof getDemoEngine>['exportBundle']>> | null = null;
   let verification: { valid: boolean; details: string } | null = null;
   let error: string | null = null;
 
