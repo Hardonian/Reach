@@ -1,0 +1,31 @@
+
+> @reach/decision-engine-monorepo@0.3.1 typecheck
+> tsc --noEmit
+
+apps/arcade/src/app/api/v1/auth/github/callback/route.ts(116,22): error TS2307: Cannot find module '@/lib/cloud-db' or its corresponding type declarations.
+apps/arcade/src/app/api/v1/auth/magic-link/route.ts(100,22): error TS2307: Cannot find module '@/lib/cloud-db' or its corresponding type declarations.
+apps/arcade/src/app/api/v1/auth/magic-link/route.ts(101,47): error TS2307: Cannot find module '@/lib/cloud-auth' or its corresponding type declarations.
+apps/arcade/src/app/api/v1/billing/webhook/route.ts(127,52): error TS2307: Cannot find module '@/lib/cloud-db' or its corresponding type declarations.
+apps/docs/app/docs/examples/page.tsx(1,27): error TS2307: Cannot find module '@/components/doc-layout' or its corresponding type declarations.
+apps/docs/app/docs/examples/page.tsx(2,27): error TS2307: Cannot find module '@/components/code-block' or its corresponding type declarations.
+apps/docs/app/docs/plugins/page.tsx(1,27): error TS2307: Cannot find module '@/components/doc-layout' or its corresponding type declarations.
+apps/docs/app/docs/plugins/page.tsx(2,27): error TS2307: Cannot find module '@/components/code-block' or its corresponding type declarations.
+apps/docs/app/docs/presets/page.tsx(1,27): error TS2307: Cannot find module '@/components/doc-layout' or its corresponding type declarations.
+apps/docs/app/docs/presets/page.tsx(2,27): error TS2307: Cannot find module '@/components/code-block' or its corresponding type declarations.
+apps/docs/app/docs/quickstart/page.tsx(1,27): error TS2307: Cannot find module '@/components/doc-layout' or its corresponding type declarations.
+apps/docs/app/docs/quickstart/page.tsx(2,27): error TS2307: Cannot find module '@/components/code-block' or its corresponding type declarations.
+apps/docs/app/docs/stability/page.tsx(1,27): error TS2307: Cannot find module '@/components/doc-layout' or its corresponding type declarations.
+apps/docs/app/docs/troubleshooting/page.tsx(1,27): error TS2307: Cannot find module '@/components/doc-layout' or its corresponding type declarations.
+apps/docs/app/docs/troubleshooting/page.tsx(2,27): error TS2307: Cannot find module '@/components/code-block' or its corresponding type declarations.
+apps/docs/app/layout.tsx(13,50): error TS2322: Type 'React.ReactNode' is not assignable to type 'import("C:/Users/scott/Documents/GitHub/Reach/apps/docs/node_modules/@types/react/index").ReactNode'.
+  Type 'ReactElement<unknown, string | JSXElementConstructor<any>>' is not assignable to type 'ReactNode'.
+    Property 'children' is missing in type 'ReactElement<unknown, string | JSXElementConstructor<any>>' but required in type 'ReactPortal'.
+apps/docs/app/page.tsx(2,27): error TS2307: Cannot find module '@/components/code-block' or its corresponding type declarations.
+apps/docs/components/doc-layout.tsx(15,43): error TS2322: Type 'React.ReactNode' is not assignable to type 'import("C:/Users/scott/Documents/GitHub/Reach/apps/docs/node_modules/@types/react/index").ReactNode'.
+  Type 'ReactElement<unknown, string | JSXElementConstructor<any>>' is not assignable to type 'ReactNode'.
+    Property 'children' is missing in type 'ReactElement<unknown, string | JSXElementConstructor<any>>' but required in type 'ReactPortal'.
+scripts/repo-health.ts(5,34): error TS1470: The 'import.meta' meta-property is not allowed in files which will build into CommonJS output.
+scripts/validate-brand.ts(17,34): error TS1470: The 'import.meta' meta-property is not allowed in files which will build into CommonJS output.
+scripts/validate-canonical-language.ts(22,34): error TS1470: The 'import.meta' meta-property is not allowed in files which will build into CommonJS output.
+scripts/validate-docs-index.ts(5,34): error TS1470: The 'import.meta' meta-property is not allowed in files which will build into CommonJS output.
+scripts/validate-simplicity.ts(25,34): error TS1470: The 'import.meta' meta-property is not allowed in files which will build into CommonJS output.
