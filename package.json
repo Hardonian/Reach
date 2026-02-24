@@ -16,7 +16,7 @@
     "test:watch": "vitest",
     "lint": "eslint src",
     "lint:structure": "powershell ./tools/guard-structure.ps1",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && npm run typecheck --workspaces --if-present",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "docs:check": "npx tsx tools/docs/drift/run.ts",
