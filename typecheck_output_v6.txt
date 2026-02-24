@@ -6,3 +6,7 @@
 > arcade@0.1.0 typecheck
 > tsc --noEmit
 
+
+> @reach/docs@0.3.1 typecheck
+> tsc --noEmit
+

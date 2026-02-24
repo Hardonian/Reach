@@ -14,6 +14,7 @@ $AllowedFiles = @(
     "Dockerfile",
     "Dockerfile.dev",
     ".gitignore",
+    ".prettierignore",
     ".dockerignore",
     ".env.example",
     ".editorconfig",
