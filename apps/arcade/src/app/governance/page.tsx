@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { PolicyRow } from "@/components/PolicyRow";
 import { EmptyState } from "@/components/EmptyState";
 import { StatusIndicator } from "@/components/StatusIndicator";
+import { CopyCommandButton } from "@/components/CopyCommandButton";
 
 // Mock data
 const mockPolicies = [
@@ -153,6 +154,9 @@ export default function Governance() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Governance & Compliance</h1>
         <p className="text-gray-400">Manage policies, audit trails, and access control</p>
+        <div className="mt-3">
+          <CopyCommandButton command="./reach status" />
+        </div>
         {actionNotice ? (
           <p className="mt-3 rounded border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
             {actionNotice}
