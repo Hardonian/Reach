@@ -64,6 +64,7 @@ export const sidebarItems: NavSection[] = [
       { title: "Webhooks", href: "/docs/webhooks" },
       { title: "Governance", href: "/docs/governance" },
       { title: "Integrations", href: "/docs/integrations" },
+      { title: "Absolute State PRD", href: "/docs/absolute-state-prd" },
       { title: "Error Codes", href: "/docs/errors" },
     ],
   },

@@ -51,6 +51,13 @@ export default function DocsPage() {
       href: "/docs/deployment",
       icon: "🚢",
     },
+    {
+      title: "Absolute State PRD",
+      description:
+        "Product brief and design references for the deterministic control-plane vision.",
+      href: "/docs/absolute-state-prd",
+      icon: "🧭",
+    },
   ];
 
   return (
