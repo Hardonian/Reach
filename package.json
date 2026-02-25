@@ -39,6 +39,8 @@
     "verify:cli": "node scripts/verify-cli.mjs",
     "verify:vercel": "node scripts/verify-vercel.mjs",
     "verify:release": "node scripts/verify-release.mjs",
+    "verify:supplychain": "node scripts/verify-supplychain.mjs",
+    "verify:examples": "node scripts/verify-examples.mjs",
     "verify:conformance": "node scripts/verify-conformance.mjs",
     "verify:lockfile": "node scripts/verify-lockfile.mjs",
     "security:scan": "node scripts/secret-scan.mjs --sarif dist/security/secrets.sarif",
