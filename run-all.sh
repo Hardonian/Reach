@@ -17,4 +17,7 @@ echo "🔧 Starting full maintenance pass..."
 # 3. Fix Broken Links (Updates references to moved files)
 "$SCRIPT_DIR/fix-broken-links.sh"
 
+# 4. Verify Structure (Ensures files are where they should be)
+"$SCRIPT_DIR/verify-structure.sh"
+
 echo "✨ Maintenance complete."

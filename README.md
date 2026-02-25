@@ -1,11 +1,46 @@
-# Reach
+# Reach Specifications
 
-**Reach is a deterministic execution fabric for AI systems.**
+This directory contains the authoritative specifications for the Reach platform, organized by domain.
 
-Reach helps teams run agentic and tool-driven workloads with deterministic replay, policy controls, and signed execution packs so production behavior can be trusted, audited, and reproduced.
+## Hierarchy
 
-## Documentation
+### 📜 [Protocol](protocol/)
 
-- **Specifications**: The authoritative specifications for the Reach platform (Protocol, Runtime, Federation, Packaging).
-- **Quick Start**: Get up and running with Reach.
-- **Contributing**: Guidelines for contributing to the project.
+**The Law.** Formal definitions of the Reach protocol, independent of implementation.
+
+- [`EXECUTION_PROTOCOL.md`](protocol/EXECUTION_PROTOCOL.md): The core execution envelope and roles.
+- `SPEC_FORMALIZATION_SUMMARY.md`: Summary of formal verification efforts.
+
+### ⚙️ Runtime
+
+**The Engine.** Specifications for the reference implementation (Runner).
+
+- `EXECUTION_SPEC.md`: Normative execution contract.
+- `GRAPH_EXECUTION_SPEC.md`: DAG-based execution model.
+- `ADAPTIVE_ENGINE_SPEC.md`: Dynamic optimization logic.
+- `MODEL_ROUTING_SPEC.md`: Model selection and fallback logic.
+
+### 🌐 Federation
+
+**The Network.** How Reach nodes communicate and trust each other.
+
+- `FEDERATED_EXECUTION_SPEC.md`: Delegation and remote execution.
+- `TRUST_NEGOTIATION_SPEC.md`: Handshakes and reputation scoring.
+
+### 📦 Packaging
+
+**The Container.** Formats for distribution and verification.
+
+- `EXECUTION_PACK_SPEC.md`: The signed execution pack format.
+- `AUTOPACK_SPEC.md`: Automated pack generation and scoring.
+- `CAPABILITY_REGISTRY.md`: The source of truth for capabilities.
+
+### 🏟️ Ecosystem
+
+**The Product.** Specifications for user-facing surfaces.
+
+- `ARCADE_SPEC.md`: The Arcade visual shell and playground.
+
+---
+
+*Note: These specifications are the source of truth. Code deviations from these specs are considered bugs.*
