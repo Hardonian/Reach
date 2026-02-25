@@ -302,12 +302,31 @@ func (s *SQLiteStore) Migrate(ctx context.Context) error {
 	if _, err := s.db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS schema_migrations(version TEXT PRIMARY KEY);`); err != nil {
 		return err
 	}
+
+	// Normalize existing migration names in the database
+	rows, err := s.db.QueryContext(ctx, "SELECT version FROM schema_migrations")
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var v string
+			if err := rows.Scan(&v); err == nil {
+				if !strings.HasSuffix(v, ".up.sql") && !strings.HasSuffix(v, ".down.sql") {
+					newV := v + ".up.sql"
+					s.db.ExecContext(ctx, "UPDATE schema_migrations SET version = ? WHERE version = ?", newV, v)
+				}
+			}
+		}
+	}
+
 	entries, err := migrationFS.ReadDir("migrations")
 	if err != nil {
 		return err
 	}
 	for _, e := range entries {
 		v := e.Name()
+		if !strings.HasSuffix(v, ".up.sql") {
+			continue
+		}
 		var exists string
 		err := s.db.QueryRowContext(ctx, "SELECT version FROM schema_migrations WHERE version = ?", v).Scan(&exists)
 		if err == nil {
@@ -327,6 +346,34 @@ func (s *SQLiteStore) Migrate(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+func (s *SQLiteStore) Rollback(ctx context.Context, version string) error {
+	vDown := strings.Replace(version, ".up.sql", ".down.sql", 1)
+	if !strings.HasSuffix(vDown, ".down.sql") {
+		vDown = version + ".down.sql"
+	}
+
+	body, err := migrationFS.ReadFile("migrations/" + vDown)
+	if err != nil {
+		return fmt.Errorf("rollback script not found: %w", err)
+	}
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.ExecContext(ctx, string(body)); err != nil {
+		return fmt.Errorf("failed to execute rollback %s: %w", vDown, err)
+	}
+
+	if _, err := tx.ExecContext(ctx, "DELETE FROM schema_migrations WHERE version = ? OR version = ?", version, version+".up.sql"); err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (s *SQLiteStore) CreateRun(ctx context.Context, rec RunRecord) error {
