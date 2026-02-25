@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 
 const baseUrl = process.env.ROUTE_VERIFY_BASE_URL ?? 'http://127.0.0.1:3100';
 const shouldStartServer = process.env.ROUTE_VERIFY_START === '1';
@@ -60,6 +60,11 @@ let server;
 
 try {
   if (shouldStartServer) {
+    const build = spawnSync('npm', ['--prefix', 'apps/arcade', 'run', 'build'], { stdio: 'inherit', env: process.env });
+    if ((build.status ?? 1) !== 0) {
+      throw new Error('Route verification failed: unable to build apps/arcade before start');
+    }
+
     server = spawn('npm', ['--prefix', 'apps/arcade', 'run', 'start', '--', '--hostname', '127.0.0.1', '--port', '3100'], {
       stdio: 'inherit',
       env: process.env,
