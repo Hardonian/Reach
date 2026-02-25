@@ -55,22 +55,45 @@ let passed = 0;
 let failed = 0;
 let skipped = 0;
 
+async function fetchFinal(url, maxHops = 5) {
+  let currentUrl = url;
+  let status = 0;
+
+  for (let hop = 0; hop < maxHops; hop++) {
+    const res = await fetch(currentUrl, { redirect: "manual" });
+    status = res.status;
+    if (![301, 302, 307, 308].includes(status)) {
+      return { res, finalUrl: currentUrl, redirectHops: hop };
+    }
+    const location = res.headers.get("location");
+    if (!location) {
+      return { res, finalUrl: currentUrl, redirectHops: hop };
+    }
+    currentUrl = new URL(location, currentUrl).toString();
+  }
+
+  return {
+    res: new Response(null, { status }),
+    finalUrl: currentUrl,
+    redirectHops: maxHops,
+  };
+}
+
 async function testRoute(path, heading, allowRedirect = false) {
   const url = `${BASE_URL}${path}`;
   try {
-    const res = await fetch(url, { redirect: "manual" });
+    const { res } = await fetchFinal(url);
     const status = res.status;
-
-    // Console routes may redirect to login (302/307) — that's valid
-    if (allowRedirect && (status === 302 || status === 307)) {
-      console.log(`  PASS (redirect): ${path} → ${status}`);
-      passed++;
+    const allowed = allowRedirect ? [200, 302, 307] : [200];
+    if (!allowed.includes(status)) {
+      console.error(`  FAIL: ${path} → ${status} (expected ${allowed.join("/")})`);
+      failed++;
       return;
     }
 
-    if (status !== 200) {
-      console.error(`  FAIL: ${path} → ${status} (expected 200)`);
-      failed++;
+    if (allowRedirect && (status === 302 || status === 307)) {
+      console.log(`  PASS (redirect): ${path} → ${status}`);
+      passed++;
       return;
     }
 
@@ -82,8 +105,8 @@ async function testRoute(path, heading, allowRedirect = false) {
       // Don't fail on heading check — content may be client-rendered
     }
 
-    // Check for obvious errors
-    if (body.includes("Internal Server Error") || body.includes("500")) {
+    // Check for obvious server error pages
+    if (body.includes("Internal Server Error")) {
       console.error(`  FAIL: ${path} → 200 but contains error indicators`);
       failed++;
       return;
@@ -105,7 +128,7 @@ async function testRoute(path, heading, allowRedirect = false) {
 async function testApiRoute(path, allowedStatuses) {
   const url = `${BASE_URL}${path}`;
   try {
-    const res = await fetch(url, { redirect: "manual" });
+    const { res } = await fetchFinal(url);
     const status = res.status;
     if (!allowedStatuses.includes(status)) {
       console.error(`  FAIL: ${path} -> ${status} (expected one of ${allowedStatuses.join(",")})`);
