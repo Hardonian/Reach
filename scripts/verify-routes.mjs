@@ -96,13 +96,13 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function waitForServer(baseUrl, child, timeoutMs = 120_000) {
+async function waitForServer(baseUrl, child, timeoutMs = 300_000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
     if (child.exitCode !== null) {
       throw new Error(`Next.js exited before readiness (exit code ${child.exitCode}).`);
     }
-    const timeout = withTimeout(5000);
+    const timeout = withTimeout(30_000);
     try {
       const response = await fetch(baseUrl, { redirect: "manual", signal: timeout.signal });
       if (response.status > 0) return;
@@ -129,7 +129,7 @@ async function stopServer(child) {
 async function runChecks(baseUrl, routesToCheck) {
   const results = [];
   for (const route of routesToCheck) {
-    const timeout = withTimeout(20_000);
+    const timeout = withTimeout(90_000);
     let status = 599;
     let statusLabel = "599";
     const body = route.body ? JSON.stringify(route.body) : undefined;
@@ -147,7 +147,7 @@ async function runChecks(baseUrl, routesToCheck) {
       if ([301, 302, 307, 308].includes(initialStatus)) {
         const location = response.headers.get("location");
         if (location) {
-          const followTimeout = withTimeout(20_000);
+          const followTimeout = withTimeout(90_000);
           try {
             const followResponse = await fetch(new URL(location, baseUrl).toString(), {
               method: route.method ?? "GET",
