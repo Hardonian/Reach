@@ -77,14 +77,13 @@ jobs:
           script: |
             const fs = require('fs');
             let report = '';
+            let trustScore = '✅ Verified';
             try {
               report = fs.readFileSync('reach-output/report.md', 'utf8');
             } catch (e) {
-              report = '## Reach CI Report\n\nWorkspace verification completed. See artifacts for details.';
+              trustScore = '⚠️ Verification Incomplete';
+              report = '## Reach CI Report\n\nAutomated report generation failed. Please check CI logs for details.';
             }
-
-            // Calculate trust score
-            const trustScore = '✅ Verified';
 
             const body = `## Reach CI Report
 

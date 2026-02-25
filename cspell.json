@@ -57,7 +57,9 @@
     "devkit",
     "testdata",
     "Merkle",
-    "Turbopack"
+    "Turbopack",
+    "explainability",
+    "explainable"
   ],
   "ignorePaths": ["node_modules", "dist", "build", "*.log"]
 }

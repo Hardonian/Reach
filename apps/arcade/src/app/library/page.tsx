@@ -88,8 +88,6 @@ const mockAgents = [
   },
 ];
 
-
-
 const DIFFICULTY_COLORS = {
   beginner: "text-emerald-400 bg-emerald-950/40",
   intermediate: "text-yellow-400 bg-yellow-950/40",

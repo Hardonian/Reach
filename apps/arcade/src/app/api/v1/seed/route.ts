@@ -5,11 +5,7 @@
  * DISABLED in production.
  */
 import { NextRequest, NextResponse } from "next/server";
-import {
-  seedDevData,
-  createPack,
-  publishPackVersion,
-} from "@/lib/cloud-db";
+import { seedDevData, createPack, publishPackVersion } from "@/lib/cloud-db";
 
 export const runtime = "nodejs";
 

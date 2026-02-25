@@ -3,7 +3,6 @@ import { requireAuth, cloudErrorResponse, requireRole, auditLog } from "@/lib/cl
 import { createApiKey, listApiKeys } from "@/lib/cloud-db";
 import { CreateApiKeySchema, parseBody } from "@/lib/cloud-schemas";
 
-
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest): Promise<NextResponse> {

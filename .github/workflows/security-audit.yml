@@ -44,14 +44,12 @@ jobs:
 
       - name: Audit VS Code extension
         run: cd extensions/vscode && npm audit --audit-level=high
-        continue-on-error: true # Known eslint/typescript-eslint issues
 
       - name: Install SDK dependencies
         run: cd sdk/ts && npm ci
 
       - name: Audit SDK
         run: cd sdk/ts && npm audit --audit-level=high
-        continue-on-error: true # Known vitest/vite issues
 
       - name: Install Arcade dependencies
         run: cd apps/arcade && npm ci

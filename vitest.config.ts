@@ -26,6 +26,7 @@ export default defineConfig({
     alias: aliases,
   },
   test: {
+    globals: true,
     environment: "node",
     include: ["src/**/*.test.ts"],
     exclude: ["node_modules", "dist", ".git", ".github", "src/determinism/__tests__"],

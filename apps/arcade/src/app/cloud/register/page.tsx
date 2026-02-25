@@ -12,7 +12,6 @@ export default function CloudRegisterPage() {
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
 
-
   function githubSignUp() {
     track("signup_started", {
       method: "github_oauth",
