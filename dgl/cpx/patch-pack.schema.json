@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reach.sh/schemas/dgl/cpx/patch-pack.schema.json",
+  "title": "Reach CPX Patch Pack",
+  "type": "object",
+  "required": ["pack_version", "provider", "model", "agent_id", "task_class", "base_sha", "head_sha", "diff", "changed_paths", "metadata", "artifacts"],
+  "properties": {
+    "pack_version": { "const": "1.0" },
+    "provider": { "type": "string", "minLength": 1 },
+    "model": { "type": "string", "minLength": 1 },
+    "agent_id": { "type": "string", "minLength": 1 },
+    "task_class": { "enum": ["refactor", "bugfix", "docs", "security", "perf", "ui", "infra"] },
+    "base_sha": { "type": "string", "minLength": 7 },
+    "head_sha": { "type": "string", "minLength": 7 },
+    "diff": {
+      "type": "object",
+      "required": ["format", "content"],
+      "properties": {
+        "format": { "const": "git" },
+        "content": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "changed_paths": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["confidence", "risk_summary", "context_hash", "claimed_invariants_changed", "requires_acknowledgement"],
+      "properties": {
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "risk_summary": { "type": "string" },
+        "context_hash": { "type": "string", "minLength": 8 },
+        "claimed_invariants_changed": { "type": "array", "items": { "type": "string" } },
+        "requires_acknowledgement": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "artifacts": {
+      "type": "object",
+      "properties": {
+        "dgl_report_path": { "type": "string" },
+        "openapi_diff_path": { "type": "string" },
+        "route_test_results_path": { "type": "string" },
+        "replay_id": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

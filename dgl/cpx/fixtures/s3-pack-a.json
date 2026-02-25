@@ -1,0 +1,7 @@
+{
+  "pack_version":"1.0","provider":"provider-a","model":"m1","agent_id":"agent-a","task_class":"docs","base_sha":"base-sha-3","head_sha":"head-a-3",
+  "diff":{"format":"git","content":"diff --git a/docs/README.md b/docs/README.md\n+++ b/docs/README.md\n@@ -1,1 +1,2 @@\n # Docs\n+extra\n"},
+  "changed_paths":["docs/README.md"],
+  "metadata":{"confidence":0.9,"risk_summary":"docs only","context_hash":"ctx5","claimed_invariants_changed":[],"requires_acknowledgement":false},
+  "artifacts":{"dgl_report_path":"dgl/cpx/fixtures/artifacts/dgl-clean.json"}
+}

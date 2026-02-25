@@ -122,7 +122,10 @@ export default function Governance() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Governance & Compliance</h1>
         <p className="text-gray-400">Manage policies, audit trails, and access control</p>
-        <a href="/governance/dgl" className="inline-block mt-3 text-sm text-accent hover:underline">Open Divergence Governance dashboard</a>
+        <div className="mt-3 flex gap-4 text-sm">
+          <a href="/governance/dgl" className="text-accent hover:underline">Open Divergence Governance dashboard</a>
+          <a href="/governance/cpx" className="text-accent hover:underline">Open Patch Arbitration dashboard</a>
+        </div>
       </div>
 
       {/* Tabs */}

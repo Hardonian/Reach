@@ -1,0 +1,7 @@
+{
+  "pack_version":"1.0","provider":"provider-b","model":"m2","agent_id":"agent-b","task_class":"perf","base_sha":"base-sha-3","head_sha":"head-b-3",
+  "diff":{"format":"git","content":"diff --git a/src/perf/cache.ts b/src/perf/cache.ts\n+++ b/src/perf/cache.ts\n@@ -1,1 +1,2 @@\n export const cache = new Map()\n+export const warm = true\n"},
+  "changed_paths":["src/perf/cache.ts"],
+  "metadata":{"confidence":0.78,"risk_summary":"perf enhancement","context_hash":"ctx6","claimed_invariants_changed":[],"requires_acknowledgement":false},
+  "artifacts":{"dgl_report_path":"dgl/cpx/fixtures/artifacts/dgl-clean.json"}
+}

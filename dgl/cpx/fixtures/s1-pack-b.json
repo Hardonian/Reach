@@ -1,0 +1,13 @@
+{
+  "pack_version":"1.0",
+  "provider":"provider-b",
+  "model":"m2",
+  "agent_id":"agent-b",
+  "task_class":"bugfix",
+  "base_sha":"base-sha-1",
+  "head_sha":"head-b-1",
+  "diff":{"format":"git","content":"diff --git a/src/api/user.ts b/src/api/user.ts\n+++ b/src/api/user.ts\n@@ -10,2 +10,2 @@\n-return {name}\n+return {name,id}\n"},
+  "changed_paths":["src/api/user.ts"],
+  "metadata":{"confidence":0.7,"risk_summary":"OpenAPI break risk","context_hash":"ctx2","claimed_invariants_changed":[],"requires_acknowledgement":false},
+  "artifacts":{"dgl_report_path":"dgl/cpx/fixtures/artifacts/dgl-clean.json","openapi_diff_path":"dgl/cpx/fixtures/artifacts/openapi-break.json","route_test_results_path":"dgl/cpx/fixtures/artifacts/route-fail.json"}
+}

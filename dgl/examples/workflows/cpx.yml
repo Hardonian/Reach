@@ -1,0 +1,21 @@
+name: CPX Arbitration Gate
+
+on:
+  pull_request:
+
+jobs:
+  cpx-arbitration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Build patch packs
+        run: |
+          npx tsx scripts/cpx-cli.ts pack --from origin/main --to HEAD --out dgl/cpx/patch-a.json --provider primary --model gpt
+          npx tsx scripts/cpx-cli.ts pack --from origin/main --to HEAD --out dgl/cpx/patch-b.json --provider alt --model claude
+      - name: Run arbitration
+        run: |
+          npx tsx scripts/cpx-cli.ts run --packs dgl/cpx/patch-a.json,dgl/cpx/patch-b.json

@@ -1,0 +1,19 @@
+{
+  "risk_threshold": 0.55,
+  "select_margin": 0.08,
+  "merge_text_conflict_threshold": 0.2,
+  "weights": {
+    "dgl_error": 0.35,
+    "dgl_warn": 0.1,
+    "openapi_break": 0.2,
+    "trust_boundary": 0.2,
+    "perf": 0.08,
+    "blast_radius": 0.08,
+    "provider_calibration": 0.08,
+    "economics": 0.05,
+    "route_mismatch": 0.06,
+    "ack_penalty": 0.08
+  },
+  "high_risk_paths": ["auth/", "billing/", "webhook", "crypto", "tenant"],
+  "allowlisted_paths": ["docs/"]
+}
