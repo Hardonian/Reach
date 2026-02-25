@@ -1,7 +1,10 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { stableStringify, sha256Hex } from '../deterministic';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 interface TestVector {
   name: string;
@@ -11,15 +14,12 @@ interface TestVector {
   notes: string;
 }
 
+// Load test vectors synchronously at module load time
+const vectorsPath = path.resolve(__dirname, '../../../../../determinism.vectors.json');
+const content = fs.readFileSync(vectorsPath, 'utf8');
+const vectors: TestVector[] = JSON.parse(content);
+
 describe('nl-compiler/deterministic - Golden Vectors', () => {
-  let vectors: TestVector[];
-
-  beforeAll(() => {
-    const vectorsPath = path.resolve(__dirname, '../../../../../determinism.vectors.json');
-    const content = fs.readFileSync(vectorsPath, 'utf8');
-    vectors = JSON.parse(content);
-  });
-
   it('should load test vectors successfully', () => {
     expect(vectors).toBeInstanceOf(Array);
     expect(vectors.length).toBeGreaterThan(0);
