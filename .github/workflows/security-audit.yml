@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies (full)
         run: npm ci
 
+      - name: Verify lockfile
+        run: npm run verify:lockfile
+
       - name: Run toxic dependency check
         run: npm run verify:no-toxic-deps
 
@@ -106,3 +109,13 @@ jobs:
           fi
 
           echo "✅ No blocked packages detected"
+
+      - name: Secret scanning (SARIF)
+        run: npm run security:scan
+
+      - name: Upload secret scan SARIF
+        uses: actions/upload-artifact@v4
+        with:
+          name: secret-scan-sarif
+          path: dist/security/secrets.sarif
+          if-no-files-found: error

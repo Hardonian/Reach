@@ -28,7 +28,7 @@ async function getVersionInfo(): Promise<{ version: string; gitSha: string; time
   if (VERSION_INFO) return VERSION_INFO;
   try {
     // @ts-ignore - External package may not be available
-    const core = (await import("@zeo/core")) as any;
+    const core = (await import("@zeo/core")) as Record<string, unknown>;
     VERSION_INFO = core.VERSION_INFO || {
       version: "dev",
       gitSha: "unknown",
@@ -668,7 +668,6 @@ function computeStorageStats(): StorageStats {
 
 async function runFixes(checks: DoctorCheck[]): Promise<void> {
   const fs = await import("node:fs");
-  const path = await import("node:path");
 
   for (const check of checks) {
     if (check.status === "pass") continue;
@@ -698,7 +697,7 @@ async function runFixes(checks: DoctorCheck[]): Promise<void> {
           const sample = {
             id: "sample",
             name: "Sample Scenario",
-            steps: [] as any[],
+            steps: [] as Array<Record<string, unknown>>,
           };
           writeFileSync(join(scenariosDir, "sample.json"), JSON.stringify(sample, null, 2));
         }

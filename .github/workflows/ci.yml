@@ -21,7 +21,9 @@ jobs:
           go-version: "1.22.7"
           cache: true
       - name: install
-        run: npm install
+        run: npm ci
+      - name: verify lockfile
+        run: npm run verify:lockfile
       - name: verify fast
         run: npm run verify:fast
 
@@ -35,7 +37,7 @@ jobs:
           node-version: 20
           cache: npm
       - name: install
-        run: npm install
+        run: npm ci
       - name: validate canonical language
         run: npm run validate:language
 
@@ -65,7 +67,7 @@ jobs:
           node-version: 20
           cache: npm
       - name: install dependencies
-        run: npm install
+        run: npm ci
       - name: validate spec schemas
         run: npm run verify:spec
       - name: run compatibility suite
@@ -187,7 +189,7 @@ jobs:
         with:
           node-version: 20
       - name: install
-        run: npm install
+        run: npm ci
       - name: build
         run: npm run build
       - name: test
@@ -207,7 +209,7 @@ jobs:
           go-version: "1.22.7"
           cache: true
       - name: install
-        run: npm install
+        run: npm ci
       - name: verify:oss gate
         run: npm run verify:oss
       - name: validate:oss-purity
@@ -240,9 +242,9 @@ jobs:
           cache: true
       - uses: dtolnay/rust-toolchain@stable
       - name: install root deps
-        run: npm install
+        run: npm ci
       - name: install vscode deps
-        run: cd extensions/vscode && npm install
+        run: cd extensions/vscode && npm ci
       - name: verify full
         run: npm run verify:full
 
@@ -256,7 +258,7 @@ jobs:
           node-version: 20
           cache: npm
       - name: install
-        run: npm install
+        run: npm ci
       - name: build arcade
         run: npm run build -w arcade
       - name: start server and smoke test
@@ -277,6 +279,6 @@ jobs:
           node-version: 20
           cache: npm
       - name: install
-        run: npm install
+        run: npm ci
       - name: verify sites
         run: npm run verify:sites
