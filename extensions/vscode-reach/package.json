@@ -1,0 +1,30 @@
+{
+  "name": "vscode-reach-sccl",
+  "displayName": "Reach SCCL",
+  "version": "0.0.1",
+  "publisher": "reach",
+  "engines": { "vscode": "^1.85.0" },
+  "activationEvents": [
+    "onCommand:reach.syncStatus",
+    "onCommand:reach.createBranch",
+    "onCommand:reach.packPatch"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      { "command": "reach.syncStatus", "title": "Reach: Sync Status" },
+      { "command": "reach.createBranch", "title": "Reach: Create Branch" },
+      { "command": "reach.packPatch", "title": "Reach: Pack Patch" }
+    ],
+    "configuration": {
+      "title": "Reach SCCL",
+      "properties": {
+        "reach.baseUrl": {
+          "type": "string",
+          "default": "http://localhost:3000",
+          "description": "ReadyLayer base URL for SCCL API calls"
+        }
+      }
+    }
+  }
+}

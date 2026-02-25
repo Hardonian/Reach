@@ -1,0 +1,17 @@
+{
+  "ok": false,
+  "branch": "reach/fixture/smoke",
+  "conflict_classes": [
+    "OPENAPI_CONTRACT",
+    "TEXT_OVERLAP"
+  ],
+  "conflicts": [
+    "apps/arcade/src/app/api/governance/dgl/route.ts",
+    "openapi/reach.json"
+  ],
+  "changed_files": [
+    "apps/arcade/src/app/api/governance/dgl/route.ts",
+    "openapi/reach.json"
+  ],
+  "report_path": "/workspace/Reach/dgl/sccl/reports/pack_stale_001.conflicts.json"
+}

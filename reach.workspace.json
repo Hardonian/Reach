@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "git": {
+    "remote": "origin",
+    "default_branch": "main",
+    "required_pr_flow": true,
+    "sync_strategy": "rebase",
+    "stale_base_threshold_commits": 8,
+    "branch_naming": "reach/<task>/<timestamp>"
+  },
+  "gates": {
+    "required": [
+      "determinism",
+      "dgl",
+      "openapi",
+      "routes",
+      "security",
+      "performance",
+      "cpx",
+      "sccl"
+    ]
+  },
+  "risk_zones": {
+    "high_risk_paths": [
+      "auth/**",
+      "billing/**",
+      "webhooks/**",
+      "services/runner/**",
+      "apps/arcade/src/app/api/**"
+    ]
+  },
+  "acknowledgements": {
+    "intent_ack_path": "dgl/intent-acknowledgements",
+    "openapi_ack_path": "dgl/openapi-acknowledgements"
+  },
+  "identity": {
+    "git_host": "github",
+    "auth_mode": "device_code"
+  }
+}

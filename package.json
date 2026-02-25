@@ -32,7 +32,7 @@
     "smoke:m1": "bash scripts/smoke-test.sh",
     "validate:packs": "bash scripts/validate-packs.sh",
     "validate:oss-purity": "npm run validate:boundaries",
-    "verify:oss": "npm run validate:language && npm run validate:intent && npm run validate:semantic && npm run validate:dgl && npm run validate:boundaries && npm run validate:oss-purity && npm run validate:site-claims && npm run validate:site-boundaries && npm run validate:engines && npm run validate:packs",
+    "verify:oss": "npm run validate:language && npm run validate:intent && npm run validate:semantic && npm run validate:dgl && npm run validate:boundaries && npm run validate:oss-purity && npm run validate:site-claims && npm run validate:site-boundaries && npm run validate:engines && npm run validate:packs && npm run validate:sccl",
     "validate:engines": "node scripts/validate-node-engines.js",
     "validate:site-claims": "npx tsx scripts/validate-site-claims.ts",
     "validate:site-boundaries": "npx tsx scripts/enforce-site-boundaries.ts",
@@ -59,7 +59,9 @@
     "reach:cpx:validate-pack": "npx tsx scripts/cpx-cli.ts validate-pack",
     "reach:cpx:run": "npx tsx scripts/cpx-cli.ts run",
     "reach:cpx:report": "npx tsx scripts/cpx-cli.ts report",
-    "smoke:cpx": "npx tsx scripts/smoke-cpx.ts"
+    "smoke:cpx": "npx tsx scripts/smoke-cpx.ts",
+    "validate:sccl": "npx tsx scripts/sccl-cli.ts gate",
+    "smoke:sccl": "npx tsx scripts/smoke-sccl.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",

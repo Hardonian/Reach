@@ -1,0 +1,15 @@
+{
+  "files": [
+    "src/lib/contracts.ts",
+    "auth/session.ts",
+    "openapi/reach.json",
+    "dgl/intent-acknowledgements/abc.md"
+  ],
+  "expected_classes": [
+    "OPENAPI_CONTRACT",
+    "SEMANTIC_INTENT",
+    "STRUCTURAL_API",
+    "TEXT_OVERLAP",
+    "TRUST_BOUNDARY"
+  ]
+}

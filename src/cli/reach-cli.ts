@@ -698,6 +698,21 @@ async function dglCommand(subcommand: string | undefined, rest: string[], opts: 
 }
 
 
+
+async function scclCommand(subcommand: string | undefined, rest: string[], opts: CliOptions): Promise<void> {
+  const sub = subcommand || 'sync';
+  const passthrough = rest.join(' ');
+  const cmd = `npx tsx scripts/sccl-cli.ts ${sub} ${passthrough}`.trim();
+  try {
+    const out = execSync(cmd, { encoding: 'utf-8' });
+    if (opts.json) printJson(jsonOutput({ command: cmd, output: out.trim() }));
+    else console.log(out.trim());
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'sccl command failed';
+    throw new Error(`SCCL command failed. Run ${cmd}. ${msg}`);
+  }
+}
+
 async function agentCommand(subcommand: string | undefined, rest: string[], opts: CliOptions): Promise<void> {
   if (subcommand !== 'validate') throw new Error('Unsupported agent command. Use: reach agent validate <file>');
   const file = rest[0];
@@ -871,6 +886,18 @@ async function main(): Promise<void> {
         await dglCommand(subcommand, rest, opts);
         break;
 
+      case 'workspace':
+        await scclCommand('workspace ' + (subcommand || ''), rest, opts);
+        break;
+
+      case 'sync':
+        await scclCommand('sync ' + (subcommand || ''), rest, opts);
+        break;
+
+      case 'sccl':
+        await scclCommand(subcommand, rest, opts);
+        break;
+
       case 'agent':
         await agentCommand(subcommand, rest, opts);
         break;
@@ -978,6 +1005,16 @@ Commands:
   dgl doctor                Show DGL operational diagnostics
   dgl context               Print context snapshot hash
   dgl economics             Print economic telemetry from latest run
+  workspace validate        Validate reach.workspace.json
+  workspace show            Show workspace manifest
+  sync status               Show source coherence status
+  sync up                   Sync local branch with upstream
+  sync branch --task <n>    Create branch from upstream default
+  sync apply --pack <file>  Apply patch pack (requires lease)
+  sync lease <action>       Acquire/renew/release/list leases
+  sync pr --ensure          Ensure PR metadata for current branch
+  sync export               Export source coherence bundle
+  sccl gate                 Execute Source Control Coherence gate
   agent validate <file>     Validate Agent Operating Contract payload
   run show <id>             Show a DGL run record
   run list                  List DGL run records
