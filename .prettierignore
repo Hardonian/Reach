@@ -4,3 +4,5 @@ lint_results.json
 lint_output_run1.txt
 data/test-runs/*.json
 services/runner/data/**/*.json
+data/observability.json
+data/quickstart.json

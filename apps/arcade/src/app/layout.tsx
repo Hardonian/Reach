@@ -5,6 +5,7 @@ import "@/components/stitch/stitch.css";
 
 import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
+import { BRAND_NAME } from "@/lib/brand";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -15,8 +16,8 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL ?? "https://reach.dev"),
   title: {
-    default: `${process.env.NEXT_PUBLIC_BRAND_NAME ?? "ReadyLayer"} - Deterministic Orchestration Fabric`,
-    template: `%s | ${process.env.NEXT_PUBLIC_BRAND_NAME ?? "ReadyLayer"}`,
+    default: `${process.env.NEXT_PUBLIC_BRAND_NAME ?? BRAND_NAME} - Deterministic Orchestration Fabric`,
+    template: `%s | ${process.env.NEXT_PUBLIC_BRAND_NAME ?? BRAND_NAME}`,
   },
   description:
     "Reach is a natural-language governance control plane with durable memory, deterministic CI gates, and replay-first enforcement.",
@@ -28,12 +29,12 @@ export const metadata: Metadata = {
     "natural language governance",
     "control plane",
     "replay-first",
-    "readylayer",
     "reach protocol",
+    "readylayer",
   ],
-  authors: [{ name: "ReadyLayer Team" }],
-  creator: "ReadyLayer",
-  publisher: "ReadyLayer",
+  authors: [{ name: "Reach Team" }],
+  creator: BRAND_NAME,
+  publisher: BRAND_NAME,
   formatDetection: {
     email: false,
     address: false,
@@ -43,8 +44,8 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: process.env.NEXT_PUBLIC_BASE_URL ?? "https://reach.dev",
-    siteName: "ReadyLayer",
-    title: "ReadyLayer - Deterministic Orchestration Fabric",
+    siteName: BRAND_NAME,
+    title: `${BRAND_NAME} - Deterministic Orchestration Fabric`,
     description:
       "Natural-language governance for AI teams with deterministic CI enforcement and replayable decisions.",
     images: [
@@ -52,7 +53,7 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "ReadyLayer Platform",
+        alt: `${BRAND_NAME} Platform`,
       },
     ],
   },

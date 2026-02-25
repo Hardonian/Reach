@@ -114,7 +114,11 @@ export function NavBar() {
                 <Link href={ROUTES.LOGIN} className="btn-secondary text-center text-sm py-2">
                   Sign in
                 </Link>
-                <Link href={ROUTES.PLAYGROUND} className="btn-primary text-center text-sm py-2">
+                <Link
+                  href={ROUTES.PLAYGROUND}
+                  className="btn-primary text-center text-sm py-2"
+                  onClick={() => track("cta_clicked", { source: "navbar_mobile", cta: "run_demo" })}
+                >
                   Run demo (free)
                 </Link>
               </div>

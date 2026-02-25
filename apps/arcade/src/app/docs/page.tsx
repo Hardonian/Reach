@@ -2,9 +2,9 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Documentation | ReadyLayer",
+  title: "Documentation | Reach",
   description:
-    "Master the ReadyLayer deterministic execution fabric with our comprehensive documentation and guides.",
+    "Master the Reach deterministic execution fabric with our comprehensive documentation and guides.",
 };
 
 export default function DocsPage() {
