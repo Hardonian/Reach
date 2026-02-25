@@ -86,8 +86,12 @@ export default function DashboardPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Get started with ReadyLayer</h1>
-          <p className="text-gray-400">5 steps to your first successful agent check.</p>
+          <h1 className="text-3xl font-bold mb-2">Get started with Reach</h1>
+          <p className="text-gray-400">
+            Complete the steps below to run your first check with the Reach OSS CLI.
+            <br />
+            You can upgrade to ReadyLayer at any time for cloud features.
+          </p>
         </div>
 
         {/* Progress bar */}

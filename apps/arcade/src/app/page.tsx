@@ -73,36 +73,34 @@ export default async function Home({ searchParams }: HomePageProps) {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 mb-6">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-sm text-gray-300">{hero.badge}</span>
+              <span className="text-sm text-gray-300">The Governance OS for Enterprise AI</span>
             </div>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 leading-tight">
-              {hero.headline.split(".").map((part, i, arr) => (
-                <span key={i} className={i === arr.length - 1 ? "text-gradient" : ""}>
-                  {part}
-                  {i < arr.length - 1 ? "." : ""}{" "}
-                </span>
-              ))}
+              <span className="text-gradient">Enforce agent compliance.</span>
+              <span> In your CI.</span>
             </h1>
 
-            <p className="text-xl text-gray-400 mb-3 max-w-2xl">{hero.subhead}</p>
+            <p className="text-xl text-gray-400 mb-3 max-w-2xl">
+              Use the open-source Reach CLI for deterministic local runs, and upgrade to the ReadyLayer cloud for enterprise-grade governance, security, and scale.
+            </p>
 
             <p className="text-base text-emerald-400 font-medium mb-8">
-              First check runs in under 30 seconds. No configuration required.
+              Your first policy gate is 30 seconds away. No configuration required.
             </p>
 
             <div className="flex flex-wrap gap-4 mb-4">
               <Link href={ROUTES.PLAYGROUND} className="btn-primary text-lg">
-                {CTA.primary}
+                Run Live Demo
               </Link>
-              <Link href={ROUTES.REGISTER} className="btn-secondary text-lg">
-                {CTA.secondary}
+              <Link href={ROUTES.DOCS} className="btn-secondary text-lg">
+                Install OSS CLI
               </Link>
               <Link
                 href={ROUTES.CONTACT}
                 className="text-gray-400 hover:text-white transition-colors text-base self-center"
               >
-                {CTA.sales} →
+                Talk to Sales →
               </Link>
             </div>
 
@@ -163,7 +161,7 @@ export default async function Home({ searchParams }: HomePageProps) {
       <section className="py-24">
         <div className="section-container">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">What ReadyLayer checks</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">What Reach Governs</h2>
             <p className="text-gray-400 max-w-xl mx-auto">
               Every run covers the things that break in production.
             </p>

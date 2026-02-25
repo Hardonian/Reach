@@ -138,14 +138,18 @@ export default function Governance() {
   const [activeTab, setActiveTab] = useState<"policies" | "audit" | "permissions">("policies");
   const [actionNotice, setActionNotice] = useState<string | null>(null);
 
+  const enterpriseAction = () => {
+    setActionNotice(
+      "Policy management is an enterprise feature available in the ReadyLayer cloud platform. Contact sales to learn more.",
+    );
+  };
+
   const handleEditPolicy = (id: string) => {
-    setActionNotice(`Policy "${id}" edit requires tenant admin workflow. Use /console/governance.`);
+    enterpriseAction();
   };
 
   const handleDeletePolicy = (id: string) => {
-    setActionNotice(
-      `Policy "${id}" delete is guarded. Use /console/governance with an approved change reason.`,
-    );
+    enterpriseAction();
   };
 
   return (
@@ -186,11 +190,7 @@ export default function Governance() {
             <h2 className="text-xl font-bold">Policy Rules</h2>
             <button
               className="btn-primary text-sm py-2"
-              onClick={() =>
-                setActionNotice(
-                  "Create policy is available in /console/governance with approval + audit metadata.",
-                )
-              }
+              onClick={enterpriseAction}
             >
               + New Policy
             </button>
@@ -213,10 +213,7 @@ export default function Governance() {
                 description="Create your first policy to enforce compliance rules across your agents."
                 action={{
                   label: "Create Policy",
-                  onClick: () =>
-                    setActionNotice(
-                      "Create policy is available in /console/governance with approval + audit metadata.",
-                    ),
+                  onClick: enterpriseAction,
                 }}
               />
             )}
