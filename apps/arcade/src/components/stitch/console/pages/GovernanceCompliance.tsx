@@ -115,6 +115,60 @@ export function GovernanceCompliance() {
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto p-8 scroll-smooth scrollbar-hide">
         <div className="max-w-[1600px] mx-auto flex flex-col gap-8">
+          {notice ? (
+            <div className="rounded-lg border border-[#135bec]/40 bg-[#135bec]/10 px-4 py-3 text-sm text-[#d8e3ff]">
+              {notice}
+            </div>
+          ) : null}
+          <div className="rounded-xl border border-[#2d3442] bg-[#1c1f27] p-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="text-xs uppercase tracking-wide text-[#9da6b9]">Severity</label>
+              <select
+                value={severityFilter}
+                onChange={(event) => setSeverityFilter(event.target.value as typeof severityFilter)}
+                className="rounded border border-[#2d3442] bg-[#111318] px-2 py-1 text-sm text-white"
+              >
+                <option value="all">All</option>
+                <option value="critical">Critical</option>
+                <option value="warning">Warning</option>
+              </select>
+              <label className="text-xs uppercase tracking-wide text-[#9da6b9]">Type</label>
+              <select
+                value={typeFilter}
+                onChange={(event) => setTypeFilter(event.target.value as typeof typeFilter)}
+                className="rounded border border-[#2d3442] bg-[#111318] px-2 py-1 text-sm text-white"
+              >
+                <option value="all">All</option>
+                <option value="security">Security</option>
+                <option value="network">Network</option>
+              </select>
+              <label className="text-xs uppercase tracking-wide text-[#9da6b9]">Provider</label>
+              <select
+                value={providerFilter}
+                onChange={(event) => setProviderFilter(event.target.value as typeof providerFilter)}
+                className="rounded border border-[#2d3442] bg-[#111318] px-2 py-1 text-sm text-white"
+              >
+                <option value="all">All</option>
+                <option value="dgl">DGL</option>
+                <option value="cpx">CPX</option>
+                <option value="sccl">SCCL</option>
+              </select>
+              <button
+                type="button"
+                onClick={() => setStrictMode((v) => !v)}
+                className={`ml-auto rounded border px-3 py-1 text-xs font-semibold ${
+                  strictMode
+                    ? "border-red-500/50 bg-red-500/20 text-red-200"
+                    : "border-[#2d3442] bg-[#111318] text-[#9da6b9]"
+                }`}
+              >
+                Strict Mode: {strictMode ? "ON" : "OFF"}
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-[#9da6b9]">
+              Warnings stay non-blocking unless strict mode is enabled.
+            </p>
+          </div>
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             {/* RBAC Matrix */}
             <div className="xl:col-span-2 bg-[#1c1f27] border border-[#2d3442] rounded-xl overflow-hidden flex flex-col">
@@ -135,6 +189,14 @@ export function GovernanceCompliance() {
                   className="text-[#135bec] text-sm font-medium hover:underline flex items-center gap-1"
                 >
                   <span className="material-symbols-outlined text-[18px]">edit</span> Edit Roles
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void copyCommand("./reach status")}
+                  className="text-[#9da6b9] text-sm font-medium hover:text-white flex items-center gap-1"
+                >
+                  <span className="material-symbols-outlined text-[18px]">content_copy</span>
+                  Copy CLI
                 </button>
               </div>
               <div className="overflow-x-auto">
@@ -208,43 +270,43 @@ export function GovernanceCompliance() {
                   Build Gate Violations
                 </h3>
                 <span className="bg-red-500/20 text-red-500 text-xs font-bold px-2 py-0.5 rounded">
-                  3 Active
+                  {filteredViolations.length} Active
                 </span>
               </div>
               <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-                {[
-                  {
-                    title: "Critical: Unencrypted Storage",
-                    time: "2m ago",
-                    desc: "Deployment deploy-883a violates encryption policy.",
-                    color: "red",
-                  },
-                  {
-                    title: "Warning: Open Port 22",
-                    time: "15m ago",
-                    desc: "Service bastion-host exposes SSH to public internet.",
-                    color: "amber",
-                  },
-                  {
-                    title: "Critical: Root Access",
-                    time: "1h ago",
-                    desc: "Container runner-04 running as root user.",
-                    color: "red",
-                  },
-                ].map((v) => (
+                {primaryViolation ? (
+                  <div className="rounded-lg border border-red-500/30 bg-[#282e39]/50 p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-red-400">{primaryViolation.title}</span>
+                      <span className="text-[10px] text-[#9da6b9]">{primaryViolation.time}</span>
+                    </div>
+                    <p className="mt-2 text-xs text-[#d0d7e7]">{primaryViolation.desc}</p>
+                    <p className="mt-2 text-[10px] uppercase tracking-wide text-[#9da6b9]">
+                      Primary reason ({primaryViolation.provider.toUpperCase()})
+                    </p>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-[#2d3442] bg-[#111318] p-4 text-sm text-[#9da6b9]">
+                    No active violations for current filters.
+                    <button
+                      type="button"
+                      onClick={() => void copyCommand("npm run verify:routes")}
+                      className="ml-2 text-[#135bec] hover:underline"
+                    >
+                      Copy verify command
+                    </button>
+                  </div>
+                )}
+                {relatedViolations.map((v) => (
                   <div
                     key={v.title}
-                    className={`p-4 bg-[#282e39]/40 border rounded-lg flex flex-col gap-1 hover:bg-[#282e39]/60 transition-colors cursor-pointer border-${v.color}-500/30`}
+                    className="rounded-lg border border-amber-500/30 bg-[#282e39]/40 p-3"
                   >
-                    <div className="flex justify-between items-start">
-                      <span
-                        className={`text-${v.color === "red" ? "red" : "amber"}-500 font-bold text-sm`}
-                      >
-                        {v.title}
-                      </span>
-                      <span className="text-[10px] text-[#9da6b9]">{v.time}</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-amber-300">{v.title}</span>
+                      <span className="text-[10px] text-[#9da6b9]">{v.provider.toUpperCase()}</span>
                     </div>
-                    <p className="text-[#9da6b9] text-xs">{v.desc}</p>
+                    <p className="mt-1 text-xs text-[#9da6b9]">{v.desc}</p>
                   </div>
                 ))}
               </div>

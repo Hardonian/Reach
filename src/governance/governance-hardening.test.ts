@@ -233,6 +233,30 @@ function createStatement(sql: string, store: FakeStore): Statement {
     };
   }
 
+  // Match listGovernanceSpecs with scope - exact pattern from governance.ts
+  if (
+    normalized.includes(
+      "select * from governance_specs where org_id=? and workspace_id=? and scope=? order by version desc, id asc limit ?",
+    )
+  ) {
+    return {
+      all: (orgId, workspaceId, scope, limit) =>
+        store.specs
+          .filter(
+            (row) =>
+              row.org_id === orgId && row.workspace_id === workspaceId && row.scope === scope,
+          )
+          .sort((a, b) => {
+            const versionCmp = b.version - a.version;
+            if (versionCmp !== 0) return versionCmp;
+            return ascString(a.id, b.id);
+          })
+          .slice(0, Number(limit)),
+      get: () => undefined,
+      run: () => undefined,
+    };
+  }
+
   if (
     normalized.includes(
       "select * from governance_specs where org_id=? and workspace_id=? order by created_at desc, version desc limit ?",
