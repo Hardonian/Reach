@@ -5,7 +5,7 @@ import {
   defaultProviderHealth,
   recordFailure,
   recordSuccess,
-  PerformanceOptimizedFallbackStrategy,
+  HealthBasedFallbackStrategy,
   CostOptimizedFallbackStrategy,
 } from "../apps/arcade/src/lib/providers/provider-adapter.ts";
 
@@ -51,15 +51,15 @@ function main() {
 
   const fallbackContext = {
     request,
-    availableProviders: ["openai", "anthropic", "google"],
-    healthMap: {
-      openai: defaultProviderHealth("openai"),
-      anthropic: defaultProviderHealth("anthropic"),
-      google: defaultProviderHealth("google"),
-    },
+    attemptNumber: 1,
+    healthScores: new Map([
+      ["openai", defaultProviderHealth("openai").health_score],
+      ["anthropic", defaultProviderHealth("anthropic").health_score],
+      ["google", defaultProviderHealth("google").health_score],
+    ]),
   };
 
-  const perfFallback = PerformanceOptimizedFallbackStrategy.selectFallbacks(
+  const perfFallback = HealthBasedFallbackStrategy.selectFallbacks(
     "openai",
     fallbackContext,
   );
