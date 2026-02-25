@@ -57,6 +57,13 @@
     "demo:smoke": "./reach demo",
     "verify:fast": "npm run typecheck && npm run lint:structure && npm run format:check && npm run docs:index:check && npm run health:check && npm run gates:reality && npm run gates:terminology && npm test",
     "verify:claims:strict": "node scripts/verify-claims.mjs --strict",
+    "build:wasm": "cd crates/engine-core && wasm-pack build --target nodejs --out-dir pkg",
+    "build:wasm:web": "cd crates/engine-core && wasm-pack build --target web --out-dir pkg-web",
+    "build:wasm:bundler": "cd crates/engine-core && wasm-pack build --target bundler --out-dir pkg-bundler",
+    "test:rust": "cd crates/engine-core && cargo test",
+    "test:golden": "cd crates/engine-core && cargo test determinism_golden -- --nocapture",
+    "benchmark:determinism": "node --import tsx/esm packages/core/src/nl-compiler/__tests__/benchmark.ts",
+    "test:nl-compiler": "vitest run packages/core/src/nl-compiler/__tests__/",
     "verify": "npm run verify:fast && npm run verify:lockfile && npm run verify:oss && npm run verify:routes && npm run verify:cli && npm run verify:determinism && npm run verify:claims && npm run build",
     "verify:full": "npm run verify"
   },

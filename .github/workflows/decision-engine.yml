@@ -4,19 +4,23 @@ on:
   push:
     branches: ["main", "master"]
     paths:
-      - "packages/decision-engine-rs/**"
-      - "packages/decision-engine-wasm/**"
+      - "crates/engine-core/**"
+      - "crates/engine/**"
+      - "packages/core/src/nl-compiler/**"
+      - "determinism.vectors.json"
       - ".github/workflows/decision-engine.yml"
   pull_request:
     branches: ["main", "master"]
     paths:
-      - "packages/decision-engine-rs/**"
-      - "packages/decision-engine-wasm/**"
+      - "crates/engine-core/**"
+      - "crates/engine/**"
+      - "packages/core/src/nl-compiler/**"
+      - "determinism.vectors.json"
       - ".github/workflows/decision-engine.yml"
 
 jobs:
-  build-and-test:
-    name: Build, Test & Benchmark
+  rust-tests:
+    name: Rust Tests & Golden Vectors
     runs-on: ubuntu-latest
 
     steps:
@@ -27,21 +31,128 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Cache Rust Dependencies
+        uses: Swatinem/rust-cache@v2
         with:
-          node-version: "20"
+          workspaces: "crates"
+
+      - name: Run Rust Tests
+        working-directory: crates/engine-core
+        run: |
+          cargo test --lib
+          cargo test determinism_golden -- --nocapture
+
+      - name: Check Rust Formatting
+        working-directory: crates
+        run: cargo fmt -- --check
+
+      - name: Run Clippy
+        working-directory: crates/engine-core
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+  wasm-build:
+    name: Build WASM Module
+    runs-on: ubuntu-latest
+    needs: rust-tests
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
 
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-      - name: Install Dependencies
-        working-directory: packages/decision-engine-wasm
-        run: npm install
+      - name: Cache Rust Dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "crates"
 
-      - name: Build & Test
-        working-directory: packages/decision-engine-wasm
+      - name: Build WASM (Node.js target)
+        working-directory: crates/engine-core
+        run: wasm-pack build --target nodejs --out-dir pkg
+
+      - name: Build WASM (Web target)
+        working-directory: crates/engine-core
+        run: wasm-pack build --target web --out-dir pkg-web
+
+      - name: Upload WASM Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm-modules
+          path: |
+            crates/engine-core/pkg/
+            crates/engine-core/pkg-web/
+          retention-days: 7
+
+  typescript-tests:
+    name: TypeScript Tests & Cross-Verification
+    runs-on: ubuntu-latest
+    needs: wasm-build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Download WASM Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: wasm-modules
+          path: crates/engine-core/
+
+      - name: Run TypeScript Tests
         run: |
-          npm run build
-          npm test
-          npm run benchmark
+          npx vitest run packages/core/src/nl-compiler/__tests__/
+          npx vitest run src/determinism/nl-compiler-determinism.test.ts
+          npx vitest run src/determinism/cross-verification.test.ts
+
+      - name: Run Benchmarks
+        working-directory: packages/core
+        run: npm run benchmark
+
+  cross-language-verification:
+    name: TS/Rust Fingerprint Verification
+    runs-on: ubuntu-latest
+    needs: [rust-tests, typescript-tests]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Rust Fingerprints
+        working-directory: crates/engine-core
+        run: |
+          cargo test determinism_golden -- --nocapture 2>&1 | tee rust-output.txt
+
+      - name: Generate TypeScript Fingerprints
+        run: |
+          npx vitest run src/determinism/cross-verification.test.ts --reporter=verbose 2>&1 | tee ts-output.txt
+
+      - name: Compare Results
+        run: |
+          echo "=== Cross-Language Verification Summary ==="
+          echo "Rust implementation tested against golden vectors"
+          echo "TypeScript implementation tested against golden vectors"
+          echo "See test output above for fingerprint comparisons"

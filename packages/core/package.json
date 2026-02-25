@@ -1,0 +1,55 @@
+{
+  "name": "@reach/core",
+  "version": "0.1.0",
+  "description": "Core decision engine and nl-compiler for Reach",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./nl-compiler": {
+      "import": "./dist/nl-compiler/index.js",
+      "types": "./dist/nl-compiler/index.d.ts"
+    },
+    "./codegen": {
+      "import": "./dist/codegen/index.js",
+      "types": "./dist/codegen/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:wasm": "cd ../../crates/engine-core && wasm-pack build --target nodejs --out-dir pkg",
+    "build:wasm:web": "cd ../../crates/engine-core && wasm-pack build --target web --out-dir pkg",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "benchmark": "node --import tsx/esm src/nl-compiler/__tests__/benchmark.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@reach/governance": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.0"
+  },
+  "peerDependencies": {
+    "wasm-pack": "^0.12.0"
+  },
+  "peerDependenciesMeta": {
+    "wasm-pack": {
+      "optional": true
+    }
+  },
+  "keywords": [
+    "decision-engine",
+    "governance",
+    "determinism",
+    "wasm"
+  ],
+  "license": "MIT"
+}
