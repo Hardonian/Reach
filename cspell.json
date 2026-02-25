@@ -55,7 +55,9 @@
     "vercel",
     "kilocode",
     "devkit",
-    "testdata"
+    "testdata",
+    "Merkle",
+    "Turbopack"
   ],
   "ignorePaths": ["node_modules", "dist", "build", "*.log"]
 }

@@ -16,6 +16,43 @@ Reach is a high-performance, deterministic decision engine for autonomous agents
 - What is explicitly removed: Mesh networking, consensus simulation, and poee theatre have been purged.
 - What is intentionally out-of-scope for OSS: Multi-tenant operations and deep telemetry integrations.
 
+## ⚖️ OSS vs Enterprise
+
+| Feature                 | OSS Core | Enterprise |
+| :---------------------- | :------: | :--------: |
+| Deterministic Engine    |    ✅    |     ✅     |
+| Policy Evaluation       |    ✅    |     ✅     |
+| Capsule Verification    |    ✅    |     ✅     |
+| CLI & Local API         |    ✅    |     ✅     |
+| Multi-tenant Auth       |    ❌    |     ✅     |
+| High-fidelity Telemetry |    ❌    |     ✅     |
+| Federated Consensus     |    ❌    |     ✅     |
+| 24/7 Priority Support   |    ❌    |     ✅     |
+
+## 🛡️ Proof of Reality
+
+Verify the integrity of this repository and the Reach execution fabric:
+
+```bash
+# Run the full reality verification suite
+npm run verify
+```
+
+The verification suite enforces:
+
+- **`verify:cli`**: Validates all CLI commands against binary reality.
+- **`verify:determinism`**: Ensures bit-identical replayability across environments.
+- **`verify:oss`**: Guarantees the open-source core is free of enterprise drift.
+- **`verify:routes`**: Confirms documentation and site integrity.
+
+### ⚡ 60-Second Quickstart
+
+```bash
+./reach doctor    # Verify your environment
+./reach demo      # Run a deterministic smoke test
+./reach status    # Check active configuration
+```
+
 ## 📦 Installation
 
 ### Pre-built Binaries
@@ -74,11 +111,16 @@ reach version
 
 | Platform | Architecture | Status                       |
 | -------- | ------------ | ---------------------------- |
-| Linux    | AMD64        | ✅ Supported                 |
-| Linux    | ARM64        | ✅ Supported                 |
+| Linux    | AMD64        | ✅ Supported (Production)    |
+| Linux    | ARM64        | ✅ Supported (Production)    |
 | macOS    | AMD64        | ✅ Supported                 |
 | macOS    | ARM64        | ✅ Supported (Apple Silicon) |
-| Windows  | AMD64        | ✅ Supported                 |
+| Windows  | AMD64        | ✅ Supported (Development)   |
+
+#### Windows Known Limitations
+
+- **Web Arcade dev server**: Turbopack is disabled by default on Windows due to compatibility issues with native modules (better-sqlite3). Use `ENABLE_TURBOPACK=1` to opt-in on supported configurations.
+- **Production builds**: Windows builds are supported for development; production deployments should use Linux for optimal compatibility.
 
 ## ⚡ 10-Minute Quickstart
 

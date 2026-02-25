@@ -34,24 +34,23 @@ export default function TroubleshootingPage() {
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Diagnostic Tools</h2>
 
-      <h3 className="text-xl font-semibold mt-6 mb-2">System Health Check</h3>
-      <CodeBlock code={`./reach doctor`} />
-      <p className="mt-2">
-        Checks all dependencies, permissions, and deterministic environment requirements.
-      </p>
-
-      <h3 className="text-xl font-semibold mt-6 mb-2">Generate Demo Report</h3>
-      <CodeBlock
-        code={`# Generate comprehensive demo report
-./reach report demo
-
-# Verify report integrity
-./reach report verify demo-report/`}
-      />
-      <p className="mt-2">
-        Creates a shareable artifact with hashes, timeline, and environment snapshot. Attach this to
-        bug reports.
-      </p>
+      <div className="grid md:grid-cols-3 gap-4">
+        <div className="p-4 border rounded-lg bg-slate-50">
+          <h3 className="font-bold mb-2">System Health</h3>
+          <CodeBlock code={`./reach doctor`} />
+          <p className="text-xs text-slate-500 mt-2">Checks dependencies and environment.</p>
+        </div>
+        <div className="p-4 border rounded-lg bg-slate-50">
+          <h3 className="font-bold mb-2">Current Status</h3>
+          <CodeBlock code={`./reach status`} />
+          <p className="text-xs text-slate-500 mt-2">Reports active mode and config.</p>
+        </div>
+        <div className="p-4 border rounded-lg bg-slate-50">
+          <h3 className="font-bold mb-2">Bug Report</h3>
+          <CodeBlock code={`./reach bugreport`} />
+          <p className="text-xs text-slate-500 mt-2">Generates a diagnostic bundle.</p>
+        </div>
+      </div>
 
       <h2 className="text-2xl font-semibold mt-8 mb-4">Common Issues</h2>
       <div className="space-y-4">

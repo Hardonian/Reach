@@ -1,0 +1,7 @@
+{
+  "name": "@reach/examples",
+  "version": "0.3.1",
+  "private": true,
+  "description": "Reach examples - CommonJS for Node.js compatibility",
+  "type": "commonjs"
+}

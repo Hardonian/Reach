@@ -160,6 +160,58 @@ Replay Verified: true`}
                 Answers to common questions about Reach and determinism.
               </p>
             </Link>
+            <section className="col-span-full py-12 px-8 border rounded-xl bg-slate-50">
+              <h3 className="text-2xl font-bold mb-8 text-center">OSS vs Enterprise</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b-2 border-slate-200">
+                      <th className="py-4 font-semibold text-slate-700">Feature</th>
+                      <th className="py-4 text-center font-semibold text-slate-700">OSS Core</th>
+                      <th className="py-4 text-center font-semibold text-slate-700">Enterprise</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    <tr>
+                      <td className="py-4 text-slate-600">Deterministic Engine</td>
+                      <td className="py-4 text-center">✅</td>
+                      <td className="py-4 text-center">✅</td>
+                    </tr>
+                    <tr>
+                      <td className="py-4 text-slate-600">Policy Evaluation</td>
+                      <td className="py-4 text-center">✅</td>
+                      <td className="py-4 text-center">✅</td>
+                    </tr>
+                    <tr>
+                      <td className="py-4 text-slate-600">Capsule Verification</td>
+                      <td className="py-4 text-center">✅</td>
+                      <td className="py-4 text-center">✅</td>
+                    </tr>
+                    <tr>
+                      <td className="py-4 text-slate-600">CLI & Local API</td>
+                      <td className="py-4 text-center">✅</td>
+                      <td className="py-4 text-center">✅</td>
+                    </tr>
+                    <tr>
+                      <td className="py-4 text-slate-600">Multi-tenant Auth</td>
+                      <td className="py-4 text-center">❌</td>
+                      <td className="py-4 text-center">✅</td>
+                    </tr>
+                    <tr>
+                      <td className="py-4 text-slate-600">High-fidelity Telemetry</td>
+                      <td className="py-4 text-center">❌</td>
+                      <td className="py-4 text-center">✅</td>
+                    </tr>
+                    <tr>
+                      <td className="py-4 text-slate-600">Federated Consensus</td>
+                      <td className="py-4 text-center">❌</td>
+                      <td className="py-4 text-center">✅</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
             <Link
               href="/support"
               className="block p-6 border rounded-lg hover:shadow-lg transition bg-blue-50 border-blue-100"

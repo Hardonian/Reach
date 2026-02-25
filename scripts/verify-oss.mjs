@@ -84,11 +84,25 @@ function ensureBinary() {
 
   const versionProbe = run(goBin, ["version"], process.env);
   const versionText = `${versionProbe.stdout ?? ""}${versionProbe.stderr ?? ""}`;
-  const outputLooksWindows = goBin.toLowerCase().endsWith(".exe") || versionText.includes("windows/");
-  const output = outputLooksWindows ? path.join(ROOT, "reachctl.exe") : path.join(ROOT, "build", "reachctl");
+  const outputLooksWindows =
+    goBin.toLowerCase().endsWith(".exe") || versionText.includes("windows/");
+  const output = outputLooksWindows
+    ? path.join(ROOT, "reachctl.exe")
+    : path.join(ROOT, "build", "reachctl");
 
-  run("node", ["-e", `require('node:fs').mkdirSync(${JSON.stringify(path.dirname(output))}, { recursive: true })`], process.env);
-  const build = run(goBin, ["build", "-trimpath", "-o", output, "./services/runner/cmd/reachctl"], process.env);
+  run(
+    "node",
+    [
+      "-e",
+      `require('node:fs').mkdirSync(${JSON.stringify(path.dirname(output))}, { recursive: true })`,
+    ],
+    process.env,
+  );
+  const build = run(
+    goBin,
+    ["build", "-trimpath", "-o", output, "./services/runner/cmd/reachctl"],
+    process.env,
+  );
   if ((build.status ?? 1) !== 0) {
     fail("failed to build reachctl for verify:oss", `${build.stdout}\n${build.stderr}`);
   }

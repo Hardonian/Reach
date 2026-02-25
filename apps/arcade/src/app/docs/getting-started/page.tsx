@@ -12,8 +12,8 @@ export default function GettingStartedPage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">Getting Started</h1>
         <p className="text-xl text-gray-400">
-          Reach is a deterministic execution fabric. In this guide, we will set up the
-          Reach environment, execute your first signed pack, and verify its results.
+          Reach is a deterministic execution fabric. In this guide, we will set up the Reach
+          environment, execute your first signed pack, and verify its results.
         </p>
       </header>
 
@@ -27,9 +27,7 @@ export default function GettingStartedPage() {
             </p>
             <div className="bg-black/40 p-4 rounded-lg font-mono text-xs space-y-1">
               <div className="text-gray-500"># Clone and install</div>
-              <div className="text-white">
-                git clone https://github.com/reach/reach.git
-              </div>
+              <div className="text-white">git clone https://github.com/reach/reach.git</div>
               <div className="text-white">npm install</div>
               <div className="text-white">npm run build</div>
             </div>

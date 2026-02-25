@@ -1,8 +1,8 @@
 {
   "counters": {
     "gate_runs": 0,
-    "artifacts_written": 58,
-    "artifacts_read": 96,
+    "artifacts_written": 100,
+    "artifacts_read": 166,
     "pr_comment_updates": 0,
     "lease_acquisitions": 0,
     "lease_releases": 0,
@@ -12,8 +12,8 @@
   "tenantCounters": {
     "org-prov": {
       "gate_runs": 0,
-      "artifacts_written": 20,
-      "artifacts_read": 20,
+      "artifacts_written": 34,
+      "artifacts_read": 34,
       "pr_comment_updates": 0,
       "lease_acquisitions": 0,
       "lease_releases": 0,
@@ -22,8 +22,8 @@
     },
     "org-A": {
       "gate_runs": 0,
-      "artifacts_written": 19,
-      "artifacts_read": 57,
+      "artifacts_written": 33,
+      "artifacts_read": 99,
       "pr_comment_updates": 0,
       "lease_acquisitions": 0,
       "lease_releases": 0,
@@ -32,8 +32,8 @@
     },
     "org-B": {
       "gate_runs": 0,
-      "artifacts_written": 19,
-      "artifacts_read": 19,
+      "artifacts_written": 33,
+      "artifacts_read": 33,
       "pr_comment_updates": 0,
       "lease_acquisitions": 0,
       "lease_releases": 0,
@@ -42,5 +42,5 @@
     }
   },
   "lastReconciliationRunAt": null,
-  "updatedAt": "2026-02-25T15:13:55.977Z"
+  "updatedAt": "2026-02-25T17:08:08.734Z"
 }

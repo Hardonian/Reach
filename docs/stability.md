@@ -8,24 +8,24 @@ The Reach CLI operates under a strict stability contract to ensure automation an
 
 ### Stable Commands
 
-The following root `reach` and `reachctl` commands are considered **STABLE**. Their arguments, flags, and standard output formats (especially when using `--json`) will not change in a backwards-incompatible way without a major version bump:
+The following root `reach` and `reachctl` commands are considered **STABLE**. Their JSON output formats specifically are guaranteed to remain compatible:
 
-- `doctor`: System health checks.
-- `run`: Execution of packs and workflows.
-- `eval`: Regression testing against golden fixtures.
-- `audit`: Export and verification of logs.
-- `transcript`: Creation and validation of execution transcripts.
-- `proof`: Cryptographic execution proofs (Execution Proof).
-- `gate`: CI/CD gate management.
-- `workflow *`: All workflow subcommands (`start`, `add-note`, `run`, `export`, `health`, `graph`).
+- `doctor`: Environment and dependency health checks.
+- `run`: Canonical entry point for executing decision packs.
+- `capsule`: Creation, verification, and replay of execution artifacts.
+- `proof`: Cryptographic verification of execution chains.
+- `gate`: Deployment and compliance CI gates.
+- `status`: System configuration and connectivity reporting.
+- `version`: Deterministic version reporting.
 
 ### Experimental / Beta Commands
 
-The following commands are currently **EXPERIMENTAL** and their interfaces or outputs may change in minor releases:
+These commands are active in the OSS core but their interfaces are subject to refinement:
 
-- `cost`: Unit economics and cost analysis.
-- `metrics`: GTM and usage analytics.
-- `wizard`: Guided generic run wizard.
+- `benchmark`: Performance and latency profiling.
+- `stress`: Adversarial reproducibility testing.
+- `chaos`: Fault injection and resilience testing.
+- `wizard`: Guided setup and workflow creation.
 
 ## 2. JSON Schemas & Data Structures
 

@@ -42,11 +42,7 @@
       "title": "Approve security patch",
       "status": "pending",
       "priority": "high",
-      "options": [
-        "approve",
-        "reject",
-        "defer"
-      ],
+      "options": ["approve", "reject", "defer"],
       "recommended": "approve",
       "created_at": "2026-02-25T15:14:15Z"
     }

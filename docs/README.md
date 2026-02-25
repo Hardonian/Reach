@@ -1,46 +1,57 @@
-# Reach Documentation Index
+# Reach Documentation
 
-Welcome to the Reach Documentation. This directory contains the externally-facing reference material for operating, configuring, and deploying Reach.
+Welcome to the authoritative reference for the Reach execution fabric.
 
-_(Note: Internal architecture specifications and planning documents have been moved to `docs/internal/` and are not required reading for standard usage)._
+## 🗺️ Navigation Pack
 
-## 🚀 Getting Started
+### Top 10 Entry Points
 
-- [Quickstart (Technical)](QUICKSTART_TECH.md) - Get up and running with the CLI and Rust engine in 5 minutes.
-- [Quickstart (Non-Technical)](QUICKSTART_NON_TECH.md) - High-level overview of running pre-built workflows.
-- [Install Guide](INSTALL.md) - Detailed installation instructions for all platforms.
-- [Install Modes](INSTALL_MODES.md) - Guidance on different deployment topologies.
-- [CLI Reference](cli.md) - Comprehensive command-line documentation for `reachctl` and `./reach`.
-- [CLI Completions](cli-completions.md) - Shell auto-completions.
-- [Glossary](glossary.md) - Understanding concepts and terminology.
+1. **[60-Second Proof](./CONCEPT_MAP.md)** - See the reality of Reach in action.
+2. **[Quickstart](./QUICKSTART_TECH.md)** - Get up and running with the CLI.
+3. **[Proof of Reality](./cli.md#reach-doctor)** - How we guarantee determinism.
+4. **[CLI Reference](./cli.md)** - Comprehensive command list.
+5. **[Architecture Overview](./architecture.md)** - How the system is designed.
+6. **[Decision Lifecycle](./decisions.md)** - Branching and outcome logic.
+7. **[Capsule Manual](./cli.md#reach-capsule)** - Managing portable proofs.
+8. **[Configuration](./ENVIRONMENT_VARIABLES.md)** - Tuning the engine.
+9. **[Troubleshooting](./troubleshooting.md)** - Resolving common failures.
+10. **[Stability Contract](./stability.md)** - Versioning and roadmap.
 
-## 🏗️ Core Architecture
+### 🛤️ Start Here: Choose Your Path
 
-- [Architecture Overview](architecture.md) - High-level overview of the Reach system design.
-- [Decision Lifecycle](decisions.md) - How decisions are structured, evaluated, and resolved.
-- [Rust Decision Engine](decision-engine-rust.md) - Deep dive into the deterministic core engine.
-- [Policy Gates](POLICY_GATE.md) - How governance and safety constraints are enforced.
-- [Federated Execution](FEDERATION.md) - Multi-node execution protocols.
-- [Network Topology](TOPOLOGY.md) - P2P and mesh connectivity.
-- [Stability Contract](stability.md) - Stability guarantees and versioning policy.
-- [Scaling Analysis](scaling.md) - Theoretical and practical scaling limits.
-- [Threat Model](threat-model.md) - Abuse scenarios and security mitigations.
+| Path           | Focus                                           | Key Docs                                            |
+| :------------- | :---------------------------------------------- | :-------------------------------------------------- |
+| **OSS Core**   | Local execution, local registry, CLI usage.     | [Quickstart](./QUICKSTART_TECH.md), [CLI](./cli.md) |
+| **Enterprise** | Multi-node, auditing, deep compliance, billing. | [Governance](../GOVERNANCE.md), [RBAC](./rbac.md)   |
 
-## ⚙️ Operations & Configuration
+---
 
-- [Configuration as Code](config-as-code.md) - Managing Reach setup declaratively.
-- [Environment Variables](ENVIRONMENT_VARIABLES.md) - Configuration variables for system tuning.
-- [Role-Based Access Control](rbac.md) - Security and permissions (RBAC) setup.
-- [Traceability](traceability.md) - Understanding logging and execution provenance.
-- [Error Codes](ERROR_CODES.md) - Explanation of system error classifications.
-- [Error Code Registry](ERROR_CODE_REGISTRY.md) - Standardized failure taxonomy and specific codes.
+## 🧠 Core Concept Map
 
-## 🛠️ Debugging & Testing
+Reach removes unpredictable AI loops by enforcing a structured lifecycle.
 
-- [Troubleshooting](troubleshooting.md) - Resolving common issues in deployment or execution.
-- [Determinism Debugging](DETERMINISM_DEBUGGING.md) - How to diagnose and fix reproducibility failures.
-- [Smoke Testing](testing-smoke.md) - Verifying basic operational health.
-- [Benchmarking](BENCHMARKING.md) - Performance measurement methodologies.
+**[View the Full Concept Map & Diagram](./CONCEPT_MAP.md)**
+
+```text
+CLI/API Entry → Policy Gates → Deterministic Replay → Evidence Chain → Capsule Output
+```
+
+---
+
+## 🏗️ Detailed Reference
+
+- **Design**: [Architecture](./architecture.md), [Decisions](./decisions.md), [Topology](./TOPOLOGY.md), [Federation](./FEDERATION.md)
+- **Operations**: [Install](./INSTALL.md), [Install Modes](./INSTALL_MODES.md), [Config](./ENVIRONMENT_VARIABLES.md), [Config as Code](./config-as-code.md), [RBAC](./rbac.md), [Scaling](./scaling.md)
+- **Hardening**: [Determinism Debugging](./DETERMINISM_DEBUGGING.md), [Benchmarking](./BENCHMARKING.md), [Threat Model](./threat-model.md), [Traceability](./traceability.md)
+- **CLI**: [CLI Reference](./cli.md), [CLI Completions](./cli-completions.md)
+- **Policy**: [Policy Gate](./POLICY_GATE.md)
+- **Development**: [Testing & Smoke](./testing-smoke.md), [Error Codes](./ERROR_CODES.md), [Error Code Registry](./ERROR_CODE_REGISTRY.md)
+- **Getting Started**: [Quickstart Non-Technical](./QUICKSTART_NON_TECH.md), [Glossary](./glossary.md)
+- **Engine**: [Decision Engine Rust](./decision-engine-rust.md)
+
+---
+
+_Reach: Reducing entropy in autonomous systems._
 
 ---
 

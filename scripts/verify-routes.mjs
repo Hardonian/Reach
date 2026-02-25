@@ -1,13 +1,16 @@
 #!/usr/bin/env node
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import net from "node:net";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const host = "127.0.0.1";
 const preferredPort = Number.parseInt(process.env.REACH_VERIFY_PORT ?? "3337", 10);
 const minNodeMajor = 20;
 const minNodeMinor = 9;
+const node20FallbackVersion = "20.19.0";
+const reexecGuardEnv = "REACH_VERIFY_ROUTES_REEXEC";
 const apiOnly = process.argv.includes("--api-only");
 
 const nextBinCandidates = [
@@ -24,18 +27,41 @@ if (!nextBin) {
 
 let bootLog = "";
 
-function assertNodeVersion() {
+function isSupportedNodeVersion() {
   const [majorRaw, minorRaw] = process.versions.node.split(".");
   const major = Number.parseInt(majorRaw ?? "0", 10);
   const minor = Number.parseInt(minorRaw ?? "0", 10);
-  const supported = major > minNodeMajor || (major === minNodeMajor && minor >= minNodeMinor);
+  return major > minNodeMajor || (major === minNodeMajor && minor >= minNodeMinor);
+}
 
-  if (supported) return;
-  console.error("❌ verify:routes failed");
-  console.error(
-    `Node ${process.versions.node} is unsupported for Next.js routing checks. Require >=${minNodeMajor}.${minNodeMinor}.0.`,
+function ensureSupportedNodeVersion() {
+  if (isSupportedNodeVersion()) return;
+  const minimum = `${minNodeMajor}.${minNodeMinor}.0`;
+
+  if (process.env[reexecGuardEnv] === "1") {
+    console.error("❌ verify:routes failed");
+    console.error(
+      `Node ${process.versions.node} is unsupported for Next.js routing checks. Require >=${minimum}.`,
+    );
+    process.exit(1);
+  }
+
+  const scriptPath = fileURLToPath(import.meta.url);
+  console.warn(
+    `Node ${process.versions.node} is unsupported for verify:routes. Re-running with node@${node20FallbackVersion} via npx...`,
   );
-  process.exit(1);
+  const rerun = spawnSync(
+    "npx",
+    ["-y", `node@${node20FallbackVersion}`, scriptPath, ...process.argv.slice(2)],
+    {
+      stdio: "inherit",
+      env: {
+        ...process.env,
+        [reexecGuardEnv]: "1",
+      },
+    },
+  );
+  process.exit(rerun.status ?? 1);
 }
 
 function withTimeout(ms) {
@@ -72,13 +98,14 @@ async function findAvailablePort(port) {
   }
 }
 
-function startServer(port, appPath) {
-  const child = spawn(process.execPath, [nextBin, "dev", "-p", String(port), "-H", host], {
+function startServer(port, appPath, mode = "start") {
+  const command = mode === "dev" ? "dev" : "start";
+  const child = spawn(process.execPath, [nextBin, command, "-p", String(port), "-H", host], {
     cwd: path.resolve(appPath),
     stdio: ["ignore", "pipe", "pipe"],
     env: {
       ...process.env,
-      NODE_ENV: "development",
+      NODE_ENV: mode === "dev" ? "development" : "production",
       NEXT_TELEMETRY_DISABLED: "1",
     },
   });
@@ -92,6 +119,27 @@ function startServer(port, appPath) {
   return child;
 }
 
+function buildApp(appName, appPath) {
+  console.log(`Building ${appName} for route checks...`);
+  const build = spawnSync(process.execPath, [nextBin, "build"], {
+    cwd: path.resolve(appPath),
+    stdio: ["ignore", "pipe", "pipe"],
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      NODE_ENV: "production",
+      NEXT_TELEMETRY_DISABLED: "1",
+    },
+  });
+  if (build.stdout) process.stdout.write(build.stdout);
+  if (build.stderr) process.stderr.write(build.stderr);
+  if (build.status !== 0) {
+    throw new Error(
+      `${appName} build failed before route checks (exit code ${build.status ?? "unknown"}).`,
+    );
+  }
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -101,6 +149,9 @@ async function waitForServer(baseUrl, child, timeoutMs = 300_000) {
   while (Date.now() - startedAt < timeoutMs) {
     if (child.exitCode !== null) {
       throw new Error(`Next.js exited before readiness (exit code ${child.exitCode}).`);
+    }
+    if (/ready in|ready - started server|✓ Ready/i.test(bootLog)) {
+      return;
     }
     const timeout = withTimeout(30_000);
     try {
@@ -199,11 +250,15 @@ async function runChecks(baseUrl, routesToCheck) {
   }
 }
 
-async function checkApp(appName, appPath, routesToCheck) {
+async function checkApp(appName, appPath, routesToCheck, mode = "start") {
   console.log(`\nChecking routes for ${appName}...`);
+  bootLog = "";
+  if (mode === "start") {
+    buildApp(appName, appPath);
+  }
   const port = await findAvailablePort(preferredPort);
   const baseUrl = `http://${host}:${port}`;
-  const child = startServer(port, appPath);
+  const child = startServer(port, appPath, mode);
   try {
     await waitForServer(baseUrl, child);
     await runChecks(baseUrl, routesToCheck);
@@ -255,13 +310,13 @@ const docsRouteChecks = [
 ];
 
 async function main() {
-  assertNodeVersion();
+  ensureSupportedNodeVersion();
   const selectedArcadeChecks = apiOnly
     ? arcadeRouteChecks.filter((route) => route.path.startsWith("/api/"))
     : arcadeRouteChecks;
-  await checkApp("Arcade", "apps/arcade", selectedArcadeChecks);
+  await checkApp("Arcade", "apps/arcade", selectedArcadeChecks, "start");
   if (!apiOnly) {
-    await checkApp("Docs", "apps/docs", docsRouteChecks);
+    await checkApp("Docs", "apps/docs", docsRouteChecks, "dev");
   }
   console.log("\n✅ All project routes verified");
 }

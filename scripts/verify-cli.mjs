@@ -62,8 +62,11 @@ function findGoBinary() {
 
 function resolveOutputPath(goBin) {
   const version = run(goBin, ["version"]);
-  const outputLooksWindows = goBin.toLowerCase().endsWith(".exe") || version.output.includes("windows/");
-  return outputLooksWindows ? path.join(ROOT, "reachctl.exe") : path.join(ROOT, "build", "reachctl");
+  const outputLooksWindows =
+    goBin.toLowerCase().endsWith(".exe") || version.output.includes("windows/");
+  return outputLooksWindows
+    ? path.join(ROOT, "reachctl.exe")
+    : path.join(ROOT, "build", "reachctl");
 }
 
 function buildCli(goBin, outBin) {

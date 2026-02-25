@@ -1,0 +1,96 @@
+{
+  "timestamp": "2026-02-25T16:04:19.556Z",
+  "iterations": 3,
+  "tests": [
+    {
+      "name": "simpleDecision",
+      "timestamp": "2026-02-25T16:04:19.560Z",
+      "iterations": [
+        {
+          "iteration": 1,
+          "resultHash": "7fbeb0228f63050e869f2b60a6ae434e70e6fadea054d635df048a42b9d3965a",
+          "canonicalSpecLength": 178
+        },
+        {
+          "iteration": 2,
+          "resultHash": "7fbeb0228f63050e869f2b60a6ae434e70e6fadea054d635df048a42b9d3965a",
+          "canonicalSpecLength": 178
+        },
+        {
+          "iteration": 3,
+          "resultHash": "7fbeb0228f63050e869f2b60a6ae434e70e6fadea054d635df048a42b9d3965a",
+          "canonicalSpecLength": 178
+        }
+      ],
+      "passed": true,
+      "error": null,
+      "consistentHash": "7fbeb0228f63050e869f2b60a6ae434e70e6fadea054d635df048a42b9d3965a",
+      "hashVariations": 1
+    },
+    {
+      "name": "weightedDecision",
+      "timestamp": "2026-02-25T16:04:19.560Z",
+      "iterations": [
+        {
+          "iteration": 1,
+          "resultHash": "d20618993cae1dc508f48f0496586a2434a0e90c458243bb3363475edd8b1387",
+          "canonicalSpecLength": 174
+        },
+        {
+          "iteration": 2,
+          "resultHash": "d20618993cae1dc508f48f0496586a2434a0e90c458243bb3363475edd8b1387",
+          "canonicalSpecLength": 174
+        },
+        {
+          "iteration": 3,
+          "resultHash": "d20618993cae1dc508f48f0496586a2434a0e90c458243bb3363475edd8b1387",
+          "canonicalSpecLength": 174
+        }
+      ],
+      "passed": true,
+      "error": null,
+      "consistentHash": "d20618993cae1dc508f48f0496586a2434a0e90c458243bb3363475edd8b1387",
+      "hashVariations": 1
+    },
+    {
+      "name": "constrainedDecision",
+      "timestamp": "2026-02-25T16:04:19.560Z",
+      "iterations": [
+        {
+          "iteration": 1,
+          "resultHash": "54227566dc04414ecf9f9162a747d28e6aa2a1168c53a6e787a585bf0a7e5dc4",
+          "canonicalSpecLength": 173
+        },
+        {
+          "iteration": 2,
+          "resultHash": "54227566dc04414ecf9f9162a747d28e6aa2a1168c53a6e787a585bf0a7e5dc4",
+          "canonicalSpecLength": 173
+        },
+        {
+          "iteration": 3,
+          "resultHash": "54227566dc04414ecf9f9162a747d28e6aa2a1168c53a6e787a585bf0a7e5dc4",
+          "canonicalSpecLength": 173
+        }
+      ],
+      "passed": true,
+      "error": null,
+      "consistentHash": "54227566dc04414ecf9f9162a747d28e6aa2a1168c53a6e787a585bf0a7e5dc4",
+      "hashVariations": 1
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "pass": 3,
+    "fail": 0
+  },
+  "canonicalJson": {
+    "total": 5,
+    "passed": 5
+  },
+  "hashStability": {
+    "stable": true,
+    "uniqueCount": 1,
+    "hash": "165b836d9d6e803d5ce1bb8b7a01437ff68928f549887360cf13a0d551a66e85"
+  },
+  "allPassed": true
+}

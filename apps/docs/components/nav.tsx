@@ -3,6 +3,7 @@ import Link from "next/link";
 const navItems = [
   { href: "/docs/install", label: "Installation" },
   { href: "/docs/quickstart", label: "Quickstart" },
+  { href: "/docs/proof", label: "Proof of Reality" },
   { href: "/docs/cli", label: "CLI Reference" },
   { href: "/docs/config", label: "Configuration" },
   { href: "/docs/examples", label: "Examples" },

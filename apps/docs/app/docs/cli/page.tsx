@@ -11,53 +11,73 @@ export default function CLIPage() {
 
       <section className="mb-12">
         <h2 className="text-2xl font-semibold mb-6">Diagnostic Commands</h2>
-        <div className="p-6 bg-slate-50 rounded-xl border border-slate-200">
-          <h3 className="text-xl font-bold mb-4 text-slate-900">reach doctor</h3>
-          <p className="text-slate-600 mb-4">
-            The single authoritative health command for trust and hardening checks. It validates the
-            entire execution chain from registry to engine.
-          </p>
-          <div className="mb-6">
-            <h4 className="font-bold text-sm text-slate-700 mb-2">Validation Checks:</h4>
-            <ul className="grid md:grid-cols-2 gap-x-8 gap-y-1 text-sm text-slate-500 list-disc list-inside">
-              <li>Registry source wiring</li>
-              <li>Index schema parsing</li>
-              <li>Signature verification path</li>
-              <li>Policy routing configuration</li>
-              <li>Runner firewall markers</li>
-              <li>Architecture boundaries</li>
-              <li>Memory/CPU overhead</li>
-            </ul>
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          <div className="p-6 bg-slate-50 rounded-xl border border-slate-200">
+            <h3 className="text-xl font-bold mb-4 text-slate-900">reach doctor</h3>
+            <p className="text-slate-600 mb-4">
+              Diagnoses the local environment for critical dependencies and data directory health.
+            </p>
+            <CodeBlock
+              code={`$ reach doctor
+Reach Doctor - Diagnosing local environment...
+[ ] Go Version           OK
+[ ] Node.js Version      OK
+[ ] SQLite Version       OK
+[ ] Data Directory       OK`}
+              language="text"
+            />
           </div>
-          <CodeBlock
-            code={`$ reach doctor
-[OK] Registry integrity validated
-[OK] Signature path presence verified
-[OK] Policy gate configuration healthy
-[OK] System boundaries enforced`}
-            language="text"
-          />
+          <div className="p-6 bg-slate-50 rounded-xl border border-slate-200">
+            <h3 className="text-xl font-bold mb-4 text-slate-900">reach status</h3>
+            <p className="text-slate-600 mb-4">
+              Reports active operating mode, configuration sources, and database connectivity.
+            </p>
+            <CodeBlock
+              code={`$ reach status
+Reach Status
+============
+Mode: oss
+Database: ok (data/reach.db)
+Config: reach.yaml`}
+              language="text"
+            />
+          </div>
+        </div>
+        <div className="p-6 bg-slate-50 rounded-xl border border-slate-200">
+          <h3 className="text-xl font-bold mb-2 text-slate-900">reach bugreport</h3>
+          <p className="text-slate-600 mb-4">
+            Generates a sanitized ZIP bundle containing logs and system metadata for
+            troubleshooting.
+          </p>
+          <CodeBlock code={`reach bugreport --output diagnostic-bundle.zip`} language="bash" />
         </div>
       </section>
 
       <section className="mb-12">
-        <h2 className="text-2xl font-semibold mb-6">Execution Commands</h2>
+        <h2 className="text-2xl font-semibold mb-6">Execution & Versioning</h2>
         <div className="space-y-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="p-6 bg-white border border-slate-200 rounded-xl">
+              <h3 className="text-lg font-bold text-slate-900 mb-2">reach demo</h3>
+              <p className="text-slate-600 mb-4">
+                Executes a deterministic smoke test to verify engine readiness.
+              </p>
+              <CodeBlock code={`reach demo smoke`} language="bash" />
+            </div>
+            <div className="p-6 bg-white border border-slate-200 rounded-xl">
+              <h3 className="text-lg font-bold text-slate-900 mb-2">reach version</h3>
+              <p className="text-slate-600 mb-4">
+                Prints bit-identical version information for the execution fabric.
+              </p>
+              <CodeBlock code={`reach version`} language="bash" />
+            </div>
+          </div>
           <div>
             <h3 className="text-lg font-bold text-slate-900 mb-2">reach run &lt;pack-id&gt;</h3>
             <p className="text-slate-600 mb-4">
-              Directly execute a signed pack. Requires the pack to exist in the local registry and
-              all capability permissions to be pre-authorized.
+              Directly execute a signed pack from the local registry.
             </p>
             <CodeBlock code={`reach run sentinel-v1`} language="bash" />
-          </div>
-
-          <div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">reach demo</h3>
-            <p className="text-slate-600 mb-4">
-              Runs a pre-bundled smoke test to verify local installation and engine readiness.
-            </p>
-            <CodeBlock code={`reach demo`} language="bash" />
           </div>
         </div>
       </section>

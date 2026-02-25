@@ -5,8 +5,5 @@
   "main": "src/index.ts",
   "scripts": {
     "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@zeo/contracts": "*"
   }
 }
