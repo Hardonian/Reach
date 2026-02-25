@@ -29,7 +29,13 @@ export function HeroMedia({ videoSrc, fallbackSrc, className = "" }: HeroMediaPr
   if (prefersReducedMotion || videoError || !videoSrc) {
     return (
       <div className={`relative overflow-hidden ${className}`}>
-        <Image src={fallbackSrc} alt="Hero background" fill className="object-cover" priority />
+        <Image
+          src={fallbackSrc}
+          alt="Deterministic execution flow visualization"
+          fill
+          className="object-cover"
+          priority
+        />
         {/* Overlay for safe text space */}
         <div className="absolute inset-0 bg-linear-to-t from-background via-background/50 to-transparent" />
         <div className="absolute inset-0 bg-linear-to-r from-background/80 via-transparent to-transparent" />
@@ -46,6 +52,7 @@ export function HeroMedia({ videoSrc, fallbackSrc, className = "" }: HeroMediaPr
         playsInline
         preload="auto"
         className="absolute inset-0 w-full h-full object-cover"
+        title="Reach Decision Engine Visualization"
         onError={() => setVideoError(true)}
       >
         <source src={videoSrc} type="video/mp4" />

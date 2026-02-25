@@ -73,12 +73,39 @@ Replay Verified: true`}
           <h2 className="text-3xl font-bold mb-12 text-center">Documentation</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <Link
+              href="/docs/install"
+              className="block p-6 border rounded-lg hover:shadow-lg transition"
+            >
+              <h3 className="text-xl font-semibold mb-2">Installation</h3>
+              <p className="text-slate-600">
+                Install Reach on your local machine or build from source.
+              </p>
+            </Link>
+            <Link
               href="/docs/quickstart"
               className="block p-6 border rounded-lg hover:shadow-lg transition"
             >
               <h3 className="text-xl font-semibold mb-2">Quickstart</h3>
               <p className="text-slate-600">
                 Get up and running in under a minute with your first decision workflow.
+              </p>
+            </Link>
+            <Link
+              href="/docs/cli"
+              className="block p-6 border rounded-lg hover:shadow-lg transition"
+            >
+              <h3 className="text-xl font-semibold mb-2">CLI Reference</h3>
+              <p className="text-slate-600">
+                Commands for diagnostics, execution, and capsule verification.
+              </p>
+            </Link>
+            <Link
+              href="/docs/config"
+              className="block p-6 border rounded-lg hover:shadow-lg transition"
+            >
+              <h3 className="text-xl font-semibold mb-2">Configuration</h3>
+              <p className="text-slate-600">
+                Environment variables and .reach.json settings.
               </p>
             </Link>
             <Link
@@ -124,6 +151,24 @@ Replay Verified: true`}
               <h3 className="text-xl font-semibold mb-2">Stability</h3>
               <p className="text-slate-600">
                 What's stable vs experimental, versioning policy, and migration guides.
+              </p>
+            </Link>
+            <Link
+              href="/docs/faq"
+              className="block p-6 border rounded-lg hover:shadow-lg transition"
+            >
+              <h3 className="text-xl font-semibold mb-2">FAQ</h3>
+              <p className="text-slate-600">
+                Answers to common questions about Reach and determinism.
+              </p>
+            </Link>
+            <Link
+              href="/support"
+              className="block p-6 border rounded-lg hover:shadow-lg transition bg-blue-50 border-blue-100"
+            >
+              <h3 className="text-xl font-semibold mb-2">Support</h3>
+              <p className="text-slate-600">
+                Get help from the community or reach out to Enterprise support.
               </p>
             </Link>
           </div>

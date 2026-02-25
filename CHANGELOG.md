@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-02-25
+
+### Added
+
+- **OSS Launch Readiness**: Comprehensive hardening of the public documentation surface.
+- **New Documentation**: Added critical paths for `/docs/install`, `/docs/quickstart`, `/docs/cli`, `/docs/config`, `/docs/faq`, and `/support`.
+- **Search & SEO**: Implemented `sitemap.xml`, `robots.txt`, and OpenGraph/Twitter social metadata.
+- **Link Integrity**: Added automated `verify:links` script to prevent documentation drift and broken links.
+- **Accessibility**: Improved keyboard focus, ARIA labels, and media titles across docs and marketing sites.
+
+### Fixed
+
+- Resolved broken source installation links and navigation drift in documentation cards.
+- Fixed duplicate routes and overlapping navigation in sidebar components.
+
 ## [0.3.1] - 2026-02-22
 
 ### Added

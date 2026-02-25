@@ -56,8 +56,8 @@ export default function Installation() {
             <h2 className="text-xl font-bold mb-4">Install from Source</h2>
             <p className="text-gray-400 mb-4">For development or to build from source:</p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
-              <p>git clone https://github.com/XHARDONIANXSLASHXReadyLayer.git</p>
-              <p>XCDXReadyLayer</p>
+              <p>git clone https://github.com/reach/reach.git</p>
+              <p>cd reach</p>
               <p>npm install</p>
               <p>npm run build</p>
               <p>npm link</p>

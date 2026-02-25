@@ -21,7 +21,11 @@ export function CodeBlock({ code, language = "bash" }: CodeBlockProps) {
       <pre className="bg-slate-900 text-slate-50 p-4 rounded-lg overflow-x-auto">
         <code className={`language-${language}`}>{code}</code>
       </pre>
-      <button onClick={copyToClipboard} className={`copy-button ${copied ? "copied" : ""}`}>
+      <button
+        onClick={copyToClipboard}
+        className={`copy-button ${copied ? "copied" : ""}`}
+        aria-label={copied ? "Copied to clipboard" : "Copy code snippet"}
+      >
         {copied ? "Copied!" : "Copy"}
       </button>
     </div>

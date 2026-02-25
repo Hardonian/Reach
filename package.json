@@ -41,6 +41,7 @@
     "build:site:oss": "NEXT_PUBLIC_BASE_URL=https://reach.dev NEXT_PUBLIC_DOCS_BASE_URL=https://reach-cli.com npm run build --workspace arcade && NEXT_PUBLIC_DOCS_BASE_URL=https://reach-cli.com npm run build --workspace @reach/docs",
     "build:site:enterprise-stub": "NEXT_PUBLIC_BASE_URL=https://app.reach.dev REACH_CLOUD_ENABLED=true npm run build --workspace arcade",
     "verify:sites": "node scripts/verify-sites.mjs",
+    "verify:links": "node --import tsx/esm scripts/check-links.ts",
     "verify:installers": "node scripts/verify-installers.mjs",
     "demo:smoke": "./reach demo",
     "verify:fast": "npm run typecheck && npm run lint:structure && npm run format:check && npm run docs:index:check && npm run health:check && npm run gates:reality && npm run gates:terminology && npm test",

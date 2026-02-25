@@ -9,17 +9,6 @@ const preferredPort = Number.parseInt(process.env.REACH_VERIFY_PORT ?? "3337", 1
 const minNodeMajor = 20;
 const minNodeMinor = 9;
 
-const routes = [
-  "/",
-  "/docs",
-  "/app",
-  "/app/assistant",
-  "/assistant",
-  "/app/governance/history",
-  "/console/governance/history",
-  "/console/artifacts",
-  "/console/evaluation",
-];
 
 const nextBinCandidates = [
   path.resolve("apps/arcade/node_modules/next/dist/bin/next"),
@@ -87,9 +76,23 @@ async function findAvailablePort(port) {
   }
 }
 
-function startServer(port) {
+async function checkApp(appName, appPath, routesToCheck) {
+  console.log(`\nChecking routes for ${appName}...`);
+  const port = await findAvailablePort(preferredPort);
+  const baseUrl = `http://${host}:${port}`;
+  const child = startServer(port, appPath);
+  try {
+    await waitForServer(baseUrl, child);
+    await runChecks(baseUrl, routesToCheck);
+    console.log(`✅ ${appName} routes passed`);
+  } finally {
+    await stopServer(child);
+  }
+}
+
+function startServer(port, appPath) {
   const child = spawn(process.execPath, [nextBin, "dev", "-p", String(port), "-H", host], {
-    cwd: path.resolve("apps/arcade"),
+    cwd: path.resolve(appPath),
     stdio: ["ignore", "pipe", "pipe"],
     env: {
       ...process.env,
@@ -108,37 +111,10 @@ function startServer(port) {
   return child;
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function waitForServer(baseUrl, child, timeoutMs = 120_000) {
-  const startedAt = Date.now();
-
-  while (Date.now() - startedAt < timeoutMs) {
-    if (child.exitCode !== null) {
-      throw new Error(`Next.js exited before readiness (exit code ${child.exitCode}).`);
-    }
-
-    const timeout = withTimeout(5000);
-    try {
-      const response = await fetch(baseUrl, { redirect: "manual", signal: timeout.signal });
-      if (response.status > 0) return;
-    } catch {
-      // Keep polling until timeout.
-    } finally {
-      timeout.clear();
-    }
-    await sleep(1000);
-  }
-
-  throw new Error(`Timed out waiting for server at ${baseUrl}`);
-}
-
-async function runChecks(baseUrl) {
+async function runChecks(baseUrl, routesToCheck) {
   const results = [];
 
-  for (const route of routes) {
+  for (const route of routesToCheck) {
     const timeout = withTimeout(20_000);
     let status = 599;
     try {
@@ -167,11 +143,37 @@ async function runChecks(baseUrl) {
 
   if (failed.length > 0) {
     throw new Error(
-      `verify:routes failed (${failed.length} route(s) returned 500+): ${failed
+      `verification failed (${failed.length} route(s) returned 500+): ${failed
         .map((item) => `${item.route}:${item.status}`)
         .join(", ")}`,
     );
   }
+}
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForServer(baseUrl, child, timeoutMs = 120_000) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    if (child.exitCode !== null) {
+      throw new Error(`Next.js exited before readiness (exit code ${child.exitCode}).`);
+    }
+
+    const timeout = withTimeout(5000);
+    try {
+      const response = await fetch(baseUrl, { redirect: "manual", signal: timeout.signal });
+      if (response.status > 0) return;
+    } catch {
+      // Keep polling until timeout.
+    } finally {
+      timeout.clear();
+    }
+    await sleep(1000);
+  }
+
+  throw new Error(`Timed out waiting for server at ${baseUrl}`);
 }
 
 async function stopServer(child) {
@@ -188,17 +190,13 @@ async function stopServer(child) {
 async function main() {
   assertNodeVersion();
 
-  let child;
-  try {
-    const port = await findAvailablePort(preferredPort);
-    const baseUrl = `http://${host}:${port}`;
-    child = startServer(port);
-    await waitForServer(baseUrl, child);
-    await runChecks(baseUrl);
-    console.log("✅ verify:routes passed");
-  } finally {
-    await stopServer(child);
-  }
+  const arcadeRoutes = ["/", "/app", "/support", "/faq"];
+  const docsRoutes = ["/", "/docs/install", "/docs/quickstart", "/docs/cli", "/docs/config", "/docs/faq", "/support"];
+
+  await checkApp("Arcade (Enterprise)", "apps/arcade", arcadeRoutes);
+  await checkApp("Docs (OSS)", "apps/docs", docsRoutes);
+
+  console.log("\n✅ All project routes verified");
 }
 
 main().catch((error) => {

@@ -1,12 +1,17 @@
 import Link from "next/link";
 
 const navItems = [
+  { href: "/docs/install", label: "Installation" },
   { href: "/docs/quickstart", label: "Quickstart" },
+  { href: "/docs/cli", label: "CLI Reference" },
+  { href: "/docs/config", label: "Configuration" },
   { href: "/docs/examples", label: "Examples" },
   { href: "/docs/presets", label: "Presets" },
   { href: "/docs/plugins", label: "Plugins" },
   { href: "/docs/troubleshooting", label: "Troubleshooting" },
   { href: "/docs/stability", label: "Stability" },
+  { href: "/docs/faq", label: "FAQ" },
+  { href: "/support", label: "Support" },
 ];
 
 interface NavProps {
