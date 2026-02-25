@@ -152,3 +152,67 @@ export interface DashboardViewModel {
   lists: DashboardLists;
   ctas: DashboardCta[];
 }
+
+
+// Zeolite Decision Types
+export interface DecisionAgent {
+  id: string;
+  name: string;
+  role: string;
+}
+
+export interface DecisionAction {
+  id: string;
+  label: string;
+  actorId: string;
+  kind: string;
+}
+
+export interface DecisionAssumption {
+  id: string;
+  text: string;
+  status: string;
+  confidence: string;
+  tags: string[];
+}
+
+export interface DecisionConstraint {
+  id: string;
+  name: string;
+  value: string;
+  status: string;
+}
+
+export interface DecisionObjective {
+  id: string;
+  metric: string;
+  weight: number;
+}
+
+export interface DecisionSpec {
+  id: string;
+  title: string;
+  context: string;
+  createdAt: string;
+  horizon: string;
+  agents: DecisionAgent[];
+  actions: DecisionAction[];
+  constraints: DecisionConstraint[];
+  assumptions: DecisionAssumption[];
+  objectives: DecisionObjective[];
+}
+
+export interface EvidenceEvent {
+  id?: string;
+  type?: string;
+  timestamp?: string;
+  payload?: Record<string, unknown>;
+  source?: string;
+  [key: string]: unknown;
+}
+
+export interface FinalizedDecisionTranscript {
+  transcript_id?: string;
+  transcript_hash?: string;
+  [key: string]: unknown;
+}

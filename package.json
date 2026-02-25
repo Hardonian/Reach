@@ -61,7 +61,10 @@
     "reach:cpx:report": "npx tsx scripts/cpx-cli.ts report",
     "smoke:cpx": "npx tsx scripts/smoke-cpx.ts",
     "validate:sccl": "npx tsx scripts/sccl-cli.ts gate",
-    "smoke:sccl": "npx tsx scripts/smoke-sccl.ts"
+    "smoke:sccl": "npx tsx scripts/smoke-sccl.ts",
+    "verify:types": "npm run typecheck",
+    "verify:lint": "npm run lint",
+    "reach:cpx:resolve": "npx tsx scripts/cpx-cli.ts resolve"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",

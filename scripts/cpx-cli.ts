@@ -2,6 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import { cpxToMarkdown, cpxToSarif, createPackFromGit, runCpx, validatePatchPack, type PatchPack, type TaskClass } from '../src/dgl/cpx.js';
+import { buildMergePlan, writeMergePlanFile } from '../src/dgl/cpx-resolve.js';
 
 const args = process.argv.slice(2);
 const cmd = args[0] ?? 'help';
@@ -63,4 +64,17 @@ if (cmd === 'report') {
   process.exit(0);
 }
 
-console.log('Usage: cpx-cli pack|validate-pack|run|report');
+
+if (cmd === 'resolve') {
+  const id = flag('--id', '');
+  const reportPath = id ? path.join('dgl', 'cpx', 'reports', `${id}.json`) : flag('--path', '');
+  if (!reportPath || !fs.existsSync(reportPath)) throw new Error('Report file not found.');
+  const report = JSON.parse(fs.readFileSync(reportPath, 'utf-8')) as ReturnType<typeof runCpx>;
+  const outPath = flag('--out', path.join('dgl', 'cpx', 'merge-plans', `${report.run_id}.merge-plan.json`));
+  const plan = buildMergePlan(report);
+  writeMergePlanFile(plan, outPath);
+  console.log(JSON.stringify({ ok: true, run_id: report.run_id, merge_plan: outPath, conflict_packets: plan.packets.length, requires_human_ack: plan.packets.some((p) => p.severity === 'high') }, null, 2));
+  process.exit(0);
+}
+
+console.log('Usage: cpx-cli pack|validate-pack|run|report|resolve');

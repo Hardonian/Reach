@@ -16,46 +16,49 @@ export function generateCtas(model: DashboardViewModel, persona: DashboardPerson
 
   if (missingEvidence > 0 || highRisk) {
     items.push({
+      id: 'add-missing-evidence',
       label: "Add missing evidence",
-      command: `zeo add-note --decision ${model.id} --text "add provenance-backed evidence for top risks"`,
-      reason: "Reduces uncertainty for high-severity findings.",
-      priority: 1,
+      action: `zeo add-note --decision ${model.id} --text "add provenance-backed evidence for top risks"`,
+      target: 'evidence',
+      priority: 'high',
     });
   }
 
   items.push({
+    id: 'set-review-horizon',
     label: "Set review horizon",
-    command: `zeo review weekly --decision ${model.id}`,
-    reason: "Monitors sensitivity and assumption drift over time.",
-    priority: 2,
+    action: `zeo review weekly --decision ${model.id}`,
+    target: 'review',
+    priority: 'medium',
   });
 
   items.push({
+    id: 'export-verification-bundle',
     label: "Export verification bundle",
-    command: `zeo export bundle --decision ${model.id}`,
-    reason: "Captures reproducible artifacts for audit and sharing.",
-    priority: 3,
+    action: `zeo export bundle --decision ${model.id}`,
+    target: 'export',
+    priority: 'medium',
   });
 
   if (context.includeVerify ?? true) {
     items.push({
+      id: 'verify-exported-bundle',
       label: "Verify exported bundle",
-      command: `zeo verify decision ${model.id}`,
-      reason: "Confirms replay integrity before external sharing.",
-      priority: 4,
+      action: `zeo verify decision ${model.id}`,
+      target: 'verify',
+      priority: 'medium',
     });
   }
 
   if (context.includeOpen ?? true) {
     items.push({
+      id: 'open-dashboard',
       label: "Open dashboard",
-      command: `zeo view ${model.id} --persona ${persona} --open`,
-      reason: "Review the decision map and top policy triggers.",
-      priority: 5,
+      action: `zeo view ${model.id} --persona ${persona} --open`,
+      target: 'dashboard',
+      priority: 'low',
     });
   }
 
-  return items
-    .slice(0, 5)
-    .sort((a: any, b: any) => a.priority - b.priority || a.label.localeCompare(b.label));
+  return items.slice(0, 5);
 }

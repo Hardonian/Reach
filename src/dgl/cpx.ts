@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
+import { execSync } from 'child_process';
 
 export type TaskClass = 'refactor' | 'bugfix' | 'docs' | 'security' | 'perf' | 'ui' | 'infra';
 export type ArbitrationDecisionType = 'SELECT_ONE' | 'REQUEST_REWORK' | 'PROPOSE_MERGE_PLAN' | 'SELECT_ONE_WITH_PATCHUPS';
@@ -294,7 +295,7 @@ export function cpxToSarif(report: CpxReport): Record<string, unknown> {
 }
 
 export function createPackFromGit(baseRef: string, headRef: string, provider: string, model: string, agentId: string, taskClass: TaskClass): PatchPack {
-  const exec = (cmd: string) => require('child_process').execSync(cmd, { encoding: 'utf-8' }).trim();
+  const exec = (cmd: string) => execSync(cmd, { encoding: 'utf-8' }).trim();
   const diff = exec(`git diff --no-color ${baseRef} ${headRef}`);
   const changed = exec(`git diff --name-only ${baseRef} ${headRef}`).split('\n').filter(Boolean).sort();
   return {
