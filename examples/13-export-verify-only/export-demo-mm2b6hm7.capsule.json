@@ -1,0 +1,19 @@
+{
+  "manifest": {
+    "spec_version": "1.0",
+    "run_id": "export-demo-mm2b6hm7",
+    "run_fingerprint": "4e58fda30e12321ea61569ee78c413f8a6e14ec8cbb7c079edd18615d5ebe2a5",
+    "registry_snapshot_hash": "",
+    "pack": { "name": "export-demo-pack", "version": "1.0.0" },
+    "policy": { "decision": "allow", "reason": "export_demo" },
+    "federation_path": null,
+    "audit_root": "e6845188b1d2aebdf19d13c1613d7a49b5806a7fe336ec775fa182b36719bbc1",
+    "environment": { "source": "export-example" },
+    "created_at": "1970-01-01T00:00:00Z"
+  },
+  "event_log": [
+    { "action": "init", "step": 1, "timestamp": 1772040532399 },
+    { "action": "policy_check", "result": "pass", "step": 2 },
+    { "action": "execute", "duration_ms": 42, "step": 3 }
+  ]
+}

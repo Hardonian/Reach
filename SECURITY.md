@@ -70,6 +70,27 @@ Examples include:
 - `hono`
 - `node-llama-cpp`
 
+## Artifact Verification
+
+All release artifacts include checksums and SBOM:
+
+```bash
+# Download and verify checksums
+curl -fsSL -O "https://github.com/reach/reach/releases/latest/download/SHA256SUMS"
+curl -fsSL -O "https://github.com/reach/reach/releases/latest/download/reachctl-linux-amd64"
+sha256sum -c SHA256SUMS
+
+# View SBOM
+curl -fsSL "https://github.com/reach/reach/releases/latest/download/reach-sbom.cyclonedx.json"
+```
+
+## Supply Chain Security
+
+- **SBOM**: CycloneDX format SBOM generated for every release
+- **OSV Scanning**: Automated vulnerability scanning via [OSV Scanner](https://github.com/google/osv-scanner)
+- **Lockfile Integrity**: `package-lock.json` verified in CI
+- **Reproducible Builds**: Go binaries built with `-trimpath` for reproducibility
+
 ## Operational Expectations
 
 - Validate OAuth/webhook inputs and reject malformed payloads.

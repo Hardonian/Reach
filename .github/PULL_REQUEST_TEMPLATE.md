@@ -1,42 +1,62 @@
 ## Description
 
-<!-- Describe what this PR changes and why -->
+<!-- Brief description of the changes -->
 
 ## Type of Change
+
+<!-- Check relevant options -->
 
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [ ] Documentation update
-- [ ] Refactoring (no functional changes)
 - [ ] Performance improvement
-- [ ] Test additions/improvements
+- [ ] Code refactoring (no functional changes)
+- [ ] CI/CD improvement
+- [ ] Other (please describe):
 
-## Checklist
+## Verification
 
-- [ ] I have run `npm run verify:fast` and all checks pass
-- [ ] My code follows the project's style guidelines
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
-- [ ] Any dependent changes have been merged and published
+<!-- All PRs must pass these checks before merging -->
+
+- [ ] `npm run typecheck` passes
+- [ ] `npm run lint:structure` passes
+- [ ] `npm run format:check` passes
+- [ ] `npm test` passes
+- [ ] `npm run verify:determinism` passes (if touching core engine)
 
 ## Determinism Check
 
+<!-- If your changes touch the decision engine or hashing -->
+
 - [ ] My changes do not introduce non-deterministic behavior
-- [ ] No `Math.random()` without seed in core paths
-- [ ] No `Date.now()` in output-determining code
-- [ ] Object keys are sorted where order affects output
+- [ ] I have not used `time.Now()`, `Math.random()`, or similar in deterministic paths
+- [ ] I have not modified hashing algorithms or replay semantics
 
 ## Testing
 
 <!-- Describe how you tested your changes -->
 
+- [ ] Unit tests added/updated
+- [ ] Integration tests pass
+- [ ] Manual testing performed (describe below)
+
+## Documentation
+
+- [ ] README updated (if user-facing changes)
+- [ ] CHANGELOG.md updated (for notable changes)
+- [ ] Inline comments added for complex logic
+
 ## Related Issues
 
-<!-- Link to any related issues: Fixes #123, Addresses #456 -->
+<!-- Link to related issues using "Fixes #123" or "Relates to #456" -->
 
-## Screenshots (if applicable)
+Fixes #
 
-<!-- Add screenshots for UI changes -->
+## Screenshots / Output
+
+<!-- If applicable, add screenshots or command output -->
+
+## Additional Notes
+
+<!-- Any additional context or notes for reviewers -->

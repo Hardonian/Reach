@@ -1,0 +1,33 @@
+{
+  "run_id": "export-demo-mm2b6hm7",
+  "pack": {
+    "name": "export-demo-pack",
+    "version": "1.0.0"
+  },
+  "policy": {
+    "decision": "allow",
+    "reason": "export_demo"
+  },
+  "event_log": [
+    {
+      "step": 1,
+      "action": "init",
+      "timestamp": 1772040532399
+    },
+    {
+      "step": 2,
+      "action": "policy_check",
+      "result": "pass"
+    },
+    {
+      "step": 3,
+      "action": "execute",
+      "duration_ms": 42
+    }
+  ],
+  "latency_ms": 42,
+  "token_usage": 0,
+  "environment": {
+    "source": "export-example"
+  }
+}

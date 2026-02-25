@@ -145,6 +145,7 @@ jobs:
           VERSION="$(cat VERSION)"
           REACH_VERSION="${VERSION}" REACH_RELEASE_DIR="${PWD}/dist" INSTALL_DIR="${INSTALL_DIR}" bash dist/install.sh
           "${INSTALL_DIR}/reach" version
+          "${INSTALL_DIR}/reach" status || true
           set +e
           "${INSTALL_DIR}/reach" doctor
           doctor_exit=$?
@@ -183,6 +184,7 @@ jobs:
           $installDir = Join-Path $env:RUNNER_TEMP "reach-bin"
           & (Join-Path $dist "install.ps1") -Version $version -InstallDir $installDir -ReleaseDir $dist
           & (Join-Path $installDir "reachctl.exe") version
+          & (Join-Path $installDir "reachctl.exe") status
           & (Join-Path $installDir "reachctl.exe") doctor
           if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 1) {
             throw "doctor command failed unexpectedly with exit code $LASTEXITCODE"

@@ -7,7 +7,7 @@
  */
 
 import { execSync } from "child_process";
-import { existsSync, copyFileSync, mkdtempSync, rmSync } from "fs";
+import { existsSync, copyFileSync, mkdtempSync, mkdirSync, rmSync } from "fs";
 import { join } from "path";
 import os from "os";
 
@@ -30,7 +30,7 @@ const workspaceRoot = join(tempRoot, "workspace");
 
 try {
   // Minimal clean workspace for install validation.
-  execSync(`mkdir -p "${workspaceRoot}"`, { stdio: "ignore" });
+  mkdirSync(workspaceRoot, { recursive: true });
   copyFileSync(join(rootDir, "package.json"), join(workspaceRoot, "package.json"));
   copyFileSync(join(rootDir, "package-lock.json"), join(workspaceRoot, "package-lock.json"));
 

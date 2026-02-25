@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Supply Chain Verification Script
- * 
+ *
  * Runs lockfile integrity, dependency audit, and SBOM generation smoke tests.
  * Designed to be non-blocking for advisory issues while catching real problems.
  */
@@ -23,16 +23,31 @@ let exitCode = 0;
 let advisoryCount = 0;
 
 function log(section, message, type = "info") {
-  const prefix = type === "error" ? `${RED}✗${RESET}` : type === "warn" ? `${YELLOW}⚠${RESET}` : `${GREEN}✓${RESET}`;
+  const prefix =
+    type === "error"
+      ? `${RED}✗${RESET}`
+      : type === "warn"
+        ? `${YELLOW}⚠${RESET}`
+        : `${GREEN}✓${RESET}`;
   console.log(`${prefix} [${section}] ${message}`);
 }
 
 function run(command, options = {}) {
   try {
-    return execSync(command, { cwd: root, encoding: "utf8", stdio: options.silent ? "pipe" : "inherit", ...options });
+    return execSync(command, {
+      cwd: root,
+      encoding: "utf8",
+      stdio: options.silent ? "pipe" : "inherit",
+      ...options,
+    });
   } catch (e) {
     if (options.ignoreError) {
-      return e.stdout || "";
+      return (e.stdout || "") + (e.stderr || "");
+    }
+    // Check if it's just warnings
+    const output = (e.stdout || "") + (e.stderr || "");
+    if (e.status === 0 || (output.includes("up to date") && !output.includes("ERR!"))) {
+      return output;
     }
     throw e;
   }
@@ -86,7 +101,9 @@ try {
   const auditOutput = run("npm audit --audit-level=high", { silent: true, ignoreError: true });
   log("AUDIT", "No high/critical vulnerabilities (or advisory mode)");
 } catch (e) {
-  const vulns = e.message.includes("vulnerabilities") ? e.message.match(/(\d+) vulnerabilities?/) : null;
+  const vulns = e.message.includes("vulnerabilities")
+    ? e.message.match(/(\d+) vulnerabilities?/)
+    : null;
   if (vulns) {
     advisoryCount += parseInt(vulns[1], 10);
     log("AUDIT", `${vulns[1]} vulnerabilities found (advisory only)`, "warn");

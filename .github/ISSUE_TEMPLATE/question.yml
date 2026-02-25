@@ -1,0 +1,54 @@
+name: Question
+description: Ask a question about Reach
+title: "[QUESTION] "
+labels: ["question", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question? We'd be happy to help! Please check the documentation first.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: Please confirm you've checked these resources
+      options:
+        - label: I've read the [README](README.md) and [docs](https://reach-cli.com)
+          required: true
+        - label: I've searched [existing discussions](https://github.com/reach/reach/discussions)
+          required: true
+        - label: I've checked the [examples](examples/) directory
+          required: false
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What would you like to know?
+      placeholder: |
+        I'm trying to understand how to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Provide context that might help us answer your question
+      placeholder: |
+        - What are you trying to accomplish?
+        - What have you tried so far?
+        - What specific part of the documentation was unclear?
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Your environment (if relevant)
+      placeholder: |
+        - OS: [e.g. macOS 14, Ubuntu 22.04]
+        - Reach Version: [e.g. 0.3.1]
+        - Node Version: [e.g. 20.9.0]
+    validations:
+      required: false

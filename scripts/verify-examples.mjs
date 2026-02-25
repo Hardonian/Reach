@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Examples Verification Script
- * 
+ *
  * Runs all examples in the examples/ directory and verifies they complete successfully.
  * This is designed to be fast and non-flaky - examples must be deterministic.
  */
@@ -25,7 +25,12 @@ let failed = 0;
 let skipped = 0;
 
 function log(status, message) {
-  const prefix = status === "PASS" ? `${GREEN}✓${RESET}` : status === "FAIL" ? `${RED}✗${RESET}` : `${YELLOW}⚠${RESET}`;
+  const prefix =
+    status === "PASS"
+      ? `${GREEN}✓${RESET}`
+      : status === "FAIL"
+        ? `${RED}✗${RESET}`
+        : `${YELLOW}⚠${RESET}`;
   console.log(`${prefix} ${message}`);
 }
 
@@ -111,11 +116,14 @@ console.log("━".repeat(60));
 
 const minimalExample = path.join(examplesDir, "01-quickstart-local");
 if (fs.existsSync(minimalExample)) {
-  const result = runExample({
-    name: "01-quickstart-local",
-    path: minimalExample,
-    entryPoint: fs.existsSync(path.join(minimalExample, "run.js")) ? "run.js" : "run.mjs",
-  }, 60000);
+  const result = runExample(
+    {
+      name: "01-quickstart-local",
+      path: minimalExample,
+      entryPoint: fs.existsSync(path.join(minimalExample, "run.js")) ? "run.js" : "run.mjs",
+    },
+    60000,
+  );
 
   if (result.success) {
     log("PASS", `Minimal example completed in ${result.duration}ms`);
@@ -151,11 +159,16 @@ for (const example of examples) {
     passed++;
   } else {
     // Check if it's a known flaky/network issue
-    const isNetworkError = result.error?.includes("network") || result.error?.includes("ECONNREFUSED");
-    const isMissingDep = result.error?.includes("Cannot find module") || result.error?.includes("not installed");
+    const isNetworkError =
+      result.error?.includes("network") || result.error?.includes("ECONNREFUSED");
+    const isMissingDep =
+      result.error?.includes("Cannot find module") || result.error?.includes("not installed");
 
     if (isNetworkError || isMissingDep) {
-      log("SKIP", `${example.name} - ${isNetworkError ? "network required" : "deps not installed"}`);
+      log(
+        "SKIP",
+        `${example.name} - ${isNetworkError ? "network required" : "deps not installed"}`,
+      );
       skipped++;
     } else {
       log("FAIL", `${example.name} - ${result.error}`);
