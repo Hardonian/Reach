@@ -40,6 +40,17 @@ const CONSOLE_ROUTES = [
   { path: "/console/traces", heading: "Trace" },
 ];
 
+const API_ROUTES = [
+  { path: "/api/health", statuses: [200] },
+  { path: "/api/ready", statuses: [200, 503] },
+  { path: "/api/v1/dgl", statuses: [200, 401, 403] },
+  { path: "/api/v1/cpx", statuses: [200, 401, 403] },
+  { path: "/api/v1/sccl", statuses: [200, 401, 403] },
+  { path: "/api/v1/policy", statuses: [200, 401, 403] },
+  { path: "/api/v1/governance/history", statuses: [200, 401, 403] },
+  { path: "/api/v1/governance/artifacts/test", statuses: [401, 403, 404] },
+];
+
 let passed = 0;
 let failed = 0;
 let skipped = 0;
@@ -91,6 +102,26 @@ async function testRoute(path, heading, allowRedirect = false) {
   }
 }
 
+async function testApiRoute(path, allowedStatuses) {
+  const url = `${BASE_URL}${path}`;
+  try {
+    const res = await fetch(url, { redirect: "manual" });
+    const status = res.status;
+    if (!allowedStatuses.includes(status)) {
+      console.error(
+        `  FAIL: ${path} -> ${status} (expected one of ${allowedStatuses.join(",")})`,
+      );
+      failed++;
+      return;
+    }
+    console.log(`  PASS: ${path} -> ${status}`);
+    passed++;
+  } catch (err) {
+    console.error(`  FAIL: ${path} — ${err.message}`);
+    failed++;
+  }
+}
+
 async function main() {
   console.log(`\nSmoke testing against ${BASE_URL}\n`);
 
@@ -102,6 +133,11 @@ async function main() {
   console.log("\nConsole routes (auth-protected, redirect OK):");
   for (const route of CONSOLE_ROUTES) {
     await testRoute(route.path, route.heading, true);
+  }
+
+  console.log("\nAPI routes (contract smoke):");
+  for (const route of API_ROUTES) {
+    await testApiRoute(route.path, route.statuses);
   }
 
   console.log(`\n--- Results: ${passed} passed, ${failed} failed, ${skipped} skipped ---`);

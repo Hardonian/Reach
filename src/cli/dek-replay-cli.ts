@@ -6,8 +6,8 @@
  * deterministic execution and detecting drift.
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
-import { resolve, join } from "node:path";
+import { writeFileSync, existsSync, mkdirSync } from "node/fs";
+import { join } from "node/path";
 import type { ZeoJournalEntry } from "@zeo/contracts";
 import {
   replayExecution,

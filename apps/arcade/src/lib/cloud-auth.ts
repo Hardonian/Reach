@@ -308,7 +308,10 @@ export async function requireAuth(
 
 export function requireRole(ctx: AuthContext, minRole: Role): boolean {
   const order: Role[] = ["viewer", "member", "admin", "owner"];
-  return order.indexOf(ctx.role) >= order.indexOf(minRole);
+  const roleIndex = order.indexOf(ctx.role);
+  const minRoleIndex = order.indexOf(minRole);
+  if (roleIndex < 0 || minRoleIndex < 0) return false;
+  return roleIndex >= minRoleIndex;
 }
 
 /** Standard structured error response with correlation_id */

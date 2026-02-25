@@ -6,84 +6,66 @@ Scope: add-if-missing / improve-if-existing only
 
 ## Executive Summary
 
-This scan identified final fragility/theatre risks that reduce adoption trust, release confidence, and operational resilience. Fixes are prioritized by blast radius and implementation leverage.
+This scan focused on the remaining high-leverage reliability/trust gaps that could still produce false-green releases, onboarding friction, or operator confusion.
 
 ## P0 (Ship Blockers)
 
-1. Missing public health/readiness endpoints for deployment platforms.
+1. Health/readiness endpoints missing for deployment diagnostics.
 
-- Risk: blind deploys, poor Vercel/CI diagnostics.
-- Fix: add `/api/health` and `/api/ready` with cloud DB readiness checks and safe degraded behavior.
-- Status: fixed in this pass.
+- Risk: blind deploys and weak platform readiness signals.
+- Fix: added `/api/health` and `/api/ready` with degraded-mode behavior when cloud DB is disabled.
 
-2. Route smoke coverage incomplete for governance/artifact/CPX/SCCL/DGL/policy surfaces.
+2. Route smoke checks were too permissive (`<500` allowed false greens such as 404).
 
-- Risk: false-green deploys and hard-500 regressions.
-- Fix: expand `verify:routes` + smoke harness route matrix.
-- Status: fixed in this pass.
+- Risk: missing critical routes could still pass CI.
+- Fix: rewrote `verify:routes` with explicit expected status sets and expanded coverage for governance, artifact, DGL/CPX/SCCL/policy surfaces.
 
-3. Release verification missing deterministic dry-run gate.
+3. `verify:spec` CLI path was fragile and could be effectively no-op.
 
-- Risk: release breaks detected after tagging.
-- Fix: add `verify:release` script validating changelog/version/workflow/release artifacts assumptions.
-- Status: fixed in this pass.
+- Risk: schema validation drift could ship undetected.
+- Fix: fixed `tools/validate-spec.mjs` CLI behavior and added concrete fixtures under `spec/fixtures`.
 
 ## P1 (High Priority)
 
-1. Governance UI TODO theatre in policy actions.
+1. Governance UI contained TODO theater and inconsistent affordances.
 
-- Risk: broken user trust and unclear operator behavior.
-- Fix: replace TODO placeholders with explicit non-destructive action handlers and UX messaging.
-- Status: fixed in this pass.
+- Risk: low operator trust and ambiguous actions.
+- Fix: replaced TODO handlers with explicit guarded actions and added consistent copy-command UX.
 
-2. No single “10-minute success” canonical path across CLI/Web/mixed.
+2. Missing golden-path command experience for OSS adoption.
 
-- Risk: onboarding friction and adoption drop.
-- Fix: add `docs/getting-started/10-minute-success.md` + `reach quickstart` path.
-- Status: fixed in this pass.
+- Risk: onboarding drop after install.
+- Fix: added `reach quickstart` + deterministic fixture artifact generation and documented 10-minute CLI/web/mixed flows.
 
-3. Conformance entrypoint not unified.
+3. Release engineering lacked deterministic dry-run checks and changelog-derived note enforcement.
 
-- Risk: ecosystem adapter quality drift.
-- Fix: add `verify:conformance` runner bundling schema, compat, fixture, and contract checks.
-- Status: fixed in this pass.
-
-4. Security posture docs fragmented.
-
-- Risk: slower enterprise evaluation and incident response ambiguity.
-- Fix: add `security-posture`, `incident-response`, `permissions-matrix` docs.
-- Status: fixed in this pass.
+- Risk: release-time surprises and inconsistent metadata.
+- Fix: added `verify:release`, changelog release-note renderer, and hardened release workflow controls.
 
 ## P2 (Operational Hardening)
 
-1. Sparse operational release playbook.
+1. Governance metrics/reconciliation visibility were sparse.
 
-- Risk: tribal release knowledge.
-- Fix: add `docs/ops/releasing.md` mapped to scripts/workflows.
-- Status: fixed in this pass.
+- Risk: slower debugging and weaker production status visibility.
+- Fix: added lightweight observability counters, persisted snapshots, and `reach status`.
 
-2. Observability counters not normalized for governance-critical actions.
+2. Public ingress routes lacked consistent rate limiting.
 
-- Risk: limited trend visibility and slow debugging.
-- Fix: add lightweight observability counters and status reporting hooks.
-- Status: fixed in this pass.
+- Risk: abuse/noise amplification on webhook/ingest paths.
+- Fix: added rate limiting on CI ingest, GitHub webhook, monitor ingest, and manual gate trigger.
 
-3. Idempotency seam for GitHub check updates can duplicate updates on retries.
+3. Multiple catch blocks swallowed errors with no context.
 
-- Risk: noisy checks, non-deterministic PR status updates.
-- Fix: add idempotent check-run reuse/update flow.
-- Status: fixed in this pass.
+- Risk: hidden failures and slow incident response.
+- Fix: converted key swallow paths to structured warnings with tenant/action context.
 
-## Additional Findings (Tracked, Non-Blocking)
+## Residual Non-Blocking Items
 
-1. Some informational `console.log` usage remains in dev/test scripts.
-
-- These are mostly CLI/reporting outputs, not secret-bearing service logs.
-
-2. Existing broad dirty worktree indicates concurrent workstreams.
-
-- Mitigation: this closure pass modified only targeted files and did not revert unrelated changes.
+1. Some script-level `console.log` output remains in CLI/dev tooling by design.
+2. Workspace is intentionally dirty from parallel streams; this pass avoided unrelated reverts.
 
 ## Determinism / Replay Safety
 
-No determinism core algorithm or replay hashing semantics were changed in this pass. Changes are in docs, verification harnesses, health endpoints, observability plumbing, and UX hardening.
+No determinism core algorithm, replay hashing contract, or replay semantics were changed.
+
+This pass is limited to docs, verification harnesses, release/ops hardening, ingress safety, observability, and UX reliability polish.
