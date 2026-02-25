@@ -40,7 +40,19 @@
     "viewmodel",
     "viewmodels",
     "Zeolite",
-    "Zeonite"
+    "Zeonite",
+    "cooldown",
+    "logprobs",
+    "improv",
+    "packid",
+    "runid",
+    "modernc",
+    "Stmts",
+    "vitest",
+    "vercel",
+    "kilocode",
+    "devkit",
+    "testdata"
   ],
   "ignorePaths": ["node_modules", "dist", "build", "*.log"]
 }

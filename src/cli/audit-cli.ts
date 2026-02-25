@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { scanDirectory, type ScanResult } from "@zeo/audit";
+import { scanDirectory } from "@zeo/audit";
 import { resolve } from "node:path";
 import { cwd } from "node:process";
 

@@ -10,8 +10,6 @@ import {
   getScenarioRun,
   updateScenarioRun,
   getWorkflowRun,
-  type Scenario,
-  type ScenarioRun,
   type ScenarioVariant,
   type ScenarioVariantResult,
 } from "./cloud-db";

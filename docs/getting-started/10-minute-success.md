@@ -21,6 +21,7 @@ Expected result:
 - deterministic run artifacts created
 - bundle/report paths printed
 - next actions printed
+- explicit `fixture mode` label shown if live git/auth context is unavailable
 
 ## Flow 2: Patch Pack -> SCCL Apply -> PR -> ReadyLayer Checks
 

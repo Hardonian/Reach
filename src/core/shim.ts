@@ -14,6 +14,7 @@ import { join, resolve } from "node:path";
 import { SysCall } from "./syscall.js";
 import { canonicalJson } from "../determinism/canonicalJson.js";
 import type { FinalizedDecisionTranscript } from "@zeo/contracts";
+export * from "@reach/governance";
 
 // ---------------------------------------------------------------------------
 // Hash version constant

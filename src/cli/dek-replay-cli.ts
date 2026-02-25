@@ -8,11 +8,10 @@
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { resolve, join } from "node:path";
-import type { ZeoReplayResult, ZeoJournalEntry } from "@zeo/contracts";
+import type { ZeoJournalEntry } from "@zeo/contracts";
 import {
   replayExecution,
   getJournalEntry,
-  getRegisteredAdapters,
   initializeDEK,
 } from "@zeo/kernel";
 
@@ -60,7 +59,7 @@ export async function runDekReplayCommand(args: DekReplayArgs): Promise<number> 
     strictModelMatch: args.strict,
   });
 
-  const { status, originalEntry, comparison } = replayResult;
+  const { status, originalEntry } = replayResult;
 
   if (!originalEntry) {
     if (args.json) {
