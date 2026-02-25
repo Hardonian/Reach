@@ -8,7 +8,97 @@ if [ -d "$SELF_DIR/services/runner" ]; then
   IN_REPO_LAYOUT=true
 fi
 
+# Build directory for binaries
+BUILD_DIR="${REACH_BUILD_DIR:-$SELF_DIR/build}"
+mkdir -p "$BUILD_DIR"
+
+# Tools configuration
+TOOLS=("reachctl" "doctor" "reach-audit" "reach-eval")
+TOOL_PATHS=(
+  "services/runner/cmd/reachctl"
+  "tools/doctor"
+  "tools/reach-audit"
+  "tools/reach-eval"
+)
+
+# Check if node_modules exists and package.json is not newer
+needs_npm_install() {
+  local package_dir="$1"
+  local package_json="$package_dir/package.json"
+  local node_modules="$package_dir/node_modules"
+  
+  if [ ! -d "$node_modules" ]; then
+    return 0  # Needs install
+  fi
+  
+  if [ "$package_json" -nt "$node_modules" ]; then
+    return 0  # Needs install (package.json updated)
+  fi
+  
+  return 1  # No install needed
+}
+
+# Compile a single tool
+compile_tool() {
+  local tool_name="$1"
+  local tool_path="$2"
+  local output_bin="$BUILD_DIR/$tool_name"
+  
+  # Check if binary exists and is up to date
+  if [ -x "$output_bin" ]; then
+    local bin_mtime=$(stat -c %Y "$output_bin" 2>/dev/null || stat -f %m "$output_bin" 2>/dev/null || echo 0)
+    local needs_rebuild=0
+    
+    # Check all Go files in the tool directory
+    while IFS= read -r -d '' go_file; do
+      local file_mtime=$(stat -c %Y "$go_file" 2>/dev/null || stat -f %m "$go_file" 2>/dev/null || echo 9999999999)
+      if [ "$file_mtime" -gt "$bin_mtime" ]; then
+        needs_rebuild=1
+        break
+      fi
+    done < <(find "$SELF_DIR/$tool_path" -name "*.go" -print0)
+    
+    if [ "$needs_rebuild" -eq 0 ]; then
+      return 0  # Binary is up to date
+    fi
+  fi
+  
+  # Compile the tool
+  echo "Compiling $tool_name..."
+  (cd "$SELF_DIR/$tool_path" && go build -o "$output_bin" .)
+}
+
+# Compile all tools in parallel
+compile_all_tools() {
+  local max_jobs=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+  local job_count=0
+  
+  for i in "${!TOOLS[@]}"; do
+    local tool_name="${TOOLS[$i]}"
+    local tool_path="${TOOL_PATHS[$i]}"
+    
+    compile_tool "$tool_name" "$tool_path" &
+    ((job_count++))
+    
+    if [ "$job_count" -ge "$max_jobs" ]; then
+      wait -n
+      ((job_count--))
+    fi
+  done
+  
+  # Wait for all remaining jobs
+  while [ "$job_count" -gt 0 ]; do
+    wait -n
+    ((job_count--))
+  done
+}
+
+# Find reachctl binary
 find_reachctl() {
+  if [ "$IN_REPO_LAYOUT" = true ] && [ -x "$BUILD_DIR/reachctl" ]; then
+    echo "$BUILD_DIR/reachctl"
+    return 0
+  fi
   if [ "$IN_REPO_LAYOUT" = true ] && [ -x "$SELF_DIR/services/runner/reachctl" ]; then
     echo "$SELF_DIR/services/runner/reachctl"
     return 0
@@ -28,24 +118,22 @@ find_reachctl() {
   return 1
 }
 
+# Run reachctl with auto-compile
 run_reachctl() {
   local reachctl_bin
-  if [ "$IN_REPO_LAYOUT" = true ] && [ -x "$SELF_DIR/services/runner/reachctl" ]; then
-    (cd "$SELF_DIR/services/runner" && ./reachctl "$@")
-    return 0
-  fi
-
+  
   if [ "$IN_REPO_LAYOUT" = true ] && [ -f "$SELF_DIR/services/runner/cmd/reachctl/main.go" ] && command -v go >/dev/null 2>&1; then
-    local build_dir="${REACH_BUILD_DIR:-$SELF_DIR/build}"
-    local fallback_bin="${build_dir}/reachctl"
-    mkdir -p "$build_dir"
-    if [ ! -x "$fallback_bin" ] || [ "$SELF_DIR/services/runner/cmd/reachctl/main.go" -nt "$fallback_bin" ]; then
-      (cd "$SELF_DIR/services/runner" && go build -o "$fallback_bin" ./cmd/reachctl)
+    local fallback_bin="$BUILD_DIR/reachctl"
+    
+    # Compile if needed
+    if [ ! -x "$fallback_bin" ]; then
+      compile_tool "reachctl" "services/runner/cmd/reachctl"
     fi
+    
     "$fallback_bin" "$@"
     return 0
   fi
-
+  
   if ! reachctl_bin="$(find_reachctl)"; then
     echo "error: reachctl not found in PATH." >&2
     echo "Install from releases or run from the repository root." >&2
@@ -54,62 +142,78 @@ run_reachctl() {
   "$reachctl_bin" "$@"
 }
 
+# Run a Go tool with auto-compile
+run_go_tool() {
+  local tool_name="$1"
+  shift
+  
+  if [ "$IN_REPO_LAYOUT" = true ]; then
+    local tool_bin="$BUILD_DIR/$tool_name"
+    
+    # Find the tool path
+    local tool_path=""
+    for i in "${!TOOLS[@]}"; do
+      if [ "${TOOLS[$i]}" = "$tool_name" ]; then
+        tool_path="${TOOL_PATHS[$i]}"
+        break
+      fi
+    done
+    
+    if [ -n "$tool_path" ]; then
+      # Compile if needed
+      if [ ! -x "$tool_bin" ]; then
+        compile_tool "$tool_name" "$tool_path"
+      fi
+      
+      "$tool_bin" "$@"
+    else
+      echo "error: unknown tool '$tool_name'." >&2
+      exit 2
+    fi
+  else
+    run_reachctl "$tool_name" "$@"
+  fi
+}
+
+# Run economics tool with npm install caching
+run_economics_tool() {
+  local subcmd="$1"
+  shift
+  
+  local economics_dir="$SELF_DIR/tools/economics"
+  
+  # Only run npm install if needed
+  if needs_npm_install "$economics_dir"; then
+    echo "Installing npm dependencies for economics tool..."
+    (cd "$economics_dir" && npm install --silent)
+  fi
+  
+  (cd "$economics_dir" && npm start --silent -- "$subcmd" "$@")
+}
+
 print_help() {
   run_reachctl --help
 }
 
 cmd="${1:-help}"
 case "$cmd" in
+  build)
+    shift
+    echo "Building all tools..."
+    compile_all_tools
+    echo "All tools compiled successfully in $BUILD_DIR/"
+    ;;
   doctor)
     shift
-    if [ "$IN_REPO_LAYOUT" = true ]; then
-      if [ -f "$SELF_DIR/build/doctor" ]; then
-        "$SELF_DIR/build/doctor" "$@"
-      elif [ -f "$SELF_DIR/tools/doctor/doctor" ]; then
-        (cd "$SELF_DIR/tools/doctor" && ./doctor "$@" )
-      elif [ -f "$SELF_DIR/tools/doctor/doctor.exe" ]; then
-        (cd "$SELF_DIR/tools/doctor" && ./doctor.exe "$@" )
-      else
-        echo "Warning: Running via 'go run' (slow). Run 'make build' for faster starts." >&2
-        (cd "$SELF_DIR/tools/doctor" && go run . "$@")
-      fi
-    else
-      run_reachctl doctor "$@"
-    fi
+    run_go_tool "doctor" "$@"
     ;;
   audit)
     shift
-    if [ "$IN_REPO_LAYOUT" = true ]; then
-      if [ -f "$SELF_DIR/build/reach-audit" ]; then
-        "$SELF_DIR/build/reach-audit" "$@"
-      elif [ -f "$SELF_DIR/tools/reach-audit/reach-audit" ]; then
-        (cd "$SELF_DIR/tools/reach-audit" && ./reach-audit "$@" )
-      elif [ -f "$SELF_DIR/tools/reach-audit/reach-audit.exe" ]; then
-        (cd "$SELF_DIR/tools/reach-audit" && ./reach-audit.exe "$@" )
-      else
-        echo "Warning: Running via 'go run' (slow). Run 'make build' for faster starts." >&2
-        (cd "$SELF_DIR/tools/reach-audit" && go run . "$@")
-      fi
-    else
-      run_reachctl audit "$@"
-    fi
+    run_go_tool "reach-audit" "$@"
     ;;
   eval)
     shift
-    if [ "$IN_REPO_LAYOUT" = true ]; then
-      if [ -f "$SELF_DIR/build/reach-eval" ]; then
-        "$SELF_DIR/build/reach-eval" "$@"
-      elif [ -f "$SELF_DIR/tools/reach-eval/reach-eval" ]; then
-        (cd "$SELF_DIR/tools/reach-eval" && ./reach-eval "$@" )
-      elif [ -f "$SELF_DIR/tools/reach-eval/reach-eval.exe" ]; then
-        (cd "$SELF_DIR/tools/reach-eval" && ./reach-eval.exe "$@" )
-      else
-        echo "Warning: Running via 'go run' (slow). Run 'make build' for faster starts." >&2
-        (cd "$SELF_DIR/tools/reach-eval" && go run . "$@")
-      fi
-    else
-      run_reachctl eval "$@"
-    fi
+    run_go_tool "reach-eval" "$@"
     ;;
   release-check)
     shift
@@ -150,7 +254,7 @@ case "$cmd" in
   cost)
     shift
     if [ "$IN_REPO_LAYOUT" = true ]; then
-      (cd "$SELF_DIR/tools/economics" && npm install --silent && npm start --silent -- report "$@")
+      run_economics_tool "report" "$@"
     else
       echo "error: cost command is only available from a source checkout." >&2
       exit 2
@@ -159,10 +263,7 @@ case "$cmd" in
   metrics)
     shift
     if [ "$IN_REPO_LAYOUT" = true ]; then
-      case "${1:-}" in
-        gtm) shift; (cd "$SELF_DIR/tools/economics" && npm install --silent && npm start --silent -- metrics "$@") ;;
-        *) (cd "$SELF_DIR/tools/economics" && npm install --silent && npm start --silent -- metrics "$@") ;;
-      esac
+      run_economics_tool "metrics" "$@"
     else
       echo "error: metrics command is only available from a source checkout." >&2
       exit 2

@@ -1,0 +1,198 @@
+#!/usr/bin/env bash
+# cspell:ignore reachctl
+set -euo pipefail
+
+SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+IN_REPO_LAYOUT=false
+if [ -d "$SELF_DIR/services/runner" ]; then
+  IN_REPO_LAYOUT=true
+fi
+
+find_reachctl() {
+  if [ "$IN_REPO_LAYOUT" = true ] && [ -x "$SELF_DIR/services/runner/reachctl" ]; then
+    echo "$SELF_DIR/services/runner/reachctl"
+    return 0
+  fi
+  if command -v reachctl >/dev/null 2>&1; then
+    command -v reachctl
+    return 0
+  fi
+  if [ -x "$SELF_DIR/reachctl" ]; then
+    echo "$SELF_DIR/reachctl"
+    return 0
+  fi
+  if [ -x "$SELF_DIR/reachctl.exe" ]; then
+    echo "$SELF_DIR/reachctl.exe"
+    return 0
+  fi
+  return 1
+}
+
+run_reachctl() {
+  local reachctl_bin
+  if [ "$IN_REPO_LAYOUT" = true ] && [ -x "$SELF_DIR/services/runner/reachctl" ]; then
+    (cd "$SELF_DIR/services/runner" && ./reachctl "$@")
+    return 0
+  fi
+
+  if [ "$IN_REPO_LAYOUT" = true ] && [ -f "$SELF_DIR/services/runner/cmd/reachctl/main.go" ] && command -v go >/dev/null 2>&1; then
+    local build_dir="${REACH_BUILD_DIR:-$SELF_DIR/build}"
+    local fallback_bin="${build_dir}/reachctl"
+    mkdir -p "$build_dir"
+    if [ ! -x "$fallback_bin" ] || [ "$SELF_DIR/services/runner/cmd/reachctl/main.go" -nt "$fallback_bin" ]; then
+      (cd "$SELF_DIR/services/runner" && go build -o "$fallback_bin" ./cmd/reachctl)
+    fi
+    "$fallback_bin" "$@"
+    return 0
+  fi
+
+  if ! reachctl_bin="$(find_reachctl)"; then
+    echo "error: reachctl not found in PATH." >&2
+    echo "Install from releases or run from the repository root." >&2
+    exit 1
+  fi
+  "$reachctl_bin" "$@"
+}
+
+print_help() {
+  run_reachctl --help
+}
+
+cmd="${1:-help}"
+case "$cmd" in
+  doctor)
+    shift
+    if [ "$IN_REPO_LAYOUT" = true ]; then
+      if [ -f "$SELF_DIR/build/doctor" ]; then
+        "$SELF_DIR/build/doctor" "$@"
+      elif [ -f "$SELF_DIR/tools/doctor/doctor" ]; then
+        (cd "$SELF_DIR/tools/doctor" && ./doctor "$@" )
+      elif [ -f "$SELF_DIR/tools/doctor/doctor.exe" ]; then
+        (cd "$SELF_DIR/tools/doctor" && ./doctor.exe "$@" )
+      else
+        echo "Warning: Running via 'go run' (slow). Run 'make build' for faster starts." >&2
+        (cd "$SELF_DIR/tools/doctor" && go run . "$@")
+      fi
+    else
+      run_reachctl doctor "$@"
+    fi
+    ;;
+  audit)
+    shift
+    if [ "$IN_REPO_LAYOUT" = true ]; then
+      if [ -f "$SELF_DIR/build/reach-audit" ]; then
+        "$SELF_DIR/build/reach-audit" "$@"
+      elif [ -f "$SELF_DIR/tools/reach-audit/reach-audit" ]; then
+        (cd "$SELF_DIR/tools/reach-audit" && ./reach-audit "$@" )
+      elif [ -f "$SELF_DIR/tools/reach-audit/reach-audit.exe" ]; then
+        (cd "$SELF_DIR/tools/reach-audit" && ./reach-audit.exe "$@" )
+      else
+        echo "Warning: Running via 'go run' (slow). Run 'make build' for faster starts." >&2
+        (cd "$SELF_DIR/tools/reach-audit" && go run . "$@")
+      fi
+    else
+      run_reachctl audit "$@"
+    fi
+    ;;
+  eval)
+    shift
+    if [ "$IN_REPO_LAYOUT" = true ]; then
+      if [ -f "$SELF_DIR/build/reach-eval" ]; then
+        "$SELF_DIR/build/reach-eval" "$@"
+      elif [ -f "$SELF_DIR/tools/reach-eval/reach-eval" ]; then
+        (cd "$SELF_DIR/tools/reach-eval" && ./reach-eval "$@" )
+      elif [ -f "$SELF_DIR/tools/reach-eval/reach-eval.exe" ]; then
+        (cd "$SELF_DIR/tools/reach-eval" && ./reach-eval.exe "$@" )
+      else
+        echo "Warning: Running via 'go run' (slow). Run 'make build' for faster starts." >&2
+        (cd "$SELF_DIR/tools/reach-eval" && go run . "$@")
+      fi
+    else
+      run_reachctl eval "$@"
+    fi
+    ;;
+  release-check)
+    shift
+    if [ "$IN_REPO_LAYOUT" = true ] && [ -f "$SELF_DIR/tools/release-check.sh" ]; then
+      "$SELF_DIR/tools/release-check.sh" "$@"
+    else
+      echo "error: release-check is only available from a source checkout." >&2
+      exit 2
+    fi
+    ;;
+  report)
+    shift
+    subcmd="${1:-}"
+    case "$subcmd" in
+      demo)
+        shift
+        if [ "$IN_REPO_LAYOUT" = true ]; then
+          (cd "$SELF_DIR" && node --import tsx/esm scripts/report/generate-demo-report.ts "$@")
+        else
+          run_reachctl demo report "$@"
+        fi
+        ;;
+      verify)
+        shift
+        if [ "$IN_REPO_LAYOUT" = true ]; then
+          (cd "$SELF_DIR" && node --import tsx/esm scripts/report/verify-report.ts "$@")
+        else
+          echo "error: 'reach report verify' requires a source checkout. Use 'reachctl artifact verify <bundle.zip>'." >&2
+          exit 2
+        fi
+        ;;
+      *)
+        echo "usage: reach report demo|verify" >&2
+        exit 2
+        ;;
+    esac
+    ;;
+  cost)
+    shift
+    if [ "$IN_REPO_LAYOUT" = true ]; then
+      (cd "$SELF_DIR/tools/economics" && npm install --silent && npm start --silent -- report "$@")
+    else
+      echo "error: cost command is only available from a source checkout." >&2
+      exit 2
+    fi
+    ;;
+  metrics)
+    shift
+    if [ "$IN_REPO_LAYOUT" = true ]; then
+      case "${1:-}" in
+        gtm) shift; (cd "$SELF_DIR/tools/economics" && npm install --silent && npm start --silent -- metrics "$@") ;;
+        *) (cd "$SELF_DIR/tools/economics" && npm install --silent && npm start --silent -- metrics "$@") ;;
+      esac
+    else
+      echo "error: metrics command is only available from a source checkout." >&2
+      exit 2
+    fi
+    ;;
+  demo)
+    shift
+    run_reachctl demo "$@"
+    ;;
+  quickstart)
+    shift
+    run_reachctl quickstart "$@"
+    ;;
+  status)
+    shift
+    run_reachctl status "$@"
+    ;;
+  version|--version|-v)
+    shift
+    run_reachctl version "$@"
+    ;;
+  bugreport)
+    shift
+    run_reachctl bugreport "$@"
+    ;;
+  help|--help|-h)
+    print_help
+    ;;
+  *)
+    # Default behavior: forward to reachctl for compatibility.
+    run_reachctl "$cmd" "${@:2}"
+    ;;
+esac
