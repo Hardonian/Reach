@@ -192,6 +192,7 @@ function DriftSignal({ label, value, limit, status }: DriftSignalProps) {
       <div className="h-1.5 bg-arcade-surface-hover rounded-full overflow-hidden border border-arcade-border">
         <div
           className={`h-full rounded-full transition-all duration-1000 ${status === "warning" ? "bg-arcade-accent" : "bg-emerald-500"} w-(--progress-width)`}
+          /* Justification: Width is data-driven and purely dynamic based on metrics, justifying the use of a CSS variable via style prop. */
           style={{ "--progress-width": `${percent}%` } as React.CSSProperties}
         />
       </div>
