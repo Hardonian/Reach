@@ -84,7 +84,8 @@ async function getCachedAuth(key: string): Promise<AuthContext | null> {
   try {
     const val = await redis.get(`auth:${key}`);
     return val ? JSON.parse(val) : null;
-  } catch {
+  } catch (err) {
+    logger.warn("Auth cache read failed", { err: String(err) });
     return null;
   }
 }
@@ -93,8 +94,8 @@ async function setCachedAuth(key: string, ctx: AuthContext): Promise<void> {
   if (!redis) return;
   try {
     await redis.set(`auth:${key}`, JSON.stringify(ctx), "EX", AUTH_CACHE_TTL);
-  } catch {
-    /* ignore */
+  } catch (err) {
+    logger.warn("Auth cache write failed", { err: String(err) });
   }
 }
 
@@ -330,8 +331,14 @@ export function auditLog(
   try {
     const ip = req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? undefined;
     appendAudit(ctx.tenantId, ctx.userId, action, resource, resourceId, meta, ip);
-  } catch {
-    /* non-blocking */
+  } catch (err) {
+    logger.warn("Audit append failed", {
+      tenant_id: ctx.tenantId,
+      action,
+      resource,
+      resource_id: resourceId,
+      err: String(err),
+    });
   }
 }
 

@@ -29,18 +29,31 @@ export function shouldAlert(signal: Signal, value: number): boolean {
   return false;
 }
 
+const dedupeCache = new Map<string, number>();
+
+function shouldDispatchKey(key: string): boolean {
+  const windowMs = Math.max(1, env.READYLAYER_ALERT_DEDUPE_WINDOW_SECONDS) * 1000;
+  const now = Date.now();
+  const last = dedupeCache.get(key) ?? 0;
+  if (now - last < windowMs) {
+    return false;
+  }
+  dedupeCache.set(key, now);
+  return true;
+}
+
 // ── Email dispatch via HTTP relay (avoids SMTP dep) ───────────────────────
 
 async function sendEmailViaRelay(to: string, subject: string, body: string): Promise<void> {
   // Supports any transactional email relay with a simple POST API (Resend, Postmark, custom).
   // Set READYLAYER_ALERT_EMAIL_ENDPOINT to your HTTP relay URL.
-  const endpoint = process.env.READYLAYER_ALERT_EMAIL_ENDPOINT;
+  const endpoint = env.READYLAYER_ALERT_EMAIL_ENDPOINT;
   if (!endpoint) {
     logger.warn("READYLAYER_ALERT_EMAIL_ENDPOINT not set — email alert skipped", { to });
     return;
   }
   try {
-    const apiKey = process.env.READYLAYER_ALERT_EMAIL_API_KEY ?? "";
+    const apiKey = env.READYLAYER_ALERT_EMAIL_API_KEY ?? "";
     const res = await fetch(endpoint, {
       method: "POST",
       headers: {
@@ -108,6 +121,16 @@ export async function dispatchAlerts(
   ].join("\n");
 
   const promises = rules.map(async (rule) => {
+    const dedupeKey = `${tenantId}:${signal.id}:${rule.channel}:${rule.destination}`;
+    if (!shouldDispatchKey(dedupeKey)) {
+      logger.info("Alert suppressed by dedupe window", {
+        tenant_id: tenantId,
+        signal_id: signal.id,
+        destination: rule.destination,
+      });
+      return;
+    }
+
     if (rule.channel === "email") {
       await sendEmailViaRelay(rule.destination, subject, body);
     } else {

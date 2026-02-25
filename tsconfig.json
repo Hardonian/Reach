@@ -14,8 +14,9 @@
       "@/*": ["./packages/*", "./apps/arcade/src/*", "./apps/docs/*"],
       "@zeo/core": ["./src/core/shim.ts"],
       "@zeo/contracts": ["./sdk/ts/src/index.ts"],
+      "@reach/governance": ["./packages/governance/src/index.ts"],
       "@zeo/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*", "test/**/*", "scripts/**/*"]
+  "include": ["src/**/*", "test/**/*", "scripts/**/*", "packages/**/*"]
 }

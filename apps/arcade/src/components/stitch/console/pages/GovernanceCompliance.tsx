@@ -5,11 +5,71 @@ import { ReasonForChangeModal } from "@/components/stitch/shared/ReasonForChange
 
 export function GovernanceCompliance() {
   const [freezeModalOpen, setFreezeModalOpen] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [severityFilter, setSeverityFilter] = useState<"all" | "critical" | "warning">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "security" | "network">("all");
+  const [providerFilter, setProviderFilter] = useState<"all" | "dgl" | "cpx" | "sccl">("all");
+  const [strictMode, setStrictMode] = useState(false);
+
+  const rawViolations = [
+    {
+      title: "Critical: Unencrypted Storage",
+      time: "2m ago",
+      desc: "Deployment deploy-883a violates encryption policy.",
+      severity: "critical" as const,
+      type: "security" as const,
+      provider: "dgl" as const,
+    },
+    {
+      title: "Warning: Open Port 22",
+      time: "15m ago",
+      desc: "Service bastion-host exposes SSH to public internet.",
+      severity: "warning" as const,
+      type: "network" as const,
+      provider: "sccl" as const,
+    },
+    {
+      title: "Critical: Root Access",
+      time: "1h ago",
+      desc: "Container runner-04 running as root user.",
+      severity: "critical" as const,
+      type: "security" as const,
+      provider: "cpx" as const,
+    },
+    {
+      title: "Critical: Root Access",
+      time: "1h ago",
+      desc: "Container runner-04 running as root user.",
+      severity: "critical" as const,
+      type: "security" as const,
+      provider: "dgl" as const,
+    },
+  ];
 
   function handleFreezeConfirm(reason: string) {
-    // Backend not wired: log reason to console and close modal
-    console.info("[Audit] Emergency Freeze requested. Reason:", reason);
+    setNotice(`Emergency freeze requested. Reason captured for audit: "${reason}"`);
     setFreezeModalOpen(false);
+  }
+
+  const dedupedViolations = rawViolations.filter(
+    (item, index, all) => all.findIndex((candidate) => candidate.title === item.title) === index,
+  );
+  const filteredViolations = dedupedViolations.filter((item) => {
+    if (severityFilter !== "all" && item.severity !== severityFilter) return false;
+    if (typeFilter !== "all" && item.type !== typeFilter) return false;
+    if (providerFilter !== "all" && item.provider !== providerFilter) return false;
+    return true;
+  });
+  const primaryViolation = filteredViolations[0] ?? null;
+  const relatedViolations = primaryViolation ? filteredViolations.slice(1) : [];
+
+  async function copyCommand(command: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(command);
+      setNotice(`Copied command: ${command}`);
+    } catch {
+      setNotice(`Copy failed. Command: ${command}`);
+    }
   }
 
   return (

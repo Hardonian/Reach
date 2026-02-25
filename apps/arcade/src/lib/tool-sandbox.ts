@@ -16,13 +16,12 @@
 
 import { z } from "zod";
 import crypto from "crypto";
+import { logger as baseLogger } from "./logger";
 
-// Simple logger placeholder - replace with actual logger in production
 const logger = {
-  info: (msg: string, meta?: Record<string, unknown>) => console.log(`[INFO] ${msg}`, meta || ""),
-  warn: (msg: string, meta?: Record<string, unknown>) => console.warn(`[WARN] ${msg}`, meta || ""),
-  error: (msg: string, meta?: Record<string, unknown>) =>
-    console.error(`[ERROR] ${msg}`, meta || ""),
+  info: (msg: string, meta?: Record<string, unknown>) => baseLogger.info(msg, meta),
+  warn: (msg: string, meta?: Record<string, unknown>) => baseLogger.warn(msg, meta),
+  error: (msg: string, meta?: Record<string, unknown>) => baseLogger.error(msg, undefined, meta),
 };
 
 // ── Tool Definition ───────────────────────────────────────────────────────────

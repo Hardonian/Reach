@@ -41,11 +41,29 @@ const envSchema = z.object({
 
   // ReadyLayer suite
   READYLAYER_BASE_URL: z.string().url().optional(),
+  READYLAYER_ALERT_EMAIL_ENDPOINT: z.string().optional(),
+  READYLAYER_ALERT_EMAIL_API_KEY: z.string().optional(),
   READYLAYER_ALERT_EMAIL_FROM: z.string().email().optional(),
+  READYLAYER_ALERT_DEDUPE_WINDOW_SECONDS: z.coerce.number().default(300),
+  READYLAYER_STRICT_MODE: z
+    .string()
+    .optional()
+    .transform((v) => v === "true"),
+  READYLAYER_GATE_WARNINGS_BLOCK: z
+    .string()
+    .optional()
+    .transform((v) => v === "true"),
+  READYLAYER_GATE_MAX_WARNINGS: z.coerce.number().default(25),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().default(587),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
+
+  NEXT_PUBLIC_BASE_URL: z.string().url().optional(),
+  NEXT_PUBLIC_APP_URL: z.string().url().optional(),
+  NEXT_PUBLIC_BRAND_NAME: z.string().optional(),
+  REACH_RUNNER_URL: z.string().url().optional(),
+  DECISION_ENGINE: z.string().optional(),
 
   // Policy
   REACH_ENTERPRISE_MAX_SPAWN_DEPTH: z.coerce.number().default(4),
@@ -148,15 +166,38 @@ export const env = envSchema.parse({
     process.env.READYLAYER_BASE_URL,
     envValidationIssues,
   ),
+  READYLAYER_ALERT_EMAIL_ENDPOINT: process.env.READYLAYER_ALERT_EMAIL_ENDPOINT,
+  READYLAYER_ALERT_EMAIL_API_KEY: process.env.READYLAYER_ALERT_EMAIL_API_KEY,
   READYLAYER_ALERT_EMAIL_FROM: sanitizeOptionalEmail(
     "READYLAYER_ALERT_EMAIL_FROM",
     process.env.READYLAYER_ALERT_EMAIL_FROM,
     envValidationIssues,
   ),
+  READYLAYER_ALERT_DEDUPE_WINDOW_SECONDS: process.env.READYLAYER_ALERT_DEDUPE_WINDOW_SECONDS,
+  READYLAYER_STRICT_MODE: process.env.READYLAYER_STRICT_MODE,
+  READYLAYER_GATE_WARNINGS_BLOCK: process.env.READYLAYER_GATE_WARNINGS_BLOCK,
+  READYLAYER_GATE_MAX_WARNINGS: process.env.READYLAYER_GATE_MAX_WARNINGS,
   SMTP_HOST: process.env.SMTP_HOST,
   SMTP_PORT: process.env.SMTP_PORT,
   SMTP_USER: process.env.SMTP_USER,
   SMTP_PASS: process.env.SMTP_PASS,
+  NEXT_PUBLIC_BASE_URL: sanitizeOptionalUrl(
+    "NEXT_PUBLIC_BASE_URL",
+    process.env.NEXT_PUBLIC_BASE_URL,
+    envValidationIssues,
+  ),
+  NEXT_PUBLIC_APP_URL: sanitizeOptionalUrl(
+    "NEXT_PUBLIC_APP_URL",
+    process.env.NEXT_PUBLIC_APP_URL,
+    envValidationIssues,
+  ),
+  NEXT_PUBLIC_BRAND_NAME: process.env.NEXT_PUBLIC_BRAND_NAME,
+  REACH_RUNNER_URL: sanitizeOptionalUrl(
+    "REACH_RUNNER_URL",
+    process.env.REACH_RUNNER_URL,
+    envValidationIssues,
+  ),
+  DECISION_ENGINE: process.env.DECISION_ENGINE,
   REACH_ENTERPRISE_MAX_SPAWN_DEPTH: process.env.REACH_ENTERPRISE_MAX_SPAWN_DEPTH,
 });
 

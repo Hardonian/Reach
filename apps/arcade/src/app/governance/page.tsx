@@ -135,13 +135,16 @@ const mockPermissions = [
 
 export default function Governance() {
   const [activeTab, setActiveTab] = useState<"policies" | "audit" | "permissions">("policies");
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
 
   const handleEditPolicy = (id: string) => {
-    // TODO: Implement edit policy
+    setActionNotice(`Policy "${id}" edit requires tenant admin workflow. Use /console/governance.`);
   };
 
   const handleDeletePolicy = (id: string) => {
-    // TODO: Implement delete policy
+    setActionNotice(
+      `Policy "${id}" delete is guarded. Use /console/governance with an approved change reason.`,
+    );
   };
 
   return (
@@ -150,6 +153,11 @@ export default function Governance() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Governance & Compliance</h1>
         <p className="text-gray-400">Manage policies, audit trails, and access control</p>
+        {actionNotice ? (
+          <p className="mt-3 rounded border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+            {actionNotice}
+          </p>
+        ) : null}
       </div>
 
       {/* Tabs */}
@@ -172,7 +180,16 @@ export default function Governance() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-bold">Policy Rules</h2>
-            <button className="btn-primary text-sm py-2">+ New Policy</button>
+            <button
+              className="btn-primary text-sm py-2"
+              onClick={() =>
+                setActionNotice(
+                  "Create policy is available in /console/governance with approval + audit metadata.",
+                )
+              }
+            >
+              + New Policy
+            </button>
           </div>
 
           <div className="space-y-3">
@@ -192,9 +209,10 @@ export default function Governance() {
                 description="Create your first policy to enforce compliance rules across your agents."
                 action={{
                   label: "Create Policy",
-                  onClick: () => {
-                    /* TODO: Implement create policy */
-                  },
+                  onClick: () =>
+                    setActionNotice(
+                      "Create policy is available in /console/governance with approval + audit metadata.",
+                    ),
                 }}
               />
             )}
