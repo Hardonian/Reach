@@ -132,7 +132,7 @@ Experience the deterministic visualization of decisions and evidence chains.
 
 2. Open [http://localhost:3000](http://localhost:3000) to view the execution graph.
 
-_(For a live hosted environment, check out our [Playground](docs/PLAYGROUND.md))_
+_(For a live hosted environment, check out our [Playground](https://reach.dev/playground))_
 
 ## 🧠 How It Works
 

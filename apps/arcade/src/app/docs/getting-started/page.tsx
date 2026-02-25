@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Getting Started | ReadyLayer Documentation",
+  title: "Getting Started | Reach Documentation",
   description:
     "Go from zero to a fully deterministic execution in 5 minutes with our Quick Start guide.",
 };
@@ -12,8 +12,8 @@ export default function GettingStartedPage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">Getting Started</h1>
         <p className="text-xl text-gray-400">
-          ReadyLayer is a deterministic execution fabric. In this guide, we will set up the
-          ReadyLayer environment, execute your first signed pack, and verify its results.
+          Reach is a deterministic execution fabric. In this guide, we will set up the
+          Reach environment, execute your first signed pack, and verify its results.
         </p>
       </header>
 
@@ -28,7 +28,7 @@ export default function GettingStartedPage() {
             <div className="bg-black/40 p-4 rounded-lg font-mono text-xs space-y-1">
               <div className="text-gray-500"># Clone and install</div>
               <div className="text-white">
-                git clone https://github.com/XHARDONIANXSLASHXReadyLayer.git
+                git clone https://github.com/reach/reach.git
               </div>
               <div className="text-white">npm install</div>
               <div className="text-white">npm run build</div>
@@ -65,7 +65,7 @@ export default function GettingStartedPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">3. Running the Wizard</h2>
         <p className="text-gray-400">
-          The <code>reach wizard</code> is the fastest way to explore the ReadyLayer marketplace and
+          The <code>reach wizard</code> is the fastest way to explore the Reach marketplace and
           execute your first task.
         </p>
         <div className="space-y-4">

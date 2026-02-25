@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "CLI Reference | ReadyLayer Documentation",
-  description: "Authority reference for the ReadyLayer command line tool and diagnostic utility.",
+  title: "CLI Reference | Reach Documentation",
+  description: "Authority reference for the Reach command line tool and diagnostic utility.",
 };
 
 export default function CLIPage() {
@@ -12,7 +12,7 @@ export default function CLIPage() {
         <h1 className="text-4xl font-bold mb-4">CLI Reference</h1>
         <p className="text-xl text-gray-400">
           The <code>reach</code> CLI is the unified entry point for managing execution, diagnosing
-          system health, and interacting with the ReadyLayer protocol.
+          system health, and interacting with the Reach protocol.
         </p>
       </header>
 
