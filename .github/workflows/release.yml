@@ -219,6 +219,15 @@ jobs:
           cd artifacts
           LC_ALL=C find . -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
 
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: artifacts/reach-sbom.cyclonedx.json
+          artifact-name: reach-sbom
+          upload-artifacts: false
+
       - name: Generate artifact manifest
         run: |
           python3 - <<'PY'
@@ -282,6 +291,7 @@ jobs:
             "SHA256SUMS"
             "artifact-manifest.json"
             "RELEASE_NOTES.md"
+            "reach-sbom.cyclonedx.json"
           )
 
           for asset in "${ASSETS[@]}"; do
