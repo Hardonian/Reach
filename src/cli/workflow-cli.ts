@@ -555,13 +555,22 @@ async function runDecisionInWorkspace(
     core.deactivateDeterministicMode();
   }
 
+  const transcriptRecord = transcript ?? {
+    transcript_hash: createHash("sha256").update(JSON.stringify({ spec, dependsOn, informs })).digest("hex"),
+    analysis: { flip_distances: [] },
+    plan: { stop_conditions: [] },
+    depends_on: dependsOn,
+    informs,
+  };
+
+
   // Signing integration
   const defaultKeyPath = join(zeoRoot(), "keys", "id_ed25519.pem");
   let envelopePathOut: string | undefined;
 
   if (existsSync(defaultKeyPath)) {
     // Create and sign envelope
-    const envelope = core.createEnvelope(transcript, { created_by: "zeo-cli" });
+    const envelope = core.createEnvelope(transcriptRecord, { created_by: "zeo-cli" });
     const signedEnvelope = core.signEnvelopeWithEd25519(
       envelope,
       defaultKeyPath,
@@ -572,7 +581,7 @@ async function runDecisionInWorkspace(
     const envelopeDir = join(decisionsRoot(), ws.decisionId, "envelopes");
     if (!existsSync(envelopeDir)) mkdirSync(envelopeDir, { recursive: true });
 
-    const envFileName = `${transcript.transcript_hash}.envelope.json`;
+    const envFileName = `${transcriptRecord.transcript_hash}.envelope.json`;
     envelopePathOut = join(envelopeDir, envFileName);
     writeFileSync(envelopePathOut, `${JSON.stringify(signedEnvelope, null, 2)}\n`, "utf8");
     console.log(`Signed transcript with key: ${defaultKeyPath}`);
@@ -582,12 +591,13 @@ async function runDecisionInWorkspace(
   }
 
 
-  const robustActions = result.evaluations.find(e => e.lens === "robustness")?.robustActions || [];
+  const evaluations = Array.isArray(result?.evaluations) ? result.evaluations : [];
+  const robustActions = evaluations.find(e => e.lens === "robustness")?.robustActions ?? [];
   const recommendedAction = robustActions.length > 0
     ? `Action(s) ${robustActions.join(", ")} are robust.`
     : "No robust actions found. Gather more evidence.";
 
-  const flipDistances = transcript.analysis.flip_distances.map(f => parseFloat(f.distance));
+  const flipDistances = (transcriptRecord.analysis?.flip_distances ?? []).map((f) => parseFloat(f.distance));
   const minFlipDistance = flipDistances.length > 0 ? Math.min(...flipDistances) : Infinity;
 
   const fragility = minFlipDistance >= 5 ? "Stable" : minFlipDistance >= 3 ? "Fragile" : "Knife-edge";
@@ -598,7 +608,7 @@ async function runDecisionInWorkspace(
   const boundarySummary = `Flip dist ${minFlipDistance.toFixed(2)}; ${unresolvedTasks} tasks; decay: ${decay.stale + decay.expired} issues.`;
 
   return {
-    transcriptHash: transcript.transcript_hash,
+    transcriptHash: transcriptRecord.transcript_hash,
     recommendedAction,
     boundarySummary,
     flipDistance: minFlipDistance === Infinity ? 100 : minFlipDistance,
@@ -609,14 +619,14 @@ async function runDecisionInWorkspace(
       .slice(0, 3)
       .map((e) => ({ id: e.id, summary: e.summary, cost: e.cost, decay: classifyDecay(e, asOfDate) })),
     plan: {
-      nextSteps: result.nextBestEvidence.slice(0, 3).map(item => item.prompt),
-      stopConditions: transcript.plan.stop_conditions,
+      nextSteps: (Array.isArray(result?.nextBestEvidence) ? result.nextBestEvidence : []).slice(0, 3).map(item => item.prompt),
+      stopConditions: transcriptRecord.plan?.stop_conditions ?? [],
     },
     signatureStatus: (envelopePathOut || (envelopePath && existsSync(resolve(envelopePath)))) ? "signed" : "unsigned",
-    dependsOn: transcript.depends_on ?? [],
-    informs: transcript.informs ?? [],
+    dependsOn: transcriptRecord.depends_on ?? [],
+    informs: transcriptRecord.informs ?? [],
     decaySummary: decay,
-    fullTranscript: transcript,
+    fullTranscript: transcriptRecord,
     confidence: fragility === "Stable" ? 0.8 : fragility === "Fragile" ? 0.6 : 0.4
   };
 }

@@ -121,15 +121,46 @@ function deriveBlastRadius(files: string[]) {
   };
 }
 
+
+export function maxLoopNestingDepth(text: string): number {
+  const lines = text.split("\n");
+  const stack: number[] = [];
+  let depth = 0;
+  let maxDepth = 0;
+
+  for (const rawLine of lines) {
+    const line = rawLine.replace(/\r$/, "").replace(/\/\/.*$/, "");
+    const closeCount = (line.match(/}/g) ?? []).length;
+    for (let i = 0; i < closeCount; i += 1) {
+      depth = Math.max(0, depth - 1);
+      while (stack.length > 0 && stack[stack.length - 1] > depth) {
+        stack.pop();
+      }
+    }
+
+    const isLoop = /\b(for|while)\s*\(/.test(line);
+    if (isLoop) {
+      const loopDepth = stack.length + 1;
+      stack.push(depth + 1);
+      maxDepth = Math.max(maxDepth, loopDepth);
+    }
+
+    const openCount = (line.match(/{/g) ?? []).length;
+    depth += openCount;
+  }
+
+  return maxDepth;
+}
+
 function perfComplexityViolations(files: string[]): DglViolation[] {
   const out: DglViolation[] = [];
   const threshold = readJson(path.join(process.cwd(), "config", "dgl-performance.json"), { nested_loop_threshold: 2, import_graph_growth_warn: 30, import_graph_growth_error: 80, cyclomatic_warn: 15, cyclomatic_error: 30 });
   for (const f of files.filter((x) => /\.(ts|tsx|js|jsx|go|rs)$/.test(x) && fs.existsSync(path.join(process.cwd(), x)))) {
     const text = fs.readFileSync(path.join(process.cwd(), f), "utf-8");
-    const nestedLoops = (text.match(/for\s*\(|while\s*\(/g) ?? []).length;
+    const nestedLoops = maxLoopNestingDepth(text);
     const syncBlocking = /readFileSync|execSync|writeFileSync/.test(text) && f.includes("/api/");
     const importCount = (text.match(/^\s*import\s+/gm) ?? []).length;
-    if (nestedLoops > threshold.nested_loop_threshold) out.push({ type: "performance", severity: nestedLoops > threshold.nested_loop_threshold + 2 ? "error" : "warn", paths: [f], evidence: `Detected ${nestedLoops} loops; threshold ${threshold.nested_loop_threshold}.`, suggested_fix: "Refactor nested loops or add indexing to reduce worst-case complexity.", line: 1 });
+    if (nestedLoops > threshold.nested_loop_threshold) out.push({ type: "performance", severity: nestedLoops > threshold.nested_loop_threshold + 1 ? "error" : "warn", paths: [f], evidence: `Detected max loop nesting depth ${nestedLoops}; threshold ${threshold.nested_loop_threshold}.`, suggested_fix: "Refactor nested loops or add indexing to reduce worst-case complexity.", line: 1 });
     if (syncBlocking) out.push({ type: "performance", severity: "warn", paths: [f], evidence: "Synchronous blocking call found in route layer.", suggested_fix: "Use async non-blocking IO on route-layer paths.", line: 1 });
     if (importCount > threshold.import_graph_growth_error) out.push({ type: "performance", severity: "error", paths: [f], evidence: `Large import graph footprint (${importCount} imports).`, suggested_fix: "Split module or reduce transitive import fan-out.", line: 1 });
     else if (importCount > threshold.import_graph_growth_warn) out.push({ type: "performance", severity: "warn", paths: [f], evidence: `Import graph growth warning (${importCount} imports).`, suggested_fix: "Review module boundaries for high fan-in/fan-out.", line: 1 });

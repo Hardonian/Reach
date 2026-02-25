@@ -30,5 +30,13 @@ jobs:
           sarif_file: dgl/reports/dgl_report.sarif
       - name: Docs Link Check
         run: npm run docs:check
+      - name: Verify Rust workspace
+        run: npm run verify:rust
+      - name: Verify Go workspace
+        run: npm run verify:go
+      - name: Build Arcade
+        run: npm --prefix apps/arcade run build
+      - name: Route smoke verification
+        run: npm run verify:routes
       - name: Build (if present)
         run: npm run build || echo "build skipped"

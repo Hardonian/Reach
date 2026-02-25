@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { computeIntentFingerprint, toMarkdown, toSarif } from './index.js';
+import { computeIntentFingerprint, maxLoopNestingDepth, toMarkdown, toSarif } from './index.js';
 
 describe('dgl', () => {
   it('computes deterministic intent fingerprint', () => {
@@ -10,6 +10,25 @@ describe('dgl', () => {
     const b = computeIntentFingerprint(p);
     expect(a).toBe(b);
     expect(a).toHaveLength(64);
+  });
+
+
+
+  it('measures loop nesting depth instead of raw loop count', () => {
+    const sequentialLoops = `for (const a of xs) {
+  doA();
+}
+for (const b of ys) {
+  doB();
+}`;
+    const nestedLoops = `for (const a of xs) {
+  while (ready(a)) {
+    doWork(a);
+  }
+}`;
+
+    expect(maxLoopNestingDepth(sequentialLoops)).toBe(1);
+    expect(maxLoopNestingDepth(nestedLoops)).toBe(2);
   });
 
   it('renders markdown and sarif from report', () => {
