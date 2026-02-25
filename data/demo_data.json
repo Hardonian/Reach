@@ -6,7 +6,7 @@
       "status": "completed",
       "fingerprint": "abc123def456",
       "event_count": 10,
-      "created_at": "2026-02-25T12:41:08Z"
+      "created_at": "2026-02-25T13:00:46Z"
     },
     {
       "run_id": "d5528e2d80e57ec9b637f5107e443d0b",
@@ -14,7 +14,7 @@
       "status": "completed",
       "fingerprint": "def456ghi789",
       "event_count": 15,
-      "created_at": "2026-02-25T13:41:08Z"
+      "created_at": "2026-02-25T14:00:46Z"
     }
   ],
   "drift_alerts": [
@@ -23,7 +23,7 @@
       "run_id": "d5528e2d80e57ec9b637f5107e443d0b",
       "severity": "medium",
       "description": "Detected environment drift between runs",
-      "detected_at": "2026-02-25T14:11:08Z"
+      "detected_at": "2026-02-25T14:30:46Z"
     }
   ],
   "policy_violations": [
@@ -33,7 +33,7 @@
       "policy_name": "no-external-calls",
       "severity": "high",
       "message": "External network call detected",
-      "occurred_at": "2026-02-25T13:56:08Z"
+      "occurred_at": "2026-02-25T14:15:46Z"
     }
   ],
   "decision_items": [
@@ -48,7 +48,7 @@
         "defer"
       ],
       "recommended": "approve",
-      "created_at": "2026-02-25T14:41:08Z"
+      "created_at": "2026-02-25T15:00:46Z"
     }
   ]
 }
