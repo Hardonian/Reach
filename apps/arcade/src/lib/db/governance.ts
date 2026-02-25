@@ -1,5 +1,6 @@
 import { getDB } from "./connection";
 import { newId } from "./helpers";
+import { incrementCounter } from "../observability";
 import type {
   GovernanceArtifact,
   GovernanceMemory,
@@ -216,7 +217,7 @@ export function listGovernanceSpecs(input: {
       .prepare(
         `SELECT * FROM governance_specs
          WHERE org_id=? AND workspace_id=? AND scope=?
-         ORDER BY version DESC
+         ORDER BY version DESC, id ASC
          LIMIT ?`,
       )
       .all(input.orgId, input.workspaceId, input.scope, limit) as GovernanceSpecVersion[];
@@ -228,7 +229,7 @@ export function listGovernanceSpecs(input: {
     .prepare(
       `SELECT * FROM governance_specs
        WHERE org_id=? AND workspace_id=?
-       ORDER BY created_at DESC, version DESC
+       ORDER BY created_at DESC, version DESC, id ASC
        LIMIT ?`,
     )
     .all(input.orgId, input.workspaceId, limit) as GovernanceSpecVersion[];
@@ -332,6 +333,7 @@ export function createGovernanceArtifact(input: {
     input.triggeredBy ?? null,
     now,
   );
+  incrementCounter("artifacts_written", { tenantId: input.orgId });
 
   return getGovernanceArtifactById(id, input.orgId)!;
 }
@@ -348,16 +350,17 @@ export function listGovernanceArtifacts(input: {
         .prepare(
           `SELECT * FROM artifacts
            WHERE org_id=? AND workspace_id=? AND spec_id=?
-           ORDER BY artifact_type ASC, artifact_path ASC`,
+           ORDER BY artifact_type ASC, artifact_path ASC, id ASC`,
         )
         .all(input.orgId, input.workspaceId, input.specId) as GovernanceArtifact[])
     : (db
         .prepare(
           `SELECT * FROM artifacts
            WHERE org_id=? AND workspace_id=?
-           ORDER BY created_at DESC, artifact_type ASC`,
+           ORDER BY created_at DESC, artifact_type ASC, artifact_path ASC, id ASC`,
         )
         .all(input.orgId, input.workspaceId) as GovernanceArtifact[]);
+  incrementCounter("artifacts_read", { tenantId: input.orgId });
 
   return rows.map(parseArtifact);
 }
@@ -370,6 +373,7 @@ export function getGovernanceArtifactById(
   const row = db.prepare("SELECT * FROM artifacts WHERE id=? AND org_id=?").get(id, orgId) as
     | GovernanceArtifact
     | undefined;
+  incrementCounter("artifacts_read", { tenantId: orgId });
 
   return row ? parseArtifact(row) : undefined;
 }

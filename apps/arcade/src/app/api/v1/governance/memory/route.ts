@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auditLog, cloudErrorResponse, requireAuth, requireRole } from "@/lib/cloud-auth";
 import { listGovernanceMemory, upsertGovernanceMemory } from "@/lib/cloud-db";
 import { GovernanceMemorySchema, GovernanceScopeSchema, parseBody } from "@/lib/cloud-schemas";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -37,7 +38,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       scope: scopeResult.data,
       memory,
     });
-  } catch {
+  } catch (err) {
+    logger.warn("Governance memory read failed", {
+      tenant_id: ctx.tenantId,
+      err: String(err),
+    });
     return governanceError(
       "Governance memory unavailable",
       503,
@@ -89,6 +94,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         workspace_id: payload.workspace_id,
         scope: payload.scope,
         memory_type: payload.memory_type,
+        repo: req.headers.get("x-reach-repo") ?? undefined,
+        branch: req.headers.get("x-reach-branch") ?? undefined,
+        run_id: req.headers.get("x-reach-run-id") ?? undefined,
       },
       req,
     );
@@ -96,7 +104,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({
       memory,
     });
-  } catch {
+  } catch (err) {
+    logger.warn("Governance memory write failed", {
+      tenant_id: ctx.tenantId,
+      err: String(err),
+    });
     return governanceError(
       "Governance memory unavailable",
       503,

@@ -9,6 +9,7 @@
 import crypto from "crypto";
 import { env } from "./env";
 import { logger } from "./logger";
+import { incrementCounter, markReconciliationRun } from "./observability";
 import {
   getGate,
   getGateRun,
@@ -136,7 +137,7 @@ async function updateGithubCheckRun(opts: {
     };
     if (opts.detailsUrl) body.details_url = opts.detailsUrl;
 
-    await fetch(
+    const res = await fetch(
       `https://api.github.com/repos/${opts.owner}/${opts.repo}/check-runs/${opts.checkRunId}`,
       {
         method: "PATCH",
@@ -149,12 +150,41 @@ async function updateGithubCheckRun(opts: {
         body: JSON.stringify(body),
       },
     );
+    if (!res.ok) {
+      logger.warn("GitHub check run update returned non-200", {
+        check_run_id: opts.checkRunId,
+        status: res.status,
+      });
+    }
   } catch (err) {
     logger.warn("Error updating GitHub check run", { err: String(err) });
   }
 }
 
 // ── Check Evaluator ───────────────────────────────────────────────────────
+
+function dedupeFindings(findings: GateFinding[]): GateFinding[] {
+  const seen = new Set<string>();
+  const deduped: GateFinding[] = [];
+
+  for (const finding of findings) {
+    const key = `${finding.rule}:${finding.severity}:${finding.message.toLowerCase()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(finding);
+  }
+
+  return deduped;
+}
+
+function pickPrimaryReason(findings: GateFinding[]): GateFinding | null {
+  return (
+    findings.find((finding) => finding.severity === "error") ??
+    findings.find((finding) => finding.severity === "warning") ??
+    findings[0] ??
+    null
+  );
+}
 
 function evaluateCheck(
   check: GateCheck,
@@ -214,12 +244,14 @@ export async function runGate(tenantId: string, gateRunId: string): Promise<Gate
 
   const gate = getGate(gateRun.gate_id, tenantId);
   if (!gate) throw new Error(`Gate ${gateRun.gate_id} not found`);
+  incrementCounter("gate_runs", { tenantId });
+  markReconciliationRun(tenantId);
 
   const baseUrl = env.READYLAYER_BASE_URL ?? "https://app.readylayer.com";
   const reportUrl = `${baseUrl}/reports/${gateRunId}`;
 
   // Post initial GitHub check run
-  let checkRunId: number | null = null;
+  let checkRunId: number | null = gateRun.github_check_run_id ?? null;
   const installation = getGithubInstallation(tenantId, gate.repo_owner, gate.repo_name);
   let ghToken: string | null = null;
 
@@ -229,7 +261,8 @@ export async function runGate(tenantId: string, gateRunId: string): Promise<Gate
     ghToken = installation.access_token;
   }
 
-  if (ghToken && gateRun.commit_sha) {
+  // Idempotency: reuse an existing check run ID if we already created one for this gate run.
+  if (ghToken && gateRun.commit_sha && !checkRunId) {
     checkRunId = await createGithubCheckRun({
       owner: gate.repo_owner,
       repo: gate.repo_name,
@@ -243,6 +276,7 @@ export async function runGate(tenantId: string, gateRunId: string): Promise<Gate
     });
     if (checkRunId) {
       updateGateRun(gateRunId, tenantId, { github_check_run_id: checkRunId });
+      incrementCounter("pr_comment_updates", { tenantId });
     }
   }
 
@@ -260,20 +294,31 @@ export async function runGate(tenantId: string, gateRunId: string): Promise<Gate
     }
   }
 
+  const dedupedFindings = dedupeFindings(findings);
   const totalChecks = gate.required_checks.length;
   const passRate = totalChecks > 0 ? passedCount / totalChecks : 1;
-  const violations = findings.filter((f) => f.severity === "error").length;
+  const violations = dedupedFindings.filter((f) => f.severity === "error").length;
+  const warningCount = dedupedFindings.filter((f) => f.severity === "warning").length;
+  const strictMode = env.READYLAYER_STRICT_MODE === true;
+  const warningsBlock = env.READYLAYER_GATE_WARNINGS_BLOCK === true || strictMode;
+  const maxWarnings = strictMode ? 0 : env.READYLAYER_GATE_MAX_WARNINGS;
+  const warningThresholdExceeded = warningsBlock && warningCount > maxWarnings;
 
   const verdict =
-    passRate >= gate.thresholds.pass_rate && violations <= gate.thresholds.max_violations
+    passRate >= gate.thresholds.pass_rate &&
+    violations <= gate.thresholds.max_violations &&
+    !warningThresholdExceeded
       ? "passed"
       : "failed";
 
-  const topFindings = findings.slice(0, 3);
+  const topFindings = dedupedFindings.slice(0, 3);
+  const primaryReason = pickPrimaryReason(topFindings);
+  const relatedSignals =
+    primaryReason === null ? [] : topFindings.filter((finding) => finding !== primaryReason);
   const summary =
     verdict === "passed"
       ? `All ${totalChecks} check(s) passed. Agent is ready to deploy.`
-      : `${findings.length} issue(s) found across ${totalChecks} check(s). Review before merging.`;
+      : `${dedupedFindings.length} issue(s) found across ${totalChecks} check(s). Review before merging.`;
 
   const report: GateReport = {
     verdict,
@@ -282,6 +327,10 @@ export async function runGate(tenantId: string, gateRunId: string): Promise<Gate
     findings: topFindings,
     summary,
     report_url: reportUrl,
+    primary_reason: primaryReason ?? undefined,
+    related_signals: relatedSignals,
+    strict_mode: strictMode,
+    warning_count: warningCount,
   };
 
   // Update gate run record
@@ -324,6 +373,7 @@ export async function runGate(tenantId: string, gateRunId: string): Promise<Gate
       text: detailText || undefined,
       detailsUrl: reportUrl,
     });
+    incrementCounter("pr_comment_updates", { tenantId });
   }
 
   return report;

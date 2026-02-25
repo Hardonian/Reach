@@ -197,6 +197,10 @@ export interface GateReport {
   findings: GateFinding[];
   summary: string;
   report_url?: string;
+  primary_reason?: GateFinding;
+  related_signals?: GateFinding[];
+  strict_mode?: boolean;
+  warning_count?: number;
 }
 
 export interface GithubInstallation {

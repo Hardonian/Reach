@@ -4,6 +4,8 @@ import { listGovernanceArtifacts, listGovernanceSpecs } from "@/lib/cloud-db";
 import { GovernanceScopeSchema } from "@/lib/cloud-schemas";
 import type { GovernanceSpec } from "@/lib/governance/compiler";
 import { diffGovernanceSpec } from "@/lib/governance/diff";
+import { logger } from "@/lib/logger";
+import { incrementCounter } from "@/lib/observability";
 
 export const runtime = "nodejs";
 
@@ -105,13 +107,24 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         artifacts,
       };
     });
+    const conflictCount = timeline.filter((entry) => entry.diff.hasChanges).length;
+    if (conflictCount > 0) {
+      incrementCounter("conflict_classifications_generated", {
+        tenantId: ctx.tenantId,
+        by: conflictCount,
+      });
+    }
 
     return NextResponse.json({
       workspace_id: workspaceId,
       scope: scope.data ?? "all",
       timeline,
     });
-  } catch {
+  } catch (err) {
+    logger.warn("Governance history read failed", {
+      tenant_id: ctx.tenantId,
+      err: String(err),
+    });
     return governanceError(
       "Governance history unavailable",
       503,

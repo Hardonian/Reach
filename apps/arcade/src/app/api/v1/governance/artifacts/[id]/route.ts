@@ -2,6 +2,7 @@ import path from "node:path";
 import { NextRequest, NextResponse } from "next/server";
 import { cloudErrorResponse, requireAuth } from "@/lib/cloud-auth";
 import { getGovernanceArtifactById } from "@/lib/cloud-db";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -66,7 +67,12 @@ export async function GET(
         download: `/api/v1/governance/artifacts/${artifact.id}?download=1`,
       },
     });
-  } catch {
+  } catch (err) {
+    logger.warn("Governance artifact read failed", {
+      tenant_id: ctx.tenantId,
+      artifact_id: (await context.params).id,
+      err: String(err),
+    });
     return governanceError(
       "Governance artifact unavailable",
       503,

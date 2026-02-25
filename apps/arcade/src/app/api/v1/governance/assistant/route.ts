@@ -17,6 +17,8 @@ import {
 import { generateGovernanceArtifacts, GOVERNANCE_CODEGEN_ENGINE } from "@/lib/governance/codegen";
 import { diffGovernanceSpec } from "@/lib/governance/diff";
 import { validateGovernanceApplyGuard } from "@/lib/governance/apply-guard";
+import { logger } from "@/lib/logger";
+import { incrementCounter } from "@/lib/observability";
 
 export const runtime = "nodejs";
 
@@ -85,6 +87,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const latest = getLatestGovernanceSpec(ctx.tenantId, payload.workspace_id, payload.scope);
     const latestSpec = latest ? asGovernanceSpec(latest.spec) : null;
     const diff = diffGovernanceSpec(latestSpec, compiled.spec);
+    if (diff.hasChanges) {
+      incrementCounter("conflict_classifications_generated", { tenantId: ctx.tenantId });
+    }
 
     const generated = generateGovernanceArtifacts({
       intent: payload.intent,
@@ -217,6 +222,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         scope: payload.scope,
         spec_hash: compiled.specHash,
         diff,
+        repo: req.headers.get("x-reach-repo") ?? undefined,
+        branch: req.headers.get("x-reach-branch") ?? undefined,
+        run_id: req.headers.get("x-reach-run-id") ?? undefined,
       },
       req,
     );
@@ -231,7 +239,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       ...preview,
       artifacts: appliedArtifacts,
     });
-  } catch {
+  } catch (err) {
+    logger.warn("Governance assistant route failed", {
+      tenant_id: ctx.tenantId,
+      err: String(err),
+    });
     return governanceError(
       "Governance assistant is temporarily unavailable",
       503,
