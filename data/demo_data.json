@@ -1,0 +1,54 @@
+{
+  "runs": [
+    {
+      "run_id": "4479dffaffb2555a696edc39c4fbb6c6",
+      "pack_name": "hello-deterministic",
+      "status": "completed",
+      "fingerprint": "abc123def456",
+      "event_count": 10,
+      "created_at": "2026-02-25T12:41:08Z"
+    },
+    {
+      "run_id": "d5528e2d80e57ec9b637f5107e443d0b",
+      "pack_name": "security-basics",
+      "status": "completed",
+      "fingerprint": "def456ghi789",
+      "event_count": 15,
+      "created_at": "2026-02-25T13:41:08Z"
+    }
+  ],
+  "drift_alerts": [
+    {
+      "alert_id": "b737ee358983b0a177853a1d82d0a124",
+      "run_id": "d5528e2d80e57ec9b637f5107e443d0b",
+      "severity": "medium",
+      "description": "Detected environment drift between runs",
+      "detected_at": "2026-02-25T14:11:08Z"
+    }
+  ],
+  "policy_violations": [
+    {
+      "violation_id": "247ef37061650234a309c3fc72d6b832",
+      "run_id": "d5528e2d80e57ec9b637f5107e443d0b",
+      "policy_name": "no-external-calls",
+      "severity": "high",
+      "message": "External network call detected",
+      "occurred_at": "2026-02-25T13:56:08Z"
+    }
+  ],
+  "decision_items": [
+    {
+      "decision_id": "2b783cd8afbce6f4886a3bdcc61a13a4",
+      "title": "Approve security patch",
+      "status": "pending",
+      "priority": "high",
+      "options": [
+        "approve",
+        "reject",
+        "defer"
+      ],
+      "recommended": "approve",
+      "created_at": "2026-02-25T14:41:08Z"
+    }
+  ]
+}

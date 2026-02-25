@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 import (
 	"archive/zip"
@@ -238,6 +238,10 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runCapability(ctx, dataRoot, args[1:], out, errOut)
 	case "demo":
 		return runDemo(ctx, dataRoot, args[1:], out, errOut)
+	case "quickstart":
+		return runQuickstart(ctx, dataRoot, args[1:], out, errOut)
+	case "status":
+		return runStatus(ctx, dataRoot, args[1:], out, errOut)
 	case "bugreport":
 		return runBugreport(ctx, dataRoot, args[1:], out, errOut)
 	case "version", "--version", "-v":
@@ -586,7 +590,7 @@ func runStressRun(ctx context.Context, dataRoot string, args []string, out io.Wr
 	_, _ = fmt.Fprintf(out, "Step Key Stability: %.1f%%\n", report.MatrixResult.StepKeyStability)
 	_, _ = fmt.Fprintf(out, "Proof Hash Stability: %.1f%%\n", report.MatrixResult.ProofHashStability)
 	for _, rec := range report.Recommendations {
-		_, _ = fmt.Fprintf(out, "  → %s\n", rec)
+		_, _ = fmt.Fprintf(out, "  â†’ %s\n", rec)
 	}
 	return 0
 }
@@ -770,7 +774,7 @@ Examples:
 `)
 }
 
-// runGraph — Phase E: Evidence Graph Visualizer.
+// runGraph â€” Phase E: Evidence Graph Visualizer.
 // Exposes the execution graph with nodes, edges, and governance metadata.
 // Supports: graph <runId> --json | graph export <runId> --format json|dot|svg
 func runGraph(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
@@ -831,7 +835,7 @@ func runGraph(ctx context.Context, dataRoot string, args []string, out io.Writer
 			})
 		}
 
-		// Edges: sequential dependency (step N → step N+1)
+		// Edges: sequential dependency (step N â†’ step N+1)
 		edges := make([]map[string]any, 0, len(record.EventLog))
 		for i := 1; i < len(record.EventLog); i++ {
 			edges = append(edges, map[string]any{
@@ -1044,7 +1048,7 @@ func runRuns(ctx context.Context, dataRoot string, args []string, out io.Writer,
 	}
 }
 
-// runPlugins — Phase F: Plugin Sandbox Hardening.
+// runPlugins â€” Phase F: Plugin Sandbox Hardening.
 // Supports: plugins list | plugins verify <name> | plugins capability <name>
 func runPlugins(dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
@@ -1598,53 +1602,53 @@ func calculateOperatorMetrics(dataRoot string, nodes []federation.StatusNode) *O
 
 func printMobileOperatorDashboard(out io.Writer, m *OperatorMetrics) {
 	// Header
-	fmt.Fprintln(out, "â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—")
-	fmt.Fprintln(out, "â•‘        Reach Operator Dashboard (Mobile)       â•‘")
-	fmt.Fprintln(out, "â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•")
+	fmt.Fprintln(out, "Ã¢â€¢â€Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢â€”")
+	fmt.Fprintln(out, "Ã¢â€¢â€˜        Reach Operator Dashboard (Mobile)       Ã¢â€¢â€˜")
+	fmt.Fprintln(out, "Ã¢â€¢Å¡Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â")
 	fmt.Fprintln(out)
 
 	// Status indicator
 	statusEmoji := map[string]string{
-		"healthy":         "âœ“",
-		"needs_attention": "âš ",
-		"critical":        "âœ—",
+		"healthy":         "Ã¢Å“â€œ",
+		"needs_attention": "Ã¢Å¡Â ",
+		"critical":        "Ã¢Å“â€”",
 	}
 	fmt.Fprintf(out, "Health: %s %s\n\n", statusEmoji[m.Health.Overall], strings.ToUpper(m.Health.Overall))
 
 	// Runs section
-	fmt.Fprintln(out, "â”Œâ”€ Runs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”")
-	fmt.Fprintf(out, "â”‚  Total:     %d\n", m.Runs.Total)
-	fmt.Fprintf(out, "â”‚  âœ“ Success: %d\n", m.Runs.Success)
-	fmt.Fprintf(out, "â”‚  âœ— Denied:  %d\n", m.Runs.Denied)
+	fmt.Fprintln(out, "Ã¢â€Å’Ã¢â€â‚¬ Runs Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Â")
+	fmt.Fprintf(out, "Ã¢â€â€š  Total:     %d\n", m.Runs.Total)
+	fmt.Fprintf(out, "Ã¢â€â€š  Ã¢Å“â€œ Success: %d\n", m.Runs.Success)
+	fmt.Fprintf(out, "Ã¢â€â€š  Ã¢Å“â€” Denied:  %d\n", m.Runs.Denied)
 	if m.Runs.Mismatches > 0 {
-		fmt.Fprintf(out, "â”‚  âš  Mismatch:%d\n", m.Runs.Mismatches)
+		fmt.Fprintf(out, "Ã¢â€â€š  Ã¢Å¡Â  Mismatch:%d\n", m.Runs.Mismatches)
 	}
-	fmt.Fprintln(out, "â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜")
+	fmt.Fprintln(out, "Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Ëœ")
 	fmt.Fprintln(out)
 
 	// Topology section
-	fmt.Fprintln(out, "â”Œâ”€ Federation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”")
-	fmt.Fprintf(out, "â”‚  Nodes:   %d\n", m.Topology.Nodes)
-	fmt.Fprintf(out, "â”‚  Trusted: %d\n", m.Topology.TrustedPeers)
+	fmt.Fprintln(out, "Ã¢â€Å’Ã¢â€â‚¬ Federation Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Â")
+	fmt.Fprintf(out, "Ã¢â€â€š  Nodes:   %d\n", m.Topology.Nodes)
+	fmt.Fprintf(out, "Ã¢â€â€š  Trusted: %d\n", m.Topology.TrustedPeers)
 	if m.Topology.Quarantined > 0 {
-		fmt.Fprintf(out, "â”‚  âš  Quarantine: %d\n", m.Topology.Quarantined)
+		fmt.Fprintf(out, "Ã¢â€â€š  Ã¢Å¡Â  Quarantine: %d\n", m.Topology.Quarantined)
 	}
-	fmt.Fprintln(out, "â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜")
+	fmt.Fprintln(out, "Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Ëœ")
 	fmt.Fprintln(out)
 
 	// Capsules section
-	fmt.Fprintln(out, "â”Œâ”€ Capsules â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”")
-	fmt.Fprintf(out, "â”‚  Total:    %d\n", m.Capsules.Total)
-	fmt.Fprintf(out, "â”‚  Verified: %d\n", m.Capsules.Verified)
-	fmt.Fprintln(out, "â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜")
+	fmt.Fprintln(out, "Ã¢â€Å’Ã¢â€â‚¬ Capsules Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Â")
+	fmt.Fprintf(out, "Ã¢â€â€š  Total:    %d\n", m.Capsules.Total)
+	fmt.Fprintf(out, "Ã¢â€â€š  Verified: %d\n", m.Capsules.Verified)
+	fmt.Fprintln(out, "Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Ëœ")
 	fmt.Fprintln(out)
 
 	// Mobile section
 	if m.Mobile.LowMemoryMode {
-		fmt.Fprintln(out, "â”Œâ”€ Mobile Settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”")
-		fmt.Fprintln(out, "â”‚  Low Memory Mode: ON")
-		fmt.Fprintf(out, "â”‚  Storage Used: %d MB\n", m.Mobile.StorageUsedMB)
-		fmt.Fprintln(out, "â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜")
+		fmt.Fprintln(out, "Ã¢â€Å’Ã¢â€â‚¬ Mobile Settings Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Â")
+		fmt.Fprintln(out, "Ã¢â€â€š  Low Memory Mode: ON")
+		fmt.Fprintf(out, "Ã¢â€â€š  Storage Used: %d MB\n", m.Mobile.StorageUsedMB)
+		fmt.Fprintln(out, "Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Ëœ")
 		fmt.Fprintln(out)
 	}
 
@@ -2596,14 +2600,14 @@ func (d *Doctor) Diagnose(packPath string) *doctorReport {
 
 func (r *doctorReport) ToHuman() string {
 	var sb strings.Builder
-	statusEmoji := map[string]string{"healthy": "âœ“", "needs_attention": "âš ", "critical": "âœ—"}
+	statusEmoji := map[string]string{"healthy": "Ã¢Å“â€œ", "needs_attention": "Ã¢Å¡Â ", "critical": "Ã¢Å“â€”"}
 
 	sb.WriteString(fmt.Sprintf("%s Pack Health Report: %s\n", statusEmoji[r.Overall], r.PackPath))
 	sb.WriteString(fmt.Sprintf("Overall Status: %s\n\n", strings.ToUpper(r.Overall)))
 
 	sb.WriteString("Checks:\n")
 	for _, check := range r.Checks {
-		emoji := map[string]string{"pass": "âœ“", "fail": "âœ—", "warn": "âš ", "skip": "âŠ˜"}[check.Status]
+		emoji := map[string]string{"pass": "Ã¢Å“â€œ", "fail": "Ã¢Å“â€”", "warn": "Ã¢Å¡Â ", "skip": "Ã¢Å Ëœ"}[check.Status]
 		sb.WriteString(fmt.Sprintf("  %s %s: %s\n", emoji, check.Name, check.Message))
 	}
 
@@ -3308,30 +3312,30 @@ func (w *Wizard) Run(ctx context.Context) int {
 }
 
 func (w *Wizard) printHeader() {
-	fmt.Fprintln(w.Out, "â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—")
-	fmt.Fprintln(w.Out, "â•‘     Reach Guided Run Wizard            â•‘")
-	fmt.Fprintln(w.Out, "â•‘     Run â†’ Verify â†’ Share in 3 steps    â•‘")
-	fmt.Fprintln(w.Out, "â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•")
+	fmt.Fprintln(w.Out, "Ã¢â€¢â€Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢â€”")
+	fmt.Fprintln(w.Out, "Ã¢â€¢â€˜     Reach Guided Run Wizard            Ã¢â€¢â€˜")
+	fmt.Fprintln(w.Out, "Ã¢â€¢â€˜     Run Ã¢â€ â€™ Verify Ã¢â€ â€™ Share in 3 steps    Ã¢â€¢â€˜")
+	fmt.Fprintln(w.Out, "Ã¢â€¢Å¡Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â")
 	fmt.Fprintln(w.Out)
 }
 
 func (w *Wizard) printSuccess() {
 	fmt.Fprintln(w.Out)
-	fmt.Fprintln(w.Out, "âœ“ Run completed successfully!")
+	fmt.Fprintln(w.Out, "Ã¢Å“â€œ Run completed successfully!")
 	fmt.Fprintf(w.Out, "  Run ID: %s\n", w.State.RunID)
 	fmt.Fprintf(w.Out, "  Capsule: %s\n", w.State.CapsulePath)
 	fmt.Fprintln(w.Out)
 	fmt.Fprintln(w.Out, "Next steps:")
-	fmt.Fprintln(w.Out, "  â€¢ reach share run", w.State.RunID)
-	fmt.Fprintln(w.Out, "  â€¢ reach explain", w.State.RunID)
-	fmt.Fprintln(w.Out, "  â€¢ reach proof verify", w.State.RunID)
+	fmt.Fprintln(w.Out, "  Ã¢â‚¬Â¢ reach share run", w.State.RunID)
+	fmt.Fprintln(w.Out, "  Ã¢â‚¬Â¢ reach explain", w.State.RunID)
+	fmt.Fprintln(w.Out, "  Ã¢â‚¬Â¢ reach proof verify", w.State.RunID)
 }
 
 func (w *Wizard) logError(msg string, err error) {
 	if w.JSONOut {
 		writeJSON(w.Out, map[string]any{"error": msg, "detail": err.Error(), "state": w.State})
 	} else {
-		fmt.Fprintf(w.ErrOut, "âœ— %s: %v\n", msg, err)
+		fmt.Fprintf(w.ErrOut, "Ã¢Å“â€” %s: %v\n", msg, err)
 	}
 }
 
@@ -3356,7 +3360,7 @@ func (w *Wizard) stepChoosePack() error {
 		for i, p := range idx.Packs {
 			verified := ""
 			if p.Verified {
-				verified = " âœ“ verified"
+				verified = " Ã¢Å“â€œ verified"
 			}
 			fmt.Fprintf(w.Out, "  [%d] %s%s\n", i+1, p.Name, verified)
 			if p.Description != "" {
@@ -3370,7 +3374,7 @@ func (w *Wizard) stepChoosePack() error {
 	if w.QuickMode {
 		w.State.SelectedPack = idx.Packs[0].Name
 		if !w.JSONOut {
-			fmt.Fprintf(w.Out, "âœ“ Auto-selected: %s\n\n", w.State.SelectedPack)
+			fmt.Fprintf(w.Out, "Ã¢Å“â€œ Auto-selected: %s\n\n", w.State.SelectedPack)
 		}
 		return nil
 	}
@@ -3398,9 +3402,9 @@ func (w *Wizard) stepChooseInput() error {
 	w.State.Input["timeout"] = "30"
 
 	if !w.JSONOut {
-		fmt.Fprintln(w.Out, "âœ“ Using safe defaults:")
-		fmt.Fprintf(w.Out, "  â€¢ Mode: %s\n", w.State.Input["mode"])
-		fmt.Fprintf(w.Out, "  â€¢ Timeout: %ss\n", w.State.Input["timeout"])
+		fmt.Fprintln(w.Out, "Ã¢Å“â€œ Using safe defaults:")
+		fmt.Fprintf(w.Out, "  Ã¢â‚¬Â¢ Mode: %s\n", w.State.Input["mode"])
+		fmt.Fprintf(w.Out, "  Ã¢â‚¬Â¢ Timeout: %ss\n", w.State.Input["timeout"])
 		fmt.Fprintln(w.Out)
 	}
 
@@ -3444,7 +3448,7 @@ func (w *Wizard) stepRun(ctx context.Context) error {
 	}
 
 	if !w.JSONOut {
-		fmt.Fprintf(w.Out, "âœ“ Run complete: %s\n\n", w.State.RunID)
+		fmt.Fprintf(w.Out, "Ã¢Å“â€œ Run complete: %s\n\n", w.State.RunID)
 	}
 
 	w.State.Success = true
@@ -3468,7 +3472,7 @@ func (w *Wizard) stepVerify() error {
 	fingerprint := stableHash(map[string]any{"event_log": record.EventLog, "run_id": record.RunID})
 
 	if !w.JSONOut {
-		fmt.Fprintf(w.Out, "âœ“ Verified (fingerprint: %s...)\n\n", fingerprint[:16])
+		fmt.Fprintf(w.Out, "Ã¢Å“â€œ Verified (fingerprint: %s...)\n\n", fingerprint[:16])
 	}
 
 	return nil
@@ -3497,11 +3501,11 @@ func (w *Wizard) stepShare() error {
 	}
 
 	if !w.JSONOut {
-		fmt.Fprintf(w.Out, "âœ“ Capsule ready: %s\n", w.State.CapsulePath)
+		fmt.Fprintf(w.Out, "Ã¢Å“â€œ Capsule ready: %s\n", w.State.CapsulePath)
 		fmt.Fprintln(w.Out)
 		fmt.Fprintln(w.Out, "Share options:")
-		fmt.Fprintf(w.Out, "  â€¢ QR code: reach share run %s\n", w.State.RunID)
-		fmt.Fprintf(w.Out, "  â€¢ File: %s\n", w.State.CapsulePath)
+		fmt.Fprintf(w.Out, "  Ã¢â‚¬Â¢ QR code: reach share run %s\n", w.State.RunID)
+		fmt.Fprintf(w.Out, "  Ã¢â‚¬Â¢ File: %s\n", w.State.CapsulePath)
 		fmt.Fprintln(w.Out)
 	}
 
@@ -3583,7 +3587,7 @@ func runQuick(args []string, out, errOut io.Writer) int {
 	}
 
 	runID := fmt.Sprintf("run-%d", time.Now().Unix())
-	fmt.Fprintf(out, "✓ Execution complete: %s\n", runID)
+	fmt.Fprintf(out, "âœ“ Execution complete: %s\n", runID)
 
 	// 4. Scoring
 	eval := evaluation.NewEvaluator()
@@ -3595,7 +3599,7 @@ func runQuick(args []string, out, errOut io.Writer) int {
 	finalResultJSON, _ := json.Marshal(results["node2"])
 	scoreRes, scoreErr := eval.ScoreRun(ctx, test, runID, string(finalResultJSON), nil, time.Duration(state.Latency)*time.Millisecond, state.TokenUsage)
 	if scoreErr == nil {
-		fmt.Fprintf(out, "ðŸŽ¯ Evaluation Score: %.2f (G:%.2f, P:%.2f, T:%.2f)\n",
+		fmt.Fprintf(out, "Ã°Å¸Å½Â¯ Evaluation Score: %.2f (G:%.2f, P:%.2f, T:%.2f)\n",
 			scoreRes.Score, scoreRes.Grounding, scoreRes.PolicyCompliance, scoreRes.ToolCorrectness)
 	}
 
@@ -3678,9 +3682,9 @@ func shareRun(dataRoot, runID string, out, errOut io.Writer) int {
 	// Generate share data
 	shareURL := fmt.Sprintf("reach://share/%s?v=1", runID)
 
-	fmt.Fprintln(out, "â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—")
-	fmt.Fprintln(out, "â•‘        Share Your Run                  â•‘")
-	fmt.Fprintln(out, "â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•")
+	fmt.Fprintln(out, "Ã¢â€¢â€Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢â€”")
+	fmt.Fprintln(out, "Ã¢â€¢â€˜        Share Your Run                  Ã¢â€¢â€˜")
+	fmt.Fprintln(out, "Ã¢â€¢Å¡Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â")
 	fmt.Fprintln(out)
 	fmt.Fprintf(out, "Run ID: %s\n", runID)
 	fmt.Fprintln(out)
@@ -3706,7 +3710,7 @@ func shareRun(dataRoot, runID string, out, errOut io.Writer) int {
 		downloadsPath := "/sdcard/Download/reach-" + runID + ".capsule.json"
 		if input, err := os.ReadFile(capsulePath); err == nil {
 			if err := os.WriteFile(downloadsPath, input, 0644); err == nil {
-				fmt.Fprintf(out, "\nâœ“ Also saved to: %s\n", downloadsPath)
+				fmt.Fprintf(out, "\nÃ¢Å“â€œ Also saved to: %s\n", downloadsPath)
 			}
 		}
 	}
@@ -3725,9 +3729,9 @@ func shareCapsule(path string, out, errOut io.Writer) int {
 	hash := stableHash(cap.EventLog)[:16]
 	shareURL := fmt.Sprintf("reach://capsule/%s?verify=true", hash)
 
-	fmt.Fprintln(out, "â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—")
-	fmt.Fprintln(out, "â•‘        Share Capsule                   â•‘")
-	fmt.Fprintln(out, "â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•")
+	fmt.Fprintln(out, "Ã¢â€¢â€Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢â€”")
+	fmt.Fprintln(out, "Ã¢â€¢â€˜        Share Capsule                   Ã¢â€¢â€˜")
+	fmt.Fprintln(out, "Ã¢â€¢Å¡Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â")
 	fmt.Fprintln(out)
 	fmt.Fprintf(out, "Run ID: %s\n", cap.Manifest.RunID)
 	fingerprint := cap.Manifest.RunFingerprint
@@ -4054,9 +4058,9 @@ func meshQR(dataDir string, out io.Writer, errOut io.Writer) int {
 	qrData := node.CreateQRCode()
 	code := node.CreatePairingCode()
 
-	fmt.Fprintln(out, "â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—")
-	fmt.Fprintln(out, "â•‘         Reach Mesh Pairing Code                â•‘")
-	fmt.Fprintln(out, "â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•")
+	fmt.Fprintln(out, "Ã¢â€¢â€Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢â€”")
+	fmt.Fprintln(out, "Ã¢â€¢â€˜         Reach Mesh Pairing Code                Ã¢â€¢â€˜")
+	fmt.Fprintln(out, "Ã¢â€¢Å¡Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â")
 	fmt.Fprintln(out)
 	fmt.Fprintf(out, "Pairing Code: %s\n", code.Code)
 	fmt.Fprintf(out, "Expires: %s\n", code.ExpiresAt.Format(time.RFC3339))
@@ -4074,15 +4078,15 @@ func meshQR(dataDir string, out io.Writer, errOut io.Writer) int {
 func generateTextQR(out io.Writer, text string) {
 	// This is a simplified placeholder - real QR would use qrencode library
 	// For now, create a visual frame that suggests QR structure
-	fmt.Fprintln(out, "  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”")
-	fmt.Fprintln(out, "  â”‚ â–„â–„â–„   â–„â–„â–„  â”‚")
-	fmt.Fprintln(out, "  â”‚ â–ˆ â–ˆ â–„ â–ˆ â–ˆ  â”‚")
-	fmt.Fprintln(out, "  â”‚ â–€â–€â–€ â–€ â–€â–€â–€  â”‚")
-	fmt.Fprintln(out, "  â”‚ â–„â–„  â–€â–„  â–„â–„ â”‚")
-	fmt.Fprintln(out, "  â”‚ â–€â–€â–„â–„â–„â–€â–„ â–€â–€ â”‚")
-	fmt.Fprintln(out, "  â”‚ â–„â–„â–€ â–€â–„â–€â–„â–„  â”‚")
-	fmt.Fprintln(out, "  â”‚ â–€â–€â–€   â–€â–€â–€  â”‚")
-	fmt.Fprintln(out, "  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜")
+	fmt.Fprintln(out, "  Ã¢â€Å’Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Â")
+	fmt.Fprintln(out, "  Ã¢â€â€š Ã¢â€“â€žÃ¢â€“â€žÃ¢â€“â€ž   Ã¢â€“â€žÃ¢â€“â€žÃ¢â€“â€ž  Ã¢â€â€š")
+	fmt.Fprintln(out, "  Ã¢â€â€š Ã¢â€“Ë† Ã¢â€“Ë† Ã¢â€“â€ž Ã¢â€“Ë† Ã¢â€“Ë†  Ã¢â€â€š")
+	fmt.Fprintln(out, "  Ã¢â€â€š Ã¢â€“â‚¬Ã¢â€“â‚¬Ã¢â€“â‚¬ Ã¢â€“â‚¬ Ã¢â€“â‚¬Ã¢â€“â‚¬Ã¢â€“â‚¬  Ã¢â€â€š")
+	fmt.Fprintln(out, "  Ã¢â€â€š Ã¢â€“â€žÃ¢â€“â€ž  Ã¢â€“â‚¬Ã¢â€“â€ž  Ã¢â€“â€žÃ¢â€“â€ž Ã¢â€â€š")
+	fmt.Fprintln(out, "  Ã¢â€â€š Ã¢â€“â‚¬Ã¢â€“â‚¬Ã¢â€“â€žÃ¢â€“â€žÃ¢â€“â€žÃ¢â€“â‚¬Ã¢â€“â€ž Ã¢â€“â‚¬Ã¢â€“â‚¬ Ã¢â€â€š")
+	fmt.Fprintln(out, "  Ã¢â€â€š Ã¢â€“â€žÃ¢â€“â€žÃ¢â€“â‚¬ Ã¢â€“â‚¬Ã¢â€“â€žÃ¢â€“â‚¬Ã¢â€“â€žÃ¢â€“â€ž  Ã¢â€â€š")
+	fmt.Fprintln(out, "  Ã¢â€â€š Ã¢â€“â‚¬Ã¢â€“â‚¬Ã¢â€“â‚¬   Ã¢â€“â‚¬Ã¢â€“â‚¬Ã¢â€“â‚¬  Ã¢â€â€š")
+	fmt.Fprintln(out, "  Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Ëœ")
 	fmt.Fprintln(out, "  (Use: pkg install libqrencode for real QR codes)")
 }
 
@@ -4131,7 +4135,7 @@ func runGateConnect(args []string, out io.Writer, errOut io.Writer) int {
 	}
 
 	if len(existingWorkflows) > 0 {
-		fmt.Fprintf(out, "âœ“ Found %d existing workflow(s).\n", len(existingWorkflows))
+		fmt.Fprintf(out, "Ã¢Å“â€œ Found %d existing workflow(s).\n", len(existingWorkflows))
 		fmt.Fprintln(out, "Suggestion: Add ReadyLayer Gate to your primary CI workflow.")
 	} else {
 		fmt.Fprintln(out, "! No GitHub Action workflows found.")
@@ -4179,7 +4183,7 @@ func runGateRun(args []string, out io.Writer, errOut io.Writer) int {
 	time.Sleep(500 * time.Millisecond)
 
 	// Simulated pass for CLI UX
-	fmt.Fprintln(out, "âœ“ All checks passed.")
+	fmt.Fprintln(out, "Ã¢Å“â€œ All checks passed.")
 	fmt.Fprintln(out, "Verdict: PASSED")
 
 	return 0
@@ -4227,6 +4231,8 @@ CORE COMMANDS:
   bugreport             Collect redacted diagnostics into a zip
   version               Show version information
   demo                  One-command demo (run, verify, replay, capsule)
+  quickstart            Golden-path bootstrap flow
+  status                Component health + reconciliation status
   init pack --governed  Initialize a new governed pack
   run <pack>            Quick run a pack locally
   replay <runId>        Replay a run for verification
@@ -4576,7 +4582,7 @@ func runVerifyDeterminism(ctx context.Context, dataRoot string, args []string, o
 		return 1
 	}
 
-	fmt.Fprintf(out, "\nâœ“ Determinism verified. Final hash: %s\n", hash)
+	fmt.Fprintf(out, "\nÃ¢Å“â€œ Determinism verified. Final hash: %s\n", hash)
 	return 0
 }
 
@@ -4720,10 +4726,10 @@ func runDoctor(args []string, out, errOut io.Writer) int {
 	}
 
 	if healthy {
-		fmt.Fprintln(out, "\nâœ¨ System is healthy and ready for OSS mode.")
+		fmt.Fprintln(out, "\nÃ¢Å“Â¨ System is healthy and ready for OSS mode.")
 		return 0
 	} else {
-		fmt.Fprintln(errOut, "\nâš ï¸ Some issues were detected. See above for details.")
+		fmt.Fprintln(errOut, "\nÃ¢Å¡Â Ã¯Â¸Â Some issues were detected. See above for details.")
 		return 1
 	}
 }
@@ -4917,7 +4923,7 @@ func runCheckpoint(ctx context.Context, dataRoot string, args []string, out io.W
 	if *jsonFlag {
 		return writeJSON(out, result)
 	}
-	_, _ = fmt.Fprintf(out, "âœ“ Checkpoint created for run %s at %s\n", runID, checkpointPath)
+	_, _ = fmt.Fprintf(out, "Ã¢Å“â€œ Checkpoint created for run %s at %s\n", runID, checkpointPath)
 	return 0
 }
 
@@ -4954,7 +4960,7 @@ func runRewind(ctx context.Context, dataRoot string, args []string, out io.Write
 	if *jsonFlag {
 		return writeJSON(out, result)
 	}
-	_, _ = fmt.Fprintf(out, "âœ“ Restored from checkpoint %s\n", checkpointID)
+	_, _ = fmt.Fprintf(out, "Ã¢Å“â€œ Restored from checkpoint %s\n", checkpointID)
 	return 0
 }
 
@@ -4993,7 +4999,7 @@ func runSimulate(ctx context.Context, dataRoot string, args []string, out io.Wri
 	return 0
 }
 
-// runChaos runs differential chaos analysis — Phase G.
+// runChaos runs differential chaos analysis â€” Phase G.
 // It perturbs execution parameters across multiple seeds and reports
 // invariant violations, step key drift, and proof hash drift.
 func runChaos(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
@@ -5121,16 +5127,16 @@ func runChaos(ctx context.Context, dataRoot string, args []string, out io.Writer
 	if len(violations) > 0 {
 		_, _ = fmt.Fprintln(out, "\nInvariant Violations:")
 		for _, v := range violations {
-			_, _ = fmt.Fprintf(out, "  ✗ %s\n", v)
+			_, _ = fmt.Fprintf(out, "  âœ— %s\n", v)
 		}
 	} else {
-		_, _ = fmt.Fprintln(out, "\n✓ No invariant violations detected.")
+		_, _ = fmt.Fprintln(out, "\nâœ“ No invariant violations detected.")
 	}
 	_, _ = fmt.Fprintf(out, "\nReport saved: %s\n", reportPath)
 	return 0
 }
 
-// runTrust computes the trust score for the workspace — Phase E.
+// runTrust computes the trust score for the workspace â€” Phase E.
 // Uses actual run records and policy evaluation to produce a real score.
 func runTrust(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("trust", flag.ContinueOnError)
@@ -5160,7 +5166,7 @@ func runTrust(ctx context.Context, dataRoot string, args []string, out io.Writer
 		suggestions = append(suggestions, fmt.Sprintf("Fix %d policy violation(s): run policy enforce --dry-run", violations))
 	}
 	if len(suggestions) == 0 {
-		suggestions = append(suggestions, "Workspace is healthy — consider signing and publishing a capsule")
+		suggestions = append(suggestions, "Workspace is healthy â€” consider signing and publishing a capsule")
 	}
 
 	result := map[string]any{
@@ -5179,12 +5185,12 @@ func runTrust(ctx context.Context, dataRoot string, args []string, out io.Writer
 		return writeJSON(out, result)
 	}
 
-	symbol := "✓"
+	symbol := "âœ“"
 	if status != "healthy" {
-		symbol = "⚠"
+		symbol = "âš "
 	}
 	if violations > 0 {
-		symbol = "✗"
+		symbol = "âœ—"
 	}
 	_, _ = fmt.Fprintf(out, "%s Trust Report\n", symbol)
 	_, _ = fmt.Fprintln(out, "=============")
@@ -5197,7 +5203,7 @@ func runTrust(ctx context.Context, dataRoot string, args []string, out io.Writer
 	if len(suggestions) > 0 {
 		_, _ = fmt.Fprintln(out, "\nSuggestions:")
 		for _, s := range suggestions {
-			_, _ = fmt.Fprintf(out, "  → %s\n", s)
+			_, _ = fmt.Fprintf(out, "  â†’ %s\n", s)
 		}
 	}
 	return 0
@@ -5438,6 +5444,7 @@ func runPeer(ctx context.Context, dataRoot string, args []string, out io.Writer,
 }
 
 
+
 // runQuickstart provides the golden-path bootstrap flow
 func runQuickstart(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("quickstart", flag.ContinueOnError)
@@ -5446,9 +5453,8 @@ func runQuickstart(ctx context.Context, dataRoot string, args []string, out io.W
 	_ = fs.Parse(args)
 
 	if !*jsonOut {
-		fmt.Fprintln(out, "╔════════════════════════════════════════╗")
-		fmt.Fprintln(out, "║     Reach Quickstart - Golden Path     ║")
-		fmt.Fprintln(out, "╚════════════════════════════════════════╝")
+		fmt.Fprintln(out, "Reach Quickstart - Golden Path")
+		fmt.Fprintln(out, strings.Repeat("=", 40))
 		fmt.Fprintln(out)
 	}
 
@@ -5468,7 +5474,6 @@ func runQuickstart(ctx context.Context, dataRoot string, args []string, out io.W
 
 	var runID string
 	var capsulePath string
-	var demoErr error
 
 	if !*fixtureMode {
 		var demoBuf bytes.Buffer
@@ -5479,8 +5484,6 @@ func runQuickstart(ctx context.Context, dataRoot string, args []string, out io.W
 				runID, _ = demoResult["run_id"].(string)
 				capsulePath, _ = demoResult["capsule"].(string)
 			}
-		} else {
-			demoErr = fmt.Errorf("demo smoke failed")
 		}
 	}
 
@@ -5511,8 +5514,8 @@ func runQuickstart(ctx context.Context, dataRoot string, args []string, out io.W
 			fmt.Sprintf("Run 'reach explain %s' to analyze the run", runID),
 		},
 		"docs": map[string]string{
-			"quickstart": "https://reach-cli.com/docs/quickstart",
-			"examples":   "https://reach-cli.com/docs/examples",
+			"quickstart":      "https://reach-cli.com/docs/quickstart",
+			"examples":        "https://reach-cli.com/docs/examples",
 			"troubleshooting": "https://reach-cli.com/docs/troubleshooting",
 		},
 	}
@@ -5528,7 +5531,7 @@ func runQuickstart(ctx context.Context, dataRoot string, args []string, out io.W
 
 	// Human-readable output
 	fmt.Fprintln(out)
-	fmt.Fprintln(out, "✓ Quickstart complete!")
+	fmt.Fprintln(out, "Quickstart complete!")
 	fmt.Fprintln(out)
 	fmt.Fprintf(out, "Run ID: %s\n", runID)
 	if *fixtureMode {
@@ -5537,14 +5540,14 @@ func runQuickstart(ctx context.Context, dataRoot string, args []string, out io.W
 	fmt.Fprintln(out)
 	fmt.Fprintln(out, "Next steps:")
 	for _, step := range quickstartData["next_steps"].([]string) {
-		fmt.Fprintf(out, "  • %s\n", step)
+		fmt.Fprintf(out, "  - %s\n", step)
 	}
 	fmt.Fprintln(out)
 	fmt.Fprintln(out, "Documentation:")
 	docs := quickstartData["docs"].(map[string]string)
-	fmt.Fprintf(out, "  • Quickstart: %s\n", docs["quickstart"])
-	fmt.Fprintf(out, "  • Examples: %s\n", docs["examples"])
-	fmt.Fprintf(out, "  • Help: %s\n", docs["troubleshooting"])
+	fmt.Fprintf(out, "  - Quickstart: %s\n", docs["quickstart"])
+	fmt.Fprintf(out, "  - Examples: %s\n", docs["examples"])
+	fmt.Fprintf(out, "  - Help: %s\n", docs["troubleshooting"])
 
 	return 0
 }
@@ -5557,24 +5560,28 @@ func runStatus(ctx context.Context, dataRoot string, args []string, out io.Write
 	_ = fs.Parse(args)
 
 	// Gather component health
-	status := struct {
-		Timestamp   string                 `json:"timestamp"`
-		Version     string                 `json:"version"`
-		Overall     string                 `json:"overall"`
-		Components  map[string]any         `json:"components"`
-		Environment map[string]string      `json:"environment"`
-		Reconciliation map[string]any      `json:"reconciliation,omitempty"`
-		Stats       map[string]any         `json:"stats"`
-	}{
-		Timestamp: time.Now().UTC().Format(time.RFC3339),
-		Version:   version,
-		Components: make(map[string]any),
-		Environment: map[string]string{
-			"go_version": runtime.Version(),
-			"platform":   fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
-			"data_dir":   dataRoot,
-		},
-		Stats: make(map[string]any),
+	type componentStatus struct {
+		Status  bool   `json:"status"`
+		Count   int    `json:"count,omitempty"`
+		Message string `json:"message"`
+	}
+
+	type statusReport struct {
+		Timestamp      string                 `json:"timestamp"`
+		Version        string                 `json:"version"`
+		Overall        string                 `json:"overall"`
+		Components     map[string]any         `json:"components"`
+		Environment    map[string]string      `json:"environment"`
+		Reconciliation map[string]any         `json:"reconciliation,omitempty"`
+		Stats          map[string]any         `json:"stats"`
+	}
+
+	status := statusReport{
+		Timestamp:   time.Now().UTC().Format(time.RFC3339),
+		Version:     version,
+		Components:  make(map[string]any),
+		Environment: make(map[string]string),
+		Stats:       make(map[string]any),
 	}
 
 	// Check data directory
@@ -5582,10 +5589,9 @@ func runStatus(ctx context.Context, dataRoot string, args []string, out io.Write
 	if info, err := os.Stat(dataRoot); err == nil && info.IsDir() {
 		dataDirExists = true
 	}
-	status.Components["data_directory"] = map[string]any{
-		"status":  dataDirExists,
-		"path":    dataRoot,
-		"message": map[bool]string{true: "accessible", false: "not found"}[dataDirExists],
+	status.Components["data_directory"] = componentStatus{
+		Status:  dataDirExists,
+		Message: map[bool]string{true: "accessible", false: "not found"}[dataDirExists],
 	}
 
 	// Check runs directory
@@ -5602,10 +5608,10 @@ func runStatus(ctx context.Context, dataRoot string, args []string, out io.Write
 			}
 		}
 	}
-	status.Components["runs_storage"] = map[string]any{
-		"status":  runsExist,
-		"count":   runCount,
-		"message": map[bool]string{true: fmt.Sprintf("%d runs", runCount), false: "not initialized"}[runsExist],
+	status.Components["runs_storage"] = componentStatus{
+		Status:  runsExist,
+		Count:   runCount,
+		Message: map[bool]string{true: fmt.Sprintf("%d runs", runCount), false: "not initialized"}[runsExist],
 	}
 
 	// Check capsules directory
@@ -5622,10 +5628,10 @@ func runStatus(ctx context.Context, dataRoot string, args []string, out io.Write
 			}
 		}
 	}
-	status.Components["capsule_storage"] = map[string]any{
-		"status":  capsulesExist,
-		"count":   capsuleCount,
-		"message": map[bool]string{true: fmt.Sprintf("%d capsules", capsuleCount), false: "not initialized"}[capsulesExist],
+	status.Components["capsule_storage"] = componentStatus{
+		Status:  capsulesExist,
+		Count:   capsuleCount,
+		Message: map[bool]string{true: fmt.Sprintf("%d capsules", capsuleCount), false: "not initialized"}[capsulesExist],
 	}
 
 	// Check registry
@@ -5641,10 +5647,10 @@ func runStatus(ctx context.Context, dataRoot string, args []string, out io.Write
 			}
 		}
 	}
-	status.Components["pack_registry"] = map[string]any{
-		"status":  registryExists,
-		"count":   packCount,
-		"message": map[bool]string{true: fmt.Sprintf("%d packs", packCount), false: "not initialized"}[registryExists],
+	status.Components["pack_registry"] = componentStatus{
+		Status:  registryExists,
+		Count:   packCount,
+		Message: map[bool]string{true: fmt.Sprintf("%d packs", packCount), false: "not initialized"}[registryExists],
 	}
 
 	// Determine overall health
@@ -5666,6 +5672,11 @@ func runStatus(ctx context.Context, dataRoot string, args []string, out io.Write
 		}
 	}
 
+	// Add environment info
+	status.Environment["go_version"] = runtime.Version()
+	status.Environment["platform"] = fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)
+	status.Environment["data_dir"] = dataRoot
+
 	// Add stats
 	status.Stats["total_runs"] = runCount
 	status.Stats["total_capsules"] = capsuleCount
@@ -5677,16 +5688,15 @@ func runStatus(ctx context.Context, dataRoot string, args []string, out io.Write
 
 	// Human-readable output
 	statusEmoji := map[string]string{
-		"healthy":         "✓",
-		"needs_attention": "⚠",
-		"uninitialized":   "○",
+		"healthy":         "OK",
+		"needs_attention": "WARN",
+		"uninitialized":   "NEW",
 	}
 
-	fmt.Fprintln(out, "╔════════════════════════════════════════╗")
-	fmt.Fprintln(out, "║         Reach System Status            ║")
-	fmt.Fprintln(out, "╚════════════════════════════════════════╝")
+	fmt.Fprintln(out, "Reach System Status")
+	fmt.Fprintln(out, strings.Repeat("=", 40))
 	fmt.Fprintln(out)
-	fmt.Fprintf(out, "Overall: %s %s\n", statusEmoji[status.Overall], strings.ToUpper(status.Overall))
+	fmt.Fprintf(out, "Overall: %s (%s)\n", statusEmoji[status.Overall], status.Overall)
 	fmt.Fprintf(out, "Version: %s\n", status.Version)
 	fmt.Fprintf(out, "Time:    %s\n", status.Timestamp)
 	fmt.Fprintln(out)
@@ -5703,20 +5713,20 @@ func runStatus(ctx context.Context, dataRoot string, args []string, out io.Write
 	}
 
 	for _, c := range components {
-		comp := status.Components[c.key].(map[string]any)
-		statusStr := "✓"
-		if !comp["status"].(bool) {
-			statusStr = "○"
+		comp := status.Components[c.key].(componentStatus)
+		statusStr := "OK"
+		if !comp.Status {
+			statusStr = "NEW"
 		}
-		msg := comp["message"].(string)
-		fmt.Fprintf(out, "  %s %s: %s\n", statusStr, c.name, msg)
+		msg := comp.Message
+		fmt.Fprintf(out, "  [%s] %s: %s\n", statusStr, c.name, msg)
 	}
 
 	fmt.Fprintln(out)
 	fmt.Fprintln(out, "Stats:")
-	fmt.Fprintf(out, "  Total Runs:    %d\n", status.Stats["total_runs"])
+	fmt.Fprintf(out, "  Total Runs:     %d\n", status.Stats["total_runs"])
 	fmt.Fprintf(out, "  Total Capsules: %d\n", status.Stats["total_capsules"])
-	fmt.Fprintf(out, "  Total Packs:   %d\n", status.Stats["total_packs"])
+	fmt.Fprintf(out, "  Total Packs:    %d\n", status.Stats["total_packs"])
 
 	if status.Overall == "uninitialized" {
 		fmt.Fprintln(out)
@@ -5724,166 +5734,4 @@ func runStatus(ctx context.Context, dataRoot string, args []string, out io.Write
 	}
 
 	return 0
-}
-
-// runBugreport generates a sanitized diagnostics bundle
-func runBugreport(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
-	fs := flag.NewFlagSet("bugreport", flag.ContinueOnError)
-	outputPath := fs.String("output", "", "Output path for bugreport zip")
-	jsonOut := fs.Bool("json", false, "Output JSON")
-	_ = fs.Parse(args)
-
-	// Default output path
-	if *outputPath == "" {
-		stamp := time.Now().UTC().Format("20060102T150405Z")
-		bugreportDir := filepath.Join(dataRoot, "bugreports")
-		_ = os.MkdirAll(bugreportDir, 0755)
-		*outputPath = filepath.Join(bugreportDir, fmt.Sprintf("reach-bugreport-%s.zip", stamp))
-	}
-
-	// Create temp directory for bundle contents
-	tmpDir, err := os.MkdirTemp("", "reach-bugreport-*")
-	if err != nil {
-		fmt.Fprintf(errOut, "Failed to create temp dir: %v\n", err)
-		return 1
-	}
-	defer os.RemoveAll(tmpDir)
-
-	// Collect version info
-	var versionBuf bytes.Buffer
-	runVersion(&versionBuf)
-	os.WriteFile(filepath.Join(tmpDir, "version.txt"), versionBuf.Bytes(), 0644)
-
-	// Collect doctor output
-	var doctorBuf bytes.Buffer
-	var doctorErrBuf bytes.Buffer
-	doctorExit := runDoctor(nil, &doctorBuf, &doctorErrBuf)
-	os.WriteFile(filepath.Join(tmpDir, "doctor.stdout.txt"), doctorBuf.Bytes(), 0644)
-	os.WriteFile(filepath.Join(tmpDir, "doctor.stderr.txt"), doctorErrBuf.Bytes(), 0644)
-
-	// Collect status
-	var statusBuf bytes.Buffer
-	runStatus(ctx, dataRoot, []string{"--json"}, &statusBuf, errOut)
-	os.WriteFile(filepath.Join(tmpDir, "status.json"), statusBuf.Bytes(), 0644)
-
-	// Create metadata
-	metadata := map[string]any{
-		"generated_at":       time.Now().UTC().Format(time.RFC3339),
-		"docs_url":           "https://reach-cli.com/docs/troubleshooting",
-		"issue_template_url": "https://github.com/reach/reach/issues/new?template=bug_report.yml",
-		"doctor_exit_code":   doctorExit,
-	}
-	metadataBytes, _ := json.MarshalIndent(metadata, "", "  ")
-	os.WriteFile(filepath.Join(tmpDir, "metadata.json"), metadataBytes, 0644)
-
-	// Collect sanitized environment
-	envSummary := make(map[string]string)
-	for _, e := range os.Environ() {
-		parts := splitEnv(e)
-		if len(parts) != 2 {
-			continue
-		}
-		key, value := parts[0], parts[1]
-
-		// Only include REACH_ and known safe env vars
-		if !strings.HasPrefix(key, "REACH_") &&
-			key != "HOME" &&
-			key != "USER" &&
-			key != "PATH" &&
-			key != "GOPATH" &&
-			key != "GOROOT" {
-			continue
-		}
-
-		// Redact sensitive values
-		lowerKey := strings.ToLower(key)
-		if strings.Contains(lowerKey, "secret") ||
-			strings.Contains(lowerKey, "token") ||
-			strings.Contains(lowerKey, "key") ||
-			strings.Contains(lowerKey, "password") ||
-			strings.Contains(lowerKey, "cookie") ||
-			strings.Contains(lowerKey, "private") {
-			if value != "" {
-				value = "[REDACTED]"
-			}
-		}
-
-		envSummary[key] = value
-	}
-	envBytes, _ := json.MarshalIndent(envSummary, "", "  ")
-	os.WriteFile(filepath.Join(tmpDir, "env-summary.json"), envBytes, 0644)
-
-	// Create zip file
-	zipFile, err := os.Create(*outputPath)
-	if err != nil {
-		fmt.Fprintf(errOut, "Failed to create zip file: %v\n", err)
-		return 1
-	}
-	defer zipFile.Close()
-
-	zipWriter := zip.NewWriter(zipFile)
-	defer zipWriter.Close()
-
-	// Add all files to zip
-	entries, _ := os.ReadDir(tmpDir)
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		data, _ := os.ReadFile(filepath.Join(tmpDir, entry.Name()))
-		w, _ := zipWriter.Create(entry.Name())
-		w.Write(data)
-	}
-
-	result := map[string]any{
-		"bugreport":      *outputPath,
-		"doctor_exit":    doctorExit,
-		"files_included": len(entries),
-	}
-
-	if *jsonOut {
-		return writeJSON(out, result)
-	}
-
-	fmt.Fprintln(out, "Bug report generated:")
-	fmt.Fprintf(out, "  Path: %s\n", *outputPath)
-	fmt.Fprintf(out, "  Files: %d\n", len(entries))
-	fmt.Fprintln(out)
-	fmt.Fprintln(out, "Attach this file to:")
-	fmt.Fprintf(out, "  %s\n", metadata["issue_template_url"])
-
-	return 0
-}
-
-// splitEnv splits an environment variable into key and value
-func splitEnv(env string) []string {
-	idx := strings.Index(env, "=")
-	if idx < 0 {
-		return nil
-	}
-	return []string{env[:idx], env[idx+1:]}
-}
-
-// readPackageVersion attempts to read version from package.json
-func readPackageVersion() string {
-	// Try several locations
-	candidates := []string{
-		"package.json",
-		"../package.json",
-		"../../package.json",
-		"../../../package.json",
-	}
-
-	for _, path := range candidates {
-		if data, err := os.ReadFile(path); err == nil {
-			var pkg struct {
-				Version string `json:"version"`
-			}
-			if err := json.Unmarshal(data, &pkg); err == nil && pkg.Version != "" {
-				return pkg.Version
-			}
-		}
-	}
-
-	return version // fallback to compiled version
 }

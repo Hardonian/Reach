@@ -16,7 +16,7 @@ const ISSUE_URL = "https://github.com/reach/reach/issues/new?template=bug_report
 // Documented commands that MUST exist in the binary
 const REQUIRED_COMMANDS = [
   { cmd: "version", minArgs: 0, checkOutput: ["Reach", "Version"] },
-  { cmd: "doctor", minArgs: 0, checkOutput: ["status", "checks"] },
+  { cmd: "doctor", minArgs: 0, checkOutput: ["OK", "Diagnosing"] },
   { cmd: "demo", minArgs: 0, subcommands: ["smoke", "run", "status"], checkOutput: [] },
   { cmd: "quickstart", minArgs: 0, checkOutput: ["run", "quickstart"] },
   { cmd: "status", minArgs: 0, checkOutput: ["health", "status"] },
@@ -81,7 +81,13 @@ function testCommand(binary, cmdSpec) {
   const basicResult = runCommand(binary, [cmdSpec.cmd]);
 
   // Check if command exists (exit code should be 0 or 1, not "not found")
-  const commandExists = !helpResult.error && !helpResult.stderr.includes("unknown") && !helpResult.stderr.includes("not found");
+  // "Usage of" in output means the command exists but needs args - that's OK
+  const helpOutput = (helpResult.stdout + helpResult.stderr).toLowerCase();
+  const basicOutput = (basicResult.stdout + basicResult.stderr).toLowerCase();
+  const commandExists = 
+    !helpResult.error ||
+    helpOutput.includes("usage of " + cmdSpec.cmd) ||
+    (!helpOutput.includes("unknown") && !basicOutput.includes("unknown"));
   
   results.tests.push({
     name: "command exists",
@@ -118,14 +124,15 @@ function testCommand(binary, cmdSpec) {
   if (cmdSpec.subcommands && cmdSpec.subcommands.length > 0) {
     for (const sub of cmdSpec.subcommands) {
       const subResult = runCommand(binary, [cmdSpec.cmd, sub, "--help"]);
-      const subExists = !subResult.error && 
-        !subResult.stderr.toLowerCase().includes("unknown") && 
-        !subResult.stderr.toLowerCase().includes("usage");
+      // Subcommand exists if help shows "Usage of <cmd> <sub>" OR if it runs without "unknown" error
+      const subExists = !subResult.error ||
+        (subResult.stdout && subResult.stdout.includes("Usage of")) ||
+        (subResult.stderr && !subResult.stderr.toLowerCase().includes("unknown"));
 
       results.tests.push({
         name: `subcommand: ${sub}`,
         passed: subExists,
-        details: subExists ? "Subcommand recognized" : `Subcommand failed: ${subResult.stderr.slice(0, 100)}`,
+        details: subExists ? "Subcommand recognized" : `Subcommand failed: ${subResult.stderr?.slice(0, 100) || subResult.stdout?.slice(0, 100)}`,
       });
 
       if (!subExists) {

@@ -36,6 +36,7 @@
     "verify:boundaries": "node scripts/verify-boundaries.mjs",
     "verify:oss": "node scripts/verify-oss.mjs",
     "verify:routes": "node scripts/verify-routes.mjs",
+    "verify:cli": "node scripts/verify-cli.mjs",
     "verify:vercel": "node scripts/verify-vercel.mjs",
     "verify:release": "node scripts/verify-release.mjs",
     "verify:conformance": "node scripts/verify-conformance.mjs",
@@ -56,7 +57,7 @@
     "demo:smoke": "./reach demo",
     "verify:fast": "npm run typecheck && npm run lint:structure && npm run format:check && npm run docs:index:check && npm run health:check && npm run gates:reality && npm run gates:terminology && npm test",
     "verify:claims:strict": "node scripts/verify-claims.mjs --strict",
-    "verify": "npm run verify:fast && npm run verify:lockfile && npm run verify:oss && npm run verify:routes && npm run verify:determinism && npm run verify:claims && npm run build",
+    "verify": "npm run verify:fast && npm run verify:lockfile && npm run verify:oss && npm run verify:routes && npm run verify:cli && npm run verify:determinism && npm run verify:claims && npm run build",
     "verify:full": "npm run verify"
   },
   "devDependencies": {

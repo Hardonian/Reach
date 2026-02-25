@@ -1,0 +1,1 @@
+{"run_id":"run-1772030310","timestamp":"2026-02-25T14:38:30.1511477Z","score":1,"grounding":1,"policy_compliance":1,"tool_correctness":1,"structural_validity":1,"latency_score":1,"token_efficiency_score":1,"latency_ms":7,"token_usage":100,"hallucination_alert":false,"policy_violation_risk":false}
