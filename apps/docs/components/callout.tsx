@@ -24,7 +24,9 @@ export function Callout({ children, type = "info", title }: CalloutProps) {
   return (
     <div className={`p-4 rounded-lg border my-6 ${styles[type]}`}>
       <div className="flex gap-3">
-        <span className="text-xl" role="img" aria-hidden="true">{icons[type]}</span>
+        <span className="text-xl" role="img" aria-hidden="true">
+          {icons[type]}
+        </span>
         <div>
           {title && <p className="font-bold mb-1">{title}</p>}
           <div className="text-sm leading-relaxed">{children}</div>

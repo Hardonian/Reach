@@ -32,7 +32,9 @@ export class CPX {
     }
 
     // Check for "stable" violations in memory
-    const volatilePatterns = history.filter(h => h.memoryType === "risk_pattern" && h.confidence > 0.8);
+    const volatilePatterns = history.filter(
+      (h) => h.memoryType === "risk_pattern" && h.confidence > 0.8,
+    );
     if (volatilePatterns.length > 3) {
       criticalViolations.push("Detected high-frequency risk patterns in workspace history");
       if (recommendation !== "block") recommendation = "warn";

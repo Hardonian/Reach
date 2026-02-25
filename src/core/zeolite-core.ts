@@ -163,7 +163,7 @@ function deriveVoiRankings(
   evoi: number;
   recommendation: string;
   rationale: string[];
- }> {
+}> {
   return spec.assumptions
     .map((assumption: DecisionAssumption, idx: number) => {
       const evoi = Number((1 / (idx + 1.25)).toFixed(6));

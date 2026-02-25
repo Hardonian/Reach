@@ -207,10 +207,12 @@ print_help() {
   echo "  reach doctor               Check system health"
   echo "  reach version              Show version information"
   echo "  reach demo                 One-command demo (run, verify, replay, capsule)"
+  echo "  reach quickstart           Golden-path fixture or live quickstart artifacts"
+  echo "  reach status               Component health + reconciliation status"
   echo "  reach bugreport            Collect redacted diagnostics"
   echo ""
   echo "CORE COMMANDS"
-  echo "  doctor|version|run|proof|capsule|packs|wizard|gate|demo|bugreport"
+  echo "  doctor|version|run|proof|capsule|packs|wizard|gate|demo|quickstart|status|bugreport"
   echo ""
   echo "DOCUMENTATION"
   echo "  https://reach-cli.com"
@@ -341,6 +343,45 @@ case "$cmd" in
       fi
     else
       run_reachctl demo "$@"
+    fi
+    ;;
+  quickstart)
+    shift
+    demo_output="$(mktemp)"
+    demo_error="$(mktemp)"
+    fixture_mode=true
+    if run_reachctl demo smoke >"$demo_output" 2>"$demo_error"; then
+      fixture_mode=false
+      cat "$demo_output"
+      [ -s "$demo_error" ] && cat "$demo_error" >&2 || true
+    else
+      run_demo_smoke_fallback >"$demo_output"
+      cat "$demo_output"
+    fi
+
+    run_id="$(sed -n 's/^Run ID:[[:space:]]*//p' "$demo_output" | head -n 1)"
+    if [ -z "${run_id}" ]; then
+      run_id="fixture-run-0001"
+    fi
+
+    quickstart_args=(--run-id "$run_id")
+    if [ "$fixture_mode" = true ]; then
+      quickstart_args+=(--fixture-mode)
+    fi
+    if [ "$IN_REPO_LAYOUT" = true ] && [ -f "$SELF_DIR/scripts/quickstart-demo.mjs" ]; then
+      node "$SELF_DIR/scripts/quickstart-demo.mjs" "${quickstart_args[@]}"
+    else
+      echo "Quickstart artifacts unavailable outside source checkout."
+    fi
+
+    rm -f "$demo_output" "$demo_error"
+    ;;
+  status)
+    shift
+    if [ "$IN_REPO_LAYOUT" = true ] && [ -f "$SELF_DIR/scripts/reach-status.mjs" ]; then
+      node "$SELF_DIR/scripts/reach-status.mjs" "$@"
+    else
+      run_reachctl status "$@"
     fi
     ;;
   version|--version|-v)

@@ -1,0 +1,12 @@
+{
+  "specVersion": "1.0.0",
+  "capsuleId": "550e8400-e29b-41d4-a716-446655440001",
+  "runId": "550e8400-e29b-41d4-a716-446655440000",
+  "createdAt": "2026-02-25T00:00:02.000Z",
+  "manifest": {
+    "format": "reach.capsule.v1",
+    "compression": "gzip",
+    "contents": ["events", "tool_recordings", "state_snapshots", "pack_archive", "proof"],
+    "deterministic": true
+  }
+}

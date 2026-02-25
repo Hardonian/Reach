@@ -17,6 +17,7 @@ npm install
 ```
 
 Expected result:
+
 - deterministic run artifacts created
 - bundle/report paths printed
 - next actions printed
@@ -36,6 +37,7 @@ npm run verify:conformance
 ```
 
 Expected result:
+
 - SCCL/DGL/CPX artifact references emitted (fixture-labeled if no live auth)
 - check/update surfaces validate without 500s
 
@@ -51,6 +53,7 @@ npm run verify:determinism
 ```
 
 Expected result:
+
 - candidate outputs are reproducible
 - merge-plan relevant artifacts and hashes are available in demo output paths
 
@@ -62,6 +65,7 @@ npm run verify:routes
 ```
 
 Then open key governance pages and API health:
+
 - `/console/governance`
 - `/console/artifacts`
 - `/api/health`

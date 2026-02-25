@@ -68,7 +68,8 @@ export default function CLIPage() {
           <div className="p-6 bg-white border border-slate-200 rounded-xl">
             <h3 className="font-bold mb-2">reach capsule verify &lt;file&gt;</h3>
             <p className="text-sm text-slate-600">
-              Generates a tamper-evident execution capsule. For audit logs and external verification.
+              Generates a tamper-evident execution capsule. For audit logs and external
+              verification.
             </p>
           </div>
           <div className="p-6 bg-white border border-slate-200 rounded-xl">

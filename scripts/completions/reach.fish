@@ -2,7 +2,7 @@
 # Place in ~/.config/fish/completions/reach.fish
 
 # Main commands
-set -l reach_commands doctor audit eval release-check serve federation support arcade capsule proof graph packs init explain operator pack wizard run share delegate verify-proof cost metrics gate report help
+set -l reach_commands doctor audit eval release-check serve federation support arcade capsule proof graph packs init explain operator pack wizard run share delegate verify-proof cost metrics gate report quickstart status help
 
 # Report subcommands
 set -l report_commands demo verify

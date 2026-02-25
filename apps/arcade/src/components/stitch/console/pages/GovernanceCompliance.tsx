@@ -277,7 +277,9 @@ export function GovernanceCompliance() {
                 {primaryViolation ? (
                   <div className="rounded-lg border border-red-500/30 bg-[#282e39]/50 p-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-red-400">{primaryViolation.title}</span>
+                      <span className="text-sm font-bold text-red-400">
+                        {primaryViolation.title}
+                      </span>
                       <span className="text-[10px] text-[#9da6b9]">{primaryViolation.time}</span>
                     </div>
                     <p className="mt-2 text-xs text-[#d0d7e7]">{primaryViolation.desc}</p>

@@ -18,6 +18,27 @@ Complete reference for all Reach environment variables.
 
 ---
 
+## Arcade / Cloud Variables
+
+| Variable                                 | Description                                             | Default                              |
+| ---------------------------------------- | ------------------------------------------------------- | ------------------------------------ |
+| `REACH_CLOUD_ENABLED`                    | Enables multi-tenant cloud routes and DB-backed APIs    | `false`                              |
+| `CLOUD_DB_PATH`                          | SQLite path for cloud control-plane data                | `./reach-cloud.db`                   |
+| `READYLAYER_BASE_URL`                    | Base URL used in report/replay links                    | `https://app.readylayer.com`         |
+| `NEXT_PUBLIC_BASE_URL`                   | Public app canonical URL for metadata/sitemaps          | `http://127.0.0.1:3000`              |
+| `NEXT_PUBLIC_APP_URL`                    | App URL used by auth email links                        | `http://127.0.0.1:3000`              |
+| `REACH_RUNNER_URL`                       | Runner execution endpoint for workflow simulations      | `http://127.0.0.1:8080`              |
+| `READYLAYER_ALERT_EMAIL_ENDPOINT`        | HTTP endpoint for alert email relay                     | unset                                |
+| `READYLAYER_ALERT_EMAIL_API_KEY`         | API key for alert relay                                 | unset                                |
+| `READYLAYER_ALERT_EMAIL_FROM`            | Sender address for alert relay payloads                 | unset                                |
+| `READYLAYER_ALERT_DEDUPE_WINDOW_SECONDS` | Alert dedupe window in seconds                          | `300`                                |
+| `READYLAYER_STRICT_MODE`                 | Enables strict governance mode (warnings can block)     | `false`                              |
+| `READYLAYER_GATE_WARNINGS_BLOCK`         | Whether warnings contribute to gate failures            | `false`                              |
+| `READYLAYER_GATE_MAX_WARNINGS`           | Warning threshold when warning blocking is enabled      | `25`                                 |
+| `DECISION_ENGINE`                        | Decision backend selection (`js`, `wasm`, future modes) | `js`                                 |
+
+---
+
 ## Core Variables
 
 ### `REACH_DATA_DIR`

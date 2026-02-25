@@ -36,6 +36,12 @@
     "verify:boundaries": "node scripts/verify-boundaries.mjs",
     "verify:oss": "node scripts/verify-oss.mjs",
     "verify:routes": "node scripts/verify-routes.mjs",
+    "verify:vercel": "node scripts/verify-vercel.mjs",
+    "verify:release": "node scripts/verify-release.mjs",
+    "verify:conformance": "node scripts/verify-conformance.mjs",
+    "verify:lockfile": "node scripts/verify-lockfile.mjs",
+    "security:scan": "node scripts/secret-scan.mjs --sarif dist/security/secrets.sarif",
+    "verify:security": "node scripts/verify-security.mjs",
     "verify:determinism": "node --import tsx/esm scripts/verify-determinism.ts",
     "verify:canonical-urls": "node scripts/verify-canonical-urls.mjs",
     "build:site:oss": "NEXT_PUBLIC_BASE_URL=https://reach.dev NEXT_PUBLIC_DOCS_BASE_URL=https://reach-cli.com npm run build --workspace arcade && NEXT_PUBLIC_DOCS_BASE_URL=https://reach-cli.com npm run build --workspace @reach/docs",
@@ -45,7 +51,7 @@
     "verify:installers": "node scripts/verify-installers.mjs",
     "demo:smoke": "./reach demo",
     "verify:fast": "npm run typecheck && npm run lint:structure && npm run format:check && npm run docs:index:check && npm run health:check && npm run gates:reality && npm run gates:terminology && npm test",
-    "verify": "npm run verify:fast && npm run verify:oss && npm run verify:routes && npm run verify:determinism && npm run build",
+    "verify": "npm run verify:fast && npm run verify:lockfile && npm run verify:oss && npm run verify:routes && npm run verify:determinism && npm run build",
     "verify:full": "npm run verify"
   },
   "devDependencies": {

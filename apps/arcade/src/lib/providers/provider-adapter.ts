@@ -106,7 +106,7 @@ export interface ProviderResponse {
   choices: ProviderChoice[];
   usage: ProviderUsage;
   latency_ms: number;
-  cost_usd: number;
+  cumulative_cost_usd: number;
   finish_reason: "stop" | "length" | "tool_calls" | "content_filter" | "error";
   created_at: string;
   metadata?: Record<string, unknown>;
@@ -735,7 +735,7 @@ export const ProviderResponseSchema = z.object({
     total_tokens: z.number().int(),
   }),
   latency_ms: z.number(),
-  cost_usd: z.number(),
+  cumulative_cost_usd: z.number(),
   finish_reason: z.enum(["stop", "length", "tool_calls", "content_filter", "error"]),
   created_at: z.string().datetime(),
   metadata: z.record(z.string(), z.unknown()).optional(),

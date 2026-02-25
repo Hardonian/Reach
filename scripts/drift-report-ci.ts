@@ -9,20 +9,18 @@ console.log("================================================================");
 console.log("AUTOMATED DRIFT REPORT (CI GATE)");
 console.log("================================================================");
 
-const res = spawnSync("node", [
-  "--import", "tsx/esm",
-  "src/cli/workflow-cli.ts",
-  "drift-report",
-  "--since", "30d",
-  "--json"
-], { encoding: "utf8" });
+const res = spawnSync(
+  "node",
+  ["--import", "tsx/esm", "src/cli/workflow-cli.ts", "drift-report", "--since", "30d", "--json"],
+  { encoding: "utf8" },
+);
 
 if (res.status !== 0) {
   // If it's a "no workspaces" error, it's not a failure for CI in some cases,
   // but if the command itself crashed, it is.
   if (res.stderr.includes("not found") || res.stderr.includes("no workspaces")) {
-     console.log("No workspaces found. Skipping drift report.");
-     process.exit(0);
+    console.log("No workspaces found. Skipping drift report.");
+    process.exit(0);
   }
   console.error("❌ Drift report command failed:");
   console.error(res.stderr);

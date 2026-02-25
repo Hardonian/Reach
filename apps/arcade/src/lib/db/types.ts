@@ -486,7 +486,7 @@ export interface ScenarioVariantResult {
   status: "passed" | "failed" | "error";
   latency_ms: number;
   pass_rate: number;
-  cost_usd: number;
+  cumulative_cost_usd: number;
   error?: string;
   outputs?: unknown;
 }

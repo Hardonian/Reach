@@ -1,0 +1,11 @@
+{
+  "specVersion": "1.0.0",
+  "runId": "550e8400-e29b-41d4-a716-446655440000",
+  "state": "COMPLETED",
+  "createdAt": "2026-02-25T00:00:00.000Z",
+  "packMetadata": {
+    "id": "fixture-pack",
+    "version": "1.0.0",
+    "specVersion": "1.0.0"
+  }
+}

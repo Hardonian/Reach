@@ -1,10 +1,28 @@
 <!-- markdownlint-disable MD024 -->
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- `reach quickstart` and `reach status` CLI golden-path commands.
+- Health/readiness APIs: `/api/health` and `/api/ready`.
+- New conformance, release, security, lockfile, and Vercel preflight verification scripts.
+- Public compatibility API surfaces for DGL/CPX/SCCL/Policy discovery routes.
+- Deterministic quickstart fixture artifacts for DGL/CPX/SCCL + run record manifests.
+
+### Changed
+
+- Hardened release workflow with concurrency controls, changelog-derived notes, artifact manifest, and checksum determinism.
+- Expanded route smoke harness coverage to governance, artifact, policy, DGL/CPX/SCCL, and health/readiness endpoints.
+- Added governance observability counters and stricter gate-report signal shaping (primary reason + related signals).
+- Expanded environment variable documentation and verification coverage.
 
 ## [0.3.2] - 2026-02-25
 
@@ -80,6 +98,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI workflows now pin Go 1.22.7 and add dependency caches for Go/Rust/Node where applicable.
 - VS Code extension and Android app version metadata now track repository release version `0.2.0`.
 
+[Unreleased]: https://github.com/reach/reach/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/reach/reach/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/reach/reach/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/reach/reach/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/reach/reach/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/reach/reach/releases/tag/v0.2.0

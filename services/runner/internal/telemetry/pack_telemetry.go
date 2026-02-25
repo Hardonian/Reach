@@ -19,7 +19,7 @@ type PackMetrics struct {
 	AvgLatency          float64   `json:"avg_latency_ms"`
 	TotalTokens         int       `json:"total_tokens"`
 	AvgTokens           float64   `json:"avg_tokens"`
-	EstimatedCost       float64   `json:"estimated_cost_usd"`
+	CumulativeCostUSD   float64   `json:"cumulative_cost_usd"`
 	LastExecutedAt      time.Time `json:"last_executed_at"`
 
 	mu sync.RWMutex
@@ -72,7 +72,7 @@ func (pt *PackTelemetry) RecordExecution(packID string, success bool, policyViol
 	metrics.AvgLatency = (metrics.AvgLatency*float64(metrics.ExecutionCount-1) + float64(latency.Milliseconds())) / float64(metrics.ExecutionCount)
 	metrics.TotalTokens += tokens
 	metrics.AvgTokens = float64(metrics.TotalTokens) / float64(metrics.ExecutionCount)
-	metrics.EstimatedCost += cost
+	metrics.CumulativeCostUSD += cost
 
 	return pt.SaveMetrics(metrics)
 }

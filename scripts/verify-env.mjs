@@ -2,6 +2,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { execSync } from "node:child_process";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,11 +29,34 @@ const envExampleContent = fs.readFileSync(ENV_EXAMPLE_PATH, "utf8");
 // Simple regex to find keys in Zod object
 // Matches keys followed by a colon and z. something
 const keysInTs = [...envTsContent.matchAll(/^\s+([A-Z0-9_]+):/gm)].map((m) => m[1]);
+const processEnvKeys = new Set();
 
-console.log(`Checking ${keysInTs.length} keys from env.ts...\n`);
+try {
+  const trackedArcadeFiles = execSync("git ls-files apps/arcade/src", {
+    cwd: REPO_ROOT,
+    encoding: "utf8",
+  })
+    .split(/\r?\n/)
+    .filter((file) => file.endsWith(".ts") || file.endsWith(".tsx"));
+
+  for (const relativeFile of trackedArcadeFiles) {
+    const absoluteFile = path.join(REPO_ROOT, relativeFile);
+    if (!fs.existsSync(absoluteFile)) continue;
+    const content = fs.readFileSync(absoluteFile, "utf8");
+    for (const match of content.matchAll(/process\.env\.([A-Z0-9_]+)/g)) {
+      processEnvKeys.add(match[1]);
+    }
+  }
+} catch (error) {
+  console.warn(`⚠️  Unable to scan process.env usage: ${String(error)}`);
+}
+
+const allKeys = Array.from(new Set([...keysInTs, ...processEnvKeys])).sort();
+
+console.log(`Checking ${allKeys.length} environment keys from env.ts + process.env usage...\n`);
 
 let missingKeys = [];
-for (const key of keysInTs) {
+for (const key of allKeys) {
   // Check if key exists in .env.example (either as KEY= or # KEY=)
   const regex = new RegExp(`^#?\\s*${key}=`, "m");
   if (!regex.test(envExampleContent)) {

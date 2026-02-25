@@ -1,10 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -23,18 +19,10 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@zeo/core": [
-        "../../src/core/shim.ts"
-      ],
-      "@zeo/contracts": [
-        "../../sdk/ts/src/index.ts"
-      ],
-      "@zeo/*": [
-        "../../src/*"
-      ]
+      "@/*": ["./*"],
+      "@zeo/core": ["../../src/core/shim.ts"],
+      "@zeo/contracts": ["../../sdk/ts/src/index.ts"],
+      "@zeo/*": ["../../src/*"]
     },
     "target": "ES2017"
   },
@@ -47,7 +35,5 @@
     "dist/dev/types/**/*.ts",
     "dist/dev/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

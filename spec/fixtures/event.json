@@ -1,0 +1,11 @@
+{
+  "specVersion": "1.0.0",
+  "eventId": "evt-0001",
+  "type": "run.started",
+  "timestamp": "2026-02-25T00:00:01.000Z",
+  "payload": {
+    "runId": "550e8400-e29b-41d4-a716-446655440000",
+    "packId": "fixture-pack",
+    "specVersion": "1.0.0"
+  }
+}

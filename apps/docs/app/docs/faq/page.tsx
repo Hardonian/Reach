@@ -23,7 +23,8 @@ export default function FAQPage() {
   return (
     <DocLayout currentPath="/docs/faq" title="FAQ">
       <p className="text-lg text-slate-600 mb-8">
-        Common questions about Reach installation, usage, and the philosophy of deterministic execution.
+        Common questions about Reach installation, usage, and the philosophy of deterministic
+        execution.
       </p>
 
       <div className="space-y-8">
@@ -37,10 +38,11 @@ export default function FAQPage() {
 
       <div className="mt-12 p-6 bg-blue-50 rounded-xl border border-blue-100">
         <h3 className="text-lg font-bold text-blue-900 mb-2">Still have questions?</h3>
-        <p className="text-blue-800 mb-4">
-          Our community and maintainers are here to help.
-        </p>
-        <a href="/support" className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
+        <p className="text-blue-800 mb-4">Our community and maintainers are here to help.</p>
+        <a
+          href="/support"
+          className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition"
+        >
           Get Support
         </a>
       </div>

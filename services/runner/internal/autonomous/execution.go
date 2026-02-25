@@ -63,10 +63,10 @@ type ExecutionError struct {
 }
 
 type ExecutionMetrics struct {
-	Duration time.Duration `json:"duration"`
-	Start    time.Time     `json:"start"`
-	End      time.Time     `json:"end"`
-	CostUSD  float64       `json:"cost_usd,omitempty"`
+	Duration          time.Duration `json:"duration"`
+	Start             time.Time     `json:"start"`
+	End               time.Time     `json:"end"`
+	CumulativeCostUSD float64       `json:"cumulative_cost_usd,omitempty"`
 }
 
 // StepAction defines the intent of the step.

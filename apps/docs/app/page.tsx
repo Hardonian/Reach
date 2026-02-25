@@ -104,9 +104,7 @@ Replay Verified: true`}
               className="block p-6 border rounded-lg hover:shadow-lg transition"
             >
               <h3 className="text-xl font-semibold mb-2">Configuration</h3>
-              <p className="text-slate-600">
-                Environment variables and .reach.json settings.
-              </p>
+              <p className="text-slate-600">Environment variables and .reach.json settings.</p>
             </Link>
             <Link
               href="/docs/examples"

@@ -137,40 +137,74 @@ export function validateAgainstSchema(data, schemaName) {
   return validate(data, schema);
 }
 
-// CLI
-if (import.meta.url === fileURLToPath(import.meta.url)) {
+function runCli() {
   const args = process.argv.slice(2);
 
-  if (args.length < 2) {
-    console.log("Usage: node validate-spec.mjs <schema-name> <json-file>");
-    console.log("  schema-name: run.schema.json, event.schema.json, etc.");
-    console.log("  json-file: Path to JSON file to validate");
-    process.exit(1);
-  }
+  if (args.length === 2) {
+    const [schemaName, filePath] = args;
 
-  const [schemaName, filePath] = args;
+    if (!fs.existsSync(filePath)) {
+      console.error(`File not found: ${filePath}`);
+      process.exit(1);
+    }
 
-  if (!fs.existsSync(filePath)) {
-    console.error(`File not found: ${filePath}`);
-    process.exit(1);
-  }
+    try {
+      const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      const errors = validateAgainstSchema(data, schemaName);
 
-  try {
-    const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
-    const errors = validateAgainstSchema(data, schemaName);
+      if (errors.length === 0) {
+        console.log(`✓ Valid against ${schemaName}`);
+        process.exit(0);
+      }
 
-    if (errors.length === 0) {
-      console.log(`✓ Valid against ${schemaName}`);
-      process.exit(0);
-    } else {
       console.error(`✗ Validation failed against ${schemaName}:`);
       for (const error of errors) {
         console.error(`  - ${error}`);
       }
       process.exit(1);
+    } catch (error) {
+      console.error(`Error: ${error.message}`);
+      process.exit(1);
     }
-  } catch (error) {
-    console.error(`Error: ${error.message}`);
+  }
+
+  if (args.length > 0) {
+    console.log("Usage:");
+    console.log("  node tools/validate-spec.mjs");
+    console.log("  node tools/validate-spec.mjs <schema-name> <json-file>");
+    process.exit(1);
+  }
+
+  const fixturePairs = [
+    ["run.schema.json", path.join(repoRoot, "spec", "fixtures", "run.json")],
+    ["event.schema.json", path.join(repoRoot, "spec", "fixtures", "event.json")],
+    ["pack.schema.json", path.join(repoRoot, "spec", "fixtures", "pack.json")],
+    ["capsule.schema.json", path.join(repoRoot, "spec", "fixtures", "capsule.json")],
+  ];
+
+  let failed = 0;
+  for (const [schemaName, fixturePath] of fixturePairs) {
+    if (!fs.existsSync(fixturePath)) {
+      console.error(`✗ Missing fixture: ${fixturePath}`);
+      failed += 1;
+      continue;
+    }
+    const data = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
+    const errors = validateAgainstSchema(data, schemaName);
+    if (errors.length > 0) {
+      console.error(`✗ ${schemaName} -> ${path.basename(fixturePath)}`);
+      for (const error of errors) {
+        console.error(`  - ${error}`);
+      }
+      failed += 1;
+    } else {
+      console.log(`✓ ${schemaName} -> ${path.basename(fixturePath)}`);
+    }
+  }
+
+  if (failed > 0) {
     process.exit(1);
   }
 }
+
+runCli();

@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   # Build matrix for all supported platforms
   build-matrix:
@@ -75,7 +79,7 @@ jobs:
         with:
           name: ${{ matrix.binary }}
           path: dist/${{ matrix.binary }}
-          retention-days: 1
+          retention-days: 7
 
   # Build wrapper script and additional artifacts
   build-extras:
@@ -99,7 +103,7 @@ jobs:
         with:
           name: extras
           path: dist/*
-          retention-days: 1
+          retention-days: 7
 
   # Test all binaries work
   test-binaries:
@@ -190,6 +194,8 @@ jobs:
     needs: [build-matrix, build-extras, test-binaries, test-windows-installer]
     if: startsWith(github.ref, 'refs/tags/')
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
@@ -201,19 +207,54 @@ jobs:
           name: extras
           path: artifacts
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: List artifacts
         run: ls -la artifacts/
 
       - name: Generate release checksums
         run: |
           cd artifacts
-          find . -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+          LC_ALL=C find . -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+
+      - name: Generate artifact manifest
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          artifacts = Path("artifacts")
+          checksums = {}
+          for line in (artifacts / "SHA256SUMS").read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+              continue
+            h, name = line.split(None, 1)
+            checksums[name.strip()] = h.strip()
+
+          manifest = {
+            "schema": "reach.release.manifest.v1",
+            "tag": "${{ github.ref_name }}",
+            "commit": "${{ github.sha }}",
+            "artifacts": [
+              {"name": name, "sha256": checksums[name]} for name in sorted(checksums.keys())
+            ],
+          }
+          (artifacts / "artifact-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+          PY
+
+      - name: Render release notes from changelog
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          node scripts/release/render-release-notes.mjs --version "$VERSION" --output artifacts/RELEASE_NOTES.md
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           files: artifacts/*
-          generate_release_notes: true
+          body_path: artifacts/RELEASE_NOTES.md
+          generate_release_notes: false
           draft: false
           prerelease: ${{ contains(github.ref, '-rc') || contains(github.ref, '-beta') || contains(github.ref, '-alpha') }}
 
@@ -239,12 +280,14 @@ jobs:
             "install.sh"
             "install.ps1"
             "SHA256SUMS"
+            "artifact-manifest.json"
+            "RELEASE_NOTES.md"
           )
 
           for asset in "${ASSETS[@]}"; do
             URL="https://github.com/reach/reach/releases/download/v${VERSION}/${asset}"
             echo "Checking: $URL"
-            STATUS_CODE="$(curl -sIL -o /dev/null -w "%{http_code}" "$URL")"
+            STATUS_CODE="$(curl --retry 5 --retry-delay 2 --retry-all-errors -sIL -o /dev/null -w "%{http_code}" "$URL")"
             if [[ "$STATUS_CODE" != "200" ]]; then
               echo "Missing: $asset (status $STATUS_CODE)"
               exit 1

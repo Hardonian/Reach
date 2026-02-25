@@ -55,6 +55,8 @@ _reach_commands() {
         'metrics:View GTM and usage metrics'
         'gate:Manage release gates'
         'report:Generate/verify demo reports'
+        'quickstart:Generate golden-path demo artifacts'
+        'status:Show service and reconciliation status'
         'help:Show help'
     )
     _describe -t commands 'reach command' commands

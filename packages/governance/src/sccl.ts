@@ -29,11 +29,7 @@ export class SCCL {
   /**
    * Guards a function call by checking capabilities first.
    */
-  static guard<T>(
-    required: Capability[],
-    manifest: CapabilityManifest,
-    fn: () => T,
-  ): T {
+  static guard<T>(required: Capability[], manifest: CapabilityManifest, fn: () => T): T {
     const { ok, missing } = this.verifyCapabilities(required, manifest);
     if (!ok) {
       throw new Error(`SCCL Violation: Missing capabilities: ${missing.join(", ")}`);

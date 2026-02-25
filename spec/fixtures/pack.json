@@ -1,0 +1,18 @@
+{
+  "specVersion": "1.0.0",
+  "id": "fixture-pack",
+  "version": "1.0.0",
+  "manifest": {
+    "manifestVersion": "1.0.0",
+    "capabilities": {
+      "tools": [
+        {
+          "name": "fs.read"
+        }
+      ],
+      "resources": [],
+      "permissions": []
+    }
+  },
+  "entrypoint": "index.js"
+}

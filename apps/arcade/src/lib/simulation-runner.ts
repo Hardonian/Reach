@@ -93,7 +93,7 @@ async function executeVariant(
       status: passed ? "passed" : "failed",
       latency_ms,
       pass_rate: passed ? 1 : 0,
-      cost_usd: estimateCost(variant, latency_ms),
+      cumulative_cost_usd: estimateCost(variant, latency_ms),
       error: passed ? undefined : lastErr,
       outputs,
     };
@@ -108,7 +108,7 @@ async function executeVariant(
       status: "error",
       latency_ms: Date.now() - start,
       pass_rate: 0,
-      cost_usd: 0,
+      cumulative_cost_usd: 0,
       error: String(err),
     };
   }
@@ -131,7 +131,7 @@ function pickRecommendation(results: ScenarioVariantResult[]): string {
   // Score: pass_rate × (1 / latency_ms) × (1 / (cost_usd + 0.0001))
   const scored = passing.map((r) => ({
     ...r,
-    score: r.pass_rate * (1 / (r.latency_ms || 1)) * (1 / (r.cost_usd + 0.0001)),
+    score: r.pass_rate * (1 / (r.latency_ms || 1)) * (1 / (r.cumulative_cost_usd + 0.0001)),
   }));
   scored.sort((a, b) => b.score - a.score);
   const best = scored[0];
@@ -149,7 +149,7 @@ function pickRecommendation(results: ScenarioVariantResult[]): string {
 
   const improvNote =
     improvements.length > 0 ? ` Compared to: ${improvements.slice(0, 2).join("; ")}.` : "";
-  return `Best variant: "${best.variant_label}" (pass rate: ${(best.pass_rate * 100).toFixed(0)}%, latency: ${best.latency_ms}ms, cost: $${best.cost_usd}).${improvNote}${riskNote}`;
+  return `Best variant: "${best.variant_label}" (pass rate: ${(best.pass_rate * 100).toFixed(0)}%, latency: ${best.latency_ms}ms, cost: $${best.cumulative_cost_usd}).${improvNote}${riskNote}`;
 }
 
 // ── Public runner ─────────────────────────────────────────────────────────
@@ -194,7 +194,7 @@ export async function runSimulation(tenantId: string, scenarioRunId: string): Pr
             status: "error",
             latency_ms: 0,
             pass_rate: 0,
-            cost_usd: 0,
+            cumulative_cost_usd: 0,
             error: String(r.reason),
           });
         }
