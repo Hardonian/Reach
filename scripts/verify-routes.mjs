@@ -130,31 +130,62 @@ async function runChecks(baseUrl, routesToCheck) {
   const results = [];
   for (const route of routesToCheck) {
     const timeout = withTimeout(20_000);
-    let status;
+    let status = 599;
+    let statusLabel = "599";
+    const body = route.body ? JSON.stringify(route.body) : undefined;
     try {
       const response = await fetch(`${baseUrl}${route.path}`, {
         method: route.method ?? "GET",
         redirect: "manual",
         signal: timeout.signal,
         headers: route.headers ?? {},
-        body: route.body ? JSON.stringify(route.body) : undefined,
+        body,
       });
-      status = response.status;
+      const initialStatus = response.status;
+      status = initialStatus;
+
+      if ([301, 302, 307, 308].includes(initialStatus)) {
+        const location = response.headers.get("location");
+        if (location) {
+          const followTimeout = withTimeout(20_000);
+          try {
+            const followResponse = await fetch(new URL(location, baseUrl).toString(), {
+              method: route.method ?? "GET",
+              redirect: "manual",
+              signal: followTimeout.signal,
+              headers: route.headers ?? {},
+              body,
+            });
+            status = followResponse.status;
+            statusLabel = `${initialStatus}->${status}`;
+          } catch {
+            status = initialStatus;
+            statusLabel = String(initialStatus);
+          } finally {
+            followTimeout.clear();
+          }
+        } else {
+          statusLabel = String(initialStatus);
+        }
+      } else {
+        statusLabel = String(initialStatus);
+      }
     } catch {
       status = 599;
+      statusLabel = "599";
     } finally {
       timeout.clear();
     }
 
     const pass = route.allowedStatuses.includes(status);
-    results.push({ route, status, pass });
+    results.push({ route, status, statusLabel, pass });
   }
 
   console.log("Route verification results:");
   for (const result of results) {
     const label = result.pass ? "PASS" : "FAIL";
     console.log(
-      `  ${label} ${result.route.method ?? "GET"} ${result.route.path} -> ${result.status} (expected ${result.route.allowedStatuses.join("/")})`,
+      `  ${label} ${result.route.method ?? "GET"} ${result.route.path} -> ${result.statusLabel} (expected ${result.route.allowedStatuses.join("/")})`,
     );
   }
 

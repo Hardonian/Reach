@@ -6,6 +6,7 @@
  */
 
 import type { AnalyticsEvent } from "./analytics";
+import { logger } from "./logger";
 
 /**
  * Server-side record function.
@@ -14,11 +15,14 @@ import type { AnalyticsEvent } from "./analytics";
 export function recordEvent(event: AnalyticsEvent): void {
   void (async () => {
     try {
-      const { appendEvent } = await import("./cloud-db.js");
+      const { appendEvent } = await import("./cloud-db");
       appendEvent(event.event, event.properties ?? {}, event.ts ?? new Date().toISOString());
-    } catch {
-      // DB not available — log only
-      console.info("[analytics]", event.event, event.properties);
+    } catch (error) {
+      logger.warn("analytics event persistence unavailable", {
+        event: event.event,
+        has_properties: Boolean(event.properties),
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   })();
 }
