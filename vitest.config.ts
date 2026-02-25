@@ -14,6 +14,10 @@ const aliases = [
     find: /^@zeo\/contracts$/,
     replacement: path.resolve(__dirname, "./sdk/ts/src/index.ts"),
   },
+  {
+    find: /^@reach\/governance$/,
+    replacement: path.resolve(__dirname, "./packages/governance/src/index.ts"),
+  },
   { find: /^@zeo\/(.*)$/, replacement: path.resolve(__dirname, "./src/$1") },
 ];
 

@@ -376,10 +376,7 @@ function verifyCiSignature(payload: string, signature: string, secret: string): 
     const hmac = crypto.createHmac("sha256", secret);
     hmac.update(payload);
     const expected = hmac.digest("hex");
-    return crypto.timingSafeEqual(
-      Buffer.from(signature, "hex"),
-      Buffer.from(expected, "hex")
-    );
+    return crypto.timingSafeEqual(Buffer.from(signature, "hex"), Buffer.from(expected, "hex"));
   } catch {
     return false;
   }
@@ -427,7 +424,7 @@ export async function requireCiAuth(
           "Missing X-ReadyLayer-Signature header. Required for ingest.",
           401,
           corrId,
-          { code: "CI_SIGNATURE_REQUIRED" }
+          { code: "CI_SIGNATURE_REQUIRED" },
         );
       }
 
@@ -439,7 +436,7 @@ export async function requireCiAuth(
           "Invalid X-ReadyLayer-Signature. HMAC-SHA256 mismatch.",
           401,
           corrId,
-          { code: "CI_SIGNATURE_INVALID" }
+          { code: "CI_SIGNATURE_INVALID" },
         );
       }
     }
