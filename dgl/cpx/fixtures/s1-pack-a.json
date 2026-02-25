@@ -1,0 +1,13 @@
+{
+  "pack_version":"1.0",
+  "provider":"provider-a",
+  "model":"m1",
+  "agent_id":"agent-a",
+  "task_class":"security",
+  "base_sha":"base-sha-1",
+  "head_sha":"head-a-1",
+  "diff":{"format":"git","content":"diff --git a/src/auth/login.ts b/src/auth/login.ts\n+++ b/src/auth/login.ts\n@@ -1,1 +1,2 @@\n-export const login = () => false\n+export const login = () => true\n+export const audit = true\n"},
+  "changed_paths":["src/auth/login.ts"],
+  "metadata":{"confidence":0.8,"risk_summary":"Touches auth boundary","context_hash":"ctx1","claimed_invariants_changed":[],"requires_acknowledgement":true},
+  "artifacts":{"dgl_report_path":"dgl/cpx/fixtures/artifacts/dgl-risky.json","openapi_diff_path":"dgl/cpx/fixtures/artifacts/openapi-ok.json","route_test_results_path":"dgl/cpx/fixtures/artifacts/route-ok.json"}
+}

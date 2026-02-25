@@ -1,0 +1,7 @@
+{
+  "pack_version":"1.0","provider":"provider-c","model":"m3","agent_id":"agent-c","task_class":"bugfix","base_sha":"base-sha-2","head_sha":"head-b-2",
+  "diff":{"format":"git","content":"diff --git a/src/core/engine.ts b/src/core/engine.ts\n+++ b/src/core/engine.ts\n@@ -20,3 +20,3 @@\n-export function run(){return 1}\n+export function run(){return 3}\n"},
+  "changed_paths":["src/core/engine.ts"],
+  "metadata":{"confidence":0.63,"risk_summary":"behavior change","context_hash":"ctx4","claimed_invariants_changed":["api"],"requires_acknowledgement":false},
+  "artifacts":{"dgl_report_path":"dgl/cpx/fixtures/artifacts/dgl-risky.json"}
+}

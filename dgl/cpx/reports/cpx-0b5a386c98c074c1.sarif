@@ -1,0 +1,36 @@
+{
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Reach CPX",
+          "version": "1.0.0"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "CPX_RISK",
+          "level": "warning",
+          "message": {
+            "text": "3cafe11c76c70ed7eafe2b3aecb8ad52ac18350111c0cd201574e262e9848ed2: Contains 1 OpenAPI break(s)"
+          }
+        },
+        {
+          "ruleId": "CPX_RISK",
+          "level": "warning",
+          "message": {
+            "text": "dfc7abfdb0961413be64d734526307171d52331ccc0234be078b7481fd6181f1: Touches 1 high-risk paths"
+          }
+        },
+        {
+          "ruleId": "CPX_RISK",
+          "level": "warning",
+          "message": {
+            "text": "dfc7abfdb0961413be64d734526307171d52331ccc0234be078b7481fd6181f1: Missing explicit acknowledgement for risky changes"
+          }
+        }
+      ]
+    }
+  ]
+}

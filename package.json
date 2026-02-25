@@ -54,7 +54,12 @@
     "test:routes": "vitest run src/dgl/routes-integration.test.ts",
     "reach:dgl:context": "npx tsx scripts/dgl-gate.ts context",
     "reach:dgl:economics": "npx tsx scripts/dgl-gate.ts economics",
-    "reach:agent:validate": "npx tsx scripts/dgl-gate.ts agent-validate dgl/fixtures/agent-contract.valid.json"
+    "reach:agent:validate": "npx tsx scripts/dgl-gate.ts agent-validate dgl/fixtures/agent-contract.valid.json",
+    "reach:cpx:pack": "npx tsx scripts/cpx-cli.ts pack",
+    "reach:cpx:validate-pack": "npx tsx scripts/cpx-cli.ts validate-pack",
+    "reach:cpx:run": "npx tsx scripts/cpx-cli.ts run",
+    "reach:cpx:report": "npx tsx scripts/cpx-cli.ts report",
+    "smoke:cpx": "npx tsx scripts/smoke-cpx.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",
