@@ -116,7 +116,7 @@ async function runChecks(baseUrl, routesToCheck) {
 
   for (const route of routesToCheck) {
     const timeout = withTimeout(20_000);
-    let status = 599;
+    let status;
     try {
       const response = await fetch(`${baseUrl}${route}`, {
         redirect: "manual",

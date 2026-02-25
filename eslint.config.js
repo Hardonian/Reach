@@ -1,13 +1,29 @@
-import { defineConfig } from "eslint/config";
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import { fileURLToPath } from "node:url";
+import globals from "globals";
 
 const tsconfigRootDir = fileURLToPath(new URL(".", import.meta.url));
 
-export default defineConfig([
+export default [
   js.configs.recommended,
-  tseslint.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    files: ["**/*.ts", "**/*.tsx", "**/*.mjs", "**/*.cjs", "**/*.js"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.builtin,
+        fetch: "readonly",
+        AbortController: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+        URL: "readonly",
+      },
+    },
+  },
   {
     files: ["**/*.ts", "**/*.tsx"],
     languageOptions: {
@@ -40,4 +56,4 @@ export default defineConfig([
       "*.config.ts",
     ],
   },
-]);
+];
