@@ -12,6 +12,7 @@ const minNodeMinor = 9;
 const node20FallbackVersion = "20.19.0";
 const reexecGuardEnv = "REACH_VERIFY_ROUTES_REEXEC";
 const apiOnly = process.argv.includes("--api-only");
+const bundledNodePath = path.resolve(".artifacts/tools/node-v20.20.0-linux-x64/bin/node");
 
 const nextBinCandidates = [
   path.resolve("apps/arcade/node_modules/next/dist/bin/next"),
@@ -47,6 +48,20 @@ function ensureSupportedNodeVersion() {
   }
 
   const scriptPath = fileURLToPath(import.meta.url);
+  if (existsSync(bundledNodePath)) {
+    console.warn(
+      `Node ${process.versions.node} is unsupported for verify:routes. Re-running with bundled Node 20 at ${bundledNodePath}.`,
+    );
+    const rerun = spawnSync(bundledNodePath, [scriptPath, ...process.argv.slice(2)], {
+      stdio: "inherit",
+      env: {
+        ...process.env,
+        [reexecGuardEnv]: "1",
+      },
+    });
+    process.exit(rerun.status ?? 1);
+  }
+
   console.warn(
     `Node ${process.versions.node} is unsupported for verify:routes. Re-running with node@${node20FallbackVersion} via npx...`,
   );

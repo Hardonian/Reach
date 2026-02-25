@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Pre-install hook to check Node.js version compatibility
- * Fails in CI if Node version is outside supported range
+ * Use --strict to fail locally and in CI.
  */
 
 import { readFileSync } from "fs";
@@ -16,27 +16,40 @@ const packageJson = JSON.parse(readFileSync(join(__dirname, "../package.json"), 
 const version = packageJson.engines.node;
 const currentVersion = process.version;
 
-// Parse version requirements
-const [minVersion, maxVersion] = version
-  .replace(">=", "")
-  .replace("<", "")
-  .split(" ")
-  .filter(Boolean);
+const strict = process.argv.includes("--strict");
+const tokens = version.split(/\s+/).filter(Boolean);
+const minToken = tokens.find((token) => token.startsWith(">=")) ?? ">=0.0.0";
+const maxToken = tokens.find((token) => token.startsWith("<"));
 
-// Extract major version numbers
-const currentMajor = parseInt(currentVersion.replace("v", "").split(".")[0]);
-const minMajor = parseInt(minVersion?.split(".")[0] || "0");
-const maxMajor = parseInt(maxVersion?.split(".")[0] || "99");
+const parseMajorMinor = (input) => {
+  const clean = input.replace(/^v/, "").replace(/^[<>]=?/, "");
+  const [majorRaw = "0", minorRaw = "0"] = clean.split(".");
+  return {
+    major: Number.parseInt(majorRaw, 10),
+    minor: Number.parseInt(minorRaw, 10),
+  };
+};
+
+const current = parseMajorMinor(currentVersion);
+const min = parseMajorMinor(minToken);
+const max = maxToken ? parseMajorMinor(maxToken) : null;
+
+const meetsMin =
+  current.major > min.major || (current.major === min.major && current.minor >= min.minor);
+const belowMax =
+  !max || current.major < max.major || (current.major === max.major && current.minor < max.minor);
+const isSupported = meetsMin && belowMax;
 
 console.log(`Node.js version check: ${currentVersion} (required: ${version})`);
 
-if (currentMajor < minMajor || currentMajor >= maxMajor) {
+if (!isSupported) {
   console.error(`\n❌ Unsupported Node.js version: ${currentVersion}`);
   console.error(`   Required: Node.js ${version}`);
-  console.error(`   Please upgrade or use a Node version manager (nvm, n, etc.)\n`);
+  console.error("   Recommended fix:");
+  console.error("   - nvm use (or install) the version from .nvmrc");
+  console.error("   - or run: npm run toolchain:node20 -- <npm-command>\n");
 
-  // Fail in CI, warn locally
-  if (process.env.CI) {
+  if (strict || process.env.CI) {
     process.exit(1);
   } else {
     console.warn("⚠️  Continuing anyway (not in CI environment)...\n");

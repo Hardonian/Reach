@@ -83,15 +83,15 @@ irm https://github.com/reach/reach/releases/latest/download/install.ps1 | iex
 
 ### Build from Source
 
-Requirements: Go 1.22+, Node.js 20+
+Requirements: Go 1.22+, Node.js 20.20.0 (see `.nvmrc`)
 
 ```bash
 # 1. Clone the repository
 git clone https://github.com/reach/reach.git
 cd reach
 
-# 2. Install dependencies
-npm install
+# 2. Install dependencies (auto-runs with bundled Node 20 if needed)
+npm run toolchain:node20 -- install
 
 # 3. Build binaries
 make build
@@ -99,6 +99,7 @@ make build
 # 4. Verify your setup
 ./reach version
 ./reach doctor
+npm run verify
 
 # Or install to system
 sudo make install

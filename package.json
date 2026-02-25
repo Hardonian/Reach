@@ -9,7 +9,11 @@
     "apps/*"
   ],
   "scripts": {
+    "preinstall": "node scripts/check-node-version.mjs --strict",
     "build": "echo 'Build handled by individual language compilers'",
+    "toolchain:node20": "node scripts/run-npm-with-node20.mjs",
+    "deps:repair": "node scripts/repair-js-deps.mjs",
+    "deps:check": "node scripts/repair-js-deps.mjs --if-needed",
     "docs:dev": "npm run dev --workspace @reach/docs",
     "docs:build": "npm run build --workspace @reach/docs",
     "test": "vitest run",
@@ -35,7 +39,7 @@
     "verify:prod-install": "node scripts/verify-prod-install.mjs",
     "verify:boundaries": "node scripts/verify-boundaries.mjs",
     "verify:oss": "node scripts/verify-oss.mjs",
-    "verify:routes": "node scripts/verify-routes.mjs",
+    "verify:routes": "npm run deps:check && node scripts/verify-routes.mjs",
     "verify:cli": "node scripts/verify-cli.mjs",
     "verify:vercel": "node scripts/verify-vercel.mjs",
     "verify:release": "node scripts/verify-release.mjs",
@@ -50,6 +54,7 @@
     "verify:replay": "node scripts/verify-deterministic-replay.mjs",
     "smoke:cli": "node tests/smoke/cli-commands.test.mjs",
     "smoke:routes": "node tests/smoke/routes.test.mjs",
+    "smoke:routes:auto": "node scripts/smoke-routes-with-server.mjs",
     "verify:canonical-urls": "node scripts/verify-canonical-urls.mjs",
     "build:site:oss": "NEXT_PUBLIC_BASE_URL=https://reach.dev NEXT_PUBLIC_DOCS_BASE_URL=https://reach-cli.com npm run build --workspace arcade && NEXT_PUBLIC_DOCS_BASE_URL=https://reach-cli.com npm run build --workspace @reach/docs",
     "build:site:enterprise-stub": "NEXT_PUBLIC_BASE_URL=https://app.reach.dev REACH_CLOUD_ENABLED=true npm run build --workspace arcade",
@@ -59,7 +64,8 @@
     "demo:smoke": "./reach demo",
     "verify:fast": "npm run typecheck && npm run lint:structure && npm run format:check && npm run docs:index:check && npm run health:check && npm run gates:reality && npm run gates:terminology && npm test",
     "verify:claims:strict": "node scripts/verify-claims.mjs --strict",
-    "verify": "npm run verify:fast && npm run verify:lockfile && npm run verify:oss && npm run verify:routes && npm run verify:cli && npm run verify:determinism && npm run verify:claims && npm run build",
+    "verify:core": "npm run verify:fast && npm run verify:lockfile && npm run verify:oss && npm run verify:routes && npm run verify:cli && npm run verify:determinism && npm run verify:claims && npm run build",
+    "verify": "node scripts/run-npm-with-node20.mjs run verify:core",
     "verify:full": "npm run verify"
   },
   "devDependencies": {
