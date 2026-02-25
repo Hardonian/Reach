@@ -178,13 +178,6 @@ export default function DashboardPage() {
                             >
                               {item.cta}
                             </button>
-                            <button
-                              onClick={() => markDone(item.id)}
-                              className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
-                              title="Mark as done"
-                            >
-                              Skip
-                            </button>
                           </>
                         )}
                       </div>
@@ -197,70 +190,13 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick links */}
-        <div className="mt-12 pt-8 border-t border-border">
-          <h2 className="text-lg font-semibold mb-4">Jump to</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <Link
-              href={ROUTES.PLAYGROUND}
-              className="card p-4 hover:border-accent/50 transition-all group"
-            >
-              <div className="text-xl mb-1">▶</div>
-              <div className="font-medium text-sm group-hover:text-accent transition-colors">
-                Playground
-              </div>
-              <div className="text-xs text-gray-500">Run a demo check</div>
-            </Link>
-            <Link
-              href={ROUTES.TEMPLATES}
-              className="card p-4 hover:border-accent/50 transition-all group"
-            >
-              <div className="text-xl mb-1">📋</div>
-              <div className="font-medium text-sm group-hover:text-accent transition-colors">
-                Templates
-              </div>
-              <div className="text-xs text-gray-500">Start from a baseline</div>
-            </Link>
-            <Link
-              href={ROUTES.DOCS}
-              className="card p-4 hover:border-accent/50 transition-all group"
-            >
-              <div className="text-xl mb-1">📖</div>
-              <div className="font-medium text-sm group-hover:text-accent transition-colors">
-                Docs
-              </div>
-              <div className="text-xs text-gray-500">Quickstart guide</div>
-            </Link>
-            <Link
-              href={ROUTES.PRICING}
-              className="card p-4 hover:border-accent/50 transition-all group"
-            >
-              <div className="text-xl mb-1">💡</div>
-              <div className="font-medium text-sm group-hover:text-accent transition-colors">
-                Pricing
-              </div>
-              <div className="text-xs text-gray-500">Free forever plan</div>
-            </Link>
-            <Link
-              href={ROUTES.MONITORING}
-              className="card p-4 hover:border-accent/50 transition-all group"
-            >
-              <div className="text-xl mb-1">📡</div>
-              <div className="font-medium text-sm group-hover:text-accent transition-colors">
-                Monitoring
-              </div>
-              <div className="text-xs text-gray-500">Agent health & drift</div>
-            </Link>
-            <Link
-              href={ROUTES.SIMULATE}
-              className="card p-4 hover:border-accent/50 transition-all group"
-            >
-              <div className="text-xl mb-1">🧪</div>
-              <div className="font-medium text-sm group-hover:text-accent transition-colors">
-                Simulate
-              </div>
-              <div className="text-xs text-gray-500">What-if experiments</div>
-            </Link>
-          </div>
+        <div className="mt-12 pt-8 border-t border-border text-center">
+          <p className="text-sm text-gray-500">
+            Alternatively, jump to:{" "}
+            <Link href={ROUTES.PLAYGROUND} className="text-accent hover:underline">Playground</Link> ·{" "}
+            <Link href={ROUTES.DOCS} className="text-accent hover:underline">Docs</Link> ·{" "}
+            <Link href={ROUTES.MONITORING} className="text-accent hover:underline">Monitoring</Link>
+          </p>
         </div>
       </div>
     </div>

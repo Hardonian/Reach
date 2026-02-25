@@ -38,6 +38,13 @@ function SeverityBadge({ severity }: { severity: Severity }) {
   );
 }
 
+const severityBorder: Record<Severity, string> = {
+  critical: "border-l-red-500",
+  high: "border-l-amber-500",
+  medium: "border-l-blue-500",
+  low: "border-l-gray-500",
+};
+
 export function PolicyRow({
   id,
   name,
@@ -55,7 +62,7 @@ export function PolicyRow({
   const statusVariant = status === "active" ? "online" : status === "draft" ? "pending" : "offline";
 
   return (
-    <div className="card">
+    <div className={`card border-l-4 ${severityBorder[severity]}`}>
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-2 flex-wrap">
