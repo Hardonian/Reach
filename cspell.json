@@ -2,6 +2,7 @@
   "version": "0.2",
   "language": "en",
   "words": [
+    "agentic",
     "AKIA",
     "arcname",
     "autonom",
@@ -12,6 +13,8 @@
     "codeshift",
     "counterfactuals",
     "CUST",
+    "determinism",
+    "deterministic",
     "DTSTART",
     "evoi",
     "gorm",

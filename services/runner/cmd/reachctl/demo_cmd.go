@@ -18,20 +18,20 @@ import (
 
 // DemoData represents the demo data structure
 type DemoData struct {
-	Runs             []DemoRun         `json:"runs"`
-	DriftAlerts     []DemoDriftAlert  `json:"drift_alerts"`
-	PolicyViolations []DemoViolation   `json:"policy_violations"`
-	DecisionItems   []DemoDecision    `json:"decision_items"`
+	Runs             []DemoRun        `json:"runs"`
+	DriftAlerts      []DemoDriftAlert `json:"drift_alerts"`
+	PolicyViolations []DemoViolation  `json:"policy_violations"`
+	DecisionItems    []DemoDecision   `json:"decision_items"`
 }
 
 // DemoRun represents a demo run
 type DemoRun struct {
-	RunID           string            `json:"run_id"`
-	PackName        string            `json:"pack_name"`
-	Status          string            `json:"status"`
-	Fingerprint     string            `json:"fingerprint"`
-	EventCount      int               `json:"event_count"`
-	CreatedAt       string            `json:"created_at"`
+	RunID       string `json:"run_id"`
+	PackName    string `json:"pack_name"`
+	Status      string `json:"status"`
+	Fingerprint string `json:"fingerprint"`
+	EventCount  int    `json:"event_count"`
+	CreatedAt   string `json:"created_at"`
 }
 
 // DemoDriftAlert represents a drift alert
@@ -55,19 +55,19 @@ type DemoViolation struct {
 
 // DemoDecision represents a decision item
 type DemoDecision struct {
-	DecisionID   string         `json:"decision_id"`
-	Title        string         `json:"title"`
-	Status       string         `json:"status"`
-	Priority     string         `json:"priority"`
-	Options      []string       `json:"options"`
-	Recommended  string         `json:"recommended"`
-	CreatedAt    string         `json:"created_at"`
+	DecisionID  string   `json:"decision_id"`
+	Title       string   `json:"title"`
+	Status      string   `json:"status"`
+	Priority    string   `json:"priority"`
+	Options     []string `json:"options"`
+	Recommended string   `json:"recommended"`
+	CreatedAt   string   `json:"created_at"`
 }
 
 // DemoReportBundle represents the exported demo report bundle
 type DemoReportBundle struct {
 	Manifest DemoReportManifest `json:"manifest"`
-	Data     DemoData          `json:"data"`
+	Data     DemoData           `json:"data"`
 }
 
 // DemoReportManifest represents the manifest for demo reports
@@ -102,32 +102,59 @@ func runDemo(ctx context.Context, dataRoot string, args []string, out io.Writer,
 // runDemoSmoke executes one-command time-to-value flow:
 // run sample -> create capsule -> verify capsule -> replay capsule.
 func runDemoSmoke(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	_ = dataRoot
 	fs := flag.NewFlagSet("demo smoke", flag.ContinueOnError)
-	packName := fs.String("pack", "arcadeSafe.demo", "pack to run")
+	packName := fs.String("pack", "demo.deterministic.local", "pack identifier to record in demo output")
+	workdir := fs.String("workdir", filepath.Join(os.TempDir(), "reach-demo-smoke"), "demo workspace path")
 	jsonOutput := fs.Bool("json", false, "output as JSON")
 	if err := fs.Parse(args); err != nil {
 		fmt.Fprintf(errOut, "failed to parse flags: %v\n", err)
 		return 1
 	}
 
-	var quickOut bytes.Buffer
-	if code := runQuick([]string{*packName}, &quickOut, errOut); code != 0 {
-		return code
+	if !*jsonOutput {
+		fmt.Fprintf(out, "Running deterministic demo in %s\n", *workdir)
+		fmt.Fprintln(out, "Step 1/3: Writing deterministic run record")
 	}
 
-	runID, err := latestRunID(dataRoot)
-	if err != nil {
-		fmt.Fprintf(errOut, "failed to locate demo run: %v\n", err)
-		return 1
+	if err := os.MkdirAll(filepath.Join(*workdir, "runs"), 0o755); err != nil {
+		return demoPrereqError(errOut, "unable to create demo workspace", err)
 	}
 
-	capsulePath := filepath.Join(dataRoot, "capsules", runID+".capsule.json")
-	if code := runCapsule(ctx, dataRoot, []string{"create", runID, "--output", capsulePath}, io.Discard, errOut); code != 0 {
+	runID := "demo-smoke-run-001"
+	record := runRecord{
+		RunID:                runID,
+		Pack:                 map[string]any{"name": *packName, "mode": "oss"},
+		Policy:               map[string]any{"decision": "allow", "reason": "demo-local"},
+		RegistrySnapshotHash: stableHash(map[string]any{"registry": "demo", "version": "v1"}),
+		EventLog: []map[string]any{
+			{"step": 1, "action": "ingest", "status": "ok", "ts": "2026-01-01T00:00:00Z"},
+			{"step": 2, "action": "evaluate", "status": "ok", "ts": "2026-01-01T00:00:01Z"},
+			{"step": 3, "action": "emit", "status": "ok", "ts": "2026-01-01T00:00:02Z"},
+		},
+		Latency:    12.5,
+		TokenUsage: 0,
+		Environment: map[string]string{
+			"mode":    "oss",
+			"runtime": "reachctl",
+		},
+	}
+	recordPath := filepath.Join(*workdir, "runs", runID+".json")
+	if err := writeDeterministicJSON(recordPath, record); err != nil {
+		return demoPrereqError(errOut, "unable to write deterministic run record", err)
+	}
+
+	if !*jsonOutput {
+		fmt.Fprintln(out, "Step 2/3: Creating and verifying capsule")
+	}
+
+	capsulePath := filepath.Join(*workdir, "capsules", runID+".capsule.json")
+	if code := runCapsule(ctx, *workdir, []string{"create", runID, "--output", capsulePath}, io.Discard, errOut); code != 0 {
 		return code
 	}
 
 	var verifyOut bytes.Buffer
-	if code := runCapsule(ctx, dataRoot, []string{"verify", capsulePath}, &verifyOut, errOut); code != 0 {
+	if code := runCapsule(ctx, *workdir, []string{"verify", capsulePath}, &verifyOut, errOut); code != 0 {
 		return code
 	}
 	var verifyPayload map[string]any
@@ -135,20 +162,29 @@ func runDemoSmoke(ctx context.Context, dataRoot string, args []string, out io.Wr
 	verified, _ := verifyPayload["verified"].(bool)
 
 	var replayOut bytes.Buffer
-	if code := runCapsule(ctx, dataRoot, []string{"replay", capsulePath}, &replayOut, errOut); code != 0 {
+	if code := runCapsule(ctx, *workdir, []string{"replay", capsulePath}, &replayOut, errOut); code != 0 {
 		return code
 	}
 	var replayPayload map[string]any
 	_ = json.Unmarshal(replayOut.Bytes(), &replayPayload)
 	replayVerified, _ := replayPayload["replay_verified"].(bool)
 
+	if !*jsonOutput {
+		fmt.Fprintln(out, "Step 3/3: Replaying capsule")
+	}
+
 	result := map[string]any{
 		"status":          "ok",
 		"pack":            *packName,
 		"run_id":          runID,
 		"capsule":         capsulePath,
+		"workspace":       *workdir,
 		"verified":        verified,
 		"replay_verified": replayVerified,
+		"summary": map[string]any{
+			"steps":             3,
+			"deterministic_run": verified && replayVerified,
+		},
 	}
 
 	if *jsonOutput {
@@ -161,6 +197,15 @@ func runDemoSmoke(ctx context.Context, dataRoot string, args []string, out io.Wr
 	fmt.Fprintf(out, "Verified: %t\n", verified)
 	fmt.Fprintf(out, "Replay Verified: %t\n", replayVerified)
 	return 0
+}
+
+func demoPrereqError(errOut io.Writer, detail string, err error) int {
+	if err != nil {
+		fmt.Fprintf(errOut, "error[DEMO_PREREQ]: %s: %v\n", detail, err)
+	} else {
+		fmt.Fprintf(errOut, "error[DEMO_PREREQ]: %s\n", detail)
+	}
+	return 2
 }
 
 // runDemoRun seeds sample data and creates demo runs
@@ -317,7 +362,7 @@ func runDemoStatus(ctx context.Context, dataRoot string, args []string, out io.W
 	if err != nil {
 		return writeJSON(out, map[string]any{
 			"status":     "not_initialized",
-			"message":   "No demo data found. Run 'reachctl demo run' to initialize.",
+			"message":    "No demo data found. Run 'reachctl demo run' to initialize.",
 			"can_export": false,
 		})
 	}
@@ -327,12 +372,12 @@ func runDemoStatus(ctx context.Context, dataRoot string, args []string, out io.W
 	json.Unmarshal(data, &demoData)
 
 	return writeJSON(out, map[string]any{
-		"status":          "initialized",
-		"runs_count":      len(demoData.Runs),
-		"alerts_count":    len(demoData.DriftAlerts),
+		"status":           "initialized",
+		"runs_count":       len(demoData.Runs),
+		"alerts_count":     len(demoData.DriftAlerts),
 		"violations_count": len(demoData.PolicyViolations),
-		"decisions_count": len(demoData.DecisionItems),
-		"can_export":      true,
+		"decisions_count":  len(demoData.DecisionItems),
+		"can_export":       true,
 	})
 }
 

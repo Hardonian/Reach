@@ -412,29 +412,39 @@ func TestRunBugreportRedactsSecrets(t *testing.T) {
 
 	var envSummary []byte
 	for _, f := range reader.File {
-		if f.Name != "env-summary.json" {
+		if f.Name != "env-vars.json" {
 			continue
 		}
 		rc, openErr := f.Open()
 		if openErr != nil {
-			t.Fatalf("open env-summary.json: %v", openErr)
+			t.Fatalf("open env-vars.json: %v", openErr)
 		}
 		envSummary, err = io.ReadAll(rc)
 		_ = rc.Close()
 		if err != nil {
-			t.Fatalf("read env-summary.json: %v", err)
+			t.Fatalf("read env-vars.json: %v", err)
 		}
 	}
 	if len(envSummary) == 0 {
-		t.Fatal("env-summary.json missing from bugreport")
+		t.Fatal("env-vars.json missing from bugreport")
 	}
 
-	var env map[string]string
-	if err := json.Unmarshal(envSummary, &env); err != nil {
-		t.Fatalf("parse env-summary.json: %v", err)
+	var payload struct {
+		Names []string `json:"names"`
 	}
-	if got := env["REACH_API_SECRET"]; got != "[REDACTED]" {
-		t.Fatalf("expected REACH_API_SECRET to be redacted, got %q", got)
+	if err := json.Unmarshal(envSummary, &payload); err != nil {
+		t.Fatalf("parse env-vars.json: %v", err)
+	}
+
+	found := false
+	for _, name := range payload.Names {
+		if name == "REACH_API_SECRET" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("expected REACH_API_SECRET to be present by name")
 	}
 }
 

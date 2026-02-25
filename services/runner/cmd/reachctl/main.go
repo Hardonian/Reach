@@ -1,4 +1,4 @@
-﻿package main
+package main
 
 import (
 	"archive/zip"
@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"sort"
 	"strings"
@@ -204,8 +205,10 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 	case "assistant":
 		return runAssistant(ctx, dataRoot, args[1:], out, errOut)
 	case "export":
+		_, _ = fmt.Fprintln(errOut, "warning: 'export' is deprecated; use 'capsule create' instead.")
 		return runCapsule(ctx, dataRoot, append([]string{"create"}, args[1:]...), out, errOut)
 	case "import":
+		_, _ = fmt.Fprintln(errOut, "warning: 'import' is deprecated; use 'capsule replay' instead.")
 		return runCapsule(ctx, dataRoot, append([]string{"replay"}, args[1:]...), out, errOut)
 	case "historical":
 		return runHistorical(ctx, args[1:], out, errOut)
@@ -238,6 +241,8 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runCapability(ctx, dataRoot, args[1:], out, errOut)
 	case "demo":
 		return runDemo(ctx, dataRoot, args[1:], out, errOut)
+	case "bootstrap":
+		return runBootstrap(ctx, dataRoot, args[1:], out, errOut)
 	case "quickstart":
 		return runQuickstart(ctx, dataRoot, args[1:], out, errOut)
 	case "status":
@@ -319,8 +324,12 @@ func runArcade(dataRoot string, args []string, out io.Writer) int {
 
 func runCapsule(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
-		usage(out)
+		usageCapsule(out)
 		return 1
+	}
+	if args[0] == "--help" || args[0] == "-h" || args[0] == "help" {
+		usageCapsule(out)
+		return 0
 	}
 	switch args[0] {
 	case "create":
@@ -372,10 +381,30 @@ func runCapsule(ctx context.Context, dataRoot string, args []string, out io.Writ
 		}
 		verification := stableHash(map[string]any{"event_log": cap.EventLog, "run_id": cap.Manifest.RunID}) == cap.Manifest.RunFingerprint
 		return writeJSON(out, map[string]any{"run_id": cap.Manifest.RunID, "replay_verified": verification, "steps": len(cap.EventLog), "policy": cap.Manifest.Policy})
+	case "export":
+		_, _ = fmt.Fprintln(errOut, "warning: 'capsule export' is deprecated; use 'capsule create'.")
+		return runCapsule(ctx, dataRoot, append([]string{"create"}, args[1:]...), out, errOut)
+	case "import":
+		_, _ = fmt.Fprintln(errOut, "warning: 'capsule import' is deprecated; use 'capsule replay'.")
+		return runCapsule(ctx, dataRoot, append([]string{"replay"}, args[1:]...), out, errOut)
 	default:
-		usage(out)
+		usageCapsule(out)
 		return 1
 	}
+}
+
+func usageCapsule(out io.Writer) {
+	_, _ = io.WriteString(out, `usage: reach capsule <create|verify|replay> [options]
+
+Canonical Commands:
+  create <runId> [--output file]  Export run to portable capsule JSON
+  verify <file>                   Verify capsule integrity and fingerprint
+  replay <file>                   Replay capsule deterministically
+
+Deprecated Aliases (supported):
+  export <runId>                  Alias for "create"
+  import <file>                   Alias for "replay"
+`)
 }
 
 func runProof(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
@@ -4213,8 +4242,12 @@ var (
 func runVersion(out io.Writer) int {
 	fmt.Fprintf(out, "Reach Deterministic Execution Fabric\n")
 	fmt.Fprintf(out, "  Version:    %s\n", version)
-	fmt.Fprintf(out, "  Commit:     %s\n", commit)
-	fmt.Fprintf(out, "  Build Date: %s\n", buildDate)
+	if commit != "" && commit != "unknown" {
+		fmt.Fprintf(out, "  Commit:     %s\n", commit)
+	}
+	if buildDate != "" && buildDate != "unknown" {
+		fmt.Fprintf(out, "  Build Date: %s\n", buildDate)
+	}
 	fmt.Fprintf(out, "  Go Version: %s\n", runtime.Version())
 	fmt.Fprintf(out, "  Platform:   %s/%s\n", runtime.GOOS, runtime.GOARCH)
 	return 0
@@ -4231,7 +4264,8 @@ CORE COMMANDS:
   bugreport             Collect redacted diagnostics into a zip
   version               Show version information
   demo                  One-command demo (run, verify, replay, capsule)
-  quickstart            Golden-path bootstrap flow
+  bootstrap             Initialize deterministic local quickstart artifacts
+  quickstart            Alias for bootstrap
   status                Component health + reconciliation status
   init pack --governed  Initialize a new governed pack
   run <pack>            Quick run a pack locally
@@ -4244,8 +4278,8 @@ CAPSULE COMMANDS:
   capsule create <runId>    Export run to portable capsule
   capsule verify <file>     Verify capsule integrity
   capsule replay <file>     Replay capsule locally
-  export <runId>            Alias for capsule create
-  import <file>             Alias for capsule replay
+  export <runId>            Deprecated alias for capsule create
+  import <file>             Deprecated alias for capsule replay
 
 VERIFICATION COMMANDS:
   proof verify <runId>      Verify execution proof
@@ -4739,9 +4773,17 @@ func runBugreport(ctx context.Context, dataRoot string, args []string, out io.Wr
 
 	fs := flag.NewFlagSet("bugreport", flag.ContinueOnError)
 	outputPath := fs.String("output", "", "output zip file")
+	jsonOut := fs.Bool("json", false, "output JSON summary to stdout")
+	logLines := fs.Int("log-lines", 80, "last N log lines to include per file")
 	if err := fs.Parse(args); err != nil {
 		_, _ = fmt.Fprintf(errOut, "failed to parse bugreport args: %v\n", err)
 		return 1
+	}
+	if *logLines < 1 {
+		*logLines = 1
+	}
+	if *logLines > 500 {
+		*logLines = 500
 	}
 
 	if *outputPath == "" {
@@ -4759,37 +4801,83 @@ func runBugreport(ctx context.Context, dataRoot string, args []string, out io.Wr
 	var doctorOut bytes.Buffer
 	var doctorErr bytes.Buffer
 	doctorExit := runDoctor(nil, &doctorOut, &doctorErr)
+	sanitizedDoctorOut := sanitizeDiagnosticLine(doctorOut.String())
+	sanitizedDoctorErr := sanitizeDiagnosticLine(doctorErr.String())
 
-	envSummary := collectBugreportEnvSummary()
-	metadata := map[string]any{
-		"created_at":        time.Now().UTC().Format(time.RFC3339),
-		"platform":          runtime.GOOS + "/" + runtime.GOARCH,
-		"go_version":        runtime.Version(),
-		"doctor_exit_code":  doctorExit,
-		"docs_url":          "https://reach-cli.com/docs/troubleshooting",
-		"issue_template_url": "https://github.com/reach/reach/issues/new?template=bug_report.yml",
+	var statusOut bytes.Buffer
+	statusCode := runStatus(ctx, dataRoot, []string{"--json"}, &statusOut, io.Discard)
+	statusPayload := map[string]any{
+		"available": statusCode == 0,
+		"error":     "status unavailable",
+	}
+	if statusCode == 0 {
+		statusPayload = map[string]any{}
+		if err := json.Unmarshal(statusOut.Bytes(), &statusPayload); err != nil {
+			statusPayload = map[string]any{
+				"available": false,
+				"error":     "failed to parse status output",
+			}
+		}
 	}
 
-	if err := writeBugreportZip(*outputPath, metadata, envSummary, versionOut.String(), doctorOut.String(), doctorErr.String()); err != nil {
+	configDetails := resolveConfigDetails()
+	envNames := collectBugreportEnvNames()
+	logs := collectBugreportLogs(dataRoot, *logLines)
+	verification := collectVerificationSummary(dataRoot)
+
+	metadata := map[string]any{
+		"created_at":         time.Now().UTC().Format(time.RFC3339),
+		"platform":           runtime.GOOS + "/" + runtime.GOARCH,
+		"go_version":         runtime.Version(),
+		"node_version":       os.Getenv("NODE_VERSION"),
+		"doctor_exit_code":   doctorExit,
+		"docs_url":           "https://reach-cli.com/docs/troubleshooting",
+		"issue_template_url": "https://github.com/reach/reach/issues/new?template=bug_report.yml",
+		"log_excerpt_lines":  *logLines,
+	}
+
+	if err := writeBugreportZip(
+		*outputPath,
+		metadata,
+		envNames,
+		configDetails,
+		statusPayload,
+		verification,
+		logs,
+		versionOut.String(),
+		sanitizedDoctorOut,
+		sanitizedDoctorErr,
+	); err != nil {
 		_, _ = fmt.Fprintf(errOut, "failed to write bugreport: %v\n", err)
 		return 1
 	}
 
-	return writeJSON(out, map[string]any{
-		"bugreport":        *outputPath,
-		"doctor_exit_code": doctorExit,
-		"redacted_env_vars": len(envSummary),
+	result := map[string]any{
+		"bugreport":          *outputPath,
+		"doctor_exit_code":   doctorExit,
+		"captured_env_names": len(envNames),
+		"log_files":          len(logs),
+		"verification":       verification,
 		"next_steps": []string{
 			"Attach the zip to https://github.com/reach/reach/issues/new?template=bug_report.yml",
 			"Include the command that failed and expected behavior.",
 		},
-	})
+	}
+
+	if *jsonOut {
+		return writeJSON(out, result)
+	}
+	return writeJSON(out, result)
 }
 
 func writeBugreportZip(
 	outputPath string,
 	metadata map[string]any,
-	envSummary map[string]string,
+	envNames []string,
+	configDetails map[string]any,
+	statusPayload map[string]any,
+	verification map[string]any,
+	logs map[string][]string,
 	versionText string,
 	doctorStdout string,
 	doctorStderr string,
@@ -4806,7 +4894,16 @@ func writeBugreportZip(
 	if err := writeBugreportJSONFile(zw, "metadata.json", metadata); err != nil {
 		return err
 	}
-	if err := writeBugreportJSONFile(zw, "env-summary.json", envSummary); err != nil {
+	if err := writeBugreportJSONFile(zw, "env-vars.json", map[string]any{"names": envNames}); err != nil {
+		return err
+	}
+	if err := writeBugreportJSONFile(zw, "config-resolution.json", configDetails); err != nil {
+		return err
+	}
+	if err := writeBugreportJSONFile(zw, "status.json", statusPayload); err != nil {
+		return err
+	}
+	if err := writeBugreportJSONFile(zw, "verification-summary.json", verification); err != nil {
 		return err
 	}
 	if err := writeBugreportTextFile(zw, "version.txt", versionText); err != nil {
@@ -4817,6 +4914,15 @@ func writeBugreportZip(
 	}
 	if err := writeBugreportTextFile(zw, "doctor.stderr.txt", doctorStderr); err != nil {
 		return err
+	}
+	for name, lines := range logs {
+		content := strings.Join(lines, "\n")
+		if content != "" {
+			content += "\n"
+		}
+		if err := writeBugreportTextFile(zw, filepath.Join("logs", name), content); err != nil {
+			return err
+		}
 	}
 	return zw.Close()
 }
@@ -4838,9 +4944,8 @@ func writeBugreportTextFile(zw *zip.Writer, name, content string) error {
 	return err
 }
 
-func collectBugreportEnvSummary() map[string]string {
-	summary := map[string]string{}
-	count := 0
+func collectBugreportEnvNames() []string {
+	names := make([]string, 0, maxBugreportEnvs)
 	for _, pair := range os.Environ() {
 		parts := strings.SplitN(pair, "=", 2)
 		if len(parts) == 0 {
@@ -4850,17 +4955,13 @@ func collectBugreportEnvSummary() map[string]string {
 		if !shouldIncludeBugreportEnvKey(key) {
 			continue
 		}
-		value := ""
-		if len(parts) > 1 {
-			value = parts[1]
-		}
-		summary[key] = redactBugreportEnvValue(key, value)
-		count++
-		if count >= maxBugreportEnvs {
+		names = append(names, key)
+		if len(names) >= maxBugreportEnvs {
 			break
 		}
 	}
-	return summary
+	sort.Strings(names)
+	return names
 }
 
 func shouldIncludeBugreportEnvKey(key string) bool {
@@ -4873,21 +4974,129 @@ func shouldIncludeBugreportEnvKey(key string) bool {
 		key == "BILLING_ENABLED"
 }
 
-func redactBugreportEnvValue(key, value string) string {
-	lower := strings.ToLower(key)
-	markers := []string{"secret", "token", "key", "password", "cookie", "private"}
-	for _, marker := range markers {
-		if strings.Contains(lower, marker) {
-			if value == "" {
-				return ""
-			}
-			return "[REDACTED]"
+func collectBugreportLogs(dataRoot string, maxLines int) map[string][]string {
+	candidates := []string{
+		filepath.Join(dataRoot, "logs", "reach.log"),
+		filepath.Join(dataRoot, "logs", "runner.log"),
+		filepath.Join(dataRoot, "reach.log"),
+		filepath.Join("logs", "full_status.txt"),
+		filepath.Join("logs", "hygiene_report.txt"),
+		filepath.Join("logs", "inventory.txt"),
+	}
+	result := map[string][]string{}
+	for _, path := range candidates {
+		lines, ok := readTailLines(path, maxLines)
+		if !ok {
+			continue
+		}
+		for i := range lines {
+			lines[i] = sanitizeDiagnosticLine(lines[i])
+		}
+		result[filepath.Base(path)] = lines
+	}
+	return result
+}
+
+func readTailLines(path string, maxLines int) ([]string, bool) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, false
+	}
+	normalized := strings.ReplaceAll(string(data), "\r\n", "\n")
+	lines := strings.Split(normalized, "\n")
+	if len(lines) > 0 && lines[len(lines)-1] == "" {
+		lines = lines[:len(lines)-1]
+	}
+	if len(lines) > maxLines {
+		lines = lines[len(lines)-maxLines:]
+	}
+	return lines, true
+}
+
+func sanitizeDiagnosticLine(input string) string {
+	if input == "" {
+		return ""
+	}
+	redacted := input
+
+	inlinePatterns := []string{
+		`(?i)(api[_-]?key|token|secret|password|passwd|authorization|cookie|private[_-]?key)\s*[:=]\s*([^\s",]+)`,
+		`(?i)\bbearer\s+[a-z0-9\-._~+/=]+`,
+		`AKIA[0-9A-Z]{16}`,
+	}
+	for _, pattern := range inlinePatterns {
+		re := regexp.MustCompile(pattern)
+		if strings.Contains(pattern, "bearer") {
+			redacted = re.ReplaceAllString(redacted, "Bearer [REDACTED]")
+			continue
+		}
+		if strings.Contains(pattern, "AKIA") {
+			redacted = re.ReplaceAllString(redacted, "[REDACTED]")
+			continue
+		}
+		redacted = re.ReplaceAllString(redacted, "$1=[REDACTED]")
+	}
+
+	for _, value := range sensitiveEnvValues() {
+		if value == "" || len(value) < 6 {
+			continue
+		}
+		redacted = strings.ReplaceAll(redacted, value, "[REDACTED]")
+	}
+	return redacted
+}
+
+func sensitiveEnvValues() []string {
+	values := []string{}
+	for _, pair := range os.Environ() {
+		parts := strings.SplitN(pair, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		key := strings.ToLower(parts[0])
+		if strings.Contains(key, "secret") ||
+			strings.Contains(key, "token") ||
+			strings.Contains(key, "password") ||
+			strings.Contains(key, "private") ||
+			strings.Contains(key, "api_key") {
+			values = append(values, parts[1])
 		}
 	}
-	if len(value) > 256 {
-		return value[:256] + "...[truncated]"
+	return values
+}
+
+func collectVerificationSummary(dataRoot string) map[string]any {
+	summary := map[string]any{
+		"available": false,
+		"artifacts": []map[string]string{},
 	}
-	return value
+
+	candidates := []string{
+		filepath.Join(dataRoot, "verification-summary.json"),
+		filepath.Join(dataRoot, "quickstart.json"),
+		filepath.Join(dataRoot, "stability-report.json"),
+		filepath.Join(dataRoot, "chaos-report.json"),
+		filepath.Join("dist", "verification-summary.json"),
+	}
+	artifacts := make([]map[string]string, 0, len(candidates))
+	for _, candidate := range candidates {
+		if _, err := os.Stat(candidate); err != nil {
+			continue
+		}
+		abs, absErr := filepath.Abs(candidate)
+		if absErr != nil {
+			abs = candidate
+		}
+		artifacts = append(artifacts, map[string]string{
+			"path": abs,
+			"name": filepath.Base(candidate),
+		})
+	}
+	if len(artifacts) > 0 {
+		summary["available"] = true
+		summary["artifacts"] = artifacts
+	}
+	return summary
 }
 
 // runCheckpoint creates a checkpoint of a run for time travel
@@ -5390,13 +5599,13 @@ func runVerifyPeer(ctx context.Context, dataRoot string, args []string, out io.W
 		return 2
 	}
 	peerID := args[0]
-	
+
 	// Return a stub response for now
 	return writeJSON(out, map[string]any{
-		"peer_id":   peerID,
-		"verified":  true,
+		"peer_id":     peerID,
+		"verified":    true,
 		"trust_score": 0.85,
-		"message":   "Peer verification stub - full implementation pending",
+		"message":     "Peer verification stub - full implementation pending",
 	})
 }
 
@@ -5407,14 +5616,14 @@ func runConsensus(ctx context.Context, dataRoot string, args []string, out io.Wr
 		_, _ = fmt.Fprintln(errOut, "Commands: propose, vote, status")
 		return 2
 	}
-	
+
 	switch args[0] {
 	case "status":
 		return writeJSON(out, map[string]any{
-			"status":    "active",
-			"nodes":     1,
-			"quorum":    1,
-			"message":   "Consensus stub - full implementation pending",
+			"status":  "active",
+			"nodes":   1,
+			"quorum":  1,
+			"message": "Consensus stub - full implementation pending",
 		})
 	default:
 		_, _ = fmt.Fprintf(errOut, "unknown consensus command: %s\n", args[0])
@@ -5429,7 +5638,7 @@ func runPeer(ctx context.Context, dataRoot string, args []string, out io.Writer,
 		_, _ = fmt.Fprintln(errOut, "Commands: list, add, remove, trust")
 		return 2
 	}
-	
+
 	switch args[0] {
 	case "list":
 		return writeJSON(out, map[string]any{
@@ -5443,295 +5652,313 @@ func runPeer(ctx context.Context, dataRoot string, args []string, out io.Writer,
 	}
 }
 
-
-
-// runQuickstart provides the golden-path bootstrap flow
+// runQuickstart is an alias to the canonical bootstrap flow.
 func runQuickstart(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
-	fs := flag.NewFlagSet("quickstart", flag.ContinueOnError)
-	jsonOut := fs.Bool("json", false, "Output JSON")
-	fixtureMode := fs.Bool("fixture-mode", false, "Use fixture data instead of live run")
-	_ = fs.Parse(args)
+	return runBootstrap(ctx, dataRoot, args, out, errOut)
+}
 
-	if !*jsonOut {
-		fmt.Fprintln(out, "Reach Quickstart - Golden Path")
-		fmt.Fprintln(out, strings.Repeat("=", 40))
-		fmt.Fprintln(out)
+// runBootstrap provides the canonical golden-path bootstrap flow.
+func runBootstrap(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	fs := flag.NewFlagSet("bootstrap", flag.ContinueOnError)
+	jsonOut := fs.Bool("json", false, "output JSON")
+	fixtureMode := fs.Bool("fixture-mode", false, "use fixture data instead of running demo smoke")
+	if err := fs.Parse(args); err != nil {
+		_, _ = fmt.Fprintf(errOut, "failed to parse bootstrap args: %v\n", err)
+		return 1
 	}
 
-	// Step 1: Environment check
-	if !*jsonOut {
-		fmt.Fprintln(out, "Step 1: Checking environment...")
-	}
-
-	var doctorBuf bytes.Buffer
-	doctorExit := runDoctor(nil, &doctorBuf, errOut)
+	var doctorOut bytes.Buffer
+	var doctorErr bytes.Buffer
+	doctorExit := runDoctor(nil, &doctorOut, &doctorErr)
 	envHealthy := doctorExit == 0
 
-	// Step 2: Run demo smoke (or use fixture)
-	if !*jsonOut {
-		fmt.Fprintln(out, "Step 2: Running demo smoke test...")
-	}
-
-	var runID string
-	var capsulePath string
+	runID := "quickstart-run-001"
+	capsulePath := filepath.Join(dataRoot, "capsules", runID+".capsule.json")
+	mode := "fixture"
 
 	if !*fixtureMode {
-		var demoBuf bytes.Buffer
-		demoExit := runDemo(ctx, dataRoot, []string{"smoke", "--json"}, &demoBuf, errOut)
-		if demoExit == 0 {
-			var demoResult map[string]any
-			if err := json.Unmarshal(demoBuf.Bytes(), &demoResult); err == nil {
-				runID, _ = demoResult["run_id"].(string)
-				capsulePath, _ = demoResult["capsule"].(string)
+		var demoOut bytes.Buffer
+		var demoErr bytes.Buffer
+		if code := runDemo(ctx, dataRoot, []string{"smoke", "--json"}, &demoOut, &demoErr); code == 0 {
+			var payload map[string]any
+			if err := json.Unmarshal(demoOut.Bytes(), &payload); err == nil {
+				if val, ok := payload["run_id"].(string); ok && val != "" {
+					runID = val
+				}
+				if val, ok := payload["capsule"].(string); ok && val != "" {
+					capsulePath = val
+				}
+				mode = "live"
 			}
 		}
 	}
 
-	// Fallback to fixture if needed
-	if runID == "" {
-		*fixtureMode = true
-		runID = "quickstart-run-001"
-		capsulePath = filepath.Join(dataRoot, "capsules", runID+".capsule.json")
-	}
-
-	// Step 3: Generate quickstart artifacts
-	if !*jsonOut {
-		fmt.Fprintln(out, "Step 3: Generating quickstart artifacts...")
-	}
-
 	quickstartData := map[string]any{
+		"command":      "bootstrap",
 		"run_id":       runID,
 		"capsule_path": capsulePath,
-		"quickstart": map[string]any{
-			"completed_at": time.Now().UTC().Format(time.RFC3339),
-			"fixture_mode": *fixtureMode,
-			"env_healthy":  envHealthy,
-		},
+		"mode":         mode,
+		"env_healthy":  envHealthy,
 		"next_steps": []string{
-			"Run 'reach doctor' for full environment check",
-			"Run 'reach demo' to see full capabilities",
-			"Run 'reach packs search' to find packs",
-			fmt.Sprintf("Run 'reach explain %s' to analyze the run", runID),
-		},
-		"docs": map[string]string{
-			"quickstart":      "https://reach-cli.com/docs/quickstart",
-			"examples":        "https://reach-cli.com/docs/examples",
-			"troubleshooting": "https://reach-cli.com/docs/troubleshooting",
+			"Run 'reach status' to inspect configuration and health",
+			"Run 'reach demo' to execute the deterministic smoke flow",
+			"Run 'reach capsule verify <file>' on generated capsules",
 		},
 	}
 
-	// Save quickstart record
 	quickstartPath := filepath.Join(dataRoot, "quickstart.json")
-	_ = os.MkdirAll(dataRoot, 0755)
+	_ = os.MkdirAll(dataRoot, 0o755)
 	_ = writeDeterministicJSON(quickstartPath, quickstartData)
 
 	if *jsonOut {
 		return writeJSON(out, quickstartData)
 	}
 
-	// Human-readable output
-	fmt.Fprintln(out)
-	fmt.Fprintln(out, "Quickstart complete!")
-	fmt.Fprintln(out)
+	fmt.Fprintln(out, "Reach Bootstrap")
+	fmt.Fprintln(out, strings.Repeat("=", 40))
+	fmt.Fprintf(out, "Mode: %s\n", mode)
 	fmt.Fprintf(out, "Run ID: %s\n", runID)
-	if *fixtureMode {
-		fmt.Fprintln(out, "(Using fixture data - run 'reach demo' for live execution)")
-	}
-	fmt.Fprintln(out)
+	fmt.Fprintf(out, "Capsule: %s\n", capsulePath)
+	fmt.Fprintf(out, "Environment healthy: %t\n", envHealthy)
 	fmt.Fprintln(out, "Next steps:")
 	for _, step := range quickstartData["next_steps"].([]string) {
 		fmt.Fprintf(out, "  - %s\n", step)
 	}
-	fmt.Fprintln(out)
-	fmt.Fprintln(out, "Documentation:")
-	docs := quickstartData["docs"].(map[string]string)
-	fmt.Fprintf(out, "  - Quickstart: %s\n", docs["quickstart"])
-	fmt.Fprintf(out, "  - Examples: %s\n", docs["examples"])
-	fmt.Fprintf(out, "  - Help: %s\n", docs["troubleshooting"])
-
 	return 0
 }
 
-// runStatus provides comprehensive system health and component status
 func runStatus(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+	_ = ctx
 	fs := flag.NewFlagSet("status", flag.ContinueOnError)
-	jsonOut := fs.Bool("json", false, "Output JSON")
-	verbose := fs.Bool("verbose", false, "Show detailed status")
-	_ = fs.Parse(args)
-
-	// Gather component health
-	type componentStatus struct {
-		Status  bool   `json:"status"`
-		Count   int    `json:"count,omitempty"`
-		Message string `json:"message"`
+	jsonOut := fs.Bool("json", false, "output JSON")
+	if err := fs.Parse(args); err != nil {
+		_, _ = fmt.Fprintf(errOut, "failed to parse status args: %v\n", err)
+		return 1
 	}
 
-	type statusReport struct {
-		Timestamp      string                 `json:"timestamp"`
-		Version        string                 `json:"version"`
-		Overall        string                 `json:"overall"`
-		Components     map[string]any         `json:"components"`
-		Environment    map[string]string      `json:"environment"`
-		Reconciliation map[string]any         `json:"reconciliation,omitempty"`
-		Stats          map[string]any         `json:"stats"`
-	}
-
-	status := statusReport{
-		Timestamp:   time.Now().UTC().Format(time.RFC3339),
-		Version:     version,
-		Components:  make(map[string]any),
-		Environment: make(map[string]string),
-		Stats:       make(map[string]any),
-	}
-
-	// Check data directory
-	dataDirExists := false
-	if info, err := os.Stat(dataRoot); err == nil && info.IsDir() {
-		dataDirExists = true
-	}
-	status.Components["data_directory"] = componentStatus{
-		Status:  dataDirExists,
-		Message: map[bool]string{true: "accessible", false: "not found"}[dataDirExists],
-	}
-
-	// Check runs directory
-	runsDir := filepath.Join(dataRoot, "runs")
-	runsExist := false
-	runCount := 0
-	if info, err := os.Stat(runsDir); err == nil && info.IsDir() {
-		runsExist = true
-		if entries, err := os.ReadDir(runsDir); err == nil {
-			for _, e := range entries {
-				if !e.IsDir() && filepath.Ext(e.Name()) == ".json" {
-					runCount++
-				}
-			}
+	mode := detectCliMode()
+	configDetails := resolveConfigDetails()
+	trackedEnv := statusTrackedEnvNames()
+	envSet := []string{}
+	for _, key := range trackedEnv {
+		if os.Getenv(key) != "" {
+			envSet = append(envSet, key)
 		}
 	}
-	status.Components["runs_storage"] = componentStatus{
-		Status:  runsExist,
-		Count:   runCount,
-		Message: map[bool]string{true: fmt.Sprintf("%d runs", runCount), false: "not initialized"}[runsExist],
-	}
+	sort.Strings(envSet)
 
-	// Check capsules directory
-	capsulesDir := filepath.Join(dataRoot, "capsules")
-	capsulesExist := false
-	capsuleCount := 0
-	if info, err := os.Stat(capsulesDir); err == nil && info.IsDir() {
-		capsulesExist = true
-		if entries, err := os.ReadDir(capsulesDir); err == nil {
-			for _, e := range entries {
-				if !e.IsDir() && filepath.Ext(e.Name()) == ".json" {
-					capsuleCount++
-				}
-			}
-		}
-	}
-	status.Components["capsule_storage"] = componentStatus{
-		Status:  capsulesExist,
-		Count:   capsuleCount,
-		Message: map[bool]string{true: fmt.Sprintf("%d capsules", capsuleCount), false: "not initialized"}[capsulesExist],
-	}
-
-	// Check registry
-	registryPath := filepath.Join(dataRoot, "registry", "index.json")
-	registryExists := false
-	packCount := 0
-	if _, err := os.Stat(registryPath); err == nil {
-		registryExists = true
-		if data, err := os.ReadFile(registryPath); err == nil {
-			var idx registryIndex
-			if err := json.Unmarshal(data, &idx); err == nil {
-				packCount = len(idx.Packs)
-			}
-		}
-	}
-	status.Components["pack_registry"] = componentStatus{
-		Status:  registryExists,
-		Count:   packCount,
-		Message: map[bool]string{true: fmt.Sprintf("%d packs", packCount), false: "not initialized"}[registryExists],
-	}
-
-	// Determine overall health
-	if dataDirExists && runsExist {
-		status.Overall = "healthy"
-	} else if dataDirExists {
-		status.Overall = "needs_attention"
-	} else {
-		status.Overall = "uninitialized"
-	}
-
-	// Add reconciliation status if verbose
-	if *verbose {
-		status.Reconciliation = map[string]any{
-			"pending_runs":   0,
-			"failed_runs":    0,
-			"verified_runs":  runCount,
-			"drift_detected": false,
+	requiredEnv := requiredEnvForMode(mode)
+	missingEnv := []string{}
+	for _, key := range requiredEnv {
+		if os.Getenv(key) == "" {
+			missingEnv = append(missingEnv, key)
 		}
 	}
 
-	// Add environment info
-	status.Environment["go_version"] = runtime.Version()
-	status.Environment["platform"] = fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)
-	status.Environment["data_dir"] = dataRoot
-
-	// Add stats
-	status.Stats["total_runs"] = runCount
-	status.Stats["total_capsules"] = capsuleCount
-	status.Stats["total_packs"] = packCount
+	status := map[string]any{
+		"version": version,
+		"mode":    mode,
+		"config":  configDetails,
+		"env": map[string]any{
+			"tracked_names":  trackedEnv,
+			"set_names":      envSet,
+			"required_names": requiredEnv,
+			"missing_names":  missingEnv,
+		},
+		"database": resolveDatabaseStatus(dataRoot),
+	}
 
 	if *jsonOut {
 		return writeJSON(out, status)
 	}
 
-	// Human-readable output
-	statusEmoji := map[string]string{
-		"healthy":         "OK",
-		"needs_attention": "WARN",
-		"uninitialized":   "NEW",
-	}
+	db := status["database"].(map[string]any)
+	cfg := status["config"].(map[string]any)
 
-	fmt.Fprintln(out, "Reach System Status")
+	fmt.Fprintln(out, "Reach Status")
 	fmt.Fprintln(out, strings.Repeat("=", 40))
-	fmt.Fprintln(out)
-	fmt.Fprintf(out, "Overall: %s (%s)\n", statusEmoji[status.Overall], status.Overall)
-	fmt.Fprintf(out, "Version: %s\n", status.Version)
-	fmt.Fprintf(out, "Time:    %s\n", status.Timestamp)
-	fmt.Fprintln(out)
-	fmt.Fprintln(out, "Components:")
-
-	components := []struct {
-		name string
-		key  string
-	}{
-		{"Data Directory", "data_directory"},
-		{"Runs Storage", "runs_storage"},
-		{"Capsule Storage", "capsule_storage"},
-		{"Pack Registry", "pack_registry"},
+	fmt.Fprintf(out, "Version: %s\n", status["version"])
+	fmt.Fprintf(out, "Mode: %s\n", status["mode"])
+	fmt.Fprintf(out, "Config: %v\n", cfg["path"])
+	fmt.Fprintf(out, "Config source: %v\n", cfg["source"])
+	fmt.Fprintf(out, "Set env vars: %s\n", strings.Join(envSet, ", "))
+	if len(missingEnv) > 0 {
+		fmt.Fprintf(out, "Missing required env vars: %s\n", strings.Join(missingEnv, ", "))
+	} else if len(requiredEnv) > 0 {
+		fmt.Fprintln(out, "Missing required env vars: none")
+	} else {
+		fmt.Fprintln(out, "Required env vars: none (OSS mode)")
 	}
-
-	for _, c := range components {
-		comp := status.Components[c.key].(componentStatus)
-		statusStr := "OK"
-		if !comp.Status {
-			statusStr = "NEW"
-		}
-		msg := comp.Message
-		fmt.Fprintf(out, "  [%s] %s: %s\n", statusStr, c.name, msg)
-	}
-
-	fmt.Fprintln(out)
-	fmt.Fprintln(out, "Stats:")
-	fmt.Fprintf(out, "  Total Runs:     %d\n", status.Stats["total_runs"])
-	fmt.Fprintf(out, "  Total Capsules: %d\n", status.Stats["total_capsules"])
-	fmt.Fprintf(out, "  Total Packs:    %d\n", status.Stats["total_packs"])
-
-	if status.Overall == "uninitialized" {
-		fmt.Fprintln(out)
-		fmt.Fprintln(out, "Run 'reach quickstart' to initialize.")
-	}
-
+	fmt.Fprintf(out, "Database: %v (%v)\n", db["status"], db["target"])
 	return 0
+}
+
+func resolveConfigDetails() map[string]any {
+	candidates := []struct {
+		path   string
+		source string
+	}{}
+
+	if envPath := strings.TrimSpace(os.Getenv("REACH_CONFIG")); envPath != "" {
+		candidates = append(candidates, struct {
+			path   string
+			source string
+		}{path: envPath, source: "REACH_CONFIG"})
+	}
+
+	candidates = append(candidates,
+		struct {
+			path   string
+			source string
+		}{path: "reach.config.json", source: "default"},
+		struct {
+			path   string
+			source string
+		}{path: filepath.Join("config", "reach.config.json"), source: "default"},
+	)
+
+	if home, err := os.UserHomeDir(); err == nil && home != "" {
+		candidates = append(candidates, struct {
+			path   string
+			source string
+		}{path: filepath.Join(home, ".reach", "config.json"), source: "home"})
+	}
+
+	for _, candidate := range candidates {
+		if info, err := os.Stat(candidate.path); err == nil && !info.IsDir() {
+			abs, absErr := filepath.Abs(candidate.path)
+			if absErr != nil {
+				abs = candidate.path
+			}
+			return map[string]any{
+				"found":  true,
+				"path":   abs,
+				"source": candidate.source,
+			}
+		}
+	}
+
+	return map[string]any{
+		"found":  false,
+		"path":   "not found",
+		"source": "none",
+	}
+}
+
+func statusTrackedEnvNames() []string {
+	return []string{
+		"BILLING_ENABLED",
+		"NODE_ENV",
+		"REACH_CLOUD_ENABLED",
+		"REACH_CONFIG",
+		"REACH_DATA_DIR",
+		"REACH_DB_DSN",
+		"REACH_DB_PATH",
+		"REACH_ENTERPRISE_TOKEN",
+		"REACH_ENTERPRISE_URL",
+		"STRIPE_SECRET_KEY",
+	}
+}
+
+func requiredEnvForMode(mode string) []string {
+	if mode == "enterprise_present" {
+		return []string{"REACH_ENTERPRISE_URL", "REACH_ENTERPRISE_TOKEN"}
+	}
+	return []string{}
+}
+
+func detectCliMode() string {
+	if isTruthy(os.Getenv("REACH_CLOUD_ENABLED")) ||
+		isTruthy(os.Getenv("BILLING_ENABLED")) ||
+		os.Getenv("REACH_ENTERPRISE_URL") != "" ||
+		os.Getenv("REACH_ENTERPRISE_TOKEN") != "" ||
+		os.Getenv("STRIPE_SECRET_KEY") != "" {
+		return "enterprise_present"
+	}
+	return "oss"
+}
+
+func isTruthy(raw string) bool {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "1", "true", "yes", "on":
+		return true
+	default:
+		return false
+	}
+}
+
+func resolveDatabaseStatus(dataRoot string) map[string]any {
+	dbPath := strings.TrimSpace(os.Getenv("REACH_DB_PATH"))
+	dbDSN := strings.TrimSpace(os.Getenv("REACH_DB_DSN"))
+
+	source := "none"
+	target := ""
+
+	if dbPath != "" {
+		source = "REACH_DB_PATH"
+		target = dbPath
+	} else if dbDSN != "" {
+		source = "REACH_DB_DSN"
+		target = "dsn(redacted)"
+	} else {
+		defaultPath := filepath.Join(dataRoot, "reach.db")
+		if _, err := os.Stat(defaultPath); err == nil {
+			source = "default"
+			target = defaultPath
+			dbPath = defaultPath
+		}
+	}
+
+	if source == "none" {
+		return map[string]any{
+			"configured": false,
+			"status":     "not_configured",
+			"target":     "not configured",
+		}
+	}
+
+	if dbPath == "" {
+		return map[string]any{
+			"configured": true,
+			"status":     "configured",
+			"target":     target,
+			"source":     source,
+			"note":       "non-file database configuration is not probed",
+		}
+	}
+
+	if err := checkFileReadableWithTimeout(dbPath, 750*time.Millisecond); err != nil {
+		return map[string]any{
+			"configured": true,
+			"status":     "unreachable",
+			"target":     target,
+			"source":     source,
+			"error":      err.Error(),
+		}
+	}
+
+	return map[string]any{
+		"configured": true,
+		"status":     "ok",
+		"target":     target,
+		"source":     source,
+	}
+}
+
+func checkFileReadableWithTimeout(path string, timeout time.Duration) error {
+	errCh := make(chan error, 1)
+	go func() {
+		file, err := os.Open(path)
+		if err == nil {
+			_ = file.Close()
+		}
+		errCh <- err
+	}()
+
+	select {
+	case err := <-errCh:
+		return err
+	case <-time.After(timeout):
+		return errors.New("connectivity check timed out")
+	}
 }

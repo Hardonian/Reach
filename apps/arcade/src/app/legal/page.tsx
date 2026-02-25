@@ -20,7 +20,7 @@ export default function LegalPage() {
 
         <div className="flex flex-col md:flex-row gap-12">
           {/* Sidebar Nav */}
-          <aside className="w-full md:w-64 flex-shrink-0">
+          <aside className="w-full md:w-64 shrink-0">
             <nav className="flex flex-col gap-2">
               <button
                 onClick={() => setActiveTab("privacy")}
@@ -83,7 +83,7 @@ export default function LegalPage() {
                   <p className="text-gray-300 leading-relaxed">
                     ReadyLayer is designed with "Data Sovereignty First" principles. By default,
                     ReadyLayer operates in your infrastructure. We only collect the minimal metadata
-                    required to orchestrate determinstic execution packs across your distributed
+                    required to orchestrate deterministic execution packs across your distributed
                     nodes.
                   </p>
                 </section>
@@ -121,7 +121,7 @@ export default function LegalPage() {
                   <h3 className="text-xl font-bold mb-3 text-emerald-400">4. Your Rights</h3>
                   <p className="text-gray-300 leading-relaxed">
                     You have the right to access, export, or delete your tenant data at any time via
-                    the ReadyLayer Dashboard or the <code>reach account purge</code> CLI command.
+                    the Reach Dashboard or the <code>reach account purge</code> CLI command.
                   </p>
                 </section>
               </div>

@@ -31,6 +31,12 @@ _reach() {
 _reach_commands() {
     local commands=(
         'doctor:System health check'
+        'version:Show version information'
+        'demo:Run deterministic demo smoke'
+        'quickstart:Alias for bootstrap'
+        'bootstrap:Initialize deterministic local artifacts'
+        'status:Show CLI health and config summary'
+        'bugreport:Collect redacted diagnostics'
         'audit:Export/verify signed audit logs'
         'eval:Evaluate runs and regressions'
         'release-check:Check release readiness'
@@ -55,8 +61,6 @@ _reach_commands() {
         'metrics:View GTM and usage metrics'
         'gate:Manage release gates'
         'report:Generate/verify demo reports'
-        'quickstart:Generate golden-path demo artifacts'
-        'status:Show service and reconciliation status'
         'help:Show help'
     )
     _describe -t commands 'reach command' commands

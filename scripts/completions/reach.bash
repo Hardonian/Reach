@@ -9,7 +9,7 @@ _reach() {
     prev="${COMP_WORDS[COMP_CWORD-1]}"
     
     # Main commands
-    local commands="doctor audit eval release-check serve federation support arcade capsule proof graph packs init explain operator pack wizard run share delegate verify-proof cost metrics gate report quickstart status help"
+    local commands="doctor version demo quickstart bootstrap status bugreport audit eval release-check serve federation support arcade capsule proof graph packs init explain operator pack wizard run share delegate verify-proof cost metrics gate report help"
     
     # Report subcommands
     local report_commands="demo verify"

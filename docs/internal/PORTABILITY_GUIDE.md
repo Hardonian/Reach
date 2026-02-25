@@ -61,19 +61,22 @@ If verification fails, the import is rejected with `RL-2001`.
 
 ---
 
-## Capsule Signing (Optional)
+## Capsule CLI (Canonical)
 
-For audit-grade portability, capsules can be signed:
+Use the canonical capsule syntax:
 
 ```bash
-# Sign a capsule bundle with a key
-reachctl capsule sign ./my-run.reach.zip --key ./my-key.pem
+# Create a capsule from a run
+reachctl capsule create <run-id>
 
-# Verify a signed capsule
-reachctl capsule verify ./my-run.reach.zip.signed
+# Verify capsule integrity
+reachctl capsule verify data/capsules/<run-id>.capsule.json
+
+# Replay capsule deterministically
+reachctl capsule replay data/capsules/<run-id>.capsule.json
 ```
 
-Signed capsules include a detached signature in `meta.json.signature`.
+Legacy aliases `export` and `import` are still supported with a deprecation warning.
 
 ---
 
