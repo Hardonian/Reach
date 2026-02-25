@@ -113,3 +113,14 @@ reachctl-*
 services/runner/*.exe
 services/runner/reachctl
 reachctl.exe
+
+# ======================================
+# TypeScript Build Info
+# ======================================
+*.tsbuildinfo
+
+# ======================================
+# Lint Output
+# ======================================
+lint_output_*.txt
+lint_results.json

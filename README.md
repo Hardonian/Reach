@@ -41,6 +41,15 @@ This directory contains the authoritative specifications for the Reach platform,
 
 - `ARCADE_SPEC.md`: The Arcade visual shell and playground.
 
+### 💎 Determinism
+
+**The Truth.** Technical and institutional foundations for verifiable execution.
+
+- [`DETERMINISM_v1.0.md`](docs/specs/determinism-v1.0.md): Normative protocol fingerprinting spec.
+- [`DETERMINISTIC_GOVERNANCE.md`](docs/whitepapers/deterministic-governance.md): Technical whitepaper on verifiable paths.
+- [`SOC2_MAPPING.md`](docs/compliance/determinism-soc2-mapping.md): Compliance narrative for institutional trust.
+
 ---
+
 
 *Note: These specifications are the source of truth. Code deviations from these specs are considered bugs.*

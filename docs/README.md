@@ -19,10 +19,10 @@ Welcome to the authoritative reference for the Reach execution fabric.
 
 ### 🛤️ Start Here: Choose Your Path
 
-| Path           | Focus                                           | Key Docs                                            |
-| :------------- | :---------------------------------------------- | :-------------------------------------------------- |
-| **OSS Core**   | Local execution, local registry, CLI usage.     | [Quickstart](./QUICKSTART_TECH.md), [CLI](./cli.md) |
-| **Enterprise** | Multi-node, auditing, deep compliance, billing. | [Governance](../GOVERNANCE.md), [RBAC](./rbac.md)   |
+| Path | Focus | Key Docs |
+| :--- | :--- | :--- |
+| **OSS Core** | Local execution, local registry, CLI usage. | [Quickstart](./QUICKSTART_TECH.md), [CLI](./cli.md) |
+| **Enterprise** | Multi-node, auditing, deep compliance, billing. | [Governance](../GOVERNANCE.md), [RBAC](./rbac.md) |
 
 ---
 
@@ -38,6 +38,22 @@ CLI/API Entry → Policy Gates → Deterministic Replay → Evidence Chain → C
 
 ---
 
+## ⚖️ Institutional Foundation
+
+### 📜 [Specifications](./specs/index.md)
+
+- **[Determinism v1.0](./specs/determinism-v1.0.md)**: The authoritative contract for cross-language fingerprinting.
+
+### 📄 [Whitepapers](./whitepapers/index.md)
+
+- **[Deterministic Governance](./whitepapers/deterministic-governance.md)**: Technical deep-dive into verifiable decision paths.
+
+### 🛡️ [Compliance](./compliance/index.md)
+
+- **[SOC2 Control Mapping](./compliance/determinism-soc2-mapping.md)**: Narrative and evidence mapping for institutional audits.
+
+---
+
 ## 🏗️ Detailed Reference
 
 - **Design**: [Architecture](./architecture.md), [Decisions](./decisions.md), [Topology](./TOPOLOGY.md), [Federation](./FEDERATION.md)
@@ -48,10 +64,6 @@ CLI/API Entry → Policy Gates → Deterministic Replay → Evidence Chain → C
 - **Development**: [Testing & Smoke](./testing-smoke.md), [Error Codes](./ERROR_CODES.md), [Error Code Registry](./ERROR_CODE_REGISTRY.md)
 - **Getting Started**: [Quickstart Non-Technical](./QUICKSTART_NON_TECH.md), [Glossary](./glossary.md)
 - **Engine**: [Decision Engine Rust](./decision-engine-rust.md)
-
----
-
-_Reach: Reducing entropy in autonomous systems._
 
 ---
 

@@ -22,20 +22,12 @@ REACH_WRAPPER := reach
 LDFLAGS := -trimpath -ldflags "-X main.version=$(VERSION) -X main.commit=$(GIT_COMMIT) -X main.buildDate=$(BUILD_DATE)"
 RELEASE_LDFLAGS := -trimpath -ldflags "-s -w -X main.version=$(VERSION) -X main.commit=$(GIT_COMMIT) -X main.buildDate=$(BUILD_DATE)"
 
-# Tools configuration
-TOOLS = reachctl doctor reach-audit reach-eval
-TOOL_PATHS = \
-	services/runner/cmd/reachctl \
-	tools/doctor \
-	tools/reach-audit \
-	tools/reach-eval
-
 # Default target
 help:
 	@echo "Reach Deterministic Execution Fabric - Build System"
 	@echo ""
 	@echo "DEVELOPMENT"
-	@echo "  make build          - Build all tools in parallel (development)"
+	@echo "  make build          - Build reachctl binary (development)"
 	@echo "  make install        - Install binaries to system (requires admin/root)"
 	@echo "  make test           - Run all tests"
 	@echo "  make verify         - Run full verification suite"
@@ -52,23 +44,14 @@ help:
 	@echo ""
 	@echo "VERSION: $(VERSION) (commit: $(GIT_COMMIT))"
 
-# Build all tools in parallel
+# Build development binary
 build:
-	@echo "Building all tools v$(VERSION)..."
+	@echo "Building $(BINARY_NAME) v$(VERSION)..."
 	@mkdir -p $(BUILD_DIR)
-	
-	# Build tools in parallel
-	@for i in $(shell seq 0 $(shell expr $(words $(TOOLS)) - 1)); do \
-		TOOL_NAME=$$(echo $(TOOLS) | cut -d' ' -f$$(expr $$i + 1)); \
-		TOOL_PATH=$$(echo $(TOOL_PATHS) | cut -d' ' -f$$(expr $$i + 1)); \
-		echo "Building $$TOOL_NAME..."; \
-		(cd $$TOOL_PATH && go build $(LDFLAGS) -o $(abspath $(BUILD_DIR))/$$TOOL_NAME .) & \
-	done
-	@wait
+	cd services/runner && go build $(LDFLAGS) -o ../../$(BUILD_DIR)/$(BINARY_NAME) ./cmd/reachctl
 	@cp $(REACH_WRAPPER) $(BUILD_DIR)/
-	@echo "All tools built successfully!"
-	@echo "Binaries available in: $(BUILD_DIR)/"
-	@ls -la $(BUILD_DIR)/
+	@echo "Built: $(BUILD_DIR)/$(BINARY_NAME)"
+	@echo "Built: $(BUILD_DIR)/$(REACH_WRAPPER)"
 
 # Install to system
 install: build
