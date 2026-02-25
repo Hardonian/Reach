@@ -59,7 +59,17 @@
     "Merkle",
     "Turbopack",
     "explainability",
-    "explainable"
+    "explainable",
+    "ldflags",
+    "PKGS",
+    "clawdbot",
+    "hono",
+    "SARIF",
+    "sarif",
+    "AUTOPACK",
+    "MTTFS",
+    "mttfs",
+    "signups"
   ],
   "ignorePaths": ["node_modules", "dist", "build", "*.log"]
 }

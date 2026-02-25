@@ -191,9 +191,8 @@ function DriftSignal({ label, value, limit, status }: DriftSignalProps) {
       </div>
       <div className="h-1.5 bg-arcade-surface-hover rounded-full overflow-hidden border border-arcade-border">
         <div
-          className={`h-full rounded-full transition-all duration-1000 ${status === "warning" ? "bg-arcade-accent" : "bg-emerald-500"}`}
-          /* Justification: Width is data-driven and dynamic, requiring inline style for precise representation. */
-          style={{ width: `${percent}%` } as React.CSSProperties}
+          className={`h-full rounded-full transition-all duration-1000 ${status === "warning" ? "bg-arcade-accent" : "bg-emerald-500"} w-(--progress-width)`}
+          style={{ "--progress-width": `${percent}%` } as React.CSSProperties}
         />
       </div>
     </div>
