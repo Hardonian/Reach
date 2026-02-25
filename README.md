@@ -1,54 +1,82 @@
-# Reach Specifications
+# Reach
 
-This directory contains the authoritative specifications for the Reach platform, organized by domain.
+Deterministic execution fabric for AI systems. Verifiable, replayable, auditable.
 
-## Hierarchy
+## What is Reach?
 
-### 📜 [Protocol](protocol/)
+Reach provides deterministic execution guarantees for AI-driven workflows. In a world where AI agents make autonomous decisions, Reach ensures those decisions are:
 
-**The Law.** Formal definitions of the Reach protocol, independent of implementation.
+- **Verifiable**: Cryptographic proof of what executed and when
+- **Replayable**: Identical inputs produce identical outputs, always
+- **Auditable**: Complete chain of custody for every execution
 
-- [`EXECUTION_PROTOCOL.md`](protocol/EXECUTION_PROTOCOL.md): The core execution envelope and roles.
-- `SPEC_FORMALIZATION_SUMMARY.md`: Summary of formal verification efforts.
+## Quick Start
 
-### ⚙️ Runtime
+```bash
+# Install the CLI
+npm install -g @reach/cli
 
-**The Engine.** Specifications for the reference implementation (Runner).
+# Or use npx
+npx @reach/cli --version
 
-- `EXECUTION_SPEC.md`: Normative execution contract.
-- `GRAPH_EXECUTION_SPEC.md`: DAG-based execution model.
-- `ADAPTIVE_ENGINE_SPEC.md`: Dynamic optimization logic.
-- `MODEL_ROUTING_SPEC.md`: Model selection and fallback logic.
+# Verify installation
+reach doctor
 
-### 🌐 Federation
+# Run your first deterministic execution
+reach demo
+```
 
-**The Network.** How Reach nodes communicate and trust each other.
+## Documentation
 
-- `FEDERATED_EXECUTION_SPEC.md`: Delegation and remote execution.
-- `TRUST_NEGOTIATION_SPEC.md`: Handshakes and reputation scoring.
+- [Specifications](spec/) - Protocol and implementation specs
+- [Whitepapers](docs/whitepapers/) - Technical deep-dives
+- [Examples](examples/) - Usage patterns and tutorials
+- [API Reference](docs/api/) - Complete API documentation
 
-### 📦 Packaging
+## Determinism Guarantee
 
-**The Container.** Formats for distribution and verification.
+Reach uses canonical fingerprinting across all execution boundaries. Every input, state transition, and output is deterministically hashed, creating an immutable execution trace.
 
-- `EXECUTION_PACK_SPEC.md`: The signed execution pack format.
-- `AUTOPACK_SPEC.md`: Automated pack generation and scoring.
-- `CAPABILITY_REGISTRY.md`: The source of truth for capabilities.
+See [DETERMINISM_ROADMAP.md](DETERMINISM_ROADMAP.md) for the complete technical specification.
 
-### 🏟️ Ecosystem
+## Architecture
 
-**The Product.** Specifications for user-facing surfaces.
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+│   Client    │────▶│   Runner     │────▶│   Engine    │
+│   (CLI/SDK) │     │ (Execution)  │     │ (Core Logic)│
+└─────────────┘     └──────────────┘     └─────────────┘
+                            │
+                            ▼
+                     ┌──────────────┐
+                     │   Artifact   │
+                     │   Store      │
+                     └──────────────┘
+```
 
-- `ARCADE_SPEC.md`: The Arcade visual shell and playground.
+## Development
 
-### 💎 Determinism
+```bash
+# Clone and setup
+git clone https://github.com/reach/decision-engine.git
+cd decision-engine
+npm install
 
-**The Truth.** Technical and institutional foundations for verifiable execution.
+# Run verification
+npm run verify
 
-- [`DETERMINISM_v1.0.md`](docs/specs/determinism-v1.0.md): Normative protocol fingerprinting spec.
-- [`DETERMINISTIC_GOVERNANCE.md`](docs/whitepapers/deterministic-governance.md): Technical whitepaper on verifiable paths.
-- [`SOC2_MAPPING.md`](docs/compliance/determinism-soc2-mapping.md): Compliance narrative for institutional trust.
+# Run tests
+npm test
+```
+
+## License
+
+MIT - See [LICENSE](LICENSE)
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 
-*Note: These specifications are the source of truth. Code deviations from these specs are considered bugs.*
+**Note**: This is the open-source core. Enterprise features (cloud-hosted runners, advanced analytics, team governance) are available in [Reach Cloud](https://reach.dev).
