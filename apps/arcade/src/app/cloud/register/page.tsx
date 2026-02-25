@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { track } from "@/lib/analytics";
 import { ROUTES } from "@/lib/routes";
 import { CTA } from "@/lib/copy";
@@ -12,7 +11,7 @@ export default function CloudRegisterPage() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+
 
   function githubSignUp() {
     track("signup_started", {

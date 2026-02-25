@@ -5,7 +5,6 @@ import {
   getTenantBySlug,
   addMember,
   listTenantsForUser,
-  getEntitlement,
 } from "@/lib/cloud-db";
 import { CreateTenantSchema, parseBody } from "@/lib/cloud-schemas";
 

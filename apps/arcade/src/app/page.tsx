@@ -1,7 +1,7 @@
 import { HeroMedia } from "@/components/HeroMedia";
 import Link from "next/link";
 import { ROUTES } from "@/lib/routes";
-import { HERO_VARIANTS, CTA, HOW_IT_WORKS, CAPABILITIES, BEFORE_AFTER } from "@/lib/copy";
+import { CTA, HOW_IT_WORKS, CAPABILITIES, BEFORE_AFTER } from "@/lib/copy";
 import { resolveVariant } from "@/lib/ab";
 import { HomepageClient, HomepageExtraCapabilities } from "@/components/HomepageClient";
 
@@ -12,7 +12,6 @@ interface HomePageProps {
 export default async function Home({ searchParams }: HomePageProps) {
   const params = searchParams ? await searchParams : {};
   const variant = resolveVariant(params);
-  const hero = HERO_VARIANTS[variant];
   const primaryCaps = CAPABILITIES.filter((c) => c.primary);
   const extraCaps = CAPABILITIES.filter((c) => !c.primary);
 

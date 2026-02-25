@@ -88,13 +88,7 @@ const mockAgents = [
   },
 ];
 
-const CATEGORY_LABELS: Record<string, string> = {
-  readiness: "Readiness",
-  safety: "Safety",
-  regression: "Change detection",
-  tracing: "Tracing",
-  release: "Release gates",
-};
+
 
 const DIFFICULTY_COLORS = {
   beginner: "text-emerald-400 bg-emerald-950/40",

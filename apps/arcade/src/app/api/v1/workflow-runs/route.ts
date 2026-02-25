@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth, cloudErrorResponse } from "@/lib/cloud-auth";
+import { requireAuth } from "@/lib/cloud-auth";
 import { listWorkflowRuns } from "@/lib/cloud-db";
 
 export const runtime = "nodejs";

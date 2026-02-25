@@ -18,13 +18,6 @@ interface Signal {
   status: "enabled" | "disabled";
   created_at: string;
 }
-interface MonitorRun {
-  id: string;
-  signal_id: string;
-  value: number;
-  alert_triggered: boolean;
-  created_at: string;
-}
 interface Health {
   total: number;
   alerts_today: number;
@@ -50,31 +43,6 @@ function MetricCard({
       <p className={`text-2xl font-bold ${alert ? "text-orange-400" : "text-white"}`}>{value}</p>
       {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
     </div>
-  );
-}
-
-function Sparkline({ values }: { values: number[] }) {
-  if (values.length < 2) return <div className="h-8 text-xs text-gray-500">No data</div>;
-  const max = Math.max(...values, 1);
-  const min = Math.min(...values, 0);
-  const range = max - min || 1;
-  const points = values
-    .map((v, i) => {
-      const x = (i / (values.length - 1)) * 100;
-      const y = 100 - ((v - min) / range) * 100;
-      return `${x},${y}`;
-    })
-    .join(" ");
-  return (
-    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-8 w-full">
-      <polyline
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        points={points}
-        className="text-accent"
-      />
-    </svg>
   );
 }
 

@@ -144,11 +144,11 @@ export default function Governance() {
     );
   };
 
-  const handleEditPolicy = (id: string) => {
+  const handleEditPolicy = (_id: string) => {
     enterpriseAction();
   };
 
-  const handleDeletePolicy = (id: string) => {
+  const handleDeletePolicy = (_id: string) => {
     enterpriseAction();
   };
 

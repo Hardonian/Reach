@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth, cloudErrorResponse, requireRole, auditLog } from "@/lib/cloud-auth";
 import { createApiKey, listApiKeys } from "@/lib/cloud-db";
 import { CreateApiKeySchema, parseBody } from "@/lib/cloud-schemas";
-import { logger } from "@/lib/logger";
+
 
 export const runtime = "nodejs";
 

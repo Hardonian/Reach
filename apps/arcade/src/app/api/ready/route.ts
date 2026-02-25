@@ -34,7 +34,7 @@ export async function GET(): Promise<NextResponse> {
       },
       { status: 200 },
     );
-  } catch (err) {
+  } catch {
     return NextResponse.json(
       {
         ready: false,

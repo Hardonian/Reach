@@ -1,9 +1,18 @@
 import React from "react";
 import { getFounderMetrics, getDecisions } from "@/lib/db/founder";
 
+interface Decision {
+  id: string;
+  title: string;
+  description: string;
+  score_total: number;
+  strategic_align: boolean;
+  status: "go" | "kill" | "pending";
+}
+
 export default async function FounderDashboardPage() {
   const metrics = getFounderMetrics();
-  const decisions = getDecisions();
+  const decisions = getDecisions() as Decision[];
 
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto">
@@ -94,7 +103,7 @@ export default async function FounderDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-arcade-border">
-                {decisions.map((dec: any) => (
+                {decisions.map((dec: Decision) => (
                   <tr key={dec.id} className="hover:bg-arcade-surface-hover transition-colors">
                     <td className="px-4 py-4">
                       <div className="font-bold text-white">{dec.title}</div>
@@ -140,7 +149,15 @@ export default async function FounderDashboardPage() {
   );
 }
 
-function MetricCard({ label, value, sub, trend, status }: any) {
+interface MetricCardProps {
+  label: string;
+  value: string | number;
+  sub: string;
+  trend: string;
+  status: "good" | "neutral" | "warning";
+}
+
+function MetricCard({ label, value, sub, trend, status }: MetricCardProps) {
   return (
     <div className="bg-arcade-surface border border-arcade-border p-5 rounded-xl space-y-2 group hover:border-arcade-primary/50 transition-all">
       <div className="text-xs font-mono text-arcade-text-secondary uppercase">{label}</div>
@@ -155,7 +172,14 @@ function MetricCard({ label, value, sub, trend, status }: any) {
   );
 }
 
-function DriftSignal({ label, value, limit, status }: any) {
+interface DriftSignalProps {
+  label: string;
+  value: string;
+  limit: string;
+  status: "good" | "warning";
+}
+
+function DriftSignal({ label, value, limit, status }: DriftSignalProps) {
   const percent = Math.min((parseFloat(value) / parseFloat(limit)) * 100, 100);
   return (
     <div className="space-y-1.5">
