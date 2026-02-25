@@ -31,6 +31,10 @@ Complete reference for all Reach environment variables.
 | `READYLAYER_ALERT_EMAIL_ENDPOINT`        | HTTP endpoint for alert email relay                     | unset                        |
 | `READYLAYER_ALERT_EMAIL_API_KEY`         | API key for alert relay                                 | unset                        |
 | `READYLAYER_ALERT_EMAIL_FROM`            | Sender address for alert relay payloads                 | unset                        |
+| `SMTP_HOST`                              | Direct SMTP host (used when no relay endpoint is set)   | unset                        |
+| `SMTP_PORT`                              | Direct SMTP port                                        | `587`                        |
+| `SMTP_USER`                              | Direct SMTP auth username                               | unset                        |
+| `SMTP_PASS`                              | Direct SMTP auth password                               | unset                        |
 | `READYLAYER_ALERT_DEDUPE_WINDOW_SECONDS` | Alert dedupe window in seconds                          | `300`                        |
 | `READYLAYER_STRICT_MODE`                 | Enables strict governance mode (warnings can block)     | `false`                      |
 | `READYLAYER_GATE_WARNINGS_BLOCK`         | Whether warnings contribute to gate failures            | `false`                      |
