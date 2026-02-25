@@ -37,13 +37,13 @@ Canonicalization is the process of converting a data structure into a stable, by
 
 ### 2.3 Data Types
 
-| Type | Requirement |
-| :--- | :--- |
-| **Strings** | **MUST** be UTF-8 encoded. Normalization (e.g., NFC) **SHOULD** be applied if inputs originate from diverse sources. |
-| **Integers** | **MUST** be represented as their literal numeric value. Implementations **MUST NOT** use scientific notation for integer values. |
-| **Booleans** | **MUST** use literal `true` or `false`. |
-| **Null** | **MUST** use literal `null`. |
-| **Floats** | **SHOULD** be avoided in high-integrity preimages. If utilized, implementations **MUST** normalize to 9 decimal places (1e-9) to prevent cross-language drift. |
+| Type         | Requirement                                                                                                                                                    |
+| :----------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Strings**  | **MUST** be UTF-8 encoded. Normalization (e.g., NFC) **SHOULD** be applied if inputs originate from diverse sources.                                           |
+| **Integers** | **MUST** be represented as their literal numeric value. Implementations **MUST NOT** use scientific notation for integer values.                               |
+| **Booleans** | **MUST** use literal `true` or `false`.                                                                                                                        |
+| **Null**     | **MUST** use literal `null`.                                                                                                                                   |
+| **Floats**   | **SHOULD** be avoided in high-integrity preimages. If utilized, implementations **MUST** normalize to 9 decimal places (1e-9) to prevent cross-language drift. |
 
 ---
 

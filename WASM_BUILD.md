@@ -144,6 +144,7 @@ The WASM module provides the same determinism guarantees as the native Rust impl
 For **non-float inputs**, the TypeScript and Rust implementations produce **identical fingerprints**.
 
 For **float inputs**, fingerprints may differ due to:
+
 - Different JSON parsing behaviors
 - Platform-specific float representations
 - Different normalization timing

@@ -1,14 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 import {
   compileGovernanceIntentAsync,
   compileGovernanceIntentWasm,
   getCompilerMetadata,
-} from '../compiler-async.js';
-import { compileGovernanceIntent } from '../compiler.js';
-import { isWasmAvailable, resetWasmModule } from '../determinism-bridge.js';
-import type { CompileGovernanceIntentInput } from '../types.js';
+} from "../compiler-async.js";
+import { compileGovernanceIntent } from "../compiler.js";
+import { isWasmAvailable, resetWasmModule } from "../determinism-bridge.js";
+import type { CompileGovernanceIntentInput } from "../types.js";
 
-describe('compiler-async', () => {
+describe("compiler-async", () => {
   const baseInput: CompileGovernanceIntentInput = {
     intent: "Require evaluation score >= 0.9 and provenance for all artifacts",
     orgId: "test-org",
@@ -18,7 +18,7 @@ describe('compiler-async', () => {
     defaultRolloutMode: "dry-run",
   };
 
-  it('should compile with async API', async () => {
+  it("should compile with async API", async () => {
     const result = await compileGovernanceIntentAsync(baseInput);
 
     expect(result.specHash).toBeDefined();
@@ -27,7 +27,7 @@ describe('compiler-async', () => {
     expect(result.spec.thresholds).toBeInstanceOf(Array);
   });
 
-  it('should produce same output as sync compiler', async () => {
+  it("should produce same output as sync compiler", async () => {
     const syncResult = compileGovernanceIntent(baseInput);
     const asyncResult = await compileGovernanceIntentAsync(baseInput, { preferWasm: false });
 
@@ -36,53 +36,56 @@ describe('compiler-async', () => {
     expect(asyncResult.spec).toEqual(syncResult.spec);
   });
 
-  it('should handle WASM unavailability gracefully', async () => {
+  it("should handle WASM unavailability gracefully", async () => {
     resetWasmModule();
-    
+
     // Should not throw even if WASM is unavailable
     const result = await compileGovernanceIntentAsync(baseInput, { preferWasm: true });
-    
+
     expect(result.specHash).toBeDefined();
     expect(result.specHash).toHaveLength(64);
   });
 
-  it('should throw when WASM is required but unavailable', async () => {
+  it("should throw when WASM is required but unavailable", async () => {
     resetWasmModule();
-    
+
     const wasmAvailable = await isWasmAvailable();
-    
+
     if (!wasmAvailable) {
-      await expect(compileGovernanceIntentWasm(baseInput)).rejects.toThrow('WASM implementation required');
+      await expect(compileGovernanceIntentWasm(baseInput)).rejects.toThrow(
+        "WASM implementation required",
+      );
     }
   });
 
-  it('should include WASM status in explainability when available', async () => {
+  it("should include WASM status in explainability when available", async () => {
     resetWasmModule();
-    
+
     const result = await compileGovernanceIntentAsync(baseInput, { preferWasm: true });
-    
+
     // Should mention WASM or TypeScript in the risk impact summary
     const hasImplementationNote = result.explainability.riskImpactSummary.some(
-      note => note.includes('WASM') || note.includes('TypeScript')
+      (note) => note.includes("WASM") || note.includes("TypeScript"),
     );
-    
+
     expect(hasImplementationNote).toBe(true);
   });
 
-  it('should provide compiler metadata', async () => {
+  it("should provide compiler metadata", async () => {
     const metadata = await getCompilerMetadata();
-    
-    expect(typeof metadata.wasmAvailable).toBe('boolean');
-    expect(typeof metadata.tsVersion).toBe('string');
-    
+
+    expect(typeof metadata.wasmAvailable).toBe("boolean");
+    expect(typeof metadata.tsVersion).toBe("string");
+
     if (metadata.wasmAvailable) {
       expect(metadata.wasmVersion).toBeDefined();
     }
   });
 
-  it('should compile complex intents asynchronously', async () => {
+  it("should compile complex intents asynchronously", async () => {
     const complexInput: CompileGovernanceIntentInput = {
-      intent: "Require high evaluation scores, provenance, replay, CI enforcement, and model risk guards",
+      intent:
+        "Require high evaluation scores, provenance, replay, CI enforcement, and model risk guards",
       orgId: "test-org",
       workspaceId: "test-workspace",
       scope: "global",
@@ -106,20 +109,20 @@ describe('compiler-async', () => {
     expect(result.specHash).toHaveLength(64);
   });
 
-  it('should maintain determinism across async calls', async () => {
+  it("should maintain determinism across async calls", async () => {
     const results = await Promise.all([
       compileGovernanceIntentAsync(baseInput),
       compileGovernanceIntentAsync(baseInput),
       compileGovernanceIntentAsync(baseInput),
     ]);
 
-    const hashes = results.map(r => r.specHash);
+    const hashes = results.map((r) => r.specHash);
     const uniqueHashes = new Set(hashes);
-    
+
     expect(uniqueHashes.size).toBe(1);
   });
 
-  it('should handle errors gracefully', async () => {
+  it("should handle errors gracefully", async () => {
     // Test with invalid input that might cause issues
     const invalidInput = {
       ...baseInput,
@@ -132,7 +135,7 @@ describe('compiler-async', () => {
   });
 });
 
-describe('compiler-async with WASM', () => {
+describe("compiler-async with WASM", () => {
   const wasmTestInput: CompileGovernanceIntentInput = {
     intent: "Require evaluation score >= 0.9",
     orgId: "test-org",
@@ -142,22 +145,22 @@ describe('compiler-async with WASM', () => {
     defaultRolloutMode: "dry-run",
   };
 
-  it('should use WASM when available and preferred', async () => {
+  it("should use WASM when available and preferred", async () => {
     resetWasmModule();
-    
+
     const wasmAvailable = await isWasmAvailable();
-    
-    const result = await compileGovernanceIntentAsync(wasmTestInput, { 
+
+    const result = await compileGovernanceIntentAsync(wasmTestInput, {
       preferWasm: true,
-      requireWasm: false 
+      requireWasm: false,
     });
-    
+
     expect(result.specHash).toBeDefined();
-    
+
     if (wasmAvailable) {
       // Should indicate WASM was used
-      const wasmNote = result.explainability.riskImpactSummary.find(
-        note => note.includes('WASM acceleration enabled')
+      const wasmNote = result.explainability.riskImpactSummary.find((note) =>
+        note.includes("WASM acceleration enabled"),
       );
       expect(wasmNote).toBeDefined();
     }

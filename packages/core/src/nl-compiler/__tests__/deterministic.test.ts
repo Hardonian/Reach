@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { stableStringify, sha256Hex } from '../deterministic';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { describe, it, expect } from "vitest";
+import { stableStringify, sha256Hex } from "../deterministic.js";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -15,12 +15,12 @@ interface TestVector {
 }
 
 // Load test vectors synchronously at module load time
-const vectorsPath = path.resolve(__dirname, '../../../../../determinism.vectors.json');
-const content = fs.readFileSync(vectorsPath, 'utf8');
+const vectorsPath = path.resolve(__dirname, "../../../../../determinism.vectors.json");
+const content = fs.readFileSync(vectorsPath, "utf8");
 const vectors: TestVector[] = JSON.parse(content);
 
-describe('deterministic.ts - Golden Vectors', () => {
-  it('should read and parse test vectors', () => {
+describe("deterministic.ts - Golden Vectors", () => {
+  it("should read and parse test vectors", () => {
     expect(Array.isArray(vectors)).toBeTruthy();
     expect(vectors.length).toBeGreaterThan(0);
   });
@@ -29,7 +29,7 @@ describe('deterministic.ts - Golden Vectors', () => {
     it(`should compute correct fingerprint for vector: ${vector.name}`, () => {
       const canonical = stableStringify(vector.input);
       const fingerprint = sha256Hex(canonical);
-      
+
       expect(fingerprint).toEqual(vector.expected_ts_fingerprint);
     });
   });

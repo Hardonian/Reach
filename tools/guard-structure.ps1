@@ -34,7 +34,6 @@ $AllowedFiles = @(
     "reach",
     "reachctl.exe",
     "reach-policy.txt",
-    "reach-to-readylayer.patch",
     "vercel.json",
     "docker-compose.yml",
     "docker-compose.dev.yml",
@@ -46,16 +45,12 @@ $AllowedFiles = @(
     "SUPPORT.md",
     "eslint.config.js",
     "cspell.json",
-    "doctor.ts",
-    "doctor.test.ts",
-    ".gemini",
-    ".agent",
-    ".artifacts",
-    ".kilocode",
+    "determinism.vectors.json",
+    "DETERMINISM_ROADMAP.md",
+    "WASM_BUILD.md",
     "CLI_COMMAND_MATRIX.md",
     "PRODUCTION_HARDENING_REPORT.md",
-    "lint_output_run1.txt",
-    "lint_results.json"
+    "test-ts-implementation.ts"
 )
 
 $AllowedDirs = @(
@@ -96,7 +91,6 @@ $AllowedDirs = @(
     "protocol",
     "scripts",
     "spec",
-    "stitch_exports",
     "support",
     "telemetry",
     "templates",
@@ -110,8 +104,7 @@ $AllowedDirs = @(
     ".github",
     ".vscode",
     ".agent",
-    ".artifacts",
-    ".kilocode"
+    ".artifacts"
 )
 
 $script:EntropyFound = $false

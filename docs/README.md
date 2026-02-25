@@ -19,10 +19,10 @@ Welcome to the authoritative reference for the Reach execution fabric.
 
 ### 🛤️ Start Here: Choose Your Path
 
-| Path | Focus | Key Docs |
-| :--- | :--- | :--- |
-| **OSS Core** | Local execution, local registry, CLI usage. | [Quickstart](./QUICKSTART_TECH.md), [CLI](./cli.md) |
-| **Enterprise** | Multi-node, auditing, deep compliance, billing. | [Governance](../GOVERNANCE.md), [RBAC](./rbac.md) |
+| Path           | Focus                                           | Key Docs                                            |
+| :------------- | :---------------------------------------------- | :-------------------------------------------------- |
+| **OSS Core**   | Local execution, local registry, CLI usage.     | [Quickstart](./QUICKSTART_TECH.md), [CLI](./cli.md) |
+| **Enterprise** | Multi-node, auditing, deep compliance, billing. | [Governance](../GOVERNANCE.md), [RBAC](./rbac.md)   |
 
 ---
 

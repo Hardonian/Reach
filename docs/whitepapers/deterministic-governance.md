@@ -2,7 +2,7 @@
 
 ## Abstract
 
-Modern autonomous systems and AI-driven governance suffer from "black-box" opacity. When a decision is made, verifying *why* and *how* it was reached is often impossible after the fact. Reach introduces **Deterministic Governance**, a framework that ensures every intent, policy, and state transition is cryptographically bound to its execution path. This whitepaper details the architectural layers that enable verifiable, replayable governance.
+Modern autonomous systems and AI-driven governance suffer from "black-box" opacity. When a decision is made, verifying _why_ and _how_ it was reached is often impossible after the fact. Reach introduces **Deterministic Governance**, a framework that ensures every intent, policy, and state transition is cryptographically bound to its execution path. This whitepaper details the architectural layers that enable verifiable, replayable governance.
 
 ---
 

@@ -53,9 +53,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   // ── Handle event ───────────────────────────────────────────────────────
   try {
-    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() 
-      ?? req.headers.get("x-real-ip") 
-      ?? "unknown";
+    const clientIp =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      req.headers.get("x-real-ip") ??
+      "unknown";
     await handleStripeEvent(event, clientIp);
     markWebhookProcessed(event.id);
     return NextResponse.json({ ok: true });
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // Return 500 to trigger Stripe retry - event is stored (idempotent) but processing failed
     return NextResponse.json(
       { ok: false, error: "Handler error, event stored but not processed" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -109,7 +110,7 @@ async function handleStripeEvent(event: Stripe.Event, clientIp: string): Promise
           ? new Date(firstItem.current_period_end * 1000).toISOString()
           : undefined,
       } as Parameters<typeof upsertEntitlement>[1]);
-      
+
       // Audit trail for subscription created/updated
       appendAudit(
         tenantId,
@@ -143,7 +144,7 @@ async function handleStripeEvent(event: Stripe.Event, clientIp: string): Promise
         pack_limit: PLAN_LIMITS["free"].pack_limit,
         retention_days: PLAN_LIMITS["free"].retention_days,
       } as Parameters<typeof upsertEntitlement>[1]);
-      
+
       // Audit trail for subscription deleted
       appendAudit(
         tenantId,
@@ -169,7 +170,7 @@ async function handleStripeEvent(event: Stripe.Event, clientIp: string): Promise
         // Reset monthly usage on successful invoice payment (new billing period)
         const { resetMonthlyUsage } = await import("@/lib/cloud-db");
         resetMonthlyUsage(tenantId);
-        
+
         // Audit trail for invoice paid (usage reset)
         appendAudit(
           tenantId,
@@ -182,7 +183,7 @@ async function handleStripeEvent(event: Stripe.Event, clientIp: string): Promise
             amount_paid: invoice.amount_paid,
             currency: invoice.currency,
             customer_id: invoice.customer,
-            subscription_id: invoice.subscription,
+            subscription_id: (invoice as any).subscription,
           },
           clientIp,
         );
@@ -199,7 +200,7 @@ async function handleStripeEvent(event: Stripe.Event, clientIp: string): Promise
         upsertEntitlement(tenantId, { status: "past_due" } as Parameters<
           typeof upsertEntitlement
         >[1]);
-        
+
         // Audit trail for payment failed
         appendAudit(
           tenantId,
@@ -212,7 +213,7 @@ async function handleStripeEvent(event: Stripe.Event, clientIp: string): Promise
             amount_due: invoice.amount_due,
             currency: invoice.currency,
             customer_id: invoice.customer,
-            subscription_id: invoice.subscription,
+            subscription_id: (invoice as any).subscription,
           },
           clientIp,
         );

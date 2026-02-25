@@ -1,17 +1,12 @@
 /**
  * Async compiler with WASM acceleration support
- * 
+ *
  * This module provides async versions of the compiler functions that can
  * leverage the WASM implementation for improved performance and cross-language
  * consistency.
  */
 
-import {
-  compareNumbers,
-  compareStrings,
-  sha256Hex,
-  stableStringify,
-} from "./deterministic.js";
+import { compareNumbers, compareStrings, sha256Hex, stableStringify } from "./deterministic.js";
 import {
   computeFingerprint,
   computeFingerprintViaRust,
@@ -254,11 +249,11 @@ function buildImpactPreview(spec: GovernanceSpec): CompileGovernanceIntentOutput
 
 /**
  * Compile governance intent with optional WASM acceleration
- * 
+ *
  * This async version can use the Rust/WASM implementation for fingerprint
  * computation if available, providing better performance and cross-language
  * consistency.
- * 
+ *
  * @param input - The governance intent input
  * @param options - Optional configuration
  * @returns Promise resolving to the compiled output
@@ -276,15 +271,16 @@ export async function compileGovernanceIntentAsync(
 
   // Check WASM availability if needed
   const wasmAvailable = preferWasm || requireWasm ? await isWasmAvailable() : false;
-  
+
   if (requireWasm && !wasmAvailable) {
-    throw new Error('WASM implementation required but not available. Run: npm run build:wasm');
+    throw new Error("WASM implementation required but not available. Run: npm run build:wasm");
   }
 
   // Choose fingerprint function
-  const computeSpecHash = (wasmAvailable && preferWasm)
-    ? computeFingerprint
-    : (spec: GovernanceSpec) => Promise.resolve(sha256Hex(stableStringify(spec)));
+  const computeSpecHash =
+    wasmAvailable && preferWasm
+      ? computeFingerprint
+      : (spec: GovernanceSpec) => Promise.resolve(sha256Hex(stableStringify(spec)));
 
   const parsed = parseGovernanceIntent(input.intent, input.memory);
 
@@ -353,11 +349,11 @@ export async function compileGovernanceIntentAsync(
 
 /**
  * Compile governance intent using only the Rust/WASM implementation
- * 
+ *
  * This is a convenience function that requires WASM and will fail if
  * it's not available. Use this when you need guaranteed cross-language
  * consistency.
- * 
+ *
  * @param input - The governance intent input
  * @returns Promise resolving to the compiled output
  * @throws Error if WASM implementation is not available
@@ -370,7 +366,7 @@ export async function compileGovernanceIntentWasm(
 
 /**
  * Get compilation metadata including WASM availability
- * 
+ *
  * @returns Object with WASM status and version info
  */
 export async function getCompilerMetadata(): Promise<{
@@ -379,14 +375,14 @@ export async function getCompilerMetadata(): Promise<{
   tsVersion: string;
 }> {
   const wasmAvailable = await isWasmAvailable();
-  
+
   // Get WASM version if available
   let wasmVersion: string | null = null;
   if (wasmAvailable) {
     try {
       const result = await computeFingerprintViaRust({ version: true });
       // Parse the version from the result if possible
-      wasmVersion = 'available'; // Simplified for now
+      wasmVersion = "available"; // Simplified for now
     } catch {
       wasmVersion = null;
     }
@@ -395,6 +391,6 @@ export async function getCompilerMetadata(): Promise<{
   return {
     wasmAvailable,
     wasmVersion,
-    tsVersion: '0.1.0', // Should match package version
+    tsVersion: "0.1.0", // Should match package version
   };
 }

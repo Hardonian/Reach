@@ -218,7 +218,8 @@ if (env.NODE_ENV === "production") {
   const missingSecrets: string[] = [];
   for (const secretName of REQUIRED_IN_PRODUCTION) {
     const value = env[secretName as keyof typeof env];
-    if (!value || value.trim() === "") {
+    const stringValue = typeof value === "string" ? value : String(value);
+    if (!stringValue || stringValue.trim() === "") {
       missingSecrets.push(secretName);
     }
   }

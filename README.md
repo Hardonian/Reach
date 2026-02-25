@@ -41,7 +41,7 @@ See [DETERMINISM_ROADMAP.md](DETERMINISM_ROADMAP.md) for the complete technical 
 
 ## Architecture
 
-```
+```text
 ┌─────────────┐     ┌──────────────┐     ┌─────────────┐
 │   Client    │────▶│   Runner     │────▶│   Engine    │
 │   (CLI/SDK) │     │ (Execution)  │     │ (Core Logic)│

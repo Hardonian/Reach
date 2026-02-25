@@ -40,11 +40,7 @@
   },
   {
     "name": "simple_array",
-    "input": [
-      1,
-      2,
-      3
-    ],
+    "input": [1, 2, 3],
     "expected_ts_fingerprint": "a615eeaee21de5179de080de8c3052c8da901138406ba71c38c032845f7d54f4",
     "expected_rust_fingerprint": null,
     "notes": "Simple array with integer values"

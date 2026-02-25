@@ -1496,45 +1496,47 @@ export function applyMigrations(db: Database.Database): void {
 /**
  * Set the current tenant_id for the session.
  * This must be called before any tenant-specific operations.
- * 
+ *
  * @param db - The database connection
  * @param tenantId - The tenant ID to set for the current session (empty string to clear)
  */
 export function setCurrentTenant(db: Database.Database, tenantId: string): void {
-  db.prepare(`
+  db.prepare(
+    `
     UPDATE session_variables 
     SET value = ?, updated_at = datetime('now') 
     WHERE key = 'tenant_id'
-  `).run(tenantId);
+  `,
+  ).run(tenantId);
 }
 
 /**
  * Get the current tenant_id for the session.
- * 
+ *
  * @param db - The database connection
  * @returns The current tenant ID, or empty string if not set
  */
 export function getCurrentTenant(db: Database.Database): string {
-  const result = db.prepare(`
+  const result = db
+    .prepare(
+      `
     SELECT value FROM session_variables WHERE key = 'tenant_id'
-  `).get() as { value: string } | undefined;
-  return result?.value ?? '';
+  `,
+    )
+    .get() as { value: string } | undefined;
+  return result?.value ?? "";
 }
 
 /**
  * Execute a function with a temporary tenant context.
  * Sets the tenant, runs the callback, then restores the previous tenant.
- * 
+ *
  * @param db - The database connection
  * @param tenantId - The tenant ID to set for this operation
  * @param fn - The function to execute within the tenant context
  * @returns The result of the function
  */
-export function withTenantContext<T>(
-  db: Database.Database,
-  tenantId: string,
-  fn: () => T
-): T {
+export function withTenantContext<T>(db: Database.Database, tenantId: string, fn: () => T): T {
   const previousTenant = getCurrentTenant(db);
   try {
     setCurrentTenant(db, tenantId);

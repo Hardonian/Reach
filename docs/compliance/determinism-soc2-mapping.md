@@ -46,10 +46,9 @@ This document maps the Reach Determinism System to the SOC 2 Trust Services Crit
 
 - **Narrative**: "Drift Detection" is a core operational control. If the system detects a deviation between the expected fingerprint and the actual computed fingerprint during execution, it halts operation and alerts the monitoring system (DETERMINISM_DRIFT exception).
 - **Audit Walkthrough**:
-
-    1. View "Drift Alert" in logs.
-    2. Retrieve Preimage from the Evidence Store.
-    3. Replay Preimage through the [Reach Doctor CLI](../../README.md) to verify implementation consistency.
+  1. View "Drift Alert" in logs.
+  2. Retrieve Preimage from the Evidence Store.
+  3. Replay Preimage through the [Reach Doctor CLI](../../README.md) to verify implementation consistency.
 
 ---
 

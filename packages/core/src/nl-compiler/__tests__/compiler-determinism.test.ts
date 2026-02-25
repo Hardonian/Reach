@@ -1,9 +1,13 @@
-import { describe, it, expect } from 'vitest';
-import { compileGovernanceIntent } from '../compiler.js';
-import { computeFingerprintSync, verifyRustMatchesTs, resetWasmModule } from '../determinism-bridge.js';
-import type { CompileGovernanceIntentInput, GovernanceSpec } from '../types.js';
+import { describe, it, expect } from "vitest";
+import { compileGovernanceIntent } from "../compiler.js";
+import {
+  computeFingerprintSync,
+  verifyRustMatchesTs,
+  resetWasmModule,
+} from "../determinism-bridge.js";
+import type { CompileGovernanceIntentInput, GovernanceSpec } from "../types.js";
 
-describe('compiler determinism', () => {
+describe("compiler determinism", () => {
   const baseInput: CompileGovernanceIntentInput = {
     intent: "Require evaluation score >= 0.9 and provenance for all artifacts",
     orgId: "test-org",
@@ -13,7 +17,7 @@ describe('compiler determinism', () => {
     defaultRolloutMode: "dry-run",
   };
 
-  it('should produce identical specHash for identical inputs', () => {
+  it("should produce identical specHash for identical inputs", () => {
     const result1 = compileGovernanceIntent(baseInput);
     const result2 = compileGovernanceIntent(baseInput);
 
@@ -21,9 +25,9 @@ describe('compiler determinism', () => {
     expect(result1.canonicalSpec).toBe(result2.canonicalSpec);
   });
 
-  it('should produce consistent specHash across multiple runs', () => {
+  it("should produce consistent specHash across multiple runs", () => {
     const hashes: string[] = [];
-    
+
     for (let i = 0; i < 10; i++) {
       const result = compileGovernanceIntent(baseInput);
       hashes.push(result.specHash);
@@ -34,7 +38,7 @@ describe('compiler determinism', () => {
     expect(uniqueHashes.size).toBe(1);
   });
 
-  it('should produce stable specHash with different key order in memory', () => {
+  it("should produce stable specHash with different key order in memory", () => {
     const inputWithMemory1: CompileGovernanceIntentInput = {
       ...baseInput,
       memory: [
@@ -69,37 +73,37 @@ describe('compiler determinism', () => {
     expect(result1.specHash).toBe(result2.specHash);
   });
 
-  it('should verify specHash matches manual computation', () => {
+  it("should verify specHash matches manual computation", () => {
     const result = compileGovernanceIntent(baseInput);
-    
+
     // Manually compute the hash
     const manualHash = computeFingerprintSync(result.spec);
-    
+
     expect(result.specHash).toBe(manualHash);
   });
 
-  it('should include determinismHash in explainability payload', () => {
+  it("should include determinismHash in explainability payload", () => {
     const result = compileGovernanceIntent(baseInput);
-    
+
     expect(result.explainability.determinismHash).toBeDefined();
     expect(result.explainability.determinismHash).toBe(result.specHash);
     expect(result.explainability.determinismHash).toHaveLength(64); // SHA-256 hex
   });
 
-  it('should have stable canonicalSpec format', () => {
+  it("should have stable canonicalSpec format", () => {
     const result = compileGovernanceIntent(baseInput);
-    
+
     // Parse and re-stringify should produce same canonical form
     const parsed = JSON.parse(result.canonicalSpec);
     const reCanonical = JSON.stringify(parsed, Object.keys(parsed).sort());
-    
+
     // The canonicalSpec should already be in sorted key order
     expect(result.canonicalSpec).toContain('"gates"');
     expect(result.canonicalSpec).toContain('"thresholds"');
     expect(result.canonicalSpec).toContain('"rolloutMode"');
   });
 
-  it('should verify spec structure matches GovernanceSpec type', () => {
+  it("should verify spec structure matches GovernanceSpec type", () => {
     const result = compileGovernanceIntent(baseInput);
     const spec = result.spec;
 
@@ -109,7 +113,7 @@ describe('compiler determinism', () => {
     expect(spec.rolloutMode).toMatch(/^(dry-run|enforced)$/);
 
     // Each gate should have required fields
-    spec.gates.forEach(gate => {
+    spec.gates.forEach((gate) => {
       expect(gate.id).toBeDefined();
       expect(gate.name).toBeDefined();
       expect(gate.gateType).toBeDefined();
@@ -117,29 +121,29 @@ describe('compiler determinism', () => {
     });
 
     // Each threshold should have required fields
-    spec.thresholds.forEach(threshold => {
+    spec.thresholds.forEach((threshold) => {
       expect(threshold.id).toBeDefined();
       expect(threshold.metric).toBeDefined();
       expect(threshold.operator).toMatch(/^(>=|<=|>|<)$/);
-      expect(typeof threshold.value).toBe('number');
+      expect(typeof threshold.value).toBe("number");
     });
   });
 
-  it('should compare TS and Rust fingerprints when WASM available', async () => {
+  it("should compare TS and Rust fingerprints when WASM available", async () => {
     resetWasmModule();
-    
+
     const result = compileGovernanceIntent(baseInput);
     const comparison = await verifyRustMatchesTs(result.spec);
 
     if (comparison.match) {
-      console.log('✓ TypeScript and Rust fingerprints match for spec');
+      console.log("✓ TypeScript and Rust fingerprints match for spec");
       expect(comparison.ts).toBe(comparison.rust);
     } else {
-      console.log('TypeScript fingerprint:', comparison.ts);
-      console.log('Rust fingerprint:', comparison.rust);
-      
-      if (comparison.diff === 'Rust implementation unavailable') {
-        console.log('WASM not available - skipping Rust comparison');
+      console.log("TypeScript fingerprint:", comparison.ts);
+      console.log("Rust fingerprint:", comparison.rust);
+
+      if (comparison.diff === "Rust implementation unavailable") {
+        console.log("WASM not available - skipping Rust comparison");
         // This is expected if WASM isn't built
         expect(comparison.ts).toBeDefined();
       } else {
@@ -149,9 +153,10 @@ describe('compiler determinism', () => {
     }
   });
 
-  it('should handle complex intents deterministically', () => {
+  it("should handle complex intents deterministically", () => {
     const complexInput: CompileGovernanceIntentInput = {
-      intent: "Make this safer with provenance, replay, CI enforcement, model risk guards, and high evaluation thresholds",
+      intent:
+        "Make this safer with provenance, replay, CI enforcement, model risk guards, and high evaluation thresholds",
       orgId: "test-org",
       workspaceId: "test-workspace",
       scope: "project",
@@ -180,20 +185,20 @@ describe('compiler determinism', () => {
     const result2 = compileGovernanceIntent(complexInput);
 
     expect(result1.specHash).toBe(result2.specHash);
-    
+
     // Should have multiple gates for complex intent
     expect(result1.spec.gates.length).toBeGreaterThan(1);
     expect(result1.spec.thresholds.length).toBeGreaterThan(0);
   });
 
-  it('should verify fingerprint changes when spec changes', () => {
+  it("should verify fingerprint changes when spec changes", () => {
     const result1 = compileGovernanceIntent(baseInput);
-    
+
     const modifiedInput: CompileGovernanceIntentInput = {
       ...baseInput,
       intent: "Require evaluation score >= 0.8", // Different threshold
     };
-    
+
     const result2 = compileGovernanceIntent(modifiedInput);
 
     // Different intent should produce different hash
@@ -201,7 +206,7 @@ describe('compiler determinism', () => {
   });
 });
 
-describe('compiler specHash golden vectors', () => {
+describe("compiler specHash golden vectors", () => {
   const testCases: Array<{
     name: string;
     input: CompileGovernanceIntentInput;
@@ -252,7 +257,7 @@ describe('compiler specHash golden vectors', () => {
 
       expect(result1.specHash).toBe(result2.specHash);
       expect(result1.specHash).toHaveLength(64);
-      
+
       // Log the hash for potential golden vector use
       console.log(`${name}: ${result1.specHash}`);
     });

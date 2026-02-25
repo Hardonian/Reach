@@ -29,7 +29,7 @@ if (needsNpmInstall()) {
   console.log("Installing npm dependencies for economics tool...");
   execSync("npm install --silent", {
     cwd: economicsDir,
-    stdio: "inherit"
+    stdio: "inherit",
   });
 }
 
@@ -38,5 +38,5 @@ const args = process.argv.slice(2);
 const command = `npm start --silent -- ${args.join(" ")}`;
 execSync(command, {
   cwd: economicsDir,
-  stdio: "inherit"
+  stdio: "inherit",
 });

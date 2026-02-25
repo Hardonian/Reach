@@ -5,6 +5,7 @@ This document tracks the implementation status of cross-language determinism and
 ## ✅ Completed Tasks
 
 ### 1. Vitest Configuration (COMPLETED)
+
 - **File**: `vitest.config.ts`
 - **Changes**:
   - Added `packages/**/*.test.ts` to test include patterns
@@ -13,6 +14,7 @@ This document tracks the implementation status of cross-language determinism and
 - **Test Coverage**: All 192 tests passing (24 test files)
 
 ### 2. Golden Vector Test Suite (COMPLETED)
+
 - **Files**:
   - `src/determinism/nl-compiler-determinism.test.ts`
   - `packages/core/src/nl-compiler/__tests__/determinism.test.ts`
@@ -23,6 +25,7 @@ This document tracks the implementation status of cross-language determinism and
   - All 12 TS fingerprints verified against golden vectors
 
 ### 3. Rust Golden Vector Tests (COMPLETED)
+
 - **File**: `crates/engine-core/src/decision/determinism_golden_tests.rs`
 - **Features**:
   - Loads test vectors from `determinism.vectors.json`
@@ -32,6 +35,7 @@ This document tracks the implementation status of cross-language determinism and
   - Cross-language compatibility checks for non-float inputs
 
 ### 4. WASM Loading Bridge (COMPLETED)
+
 - **File**: `packages/core/src/nl-compiler/determinism-bridge.ts`
 - **Features**:
   - Dynamic WASM module loading for Node.js and browser
@@ -42,6 +46,7 @@ This document tracks the implementation status of cross-language determinism and
   - Utility functions: `isWasmAvailable()`, `getWasmEngineVersion()`, `resetWasmModule()`
 
 ### 5. Async Compiler with WASM Support (COMPLETED)
+
 - **File**: `packages/core/src/nl-compiler/compiler-async.ts`
 - **Features**:
   - `compileGovernanceIntentAsync()` - Async compilation with optional WASM
@@ -51,6 +56,7 @@ This document tracks the implementation status of cross-language determinism and
   - WASM usage indicator in explainability payload
 
 ### 6. Cross-Verification Test Suite (COMPLETED)
+
 - **File**: `src/determinism/cross-verification.test.ts`
 - **Features**:
   - Verifies TS implementation matches all golden vectors
@@ -61,6 +67,7 @@ This document tracks the implementation status of cross-language determinism and
   - Compares TS vs Rust when WASM available
 
 ### 7. Compiler Determinism Tests (COMPLETED)
+
 - **File**: `packages/core/src/nl-compiler/__tests__/compiler-determinism.test.ts`
 - **Features**:
   - Verifies specHash consistency across multiple runs
@@ -71,6 +78,7 @@ This document tracks the implementation status of cross-language determinism and
   - Golden vector tests for compiler-specific hashes
 
 ### 8. Async Compiler Tests (COMPLETED)
+
 - **File**: `packages/core/src/nl-compiler/__tests__/compiler-async.test.ts`
 - **Features**:
   - Tests async compilation API
@@ -81,6 +89,7 @@ This document tracks the implementation status of cross-language determinism and
   - Tests determinism across async calls
 
 ### 9. Determinism Bridge Tests (COMPLETED)
+
 - **File**: `packages/core/src/nl-compiler/__tests__/determinism-bridge.test.ts`
 - **Features**:
   - Tests synchronous TS implementation
@@ -90,6 +99,7 @@ This document tracks the implementation status of cross-language determinism and
   - 20 comprehensive test cases
 
 ### 10. Benchmark Suite (COMPLETED)
+
 - **File**: `packages/core/src/nl-compiler/__tests__/benchmark.ts`
 - **Features**:
   - Benchmarks for small/medium/large objects
@@ -101,6 +111,7 @@ This document tracks the implementation status of cross-language determinism and
 - **Usage**: `npm run benchmark:determinism`
 
 ### 11. Package Configuration (COMPLETED)
+
 - **File**: `packages/core/package.json`
 - **Features**:
   - Proper package exports for nl-compiler, codegen
@@ -109,6 +120,7 @@ This document tracks the implementation status of cross-language determinism and
   - Peer dependency on wasm-pack (optional)
 
 ### 12. CI/CD Workflow (COMPLETED)
+
 - **File**: `.github/workflows/decision-engine.yml`
 - **Features**:
   - Rust tests and golden vector verification
@@ -119,6 +131,7 @@ This document tracks the implementation status of cross-language determinism and
   - Corrected paths (was using non-existent `packages/decision-engine-rs`)
 
 ### 13. NPM Scripts (COMPLETED)
+
 - **File**: `package.json`
 - **New Scripts**:
   - `build:wasm` - Build WASM for Node.js
@@ -130,6 +143,7 @@ This document tracks the implementation status of cross-language determinism and
   - `test:nl-compiler` - Run nl-compiler tests
 
 ### 14. Documentation (COMPLETED)
+
 - **File**: `WASM_BUILD.md`
 - **Contents**:
   - Prerequisites (Rust, wasm-pack)
@@ -141,14 +155,15 @@ This document tracks the implementation status of cross-language determinism and
 
 ## 📊 Test Summary
 
-| Category | Count |
-|----------|-------|
-| Total Test Files | 24 |
-| Total Tests | 192 |
-| Passing | 192 |
-| Failing | 0 |
+| Category         | Count |
+| ---------------- | ----- |
+| Total Test Files | 24    |
+| Total Tests      | 192   |
+| Passing          | 192   |
+| Failing          | 0     |
 
 ### Test Breakdown
+
 - **nl-compiler package**: 69 tests (5 files)
 - **determinism module**: 63 tests (4 files)
 - **other modules**: 60 tests (15 files)
@@ -181,7 +196,9 @@ npm test
 ## 🎯 Golden Vectors
 
 ### Non-Float Vectors (10)
+
 These should produce identical fingerprints in TypeScript and Rust:
+
 - `simple_object` - Basic object with integer values
 - `object_different_key_order` - Same content, different key order
 - `simple_array` - Simple array with integer values
@@ -194,7 +211,9 @@ These should produce identical fingerprints in TypeScript and Rust:
 - `object_with_negative_number` - Negative and zero values
 
 ### Float Vectors (2)
+
 These may differ between implementations due to float normalization:
+
 - `object_with_float` - Object with float values
 - `object_with_noisy_float` - Object with noisy float (0.1 + 0.2)
 
@@ -202,11 +221,11 @@ These may differ between implementations due to float normalization:
 
 Based on benchmarks (when WASM available):
 
-| Object Size | TypeScript | WASM | Speedup |
-|-------------|-----------|------|---------|
-| Small (1KB) | 0.2ms | 0.1ms | 2x |
-| Medium (10KB) | 1.5ms | 0.5ms | 3x |
-| Large (100KB) | 12ms | 3ms | 4x |
+| Object Size   | TypeScript | WASM  | Speedup |
+| ------------- | ---------- | ----- | ------- |
+| Small (1KB)   | 0.2ms      | 0.1ms | 2x      |
+| Medium (10KB) | 1.5ms      | 0.5ms | 3x      |
+| Large (100KB) | 12ms       | 3ms   | 4x      |
 
 ## 📦 Exports
 
@@ -214,11 +233,11 @@ The `packages/core/src/nl-compiler/index.ts` now exports:
 
 ```typescript
 export * from "./types.js";
-export * from "./deterministic.js";        // sync functions
-export * from "./determinism-bridge.js";  // WASM bridge
+export * from "./deterministic.js"; // sync functions
+export * from "./determinism-bridge.js"; // WASM bridge
 export * from "./intent-parser.js";
-export * from "./compiler.js";            // sync compiler
-export * from "./compiler-async.js";      // async compiler with WASM
+export * from "./compiler.js"; // sync compiler
+export * from "./compiler-async.js"; // async compiler with WASM
 ```
 
 ## 🔮 Future Improvements

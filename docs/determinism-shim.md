@@ -7,6 +7,7 @@ This document describes the cross-layer integration shim for determinism fingerp
 ## Current Implementations
 
 ### TypeScript
+
 - **Location**: `packages/core/src/nl-compiler/deterministic.ts`
 - **Canonicalization**: Recursively sorts object keys lexicographically, preserves array order
 - **Hash Algorithm**: SHA-256, hex-encoded output
@@ -14,6 +15,7 @@ This document describes the cross-layer integration shim for determinism fingerp
 - **Output Format**: SHA-256 hex string (64 characters)
 
 ### Rust
+
 - **Location**: `crates/engine-core/src/decision/determinism.rs`
 - **Canonicalization**: Recursively sorts object keys lexicographically using BTreeMap, preserves array order
 - **Hash Algorithm**: SHA-256, hex-encoded output
@@ -39,6 +41,7 @@ This script runs all test vectors through the TypeScript implementation and comp
 ### Test Vectors
 
 Test vectors are stored in `determinism.vectors.json`. Each vector contains:
+
 - `name`: Descriptive name of the test case
 - `input`: The JSON input to be fingerprinted
 - `expected_ts_fingerprint`: The expected SHA-256 hex output from the TypeScript implementation
