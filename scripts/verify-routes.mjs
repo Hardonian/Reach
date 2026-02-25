@@ -225,7 +225,10 @@ const docsRouteChecks = [
 
 async function main() {
   assertNodeVersion();
-  await checkApp("Arcade", "apps/arcade", arcadeRouteChecks);
+  const selectedArcadeChecks = apiOnly
+    ? arcadeRouteChecks.filter((route) => route.path.startsWith("/api/"))
+    : arcadeRouteChecks;
+  await checkApp("Arcade", "apps/arcade", selectedArcadeChecks);
   if (!apiOnly) {
     await checkApp("Docs", "apps/docs", docsRouteChecks);
   }

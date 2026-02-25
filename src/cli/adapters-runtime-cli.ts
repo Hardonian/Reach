@@ -8,10 +8,7 @@
 import { writeFile } from "fs/promises";
 import { resolve } from "path";
 import { ErrorCodes, type ErrorCode } from "../core/errors.js";
-import {
-  createAdapterRuntime,
-  createQuarantineStore,
-} from "@zeo/adapters-runtime";
+import { createAdapterRuntime, createQuarantineStore } from "@zeo/adapters-runtime";
 import { createRealityAdapterRegistry } from "@zeo/adapters";
 
 export interface AdaptersRuntimeCliArgs {

@@ -41,7 +41,7 @@ export async function GET(): Promise<NextResponse> {
         mode: "degraded",
         cloud_db: "unreachable",
         timestamp: new Date().toISOString(),
-        error: String(err),
+        error: "cloud_db_unreachable",
       },
       { status: 503 },
     );

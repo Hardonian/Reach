@@ -9,11 +9,7 @@
 import { writeFileSync, existsSync, mkdirSync } from "node/fs";
 import { join } from "node/path";
 import type { ZeoJournalEntry } from "@zeo/contracts";
-import {
-  replayExecution,
-  getJournalEntry,
-  initializeDEK,
-} from "@zeo/kernel";
+import { replayExecution, getJournalEntry, initializeDEK } from "@zeo/kernel";
 
 export interface DekReplayArgs {
   runId: string;

@@ -228,6 +228,8 @@ jobs:
         go-module-sanity,
         oss-gate,
         site-split,
+        route-smoke,
+        vercel-preflight,
       ]
     runs-on: ubuntu-latest
     steps:
@@ -259,15 +261,22 @@ jobs:
           cache: npm
       - name: install
         run: npm ci
-      - name: build arcade
-        run: npm run build -w arcade
-      - name: start server and smoke test
-        run: |
-          cd apps/arcade && npx next start -p 3000 &
-          sleep 5
-          BASE_URL=http://localhost:3000 node ../../tests/smoke/routes.test.mjs
-        env:
-          NODE_ENV: test
+      - name: route harness
+        run: npm run verify:routes
+
+  vercel-preflight:
+    name: Vercel preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: install
+        run: npm ci
+      - name: preflight
+        run: npm run verify:vercel
 
   site-split:
     name: site split checks

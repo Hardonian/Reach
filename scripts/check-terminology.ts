@@ -6,14 +6,14 @@ console.log("================================================================");
 
 const runManualGrep = (pattern: RegExp) => {
   try {
-    const files = execSync('git ls-files "docs" "reach"', { stdio: "pipe" })
+    const files = execSync('git ls-files "docs" "reach" "apps/arcade/src"', { stdio: "pipe" })
       .toString()
       .split("\n")
       .map((f) => f.trim())
       .filter((f) => f);
 
     const fs = require("fs");
-    let matchedFiles = [];
+    const matchedFiles = [];
     for (const f of files) {
       if (!fs.existsSync(f)) continue;
       // Exclude non-user-facing docs where internal discussions / migrations happen
@@ -40,7 +40,7 @@ const runManualGrep = (pattern: RegExp) => {
       }
     }
     return matchedFiles;
-  } catch (e: any) {
+  } catch {
     return [];
   }
 };

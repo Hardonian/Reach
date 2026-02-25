@@ -355,7 +355,11 @@ case "$cmd" in
       cat "$demo_output"
       [ -s "$demo_error" ] && cat "$demo_error" >&2 || true
     else
-      run_demo_smoke_fallback >"$demo_output"
+      if run_demo_smoke_fallback >"$demo_output" 2>"$demo_error"; then
+        [ -s "$demo_error" ] && cat "$demo_error" >&2 || true
+      else
+        echo "Fixture mode: demo smoke unavailable in this environment." >"$demo_output"
+      fi
       cat "$demo_output"
     fi
 

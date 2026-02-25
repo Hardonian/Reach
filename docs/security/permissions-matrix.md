@@ -11,17 +11,17 @@ Default posture is deny-by-default. Access is granted per tenant and role.
 
 ## Resource Matrix
 
-| Resource / Action                  | viewer | member | admin | owner |
-| ---------------------------------- | ------ | ------ | ----- | ----- |
-| Artifact read (`/api/v1/...`)      | ✅     | ✅     | ✅    | ✅    |
-| Artifact write/publish             | ❌     | ✅     | ✅    | ✅    |
-| Run record read                    | ✅     | ✅     | ✅    | ✅    |
-| Gate run trigger                   | ❌     | ✅     | ✅    | ✅    |
-| Gate config update                 | ❌     | ❌     | ✅    | ✅    |
-| Policy bypass / apply governance   | ❌     | ❌     | ✅    | ✅    |
-| Reconciliation controls            | ❌     | ❌     | ✅    | ✅    |
-| Lease/tenant administration        | ❌     | ❌     | ❌    | ✅    |
-| Provider adapter management        | ❌     | ❌     | ✅    | ✅    |
+| Resource / Action                | viewer | member | admin | owner |
+| -------------------------------- | ------ | ------ | ----- | ----- |
+| Artifact read (`/api/v1/...`)    | ✅     | ✅     | ✅    | ✅    |
+| Artifact write/publish           | ❌     | ✅     | ✅    | ✅    |
+| Run record read                  | ✅     | ✅     | ✅    | ✅    |
+| Gate run trigger                 | ❌     | ✅     | ✅    | ✅    |
+| Gate config update               | ❌     | ❌     | ✅    | ✅    |
+| Policy bypass / apply governance | ❌     | ❌     | ✅    | ✅    |
+| Reconciliation controls          | ❌     | ❌     | ✅    | ✅    |
+| Lease/tenant administration      | ❌     | ❌     | ❌    | ✅    |
+| Provider adapter management      | ❌     | ❌     | ✅    | ✅    |
 
 ## Tenant Boundary Rules
 

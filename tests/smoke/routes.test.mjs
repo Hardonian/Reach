@@ -108,9 +108,7 @@ async function testApiRoute(path, allowedStatuses) {
     const res = await fetch(url, { redirect: "manual" });
     const status = res.status;
     if (!allowedStatuses.includes(status)) {
-      console.error(
-        `  FAIL: ${path} -> ${status} (expected one of ${allowedStatuses.join(",")})`,
-      );
+      console.error(`  FAIL: ${path} -> ${status} (expected one of ${allowedStatuses.join(",")})`);
       failed++;
       return;
     }
