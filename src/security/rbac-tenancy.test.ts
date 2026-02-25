@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { requireRole } from "../../apps/arcade/src/lib/cloud-auth";
+import { requireRole } from "../../apps/arcade/src/lib/cloud-auth.js";
 
 const repoRoot = path.resolve(process.cwd());
 
