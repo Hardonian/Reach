@@ -1,0 +1,10 @@
+{
+  "pack_id": "pack_missing_actor",
+  "base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "files": [
+    {
+      "path": "src/core/example.ts",
+      "patch": "@@ -1,1 +1,1 @@"
+    }
+  ]
+}

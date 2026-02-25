@@ -1,0 +1,24 @@
+{
+  "run_id": "sccl_example_run",
+  "timestamp": "2026-02-22T00:00:00.000Z",
+  "base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "head_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "patch_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "context_hash": "ctx_example_hash",
+  "actor": {
+    "user_id": "dev@example.com",
+    "device_id": "workstation-1",
+    "agent_id": "reach-cli"
+  },
+  "dgl_report_paths": [
+    "dgl/reports/dgl_report.json"
+  ],
+  "cpx_arbitration_id": "cpx_example_001",
+  "determinism_replay_ids": [
+    "replay:aaaaaaaaaaaa",
+    "replay:bbbbbbbbbbbb"
+  ],
+  "conflict_classes": [
+    "OPENAPI_CONTRACT"
+  ]
+}

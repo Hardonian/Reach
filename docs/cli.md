@@ -63,3 +63,18 @@ bash scripts/install-termux.sh
 - `--json`: Output result in machine-readable JSON format for automation.
 - `--help`: Display detailed help and flag descriptions for any command.
 - `--as-of`: (Workflow) Simulate execution as of a specific UTC date.
+
+## Source Control Coherence (SCCL)
+
+| Command | Description |
+| :--- | :--- |
+| `reach workspace validate` | Validate `reach.workspace.json` against SCCL schema and required gates. |
+| `reach workspace show` | Print canonical workspace sync configuration. |
+| `reach sync status` | Show local/upstream heads, stale-base state, dirty tree status, and sync plan. |
+| `reach sync up` | Reconcile branch against upstream using manifest strategy (`rebase` or `merge`). |
+| `reach sync branch --task "<name>"` | Create branch from upstream default using naming policy. |
+| `reach sync lease acquire|renew|release|list` | Manage source-application leases to avoid concurrent branch mutation. |
+| `reach sync apply --pack <file>` | Apply patch pack under lease and emit run record + conflict report. |
+| `reach sync pr --ensure` | Create/update PR metadata artifact for external host PR flow. |
+| `reach sync export` | Produce Source Coherence bundle artifacts. |
+| `reach sccl gate` | Execute the SCCL gate used by `npm run validate:sccl`. |

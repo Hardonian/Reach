@@ -1,0 +1,26 @@
+{
+  "leases": [
+    {
+      "lease_id": "lease_a",
+      "repo_id": "reach",
+      "branch": "reach/sccl/demo",
+      "scope": "branch-level",
+      "paths": [],
+      "owner": { "user_id": "alice", "device_id": "mac", "agent_id": "reach-cli" },
+      "acquired_at": "2026-02-22T00:00:00.000Z",
+      "expires_at": "2026-02-22T00:15:00.000Z",
+      "ttl_seconds": 900
+    },
+    {
+      "lease_id": "lease_b",
+      "repo_id": "reach",
+      "branch": "reach/sccl/demo",
+      "scope": "branch-level",
+      "paths": [],
+      "owner": { "user_id": "bob", "device_id": "linux", "agent_id": "web-agent" },
+      "acquired_at": "2026-02-22T00:01:00.000Z",
+      "expires_at": "2026-02-22T00:16:00.000Z",
+      "ttl_seconds": 900
+    }
+  ]
+}

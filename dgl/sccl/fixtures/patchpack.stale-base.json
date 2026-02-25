@@ -1,0 +1,22 @@
+{
+  "pack_id": "pack_stale_001",
+  "base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "head_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "actor": {
+    "user_id": "dev@example.com",
+    "device_id": "device-1",
+    "agent_id": "reach-cli"
+  },
+  "files": [
+    {
+      "path": "apps/arcade/src/app/api/governance/dgl/route.ts",
+      "patch": "@@ -1,1 +1,1 @@"
+    },
+    {
+      "path": "openapi/reach.json",
+      "patch": "@@ -2,1 +2,1 @@"
+    }
+  ],
+  "context_hash": "ctx_stale_001",
+  "dgl_report_paths": ["dgl/reports/dgl_report.json"]
+}

@@ -1,0 +1,7 @@
+{
+  "lease_store_path": "dgl/sccl/leases.json",
+  "active_branch_leases": 1,
+  "lease_ids": [
+    "lease_example_001"
+  ]
+}

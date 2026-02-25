@@ -100,4 +100,4 @@ Reach now adds a supervisory layer on top of Determinism + Divergence with these
 - **Economic telemetry**: report includes diff size / convergence loops / optional token & cost metadata, exposed via `reach dgl economics`.
 - **Drift forecasting + routing**: Bayesian-like drift estimate included in report and used by `reach dgl route --task-class X --subsystem Y --blast-radius N`.
 
-The ReadyLayer supervisory preset composes determinism + divergence + openapi + performance + security + route integration test checks under release gating.
+The ReadyLayer supervisory preset composes determinism + divergence + openapi + performance + security + route integration test checks under release gating. The preset now also includes the Source Control Coherence gate (`validate:sccl`) to enforce lease, attribution, and run-record linkage before merge.

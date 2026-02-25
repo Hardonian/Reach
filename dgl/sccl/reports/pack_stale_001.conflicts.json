@@ -1,0 +1,12 @@
+{
+  "pack_id": "pack_stale_001",
+  "branch": "reach/fixture/smoke",
+  "conflict_classes": [
+    "OPENAPI_CONTRACT",
+    "TEXT_OVERLAP"
+  ],
+  "files": [
+    "apps/arcade/src/app/api/governance/dgl/route.ts",
+    "openapi/reach.json"
+  ]
+}

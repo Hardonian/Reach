@@ -125,6 +125,7 @@ export default function Governance() {
         <div className="mt-3 flex gap-4 text-sm">
           <a href="/governance/dgl" className="text-accent hover:underline">Open Divergence Governance dashboard</a>
           <a href="/governance/cpx" className="text-accent hover:underline">Open Patch Arbitration dashboard</a>
+          <a href="/governance/source-control" className="text-accent hover:underline">Open Source Control Coherence dashboard</a>
         </div>
       </div>
 
