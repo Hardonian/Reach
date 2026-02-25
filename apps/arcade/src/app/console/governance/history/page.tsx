@@ -4,6 +4,7 @@ import { getServerAuth } from "@/lib/cloud-auth";
 import { listGovernanceArtifacts, listGovernanceSpecs } from "@/lib/cloud-db";
 import type { GovernanceSpec } from "@/lib/governance/compiler";
 import { diffGovernanceSpec } from "@/lib/governance/diff";
+import { CopyCommandButton } from "@/components/CopyCommandButton";
 
 export const metadata = {
   title: "Governance Timeline | ReadyLayer Console",
@@ -102,9 +103,12 @@ export default async function GovernanceHistoryPage() {
               Deterministic history of governance actions for workspace <code>{workspaceId}</code>.
             </p>
           </div>
-          <Link href="/assistant" className="btn-primary">
-            Open NL Assistant
-          </Link>
+          <div className="flex items-center gap-2">
+            <CopyCommandButton command="npm run verify:conformance" />
+            <Link href="/assistant" className="btn-primary">
+              Open NL Assistant
+            </Link>
+          </div>
         </div>
 
         {loadError ? (

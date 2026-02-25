@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS nodes;
+DROP TABLE IF EXISTS job_results;
+DROP TABLE IF EXISTS job_attempts;
+DROP TABLE IF EXISTS jobs;
