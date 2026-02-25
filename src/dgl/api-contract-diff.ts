@@ -31,7 +31,7 @@ function compareRequired(filePath: string, baseObj: Record<string, unknown>, hea
         paths: [filePath],
         evidence: `Required field removed: '${field}'.`,
         suggested_fix: "Retain required field or version the contract with migration guidance.",
-        line: lineOf(baseText, `\"${field}\"`),
+        line: lineOf(baseText, `"${field}"`),
       });
     }
   }
@@ -43,7 +43,7 @@ function compareRequired(filePath: string, baseObj: Record<string, unknown>, hea
         paths: [filePath],
         evidence: `New required field added: '${field}'.`,
         suggested_fix: "Ensure clients can provide this field or make it optional with defaults.",
-        line: lineOf(headText, `\"${field}\"`),
+        line: lineOf(headText, `"${field}"`),
       });
     }
   }
@@ -66,7 +66,7 @@ function compareEnums(filePath: string, baseObj: Record<string, unknown>, headOb
           paths: [filePath],
           evidence: `Enum value removed at ${prefix}: '${v}'.`,
           suggested_fix: "Avoid removing enum values on public surfaces; deprecate first.",
-          line: lineOf(baseText, `\"${v}\"`),
+          line: lineOf(baseText, `"${v}"`),
         });
       }
     }
@@ -78,7 +78,7 @@ function compareEnums(filePath: string, baseObj: Record<string, unknown>, headOb
           paths: [filePath],
           evidence: `Enum value added at ${prefix}: '${v}'.`,
           suggested_fix: "Document new enum semantics and client handling.",
-          line: lineOf(headText, `\"${v}\"`),
+          line: lineOf(headText, `"${v}"`),
         });
       }
     }
@@ -107,7 +107,7 @@ function compareSchemaProperties(filePath: string, baseObj: Record<string, unkno
         paths: [filePath],
         evidence: `Schema property removed: '${prop}'.`,
         suggested_fix: "Avoid removing public schema fields or add versioned compatibility migration.",
-        line: lineOf(baseText, `\"${prop}\"`),
+        line: lineOf(baseText, `"${prop}"`),
       });
     }
   }
@@ -120,7 +120,7 @@ function compareSchemaProperties(filePath: string, baseObj: Record<string, unkno
         paths: [filePath],
         evidence: `Schema property added: '${prop}'.`,
         suggested_fix: "Document the new field and client compatibility expectations.",
-        line: lineOf(headText, `\"${prop}\"`),
+        line: lineOf(headText, `"${prop}"`),
       });
     }
   }

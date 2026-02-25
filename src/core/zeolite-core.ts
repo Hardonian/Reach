@@ -113,11 +113,7 @@ function deriveVoiRankings(spec: DecisionSpec, minEvoi: number): Array<{ actionI
 
 
 function createTranscriptForContext(context: ZeoliteContext): FinalizedDecisionTranscript {
-  const { transcript } = executeDecision({
-    spec: context.spec,
-    evidence: context.evidence,
-    logicalTimestamp: 0,
-  });
+  const { transcript } = executeDecision(context.spec as any, context.evidence as any) as any;
   // Ensure transcript_id is set — derive from transcript_hash if missing
   if (!transcript.transcript_id) {
     transcript.transcript_id = stableId(transcript.transcript_hash ?? JSON.stringify(transcript));
@@ -278,7 +274,7 @@ export function executeZeoliteOperation(operation: ZeoliteOperation, params: Rec
     const spec = transcriptSpecs.get(transcriptId);
     if (!spec) throw new Error(`No spec found for transcriptId: ${transcriptId}`);
     const evidence = transcriptEvidence.get(transcriptId) ?? [];
-    const { transcript: replayed } = executeDecision({ spec, evidence, logicalTimestamp: 0 });
+    const { transcript: replayed } = executeDecision(spec as any, evidence as any) as any;
     // Ensure replayed transcript_id is set
     if (!replayed.transcript_id) {
       replayed.transcript_id = stableId(replayed.transcript_hash ?? JSON.stringify(replayed));

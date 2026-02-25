@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "gateBypass": {
+    "enabled": true,
+    "rules": [
+      {
+        "id": "low-risk-docs-change",
+        "match": {
+          "taskClass": ["docs"],
+          "maxRiskScore": 15,
+          "requiresAck": false
+        },
+        "allowBypass": true
+      }
+    ]
+  },
+  "requiredHumanSignoff": {
+    "enabled": true,
+    "rules": [
+      {
+        "id": "trust-boundary-change",
+        "whenPathMatches": ["auth/", "billing/", "webhook", "tenant"],
+        "minimumApprovers": 1
+      }
+    ]
+  },
+  "autoMergeEligibility": {
+    "enabled": true,
+    "maxRiskScore": 10,
+    "requiresAllChecksPassing": true,
+    "requiresNoHighSeverityFindings": true
+  },
+  "escalation": {
+    "ladder": [
+      "maintainer",
+      "security-reviewer",
+      "release-manager"
+    ]
+  },
+  "highRiskZones": [
+    "auth/",
+    "billing/",
+    "webhook",
+    "services/policy-engine"
+  ]
+}
