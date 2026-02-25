@@ -366,10 +366,31 @@ export function clearSessionCookie(res: NextResponse): NextResponse {
   return res;
 }
 
+import crypto from "crypto";
+
+/**
+ * Verify HMAC-SHA256 signature of a payload using the CI token as the secret.
+ */
+function verifyCiSignature(payload: string, signature: string, secret: string): boolean {
+  try {
+    const hmac = crypto.createHmac("sha256", secret);
+    hmac.update(payload);
+    const expected = hmac.digest("hex");
+    return crypto.timingSafeEqual(
+      Buffer.from(signature, "hex"),
+      Buffer.from(expected, "hex")
+    );
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Require a CI token (API key) with a specific scope.
  * Used by /api/ci/ingest and /api/monitor/ingest endpoints.
  * Scope values: 'ingest_runs', 'read_reports', 'manage_gates'
+ *
+ * Mandates X-ReadyLayer-Signature for 'ingest_runs' scope.
  */
 export async function requireCiAuth(
   req: NextRequest,
@@ -396,6 +417,33 @@ export async function requireCiAuth(
       });
 
     const { key, tenant } = result;
+
+    // ── Signature Verification ─────────────────────────────────────────────
+    // Mandatory for ingest_runs scope
+    if (scope === "ingest_runs") {
+      const signature = req.headers.get("x-readylayer-signature");
+      if (!signature) {
+        return cloudErrorResponse(
+          "Missing X-ReadyLayer-Signature header. Required for ingest.",
+          401,
+          corrId,
+          { code: "CI_SIGNATURE_REQUIRED" }
+        );
+      }
+
+      // We need the raw body to verify the signature.
+      // Note: req.text() can only be called once. The route handler must be aware.
+      const rawBody = await req.clone().text();
+      if (!verifyCiSignature(rawBody, signature, rawKey)) {
+        return cloudErrorResponse(
+          "Invalid X-ReadyLayer-Signature. HMAC-SHA256 mismatch.",
+          401,
+          corrId,
+          { code: "CI_SIGNATURE_INVALID" }
+        );
+      }
+    }
+
     // Check scope: key must have the required scope or wildcard '*'
     if (!key.scopes.includes("*") && !key.scopes.includes(scope)) {
       return cloudErrorResponse(`Token missing required scope: ${scope}`, 403, corrId, {

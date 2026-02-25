@@ -23,7 +23,7 @@ function loadSchema(name) {
 }
 
 // Validate data against schema
-function validate(data, schema, path = "root") {
+function validate(data, schema, path = "root", rootSchema = schema) {
   const errors = [];
 
   function addError(msg) {
@@ -91,7 +91,7 @@ function validate(data, schema, path = "root") {
   if (schema.properties && typeof data === "object" && data !== null && !Array.isArray(data)) {
     for (const [key, propSchema] of Object.entries(schema.properties)) {
       if (key in data) {
-        const propErrors = validate(data[key], propSchema, `${path}.${key}`);
+        const propErrors = validate(data[key], propSchema, `${path}.${key}`, rootSchema);
         errors.push(...propErrors);
       }
     }
@@ -100,7 +100,7 @@ function validate(data, schema, path = "root") {
   // Items validation (arrays)
   if (schema.items && Array.isArray(data)) {
     for (let i = 0; i < data.length; i++) {
-      const itemErrors = validate(data[i], schema.items, `${path}[${i}]`);
+      const itemErrors = validate(data[i], schema.items, `${path}[${i}]`, rootSchema);
       errors.push(...itemErrors);
     }
   }
@@ -108,18 +108,16 @@ function validate(data, schema, path = "root") {
   // $ref resolution (simplified - only handles local refs)
   if (schema.$ref && schema.$ref.startsWith("#/$defs/")) {
     const defName = schema.$ref.replace("#/$defs/", "");
-    const rootSchema = schema._rootSchema || schema;
     if (rootSchema.$defs && rootSchema.$defs[defName]) {
-      const refErrors = validate(data, rootSchema.$defs[defName], path);
+      const refErrors = validate(data, rootSchema.$defs[defName], path, rootSchema);
       errors.push(...refErrors);
     }
   }
 
   // oneOf validation
   if (schema.oneOf && Array.isArray(schema.oneOf)) {
-    const rootSchema = schema._rootSchema || schema;
     const validCount = schema.oneOf.filter((subSchema) => {
-      const subErrors = validate(data, { ...subSchema, _rootSchema: rootSchema }, path);
+      const subErrors = validate(data, subSchema, path, rootSchema);
       return subErrors.length === 0;
     }).length;
 

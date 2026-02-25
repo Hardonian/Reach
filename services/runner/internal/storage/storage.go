@@ -38,6 +38,7 @@ type AuditRecord struct {
 	ID                    int64
 	TenantID, RunID, Type string
 	Payload               []byte
+	ChainHash             string
 	CreatedAt             time.Time
 }
 type SnapshotRecord struct {
@@ -111,24 +112,25 @@ type SQLiteStore struct {
 }
 
 type preparedOps struct {
-	createRun         *sql.Stmt
-	getRun            *sql.Stmt
-	appendEvent       *sql.Stmt
-	listEvents        *sql.Stmt
-	appendAudit       *sql.Stmt
-	listAudit         *sql.Stmt
-	enqueueJob        *sql.Stmt
-	getJobByKey       *sql.Stmt
-	getJobsByLease    *sql.Stmt
-	upsertNode        *sql.Stmt
-	listNodes         *sql.Stmt
-	putSession        *sql.Stmt
-	getSession        *sql.Stmt
-	deleteSession     *sql.Stmt
-	setFingerprint    *sql.Stmt
-	saveSnapshot      *sql.Stmt
-	getLatestSnapshot *sql.Stmt
-	pruneEvents       *sql.Stmt
+	createRun          *sql.Stmt
+	getRun             *sql.Stmt
+	appendEvent        *sql.Stmt
+	listEvents         *sql.Stmt
+	appendAudit        *sql.Stmt
+	listAudit          *sql.Stmt
+	getLatestAuditHash *sql.Stmt
+	enqueueJob         *sql.Stmt
+	getJobByKey        *sql.Stmt
+	getJobsByLease     *sql.Stmt
+	upsertNode         *sql.Stmt
+	listNodes          *sql.Stmt
+	putSession         *sql.Stmt
+	getSession         *sql.Stmt
+	deleteSession      *sql.Stmt
+	setFingerprint     *sql.Stmt
+	saveSnapshot       *sql.Stmt
+	getLatestSnapshot  *sql.Stmt
+	pruneEvents        *sql.Stmt
 }
 
 func NewSQLiteStore(path string) (*SQLiteStore, error) {
@@ -169,11 +171,15 @@ func (s *SQLiteStore) prepareStmts() error {
 	if err != nil {
 		return err
 	}
-	s.ops.appendAudit, err = s.db.Prepare("INSERT INTO audit(tenant_id,run_id,type,payload,created_at) VALUES(?,?,?,?,?)")
+	s.ops.appendAudit, err = s.db.Prepare("INSERT INTO audit(tenant_id,run_id,type,payload,chain_hash,created_at) VALUES(?,?,?,?,?,?)")
 	if err != nil {
 		return err
 	}
-	s.ops.listAudit, err = s.db.Prepare("SELECT id,tenant_id,run_id,type,payload,created_at FROM audit WHERE tenant_id=? AND run_id=? ORDER BY id ASC")
+	s.ops.listAudit, err = s.db.Prepare("SELECT id,tenant_id,run_id,type,payload,chain_hash,created_at FROM audit WHERE tenant_id=? AND run_id=? ORDER BY id ASC")
+	if err != nil {
+		return err
+	}
+	s.ops.getLatestAuditHash, err = s.db.Prepare("SELECT chain_hash FROM audit WHERE tenant_id=? AND run_id=? ORDER BY id DESC LIMIT 1")
 	if err != nil {
 		return err
 	}
@@ -246,6 +252,9 @@ func (s *SQLiteStore) Close() error {
 	}
 	if s.ops.listAudit != nil {
 		s.ops.listAudit.Close()
+	}
+	if s.ops.getLatestAuditHash != nil {
+		s.ops.getLatestAuditHash.Close()
 	}
 	if s.ops.enqueueJob != nil {
 		s.ops.enqueueJob.Close()
@@ -540,9 +549,26 @@ func (s *SQLiteStore) SnapshotAndPrune(ctx context.Context, rec SnapshotRecord) 
 }
 
 func (s *SQLiteStore) AppendAudit(ctx context.Context, a AuditRecord) error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	_, err := s.ops.appendAudit.ExecContext(ctx, a.TenantID, a.RunID, a.Type, a.Payload, a.CreatedAt.UTC())
+	s.mu.Lock() // Must be write lock for hash ladder consistency
+	defer s.mu.Unlock()
+
+	// 1. Get previous hash
+	var prevHash string
+	err := s.ops.getLatestAuditHash.QueryRowContext(ctx, a.TenantID, a.RunID).Scan(&prevHash)
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+
+	// 2. Compute current hash: SHA256(prev_hash + current_payload)
+	h := sha256.New()
+	if prevHash != "" {
+		h.Write([]byte(prevHash))
+	}
+	h.Write(a.Payload)
+	chainHash := hex.EncodeToString(h.Sum(nil))
+
+	// 3. Insert with chain_hash
+	_, err = s.ops.appendAudit.ExecContext(ctx, a.TenantID, a.RunID, a.Type, a.Payload, chainHash, a.CreatedAt.UTC())
 	return err
 }
 
@@ -558,7 +584,7 @@ func (s *SQLiteStore) ListAudit(ctx context.Context, tenantID, runID string) ([]
 	for rows.Next() {
 		var r AuditRecord
 		var created time.Time
-		if err := rows.Scan(&r.ID, &r.TenantID, &r.RunID, &r.Type, &r.Payload, &created); err != nil {
+		if err := rows.Scan(&r.ID, &r.TenantID, &r.RunID, &r.Type, &r.Payload, &r.ChainHash, &created); err != nil {
 			return nil, err
 		}
 		r.CreatedAt = created
