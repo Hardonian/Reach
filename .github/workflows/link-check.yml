@@ -12,5 +12,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run link check script
-        run: bash ./check-broken-links.sh
         run: bash ./scripts/maintenance/check-broken-links.sh

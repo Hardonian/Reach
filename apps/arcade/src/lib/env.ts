@@ -201,6 +201,31 @@ export const env = envSchema.parse({
   REACH_ENTERPRISE_MAX_SPAWN_DEPTH: process.env.REACH_ENTERPRISE_MAX_SPAWN_DEPTH,
 });
 
+/**
+ * Production environment validation - fail fast if required secrets are missing
+ */
+const REQUIRED_IN_PRODUCTION = [
+  "STRIPE_SECRET_KEY",
+  "STRIPE_WEBHOOK_SECRET",
+  "GITHUB_WEBHOOK_SECRET",
+] as const;
+
+if (env.NODE_ENV === "production") {
+  const missingSecrets: string[] = [];
+  for (const secretName of REQUIRED_IN_PRODUCTION) {
+    const value = env[secretName as keyof typeof env];
+    if (!value || value.trim() === "") {
+      missingSecrets.push(secretName);
+    }
+  }
+  if (missingSecrets.length > 0) {
+    throw new Error(
+      `Missing required environment variables in production: ${missingSecrets.join(", ")}. ` +
+        "Please ensure all required secrets are set before deploying to production.",
+    );
+  }
+}
+
 export const envValidation = {
   ok: envValidationIssues.length === 0,
   issues: envValidationIssues,
