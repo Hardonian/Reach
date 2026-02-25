@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { CommandBlock } from '@/components/governance/CommandBlock';
 
 type DglApiResponse = {
   ok: boolean;
@@ -14,9 +16,8 @@ type DglApiResponse = {
       blast_radius?: { score?: number };
       economics?: { diff_size?: number; passes_to_converge?: number; repair_cycles?: number };
       drift_forecast_score?: number;
-      turbulence_hotspots?: Array<{ path: string; reason: string; count: number }>;
     } | null;
-    provider_matrix: Array<{ provider: string; model: string; pass_rate: number; calibration_score: number; revert_ratio?: number; trust_boundary_touch_rate?: number }>;
+    provider_matrix: Array<{ provider: string; model: string; pass_rate: number; calibration_score: number }>;
     violations: Array<{ type: string; severity: string; paths: string[]; line?: number }>;
     turbulence_hotspots: Array<{ path: string; reason: string; count: number }>;
   };
@@ -24,44 +25,36 @@ type DglApiResponse = {
 };
 
 export default function DglGovernancePage() {
-  const [branch, setBranch] = useState('');
-  const [provider, setProvider] = useState('');
-  const [subsystem, setSubsystem] = useState('');
+  const [query, setQuery] = useState({ branch: '', provider: '', subsystem: '' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState<DglApiResponse['data']>();
-  const [sortBy, setSortBy] = useState<'pass_rate' | 'calibration_score'>('pass_rate');
 
-  const query = useMemo(() => {
+  const qs = useMemo(() => {
     const params = new URLSearchParams();
-    if (branch) params.set('branch', branch);
-    if (provider) params.set('provider', provider);
-    if (subsystem) params.set('subsystem', subsystem);
+    if (query.branch) params.set('branch', query.branch);
+    if (query.provider) params.set('provider', query.provider);
+    if (query.subsystem) params.set('subsystem', query.subsystem);
     return params.toString();
-  }, [branch, provider, subsystem]);
-
-  const sortedProviderMatrix = useMemo(() => [...(data?.provider_matrix ?? [])].sort((a, b) => (Number(b[sortBy] ?? 0) - Number(a[sortBy] ?? 0))), [data?.provider_matrix, sortBy]);
+  }, [query]);
 
   useEffect(() => {
     let cancelled = false;
-    async function load(): Promise<void> {
+    async function load() {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch(`/api/governance/dgl${query ? `?${query}` : ''}`, { cache: 'no-store' });
+        const res = await fetch(`/api/governance/dgl${qs ? `?${qs}` : ''}`, { cache: 'no-store' });
         const json = (await res.json()) as DglApiResponse;
         if (cancelled) return;
         if (!json.ok) {
-          setError(json.error?.message ?? 'Failed to load governance data.');
+          setError(json.error?.message ?? 'Failed to load divergence governance data.');
           setData(undefined);
-        } else {
-          setData(json.data);
+          return;
         }
+        setData(json.data);
       } catch {
-        if (!cancelled) {
-          setError('Network error while loading governance data.');
-          setData(undefined);
-        }
+        if (!cancelled) setError('Governance endpoint unavailable. Use CLI exports below.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -70,125 +63,57 @@ export default function DglGovernancePage() {
     return () => {
       cancelled = true;
     };
-  }, [query]);
+  }, [qs]);
 
   return (
-    <div className="section-container py-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Divergence Governance</h1>
-        <p className="text-gray-400">Track semantic alignment risk, provider calibration, and turbulence hotspots.</p>
-      </div>
+    <div className="section-container py-8 space-y-6">
+      <header>
+        <h1 className="text-3xl font-bold">Divergence Governance Layer (DGL)</h1>
+        <p className="text-gray-300">Investigate semantic drift, blast radius, and trust-boundary violations before changes are accepted.</p>
+      </header>
 
       <section className="grid md:grid-cols-3 gap-3">
-        <input className="px-3 py-2 rounded border border-border bg-surface" placeholder="Filter branch" value={branch} onChange={(e) => setBranch(e.target.value)} />
-        <input className="px-3 py-2 rounded border border-border bg-surface" placeholder="Filter provider" value={provider} onChange={(e) => setProvider(e.target.value)} />
-        <input className="px-3 py-2 rounded border border-border bg-surface" placeholder="Filter subsystem" value={subsystem} onChange={(e) => setSubsystem(e.target.value)} />
+        {(['branch', 'provider', 'subsystem'] as const).map((key) => (
+          <input key={key} className="px-3 py-2 rounded border border-border bg-surface" placeholder={`Filter ${key}`} value={query[key]} onChange={(e) => setQuery((v) => ({ ...v, [key]: e.target.value }))} />
+        ))}
       </section>
 
-      {loading && <div className="rounded-lg border border-border p-4 bg-surface">Loading divergence governance data…</div>}
-      {!loading && error && <div className="rounded-lg border border-red-500 p-4 bg-surface text-red-300">{error}</div>}
-
-      {!loading && !error && !data?.report && (
-        <div className="rounded-lg border border-border p-4 bg-surface">No DGL report available for the selected filters.</div>
-      )}
+      {loading && <div className="rounded-xl border border-border bg-surface p-4">Loading divergence telemetry…</div>}
+      {!loading && error && <div className="rounded-xl border border-amber-500/50 bg-amber-500/10 p-4 text-amber-100">{error}</div>}
+      {!loading && !error && !data?.report && <div className="rounded-xl border border-border bg-surface p-4">No DGL report matched this filter.</div>}
 
       {!loading && !error && data?.report && (
         <>
-          <section className="grid md:grid-cols-2 gap-4">
-            <div className="rounded-lg border border-border p-4 bg-surface">
-              <p className="text-sm text-gray-400">Intent Alignment</p>
-              <p className="text-3xl font-semibold">{data.report.summary?.intent_alignment_score ?? 0}</p>
-            </div>
-            <div className="rounded-lg border border-border p-4 bg-surface">
-              <p className="text-sm text-gray-400">Semantic Drift</p>
-              <p className="text-3xl font-semibold">{data.report.summary?.semantic_drift_score ?? 0}</p>
-            </div>
+          <section className="grid gap-4 md:grid-cols-4">
+            <article className="rounded-xl border border-border bg-surface p-4"><p className="text-sm text-gray-400">Intent alignment</p><p className="text-2xl font-semibold">{data.report.summary?.intent_alignment_score ?? 0}</p></article>
+            <article className="rounded-xl border border-border bg-surface p-4"><p className="text-sm text-gray-400">Semantic drift</p><p className="text-2xl font-semibold">{data.report.summary?.semantic_drift_score ?? 0}</p></article>
+            <article className="rounded-xl border border-border bg-surface p-4"><p className="text-sm text-gray-400">Blast radius</p><p className="text-2xl font-semibold">{data.report.blast_radius?.score ?? data.report.summary?.blast_radius_score ?? 0}</p></article>
+            <article className="rounded-xl border border-border bg-surface p-4"><p className="text-sm text-gray-400">Drift forecast</p><p className="text-2xl font-semibold">{Math.round((data.report.drift_forecast_score ?? 0) * 100)}%</p></article>
           </section>
 
-          <section className="grid md:grid-cols-3 gap-4">
-            <div className="rounded-lg border border-border p-4 bg-surface">
-              <p className="text-sm text-gray-400">Blast Radius</p>
-              <p className="text-3xl font-semibold">{data.report.blast_radius?.score ?? data.report.summary?.blast_radius_score ?? 0}</p>
-            </div>
-            <div className="rounded-lg border border-border p-4 bg-surface">
-              <p className="text-sm text-gray-400">Drift Forecast</p>
-              <p className="text-3xl font-semibold">{Math.round((data.report.drift_forecast_score ?? 0) * 100)}%</p>
-            </div>
-            <div className="rounded-lg border border-border p-4 bg-surface">
-              <p className="text-sm text-gray-400">Economic Diff Size</p>
-              <p className="text-3xl font-semibold">{data.report.economics?.diff_size ?? 0}</p>
-            </div>
-          </section>
-
-          <section className="rounded-lg border border-border p-4 bg-surface">
-            <h2 className="text-lg font-semibold mb-3">Provider Drift Matrix</h2>
-            <div className="mb-3 flex items-center gap-2 text-sm"><label htmlFor="provider-sort" className="text-gray-400">Sort by</label><select id="provider-sort" className="px-2 py-1 rounded border border-border bg-surface" value={sortBy} onChange={(e) => setSortBy(e.target.value as "pass_rate" | "calibration_score")}><option value="pass_rate">Pass rate</option><option value="calibration_score">Calibration</option></select></div>{data.provider_matrix.length === 0 ? (
-              <p className="text-gray-400">No provider telemetry found.</p>
-            ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-gray-400 border-b border-border">
-                    <th className="py-2">Provider</th><th>Model</th><th>CI Pass</th><th>Calibration</th><th>Revert</th><th>Trust Touch</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedProviderMatrix.map((p) => (
-                    <tr key={`${p.provider}-${p.model}`} className="border-b border-border/50">
-                      <td className="py-2">{p.provider}</td><td>{p.model}</td><td>{Math.round((p.pass_rate ?? 0) * 100)}%</td><td>{(p.calibration_score ?? 0).toFixed(2)}</td><td>{Math.round((p.revert_ratio ?? 0) * 100)}%</td><td>{Math.round((p.trust_boundary_touch_rate ?? 0) * 100)}%</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <section className="rounded-xl border border-border bg-surface p-4 overflow-auto">
+            <h2 className="font-semibold mb-2">Violation explorer</h2>
+            {data.violations.length === 0 ? <p className="text-sm text-gray-400">No violations detected.</p> : (
+              <table className="w-full text-sm"><thead><tr className="text-left text-gray-400 border-b border-border"><th className="py-2">Type</th><th>Severity</th><th>Paths</th></tr></thead><tbody>{data.violations.map((v, idx) => <tr key={`${v.type}-${idx}`} className="border-b border-border/60"><td className="py-2">{v.type}</td><td>{v.severity}</td><td>{v.paths.join(', ')}</td></tr>)}</tbody></table>
             )}
           </section>
-
-
-          <section className="rounded-lg border border-border p-4 bg-surface">
-            <h2 className="text-lg font-semibold mb-3">Recent Violations</h2>
-            {data.violations.length === 0 ? (
-              <p className="text-gray-400">No violations for selected filters.</p>
-            ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-gray-400 border-b border-border">
-                    <th className="py-2">Severity</th><th>Type</th><th>Path</th><th>Line</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.violations.map((v, i) => (
-                    <tr key={`${v.type}-${i}`} className="border-b border-border/50">
-                      <td className="py-2">{v.severity}</td><td>{v.type}</td><td>{v.paths?.[0] ?? '-'}</td><td>{v.line ?? '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </section>
-
-          <section className="rounded-lg border border-border p-4 bg-surface">
-            <h2 className="text-lg font-semibold mb-3">Turbulence Map</h2>
-            {data.turbulence_hotspots.length === 0 ? (
-              <p className="text-gray-400">No turbulence hotspots recorded.</p>
-            ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-gray-400 border-b border-border">
-                    <th className="py-2">Path</th><th>Reason</th><th>Count</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.turbulence_hotspots.map((h) => (
-                    <tr key={`${h.path}-${h.reason}`} className="border-b border-border/50">
-                      <td className="py-2">{h.path}</td><td>{h.reason}</td><td>{h.count}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </section>
-
         </>
       )}
+
+      <section className="rounded-xl border border-border bg-surface p-4 space-y-2">
+        <h2 className="font-semibold">Commands and exports</h2>
+        <CommandBlock command="npm run reach:dgl:scan" />
+        <CommandBlock command="npm run reach:dgl:report" />
+        <CommandBlock command="npm run reach:dgl:economics" />
+      </section>
+
+      <section className="rounded-xl border border-border bg-surface p-4">
+        <h2 className="font-semibold mb-2">Spec links</h2>
+        <ul className="text-sm text-accent space-y-1">
+          <li><a href="https://github.com/reach-sh/reach/blob/main/VERIFY_DGL.md" className="hover:underline">DGL verification guide</a></li>
+          <li><Link href="/governance/providers" className="hover:underline">Provider matrix</Link></li>
+        </ul>
+      </section>
     </div>
   );
 }

@@ -20,17 +20,18 @@ const OSS_SITE: SiteConfig = {
   description: 'Open-source deterministic event orchestration: run, verify, and replay with evidence-first execution.',
   nav: [
     { href: '/', label: 'Home' },
+    { href: '/governance', label: 'Governance' },
+    { href: '/enterprise', label: 'Enterprise' },
     { href: '/docs', label: 'Docs' },
-    { href: '/gallery', label: 'Gallery' },
     { href: '/download', label: 'Download' },
     { href: '/security', label: 'Security' },
     { href: '/whitepaper', label: 'Whitepaper' },
-    { href: '/roadmap', label: 'Roadmap' },
   ],
   footerLinks: [
+    { href: '/governance', label: 'Governance Console' },
+    { href: '/enterprise', label: 'Enterprise' },
     { href: 'https://github.com/reach-sh/reach', label: 'GitHub' },
     { href: '/legal/terms', label: 'License' },
-    { href: '/docs', label: 'Contributing' },
     { href: '/responsible-disclosure', label: 'Security Policy' },
   ],
 };
@@ -44,12 +45,14 @@ const ENTERPRISE_SITE: SiteConfig = {
   nav: [
     { href: '/', label: 'Home' },
     { href: '/enterprise', label: 'Enterprise' },
+    { href: '/governance', label: 'Governance' },
     { href: '/contact', label: 'Contact' },
     { href: 'https://reach-cli.com/docs', label: 'OSS Docs' },
   ],
   footerLinks: [
+    { href: '/governance', label: 'Governance' },
+    { href: '/enterprise', label: 'Enterprise' },
     { href: 'https://reach-cli.com', label: 'Reach OSS' },
-    { href: '/enterprise', label: 'Roadmap/Beta Scope' },
     { href: '/contact', label: 'Contact' },
   ],
 };

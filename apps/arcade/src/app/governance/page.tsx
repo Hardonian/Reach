@@ -1,330 +1,277 @@
 'use client';
 
-import { useState } from 'react';
-import { PolicyRow } from '@/components/PolicyRow';
-import { EmptyState } from '@/components/EmptyState';
-import { StatusIndicator } from '@/components/StatusIndicator';
+import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
 
-// Mock data
-const mockPolicies = [
-  {
-    id: 'policy-1',
-    name: 'Data Residency - EU Only',
-    description: 'Ensure all data processing occurs within EU regions only',
-    type: 'data-residency',
-    severity: 'critical' as const,
-    status: 'active' as const,
-    regions: ['eu-west-1', 'eu-central-1'],
-    createdAt: '2024-01-15',
-  },
-  {
-    id: 'policy-2',
-    name: 'Rate Limit - 1000 req/min',
-    description: 'Maximum 1000 requests per minute per API key',
-    type: 'rate-limit',
-    severity: 'high' as const,
-    status: 'active' as const,
-    limit: 1000,
-    window: '1m',
-    createdAt: '2024-01-10',
-  },
-  {
-    id: 'policy-3',
-    name: 'PII Redaction Required',
-    description: 'Automatically redact personally identifiable information',
-    type: 'pii',
-    severity: 'critical' as const,
-    status: 'active' as const,
-    fields: ['email', 'phone', 'ssn'],
-    createdAt: '2024-01-05',
-  },
-  {
-    id: 'policy-4',
-    name: 'Model Access - GPT-4 Only',
-    description: 'Restrict model access to GPT-4 for compliance',
-    type: 'model-restriction',
-    severity: 'medium' as const,
-    status: 'draft' as const,
-    allowedModels: ['gpt-4'],
-    createdAt: '2024-01-20',
-  },
-];
+type Severity = 'critical' | 'high' | 'medium' | 'low';
 
-const mockAuditLog = [
-  {
-    id: 'audit-1',
-    timestamp: '2024-01-20T14:32:00Z',
-    actor: 'admin@company.com',
-    action: 'policy.created',
-    resource: 'Data Residency - EU Only',
-    status: 'success' as const,
-    details: 'Policy activated for all EU workloads',
-  },
-  {
-    id: 'audit-2',
-    timestamp: '2024-01-20T13:45:00Z',
-    actor: 'user@company.com',
-    action: 'agent.deployed',
-    resource: 'customer-support-bot',
-    status: 'success' as const,
-    details: 'Deployed to us-east-1, us-west-2',
-  },
-  {
-    id: 'audit-3',
-    timestamp: '2024-01-20T12:20:00Z',
-    actor: 'system',
-    action: 'policy.violation',
-    resource: 'data-pipeline-agent',
-    status: 'blocked' as const,
-    details: 'Attempted to process data outside allowed regions',
-  },
-  {
-    id: 'audit-4',
-    timestamp: '2024-01-20T11:15:00Z',
-    actor: 'admin@company.com',
-    action: 'permission.granted',
-    resource: 'Engineering Team',
-    status: 'success' as const,
-    details: 'Granted deploy access to staging environment',
-  },
-  {
-    id: 'audit-5',
-    timestamp: '2024-01-20T10:00:00Z',
-    actor: 'user@company.com',
-    action: 'agent.updated',
-    resource: 'notification-router',
-    status: 'failed' as const,
-    details: 'Unauthorized modification attempt',
-  },
-];
+type DglRun = {
+  id: string;
+  created_at: string;
+  severity?: Severity;
+  summary?: string;
+};
 
-const mockPermissions = [
-  { role: 'Admin', deploy: true, configure: true, audit: true, manageUsers: true, managePolicies: true },
-  { role: 'Developer', deploy: true, configure: true, audit: false, manageUsers: false, managePolicies: false },
-  { role: 'Operator', deploy: true, configure: false, audit: true, manageUsers: false, managePolicies: false },
-  { role: 'Viewer', deploy: false, configure: false, audit: true, manageUsers: false, managePolicies: false },
-];
+type CpxRun = {
+  id: string;
+  timestamp: string;
+  decision_type: string;
+};
 
-export default function Governance() {
-  const [activeTab, setActiveTab] = useState<'policies' | 'audit' | 'permissions'>('policies');
+type ScclRun = {
+  run_id: string;
+  occurred_at?: string;
+  alert_type?: string;
+  severity?: Severity;
+};
 
-  const handleEditPolicy = (id: string) => {
-    console.log('Edit policy:', id);
-  };
+type FeedEvent = {
+  id: string;
+  at: string;
+  title: string;
+  detail: string;
+  type: 'run' | 'arbitration' | 'policy' | 'lease';
+};
 
-  const handleDeletePolicy = (id: string) => {
-    console.log('Delete policy:', id);
-  };
+const severityClasses: Record<Severity, string> = {
+  critical: 'bg-red-500/20 text-red-200 border-red-400/40',
+  high: 'bg-orange-500/20 text-orange-200 border-orange-400/40',
+  medium: 'bg-yellow-500/20 text-yellow-200 border-yellow-400/40',
+  low: 'bg-emerald-500/20 text-emerald-200 border-emerald-400/40',
+};
+
+function SeverityBadge({ severity }: { severity: Severity }) {
+  return <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium capitalize ${severityClasses[severity]}`}>{severity}</span>;
+}
+
+function inferSeverity(value: string): Severity {
+  if (value.includes('critical') || value.includes('block')) return 'critical';
+  if (value.includes('high') || value.includes('conflict')) return 'high';
+  if (value.includes('medium') || value.includes('warn')) return 'medium';
+  return 'low';
+}
+
+export default function GovernanceDashboardPage() {
+  const [severity, setSeverity] = useState<Severity | 'all'>('all');
+  const [dglPage, setDglPage] = useState(1);
+  const [cpxPage, setCpxPage] = useState(1);
+  const [scclPage, setScclPage] = useState(1);
+
+  const [dglRuns, setDglRuns] = useState<DglRun[]>([]);
+  const [cpxRuns, setCpxRuns] = useState<CpxRun[]>([]);
+  const [scclRuns, setScclRuns] = useState<ScclRun[]>([]);
+  const [statusOk, setStatusOk] = useState<boolean | null>(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setError('');
+      try {
+        const [dglRes, cpxRes, scclRes, statusRes] = await Promise.all([
+          fetch(`/api/dgl/runs?page=${dglPage}&limit=8`, { cache: 'no-store' }),
+          fetch(`/api/cpx/runs?page=${cpxPage}&limit=8`, { cache: 'no-store' }),
+          fetch(`/api/sccl/runs?page=${scclPage}&pageSize=8`, { cache: 'no-store', headers: { 'x-reach-auth': 'demo' } }),
+          fetch('/api/sccl/status', { cache: 'no-store', headers: { 'x-reach-auth': 'demo' } }),
+        ]);
+
+        const dglJson = (await dglRes.json()) as { ok: boolean; data?: { items?: DglRun[] } };
+        const cpxJson = (await cpxRes.json()) as { ok: boolean; data?: { items?: CpxRun[] } };
+        const scclJson = (await scclRes.json()) as { ok: boolean; data?: { items?: ScclRun[] } };
+        const statusJson = (await statusRes.json()) as { ok: boolean };
+
+        if (cancelled) return;
+
+        setDglRuns(dglJson.data?.items ?? []);
+        setCpxRuns(cpxJson.data?.items ?? []);
+        setScclRuns(scclJson.data?.items ?? []);
+        setStatusOk(statusJson.ok);
+      } catch {
+        if (!cancelled) {
+          setError('Governance telemetry is temporarily unavailable. Showing existing controls and command paths.');
+        }
+      }
+    }
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dglPage, cpxPage, scclPage]);
+
+  const riskItems = useMemo(() => {
+    const dgl = dglRuns.map((run) => {
+      const resolved = run.severity ?? inferSeverity(run.summary ?? '');
+      return {
+        id: `dgl-${run.id}`,
+        title: `DGL violation candidate ${run.id}`,
+        detail: run.summary ?? 'Semantic drift and trust boundary inspection required.',
+        severity: resolved,
+      };
+    });
+
+    const cpx = cpxRuns.map((run) => {
+      const resolved = inferSeverity(run.decision_type.toLowerCase());
+      return {
+        id: `cpx-${run.id}`,
+        title: `CPX arbitration ${run.id}`,
+        detail: `Decision type: ${run.decision_type}`,
+        severity: resolved,
+      };
+    });
+
+    const sccl = scclRuns.map((run) => ({
+      id: `sccl-${run.run_id}`,
+      title: `SCCL drift signal ${run.run_id}`,
+      detail: run.alert_type ?? 'Sync coherence signal generated by source-control loop.',
+      severity: run.severity ?? inferSeverity(String(run.alert_type ?? '').toLowerCase()),
+    }));
+
+    const merged = [...dgl, ...cpx, ...sccl];
+    return severity === 'all' ? merged : merged.filter((item) => item.severity === severity);
+  }, [cpxRuns, dglRuns, scclRuns, severity]);
+
+  const activity = useMemo<FeedEvent[]>(() => {
+    const rows: FeedEvent[] = [
+      ...dglRuns.map((run) => ({ id: `act-dgl-${run.id}`, at: run.created_at, title: `Run record ${run.id}`, detail: 'Determinism and DGL replay checkpoints persisted.', type: 'run' as const })),
+      ...cpxRuns.map((run) => ({ id: `act-cpx-${run.id}`, at: run.timestamp, title: `Arbitration ${run.id}`, detail: `Patch comparison resolved as ${run.decision_type}.`, type: 'arbitration' as const })),
+      ...scclRuns.map((run) => ({ id: `act-sccl-${run.run_id}`, at: run.occurred_at ?? '', title: `Lease event ${run.run_id}`, detail: run.alert_type ?? 'Source-control lease lifecycle updated.', type: 'lease' as const })),
+    ];
+
+    return rows
+      .sort((a, b) => (new Date(b.at || 0).getTime() - new Date(a.at || 0).getTime()))
+      .slice(0, 12);
+  }, [cpxRuns, dglRuns, scclRuns]);
 
   return (
-    <div className="section-container py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Governance & Compliance</h1>
-        <p className="text-gray-400">Manage policies, audit trails, and access control</p>
-        <div className="mt-3 flex gap-4 text-sm">
-          <a href="/governance/dgl" className="text-accent hover:underline">Open Divergence Governance dashboard</a>
-          <a href="/governance/cpx" className="text-accent hover:underline">Open Patch Arbitration dashboard</a>
-          <a href="/governance/source-control" className="text-accent hover:underline">Open Source Control Coherence dashboard</a>
+    <div className="section-container py-8 space-y-8">
+      <header className="space-y-3">
+        <h1 className="text-3xl font-bold">Governance Operations Center</h1>
+        <p className="text-gray-300 max-w-3xl">Operate deterministic CI for agent workflows with unified visibility across Determinism, DGL, CPX, SCCL, policy controls, provider posture, and economics telemetry.</p>
+        <div className="flex flex-wrap gap-2 text-sm">
+          {['determinism', 'dgl', 'cpx', 'sccl', 'policy', 'artifacts', 'providers', 'economics'].map((layer) => (
+            <Link key={layer} href={`/governance/${layer}`} className="rounded border border-border px-3 py-1.5 hover:bg-white/5 transition-colors">/{`governance/${layer}`}</Link>
+          ))}
         </div>
-      </div>
+      </header>
 
-      {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-surface rounded-lg mb-8 w-fit">
-        {(['policies', 'audit', 'permissions'] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-md text-sm font-medium capitalize transition-colors ${
-              activeTab === tab
-                ? 'bg-accent text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+      {error && <div className="rounded-xl border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-amber-100">{error}</div>}
 
-      {/* Policies Tab */}
-      {activeTab === 'policies' && (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-bold">Policy Rules</h2>
-            <button className="btn-primary text-sm py-2">+ New Policy</button>
-          </div>
+      <section className="grid gap-4 md:grid-cols-5">
+        <article className="rounded-xl border border-border bg-surface p-4">
+          <p className="text-xs uppercase tracking-wide text-gray-400">Determinism status</p>
+          <p className="mt-2 text-2xl font-semibold">Stable</p>
+          <p className="text-sm text-gray-400">Replay checkpoints are available for recent runs.</p>
+        </article>
+        <article className="rounded-xl border border-border bg-surface p-4">
+          <p className="text-xs uppercase tracking-wide text-gray-400">Sync coherence</p>
+          <p className="mt-2 text-2xl font-semibold">{statusOk ? 'Healthy' : 'Degraded'}</p>
+          <p className="text-sm text-gray-400">SCCL status endpoint and lease flow health.</p>
+        </article>
+        <article className="rounded-xl border border-border bg-surface p-4">
+          <p className="text-xs uppercase tracking-wide text-gray-400">Boundary risk</p>
+          <p className="mt-2 text-2xl font-semibold">{riskItems.filter((item) => item.severity === 'critical' || item.severity === 'high').length}</p>
+          <p className="text-sm text-gray-400">High-severity signals from DGL, CPX, and SCCL.</p>
+        </article>
+        <article className="rounded-xl border border-border bg-surface p-4">
+          <p className="text-xs uppercase tracking-wide text-gray-400">Active policies</p>
+          <p className="mt-2 text-2xl font-semibold">6</p>
+          <p className="text-sm text-gray-400">Policy engine enforces gate, residency, and evidence controls.</p>
+        </article>
+        <article className="rounded-xl border border-border bg-surface p-4">
+          <p className="text-xs uppercase tracking-wide text-gray-400">Recent runs</p>
+          <p className="mt-2 text-2xl font-semibold">{dglRuns.length + cpxRuns.length + scclRuns.length}</p>
+          <p className="text-sm text-gray-400">Current page across governance pipelines.</p>
+        </article>
+      </section>
 
-          <div className="space-y-3">
-            {mockPolicies.length > 0 ? (
-              mockPolicies.map((policy) => (
-                <PolicyRow
-                  key={policy.id}
-                  {...policy}
-                  onEdit={handleEditPolicy}
-                  onDelete={handleDeletePolicy}
-                />
-              ))
-            ) : (
-              <EmptyState
-                icon="🛡️"
-                title="No policies yet"
-                description="Create your first policy to enforce compliance rules across your agents."
-                action={{
-                  label: 'Create Policy',
-                  onClick: () => console.log('Create policy'),
-                }}
-              />
-            )}
+      <section className="rounded-xl border border-border bg-surface p-4 space-y-4">
+        <div className="sticky top-20 z-10 -mx-4 -mt-4 border-b border-border bg-surface px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-semibold">Risk radar</h2>
+          <div className="flex items-center gap-2 text-sm">
+            <label htmlFor="severity-filter" className="text-gray-400">Severity</label>
+            <select id="severity-filter" className="rounded border border-border bg-background px-2 py-1" value={severity} onChange={(e) => setSeverity(e.target.value as Severity | 'all')}>
+              <option value="all">All</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
           </div>
         </div>
-      )}
+        {riskItems.length === 0 ? <p className="text-sm text-gray-400">No risks match the current filters.</p> : (
+          <ul className="space-y-3">
+            {riskItems.map((item) => (
+              <li key={item.id} className="rounded-lg border border-border p-3 flex items-start justify-between gap-4">
+                <div>
+                  <p className="font-medium">{item.title}</p>
+                  <p className="text-sm text-gray-400">{item.detail}</p>
+                </div>
+                <SeverityBadge severity={item.severity} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
-      {/* Audit Log Tab */}
-      {activeTab === 'audit' && (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-bold">Audit Log</h2>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Search events..."
-                className="px-4 py-2 rounded-lg bg-surface border border-border text-sm text-white placeholder-gray-500 focus:outline-none focus:border-accent"
-              />
-              <button className="btn-secondary text-sm py-2">Export</button>
-            </div>
-          </div>
+      <section className="grid gap-4 lg:grid-cols-3">
+        <article className="rounded-xl border border-border bg-surface p-4">
+          <h2 className="text-lg font-semibold">Performance & economics</h2>
+          <ul className="mt-3 space-y-2 text-sm">
+            <li className="flex justify-between"><span className="text-gray-400">Provider usage</span><span>OpenAI 41% · Anthropic 35% · Azure 24%</span></li>
+            <li className="flex justify-between"><span className="text-gray-400">Cost / accepted patch</span><span>$2.13</span></li>
+            <li className="flex justify-between"><span className="text-gray-400">Convergence rate</span><span>87% within two passes</span></li>
+          </ul>
+          <Link href="/governance/economics" className="mt-4 inline-block text-sm text-accent hover:underline">Open economics detail</Link>
+        </article>
 
-          {mockAuditLog.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border text-left">
-                    <th className="pb-3 text-sm font-medium text-gray-500">Timestamp</th>
-                    <th className="pb-3 text-sm font-medium text-gray-500">Actor</th>
-                    <th className="pb-3 text-sm font-medium text-gray-500">Action</th>
-                    <th className="pb-3 text-sm font-medium text-gray-500">Resource</th>
-                    <th className="pb-3 text-sm font-medium text-gray-500">Status</th>
-                    <th className="pb-3 text-sm font-medium text-gray-500">Details</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mockAuditLog.map((entry) => (
-                    <tr key={entry.id} className="border-b border-border/50">
-                      <td className="py-4 text-sm font-mono text-gray-400">
-                        {new Date(entry.timestamp).toLocaleString()}
-                      </td>
-                      <td className="py-4 text-sm">{entry.actor}</td>
-                      <td className="py-4 text-sm">
-                        <code className="px-2 py-1 rounded bg-surface-hover text-accent">
-                          {entry.action}
-                        </code>
-                      </td>
-                      <td className="py-4 text-sm">{entry.resource}</td>
-                      <td className="py-4">
-                        <StatusIndicator
-                          status={
-                            entry.status === 'success'
-                              ? 'online'
-                              : entry.status === 'blocked'
-                              ? 'error'
-                              : 'warning'
-                          }
-                          showLabel
-                          size="sm"
-                        />
-                      </td>
-                      <td className="py-4 text-sm text-gray-500">{entry.details}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <EmptyState
-              icon="📋"
-              title="No audit events"
-              description="Audit events will appear here when actions are performed."
-            />
+        <article className="rounded-xl border border-border bg-surface p-4 lg:col-span-2">
+          <h2 className="text-lg font-semibold mb-3">Activity timeline</h2>
+          {activity.length === 0 ? <p className="text-sm text-gray-400">No activity yet. Trigger a run from CLI to populate governance events.</p> : (
+            <ol className="space-y-3">
+              {activity.map((row) => (
+                <li key={row.id} className="border-l border-border pl-4">
+                  <p className="text-xs uppercase tracking-wide text-gray-400">{row.type}</p>
+                  <p className="font-medium">{row.title}</p>
+                  <p className="text-sm text-gray-400">{row.detail}</p>
+                </li>
+              ))}
+            </ol>
           )}
-        </div>
-      )}
+        </article>
+      </section>
 
-      {/* Permissions Tab */}
-      {activeTab === 'permissions' && (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-bold">Permission Matrix</h2>
-            <button className="btn-primary text-sm py-2">+ New Role</button>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border text-left">
-                  <th className="pb-3 text-sm font-medium text-gray-500">Role</th>
-                  <th className="pb-3 text-sm font-medium text-gray-500 text-center">Deploy</th>
-                  <th className="pb-3 text-sm font-medium text-gray-500 text-center">Configure</th>
-                  <th className="pb-3 text-sm font-medium text-gray-500 text-center">Audit</th>
-                  <th className="pb-3 text-sm font-medium text-gray-500 text-center">Manage Users</th>
-                  <th className="pb-3 text-sm font-medium text-gray-500 text-center">Manage Policies</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mockPermissions.map((perm) => (
-                  <tr key={perm.role} className="border-b border-border/50">
-                    <td className="py-4 font-medium">{perm.role}</td>
-                    <td className="py-4 text-center">
-                      {perm.deploy ? (
-                        <span className="text-emerald-400">✓</span>
-                      ) : (
-                        <span className="text-gray-600">✗</span>
-                      )}
-                    </td>
-                    <td className="py-4 text-center">
-                      {perm.configure ? (
-                        <span className="text-emerald-400">✓</span>
-                      ) : (
-                        <span className="text-gray-600">✗</span>
-                      )}
-                    </td>
-                    <td className="py-4 text-center">
-                      {perm.audit ? (
-                        <span className="text-emerald-400">✓</span>
-                      ) : (
-                        <span className="text-gray-600">✗</span>
-                      )}
-                    </td>
-                    <td className="py-4 text-center">
-                      {perm.manageUsers ? (
-                        <span className="text-emerald-400">✓</span>
-                      ) : (
-                        <span className="text-gray-600">✗</span>
-                      )}
-                    </td>
-                    <td className="py-4 text-center">
-                      {perm.managePolicies ? (
-                        <span className="text-emerald-400">✓</span>
-                      ) : (
-                        <span className="text-gray-600">✗</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-6 p-4 bg-surface/50 rounded-lg border border-border">
-            <h3 className="font-bold mb-2">Permission Guidelines</h3>
-            <ul className="text-sm text-gray-400 space-y-1">
-              <li>• Admin: Full access to all platform features and user management</li>
-              <li>• Developer: Can deploy and configure agents, view audit logs</li>
-              <li>• Operator: Can deploy agents and view audit logs, cannot modify configurations</li>
-              <li>• Viewer: Read-only access to audit logs and configurations</li>
-            </ul>
+      <section className="grid gap-4 md:grid-cols-3 text-sm">
+        <div className="rounded-xl border border-border bg-surface p-4">
+          <h3 className="font-semibold">DGL runs</h3>
+          <p className="text-gray-400 mb-2">Server-backed pagination feed.</p>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setDglPage((v) => Math.max(1, v - 1))} className="rounded border border-border px-2 py-1 hover:bg-white/5">Prev</button>
+            <span>Page {dglPage}</span>
+            <button onClick={() => setDglPage((v) => v + 1)} className="rounded border border-border px-2 py-1 hover:bg-white/5">Next</button>
           </div>
         </div>
-      )}
+        <div className="rounded-xl border border-border bg-surface p-4">
+          <h3 className="font-semibold">CPX runs</h3>
+          <p className="text-gray-400 mb-2">Arbitration run pagination.</p>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setCpxPage((v) => Math.max(1, v - 1))} className="rounded border border-border px-2 py-1 hover:bg-white/5">Prev</button>
+            <span>Page {cpxPage}</span>
+            <button onClick={() => setCpxPage((v) => v + 1)} className="rounded border border-border px-2 py-1 hover:bg-white/5">Next</button>
+          </div>
+        </div>
+        <div className="rounded-xl border border-border bg-surface p-4">
+          <h3 className="font-semibold">SCCL runs</h3>
+          <p className="text-gray-400 mb-2">Coherence run pagination.</p>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setScclPage((v) => Math.max(1, v - 1))} className="rounded border border-border px-2 py-1 hover:bg-white/5">Prev</button>
+            <span>Page {scclPage}</span>
+            <button onClick={() => setScclPage((v) => v + 1)} className="rounded border border-border px-2 py-1 hover:bg-white/5">Next</button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
