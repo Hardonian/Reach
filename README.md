@@ -51,5 +51,4 @@ This directory contains the authoritative specifications for the Reach platform,
 
 ---
 
-
 *Note: These specifications are the source of truth. Code deviations from these specs are considered bugs.*

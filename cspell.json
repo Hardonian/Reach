@@ -71,7 +71,9 @@
     "mttfs",
     "signups",
     "subheaders",
-    "sub-header"
+    "sub-header",
+    "preimage",
+    "preimages"
   ],
   "ignorePaths": ["node_modules", "dist", "build", "*.log"]
 }
