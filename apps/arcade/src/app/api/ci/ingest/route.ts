@@ -13,10 +13,17 @@ import { createCiIngestRun, listGates, createGateRun } from "@/lib/cloud-db";
 import { CiIngestSchema, parseBody } from "@/lib/cloud-schemas";
 import { runGate } from "@/lib/gate-engine";
 import { logger } from "@/lib/logger";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
+  const { success } = await checkRateLimit(ip, 120, 60);
+  if (!success) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
+  }
+
   const ctx = await requireCiAuth(req, "ingest_runs");
   if (ctx instanceof NextResponse) return ctx;
 

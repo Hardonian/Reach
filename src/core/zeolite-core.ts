@@ -1,4 +1,4 @@
-import { hashString } from "../determinism/index.js";
+import { hashString, canonicalJson } from "../determinism/index.js";
 import type {
   DecisionSpec,
   EvidenceEvent,
@@ -163,7 +163,7 @@ function deriveVoiRankings(
   evoi: number;
   recommendation: string;
   rationale: string[];
-}> {
+ }> {
   return spec.assumptions
     .map((assumption: DecisionAssumption, idx: number) => {
       const evoi = Number((1 / (idx + 1.25)).toFixed(6));
@@ -213,7 +213,7 @@ export function executeZeoliteOperation(
       typeof params.seed === "string" && params.seed.trim().length > 0
         ? params.seed
         : deterministicSeed(spec.id, depth);
-    const contextId = stableId(JSON.stringify({ specId: spec.id, depth, seed }));
+    const contextId = stableId(canonicalJson({ specId: spec.id, depth, seed }));
 
     const whatWouldChange = spec.assumptions.map(
       (a: DecisionAssumption, idx: number) =>

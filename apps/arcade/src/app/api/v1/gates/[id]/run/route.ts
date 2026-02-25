@@ -3,6 +3,8 @@ import { requireAuth, cloudErrorResponse, auditLog } from "@/lib/cloud-auth";
 import { getGate, createGateRun } from "@/lib/cloud-db";
 import { TriggerGateRunSchema, parseBody } from "@/lib/cloud-schemas";
 import { runGate } from "@/lib/gate-engine";
+import { logger } from "@/lib/logger";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -10,6 +12,12 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
+  const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
+  const { success } = await checkRateLimit(ip, 30, 60);
+  if (!success) {
+    return cloudErrorResponse("Rate limit exceeded", 429);
+  }
+
   const ctx = await requireAuth(req);
   if (ctx instanceof NextResponse) return ctx;
 
@@ -36,7 +44,7 @@ export async function POST(
   // Execute gate asynchronously — fire and forget, then return the run ID
   // The client polls /api/v1/reports/:gateRunId or the UI uses the run ID
   void runGate(ctx.tenantId, gateRun.id).catch((err) => {
-    console.error("Gate run failed", {
+    logger.warn("Gate run failed", {
       gate_run_id: gateRun.id,
       err: String(err),
     });

@@ -26,9 +26,11 @@ export async function GET(
 ): Promise<NextResponse> {
   const ctx = await requireAuth(req);
   if (ctx instanceof NextResponse) return ctx;
+  let artifactId = "unknown";
 
   try {
     const { id } = await context.params;
+    artifactId = id;
     const artifact = getGovernanceArtifactById(id, ctx.tenantId);
     if (!artifact) {
       return governanceError("Governance artifact not found", 404, "GOV_ARTIFACT_NOT_FOUND");
@@ -70,7 +72,7 @@ export async function GET(
   } catch (err) {
     logger.warn("Governance artifact read failed", {
       tenant_id: ctx.tenantId,
-      artifact_id: (await context.params).id,
+      artifact_id: artifactId,
       err: String(err),
     });
     return governanceError(

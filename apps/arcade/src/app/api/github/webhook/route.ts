@@ -9,10 +9,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { findGatesByRepo, createGateRun } from "@/lib/cloud-db";
 import { verifyGithubWebhookSignature, runGate } from "@/lib/gate-engine";
 import { logger } from "@/lib/logger";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
+  const { success } = await checkRateLimit(ip, 240, 60);
+  if (!success) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
+  }
+
   const rawBody = await req.text();
   const signature = req.headers.get("x-hub-signature-256") ?? "";
   const eventType = req.headers.get("x-github-event") ?? "";

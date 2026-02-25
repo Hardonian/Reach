@@ -10,10 +10,18 @@ import { requireCiAuth } from "@/lib/cloud-auth";
 import { getSignal, createMonitorRun } from "@/lib/cloud-db";
 import { MonitorIngestSchema, parseBody } from "@/lib/cloud-schemas";
 import { shouldAlert, dispatchAlerts } from "@/lib/alert-service";
+import { logger } from "@/lib/logger";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
+  const { success } = await checkRateLimit(ip, 120, 60);
+  if (!success) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
+  }
+
   const ctx = await requireCiAuth(req, "ingest_runs");
   if (ctx instanceof NextResponse) return ctx;
 
@@ -41,7 +49,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   // Dispatch alerts asynchronously
   if (alertTriggered) {
-    void dispatchAlerts(ctx.tenantId, signal, monitorRun).catch(() => {});
+    void dispatchAlerts(ctx.tenantId, signal, monitorRun).catch((err) => {
+      logger.warn("Dispatch alert failed", {
+        tenant_id: ctx.tenantId,
+        monitor_run_id: monitorRun.id,
+        err: String(err),
+      });
+    });
   }
 
   return NextResponse.json(
