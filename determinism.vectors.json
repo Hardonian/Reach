@@ -1,0 +1,86 @@
+[
+  {
+    "name": "simple_object",
+    "input": {"a": 1, "b": 2},
+    "expected_ts_fingerprint": "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+    "expected_rust_fingerprint": null,
+    "notes": "Basic object with integer values, keys sorted lexicographically"
+  },
+  {
+    "name": "object_different_key_order",
+    "input": {"b": 2, "a": 1},
+    "expected_ts_fingerprint": "43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+    "expected_rust_fingerprint": null,
+    "notes": "Same content as simple_object, different key order (should have identical TS fingerprint)"
+  },
+  {
+    "name": "object_with_float",
+    "input": {"x": 0.1, "y": 0.2},
+    "expected_ts_fingerprint": "9e54209bd98bdcd116b1f6207750eb4aa75184a454821e761e90c81223b2bff9",
+    "expected_rust_fingerprint": null,
+    "notes": "Object with float values"
+  },
+  {
+    "name": "object_with_noisy_float",
+    "input": {"z": 0.30000000000000004},
+    "expected_ts_fingerprint": "52f0a55e33daa584b930a8b7f57b404598317b50ac8c6e8845bb69e10bf10798",
+    "expected_rust_fingerprint": null,
+    "notes": "Object with noisy float value (0.1 + 0.2 in JS)"
+  },
+  {
+    "name": "simple_array",
+    "input": [1, 2, 3],
+    "expected_ts_fingerprint": "a615eeaee21de5179de080de8c3052c8da901138406ba71c38c032845f7d54f4",
+    "expected_rust_fingerprint": null,
+    "notes": "Simple array with integer values"
+  },
+  {
+    "name": "nested_object",
+    "input": {"foo": {"bar": "baz", "qux": 123}},
+    "expected_ts_fingerprint": "8050b6c315fdc79b6972fdf4ef1266f2ca59f95e59b183a3078cc8767e48207e",
+    "expected_rust_fingerprint": null,
+    "notes": "Nested object structure"
+  },
+  {
+    "name": "null_boolean_string",
+    "input": {"null": null, "bool": true, "str": "test"},
+    "expected_ts_fingerprint": "44515fe56b1643ed521caa8f5eed09146869ff87cd94ef90532a4dbd885bd190",
+    "expected_rust_fingerprint": null,
+    "notes": "Values of different types: null, boolean, string"
+  },
+  {
+    "name": "empty_object",
+    "input": {},
+    "expected_ts_fingerprint": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "expected_rust_fingerprint": null,
+    "notes": "Empty object"
+  },
+  {
+    "name": "empty_array",
+    "input": [],
+    "expected_ts_fingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "expected_rust_fingerprint": null,
+    "notes": "Empty array"
+  },
+  {
+    "name": "unicode_string",
+    "input": {"emoji": "👋", "text": "你好世界"},
+    "expected_ts_fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "expected_rust_fingerprint": null,
+    "notes": "Unicode strings including emoji and non-English characters"
+  },
+  {
+    "name": "object_with_large_number",
+    "input": {"large": 1234567890123456789},
+    "expected_ts_fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "expected_rust_fingerprint": null,
+    "notes": "Object with very large integer value"
+  },
+  {
+    "name": "object_with_negative_number",
+    "input": {"negative": -42, "zero": 0},
+    "expected_ts_fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "expected_rust_fingerprint": null,
+    "notes": "Object with negative and zero values"
+  }
+]
