@@ -1,61 +1,17 @@
-# 90-Day Governance Roadmap
+# Reach + ReadyLayer 90-Day Plan by Governance Layer
 
-## Determinism
-- **30d:** lock deterministic ordering audits in CI.
-- **60d:** expand replay conformance fixtures for multi-provider inputs.
-- **90d:** publish determinism SLO dashboard.
+| Layer | 30-day deliverables | 60-day deliverables | 90-day deliverables | Risks | Dependencies | Metrics of success |
+|---|---|---|---|---|---|---|
+| Determinism | Expand replay fixture coverage and deterministic-order audits in CI. | Add multi-tenant replay stress checks with stable hash assertions. | Publish determinism SLO dashboard and incident runbook. | Hidden nondeterministic paths in new adapters. | `verify:oss`, engine-core tests, fixture corpus. | replay mismatch rate, deterministic test pass rate. |
+| DGL | Standardize severity mapping across CLI/web/check outputs. | Changed-only semantic scans defaulted for all gates. | Pre-merge drift prediction scoring for risky subsystems. | False positives can block adoption. | DGL gate scripts, canonical language config. | gate precision/recall, median DGL runtime. |
+| Supervisory Intelligence | Unify actor/run/tenant audit schema. | Escalation analytics + notification routing. | Auto-recommend policy tuning based on historical denials. | Alert fatigue from noisy policies. | audit log schema + notification channels. | escalation MTTR, acknowledgement compliance. |
+| CPX | Enforce deterministic conflict packet + merge-plan output path. | PR acknowledgement workflow tied to packet severity. | Guided conflict-resolution UI with explicit human approvals. | Unsafe merge automation pressure. | CPX CLI + DGL deltas + policy engine. | conflict resolution lead time, post-merge defect rate. |
+| SCCL | Add lease-renewal telemetry and stale lease alerts. | Reconciler-driven lease recovery and branch freshness checks. | Branch orchestration with lock-aware queueing defaults. | Lease starvation under high concurrency. | lease store, reconciliation worker, audit logs. | stale lease count, lock contention latency. |
+| Git Integration | Harden webhook/check/comment adapter for GitHub App. | Reviewer routing + label automation from policy outputs. | GitLab API parity for comments/checks/labels. | Token scope misconfiguration. | webhook receiver, policy engine, recon loop. | check publish success rate, webhook processing latency. |
+| Artifact Registry | Validate hash-index and run linkage invariants. | Retention policy enforcement + paginated retrieval hardening. | Immutable manifest attestation + integrity drift alarms. | Storage growth and retention mistakes. | storage layer, run records, retention controls. | artifact retrieval p95, integrity check pass rate. |
+| Policy Engine | Normalize policy evaluation logs across CLI/web/release gates. | Add simulation mode for non-blocking policy rollout. | Risk-zone adaptive escalation ladders in production gates. | Policy sprawl and contradictory rules. | governance-policy config + audit sink. | policy eval latency, bypass frequency, false-block rate. |
+| Reconciliation Loop | Wire webhook and scheduler through deterministic queue contract. | Add automated stale-branch/missing-run detection coverage. | Closed-loop alerting + auto-remediation playbooks. | Retry storms during host outages. | job queue, webhook API, SCCL lease APIs. | drift detection SLA, dead-letter rate. |
+| Provider SDK | Publish adapter contract + deterministic example adapter. | Expand conformance suite for telemetry/token accounting. | Certify third-party adapters with compatibility badges. | Adapter quality variance. | SDK interface, fixture responses, test harness. | conformance pass rate, adapter onboarding time. |
+| UX / Onboarding | Ship unified CLI + web onboarding runbook. | Add first-PR guided walkthrough with policy hints. | Persona-specific templates (platform team, product team, solo dev). | Friction in first-run setup. | CLI commands, wizard UI, docs. | time-to-first-governed-PR, activation rate. |
+| Security | Redaction regression suite for logs/artifacts/SARIF. | Supply-chain verification gate policy in CI. | Quarterly threat simulation with remediation scorecards. | Third-party dependency exposure. | secret scanners, lockfile policy, audit logs. | secret leak incidents, critical CVE remediation SLA. |
 
-## DGL
-- **30d:** normalize DGL severity mappings across APIs/CLI.
-- **60d:** incremental diff-only policy scans everywhere.
-- **90d:** predictive drift preemption rules.
-
-## Supervisory
-- **30d:** unify audit event schema.
-- **60d:** add escalation analytics.
-- **90d:** automate policy tuning recommendations.
-
-## CPX
-- **30d:** ship deterministic `resolve` merge-plan workflow.
-- **60d:** integrate conflict packet acknowledgements into PR labeling.
-- **90d:** add guided UI flow for packet-by-packet resolution.
-
-## SCCL
-- **30d:** enforce lease renewal telemetry.
-- **60d:** stale-lease reconciliation worker.
-- **90d:** lock-aware branch orchestration.
-
-## Git Integration
-- **30d:** check-run + comment adapter.
-- **60d:** reviewer routing + SARIF upload automation.
-- **90d:** GitLab parity.
-
-## Artifact Registry
-- **30d:** content-hash index + run linkage schema.
-- **60d:** tenant retention controls.
-- **90d:** immutable manifest verification audits.
-
-## Policy Engine
-- **30d:** adopt `/config/governance-policy.json` in entrypoints.
-- **60d:** add escalation ladder observability.
-- **90d:** policy simulation mode for safe rollout.
-
-## Reconciliation Loop
-- **30d:** webhook-triggered work queue with bounded retries.
-- **60d:** drift + missing run record auto-detection.
-- **90d:** closed-loop alerting and auto-remediation.
-
-## Provider SDK
-- **30d:** publish adapter interface and deterministic example.
-- **60d:** add third-party adapter conformance suite.
-- **90d:** telemetry and token economics dashboards.
-
-## UX/Onboarding
-- **30d:** wizard docs for init/connect/gates/first-run.
-- **60d:** interactive first-PR walkthrough.
-- **90d:** workspace templates per team type.
-
-## Security
-- **30d:** artifact/log redaction regression tests.
-- **60d:** supply chain verification policy gates.
-- **90d:** quarterly threat simulation drills.
