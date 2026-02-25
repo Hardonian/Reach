@@ -5,27 +5,27 @@ import { ROUTES } from "@/lib/routes";
 
 const tiers = [
   {
-    name: "Starter",
-    description: "For individuals and small projects",
+    name: "Reach (OSS)",
+    description: "For individuals and teams getting started with local, deterministic runs.",
     price: "Free",
-    period: "",
+    period: "forever",
     features: [
       "Unlimited local runs",
-      "5 Cloud Reports / mo",
-      "Public Library access",
-      "Basic analytics",
+      "Community-driven skill packs",
+      "Run history in local UI",
       "Community support",
     ],
-    cta: "Run demo (free)",
-    href: ROUTES.PLAYGROUND,
+    cta: "Install CLI",
+    href: ROUTES.DOCS,
     highlighted: false,
   },
   {
-    name: "Pro",
-    description: "For teams bridging build and run",
+    name: "ReadyLayer Pro",
+    description: "For teams needing cloud-based reporting, collaboration, and alerts.",
     price: "Usage-based",
     period: "with $29 base",
     features: [
+      "Everything in Reach (OSS)",
       "Unlimited Cloud Reports",
       "Private Skill Packs",
       "Advanced Simulation compute",
@@ -33,13 +33,13 @@ const tiers = [
       "Team collaboration",
       "Priority support",
     ],
-    cta: "Get started — free",
+    cta: "Start with Pro",
     href: ROUTES.REGISTER,
     highlighted: true,
   },
   {
-    name: "Enterprise",
-    description: "For mission-critical reliability",
+    name: "ReadyLayer Enterprise",
+    description: "For mission-critical reliability, security, and compliance.",
     price: "Custom",
     period: "contact sales",
     features: [
@@ -50,7 +50,7 @@ const tiers = [
       "Single-tenant data isolation",
       "24/7 Premium support",
     ],
-    cta: "Talk to us",
+    cta: "Talk to Sales",
     href: ROUTES.CONTACT,
     highlighted: false,
   },
@@ -63,9 +63,9 @@ export default function Pricing() {
     <div className="section-container py-8">
       {/* Header */}
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Simple, Usage-Based Pricing</h1>
+        <h1 className="text-4xl font-bold mb-4">Find the right plan for your team</h1>
         <p className="text-gray-400 max-w-2xl mx-auto">
-          Start free, scale as you grow. Only pay for what you use with no hidden fees.
+          Start for free with the Reach OSS CLI, and scale with the ReadyLayer cloud platform when you need enterprise-grade governance.
         </p>
       </div>
 
