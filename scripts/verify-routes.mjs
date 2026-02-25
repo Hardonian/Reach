@@ -78,7 +78,7 @@ function startServer(port, appPath) {
     stdio: ["ignore", "pipe", "pipe"],
     env: {
       ...process.env,
-      NODE_ENV: "test",
+      NODE_ENV: "development",
       NEXT_TELEMETRY_DISABLED: "1",
     },
   });
