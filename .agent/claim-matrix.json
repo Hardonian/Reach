@@ -1,0 +1,296 @@
+{
+  "version": "0.3.1",
+  "generatedAt": "2026-02-25T09:15:54.939430-05:00",
+  "claims": {
+    "cli": {
+      "reach_version": {
+        "description": "reach version command displays version information",
+        "sources": ["README.md", "docs/cli.md"],
+        "codePaths": ["reach", "src/cli/status-cli.ts"],
+        "testPaths": [],
+        "verified": false
+      },
+      "reach_doctor": {
+        "description": "reach doctor checks system health and environment",
+        "sources": ["README.md", "docs/cli.md", "docs/getting-started/10-minute-success.md"],
+        "codePaths": ["reach", "src/cli/doctor-cli.ts", "doctor.ts"],
+        "testPaths": ["doctor.test.ts"],
+        "verified": false
+      },
+      "reach_demo": {
+        "description": "reach demo runs sample pack, verifies output, replays capsule",
+        "sources": ["README.md", "docs/cli.md", "docs/INSTALL.md"],
+        "codePaths": ["reach"],
+        "testPaths": [],
+        "verified": false
+      },
+      "reach_quickstart": {
+        "description": "reach quickstart creates golden-path artifacts",
+        "sources": ["docs/getting-started/10-minute-success.md"],
+        "codePaths": ["reach", "scripts/quickstart-demo.mjs"],
+        "testPaths": [],
+        "verified": false
+      },
+      "reach_status": {
+        "description": "reach status shows component health + reconciliation",
+        "sources": ["reach"],
+        "codePaths": ["reach", "scripts/reach-status.mjs"],
+        "testPaths": [],
+        "verified": false
+      },
+      "reach_bugreport": {
+        "description": "reach bugreport creates redacted diagnostics bundle",
+        "sources": ["README.md", "docs/cli.md"],
+        "codePaths": ["reach"],
+        "testPaths": [],
+        "verified": false
+      },
+      "reach_run": {
+        "description": "reach run <pack> executes a pack",
+        "sources": ["docs/cli.md"],
+        "codePaths": ["src/cli/pack-cli.ts"],
+        "testPaths": [],
+        "verified": false
+      },
+      "reach_capsule": {
+        "description": "reach capsule create/verify/replay manages execution capsules",
+        "sources": ["docs/cli.md"],
+        "codePaths": ["reach", "src/cli/transcript-cli.ts"],
+        "testPaths": ["src/cli/transcript-cli.test.ts"],
+        "verified": false
+      },
+      "reach_proof": {
+        "description": "reach proof verify validates execution proofs",
+        "sources": ["docs/cli.md"],
+        "codePaths": ["src/cli/trust-cli.ts"],
+        "testPaths": [],
+        "verified": false
+      },
+      "reach_packs": {
+        "description": "reach packs search/install manage packs",
+        "sources": ["docs/cli.md"],
+        "codePaths": ["src/cli/marketplace-cli.ts"],
+        "testPaths": [],
+        "verified": false
+      }
+    },
+    "determinism": {
+      "canonical_json": {
+        "description": "Canonical JSON serialization with sorted keys",
+        "sources": ["docs/architecture/determinism-contract.md"],
+        "codePaths": ["src/determinism/canonicalJson.ts"],
+        "testPaths": ["src/determinism/canonicalJson.test.ts"],
+        "verified": false
+      },
+      "cross_language_hash": {
+        "description": "Cross-language hash equivalence (TS/Go/Rust)",
+        "sources": ["docs/architecture/determinism-contract.md"],
+        "codePaths": ["src/determinism/crossLanguageHash.test.ts"],
+        "testPaths": ["src/determinism/crossLanguageHash.test.ts"],
+        "verified": false
+      },
+      "deterministic_map": {
+        "description": "DeterministicMap iterates in sorted key order",
+        "sources": ["docs/architecture/determinism-contract.md"],
+        "codePaths": ["src/determinism/deterministicMap.ts"],
+        "testPaths": ["src/determinism/determinism-invariants.test.ts"],
+        "verified": false
+      },
+      "deterministic_sort": {
+        "description": "Locale-independent deterministic sorting",
+        "sources": ["docs/architecture/determinism-contract.md"],
+        "codePaths": ["src/determinism/deterministicSort.ts"],
+        "testPaths": ["src/determinism/determinism-invariants.test.ts"],
+        "verified": false
+      },
+      "seeded_random": {
+        "description": "SeededRandom produces identical sequence for seed",
+        "sources": ["docs/architecture/determinism-contract.md"],
+        "codePaths": ["src/determinism/seededRandom.ts"],
+        "testPaths": ["src/determinism/determinism-invariants.test.ts"],
+        "verified": false
+      },
+      "hash_stream": {
+        "description": "HashStream chunked == single update",
+        "sources": ["docs/architecture/determinism-contract.md"],
+        "codePaths": ["src/determinism/hashStream.ts"],
+        "testPaths": ["src/determinism/determinism-invariants.test.ts"],
+        "verified": false
+      },
+      "replay_equivalence": {
+        "description": "Replay produces identical transcript hash",
+        "sources": ["docs/architecture/determinism-contract.md"],
+        "codePaths": ["src/cli/replay-cli.ts", "src/cli/dek-replay-cli.ts"],
+        "testPaths": [],
+        "verified": false
+      },
+      "float_encoding": {
+        "description": "Float encoding stability across platforms",
+        "sources": ["docs/architecture/determinism-contract.md"],
+        "codePaths": ["src/core/zeolite-core.ts"],
+        "testPaths": ["src/core/zeolite-core.test.ts"],
+        "verified": false
+      }
+    },
+    "web": {
+      "public_routes": {
+        "description": "Public routes return 200 without auth",
+        "sources": ["docs/testing-smoke.md"],
+        "routes": ["/", "/architecture", "/transparency", "/marketplace", "/docs", "/faq", "/pricing", "/governance"],
+        "codePaths": ["tests/smoke/routes.test.mjs"],
+        "testPaths": ["tests/smoke/routes.test.mjs"],
+        "verified": false
+      },
+      "console_routes": {
+        "description": "Console routes redirect or return 200",
+        "sources": ["docs/testing-smoke.md"],
+        "routes": ["/console", "/console/agents", "/console/runners", "/console/evaluation", "/console/governance", "/console/datasets", "/console/cost", "/console/ecosystem", "/console/integrations", "/console/artifacts", "/console/alerts", "/console/traces"],
+        "codePaths": ["tests/smoke/routes.test.mjs"],
+        "testPaths": ["tests/smoke/routes.test.mjs"],
+        "verified": false
+      },
+      "api_health": {
+        "description": "API health endpoints return expected status",
+        "sources": ["docs/testing-smoke.md"],
+        "routes": ["/api/health", "/api/ready"],
+        "codePaths": ["tests/smoke/routes.test.mjs", "scripts/verify-routes.mjs"],
+        "testPaths": ["tests/smoke/routes.test.mjs"],
+        "verified": false
+      },
+      "api_governance": {
+        "description": "Governance API endpoints require auth or return data",
+        "sources": ["docs/testing-smoke.md"],
+        "routes": ["/api/v1/dgl", "/api/v1/cpx", "/api/v1/sccl", "/api/v1/policy", "/api/v1/governance/history"],
+        "codePaths": ["tests/smoke/routes.test.mjs", "scripts/verify-routes.mjs"],
+        "testPaths": ["tests/smoke/routes.test.mjs"],
+        "verified": false
+      }
+    },
+    "examples": {
+      "quickstart_local": {
+        "description": "Example 01-quickstart-local runs successfully",
+        "sources": ["README.md"],
+        "codePaths": ["examples/01-quickstart-local/run.js"],
+        "testPaths": [],
+        "verified": false
+      },
+      "diff_and_explain": {
+        "description": "Example 02-diff-and-explain runs successfully",
+        "sources": ["README.md"],
+        "codePaths": ["examples/02-diff-and-explain/run.js"],
+        "testPaths": [],
+        "verified": false
+      },
+      "junction_to_decision": {
+        "description": "Example 03-junction-to-decision runs successfully",
+        "sources": ["README.md"],
+        "codePaths": ["examples/03-junction-to-decision/run.js"],
+        "testPaths": [],
+        "verified": false
+      },
+      "action_plan_execute_safe": {
+        "description": "Example 04-action-plan-execute-safe runs successfully",
+        "sources": ["README.md"],
+        "codePaths": ["examples/04-action-plan-execute-safe/run.js"],
+        "testPaths": [],
+        "verified": false
+      },
+      "export_verify_replay": {
+        "description": "Example 05-export-verify-replay runs successfully",
+        "sources": ["README.md"],
+        "codePaths": ["examples/05-export-verify-replay/run.js"],
+        "testPaths": [],
+        "verified": false
+      },
+      "retention_compact_safety": {
+        "description": "Example 06-retention-compact-safety runs successfully",
+        "sources": ["README.md"],
+        "codePaths": ["examples/06-retention-compact-safety/run.js"],
+        "testPaths": [],
+        "verified": false
+      }
+    },
+    "npm_scripts": {
+      "verify_routes": {
+        "description": "npm run verify:routes checks all web routes",
+        "sources": ["package.json"],
+        "codePaths": ["scripts/verify-routes.mjs"],
+        "testPaths": ["tests/smoke/routes.test.mjs"],
+        "verified": false
+      },
+      "verify_determinism": {
+        "description": "npm run verify:determinism checks determinism invariants",
+        "sources": ["package.json"],
+        "codePaths": ["scripts/verify-determinism.ts"],
+        "testPaths": [],
+        "verified": false
+      },
+      "verify_oss": {
+        "description": "npm run verify:oss checks OSS purity",
+        "sources": ["package.json"],
+        "codePaths": ["scripts/verify-oss.mjs", "scripts/validate-oss-purity.mjs"],
+        "testPaths": [],
+        "verified": false
+      },
+      "verify_conformance": {
+        "description": "npm run verify:conformance runs conformance checks",
+        "sources": ["package.json"],
+        "codePaths": ["scripts/verify-conformance.mjs"],
+        "testPaths": [],
+        "verified": false
+      },
+      "verify_fast": {
+        "description": "npm run verify:fast runs fast verification suite",
+        "sources": ["package.json"],
+        "codePaths": ["package.json"],
+        "testPaths": [],
+        "verified": false
+      },
+      "demo_smoke": {
+        "description": "npm run demo:smoke runs demo smoke test",
+        "sources": ["package.json"],
+        "codePaths": ["package.json"],
+        "testPaths": [],
+        "verified": false
+      }
+    },
+    "installation": {
+      "linux_install": {
+        "description": "Linux install script downloads and verifies binaries",
+        "sources": ["README.md", "docs/INSTALL.md"],
+        "codePaths": [],
+        "testPaths": ["scripts/verify-installers.mjs"],
+        "verified": false
+      },
+      "windows_install": {
+        "description": "Windows PowerShell install script works",
+        "sources": ["README.md", "docs/INSTALL.md"],
+        "codePaths": [],
+        "testPaths": [],
+        "verified": false
+      },
+      "checksum_verification": {
+        "description": "SHA256 checksums are verified during install",
+        "sources": ["README.md", "docs/INSTALL.md"],
+        "codePaths": [],
+        "testPaths": [],
+        "verified": false
+      }
+    }
+  },
+  "invariants": {
+    "DET-01": { "description": "Same input → same hash (TypeScript)", "verified": false },
+    "DET-02": { "description": "Same input → same hash (Go)", "verified": false },
+    "DET-03": { "description": "Same input → same hash (Rust)", "verified": false },
+    "DET-04": { "description": "Canonical JSON key ordering is recursive", "verified": false },
+    "DET-05": { "description": "DeterministicMap iterates in sorted key order", "verified": false },
+    "DET-06": { "description": "SeededRandom produces identical sequence for seed", "verified": false },
+    "DET-07": { "description": "HashStream chunked == single update", "verified": false },
+    "DET-08": { "description": "combineHashes is order-sensitive", "verified": false },
+    "DET-09": { "description": "Replay produces identical transcript hash", "verified": false },
+    "DET-10": { "description": "Cross-language hash equivalence (golden)", "verified": false },
+    "DET-11": { "description": "Float encoding stability across platforms", "verified": false },
+    "DET-12": { "description": "Tie-break sorting is locale-independent", "verified": false },
+    "VER-04": { "description": "Hash version constant in transcripts", "verified": false }
+  }
+}
