@@ -18,6 +18,16 @@ const prdAssets = [
     description: "Ops-center and replay-first control-plane requirements.",
     href: "/prd/reach-the-control-plane-prd.md",
   },
+  {
+    title: "Stitch Console Integration Manifest",
+    description: "Route-to-component merge map for stitch_integrations_hub_console.zip.",
+    href: "/prd/stitch-integrations-hub-console-manifest.md",
+  },
+  {
+    title: "Stitch Absolute State PRD Manifest",
+    description: "Consolidated mapping of UI prototype artifacts from the absolute-state PRD zip.",
+    href: "/prd/stitch-reach-absolute-state-prd-manifest.md",
+  },
 ];
 
 const consoleMappings = [
