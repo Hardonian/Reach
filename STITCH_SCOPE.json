@@ -1,4 +1,113 @@
 {
+  "version": 1,
+  "generatedAt": "2026-02-25",
+  "appRoot": "apps/arcade/src/app",
+  "scope": [
+    {
+      "route": "/console/agents",
+      "score": 2,
+      "routeFile": "apps/arcade/src/app/console/agents/page.tsx",
+      "uiFiles": [
+        "apps/arcade/src/components/stitch/console/pages/AgentRegistry.tsx"
+      ],
+      "needs": [
+        "registry-summary",
+        "filters-and-search",
+        "agent-table",
+        "state-surfaces-loading-empty-error"
+      ]
+    },
+    {
+      "route": "/console/runners",
+      "score": 2,
+      "routeFile": "apps/arcade/src/app/console/runners/page.tsx",
+      "uiFiles": [
+        "apps/arcade/src/components/stitch/console/pages/RunnerOrchestration.tsx"
+      ],
+      "needs": [
+        "runner-health-panels",
+        "queue-visibility",
+        "execution-table",
+        "state-surfaces-loading-empty-error"
+      ]
+    },
+    {
+      "route": "/console/traces",
+      "score": 2,
+      "routeFile": "apps/arcade/src/app/console/traces/page.tsx",
+      "uiFiles": [
+        "apps/arcade/src/components/stitch/console/pages/TraceExplorer.tsx"
+      ],
+      "needs": [
+        "trace-list",
+        "trace-details",
+        "timeline-panel",
+        "state-surfaces-loading-empty-error"
+      ]
+    },
+    {
+      "route": "/console/evaluation",
+      "score": 2,
+      "routeFile": "apps/arcade/src/app/console/evaluation/page.tsx",
+      "uiFiles": [
+        "apps/arcade/src/components/stitch/console/pages/EvaluationEngine.tsx"
+      ],
+      "needs": [
+        "evaluation-summary",
+        "run-comparison",
+        "result-breakdown",
+        "state-surfaces-loading-empty-error"
+      ]
+    },
+    {
+      "route": "/console/datasets",
+      "score": 2,
+      "routeFile": "apps/arcade/src/app/console/datasets/page.tsx",
+      "uiFiles": [
+        "apps/arcade/src/components/stitch/console/pages/DatasetManagement.tsx"
+      ],
+      "needs": [
+        "dataset-inventory",
+        "indexing-status",
+        "quality-signals",
+        "state-surfaces-loading-empty-error"
+      ]
+    },
+    {
+      "route": "/console/integrations",
+      "score": 2,
+      "routeFile": "apps/arcade/src/app/console/integrations/page.tsx",
+      "uiFiles": [
+        "apps/arcade/src/components/stitch/console/pages/IntegrationsHub.tsx"
+      ],
+      "needs": [
+        "provider-catalog",
+        "connection-health",
+        "sync-activity",
+        "state-surfaces-loading-empty-error"
+      ]
+    }
+  ],
+  "excludedStrongRoutes": [
+    {
+      "route": "/console",
+      "score": 3,
+      "routeFile": "apps/arcade/src/app/console/page.tsx"
+    },
+    {
+      "route": "/console/ops",
+      "score": 3,
+      "routeFile": "apps/arcade/src/app/console/ops/page.tsx"
+    },
+    {
+      "route": "/console/founder",
+      "score": 3,
+      "routeFile": "apps/arcade/src/app/console/founder/page.tsx"
+    },
+    {
+      "route": "/console/governance/config-as-code",
+      "score": 3,
+      "routeFile": "apps/arcade/src/app/console/governance/config-as-code/page.tsx"
   "domains": [
     {
       "name": "Replay / Determinism",
