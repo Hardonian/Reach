@@ -17,6 +17,10 @@ const envSchema = z.object({
   REACH_SESSION_TTL_HOURS: z.coerce.number().default(24),
 
   // Redis (for rate limiting)
+  // When REDIS_URL is not set, rate limiting falls back to an in-memory store.
+  // This is suitable for development/testing but not recommended for production
+  // with multiple instances as the memory store is not shared across processes.
+  // For production, configure REDIS_URL to enable Redis-based rate limiting.
   REDIS_URL: z.string().optional(),
 
   // Billing

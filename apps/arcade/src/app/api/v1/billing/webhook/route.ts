@@ -13,6 +13,7 @@ import {
   upsertEntitlement,
   PLAN_LIMITS,
 } from "@/lib/cloud-db";
+import { appendAudit } from "@/lib/db/ops";
 // @ts-ignore
 import type Stripe from "stripe";
 import { env } from "@/lib/env";
@@ -52,7 +53,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   // ── Handle event ───────────────────────────────────────────────────────
   try {
-    await handleStripeEvent(event);
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() 
+      ?? req.headers.get("x-real-ip") 
+      ?? "unknown";
+    await handleStripeEvent(event, clientIp);
     markWebhookProcessed(event.id);
     return NextResponse.json({ ok: true });
   } catch (err) {
@@ -73,7 +77,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 }
 
-async function handleStripeEvent(event: Stripe.Event): Promise<void> {
+async function handleStripeEvent(event: Stripe.Event, clientIp: string): Promise<void> {
   const data = event.data.object as unknown as Record<string, unknown>;
 
   switch (event.type) {
@@ -105,6 +109,23 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
           ? new Date(firstItem.current_period_end * 1000).toISOString()
           : undefined,
       } as Parameters<typeof upsertEntitlement>[1]);
+      
+      // Audit trail for subscription created/updated
+      appendAudit(
+        tenantId,
+        null,
+        "stripe.webhook.subscription.updated",
+        "subscription",
+        sub.id,
+        {
+          event_type: event.type,
+          plan,
+          status: sub.status,
+          price_id: priceId,
+          customer_id: sub.customer,
+        },
+        clientIp,
+      );
       logger.info(`Subscription ${event.type} processed`, { tenantId, plan });
       break;
     }
@@ -122,6 +143,20 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         pack_limit: PLAN_LIMITS["free"].pack_limit,
         retention_days: PLAN_LIMITS["free"].retention_days,
       } as Parameters<typeof upsertEntitlement>[1]);
+      
+      // Audit trail for subscription deleted
+      appendAudit(
+        tenantId,
+        null,
+        "stripe.webhook.subscription.deleted",
+        "subscription",
+        sub.id,
+        {
+          event_type: event.type,
+          customer_id: sub.customer,
+        },
+        clientIp,
+      );
       logger.info("Subscription canceled", { tenantId });
       break;
     }
@@ -134,6 +169,23 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         // Reset monthly usage on successful invoice payment (new billing period)
         const { resetMonthlyUsage } = await import("@/lib/cloud-db");
         resetMonthlyUsage(tenantId);
+        
+        // Audit trail for invoice paid (usage reset)
+        appendAudit(
+          tenantId,
+          null,
+          "stripe.webhook.invoice.paid",
+          "invoice",
+          invoice.id,
+          {
+            event_type: event.type,
+            amount_paid: invoice.amount_paid,
+            currency: invoice.currency,
+            customer_id: invoice.customer,
+            subscription_id: invoice.subscription,
+          },
+          clientIp,
+        );
         logger.info("Invoice paid — reset usage", { tenantId });
       }
       break;
@@ -147,6 +199,23 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         upsertEntitlement(tenantId, { status: "past_due" } as Parameters<
           typeof upsertEntitlement
         >[1]);
+        
+        // Audit trail for payment failed
+        appendAudit(
+          tenantId,
+          null,
+          "stripe.webhook.invoice.payment_failed",
+          "invoice",
+          invoice.id,
+          {
+            event_type: event.type,
+            amount_due: invoice.amount_due,
+            currency: invoice.currency,
+            customer_id: invoice.customer,
+            subscription_id: invoice.subscription,
+          },
+          clientIp,
+        );
         logger.warn("Invoice payment failed", { tenantId });
       }
       break;

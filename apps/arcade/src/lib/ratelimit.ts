@@ -3,7 +3,15 @@ import { logger } from "./logger";
 
 // Fallback in-memory store if Redis is unavailable
 const memoryStore = new Map<string, { count: number; windowStart: number }>();
-const FALLBACK_WINDOW_MS = 60 * 1000; // 1 minute
+
+// Log warning at startup about rate limiting fallback
+if (!redis) {
+  logger.warn(
+    "Redis not configured for rate limiting. Falling back to in-memory rate limiter. " +
+      "This is not recommended for production deployments with multiple instances.",
+    { hint: "Set REDIS_URL environment variable to enable Redis-based rate limiting" },
+  );
+}
 
 export async function checkRateLimit(
   ip: string,
@@ -31,11 +39,12 @@ export async function checkRateLimit(
     }
   }
 
-  // Fallback to memory
+  // Fallback to memory - use the configured windowSeconds parameter
+  const windowMs = windowSeconds * 1000;
   const now = Date.now();
   const record = memoryStore.get(ip) || { count: 0, windowStart: now };
 
-  if (now - record.windowStart > FALLBACK_WINDOW_MS) {
+  if (now - record.windowStart > windowMs) {
     record.count = 1;
     record.windowStart = now;
   } else {
