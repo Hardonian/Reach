@@ -15,7 +15,7 @@ ITEMS_TO_REMOVE=(
   "scripts/maintenance/restructure-specs.sh"
   "scripts/maintenance/run-all.sh"
   "scripts/maintenance/verify-structure.sh"
-  "pre-commit"
+  ".husky/pre-commit"
 )
 
 for item in "${ITEMS_TO_REMOVE[@]}"; do
@@ -27,5 +27,8 @@ for item in "${ITEMS_TO_REMOVE[@]}"; do
   fi
 done
 
+# Remove the maintenance script from package.json
+sed -i '/"maintenance":/d' package.json
+git add package.json
+
 echo "✅ Maintenance script cleanup complete."
-echo "Note: Please manually remove the 'maintenance' script from package.json if it exists."
