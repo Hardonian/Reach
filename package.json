@@ -65,7 +65,10 @@
     "verify:types": "npm run typecheck",
     "verify:lint": "npm run lint",
     "reach:cpx:resolve": "npx tsx scripts/cpx-cli.ts resolve",
-    "audit:control-planes": "npx tsx scripts/governance-audit.ts > docs/audit/control-planes-audit.md"
+    "audit:control-planes": "npx tsx scripts/governance-audit.ts > docs/audit/control-planes-audit.md",
+    "verify:routes": "ROUTE_VERIFY_START=1 node scripts/verify-routes.mjs",
+    "verify:go": "bash scripts/check-go-workspace.sh",
+    "verify:rust": "bash scripts/check-rust-workspace.sh"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",
