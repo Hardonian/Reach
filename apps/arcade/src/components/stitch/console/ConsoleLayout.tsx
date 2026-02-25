@@ -34,6 +34,11 @@ export function ConsoleLayout({ children }: ConsoleLayoutProps) {
       label: "Alerts",
       icon: "notifications_active",
     },
+    {
+      href: ROUTES.CONSOLE.NAV,
+      label: "Navigation Map",
+      icon: "map",
+    },
   ];
 
   return (

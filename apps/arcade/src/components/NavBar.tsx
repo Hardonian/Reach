@@ -13,6 +13,8 @@ const primaryNav = [
   { href: ROUTES.DOCS, label: "Docs" },
   { href: ROUTES.PRICING, label: "Pricing" },
   { href: ROUTES.ENTERPRISE, label: "Enterprise" },
+  { href: "/architecture", label: "Architecture" },
+  { href: "/transparency", label: "Transparency" },
 ];
 
 export function NavBar() {
