@@ -15,7 +15,7 @@ export function Footer({ site }: { site: SiteConfig }) {
             </div>
             <p className="text-gray-400 text-sm max-w-2xl">
               {site.mode === 'enterprise'
-                ? 'Reach (reach-cli.com) is OSS. ReadyLayer (ready-layer.com) is enterprise roadmap/beta.'
+                ? 'Reach OSS powers deterministic execution, while ReadyLayer extends enterprise governance, compliance workflows, and deployment controls.'
                 : 'Open-source deterministic orchestration for reproducible runs with verifiable evidence.'}
             </p>
           </div>

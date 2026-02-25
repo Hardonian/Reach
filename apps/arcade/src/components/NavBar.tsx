@@ -61,11 +61,11 @@ export function NavBar({ site }: NavBarProps) {
               Contact
             </Link>
             <Link
-              href={site.mode === 'enterprise' ? '/enterprise' : '/download'}
+              href={site.mode === 'enterprise' ? '/enterprise/request-demo?source=navbar' : '/download'}
               className="btn-primary text-sm py-2 px-4"
               onClick={() => track('cta_clicked', { source: 'navbar', cta: site.mode })}
             >
-              {site.mode === 'enterprise' ? 'Enterprise roadmap' : 'Install Reach CLI'}
+              {site.mode === 'enterprise' ? 'Request enterprise demo' : 'Install Reach CLI'}
             </Link>
           </div>
 
