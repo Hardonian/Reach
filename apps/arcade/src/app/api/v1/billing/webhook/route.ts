@@ -59,9 +59,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (err instanceof BillingDisabledError) {
       return NextResponse.json({ error: err.message }, { status: 503 });
     }
-    logger.error("Webhook handler error", err);
-    // Return 200 to prevent Stripe from retrying (we've stored the event)
-    return NextResponse.json({ ok: false, error: "Handler error, will retry" }, { status: 200 });
+    // Log error with event context for debugging - event was stored but not processed
+    logger.error("Webhook handler error", {
+      error: err,
+      eventId: event.id,
+      eventType: event.type,
+    });
+    // Return 500 to trigger Stripe retry - event is stored (idempotent) but processing failed
+    return NextResponse.json(
+      { ok: false, error: "Handler error, event stored but not processed" },
+      { status: 500 }
+    );
   }
 }
 

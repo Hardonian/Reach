@@ -69,7 +69,9 @@
     "AUTOPACK",
     "MTTFS",
     "mttfs",
-    "signups"
+    "signups",
+    "subheaders",
+    "sub-header"
   ],
   "ignorePaths": ["node_modules", "dist", "build", "*.log"]
 }

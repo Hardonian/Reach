@@ -190,12 +190,14 @@ function DriftSignal({ label, value, limit, status }: DriftSignalProps) {
         </span>
       </div>
       <div
+        {...({
+          role: "progressbar",
+          "aria-valuenow": Math.round(percent),
+          "aria-valuemin": 0,
+          "aria-valuemax": 100,
+          "aria-label": label,
+        } as React.HTMLAttributes<HTMLDivElement>)}
         className="h-1.5 bg-arcade-surface-hover rounded-full overflow-hidden border border-arcade-border"
-        role="progressbar"
-        aria-valuenow={Math.round(percent)}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label={label}
       >
         <svg width="100%" height="100%" preserveAspectRatio="none" className="block">
           <rect
