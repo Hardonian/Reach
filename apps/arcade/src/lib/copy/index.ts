@@ -22,41 +22,44 @@ export interface CopyEntry {
 /** Terminology translation map — replaces jargon with action language */
 export const TERMS: Record<string, CopyEntry> = {
   policy: {
-    display: "Rules",
-    tooltip: "Rules: Rules your agent must obey.",
+    display: "Policy",
+    tooltip:
+      "Policy: Declarative rules your agent must obey, enforced by the deterministic engine.",
   },
   drift: {
     display: "Drift",
-    tooltip: "Drift: When behavior changes over time.",
+    tooltip: "Drift: When behavior changes over time, detected by bit-identical replay.",
   },
   gate: {
-    display: "Gate",
-    tooltip: "Gate: Automated block for bad builds.",
+    display: "CI Gate",
+    tooltip: "CI Gate: Automated blocking of non-compliant builds.",
   },
   trace: {
-    display: "Trace",
-    tooltip: "Trace: Step-by-step history of actions.",
+    display: "Transcript",
+    tooltip: "Transcript: The complete, ordered log of every event and decision.",
   },
   signal: {
-    display: "Signal",
-    tooltip: "Signal: Real-time health data points.",
+    display: "Evidence",
+    tooltip: "Evidence: Cryptographically linked data points that prove execution integrity.",
   },
   run_artifacts: {
-    display: "Reports",
-    tooltip: "Reports are saved snapshots of a check run.",
+    display: "Capsules",
+    tooltip: "Capsules: Portable, signed bundles containing everything needed for replay.",
   },
 };
 
 /** Hero copy variants with Category Lock */
 export const HERO_VARIANTS = {
   A: {
-    headline: "Agent Reliability. Guaranteed.",
-    subhead: "ReadyLayer is the category-defining suite for shipping agents that actually work.",
-    badge: "Category: Agent Reliability",
+    headline: "Agent Governance. Deterministic.",
+    subhead:
+      "Reach provides the cryptographic provenance and bit-identical replayability required to scale AI safely.",
+    badge: "OSS Engine + Pro Cloud",
   },
   B: {
-    headline: "Stop guessing. Start shipping.",
-    subhead: "The infrastructure for safe, predictable, and auditable AI agents.",
+    headline: "Stop the drift. Ship with proof.",
+    subhead:
+      "The open-source infrastructure for safe, predictable, and auditable AI agent ecosystems.",
     badge: "Reliability Suite",
   },
   C: {
@@ -145,39 +148,39 @@ export const HOW_IT_WORKS = [
 /** Core capabilities (show first 3 above fold, rest behind "Show more") */
 export const CAPABILITIES = [
   {
-    title: "Release Gates",
-    description: "Automated PR checks to stop shipping broken agents.",
+    title: "CI Gates",
+    description: "Automated PR checks to stop non-compliant agent behavior before merge.",
     href: "/docs/quick-start",
     primary: true,
   },
   {
-    title: "CI Ingestion",
-    description: "Local test integration for your terminal workflows.",
-    href: "/docs/quick-start",
+    title: "Transcripts & Replay",
+    description: "Bit-identical replay of any production event for 100% audit integrity.",
+    href: "/docs/execution",
     primary: true,
   },
   {
-    title: "Monitoring",
-    description: "Post-ship health tracking to catch failures early.",
-    href: "/docs/quick-start",
+    title: "Drift Detection",
+    description: "Real-time alerts when agent behavior diverges from the deterministic baseline.",
+    href: "/docs/observability",
     primary: true,
   },
   {
-    title: "Simulation",
-    description: "Side-by-side experiments to find the best variants.",
-    href: "/docs/quick-start",
+    title: "Policy Engine",
+    description: "Natural-language policy generation backed by durable governance memory.",
+    href: "/docs/governance",
     primary: false,
   },
   {
-    title: "Rules Engine",
-    description: "Define agent boundaries and enforce them at every run.",
-    href: "/docs/quick-start",
+    title: "MCP Integration",
+    description: "Standardized tool access with the Model Context Protocol (MCP).",
+    href: "/docs/mcp",
     primary: false,
   },
   {
-    title: "Traceability",
-    description: "Step-by-step logs for every decision your agent makes.",
-    href: "/docs/quick-start",
+    title: "Agent Contracts",
+    description: "Define and enforce performance and safety SLAs at the protocol level.",
+    href: "/enterprise",
     primary: false,
   },
 ] as const;

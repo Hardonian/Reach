@@ -22,6 +22,7 @@ export const ROUTES = {
   TEMPLATES: "/templates",
   DOCS: "/docs",
   PRICING: "/pricing",
+  ENTERPRISE: "/enterprise",
 
   // ── User Menu ──
   DASHBOARD: "/dashboard",

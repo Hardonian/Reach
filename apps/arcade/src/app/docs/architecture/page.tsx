@@ -12,10 +12,34 @@ export default function ArchitecturePage() {
       <header>
         <h1 className="text-4xl font-bold mb-4">Architecture Overview</h1>
         <p className="text-xl text-gray-400">
-          ReadyLayer is designed as a deterministic execution fabric, ensuring that agentic
-          workloads are replayable, auditable, and secure.
+          Reach is designed as a deterministic execution fabric, ensuring that agentic workloads are
+          replayable, auditable, and secure.
         </p>
       </header>
+
+      {/* AI Scraper / Quick Summary Section */}
+      <section className="bg-accent/5 border border-accent/20 rounded-xl p-6">
+        <h2 className="text-xs font-bold text-accent uppercase tracking-widest mb-3">
+          Architecture Summary
+        </h2>
+        <div className="grid md:grid-cols-2 gap-6 text-sm">
+          <div>
+            <p className="text-white font-medium mb-2">In one sentence:</p>
+            <p className="text-gray-400">
+              Reach is a deterministic runner and protocol that captures agent executions into
+              signed, replayable Capsules to eliminate non-deterministic drift.
+            </p>
+          </div>
+          <div>
+            <p className="text-white font-medium mb-2">Who this is for:</p>
+            <ul className="text-gray-400 space-y-1">
+              <li>• Engineers building autonomous agent systems</li>
+              <li>• Teams requiring SOC2/Audit compliance for AI</li>
+              <li>• Developers debugging flakey agent behaviors</li>
+            </ul>
+          </div>
+        </div>
+      </section>
 
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b border-border pb-2">Core Principles</h2>

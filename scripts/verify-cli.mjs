@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * CLI Reality Enforcement Verification Script
- * 
+ *
  * Verifies that all documented CLI commands exist in the binary
  * and behave deterministically.
  */
@@ -84,11 +84,11 @@ function testCommand(binary, cmdSpec) {
   // "Usage of" in output means the command exists but needs args - that's OK
   const helpOutput = (helpResult.stdout + helpResult.stderr).toLowerCase();
   const basicOutput = (basicResult.stdout + basicResult.stderr).toLowerCase();
-  const commandExists = 
+  const commandExists =
     !helpResult.error ||
     helpOutput.includes("usage of " + cmdSpec.cmd) ||
     (!helpOutput.includes("unknown") && !basicOutput.includes("unknown"));
-  
+
   results.tests.push({
     name: "command exists",
     passed: commandExists,
@@ -103,14 +103,14 @@ function testCommand(binary, cmdSpec) {
   // Check for required output patterns
   if (cmdSpec.checkOutput && cmdSpec.checkOutput.length > 0) {
     const combinedOutput = (basicResult.stdout + basicResult.stderr).toLowerCase();
-    const hasRequiredOutput = cmdSpec.checkOutput.every(pattern => 
-      combinedOutput.includes(pattern.toLowerCase())
+    const hasRequiredOutput = cmdSpec.checkOutput.every((pattern) =>
+      combinedOutput.includes(pattern.toLowerCase()),
     );
 
     results.tests.push({
       name: "required output patterns",
       passed: hasRequiredOutput,
-      details: hasRequiredOutput 
+      details: hasRequiredOutput
         ? `Found patterns: ${cmdSpec.checkOutput.join(", ")}`
         : `Missing patterns. Output: ${combinedOutput.slice(0, 200)}`,
     });
@@ -125,14 +125,17 @@ function testCommand(binary, cmdSpec) {
     for (const sub of cmdSpec.subcommands) {
       const subResult = runCommand(binary, [cmdSpec.cmd, sub, "--help"]);
       // Subcommand exists if help shows "Usage of <cmd> <sub>" OR if it runs without "unknown" error
-      const subExists = !subResult.error ||
+      const subExists =
+        !subResult.error ||
         (subResult.stdout && subResult.stdout.includes("Usage of")) ||
         (subResult.stderr && !subResult.stderr.toLowerCase().includes("unknown"));
 
       results.tests.push({
         name: `subcommand: ${sub}`,
         passed: subExists,
-        details: subExists ? "Subcommand recognized" : `Subcommand failed: ${subResult.stderr?.slice(0, 100) || subResult.stdout?.slice(0, 100)}`,
+        details: subExists
+          ? "Subcommand recognized"
+          : `Subcommand failed: ${subResult.stderr?.slice(0, 100) || subResult.stdout?.slice(0, 100)}`,
       });
 
       if (!subExists) {
@@ -164,7 +167,7 @@ function testCommand(binary, cmdSpec) {
 // Main verification
 function main() {
   console.log("🔍 CLI Reality Enforcement Verification");
-  console.log("=" .repeat(50));
+  console.log("=".repeat(50));
 
   const binary = findReachctl();
   if (!binary) {
@@ -197,12 +200,17 @@ function main() {
   }
 
   // Summary
-  console.log("=" .repeat(50));
+  console.log("=".repeat(50));
   const totalTests = allResults.reduce((sum, r) => sum + r.tests.length, 0);
-  const passedTests = allResults.reduce((sum, r) => sum + r.tests.filter(t => t.passed).length, 0);
+  const passedTests = allResults.reduce(
+    (sum, r) => sum + r.tests.filter((t) => t.passed).length,
+    0,
+  );
 
   console.log(`Results: ${passedTests}/${totalTests} tests passed`);
-  console.log(`Commands: ${allResults.filter(r => r.passed).length}/${REQUIRED_COMMANDS.length} fully functional`);
+  console.log(
+    `Commands: ${allResults.filter((r) => r.passed).length}/${REQUIRED_COMMANDS.length} fully functional`,
+  );
 
   if (allPassed) {
     console.log("\n✅ CLI Reality Enforcement: PASSED");

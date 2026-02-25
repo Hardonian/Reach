@@ -10,16 +10,9 @@ import { OSSModeBanner } from "./OSSModeBanner";
 
 const primaryNav = [
   { href: ROUTES.PLAYGROUND, label: "Playground" },
-  { href: ROUTES.SKILLS, label: "Skills" },
-  { href: ROUTES.TOOLS, label: "Tools" },
-  { href: ROUTES.STUDIO, label: "Studio" },
-  { href: ROUTES.TEMPLATES, label: "Templates" },
-  { href: ROUTES.LIBRARY, label: "Build (Library)" },
-  { href: ROUTES.REPORTS, label: "Run (Reports)" },
-  { href: ROUTES.SIMULATE, label: "Simulation" },
   { href: ROUTES.DOCS, label: "Docs" },
   { href: ROUTES.PRICING, label: "Pricing" },
-  { href: ROUTES.SETTINGS.HOME, label: "Manage" },
+  { href: ROUTES.ENTERPRISE, label: "Enterprise" },
 ];
 
 export function NavBar() {

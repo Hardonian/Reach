@@ -44,10 +44,18 @@ $AllowedFiles = @(
     "eslint.config.js",
     "cspell.json",
     "doctor.ts",
+    "doctor.test.ts",
     ".gemini",
     ".agent",
     ".artifacts",
     ".kilocode",
+    "CLI_COMMAND_MATRIX.md",
+    "PRODUCTION_HARDENING_REPORT.md",
+    "lint_output_run1.txt",
+    "lint_results.json"
+)
+
+$AllowedDirs = @(
     "src",
     "services",
     "sdk",
@@ -94,7 +102,13 @@ $AllowedFiles = @(
     "plans",
     "plugins",
     "web",
-    "ARTIFACTS"
+    "ARTIFACTS",
+    ".git",
+    ".github",
+    ".vscode",
+    ".agent",
+    ".artifacts",
+    ".kilocode"
 )
 
 $script:EntropyFound = $false

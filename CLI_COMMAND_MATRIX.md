@@ -7,17 +7,17 @@ This document maps documented CLI commands to their binary implementation and te
 
 ## Command Matrix
 
-| Command | Documentation | Binary Implementation | Tests | Status |
-|---------|---------------|----------------------|-------|--------|
-| `reach version` | ✅ README.md, docs/cli.md | ✅ services/runner/cmd/reachctl/main.go | ✅ verify:cli | ✅ PASS |
-| `reach doctor` | ✅ README.md, docs/cli.md | ✅ services/runner/cmd/reachctl/main.go | ✅ verify:cli | ✅ PASS |
-| `reach demo` | ✅ README.md, docs/cli.md | ✅ services/runner/cmd/reachctl/demo_cmd.go | ✅ verify:cli | ✅ PASS |
-| `reach quickstart` | ✅ README.md (referenced) | ✅ services/runner/cmd/reachctl/main.go | ✅ verify:cli | ✅ PASS |
-| `reach status` | ✅ README.md (referenced) | ✅ services/runner/cmd/reachctl/main.go | ✅ verify:cli | ✅ PASS |
-| `reach bugreport` | ✅ README.md, docs/cli.md | ✅ services/runner/cmd/reachctl/main.go | ✅ verify:cli | ✅ PASS |
-| `reach capsule` | ✅ docs/cli.md | ✅ services/runner/cmd/reachctl/main.go | ✅ verify:cli | ✅ PASS |
-| `reach proof` | ✅ docs/cli.md | ✅ services/runner/cmd/reachctl/main.go | ✅ verify:cli | ✅ PASS |
-| `reach packs` | ✅ docs/cli.md | ✅ services/runner/cmd/reachctl/main.go | ✅ verify:cli | ✅ PASS |
+| Command            | Documentation             | Binary Implementation                       | Tests         | Status  |
+| ------------------ | ------------------------- | ------------------------------------------- | ------------- | ------- |
+| `reach version`    | ✅ README.md, docs/cli.md | ✅ services/runner/cmd/reachctl/main.go     | ✅ verify:cli | ✅ PASS |
+| `reach doctor`     | ✅ README.md, docs/cli.md | ✅ services/runner/cmd/reachctl/main.go     | ✅ verify:cli | ✅ PASS |
+| `reach demo`       | ✅ README.md, docs/cli.md | ✅ services/runner/cmd/reachctl/demo_cmd.go | ✅ verify:cli | ✅ PASS |
+| `reach quickstart` | ✅ README.md (referenced) | ✅ services/runner/cmd/reachctl/main.go     | ✅ verify:cli | ✅ PASS |
+| `reach status`     | ✅ README.md (referenced) | ✅ services/runner/cmd/reachctl/main.go     | ✅ verify:cli | ✅ PASS |
+| `reach bugreport`  | ✅ README.md, docs/cli.md | ✅ services/runner/cmd/reachctl/main.go     | ✅ verify:cli | ✅ PASS |
+| `reach capsule`    | ✅ docs/cli.md            | ✅ services/runner/cmd/reachctl/main.go     | ✅ verify:cli | ✅ PASS |
+| `reach proof`      | ✅ docs/cli.md            | ✅ services/runner/cmd/reachctl/main.go     | ✅ verify:cli | ✅ PASS |
+| `reach packs`      | ✅ docs/cli.md            | ✅ services/runner/cmd/reachctl/main.go     | ✅ verify:cli | ✅ PASS |
 
 ## Implementation Notes
 
@@ -70,6 +70,7 @@ reach version
 ## Determinism Guarantees
 
 All commands maintain deterministic behavior:
+
 - Version output is identical across runs (same binary)
 - Status reports deterministic metrics
 - Quickstart generates deterministic run IDs when in fixture mode

@@ -136,7 +136,16 @@
       "public_routes": {
         "description": "Public routes return 200 without auth",
         "sources": ["docs/testing-smoke.md"],
-        "routes": ["/", "/architecture", "/transparency", "/marketplace", "/docs", "/faq", "/pricing", "/governance"],
+        "routes": [
+          "/",
+          "/architecture",
+          "/transparency",
+          "/marketplace",
+          "/docs",
+          "/faq",
+          "/pricing",
+          "/governance"
+        ],
         "codePaths": ["tests/smoke/routes.test.mjs"],
         "testPaths": ["tests/smoke/routes.test.mjs"],
         "verified": false
@@ -144,7 +153,20 @@
       "console_routes": {
         "description": "Console routes redirect or return 200",
         "sources": ["docs/testing-smoke.md"],
-        "routes": ["/console", "/console/agents", "/console/runners", "/console/evaluation", "/console/governance", "/console/datasets", "/console/cost", "/console/ecosystem", "/console/integrations", "/console/artifacts", "/console/alerts", "/console/traces"],
+        "routes": [
+          "/console",
+          "/console/agents",
+          "/console/runners",
+          "/console/evaluation",
+          "/console/governance",
+          "/console/datasets",
+          "/console/cost",
+          "/console/ecosystem",
+          "/console/integrations",
+          "/console/artifacts",
+          "/console/alerts",
+          "/console/traces"
+        ],
         "codePaths": ["tests/smoke/routes.test.mjs"],
         "testPaths": ["tests/smoke/routes.test.mjs"],
         "verified": false
@@ -160,7 +182,13 @@
       "api_governance": {
         "description": "Governance API endpoints require auth or return data",
         "sources": ["docs/testing-smoke.md"],
-        "routes": ["/api/v1/dgl", "/api/v1/cpx", "/api/v1/sccl", "/api/v1/policy", "/api/v1/governance/history"],
+        "routes": [
+          "/api/v1/dgl",
+          "/api/v1/cpx",
+          "/api/v1/sccl",
+          "/api/v1/policy",
+          "/api/v1/governance/history"
+        ],
         "codePaths": ["tests/smoke/routes.test.mjs", "scripts/verify-routes.mjs"],
         "testPaths": ["tests/smoke/routes.test.mjs"],
         "verified": false
@@ -284,7 +312,10 @@
     "DET-03": { "description": "Same input → same hash (Rust)", "verified": false },
     "DET-04": { "description": "Canonical JSON key ordering is recursive", "verified": false },
     "DET-05": { "description": "DeterministicMap iterates in sorted key order", "verified": false },
-    "DET-06": { "description": "SeededRandom produces identical sequence for seed", "verified": false },
+    "DET-06": {
+      "description": "SeededRandom produces identical sequence for seed",
+      "verified": false
+    },
     "DET-07": { "description": "HashStream chunked == single update", "verified": false },
     "DET-08": { "description": "combineHashes is order-sensitive", "verified": false },
     "DET-09": { "description": "Replay produces identical transcript hash", "verified": false },

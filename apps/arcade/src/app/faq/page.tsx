@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Metadata } from "next";
 
 const faqs = [
   {
@@ -36,9 +35,9 @@ const faqs = [
   },
   {
     category: "Licensing",
-    question: "Is ReadyLayer Open Source?",
+    question: "Is Reach Open Source?",
     answer:
-      "The core ReadyLayer protocol, deterministic engine, and CLI are open-source under the Apache License 2.0. Enterprise orchestration and management features are available as a hosted or managed service.",
+      "The core Reach protocol, deterministic engine, and CLI are open-source under the MIT License. Enterprise orchestration and management features (ReadyLayer) are available as a hosted or managed service.",
   },
   {
     category: "Pricing",

@@ -188,10 +188,7 @@ export default function Governance() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-bold">Policy Rules</h2>
-            <button
-              className="btn-primary text-sm py-2"
-              onClick={enterpriseAction}
-            >
+            <button className="btn-primary text-sm py-2" onClick={enterpriseAction}>
               + New Policy
             </button>
           </div>

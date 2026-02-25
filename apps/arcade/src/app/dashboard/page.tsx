@@ -193,9 +193,17 @@ export default function DashboardPage() {
         <div className="mt-12 pt-8 border-t border-border text-center">
           <p className="text-sm text-gray-500">
             Alternatively, jump to:{" "}
-            <Link href={ROUTES.PLAYGROUND} className="text-accent hover:underline">Playground</Link> ·{" "}
-            <Link href={ROUTES.DOCS} className="text-accent hover:underline">Docs</Link> ·{" "}
-            <Link href={ROUTES.MONITORING} className="text-accent hover:underline">Monitoring</Link>
+            <Link href={ROUTES.PLAYGROUND} className="text-accent hover:underline">
+              Playground
+            </Link>{" "}
+            ·{" "}
+            <Link href={ROUTES.DOCS} className="text-accent hover:underline">
+              Docs
+            </Link>{" "}
+            ·{" "}
+            <Link href={ROUTES.MONITORING} className="text-accent hover:underline">
+              Monitoring
+            </Link>
           </p>
         </div>
       </div>

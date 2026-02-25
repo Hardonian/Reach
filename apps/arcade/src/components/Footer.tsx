@@ -52,6 +52,11 @@ export function Footer() {
                   Pricing
                 </Link>
               </li>
+              <li>
+                <Link href={ROUTES.ENTERPRISE} className="hover:text-white transition-colors">
+                  Enterprise
+                </Link>
+              </li>
             </ul>
           </div>
 

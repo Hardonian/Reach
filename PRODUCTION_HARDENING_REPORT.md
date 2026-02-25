@@ -26,6 +26,7 @@ This report documents the production-grade hardening of the Reach repository, en
 ### Problem
 
 Six documented CLI commands were missing or inconsistent in the compiled binary:
+
 - `reach version` - Documented but basic implementation
 - `reach demo` - Only existed in bash wrapper
 - `reach quickstart` - Only existed in bash wrapper
@@ -36,6 +37,7 @@ Six documented CLI commands were missing or inconsistent in the compiled binary:
 ### Solution
 
 1. **Implemented Missing Commands in Binary:**
+
    ```go
    // services/runner/cmd/reachctl/main.go
    func runQuickstart(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int
@@ -43,6 +45,7 @@ Six documented CLI commands were missing or inconsistent in the compiled binary:
    ```
 
 2. **Updated Command Switch:**
+
    ```go
    case "quickstart":
        return runQuickstart(ctx, dataRoot, args[1:], out, errOut)
@@ -59,12 +62,12 @@ Six documented CLI commands were missing or inconsistent in the compiled binary:
 
 ### Files Changed
 
-| File | Change |
-|------|--------|
+| File                                   | Change                                                            |
+| -------------------------------------- | ----------------------------------------------------------------- |
 | `services/runner/cmd/reachctl/main.go` | Added runQuickstart(), runStatus(), updated switch, updated usage |
-| `scripts/verify-cli.mjs` | NEW - CLI verification script |
-| `package.json` | Added `verify:cli` script |
-| `CLI_COMMAND_MATRIX.md` | NEW - Command documentation |
+| `scripts/verify-cli.mjs`               | NEW - CLI verification script                                     |
+| `package.json`                         | Added `verify:cli` script                                         |
+| `CLI_COMMAND_MATRIX.md`                | NEW - Command documentation                                       |
 
 ### Verification
 
@@ -94,11 +97,11 @@ npm run verify:boundaries # ✅ PASSED
 
 ### Files
 
-| File | Purpose |
-|------|---------|
-| `scripts/verify-oss.mjs` | Unsets enterprise env vars, validates purity |
-| `scripts/verify-boundaries.mjs` | Scans 929 files for import violations |
-| `scripts/validate-oss-purity.mjs` | Ensures no cloud SDK leakage |
+| File                              | Purpose                                      |
+| --------------------------------- | -------------------------------------------- |
+| `scripts/verify-oss.mjs`          | Unsets enterprise env vars, validates purity |
+| `scripts/verify-boundaries.mjs`   | Scans 929 files for import violations        |
+| `scripts/validate-oss-purity.mjs` | Ensures no cloud SDK leakage                 |
 
 ---
 
@@ -116,6 +119,7 @@ Already implemented in codebase:
 ### No Hard-500 Routes
 
 All routes return structured JSON errors:
+
 ```go
 return writeJSON(out, map[string]any{
     "error": "description",
@@ -129,11 +133,11 @@ return writeJSON(out, map[string]any{
 
 ### Commands Verified
 
-| Command | Purpose | Status |
-|---------|---------|--------|
-| `reach doctor` | Environment health check | ✅ Works |
-| `reach demo` | One-command demo | ✅ Works |
-| `reach quickstart` | Golden path bootstrap | ✅ Works |
+| Command            | Purpose                  | Status   |
+| ------------------ | ------------------------ | -------- |
+| `reach doctor`     | Environment health check | ✅ Works |
+| `reach demo`       | One-command demo         | ✅ Works |
+| `reach quickstart` | Golden path bootstrap    | ✅ Works |
 
 ### Bootstrap Flow
 
@@ -154,14 +158,14 @@ reach status
 
 ### Documentation
 
-| File | Status |
-|------|--------|
-| `README.md` | ✅ Complete with installation, quickstart, examples |
-| `LICENSE` | ✅ MIT License |
-| `SECURITY.md` | ✅ Security policy |
-| `CONTRIBUTING.md` | ✅ Contribution guidelines |
-| `CODE_OF_CONDUCT.md` | ✅ Community standards |
-| `GOVERNANCE.md` | ✅ Project governance |
+| File                 | Status                                              |
+| -------------------- | --------------------------------------------------- |
+| `README.md`          | ✅ Complete with installation, quickstart, examples |
+| `LICENSE`            | ✅ MIT License                                      |
+| `SECURITY.md`        | ✅ Security policy                                  |
+| `CONTRIBUTING.md`    | ✅ Contribution guidelines                          |
+| `CODE_OF_CONDUCT.md` | ✅ Community standards                              |
+| `GOVERNANCE.md`      | ✅ Project governance                               |
 
 ### Scripts Added
 
@@ -199,40 +203,40 @@ npm run verify:determinism
 
 ### Verification Results
 
-| Script | Status |
-|--------|--------|
-| `verify:cli` | ✅ 26/26 tests passed |
-| `verify:oss` | ✅ PASSED |
-| `verify:boundaries` | ✅ PASSED |
-| `verify:determinism` | ✅ PASSED |
+| Script               | Status                |
+| -------------------- | --------------------- |
+| `verify:cli`         | ✅ 26/26 tests passed |
+| `verify:oss`         | ✅ PASSED             |
+| `verify:boundaries`  | ✅ PASSED             |
+| `verify:determinism` | ✅ PASSED             |
 
 ### CLI Command Matrix
 
-| Command | Doc | Binary | Test | Status |
-|---------|-----|--------|------|--------|
-| version | ✅ | ✅ | ✅ | ✅ |
-| doctor | ✅ | ✅ | ✅ | ✅ |
-| demo | ✅ | ✅ | ✅ | ✅ |
-| quickstart | ✅ | ✅ | ✅ | ✅ |
-| status | ✅ | ✅ | ✅ | ✅ |
-| bugreport | ✅ | ✅ | ✅ | ✅ |
-| capsule | ✅ | ✅ | ✅ | ✅ |
-| proof | ✅ | ✅ | ✅ | ✅ |
-| packs | ✅ | ✅ | ✅ | ✅ |
+| Command    | Doc | Binary | Test | Status |
+| ---------- | --- | ------ | ---- | ------ |
+| version    | ✅  | ✅     | ✅   | ✅     |
+| doctor     | ✅  | ✅     | ✅   | ✅     |
+| demo       | ✅  | ✅     | ✅   | ✅     |
+| quickstart | ✅  | ✅     | ✅   | ✅     |
+| status     | ✅  | ✅     | ✅   | ✅     |
+| bugreport  | ✅  | ✅     | ✅   | ✅     |
+| capsule    | ✅  | ✅     | ✅   | ✅     |
+| proof      | ✅  | ✅     | ✅   | ✅     |
+| packs      | ✅  | ✅     | ✅   | ✅     |
 
 ---
 
 ## Non-Negotiables Verification
 
-| Requirement | Status | Evidence |
-|-------------|--------|----------|
-| No determinism hashing changes | ✅ | `verify:determinism` passes |
-| No frontend/marketing breakage | ✅ | Boundaries verified |
-| No hard-500 routes | ✅ | All routes return structured JSON |
-| Add-if-missing / improve-if-existing | ✅ | All new code additive |
-| OSS vs Enterprise boundaries | ✅ | `verify:oss` passes |
-| Least privilege maintained | ✅ | No privilege escalation |
-| End GREEN | ✅ | All verify scripts pass |
+| Requirement                          | Status | Evidence                          |
+| ------------------------------------ | ------ | --------------------------------- |
+| No determinism hashing changes       | ✅     | `verify:determinism` passes       |
+| No frontend/marketing breakage       | ✅     | Boundaries verified               |
+| No hard-500 routes                   | ✅     | All routes return structured JSON |
+| Add-if-missing / improve-if-existing | ✅     | All new code additive             |
+| OSS vs Enterprise boundaries         | ✅     | `verify:oss` passes               |
+| Least privilege maintained           | ✅     | No privilege escalation           |
+| End GREEN                            | ✅     | All verify scripts pass           |
 
 ---
 
@@ -268,5 +272,5 @@ The Reach repository is now **production-grade, boundary-safe, pressure-tested, 
 
 ---
 
-*Report generated by Kimi Code CLI*  
-*Verification suite: npm run verify:cli && npm run verify:oss && npm run verify:boundaries && npm run verify:determinism*
+_Report generated by Kimi Code CLI_  
+_Verification suite: npm run verify:cli && npm run verify:oss && npm run verify:boundaries && npm run verify:determinism_

@@ -82,7 +82,8 @@ export default async function Home({ searchParams }: HomePageProps) {
             </h1>
 
             <p className="text-xl text-gray-400 mb-3 max-w-2xl">
-              Use the open-source Reach CLI for deterministic local runs, and upgrade to the ReadyLayer cloud for enterprise-grade governance, security, and scale.
+              Use the open-source Reach CLI for deterministic local runs, and upgrade to the
+              ReadyLayer cloud for enterprise-grade governance, security, and scale.
             </p>
 
             <p className="text-base text-emerald-400 font-medium mb-8">

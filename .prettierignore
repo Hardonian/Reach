@@ -1,2 +1,6 @@
 data/runs/*.json
 data/capsules/*.capsule.json
+lint_results.json
+lint_output_run1.txt
+data/test-runs/*.json
+services/runner/data/**/*.json

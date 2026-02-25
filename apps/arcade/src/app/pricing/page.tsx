@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { ROUTES } from "@/lib/routes";
 
 const tiers = [
@@ -57,15 +56,14 @@ const tiers = [
 ];
 
 export default function Pricing() {
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
-
   return (
     <div className="section-container py-8">
       {/* Header */}
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">Find the right plan for your team</h1>
         <p className="text-gray-400 max-w-2xl mx-auto">
-          Start for free with the Reach OSS CLI, and scale with the ReadyLayer cloud platform when you need enterprise-grade governance.
+          Start for free with the Reach OSS CLI, and scale with the ReadyLayer cloud platform when
+          you need enterprise-grade governance.
         </p>
       </div>
 
@@ -125,8 +123,83 @@ export default function Pricing() {
         ))}
       </div>
 
+      {/* Feature Comparison Table */}
+      <div className="max-w-5xl mx-auto mt-24">
+        <h2 className="text-3xl font-bold text-center mb-12">Feature Comparison</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="py-4 px-6 text-gray-500 font-medium">Capability</th>
+                <th className="py-4 px-6 text-white font-bold text-center">Reach (OSS)</th>
+                <th className="py-4 px-6 text-white font-bold text-center">ReadyLayer Pro</th>
+                <th className="py-4 px-6 text-white font-bold text-center">
+                  ReadyLayer Enterprise
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/50">
+              <tr>
+                <td className="py-4 px-6 text-gray-300">Deterministic Engine</td>
+                <td className="py-4 px-6 text-center text-emerald-400">✓</td>
+                <td className="py-4 px-6 text-center text-emerald-400">✓</td>
+                <td className="py-4 px-6 text-center text-emerald-400">✓</td>
+              </tr>
+              <tr>
+                <td className="py-4 px-6 text-gray-300">Bit-Identical Replay</td>
+                <td className="py-4 px-6 text-center text-emerald-400">✓</td>
+                <td className="py-4 px-6 text-center text-emerald-400">✓</td>
+                <td className="py-4 px-6 text-center text-emerald-400">✓</td>
+              </tr>
+              <tr>
+                <td className="py-4 px-6 text-gray-300">CI Gate Enforcement</td>
+                <td className="py-4 px-6 text-center text-emerald-400">Local Only</td>
+                <td className="py-4 px-6 text-center text-emerald-400">Managed CI</td>
+                <td className="py-4 px-6 text-center text-emerald-400">Managed CI</td>
+              </tr>
+              <tr>
+                <td className="py-4 px-6 text-gray-300">Drift Guard Alerts</td>
+                <td className="py-4 px-6 text-center text-gray-600">—</td>
+                <td className="py-4 px-6 text-center text-emerald-400">✓</td>
+                <td className="py-4 px-6 text-center text-emerald-400">✓</td>
+              </tr>
+              <tr>
+                <td className="py-4 px-6 text-gray-300">Multi-tenant Control Plane</td>
+                <td className="py-4 px-6 text-center text-gray-600">—</td>
+                <td className="py-4 px-6 text-center text-emerald-400">✓</td>
+                <td className="py-4 px-6 text-center text-emerald-400">✓</td>
+              </tr>
+              <tr>
+                <td className="py-4 px-6 text-gray-300">Hosted Eval Dashboards</td>
+                <td className="py-4 px-6 text-center text-gray-600">—</td>
+                <td className="py-4 px-6 text-center text-emerald-400">✓</td>
+                <td className="py-4 px-6 text-center text-emerald-400">✓</td>
+              </tr>
+              <tr>
+                <td className="py-4 px-6 text-gray-300">SOC2 Compliance Logs</td>
+                <td className="py-4 px-6 text-center text-gray-600">—</td>
+                <td className="py-4 px-6 text-center text-gray-600">—</td>
+                <td className="py-4 px-6 text-center text-emerald-400">✓</td>
+              </tr>
+              <tr>
+                <td className="py-4 px-6 text-gray-300">Agent Contracts & SLAs</td>
+                <td className="py-4 px-6 text-center text-gray-600">—</td>
+                <td className="py-4 px-6 text-center text-gray-600">—</td>
+                <td className="py-4 px-6 text-center text-emerald-400">✓</td>
+              </tr>
+              <tr>
+                <td className="py-4 px-6 text-gray-300">Single-tenant Hosting</td>
+                <td className="py-4 px-6 text-center text-gray-600">—</td>
+                <td className="py-4 px-6 text-center text-gray-600">—</td>
+                <td className="py-4 px-6 text-center text-emerald-400">✓</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Usage Calculator */}
-      <div className="max-w-3xl mx-auto mt-16">
+      <div className="max-w-3xl mx-auto mt-24">
         <div className="card">
           <h2 className="text-xl font-bold mb-4">Estimate Your Usage</h2>
           <div className="grid md:grid-cols-3 gap-6 text-center">
@@ -150,25 +223,25 @@ export default function Pricing() {
       </div>
 
       {/* FAQ */}
-      <div className="max-w-3xl mx-auto mt-16">
+      <div className="max-w-3xl mx-auto mt-24">
         <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
         <div className="space-y-4">
           {[
             {
+              q: "Can I run Reach completely offline?",
+              a: "Yes. Reach (OSS) is designed for local-first, air-gapped environments. ReadyLayer Pro/Enterprise features require a connection to our cloud or a self-hosted control plane.",
+            },
+            {
               q: "How does usage-based pricing work?",
-              a: "You only pay for the requests you make, compute time you use, and storage you consume. No upfront commitments or minimums.",
+              a: "You only pay for the managed requests made to the cloud platform, compute time for remote simulations, and storage for hosted capsules. Local runs are always free.",
             },
             {
-              q: "Can I upgrade or downgrade at any time?",
-              a: "Yes, you can change your plan at any time. Changes take effect immediately.",
+              q: "Do you offer SOC2 audit artifacts?",
+              a: "Yes, SOC2 and compliance reporting are available exclusively on the Enterprise tier.",
             },
             {
-              q: "What happens if I exceed my limits?",
-              a: "We'll notify you when you approach your limits. You can set up auto-scaling or hard limits based on your preferences.",
-            },
-            {
-              q: "Do you offer refunds?",
-              a: "Yes, we offer a 30-day money-back guarantee for paid plans.",
+              q: "Is there a limit to local execution?",
+              a: "No. Reach (OSS) has no hard limits on local execution, tasks, or packets.",
             },
           ].map((faq, i) => (
             <div key={i} className="card">

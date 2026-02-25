@@ -29,7 +29,9 @@ async function getVersionInfo(): Promise<{ version: string; gitSha: string; time
   try {
     // @ts-ignore - External package may not be available
     const core = (await import("@zeo/core")) as Record<string, unknown>;
-    const coreVersion = core.VERSION_INFO as { version: string; gitSha: string; timestamp: string } | undefined;
+    const coreVersion = core.VERSION_INFO as
+      | { version: string; gitSha: string; timestamp: string }
+      | undefined;
     VERSION_INFO = coreVersion ?? {
       version: "dev",
       gitSha: "unknown",

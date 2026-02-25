@@ -1,10 +1,22 @@
 # Reach Glossary
 
-Canonical terminology for Reach to ensure consistent communication across CLI, documentation, and discussions.
+Canonical terminology for Reach to ensure consistent communication across CLI, documentation, and marketing.
 
 ---
 
-## Canonical Terms
+## The Landscape
+
+### Reach (OSS)
+
+The open-source, local-first deterministic engine and CLI. It is designed for individual researchers and developers building autonomous agents.
+
+### ReadyLayer (Cloud/Enterprise)
+
+The commercial platform built on top of Reach. It provides multi-tenant orchestration, centralized reporting, "Drift Guard" alerting, and enterprise governance (SOC2, Agent Contracts).
+
+---
+
+## Core Concepts
 
 ### Policy
 
@@ -14,7 +26,6 @@ A set of rules governing what actions are permitted during execution. Policies a
 
 - "The `strict-default` Policy blocks unapproved tools."
 - "Apply a cost-limit Policy to prevent runaway spending."
-- CLI: `./reach presets apply strict-safe-mode`
 
 ---
 
@@ -24,21 +35,20 @@ A discrete unit of work within an execution. Tasks have inputs, outputs, and det
 
 **Usage examples:**
 
-- "Each Task in the pack completed within 100ms."
+- "Each Task in the Pack completed within 100ms."
 - "The `analyze-code` Task produced a vulnerability report."
-- CLI: `./reach run my-pack --input '{"task": "scan"}'`
 
 ---
 
 ### Transcript
 
-The complete, ordered log of events from a run. The Transcript enables replay and verification.
+The complete, ordered log of events from a run. The Transcript enables replay and verification by capturing every side effect and decision.
 
-**Usage examples:**
+---
 
-- "Export the Transcript for audit purposes."
-- "Replay verification compares Transcripts bit-for-bit."
-- CLI: `./reach logs <run-id>` displays the Transcript
+### Capsule
+
+A portable, cryptographically signed bundle containing the Transcript, associated metadata, it is the fundamental unit of evidence in Reach.
 
 ---
 
@@ -46,11 +56,17 @@ The complete, ordered log of events from a run. The Transcript enables replay an
 
 A single entry in a Transcript. Events are timestamped, typed, and cryptographically chained.
 
-**Usage examples:**
+---
 
-- "The `tool.invoked` Event recorded the function call."
-- "Event #42 in the Transcript shows the divergence."
-- CLI: `./reach replay <run-id> --verbose` shows per-Event details
+### Deterministic Replay
+
+The ability to re-run a Task or Pack using a Transcript and produce the exact same bit-for-bit output.
+
+---
+
+### Evidence Chain
+
+The cryptographic linkage between Inputs, Policies, Tasks, and Outputs that allows any result to be mathematically verified.
 
 ---
 
@@ -58,31 +74,24 @@ A single entry in a Transcript. Events are timestamped, typed, and cryptographic
 
 Use the canonical terms above instead of these legacy/incorrect terms:
 
-| Avoid                              | Use Instead                          | Reason                                                 |
-| ---------------------------------- | ------------------------------------ | ------------------------------------------------------ |
-| "Run" (as a noun for the artifact) | **Transcript** or **Transcript**     | "Run" describes the action; Transcript is the artifact |
-| "Decision"                         | **Task** or **Output**               | Decisions are one type of Task output                  |
-| "Workflow"                         | **Pack**                             | Packs are the executable unit                          |
-| "Log"                              | **Transcript**                       | Transcript implies ordering and integrity guarantees   |
-| "Record"                           | **Event**                            | Event is the precise term for Transcript entries       |
-| "Chain"                            | **Transcript** or **Evidence chain** | Too vague; be specific                                 |
+| Avoid                              | Use Instead                   | Reason                                               |
+| ---------------------------------- | ----------------------------- | ---------------------------------------------------- |
+| "Run" (as a noun for the artifact) | **Transcript** or **Capsule** | "Run" describes the action; Capsule is the bundle    |
+| "Decision"                         | **Task** or **Output**        | Decisions are one type of Task output                |
+| "Workflow"                         | **Pack**                      | Packs are the executable unit                        |
+| "Log"                              | **Transcript**                | Transcript implies ordering and integrity guarantees |
+| "Record"                           | **Event**                     | Event is the precise term for Transcript entries     |
+| "Chain"                            | **Evidence chain**            | Too vague; be specific                               |
+| "Plugin" (usually)                 | **Skill Pack**                | Reach uses Skill Packs for modularity                |
 
 ---
 
 ## Correct Usage Examples
 
-### CLI Commands
+### CLI Binaries
 
-```bash
-# Correct
-./reach run security-scan
-./reach replay sha256:abc123
-./reach export sha256:abc123
-
-# Incorrect
-./reach execute security-scan      # "execute" not a command
-./reach rerun sha256:abc123        # "rerun" not a command; use "replay"
-```
+- `reach`: The local developer wrapper/CLI.
+- `reachctl`: The core controller (usually called via the `reach` wrapper).
 
 ### Documentation
 
@@ -91,62 +100,30 @@ Use the canonical terms above instead of these legacy/incorrect terms:
 
 The Policy engine evaluates rules before each Task invocation.
 The Transcript contains Events in chronological order.
+The Capsule was verified successfully.
 
 # Incorrect
 
 The policy engine evaluates rules before each task invocation. # lowercase
-The transcript contains events in chronological order. # lowercase
 The workflow generates a log of decisions. # legacy terms
-```
-
-### Code Comments
-
-```go
-// Correct
-// Event represents a single entry in a Transcript.
-type Event struct {
-    Timestamp int64  // Unix nanoseconds
-    Type      string // Event type (e.g., "tool.invoked")
-}
-
-// Incorrect
-// event represents a single log entry.   # lowercase, vague
+The artifact was uploaded. # use "Capsule"
 ```
 
 ---
 
 ## Term Relationships
 
+```text
+Reach (OSS) / ReadyLayer (Cloud)
+  └── Pack (executable)
+        └── Execution
+             ├── Policy (governance rules)
+             ├── Task(s) (work units)
+             │     └── Output(s)
+             └── Transcript (event log)
+                   └── Event(s) (individual entries)
+                         └── Capsule (signed artifact)
 ```
-Pack (executable)
-  └── Execution
-       ├── Policy (governance rules)
-       ├── Task(s) (work units)
-       │     └── Output(s)
-       └── Transcript (event log)
-             └── Event(s) (individual entries)
-                   └── Fingerprint (hash)
-```
-
----
-
-## Context-Specific Usage
-
-### When Discussing Governance
-
-Use **Policy** as the primary term. Avoid "rules" or "constraints" without specifying they are part of a Policy.
-
-### When Discussing Replay/Verification
-
-Use **Transcript** and **Event**. The Transcript is what makes replay possible.
-
-### When Discussing Execution
-
-Use **Task** for units of work, **Pack** for the container, and **Event** for what gets recorded.
-
-### When Discussing Storage
-
-Use **Transcript** for the portable bundle format, **Transcript** for the event log within it.
 
 ---
 
@@ -154,5 +131,5 @@ Use **Transcript** for the portable bundle format, **Transcript** for the event 
 
 - [CLI Reference](./cli.md) - Command descriptions
 - [Architecture](./architecture.md) - System components
+- [Stability](./stability.md) - Versioning and roadmap
 - [Internal: Event Model](./internal/EVENT_MODEL.md) - Event specifications
-- [Internal: Policy Engine Spec](./internal/POLICY_ENGINE_SPEC.md) - Policy internals

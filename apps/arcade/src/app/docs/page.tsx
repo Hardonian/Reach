@@ -40,6 +40,12 @@ export default function DocsPage() {
       icon: "💻",
     },
     {
+      title: "Governance",
+      description: "Manage policies, compliance, and oversight for agent systems.",
+      href: "/docs/governance",
+      icon: "⚖️",
+    },
+    {
       title: "Deployment",
       description: "How to deploy ReadyLayer across Cloud, Edge, and Mobile.",
       href: "/docs/deployment",
@@ -52,13 +58,44 @@ export default function DocsPage() {
       <div className="max-w-5xl mx-auto">
         <header className="mb-16 text-center">
           <h1 className="text-5xl font-extrabold mb-6 tracking-tight text-white">
-            ReadyLayer <span className="text-gradient">Documentation</span>
+            Reach <span className="text-gradient">Documentation</span>
           </h1>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
             Everything you need to build, deploy, and govern deterministic agentic workloads at
             global scale.
           </p>
         </header>
+
+        {/* Docs At a Glance */}
+        <div className="grid md:grid-cols-3 gap-8 mb-16 px-4">
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/5">
+            <h3 className="text-xs font-bold text-accent uppercase tracking-wider mb-2">
+              What is this?
+            </h3>
+            <p className="text-gray-400 text-xs leading-relaxed">
+              An open-source protocol and deterministic engine for running AI agents with guaranteed
+              replayability and strict policy enforcement.
+            </p>
+          </div>
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/5">
+            <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2">
+              Who is it for?
+            </h3>
+            <p className="text-gray-400 text-xs leading-relaxed">
+              Developers and architects building production AI systems who need to eliminate
+              non-deterministic bugs and satisfy audit requirements.
+            </p>
+          </div>
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/5">
+            <h3 className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">
+              Why use it?
+            </h3>
+            <p className="text-gray-400 text-xs leading-relaxed">
+              To move away from "vibes-based" testing and into rigorous, auditable AI operations
+              with bit-identical execution parity across environments.
+            </p>
+          </div>
+        </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((category) => (
