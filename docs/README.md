@@ -58,7 +58,7 @@ CLI/API Entry → Policy Gates → Deterministic Replay → Evidence Chain → C
 
 - **Design**: [Architecture](./architecture.md), [Decisions](./decisions.md), [Topology](./TOPOLOGY.md), [Federation](./FEDERATION.md)
 - **Operations**: [Install](./INSTALL.md), [Install Modes](./INSTALL_MODES.md), [Config](./ENVIRONMENT_VARIABLES.md), [Config as Code](./config-as-code.md), [RBAC](./rbac.md), [Scaling](./scaling.md)
-- **Hardening**: [Determinism Debugging](./DETERMINISM_DEBUGGING.md), [Benchmarking](./BENCHMARKING.md), [Threat Model](./threat-model.md), [Traceability](./traceability.md)
+- **Hardening**: [Determinism Debugging](./DETERMINISM_DEBUGGING.md), [Benchmarking](./BENCHMARKING.md), [Threat Model](./threat-model.md), [Traceability](./traceability.md), [Determinism Shim](./determinism-shim.md)
 - **CLI**: [CLI Reference](./cli.md), [CLI Completions](./cli-completions.md)
 - **Policy**: [Policy Gate](./POLICY_GATE.md)
 - **Development**: [Testing & Smoke](./testing-smoke.md), [Error Codes](./ERROR_CODES.md), [Error Code Registry](./ERROR_CODE_REGISTRY.md)
