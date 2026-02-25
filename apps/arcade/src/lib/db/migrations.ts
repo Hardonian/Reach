@@ -738,6 +738,733 @@ export const MIGRATIONS: string[] = [
 
   CREATE INDEX IF NOT EXISTS idx_artifacts_org_spec_hash ON artifacts(org_id, workspace_id, spec_hash);
   `,
+
+  /* 017 — RLS-like enforcement for multi-tenant isolation */
+  `
+  -- Session variables table to track current tenant context
+  -- This table stores the "current" tenant_id for the session
+  CREATE TABLE IF NOT EXISTS session_variables (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  -- Initialize with empty tenant_id
+  INSERT OR IGNORE INTO session_variables (key, value, updated_at) VALUES ('tenant_id', '', datetime('now'));
+
+  -- Helper view to get current tenant_id easily
+  CREATE VIEW IF NOT EXISTS current_tenant AS SELECT value as tenant_id FROM session_variables WHERE key = 'tenant_id';
+
+  -- Function to set current tenant_id (to be called from application code)
+  CREATE TRIGGER IF NOT EXISTS set_tenant_trigger
+  INSTEAD OF UPDATE ON current_tenant
+  BEGIN
+    UPDATE session_variables SET value = NEW.tenant_id, updated_at = datetime('now') WHERE key = 'tenant_id';
+  END;
+
+  -- RLS Triggers for memberships table
+  CREATE TRIGGER IF NOT EXISTS memberships_rls_insert
+  BEFORE INSERT ON memberships
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into memberships for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS memberships_rls_update
+  BEFORE UPDATE ON memberships
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update memberships from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS memberships_rls_delete
+  BEFORE DELETE ON memberships
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete memberships from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for api_keys table
+  CREATE TRIGGER IF NOT EXISTS api_keys_rls_insert
+  BEFORE INSERT ON api_keys
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into api_keys for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS api_keys_rls_update
+  BEFORE UPDATE ON api_keys
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update api_keys from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS api_keys_rls_delete
+  BEFORE DELETE ON api_keys
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete api_keys from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for web_sessions table
+  CREATE TRIGGER IF NOT EXISTS web_sessions_rls_insert
+  BEFORE INSERT ON web_sessions
+  WHEN NEW.tenant_id IS NOT NULL
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into web_sessions for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS web_sessions_rls_update
+  BEFORE UPDATE ON web_sessions
+  WHEN NEW.tenant_id IS NOT NULL
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id IS NOT NULL AND OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update web_sessions from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for projects table
+  CREATE TRIGGER IF NOT EXISTS projects_rls_insert
+  BEFORE INSERT ON projects
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into projects for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS projects_rls_update
+  BEFORE UPDATE ON projects
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update projects from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS projects_rls_delete
+  BEFORE DELETE ON projects
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete projects from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for workflows table
+  CREATE TRIGGER IF NOT EXISTS workflows_rls_insert
+  BEFORE INSERT ON workflows
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into workflows for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS workflows_rls_update
+  BEFORE UPDATE ON workflows
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update workflows from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS workflows_rls_delete
+  BEFORE DELETE ON workflows
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete workflows from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for workflow_runs table
+  CREATE TRIGGER IF NOT EXISTS workflow_runs_rls_insert
+  BEFORE INSERT ON workflow_runs
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into workflow_runs for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS workflow_runs_rls_update
+  BEFORE UPDATE ON workflow_runs
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update workflow_runs from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS workflow_runs_rls_delete
+  BEFORE DELETE ON workflow_runs
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete workflow_runs from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for gates table
+  CREATE TRIGGER IF NOT EXISTS gates_rls_insert
+  BEFORE INSERT ON gates
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into gates for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS gates_rls_update
+  BEFORE UPDATE ON gates
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update gates from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS gates_rls_delete
+  BEFORE DELETE ON gates
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete gates from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for gate_runs table
+  CREATE TRIGGER IF NOT EXISTS gate_runs_rls_insert
+  BEFORE INSERT ON gate_runs
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into gate_runs for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS gate_runs_rls_update
+  BEFORE UPDATE ON gate_runs
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update gate_runs from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS gate_runs_rls_delete
+  BEFORE DELETE ON gate_runs
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete gate_runs from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for signals table
+  CREATE TRIGGER IF NOT EXISTS signals_rls_insert
+  BEFORE INSERT ON signals
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into signals for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS signals_rls_update
+  BEFORE UPDATE ON signals
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update signals from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS signals_rls_delete
+  BEFORE DELETE ON signals
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete signals from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for monitor_runs table
+  CREATE TRIGGER IF NOT EXISTS monitor_runs_rls_insert
+  BEFORE INSERT ON monitor_runs
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into monitor_runs for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS monitor_runs_rls_update
+  BEFORE UPDATE ON monitor_runs
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update monitor_runs from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS monitor_runs_rls_delete
+  BEFORE DELETE ON monitor_runs
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete monitor_runs from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for alert_rules table
+  CREATE TRIGGER IF NOT EXISTS alert_rules_rls_insert
+  BEFORE INSERT ON alert_rules
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into alert_rules for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS alert_rules_rls_update
+  BEFORE UPDATE ON alert_rules
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update alert_rules from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS alert_rules_rls_delete
+  BEFORE DELETE ON alert_rules
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete alert_rules from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for scenarios table
+  CREATE TRIGGER IF NOT EXISTS scenarios_rls_insert
+  BEFORE INSERT ON scenarios
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into scenarios for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS scenarios_rls_update
+  BEFORE UPDATE ON scenarios
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update scenarios from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS scenarios_rls_delete
+  BEFORE DELETE ON scenarios
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete scenarios from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for scenario_runs table
+  CREATE TRIGGER IF NOT EXISTS scenario_runs_rls_insert
+  BEFORE INSERT ON scenario_runs
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into scenario_runs for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS scenario_runs_rls_update
+  BEFORE UPDATE ON scenario_runs
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update scenario_runs from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS scenario_runs_rls_delete
+  BEFORE DELETE ON scenario_runs
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete scenario_runs from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for entitlements table
+  CREATE TRIGGER IF NOT EXISTS entitlements_rls_insert
+  BEFORE INSERT ON entitlements
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into entitlements for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS entitlements_rls_update
+  BEFORE UPDATE ON entitlements
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update entitlements from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS entitlements_rls_delete
+  BEFORE DELETE ON entitlements
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete entitlements from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for audit_events table
+  CREATE TRIGGER IF NOT EXISTS audit_events_rls_insert
+  BEFORE INSERT ON audit_events
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into audit_events for a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for ci_ingest_runs table
+  CREATE TRIGGER IF NOT EXISTS ci_ingest_runs_rls_insert
+  BEFORE INSERT ON ci_ingest_runs
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into ci_ingest_runs for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS ci_ingest_runs_rls_update
+  BEFORE UPDATE ON ci_ingest_runs
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update ci_ingest_runs from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS ci_ingest_runs_rls_delete
+  BEFORE DELETE ON ci_ingest_runs
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete ci_ingest_runs from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for github_installations table
+  CREATE TRIGGER IF NOT EXISTS github_installations_rls_insert
+  BEFORE INSERT ON github_installations
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into github_installations for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS github_installations_rls_update
+  BEFORE UPDATE ON github_installations
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update github_installations from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS github_installations_rls_delete
+  BEFORE DELETE ON github_installations
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete github_installations from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for report_shares table
+  CREATE TRIGGER IF NOT EXISTS report_shares_rls_insert
+  BEFORE INSERT ON report_shares
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into report_shares for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS report_shares_rls_update
+  BEFORE UPDATE ON report_shares
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update report_shares from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS report_shares_rls_delete
+  BEFORE DELETE ON report_shares
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete report_shares from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for skills table
+  CREATE TRIGGER IF NOT EXISTS skills_rls_insert
+  BEFORE INSERT ON skills
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into skills for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS skills_rls_update
+  BEFORE UPDATE ON skills
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update skills from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS skills_rls_delete
+  BEFORE DELETE ON skills
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete skills from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for templates table
+  CREATE TRIGGER IF NOT EXISTS templates_rls_insert
+  BEFORE INSERT ON templates
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into templates for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS templates_rls_update
+  BEFORE UPDATE ON templates
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update templates from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS templates_rls_delete
+  BEFORE DELETE ON templates
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete templates from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for tool_audit_trail table
+  CREATE TRIGGER IF NOT EXISTS tool_audit_trail_rls_insert
+  BEFORE INSERT ON tool_audit_trail
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into tool_audit_trail for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS tool_audit_trail_rls_update
+  BEFORE UPDATE ON tool_audit_trail
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update tool_audit_trail from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS tool_audit_trail_rls_delete
+  BEFORE DELETE ON tool_audit_trail
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete tool_audit_trail from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for score_history table
+  CREATE TRIGGER IF NOT EXISTS score_history_rls_insert
+  BEFORE INSERT ON score_history
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into score_history for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS score_history_rls_update
+  BEFORE UPDATE ON score_history
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update score_history from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS score_history_rls_delete
+  BEFORE DELETE ON score_history
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete score_history from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for telemetry_rollups table
+  CREATE TRIGGER IF NOT EXISTS telemetry_rollups_rls_insert
+  BEFORE INSERT ON telemetry_rollups
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into telemetry_rollups for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS telemetry_rollups_rls_update
+  BEFORE UPDATE ON telemetry_rollups
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update telemetry_rollups from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS telemetry_rollups_rls_delete
+  BEFORE DELETE ON telemetry_rollups
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete telemetry_rollups from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for governance_memory table
+  CREATE TRIGGER IF NOT EXISTS governance_memory_rls_insert
+  BEFORE INSERT ON governance_memory
+  BEGIN
+    SELECT CASE
+      WHEN NEW.org_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into governance_memory for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS governance_memory_rls_update
+  BEFORE UPDATE ON governance_memory
+  BEGIN
+    SELECT CASE
+      WHEN OLD.org_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update governance_memory from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS governance_memory_rls_delete
+  BEFORE DELETE ON governance_memory
+  BEGIN
+    SELECT CASE
+      WHEN OLD.org_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete governance_memory from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for governance_specs table
+  CREATE TRIGGER IF NOT EXISTS governance_specs_rls_insert
+  BEFORE INSERT ON governance_specs
+  BEGIN
+    SELECT CASE
+      WHEN NEW.org_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into governance_specs for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS governance_specs_rls_update
+  BEFORE UPDATE ON governance_specs
+  BEGIN
+    SELECT CASE
+      WHEN OLD.org_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update governance_specs from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS governance_specs_rls_delete
+  BEFORE DELETE ON governance_specs
+  BEGIN
+    SELECT CASE
+      WHEN OLD.org_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete governance_specs from a different tenant')
+    END;
+  END;
+
+  -- RLS Triggers for artifacts table
+  CREATE TRIGGER IF NOT EXISTS artifacts_rls_insert
+  BEFORE INSERT ON artifacts
+  BEGIN
+    SELECT CASE
+      WHEN NEW.org_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into artifacts for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS artifacts_rls_update
+  BEFORE UPDATE ON artifacts
+  BEGIN
+    SELECT CASE
+      WHEN OLD.org_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update artifacts from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS artifacts_rls_delete
+  BEFORE DELETE ON artifacts
+  BEGIN
+    SELECT CASE
+      WHEN OLD.org_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete artifacts from a different tenant')
+    END;
+  END;
+  `,
 ];
 
 export function applyMigrations(db: Database.Database): void {
@@ -763,5 +1490,56 @@ export function applyMigrations(db: Database.Database): void {
       });
       applyMigration();
     }
+  }
+}
+
+/**
+ * Set the current tenant_id for the session.
+ * This must be called before any tenant-specific operations.
+ * 
+ * @param db - The database connection
+ * @param tenantId - The tenant ID to set for the current session (empty string to clear)
+ */
+export function setCurrentTenant(db: Database.Database, tenantId: string): void {
+  db.prepare(`
+    UPDATE session_variables 
+    SET value = ?, updated_at = datetime('now') 
+    WHERE key = 'tenant_id'
+  `).run(tenantId);
+}
+
+/**
+ * Get the current tenant_id for the session.
+ * 
+ * @param db - The database connection
+ * @returns The current tenant ID, or empty string if not set
+ */
+export function getCurrentTenant(db: Database.Database): string {
+  const result = db.prepare(`
+    SELECT value FROM session_variables WHERE key = 'tenant_id'
+  `).get() as { value: string } | undefined;
+  return result?.value ?? '';
+}
+
+/**
+ * Execute a function with a temporary tenant context.
+ * Sets the tenant, runs the callback, then restores the previous tenant.
+ * 
+ * @param db - The database connection
+ * @param tenantId - The tenant ID to set for this operation
+ * @param fn - The function to execute within the tenant context
+ * @returns The result of the function
+ */
+export function withTenantContext<T>(
+  db: Database.Database,
+  tenantId: string,
+  fn: () => T
+): T {
+  const previousTenant = getCurrentTenant(db);
+  try {
+    setCurrentTenant(db, tenantId);
+    return fn();
+  } finally {
+    setCurrentTenant(db, previousTenant);
   }
 }
