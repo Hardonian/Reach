@@ -177,8 +177,6 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runDoctor(args[1:], out, errOut)
 	case "bugreport":
 		return runBugreport(args[1:], out, errOut)
-	case "metrics":
-		return runMetrics(args[1:], out, errOut)
 	case "run":
 		return runQuick(args[1:], out, errOut)
 	case "validate":
