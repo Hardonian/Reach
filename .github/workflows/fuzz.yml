@@ -1,0 +1,86 @@
+name: Fuzz Testing
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    # Run weekly on Sunday at 3am UTC
+    - cron: "0 3 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  fuzz-rust:
+    name: Rust Fuzz Testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-fuzz
+        run: |
+          cargo install cargo-fuzz
+
+      - name: Fuzz determinism parsing
+        run: |
+          cargo fuzz run fuzz_determinism_parse -- -max_len=16384 -timeout=30
+
+      - name: Fuzz config parsing
+        run: |
+          cargo fuzz run fuzz_config_parse -- -max_len=16384 -timeout=30
+
+      - name: Fuzz fingerprinting
+        run: |
+          cargo fuzz run fuzz_fingerprint -- -max_len=16384 -timeout=30
+        continue-on-error: true
+
+  fuzz-coverage:
+    name: Fuzz Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-fuzz
+        run: |
+          cargo install cargo-fuzz
+
+      - name: Run fuzz with coverage
+        run: |
+          # Build with coverage instrumentation
+          cargo fuzz build --sanitizer=coverage
+          
+          # Run for limited time
+          timeout 300 cargo fuzz run fuzz_determinism_parse -- -max_len=16384 || true
+          
+          # Generate coverage report
+          cargo fuzz coverage fuzz_determinism_parse || true
+
+  fuzz-continuous:
+    name: Continuous Fuzzing (24h)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-fuzz
+        run: |
+          cargo install cargo-fuzz
+
+      - name: Run extended fuzz session
+        run: |
+          # Run extended fuzzing for critical targets
+          cargo fuzz run fuzz_determinism_parse -- -max_len=16384 -timeout=60 -jobs=4 -workers=4 || true
+          cargo fuzz run fuzz_config_parse -- -max_len=16384 -timeout=60 -jobs=4 -workers=4 || true

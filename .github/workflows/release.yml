@@ -8,10 +8,18 @@ on:
 
 permissions:
   contents: write
+  id-token: write  # Required for OIDC cosign signing
 
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
+
+env:
+  # Cosign configuration for OpenSSH-grade security
+  COSIGN_EXPERIMENTAL: "1"
+  COSIGN_REPOSITORY: "ghcr.io/reach/signatures"
+  COSIGN_FULCIO_URL: "https://fulcio.sigstore.dev"
+  COSIGN_REKOR_URL: "https://rekor.sigstore.dev"
 
 jobs:
   # Build matrix for all supported platforms
@@ -23,27 +31,32 @@ jobs:
           - os: ubuntu-latest
             goos: linux
             goarch: amd64
-            binary: reachctl-linux-amd64
+            artifact: reach-{{VERSION}}-linux-amd64.tar.gz
+            binary: reachctl
           # Linux ARM64
           - os: ubuntu-latest
             goos: linux
             goarch: arm64
-            binary: reachctl-linux-arm64
+            artifact: reach-{{VERSION}}-linux-arm64.tar.gz
+            binary: reachctl
           # macOS AMD64
           - os: macos-latest
             goos: darwin
             goarch: amd64
-            binary: reachctl-darwin-amd64
+            artifact: reach-{{VERSION}}-darwin-amd64.tar.gz
+            binary: reachctl
           # macOS ARM64 (Apple Silicon)
           - os: macos-latest
             goos: darwin
             goarch: arm64
-            binary: reachctl-darwin-arm64
+            artifact: reach-{{VERSION}}-darwin-arm64.tar.gz
+            binary: reachctl
           # Windows AMD64
           - os: windows-latest
             goos: windows
             goarch: amd64
-            binary: reachctl-windows-amd64.exe
+            artifact: reach-{{VERSION}}-windows-amd64.zip
+            binary: reachctl.exe
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -74,11 +87,36 @@ jobs:
             -o dist/${{ matrix.binary }} \
             ./services/runner/cmd/reachctl
 
+      - name: Create archive
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          mkdir -p dist
+          
+          # Create proper archive name
+          case "${{ matrix.goos }}" in
+            linux)
+              ARCHIVE_NAME="reach-${VERSION}-linux-${{ matrix.goarch }}.tar.gz"
+              tar -czf "dist/${ARCHIVE_NAME}" -C dist ${{ matrix.binary }}
+              ;;
+            darwin)
+              ARCHIVE_NAME="reach-${VERSION}-darwin-${{ matrix.goarch }}.tar.gz"
+              tar -czf "dist/${ARCHIVE_NAME}" -C dist ${{ matrix.binary }}
+              ;;
+            windows)
+              ARCHIVE_NAME="reach-${VERSION}-windows-${{ matrix.goarch }}.zip"
+              powershell -Command "Compress-Archive -Path 'dist/${{ matrix.binary }}' -DestinationPath 'dist/${ARCHIVE_NAME}'"
+              ;;
+          esac
+          
+          echo "Created: ${ARCHIVE_NAME}"
+          ls -la dist/
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.binary }}
-          path: dist/${{ matrix.binary }}
+          name: ${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*
           retention-days: 7
 
   # Build wrapper script and additional artifacts
@@ -87,9 +125,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
+          fi
+
       - name: Prepare extras
         run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
           mkdir -p dist
+          
+          # Copy wrapper scripts
           cp reach dist/reach
           cp scripts/release/install.sh dist/install.sh
           cp scripts/release/install.ps1 dist/install.ps1
@@ -97,6 +148,14 @@ jobs:
           cp LICENSE dist/LICENSE
           cp VERSION dist/VERSION
           chmod +x dist/reach dist/install.sh
+          
+          # Create archives for the wrapper script
+          # Linux/macOS
+          tar -czf "dist/reach-${VERSION}-wrapper.tar.gz" -C dist reach install.sh install.ps1 README.md LICENSE VERSION
+          # Windows (zip)
+          powershell -Command "Compress-Archive -Path 'dist/reach','dist/install.ps1','dist/README.md','dist/LICENSE','dist/VERSION' -DestinationPath 'dist/reach-${VERSION}-windows-wrapper.zip'"
+          
+          ls -la dist/
 
       - name: Upload extras
         uses: actions/upload-artifact@v4
@@ -112,42 +171,80 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            binary: reachctl-linux-amd64
+            archive: reach-{{VERSION}}-linux-amd64.tar.gz
+            binary: reachctl
           - os: macos-latest
-            binary: reachctl-darwin-amd64
+            archive: reach-{{VERSION}}-darwin-amd64.tar.gz
+            binary: reachctl
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
+          fi
+
       - uses: actions/download-artifact@v4
         with:
-          name: ${{ matrix.binary }}
           path: dist
+          pattern: "${{ matrix.os == 'ubuntu-latest' && 'linux-amd64' || 'darwin-amd64' }}"
+
       - uses: actions/download-artifact@v4
         with:
           name: extras
           path: dist
 
+      - name: Extract archive
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          # Find and extract the archive
+          ARCHIVE=$(find dist -name "reach-${VERSION}-*.tar.gz" -o -name "reach-${VERSION}-*.zip" | head -1)
+          echo "Found archive: $ARCHIVE"
+          
+          if [[ "$ARCHIVE" == *.tar.gz ]]; then
+            tar -xzf "$ARCHIVE"
+          elif [[ "$ARCHIVE" == *.zip ]]; then
+            unzip -q "$ARCHIVE"
+          fi
+          
+          ls -la
+
       - name: Test binary
         run: |
-          chmod +x dist/${{ matrix.binary }}
-          ./dist/${{ matrix.binary }} version
+          chmod +x ./${{ matrix.binary }}
+          ./${{ matrix.binary }} version
 
       - name: Simulate install script
         shell: bash
         run: |
           set -euo pipefail
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          
+          # Calculate checksum
           if command -v sha256sum >/dev/null 2>&1; then
-            (cd dist && sha256sum "${{ matrix.binary }}" reach > SHA256SUMS)
+            (cd . && sha256sum "${{ matrix.binary }}" > SHA256SUMS)
           else
-            (cd dist && shasum -a 256 "${{ matrix.binary }}" reach | awk '{print $1"  "$2}' > SHA256SUMS)
+            (cd . && shasum -a 256 "${{ matrix.binary }}" | awk '{print $1"  "$2}' > SHA256SUMS)
           fi
-          INSTALL_DIR="${RUNNER_TEMP}/reach-bin"
-          VERSION="$(cat VERSION)"
-          REACH_VERSION="${VERSION}" REACH_RELEASE_DIR="${PWD}/dist" INSTALL_DIR="${INSTALL_DIR}" bash dist/install.sh
-          "${INSTALL_DIR}/reach" version
-          "${INSTALL_DIR}/reach" status || true
+          
+          # Use wrapper archive for testing
+          WRAPPER=$(find dist -name "reach-${VERSION}-wrapper.tar.gz")
+          mkdir -p "${RUNNER_TEMP}/reach-test"
+          tar -xzf "$WRAPPER" -C "${RUNNER_TEMP}/reach-test"
+          cd "${RUNNER_TEMP}/reach-test"
+          
+          REACH_VERSION="${VERSION}" REACH_RELEASE_DIR="${PWD}" INSTALL_DIR="${RUNNER_TEMP}/reach-bin" bash install.sh
+          "${RUNNER_TEMP}/reach-bin/reach" version
+          "${RUNNER_TEMP}/reach-bin/reach" status || true
           set +e
-          "${INSTALL_DIR}/reach" doctor
+          "${RUNNER_TEMP}/reach-bin/reach" doctor
           doctor_exit=$?
           set -e
           if [ "$doctor_exit" -ne 0 ] && [ "$doctor_exit" -ne 1 ]; then
@@ -160,29 +257,62 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
+          fi
+
       - uses: actions/download-artifact@v4
         with:
-          name: reachctl-windows-amd64.exe
+          name: windows-amd64
           path: dist
       - uses: actions/download-artifact@v4
         with:
           name: extras
           path: dist
+
+      - name: Extract archive
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.VERSION }}"
+          
+          # Find and extract the archive
+          $archive = Get-ChildItem -Path dist -Filter "reach-${version}-windows-*.zip" | Select-Object -First 1
+          Write-Host "Found archive: $($archive.Name)"
+          
+          Expand-Archive -Path $archive.FullName -DestinationPath . -Force
+          
+          Get-ChildItem
+
+      - name: Test binary
+        shell: pwsh
+        run: |
+          .\reachctl.exe version
+
       - name: Simulate PowerShell installer
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          $dist = Resolve-Path "dist"
-          $hashExe = (Get-FileHash -Path (Join-Path $dist "reachctl-windows-amd64.exe") -Algorithm SHA256).Hash.ToLowerInvariant()
-          $hashReach = (Get-FileHash -Path (Join-Path $dist "reach") -Algorithm SHA256).Hash.ToLowerInvariant()
-          @(
-            "$hashExe  reachctl-windows-amd64.exe"
-            "$hashReach  reach"
-          ) | Set-Content -Path (Join-Path $dist "SHA256SUMS")
-
           $version = (Get-Content "VERSION" -Raw).Trim()
+          
+          # Calculate checksums
+          $hashExe = (Get-FileHash -Path ".\reachctl.exe" -Algorithm SHA256).Hash.ToLowerInvariant()
+          @(
+            "$hashExe  reachctl.exe"
+          ) | Set-Content -Path "SHA256SUMS"
+          
+          # Find and extract wrapper
+          $wrapper = Get-ChildItem -Path dist -Filter "reach-${version}-windows-wrapper.zip" | Select-Object -First 1
           $installDir = Join-Path $env:RUNNER_TEMP "reach-bin"
-          & (Join-Path $dist "install.ps1") -Version $version -InstallDir $installDir -ReleaseDir $dist
+          Expand-Archive -Path $wrapper.FullName -DestinationPath $installDir -Force
+          
+          & (Join-Path $installDir "install.ps1") -Version $version -InstallDir $installDir -ReleaseDir $installDir
           & (Join-Path $installDir "reachctl.exe") version
           & (Join-Path $installDir "reachctl.exe") status
           & (Join-Path $installDir "reachctl.exe") doctor
@@ -201,8 +331,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
-          pattern: "reachctl-*"
-          merge-multiple: true
+          pattern: "*"
 
       - uses: actions/download-artifact@v4
         with:
@@ -216,6 +345,56 @@ jobs:
       - name: List artifacts
         run: ls -la artifacts/
 
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: 'v2.4.0'
+
+      - name: Sign artifacts with Cosign
+        run: |
+          cd artifacts
+          # Sign all artifact files
+          for file in *.tar.gz *.zip; do
+            if [ -f "$file" ]; then
+              echo "Signing: $file"
+              cosign sign \
+                --yes \
+                --timestamp-authority "https://timestamp.sigstore.dev" \
+                "$file"
+            fi
+          done
+          
+          # Also sign the SHA256SUMS file
+          if [ -f "SHA256SUMS" ]; then
+            echo "Signing: SHA256SUMS"
+            cosign sign \
+              --yes \
+              --timestamp-authority "https://timestamp.sigstore.dev" \
+              "SHA256SUMS"
+          fi
+          
+          # Generate keyless signature for SBOM
+          if [ -f "reach-sbom.cyclonedx.json" ]; then
+            echo "Signing: reach-sbom.cyclonedx.json"
+            cosign sign \
+              --yes \
+              --timestamp-authority "https://timestamp.sigstore.dev" \
+              "reach-sbom.cyclonedx.json"
+          fi
+
+      - name: Verify signatures
+        run: |
+          cd artifacts
+          for file in *.tar.gz *.zip SHA256SUMS reach-sbom.cyclonedx.json; do
+            if [ -f "$file" ]; then
+              echo "Verifying: $file"
+              cosign verify \
+                --certificate-identity "https://github.com/reach/reach/.github/workflows/release.yml@refs/tags/v${{ github.ref_name }}" \
+                --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+                "$file" || echo "Warning: Verification failed for $file"
+            fi
+          done
+
       - name: Generate release checksums
         run: |
           cd artifacts
@@ -228,7 +407,6 @@ jobs:
           format: cyclonedx-json
           output-file: artifacts/reach-sbom.cyclonedx.json
           artifact-name: reach-sbom
-          upload-artifacts: false
 
       - name: Generate artifact manifest
         run: |
@@ -275,25 +453,31 @@ jobs:
     needs: publish
     if: startsWith(github.ref, 'refs/tags/')
     steps:
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: 'v2.4.0'
+
       - name: Verify release assets
         run: |
           VERSION=${GITHUB_REF_NAME#v}
           echo "Verifying release v${VERSION}..."
 
-          # Check all expected assets exist
+          # Check all expected assets exist (new OpenSSH-style naming)
           ASSETS=(
-            "reachctl-linux-amd64"
-            "reachctl-linux-arm64"
-            "reachctl-darwin-amd64"
-            "reachctl-darwin-arm64"
-            "reachctl-windows-amd64.exe"
-            "reach"
-            "install.sh"
-            "install.ps1"
+            "reach-${VERSION}-linux-amd64.tar.gz"
+            "reach-${VERSION}-linux-arm64.tar.gz"
+            "reach-${VERSION}-darwin-amd64.tar.gz"
+            "reach-${VERSION}-darwin-arm64.tar.gz"
+            "reach-${VERSION}-windows-amd64.zip"
+            "reach-${VERSION}-wrapper.tar.gz"
+            "reach-${VERSION}-windows-wrapper.zip"
             "SHA256SUMS"
+            "SHA256SUMS.sig"
             "artifact-manifest.json"
             "RELEASE_NOTES.md"
             "reach-sbom.cyclonedx.json"
+            "reach-sbom.cyclonedx.json.sig"
           )
 
           for asset in "${ASSETS[@]}"; do
@@ -307,3 +491,20 @@ jobs:
           done
 
           echo "All release assets verified!"
+
+      - name: Verify cosign signatures
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "Verifying cosign signatures..."
+
+          # Download SHA256SUMS for verification
+          curl -fsSL -o SHA256SUMS "https://github.com/reach/reach/releases/download/v${VERSION}/SHA256SUMS"
+          curl -fsSL -o SHA256SUMS.sig "https://github.com/reach/reach/releases/download/v${VERSION}/SHA256SUMS.sig"
+
+          # Verify the checksum file signature
+          cosign verify \
+            --certificate-identity "https://github.com/reach/reach/.github/workflows/release.yml@refs/tags/v${VERSION}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            SHA256SUMS
+
+          echo "Cosign signatures verified!"

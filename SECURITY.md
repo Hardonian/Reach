@@ -89,7 +89,9 @@ curl -fsSL "https://github.com/reach/reach/releases/latest/download/reach-sbom.c
 - **SBOM**: CycloneDX format SBOM generated for every release
 - **OSV Scanning**: Automated vulnerability scanning via [OSV Scanner](https://github.com/google/osv-scanner)
 - **Lockfile Integrity**: `package-lock.json` verified in CI
-- **Reproducible Builds**: Go binaries built with `-trimpath` for reproducibility
+- **Reproducible Builds**: Go binaries built with `-trimpath` for reproducibility. See [Reproducible Builds Strategy](docs/reproducible-builds.md)
+- **Security Posture**: For a detailed technical overview, see [Security Posture (Engineering)](docs/security-posture.md)
+- **Threat Model**: See our formal [STRIDE Threat Model](docs/threat-model-stride.md)
 
 ## Operational Expectations
 
@@ -97,3 +99,32 @@ curl -fsSL "https://github.com/reach/reach/releases/latest/download/reach-sbom.c
 - Keep tenant/session scope checks in place for protected operations.
 - Rotate provider secrets and encryption keys regularly.
 - Use `reach bugreport` for redacted diagnostics when filing issues.
+
+## Supported Versions
+
+Reach provides security updates for the following versions:
+
+| Version | Supported          | Notes                        |
+| ------- | ------------------ | ---------------------------- |
+| 0.3.x   | :white_check_mark: | Current stable release      |
+| 0.2.x   | :warning:          | Security fixes only          |
+| 0.1.x   | :x:                | End of life                 |
+
+### Version Support Policy
+
+- **Current Stable (0.3.x)**: Full security support including new features and bug fixes
+- **Previous Stable (0.2.x)**: Security fixes only for critical vulnerabilities
+- **End of Life**: No longer supported, upgrade recommended
+
+### Upgrading
+
+Users on older versions should upgrade to the latest stable release to receive security updates. See the [changelog](CHANGELOG.md) for upgrade instructions.
+
+## Security Updates
+
+Security vulnerabilities are patched as follows:
+
+- **Critical (CVSS 9-10)**: Patch within 7 days
+- **High (CVSS 7-8.9)**: Patch within 30 days
+- **Medium (CVSS 4-6.9)**: Patch within 90 days
+- **Low (CVSS 0-3.9)**: Patch at next release cycle

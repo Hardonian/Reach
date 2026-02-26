@@ -762,6 +762,247 @@ export const MIGRATIONS: string[] = [
   CREATE INDEX IF NOT EXISTS idx_gate_versions_tenant ON gate_versions(tenant_id, gate_id, version DESC);
   `,
 
+  /* 019 — traces and trace steps for execution observability */
+  `
+  CREATE TABLE IF NOT EXISTS traces (
+    id            TEXT PRIMARY KEY,
+    tenant_id     TEXT NOT NULL REFERENCES tenants(id),
+    run_id        TEXT NOT NULL,
+    workflow_id   TEXT REFERENCES workflows(id),
+    gate_id       TEXT REFERENCES gates(id),
+    trace_type    TEXT NOT NULL DEFAULT 'workflow',
+    status        TEXT NOT NULL DEFAULT 'running',
+    started_at    TEXT NOT NULL,
+    finished_at   TEXT,
+    agent_name    TEXT,
+    tool_name     TEXT,
+    input_tokens  INTEGER,
+    output_tokens INTEGER,
+    cost_usd      REAL,
+    metadata_json TEXT DEFAULT '{}'
+  );
+
+  CREATE TABLE IF NOT EXISTS trace_steps (
+    id            TEXT PRIMARY KEY,
+    trace_id      TEXT NOT NULL REFERENCES traces(id),
+    step_number   INTEGER NOT NULL,
+    name          TEXT NOT NULL,
+    type          TEXT NOT NULL DEFAULT 'llm',
+    status        TEXT NOT NULL DEFAULT 'pending',
+    started_at    TEXT,
+    finished_at   TEXT,
+    duration_ms   INTEGER,
+    input         TEXT,
+    output        TEXT,
+    error         TEXT,
+    metadata      TEXT DEFAULT '{}'
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_traces_tenant ON traces(tenant_id, started_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_traces_run ON traces(run_id);
+  CREATE INDEX IF NOT EXISTS idx_traces_workflow ON traces(workflow_id);
+  CREATE INDEX IF NOT EXISTS idx_traces_gate ON traces(gate_id);
+  CREATE INDEX IF NOT EXISTS idx_trace_steps_trace ON trace_steps(trace_id, step_number);
+  `,
+
+  /* 020 — alert delivery log for reliability visibility */
+  `
+  CREATE TABLE IF NOT EXISTS alert_deliveries (
+    id            TEXT PRIMARY KEY,
+    tenant_id     TEXT NOT NULL REFERENCES tenants(id),
+    alert_id      TEXT NOT NULL,
+    channel       TEXT NOT NULL,
+    destination   TEXT NOT NULL,
+    status        TEXT NOT NULL,
+    attempts      INTEGER DEFAULT 1,
+    last_attempt_at TEXT,
+    delivered_at  TEXT,
+    error_message TEXT,
+    retry_count   INTEGER DEFAULT 0,
+    dead_lettered INTEGER DEFAULT 0,
+    created_at    TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_alert_deliveries_tenant ON alert_deliveries(tenant_id, created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_alert_deliveries_status ON alert_deliveries(status, attempts);
+  `,
+
+  /* 021 — onboarding progress persistence */
+  `
+  CREATE TABLE IF NOT EXISTS onboarding_state (
+    user_id       TEXT NOT NULL REFERENCES users(id),
+    tenant_id     TEXT NOT NULL REFERENCES tenants(id),
+    step_id       TEXT NOT NULL,
+    status        TEXT NOT NULL DEFAULT 'pending',
+    completed_at  TEXT,
+    data_json     TEXT DEFAULT '{}',
+    updated_at    TEXT NOT NULL,
+    PRIMARY KEY (user_id, tenant_id, step_id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_onboarding_user ON onboarding_state(user_id, tenant_id);
+  `,
+
+  /* 022 — ownership metadata for signals and gates */
+  `
+  ALTER TABLE signals ADD COLUMN owner_email TEXT;
+  ALTER TABLE signals ADD COLUMN escalation_email TEXT;
+  ALTER TABLE signals ADD COLUMN runbook_url TEXT;
+  ALTER TABLE signals ADD COLUMN description TEXT DEFAULT '';
+
+  ALTER TABLE gates ADD COLUMN owner_email TEXT;
+  ALTER TABLE gates ADD COLUMN escalation_email TEXT;
+  ALTER TABLE gates ADD COLUMN runbook_url TEXT;
+  ALTER TABLE gates ADD COLUMN description TEXT DEFAULT '';
+  `,
+
+  /* 023 — scheduled reports */
+  `
+  CREATE TABLE IF NOT EXISTS scheduled_reports (
+    id            TEXT PRIMARY KEY,
+    tenant_id     TEXT NOT NULL REFERENCES tenants(id),
+    name          TEXT NOT NULL,
+    report_type   TEXT NOT NULL,
+    schedule      TEXT NOT NULL,
+    config_json   TEXT DEFAULT '{}',
+    last_run_at   TEXT,
+    last_run_status TEXT,
+    next_run_at   TEXT,
+    is_active     INTEGER DEFAULT 1,
+    created_by    TEXT REFERENCES users(id),
+    created_at    TEXT NOT NULL,
+    updated_at    TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_scheduled_reports_tenant ON scheduled_reports(tenant_id, is_active);
+  CREATE INDEX IF NOT EXISTS idx_scheduled_reports_next_run ON scheduled_reports(next_run_at, is_active);
+  `,
+
+  /* 024 — incident management */
+  `
+  CREATE TABLE IF NOT EXISTS incidents (
+    id            TEXT PRIMARY KEY,
+    tenant_id     TEXT NOT NULL REFERENCES tenants(id),
+    title         TEXT NOT NULL,
+    description   TEXT,
+    severity      TEXT NOT NULL DEFAULT 'medium',
+    status        TEXT NOT NULL DEFAULT 'open',
+    started_at    TEXT NOT NULL,
+    resolved_at   TEXT,
+    postmortem_url TEXT,
+    created_by    TEXT REFERENCES users(id),
+    created_at    TEXT NOT NULL,
+    updated_at    TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS incident_updates (
+    id            TEXT PRIMARY KEY,
+    incident_id   TEXT NOT NULL REFERENCES incidents(id),
+    status        TEXT NOT NULL,
+    message       TEXT NOT NULL,
+    is_public     INTEGER DEFAULT 1,
+    created_by    TEXT REFERENCES users(id),
+    created_at    TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS incident_subscriptions (
+    id            TEXT PRIMARY KEY,
+    incident_id   TEXT REFERENCES incidents(id),
+    tenant_id     TEXT NOT NULL,
+    email         TEXT NOT NULL,
+    created_at    TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_incidents_tenant ON incidents(tenant_id, status, started_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_incident_updates ON incident_updates(incident_id, created_at DESC);
+  `,
+
+  /* 025 — approval workflows */
+  `
+  CREATE TABLE IF NOT EXISTS approval_requests (
+    id            TEXT PRIMARY KEY,
+    tenant_id     TEXT NOT NULL REFERENCES tenants(id),
+    resource_type TEXT NOT NULL,
+    resource_id   TEXT NOT NULL,
+    action        TEXT NOT NULL,
+    requested_by  TEXT NOT NULL REFERENCES users(id),
+    requested_at  TEXT NOT NULL,
+    status        TEXT NOT NULL DEFAULT 'pending',
+    approved_by   TEXT REFERENCES users(id),
+    approved_at   TEXT,
+    rejected_by   TEXT REFERENCES users(id),
+    rejected_at   TEXT,
+    reason        TEXT,
+    expires_at    TEXT
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_approval_requests_tenant ON approval_requests(tenant_id, status);
+  CREATE INDEX IF NOT EXISTS idx_approval_requests_resource ON approval_requests(resource_type, resource_id);
+  `,
+
+  /* 026 — changelog entries for reality-based changelog */
+  `
+  CREATE TABLE IF NOT EXISTS changelog_entries (
+    id            TEXT PRIMARY KEY,
+    tenant_id     TEXT REFERENCES tenants(id),
+    version       TEXT NOT NULL,
+    title         TEXT NOT NULL,
+    description   TEXT NOT NULL,
+    change_type   TEXT NOT NULL,
+    source_commit TEXT,
+    source_pr     TEXT,
+    is_published  INTEGER DEFAULT 0,
+    published_at  TEXT,
+    created_by    TEXT REFERENCES users(id),
+    created_at    TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_changelog_tenant ON changelog_entries(tenant_id, is_published, published_at DESC);
+  `,
+
+  /* 027 — compliance export bundles */
+  `
+  CREATE TABLE IF NOT EXISTS compliance_exports (
+    id            TEXT PRIMARY KEY,
+    tenant_id     TEXT NOT NULL REFERENCES tenants(id),
+    export_type   TEXT NOT NULL,
+    date_from     TEXT NOT NULL,
+    date_to       TEXT NOT NULL,
+    status        TEXT NOT NULL DEFAULT 'pending',
+    file_url      TEXT,
+    manifest_json TEXT,
+    signature     TEXT,
+    expires_at    TEXT,
+    created_by    TEXT REFERENCES users(id),
+    created_at    TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_compliance_exports_tenant ON compliance_exports(tenant_id, created_at DESC);
+  `,
+
+  /* 018 — gate versions for rollback support */
+  `
+  CREATE TABLE IF NOT EXISTS gate_versions (
+    gate_id       TEXT NOT NULL REFERENCES gates(id),
+    tenant_id     TEXT NOT NULL REFERENCES tenants(id),
+    version       INTEGER NOT NULL,
+    name          TEXT NOT NULL,
+    repo_owner    TEXT NOT NULL,
+    repo_name     TEXT NOT NULL,
+    default_branch TEXT NOT NULL DEFAULT 'main',
+    trigger_types TEXT NOT NULL,
+    required_checks TEXT NOT NULL,
+    thresholds    TEXT NOT NULL,
+    status        TEXT NOT NULL,
+    created_at    TEXT NOT NULL,
+    created_by    TEXT REFERENCES users(id),
+    change_reason TEXT,
+    PRIMARY KEY (gate_id, version)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_gate_versions_tenant ON gate_versions(tenant_id, gate_id, version DESC);
+  `,
+
   /* 017 — RLS-like enforcement for multi-tenant isolation */
   `
   -- Session variables table to track current tenant context

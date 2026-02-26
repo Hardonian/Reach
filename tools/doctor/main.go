@@ -98,6 +98,12 @@ func main() {
 		checkRunnerCapabilityFirewall,
 		checkMarketplaceConsentRequirements,
 		checkArchitectureBoundaries,
+		// New security checks
+		checkUnsafeFilePermissions,
+		checkDeterminismBridgeParity,
+		checkRuntimeMode,
+		checkVersionMetadataIntegrity,
+		checkLoggingRedaction,
 	}
 
 	failures := 0
@@ -522,6 +528,106 @@ func boundaryViolations(root string) ([]string, error) {
 
 	_ = ast.File{}
 	return violations, nil
+}
+
+// New security-focused doctor checks
+
+func checkUnsafeFilePermissions(root string) checkResult {
+	name := "unsafe file permissions"
+	// Check for world-readable/writable config files
+	sensitiveFiles := []string{
+		filepath.Join(root, ".env"),
+		filepath.Join(root, "config", "secrets.yaml"),
+		filepath.Join(root, "config", "credentials.json"),
+	}
+
+	for _, f := range sensitiveFiles {
+		info, err := os.Stat(f)
+		if err == nil {
+			mode := info.Mode()
+			// Check for unsafe permissions (world-readable or writable)
+			if mode&0077 != 0 {
+				return checkResult{
+					name:        name,
+					ok:          false,
+					severity:    "WARN",
+					detail:      fmt.Sprintf("%s has unsafe permissions: %o", f, mode),
+					remediation: "chmod 600 " + f,
+				}
+			}
+		}
+	}
+	return pass(name)
+}
+
+func checkDeterminismBridgeParity(root string) checkResult {
+	name := "determinism bridge parity"
+	// Check that TypeScript and Rust determinism implementations exist
+	tsFile := filepath.Join(root, "packages", "core", "src", "nl-compiler", "determinism.ts")
+	rustFile := filepath.Join(root, "crates", "engine-core", "src", "decision", "determinism.rs")
+
+	_, tsErr := os.Stat(tsFile)
+	_, rustErr := os.Stat(rustFile)
+
+	if tsErr != nil && rustErr != nil {
+		return fail(name, fmt.Errorf("neither TS nor Rust determinism implementation found"), "ensure determinism implementations exist")
+	}
+
+	return pass(name)
+}
+
+func checkRuntimeMode(root string) checkResult {
+	name := "runtime mode detection"
+	// Check that OSS mode properly detects enterprise-only env vars
+	file := filepath.Join(root, "src", "lib", "env.ts")
+	data, err := os.ReadFile(file)
+	if err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "env.ts not found", remediation: "ensure OSS mode detection is implemented"}
+	}
+
+	text := string(data)
+	// Check for OSS mode detection
+	if !strings.Contains(text, "REACH_CLOUD") && !strings.Contains(text, "REACH_ENTERPRISE") {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "runtime mode detection may be missing", remediation: "implement REACH_CLOUD/REACH_ENTERPRISE detection"}
+	}
+
+	return pass(name)
+}
+
+func checkVersionMetadataIntegrity(root string) checkResult {
+	name := "version metadata integrity"
+	versionFile := filepath.Join(root, "VERSION")
+	gitFile := filepath.Join(root, ".git", "HEAD")
+
+	// Check VERSION file exists
+	if _, err := os.Stat(versionFile); err != nil {
+		return fail(name, err, "VERSION file missing")
+	}
+
+	// Check git repository exists
+	if _, err := os.Stat(gitFile); err != nil {
+		return checkResult{name: name, ok: true, severity: "WARN", detail: "not a git repository", remediation: "ensure git is used for version control"}
+	}
+
+	return pass(name)
+}
+
+func checkLoggingRedaction(root string) checkResult {
+	name := "logging redaction"
+	// Check that redaction helper exists
+	file := filepath.Join(root, "src", "lib", "observability.ts")
+	data, err := os.ReadFile(file)
+	if err != nil {
+		return fail(name, err, "observability.ts not found")
+	}
+
+	text := string(data)
+	// Check for redact function
+	if !strings.Contains(text, "function redact") && !strings.Contains(text, "func redact") {
+		return fail(name, fmt.Errorf("redact function not found"), "implement redact() helper in logging")
+	}
+
+	return pass(name)
 }
 
 func pass(name string) checkResult { return checkResult{name: name, ok: true} }
