@@ -89,6 +89,10 @@ export const ROUTES = {
       HISTORY: '/console/governance/history',
       CONFIG: '/console/governance/config-as-code',
       AUDIT: '/console/governance/audit-gate',
+      SEMANTIC_LEDGER: '/console/governance/semantic-ledger',
+      TRANSITION_VIEWER: '/console/governance/transition-viewer',
+      POLICY_SNAPSHOTS: '/console/governance/policy-snapshots',
+      MODEL_MIGRATION: '/console/governance/model-migration',
     },
     DATASETS: '/console/datasets',
     COST: {
@@ -148,6 +152,10 @@ export const ROUTES = {
       HISTORY: '/console/governance/history',
       CONFIG: '/console/governance/config-as-code',
       AUDIT: '/console/governance/audit-gate',
+      SEMANTIC_LEDGER: '/console/governance/semantic-ledger',
+      TRANSITION_VIEWER: '/console/governance/transition-viewer',
+      POLICY_SNAPSHOTS: '/console/governance/policy-snapshots',
+      MODEL_MIGRATION: '/console/governance/model-migration',
     },
     DATASETS: '/console/datasets',
     COST: {

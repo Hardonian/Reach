@@ -17,6 +17,14 @@ Reach is an OSS-first deterministic execution and replay platform for policy-gov
 
 See the full matrix: [docs/oss-vs-enterprise.md](docs/oss-vs-enterprise.md).
 
+
+## How Reach differs from git/CI
+
+Reach governs semantic state, not just file diffs:
+- `reach state diff` classifies model/prompt/context/policy/eval/runtime drift.
+- Policy snapshots bind decisions to the exact policy in force.
+- Replay and integrity scoring expose transition trust, not just pass/fail CI state.
+
 ## Quickstart (TTFV)
 
 ```bash
