@@ -35,7 +35,7 @@
     "openapi": 3,
     "semantic": 1540,
     "trust_boundary": 0,
-    "report_write": 1
+    "report_write": 0
   },
   "openapi_compat_summary": {
     "scanned_specs": [

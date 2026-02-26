@@ -1,5 +1,5 @@
 use serde::Serialize;
-use sha2::{Sha256, Digest};
+use blake3::Hasher;
 use anyhow::Result;
 
 pub trait CanonicalJson {
@@ -16,7 +16,7 @@ impl<T: Serialize> CanonicalJson for T {
 }
 
 pub fn compute_hash(data: &str) -> String {
-    let mut hasher = Sha256::new();
-    hasher.update(data);
-    hex::encode(hasher.finalize())
+    let mut hasher = Hasher::new();
+    hasher.update(data.as_bytes());
+    hasher.finalize().to_hex().to_string()
 }

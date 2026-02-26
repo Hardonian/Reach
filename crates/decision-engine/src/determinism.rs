@@ -3,10 +3,10 @@
 //! This module provides the core determinism guarantees:
 //! - **Float normalization**: Fixed precision (1e-9) for deterministic numeric comparison
 //! - **Canonical JSON**: Sorted keys, normalized floats, no undefined values
-//! - **Stable hashing**: SHA-256 fingerprinting of canonical bytes
+//! - **Stable hashing**: BLAKE3 fingerprinting of canonical bytes (unified hash primitive)
 
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
+use blake3::Hasher;
 use std::collections::BTreeMap;
 
 /// Precision for float normalization (1e-9).
@@ -153,7 +153,7 @@ pub fn canonical_json<T: Serialize>(value: &T) -> Vec<u8> {
     canonical.to_canonical_string().into_bytes()
 }
 
-/// Compute SHA-256 hash of bytes, returning hex-encoded string.
+/// Compute BLAKE3 hash of bytes, returning hex-encoded string.
 ///
 /// # Example
 ///
@@ -162,18 +162,17 @@ pub fn canonical_json<T: Serialize>(value: &T) -> Vec<u8> {
 ///
 /// let bytes = b"hello world";
 /// let hash = stable_hash(bytes);
-/// assert_eq!(hash.len(), 64); // SHA-256 produces 64 hex chars
+/// assert_eq!(hash.len(), 64); // BLAKE3 produces 64 hex chars (32 bytes)
 /// ```
 pub fn stable_hash(bytes: &[u8]) -> String {
-    let mut hasher = Sha256::new();
+    let mut hasher = Hasher::new();
     hasher.update(bytes);
-    let result = hasher.finalize();
-    hex::encode(result)
+    hasher.finalize().to_hex().to_string()
 }
 
 /// Compute deterministic fingerprint for a serializable value.
 ///
-/// This produces a SHA-256 hash of the canonical JSON representation.
+/// This produces a BLAKE3 hash of the canonical JSON representation.
 /// Identical inputs always produce identical fingerprints.
 ///
 /// # Example
@@ -297,7 +296,7 @@ mod tests {
         let bytes = b"test data";
         let hash = stable_hash(bytes);
 
-        assert_eq!(hash.len(), 64); // SHA-256 = 32 bytes = 64 hex chars
+        assert_eq!(hash.len(), 64); // BLAKE3 = 32 bytes = 64 hex chars
     }
 
     #[test]

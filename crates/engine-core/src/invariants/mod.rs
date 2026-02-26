@@ -1,23 +1,15 @@
 use crate::DeterministicEvent;
 
-/// FNV-1a 64-bit offset basis.
-const FNV_OFFSET: u64 = 0xcbf29ce484222325;
-/// FNV-1a 64-bit prime.
-const FNV_PRIME: u64 = 0x00000100000001B3;
-
-/// Computes a deterministic FNV-1a hash of the payload.
+/// Computes a deterministic BLAKE3 hash of the payload.
 ///
-/// Unlike `std::collections::hash_map::DefaultHasher`, this hash function
-/// is portable across platforms and compiler versions, making it safe for
-/// canonical hashing in replay and integrity verification.
+/// BLAKE3 is used as the canonical hash primitive across the entire system
+/// for consistency and determinism in replay and integrity verification.
 #[must_use]
 pub fn canonical_hash(payload: &[u8]) -> String {
-    let mut hash = FNV_OFFSET;
-    for &byte in payload {
-        hash ^= u64::from(byte);
-        hash = hash.wrapping_mul(FNV_PRIME);
-    }
-    format!("{hash:016x}")
+    use blake3::Hasher;
+    let mut hasher = Hasher::new();
+    hasher.update(payload);
+    hasher.finalize().to_hex().to_string()
 }
 
 #[must_use]

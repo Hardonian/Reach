@@ -1,10 +1,23 @@
 {
-  "schema_version": "1.1.0",
   "run_id": "dgl_1772132403858",
   "timestamp": "2026-02-26T19:00:03.858Z",
   "repo": "Reach",
   "base_sha": "dffa49c020646260518cbf57c296e11253301e2f",
   "head_sha": "6e67a2eb11e313e2594f55dd807a5b142b0c526f",
+  "dgl_report_paths": [
+    "c:\\Users\\scott\\GitHub\\Reach\\dgl\\reports\\dgl_report.json",
+    "c:\\Users\\scott\\GitHub\\Reach\\dgl\\reports\\dgl_report.md",
+    "c:\\Users\\scott\\GitHub\\Reach\\dgl\\reports\\dgl_report.sarif"
+  ],
+  "openapi_compat_summary": {
+    "scanned_specs": [
+      "c:\\Users\\scott\\GitHub\\Reach\\openapi\\reach.openapi.yaml",
+      "c:\\Users\\scott\\GitHub\\Reach\\openapi\\reach.openapi.yaml"
+    ],
+    "breaking": 0,
+    "warnings": 0
+  },
+  "provider": {},
   "context_hash": "3c9411bdc7a334014d08c3d764330ebc414673b77892a3903e166998032407ea",
   "blast_radius": {
     "score": 100,
@@ -21,29 +34,14 @@
     "repair_cycles": 0,
     "cost_per_accepted_change": 0
   },
-  "summary": {
+  "drift_forecast_score": 0.8945454545454545,
+  "summary_scores": {
     "intent_alignment_score": 100,
     "terminology_drift_score": 100,
     "semantic_drift_score": 100,
     "trust_boundary_change_score": 100,
     "calibration_score": 50,
     "blast_radius_score": 100
-  },
-  "timings_ms": {
-    "language_scan": 0,
-    "intent": 41,
-    "openapi": 3,
-    "semantic": 1540,
-    "trust_boundary": 0,
-    "report_write": 1
-  },
-  "openapi_compat_summary": {
-    "scanned_specs": [
-      "c:\\Users\\scott\\GitHub\\Reach\\openapi\\reach.openapi.yaml",
-      "c:\\Users\\scott\\GitHub\\Reach\\openapi\\reach.openapi.yaml"
-    ],
-    "breaking": 0,
-    "warnings": 0
   },
   "violations": [
     {
@@ -57,64 +55,6 @@
       "line": 1
     }
   ],
-  "provider_matrix": [
-    {
-      "provider": "openai",
-      "model": "gpt-5.2-codex",
-      "pass_rate": 1,
-      "revert_ratio": 0,
-      "trust_boundary_touch_rate": 0,
-      "openapi_break_frequency": 0,
-      "route_test_failure_frequency": 0,
-      "calibration_score": 0.89,
-      "diff_magnitude_avg": 42
-    },
-    {
-      "provider": "anthropic",
-      "model": "claude-sonnet",
-      "pass_rate": 1,
-      "revert_ratio": 0,
-      "trust_boundary_touch_rate": 1,
-      "openapi_break_frequency": 0,
-      "route_test_failure_frequency": 0,
-      "calibration_score": 0.78,
-      "diff_magnitude_avg": 57
-    },
-    {
-      "provider": "openrouter",
-      "model": "mixtral",
-      "pass_rate": 0,
-      "revert_ratio": 1,
-      "trust_boundary_touch_rate": 1,
-      "openapi_break_frequency": 1,
-      "route_test_failure_frequency": 1,
-      "calibration_score": 0.09999999999999998,
-      "diff_magnitude_avg": 121
-    },
-    {
-      "provider": "local",
-      "model": "gpt-5.2-codex",
-      "pass_rate": 1,
-      "revert_ratio": 0,
-      "trust_boundary_touch_rate": 0,
-      "openapi_break_frequency": 0,
-      "route_test_failure_frequency": 0,
-      "calibration_score": 0.8,
-      "diff_magnitude_avg": 0
-    },
-    {
-      "provider": "openrouter",
-      "model": "gemini-pro",
-      "pass_rate": 0,
-      "revert_ratio": 1,
-      "trust_boundary_touch_rate": 0,
-      "openapi_break_frequency": 0,
-      "route_test_failure_frequency": 0,
-      "calibration_score": 0.30000000000000004,
-      "diff_magnitude_avg": 0
-    }
-  ],
-  "drift_forecast_score": 0.8945454545454545,
   "turbulence_hotspots": [
     {
       "path": "crates/requiem/src/server.rs",
