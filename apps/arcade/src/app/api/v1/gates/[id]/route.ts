@@ -105,7 +105,7 @@ export async function PATCH(
         SELECT hex(md5(config_json)) as hash FROM gates WHERE id = ?
       `).get(id) as any;
 
-      const newConfigHash = db.prepare(`SELECT hex(md5(?)) as hash`, config ? JSON.stringify(config) : "{}").get() as any;
+      const newConfigHash = db.prepare(`SELECT hex(md5(?)) as hash`).get(config ? JSON.stringify(config) : "{}") as any;
 
       if (currentConfigHash?.hash !== newConfigHash?.hash) {
         const versionNum = db.prepare(`
@@ -136,7 +136,7 @@ export async function PATCH(
     auditLog(ctx, "gate_updated", "gate", id, { 
       fields: Object.keys(body),
       ownership: ownership ? Object.keys(ownership) : undefined,
-    });
+    }, req);
 
     return NextResponse.json({ success: true });
   } catch (err) {
@@ -163,7 +163,7 @@ export async function DELETE(
     return cloudErrorResponse("Gate not found", 404);
   }
 
-  auditLog(ctx, "gate_deleted", "gate", id, {});
+  auditLog(ctx, "gate_deleted", "gate", id, {}, req);
 
   return NextResponse.json({ success: true });
 }

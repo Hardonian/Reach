@@ -132,7 +132,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         : undefined,
       steps: steps.map(s => ({
         ...s,
-        metadata: s.metadata ? JSON.parse(s.metadata as string) : undefined,
+        metadata: s.metadata ? JSON.parse(s.metadata as unknown as string) : undefined,
       })),
       metadata: {
         agent_name: trace.agent_name,

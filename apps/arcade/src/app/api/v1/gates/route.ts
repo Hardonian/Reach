@@ -99,7 +99,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       now
     );
 
-    auditLog(ctx, "gate_created", "gate", id, { name, priority });
+    auditLog(ctx, "gate_created", "gate", id, { name, priority }, req);
 
     return NextResponse.json({ 
       success: true, 

@@ -81,7 +81,21 @@
     "rollups",
     "underbuilt",
     "inspectable",
-    "chargeback"
+    "chargeback",
+    "backdoored",
+    "Heartbleed",
+    "lockfiles",
+    "Maldep",
+    "trimpath",
+    "minifiers",
+    "anchore",
+    "SLSA",
+    "cyclonedx",
+    "exfiltration",
+    "Rekor",
+    "YubiKey",
+    "Yubi",
+    "unredacted"
   ],
   "ignorePaths": ["node_modules", "dist", "build", "*.log"]
 }

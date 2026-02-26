@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, CheckCircle, Clock, RefreshCw, XCircle, Mail, Slack, Webhook } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, RefreshCw, XCircle, Mail, Slack, Webhook } from "@/lib/lucide-react";
 
 interface DeliveryLog {
   id: string;
@@ -163,7 +163,7 @@ export default function AlertDeliveryPage() {
 
       {/* Filters */}
       <div className="flex gap-4 mb-6">
-        <Select value={filter.channel} onValueChange={(v) => setFilter(f => ({ ...f, channel: v }))}>
+        <Select value={filter.channel} onValueChange={(v: string) => setFilter(f => ({ ...f, channel: v }))}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="All Channels" />
           </SelectTrigger>
@@ -176,7 +176,7 @@ export default function AlertDeliveryPage() {
           </SelectContent>
         </Select>
 
-        <Select value={filter.status} onValueChange={(v) => setFilter(f => ({ ...f, status: v }))}>
+        <Select value={filter.status} onValueChange={(v: string) => setFilter(f => ({ ...f, status: v }))}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>

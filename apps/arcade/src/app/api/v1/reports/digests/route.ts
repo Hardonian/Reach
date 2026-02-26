@@ -107,7 +107,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       now
     );
 
-    auditLog(ctx, "digest_created", "digest", id, { name, frequency });
+    auditLog(ctx, "digest_created", "digest", id, { name, frequency }, req);
 
     return NextResponse.json({
       success: true,

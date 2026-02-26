@@ -1729,6 +1729,198 @@ export const MIGRATIONS: string[] = [
     END;
   END;
   `,
+
+  /* 028 — executive digests for scheduled reporting */
+  `
+  CREATE TABLE IF NOT EXISTS executive_digests (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+    name TEXT NOT NULL,
+    frequency TEXT NOT NULL CHECK(frequency IN ('daily', 'weekly', 'monthly')),
+    day_of_week INTEGER CHECK(day_of_week BETWEEN 0 AND 6),
+    day_of_month INTEGER CHECK(day_of_month BETWEEN 1 AND 31),
+    time_of_day TEXT NOT NULL DEFAULT '09:00',
+    timezone TEXT NOT NULL DEFAULT 'America/New_York',
+    include_sections TEXT NOT NULL DEFAULT 'summary,gates,signals,audit,compliance',
+    compare_to_previous INTEGER DEFAULT 1,
+    highlight_anomalies INTEGER DEFAULT 1,
+    recipient_emails TEXT NOT NULL,
+    is_active INTEGER DEFAULT 1,
+    last_sent_at TEXT,
+    next_scheduled_at TEXT,
+    created_by TEXT NOT NULL REFERENCES users(id),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS digest_executions (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    digest_id TEXT NOT NULL REFERENCES executive_digests(id),
+    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+    status TEXT NOT NULL CHECK(status IN ('pending', 'generating', 'sent', 'failed')),
+    generated_at TEXT,
+    sent_at TEXT,
+    summary_json TEXT,
+    full_report_url TEXT,
+    recipient_count INTEGER,
+    delivered_count INTEGER,
+    failed_count INTEGER,
+    error_message TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_digests_tenant ON executive_digests(tenant_id);
+  CREATE INDEX IF NOT EXISTS idx_digests_active ON executive_digests(is_active, next_scheduled_at);
+  CREATE INDEX IF NOT EXISTS idx_digest_exec_digest ON digest_executions(digest_id);
+  CREATE INDEX IF NOT EXISTS idx_digest_exec_status ON digest_executions(status);
+
+  CREATE TRIGGER IF NOT EXISTS executive_digests_rls_insert
+  BEFORE INSERT ON executive_digests
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into executive_digests for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS executive_digests_rls_update
+  BEFORE UPDATE ON executive_digests
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update executive_digests from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS executive_digests_rls_delete
+  BEFORE DELETE ON executive_digests
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete executive_digests from a different tenant')
+    END;
+  END;
+  `,
+
+  /* 029 — detailed alert delivery log with retry tracking */
+  `
+  CREATE TABLE IF NOT EXISTS alert_delivery_log (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    alert_id TEXT NOT NULL,
+    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+    channel TEXT NOT NULL CHECK(channel IN ('email', 'slack', 'webhook', 'pagerduty', 'sms')),
+    recipient TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('pending', 'sent', 'delivered', 'failed', 'bounced', 'suppressed')),
+    request_body TEXT,
+    response_status INTEGER,
+    response_body TEXT,
+    attempted_at TEXT NOT NULL DEFAULT (datetime('now')),
+    completed_at TEXT,
+    retry_count INTEGER DEFAULT 0,
+    max_retries INTEGER DEFAULT 3,
+    next_retry_at TEXT,
+    error_code TEXT,
+    error_message TEXT,
+    error_category TEXT CHECK(error_category IN ('network', 'auth', 'rate_limit', 'invalid_address', 'server_error', 'unknown')),
+    escalation_triggered INTEGER DEFAULT 0,
+    escalation_reason TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_alert_delivery_alert ON alert_delivery_log(alert_id);
+  CREATE INDEX IF NOT EXISTS idx_alert_delivery_tenant ON alert_delivery_log(tenant_id);
+  CREATE INDEX IF NOT EXISTS idx_alert_delivery_status ON alert_delivery_log(status);
+  CREATE INDEX IF NOT EXISTS idx_alert_delivery_channel ON alert_delivery_log(channel);
+  CREATE INDEX IF NOT EXISTS idx_alert_delivery_retry ON alert_delivery_log(status, next_retry_at) WHERE status IN ('pending', 'failed');
+  CREATE INDEX IF NOT EXISTS idx_alert_delivery_attempted ON alert_delivery_log(attempted_at);
+
+  CREATE VIEW IF NOT EXISTS alert_delivery_failures AS
+  SELECT 
+    d.*,
+    a.severity as alert_severity,
+    a.title as alert_title,
+    CASE 
+      WHEN d.retry_count >= d.max_retries THEN 'requires_manual_intervention'
+      WHEN d.error_category = 'rate_limit' THEN 'will_retry'
+      WHEN d.error_category = 'network' THEN 'will_retry'
+      ELSE 'requires_manual_intervention'
+    END as recommended_action
+  FROM alert_delivery_log d
+  LEFT JOIN alerts a ON d.alert_id = a.id
+  WHERE d.status = 'failed';
+
+  CREATE TRIGGER IF NOT EXISTS alert_delivery_log_rls_insert
+  BEFORE INSERT ON alert_delivery_log
+  BEGIN
+    SELECT CASE
+      WHEN NEW.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot insert into alert_delivery_log for a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS alert_delivery_log_rls_update
+  BEFORE UPDATE ON alert_delivery_log
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot update alert_delivery_log from a different tenant')
+    END;
+  END;
+
+  CREATE TRIGGER IF NOT EXISTS alert_delivery_log_rls_delete
+  BEFORE DELETE ON alert_delivery_log
+  BEGIN
+    SELECT CASE
+      WHEN OLD.tenant_id != (SELECT value FROM session_variables WHERE key = 'tenant_id')
+      THEN RAISE(ABORT, 'Tenant ID mismatch: cannot delete alert_delivery_log from a different tenant')
+    END;
+  END;
+  `,
+
+  /* 030 — ownership metadata expansion for gates and signals */
+  `
+  ALTER TABLE gates ADD COLUMN owner_team TEXT;
+  ALTER TABLE gates ADD COLUMN owner_email TEXT;
+  ALTER TABLE gates ADD COLUMN escalation_email TEXT;
+  ALTER TABLE gates ADD COLUMN runbook_url TEXT;
+  ALTER TABLE gates ADD COLUMN oncall_rotation TEXT;
+
+  ALTER TABLE signals ADD COLUMN owner_team TEXT;
+  ALTER TABLE signals ADD COLUMN documentation_url TEXT;
+
+  CREATE INDEX IF NOT EXISTS idx_gates_owner ON gates(tenant_id, owner_team);
+  CREATE INDEX IF NOT EXISTS idx_signals_owner ON signals(tenant_id, owner_team);
+
+  CREATE VIEW IF NOT EXISTS resource_ownership AS
+  SELECT 
+    'gate' as resource_type,
+    id as resource_id,
+    tenant_id,
+    name as resource_name,
+    owner_team,
+    owner_email,
+    escalation_email,
+    runbook_url,
+    oncall_rotation,
+    created_at,
+    updated_at
+  FROM gates
+  UNION ALL
+  SELECT 
+    'signal' as resource_type,
+    id as resource_id,
+    tenant_id,
+    name as resource_name,
+    owner_team,
+    owner_email,
+    NULL as escalation_email,
+    documentation_url as runbook_url,
+    NULL as oncall_rotation,
+    created_at,
+    updated_at
+  FROM signals;
+  `,
 ];
 
 export function applyMigrations(db: Database.Database): void {
