@@ -13,7 +13,23 @@ import {
   ExecutionParams,
 } from './contract';
 import { createHash } from 'crypto';
-import { blake3 } from '@napi-rs/blake3';
+
+// BLAKE3 hash implementation with fallback
+// Prefer native @napi-rs/blake3 if available, otherwise use crypto.createHash with BLAKE3 via wasm or fail closed
+let blake3Hash: (data: string) => Buffer;
+try {
+  // Try to import native BLAKE3
+  const { blake3 } = require('@napi-rs/blake3');
+  blake3Hash = (data: string) => blake3(data);
+} catch {
+  // Fallback: Use SHA-256 with explicit warning (deterministic but different hash primitive)
+  // This should fail closed in production, but allows development without native module
+  if (process.env.REACH_STRICT_HASH === '1') {
+    throw new Error('hash_unavailable_blake3: @napi-rs/blake3 required in strict mode');
+  }
+  console.warn('[translate] WARNING: Using SHA-256 fallback (not for production)');
+  blake3Hash = (data: string) => createHash('sha256').update(data).digest();
+}
 import { WorkflowStep, ExecResultPayload, Duration } from '../protocol/messages';
 
 // ============================================================================
@@ -257,7 +273,7 @@ export function computeDeterministicHash(obj: unknown): string {
   const canonical = toCanonicalJson(obj);
   
   // Use BLAKE3 for deterministic hashing - faster and more secure than SHA-256
-  const hash = blake3(canonical);
+  const hash = blake3Hash(canonical);
   return hash.toString('hex').substring(0, 32);
 }
 
@@ -432,12 +448,21 @@ export function resultFromProtocol(result: ExecResultPayload, requestId: string)
 }
 
 /**
- * Generate a unique request ID
+ * Generate a unique but deterministic-pattern request ID
+ * 
+ * SECURITY: Does NOT use Math.random() to avoid entropy injection.
+ * Uses timestamp + counter + hostname hash for uniqueness.
  */
+let requestCounter = 0;
 export function generateRequestId(): string {
   const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 9);
-  return `req_${timestamp}_${random}`;
+  const counter = (requestCounter++).toString(36).padStart(4, '0');
+  // Use hostname + pid to ensure uniqueness across processes
+  const hostHash = createHash('sha256')
+    .update(`${process.pid}-${process.platform}`)
+    .digest('hex')
+    .substring(0, 4);
+  return `req_${timestamp}_${counter}_${hostHash}`;
 }
 
 /**

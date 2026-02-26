@@ -273,12 +273,16 @@ export class ProtocolClient extends EventEmitter {
     });
   }
   
+  private correlationCounter = 0;
+  
   private async sendRequest<T>(
     requestType: MessageType,
     payload: T,
     expectedResponseType: MessageType
   ): Promise<Frame> {
-    const correlationId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    // Deterministic correlation ID (no Math.random())
+    const counter = (this.correlationCounter++).toString(36).padStart(6, '0');
+    const correlationId = `${Date.now().toString(36)}-${counter}`;
     
     return new Promise((resolve, reject) => {
       // Set timeout
@@ -386,7 +390,12 @@ export class ProtocolClient extends EventEmitter {
     });
   }
   
-  private handleData(data: Buffer): void {
+  private handleData(data: Buffer | string): void {
+    // Ensure we only process Buffer data, not strings
+    if (typeof data === 'string') {
+      this.emit('error', new Error('Received string data on binary socket'));
+      return;
+    }
     this.frameParser.append(new Uint8Array(data));
     
     // Process all available frames

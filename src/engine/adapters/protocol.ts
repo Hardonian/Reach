@@ -16,7 +16,7 @@
  */
 
 import { ExecRequest, ExecResult } from '../contract';
-import { BaseEngineAdapter } from './base';
+import { BaseEngineAdapter, deriveSeed } from './base';
 import { 
   ProtocolClient, 
   ConnectionState,
@@ -26,6 +26,7 @@ import {
   createHello,
   type ExecRequestPayload,
   type ExecResultPayload,
+  type ExecutionMetrics,
   ExecutionControls,
   Duration,
   type Workflow,
@@ -181,7 +182,7 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
    */
   private toProtocolRequest(request: ExecRequest): ExecRequestPayload {
     // Derive seed for determinism
-    const seed = request.params.seed ?? this.deriveSeed(request.requestId);
+    const seed = request.params.seed ?? deriveSeed(request.requestId);
     
     // Convert steps to workflow format
     const steps: WorkflowStep[] = [];
@@ -226,29 +227,35 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
    */
   private fromProtocolResult(result: ExecResultPayload, requestId: string): ExecResult {
     // Map protocol status to internal status
-    let status: 'success' | 'error' | 'pending' = 'success';
+    let status: 'success' | 'error' | 'timeout' = 'success';
     let error: string | undefined;
     
     if (result.status.type === 'failed') {
       status = 'error';
       error = result.status.reason;
-    } else if (result.status.type === 'paused' || result.status.type === 'cancelled') {
-      status = 'pending';
+    } else if (result.status.type === 'cancelled') {
+      status = 'timeout';
+      error = 'Execution cancelled';
     }
+    // Note: 'paused' is not mapped to 'pending' - pending is not a terminal status
+    // Paused executions will report as success but with special handling needed
+    
+    // Extract metadata safely (may not exist in all protocol versions)
+    const metadata = (result as unknown as Record<string, Record<string, string>>).metadata || {};
     
     return {
       requestId,
       status,
       recommendedAction: this.extractRecommendedAction(result),
-      ranking: this.extractRanking(result),
+      ranking: this.extractRanking(result).map(r => r.actionId), // Convert to string[]
       trace: {
-        algorithm: result.metadata?.algorithm ?? 'unknown',
-        seed: parseInt(result.metadata?.seed ?? '0', 10),
+        algorithm: metadata['algorithm'] ?? 'unknown',
+        // Note: seed is not part of ExecutionTrace in contract
       },
       fingerprint: result.result_digest, // blake3 digest from protocol
       meta: {
         engine: 'requiem',
-        engineVersion: result.metadata?.engine_version ?? 'unknown',
+        engineVersion: metadata['engine_version'] ?? 'unknown',
         durationMs: Number(result.metrics.elapsed_us) / 1000,
         completedAt: new Date().toISOString(),
       },

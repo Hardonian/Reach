@@ -266,6 +266,10 @@ export class FrameParser {
         this.resync();
         return null;
       }
+      // Re-throw payload too large errors (don't silently drop)
+      if (error instanceof FrameError && error.code === 'PAYLOAD_TOO_LARGE') {
+        throw error;
+      }
       throw error;
     }
   }

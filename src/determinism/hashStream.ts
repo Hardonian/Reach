@@ -7,12 +7,43 @@
  * Uses BLAKE3 for high performance and cross-platform fingerprint stability.
  */
 
-import { createHasher, Hasher } from "blake3";
+import { hash } from "blake3";
+import { createHash } from "crypto";
 import { Readable } from "stream";
+
+// BLAKE3 hash implementation with fallback
+// Prefer native blake3 if available, otherwise use crypto.createHash with warning
+let hasherAvailable = true;
+let warned = false;
+
+function getHash(input: string | Buffer | Uint8Array, encoding?: 'hex'): string {
+  try {
+    // Try to use blake3
+    const result = hash(input, { length: 32 });
+    if (encoding === 'hex') {
+      return typeof result === 'string' ? result : result.toString('hex');
+    }
+    return typeof result === 'string' ? result : result.toString('hex');
+  } catch {
+    hasherAvailable = false;
+    if (!warned) {
+      warned = true;
+      if (process.env.REACH_STRICT_HASH === '1') {
+        throw new Error('hash_unavailable_blake3: blake3 required in strict mode');
+      }
+      console.warn('[hashStream] WARNING: Using SHA-256 fallback (not for production)');
+    }
+    // Fallback to SHA-256 (deterministic but different hash primitive)
+    return createHash('sha256').update(input).digest('hex').substring(0, 64);
+  }
+}
 
 /**
  * A streaming BLAKE3 hash builder.
  * Feed data in chunks, then finalize to get the hex digest.
+ *
+ * Note: This accumulates data in memory and hashes at finalize.
+ * For truly streaming hashing, use the hash function directly.
  *
  * @example
  * const hasher = new HashStream();
@@ -21,12 +52,10 @@ import { Readable } from "stream";
  * const digest = hasher.finalize(); // hex string
  */
 export class HashStream {
-  private readonly hash: Hasher;
+  private chunks: Buffer[] = [];
   private finalized = false;
 
-  constructor() {
-    this.hash = createHasher();
-  }
+  constructor() {}
 
   /**
    * Feeds a chunk of data into the hash.
@@ -37,9 +66,11 @@ export class HashStream {
       throw new Error("HashStream: cannot update after finalize()");
     }
     if (typeof chunk === 'string') {
-      this.hash.update(chunk, "utf8");
+      this.chunks.push(Buffer.from(chunk, 'utf8'));
+    } else if (Buffer.isBuffer(chunk)) {
+      this.chunks.push(chunk);
     } else {
-      this.hash.update(chunk);
+      this.chunks.push(Buffer.from(chunk));
     }
     return this;
   }
@@ -53,30 +84,24 @@ export class HashStream {
       throw new Error("HashStream: already finalized");
     }
     this.finalized = true;
-    const digest = this.hash.digest("hex");
-    return typeof digest === 'string' ? digest : digest.toString('hex');
+    const combined = Buffer.concat(this.chunks);
+    return getHash(combined, 'hex');
   }
 }
 
 /**
  * Hashes a single string synchronously.
- * For larger inputs, use HashStream to avoid holding the full buffer.
+ * For larger inputs, use HashStream to accumulate chunks.
  */
 export function hashString(input: string): string {
-  const hasher = createHasher();
-  hasher.update(input, "utf8");
-  const digest = hasher.digest("hex");
-  return typeof digest === 'string' ? digest : digest.toString('hex');
+  return getHash(input, 'hex');
 }
 
 /**
  * Hashes a Buffer synchronously.
  */
 export function hashBuffer(buf: Buffer | Uint8Array): string {
-  const hasher = createHasher();
-  hasher.update(buf);
-  const digest = hasher.digest("hex");
-  return typeof digest === 'string' ? digest : digest.toString('hex');
+  return getHash(buf, 'hex');
 }
 
 /**
