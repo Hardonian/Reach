@@ -160,22 +160,58 @@ async function systemCheck(opts: CliOptions): Promise<void> {
 // ============================================================================
 
 async function doctor(opts: CliOptions): Promise<void> {
+  // Import the rollback safety module for truth reporting
+  let engineTruth = '';
+  let rollbackInfo = null;
+  
+  try {
+    const { generateDoctorTruthReport, getRollbackInstructions } = await import('../engine/safety/rollback.js');
+    engineTruth = generateDoctorTruthReport();
+    rollbackInfo = getRollbackInstructions();
+  } catch (err) {
+    engineTruth = `Engine truth report unavailable: ${err instanceof Error ? err.message : String(err)}`;
+  }
+
   const checks = [
     { name: 'node_version', status: 'pass', message: `Node.js ${process.version}` },
     { name: 'typescript', status: 'pass', message: 'TypeScript available' },
     { name: 'engine_mode', status: 'pass', message: 'Engine mode: TypeScript (WASM optional)' },
     { name: 'oss_mode', status: 'pass', message: 'OSS mode: enabled (no cloud credentials required)' },
     { name: 'enterprise_mode', status: 'pass', message: 'Enterprise mode: disabled (OSS default)' },
+    { name: 'rollback_safety', status: rollbackInfo?.rollbackAvailable ? 'pass' : 'warning', 
+      message: rollbackInfo?.rollbackAvailable ? 'Rollback path verified' : 'Limited rollback options' },
   ];
 
+  const allPassed = checks.every(c => c.status === 'pass');
+
   if (opts.json) {
-    printJson(jsonOutput({ checks, timestamp: new Date().toISOString() }));
+    printJson(jsonOutput({ 
+      checks, 
+      timestamp: new Date().toISOString(),
+      engineTruth: engineTruth.split('\n'),
+      rollback: rollbackInfo,
+    }));
   } else {
     console.log('🩺 Reach Doctor\n');
     for (const check of checks) {
-      console.log(`  ${check.status === 'pass' ? '✅' : '❌'} ${check.name}: ${check.message}`);
+      const icon = check.status === 'pass' ? '✅' : check.status === 'warning' ? '⚠️' : '❌';
+      console.log(`  ${icon} ${check.name}: ${check.message}`);
     }
-    console.log('\n✅ All checks passed');
+    
+    // Print engine truth report
+    console.log('\n' + '='.repeat(50));
+    console.log(engineTruth);
+    console.log('='.repeat(50));
+    
+    console.log(`\n${allPassed ? '✅ All checks passed' : '⚠️ Some checks require attention'}`);
+    
+    // Print rollback instructions
+    if (rollbackInfo) {
+      console.log('\n🔄 Rollback Instructions:');
+      console.log(`   Current: ${rollbackInfo.currentEngine}`);
+      console.log(`   Available: ${rollbackInfo.rollbackAvailable ? 'yes' : 'no'}`);
+      console.log(`   Command: ${rollbackInfo.rollbackCommand}`);
+    }
   }
 }
 

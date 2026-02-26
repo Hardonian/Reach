@@ -302,7 +302,7 @@ export function deterministicSort<T extends string | number>(arr: T[]): T[] {
  * Deterministically sort object keys for canonical JSON/Hashing
  * Includes a depth guard to prevent stack overflow attacks.
  */
-export function sortObjectKeys(obj: any, depth = 0): any {
+export function sortObjectKeys(obj: unknown, depth = 0): unknown {
   if (depth > 20) {
     throw new Error('Maximum recursion depth exceeded in sortObjectKeys');
   }
@@ -315,11 +315,12 @@ export function sortObjectKeys(obj: any, depth = 0): any {
     return obj.map(item => sortObjectKeys(item, depth + 1));
   }
 
-  const sortedKeys = Object.keys(obj).sort();
-  const sortedObj: any = {};
+  const typedObj = obj as Record<string, unknown>;
+  const sortedKeys = Object.keys(typedObj).sort();
+  const sortedObj: Record<string, unknown> = {};
 
   for (const key of sortedKeys) {
-    sortedObj[key] = sortObjectKeys(obj[key], depth + 1);
+    sortedObj[key] = sortObjectKeys(typedObj[key], depth + 1);
   }
 
   return sortedObj;

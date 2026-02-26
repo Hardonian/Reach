@@ -618,9 +618,8 @@ export class SafetyGuards {
     engine: EngineType,
     executor: T
   ): T {
-    const guard = this;
     return ((...args: unknown[]) => {
-      guard.guardEntrypoint(engine);
+      this.guardEntrypoint(engine);
       return executor(...args);
     }) as T;
   }

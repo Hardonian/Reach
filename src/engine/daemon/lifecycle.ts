@@ -630,7 +630,7 @@ export class DaemonLifecycleManager extends EventEmitter {
         .digest("hex")
         .slice(0, 16);
 
-      const request: QueuedRequest<T, R> = {
+      const request: QueuedRequest = {
         id,
         payload,
         resolve: resolve as (value: unknown) => void,

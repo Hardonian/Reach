@@ -119,8 +119,6 @@ impl Server {
             loop {
                 interval.tick().await;
                 
-                // On Windows, check if parent process is still alive
-                #[cfg(windows)]
                 if let Some(pid) = parent_pid {
                     if !is_parent_alive(pid) {
                         warn!("Parent process {} is gone, shutting down", pid);
@@ -128,9 +126,9 @@ impl Server {
                     }
                 }
 
-                // On Unix, check if reparented to 1
+                // On Unix, secondary check: if reparented to 1 (init)
                 #[cfg(unix)]
-                if std::process::id() != 1 && unsafe { libc::getppid() } == 1 {
+                if unsafe { libc::getppid() } == 1 {
                     warn!("Parent process died (reparented to 1), shutting down");
                     break;
                 }
@@ -582,31 +580,30 @@ async fn process_execution(
     
     // ACTIONID SORT ENFORCEMENT
     // In a real implementation, any rankings or action lists MUST be pre-sorted
-    // here before the digest is computed to prevent entropy.
+    // here before the digest    // 4. Calculate deterministic result digest
     
     // Calculate deterministic result digest using BLAKE3
     let mut hasher = blake3::Hasher::new();
     // Hash relevant fields for deterministic fingerprint
     hasher.update(request.run_id.as_bytes());
     
-    // Example of deterministic sorting of metadata keys (already BTreeMap)
+    // Canonical metadata hashing
     for (key, value) in &request.metadata {
         hasher.update(key.as_bytes());
         hasher.update(value.as_bytes());
     }
 
     // In a real implementation, we'd hash the workflow output and artifacts
-    hasher.update(b"v2"); // Protocol version marker
-    
-    let result_digest = hasher.finalize().to_hex().to_string();
+    hasher.update(b"requiem-v1");
+    let result_digest = hasher.finalize().to_string();
 
     Ok(ExecResultPayload {
         run_id: request.run_id.clone(),
-        status: crate::protocol::RunStatus::Completed,
+        status: RunStatus::Completed,
         result_digest,
-        events: vec![],
-        final_action: Some(crate::protocol::Action::Done),
-        metrics: crate::protocol::ExecutionMetrics::default(),
+        events: Vec::new(),
+        final_action: Some(Action::Done),
+        metrics: ExecutionMetrics::default(),
         session_id: session_id.to_string(),
     })
 }
@@ -666,6 +663,15 @@ fn is_parent_alive(parent_pid: u32) -> bool {
             }
             Err(_) => false,
         }
+    }
+}
+
+#[cfg(unix)]
+fn is_parent_alive(parent_pid: u32) -> bool {
+    unsafe {
+        // kill with signal 0 checks for process existence without sending signal
+        libc::kill(parent_pid as libc::pid_t, 0) == 0 || 
+        std::io::Error::last_os_error().raw_os_error() == Some(libc::EPERM)
     }
 }
 

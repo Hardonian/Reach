@@ -266,10 +266,11 @@ export class FrameCodec extends EventEmitter {
   encode(type: FrameType, version: string, payload: Buffer): Buffer {
     // Validate payload size
     const versionBytes = Buffer.from(version, "utf-8");
+    // Total size includes: type(1) + versionLen(1) + version(N) + payload(N) + checksum(32)
+    // Note: FRAME_HEADER_SIZE is already included in the buffer allocation for the length field itself
     const totalSize =
-      FRAME_HEADER_SIZE +
-      1 +
-      1 +
+      1 + // type
+      1 + // version_len
       versionBytes.length +
       payload.length +
       32; // checksum
@@ -289,15 +290,15 @@ export class FrameCodec extends EventEmitter {
           .digest()
       : Buffer.alloc(32);
 
-    // Build frame
-    const frame = Buffer.allocUnsafe(4 + totalSize);
+    // Build frame: magic(4) + length(4) + totalSize
+    const frame = Buffer.allocUnsafe(4 + 4 + totalSize);
     let offset = 0;
 
     // Magic
     PROTOCOL_MAGIC.copy(frame, offset);
     offset += 4;
 
-    // Length (excluding magic and length itself)
+    // Length (totalSize = rest of frame after length field)
     frame.writeUInt32BE(totalSize, offset);
     offset += 4;
 
@@ -385,6 +386,8 @@ export class FrameCodec extends EventEmitter {
     }
 
     // Parse payload
+    // frameLength = type(1) + versionLen(1) + version(N) + payload(N) + checksum(32)
+    // payloadLength = frameLength - type(1) - versionLen(1) - version(N) - checksum(32)
     const payloadLength = frameLength - (1 + 1 + versionLen + 32);
     if (payloadLength < 0) {
       throw new ProtocolError(

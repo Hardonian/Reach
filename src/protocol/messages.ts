@@ -323,12 +323,28 @@ export enum ErrorCode {
 // ============================================================================
 
 /**
- * Serialize payload to CBOR
+ * Serialize payload to CBOR (Canonical)
+ * Ensures deterministic byte output for binary digests.
  */
 export function serializeCbor(payload: unknown): Uint8Array {
-  // Use cbor library for encoding
-  const encoded = cbor.encode(payload);
+  // Use canonical encoding for map key stability if available (node-cbor pattern)
+  const cborAny = cbor as unknown as { encodeCanonical?: (v: unknown) => Buffer; encode: (v: unknown) => Buffer };
+  const encoded = cborAny.encodeCanonical ? cborAny.encodeCanonical(payload) : cborAny.encode(payload);
   return new Uint8Array(encoded);
+}
+
+/**
+ * Deterministically sort RunEvents by timestamp and ID
+ * CRITICAL: Enforced to ensure result_digest stability
+ */
+export function sortRunEvents(events: RunEvent[]): RunEvent[] {
+  return [...events].sort((a, b) => {
+    // Primary: Timestamp
+    if (a.timestamp_us < b.timestamp_us) return -1;
+    if (a.timestamp_us > b.timestamp_us) return 1;
+    // Secondary: Event ID (ActionID sorting guard)
+    return a.event_id.localeCompare(b.event_id);
+  });
 }
 
 /**

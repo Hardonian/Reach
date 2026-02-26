@@ -5016,6 +5016,12 @@ func runRecordToMap(rec runRecord) map[string]any {
 }
 
 func runDoctor(args []string, out, errOut io.Writer) int {
+	// Parse flags
+	fs := flag.NewFlagSet("doctor", flag.ContinueOnError)
+	fs.SetOutput(errOut)
+	metricsFlag := fs.Bool("metrics", false, "Include daemon metrics in health check")
+	_ = fs.Parse(args)
+
 	fmt.Fprintln(out, "Reach Doctor - Diagnosing local environment...")
 
 	checks := []struct {
@@ -5052,6 +5058,18 @@ func runDoctor(args []string, out, errOut io.Writer) int {
 		healthy = false
 	} else {
 		fmt.Fprintf(out, "OK\n")
+	}
+
+	// If --metrics flag is provided, check daemon metrics
+	if *metricsFlag {
+		fmt.Fprintf(out, "[ ] Daemon Metrics      ")
+		status := GetDaemonMetricsStatus()
+		if strings.Contains(status, "UNAVAILABLE") {
+			fmt.Fprintf(out, "%s\n", status)
+			// Don't mark as unhealthy - metrics are optional
+		} else {
+			fmt.Fprintf(out, "%s\n", status)
+		}
 	}
 
 	if healthy {

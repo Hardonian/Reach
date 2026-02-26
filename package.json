@@ -78,7 +78,13 @@
     "verify:cas": "npx tsx scripts/verify-cas.ts || echo 'CAS verification placeholder'",
     "verify:parity": "npx tsx scripts/verify-parity.ts || echo 'Parity verification placeholder'",
     "verify:bench": "npx tsx scripts/verify-bench.ts || echo 'Bench verification placeholder'",
-    "verify:launch-gate": "npm run verify:hash && npm run verify:protocol && npm run verify:determinism"
+    "verify:launch-gate": "npm run verify:hash && npm run verify:protocol && npm run verify:determinism",
+    "verify:daemon": "npx tsx src/engine/verify/ops-tests.ts .reach/runtime daemon",
+    "verify:protocol:ops": "npx tsx src/engine/verify/ops-tests.ts .reach/runtime protocol",
+    "verify:load-lite": "npx tsx src/engine/verify/ops-tests.ts .reach/runtime load",
+    "verify:rollback": "npx tsx src/engine/verify/ops-tests.ts .reach/runtime rollback",
+    "verify:ops": "npx tsx src/engine/verify/ops-tests.ts .reach/runtime all",
+    "verify:ops:stabilization": "npm run verify:daemon && npm run verify:protocol:ops && npm run verify:load-lite && npm run verify:rollback"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",
