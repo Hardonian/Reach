@@ -3,6 +3,10 @@ set -euo pipefail
 
 cmd="${1:-}"
 case "$cmd" in
+  version)
+    shift
+    (cd services/runner && go run ./cmd/reachctl version "$@")
+    ;;
   doctor)
     shift
     (cd tools/doctor && go run . "$@")
@@ -107,6 +111,18 @@ case "$cmd" in
       *) (cd tools/economics && npm install --silent && npm start --silent -- metrics "$@") ;;
     esac
     ;;
+  state)
+    shift
+    (cd services/runner && go run ./cmd/reachctl state "$@")
+    ;;
+  verify-security)
+    shift
+    (cd services/runner && go run ./cmd/reachctl verify-security "$@")
+    ;;
+  simulate)
+    shift
+    (cd services/runner && go run ./cmd/reachctl simulate "$@")
+    ;;
   help|--help|-h)
     echo "Reach - Deterministic Execution Fabric"
     echo ""
@@ -124,11 +140,13 @@ case "$cmd" in
     echo "  cost             - View cost analysis and unit economics"
     echo "  metrics          - View GTM and usage metrics"
     echo "  gate             - Manage repository release gates"
+    echo "  state            - Inspect semantic states and transitions"
+    echo "  verify-security  - Verify local integrity posture"
     echo ""
     echo "For mobile/Termux: Install with scripts/install-termux.sh"
     ;;
   *)
-    echo "usage: reach doctor|audit|eval|release-check|serve|federation|support|arcade|capsule|proof|graph|packs|init|explain|operator|pack|wizard|run|share|delegate|verify-proof|cost|metrics|gate" >&2
+    echo "usage: reach version|doctor|audit|eval|release-check|serve|federation|support|arcade|capsule|proof|graph|packs|init|explain|operator|pack|wizard|run|share|delegate|verify-proof|cost|metrics|gate|state|verify-security|simulate" >&2
     echo "       reach help for more info" >&2
     exit 1
     ;;

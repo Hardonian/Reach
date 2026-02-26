@@ -27,6 +27,8 @@ export function MasterNavigation() {
         { name: 'Cost Management', path: ROUTES.CONSOLE.COST.HOME, route: '/cost', role: 'Admin', desc: 'Track compute usage and token consumption.', access: 'Admin' },
         { name: 'Billing Control', path: ROUTES.CONSOLE.BILLING, route: '/billing', role: 'Admin', desc: 'Monetization and department chargebacks.', access: 'Admin' },
         { name: 'Safety Monitor', path: ROUTES.CONSOLE.SAFETY, route: '/safety', role: 'User', desc: 'Adversarial safety and trust monitoring.', access: 'User' },
+        { name: 'Semantic Ledger', path: ROUTES.CONSOLE.GOVERNANCE.SEMANTIC_LEDGER, route: '/governance/semantic-ledger', role: 'Admin', desc: 'Governed semantic states with integrity and drift filters.', access: 'Admin' },
+        { name: 'Transition Viewer', path: ROUTES.CONSOLE.GOVERNANCE.TRANSITION_VIEWER, route: '/governance/transition-viewer', role: 'Admin', desc: 'Inspect state transitions, replay posture, and policy bindings.', access: 'Admin' },
       ]
     },
     {
