@@ -12,6 +12,7 @@ Several claims in the codebase promise features that are not yet implemented. Th
 
 **Location**: `README.md`, line 82  
 **Current**:
+
 ```markdown
 **Note**: This is the open-source core. Enterprise features (cloud-hosted runners, advanced analytics, team governance) are available in [Reach Cloud](https://reach.dev).
 ```
@@ -19,6 +20,7 @@ Several claims in the codebase promise features that are not yet implemented. Th
 **Problem**: "cloud-hosted runners", "advanced analytics", "team governance" are mentioned but not implemented.
 
 **Recommended**:
+
 ```markdown
 **Note**: This is the open-source core. Enterprise cloud features (SaaS hosting, team collaboration, audit dashboards) are available in [Reach Cloud](https://reach.dev). See our [roadmap](ROADMAP.md) for upcoming features.
 ```
@@ -31,6 +33,7 @@ Several claims in the codebase promise features that are not yet implemented. Th
 
 **Location**: `docs/internal/ADOPTION_PLAYBOOK.md`, line 13  
 **Current**:
+
 ```markdown
 - **Action:** Links to `reach gate connect` instructions.
 ```
@@ -38,6 +41,7 @@ Several claims in the codebase promise features that are not yet implemented. Th
 **Problem**: `reach gate connect` command does not exist.
 
 **Recommended**:
+
 ```markdown
 - **Action:** Links to GitHub integration setup documentation. (CLI command coming in v0.4)
 ```
@@ -50,6 +54,7 @@ Several claims in the codebase promise features that are not yet implemented. Th
 
 **Location**: `apps/arcade/src/app/page.tsx`, line 89  
 **Current**:
+
 ```typescript
 <p className="text-base text-emerald-400 font-medium mb-8">
   Your first policy gate is 30 seconds away. No configuration required.
@@ -59,6 +64,7 @@ Several claims in the codebase promise features that are not yet implemented. Th
 **Problem**: Creating policy gates DOES require configuration (YAML/JSON files).
 
 **Recommended**:
+
 ```typescript
 <p className="text-base text-emerald-400 font-medium mb-8">
   Your first deterministic run is 30 seconds away. Zero setup required.
@@ -76,10 +82,11 @@ Several claims in the codebase promise features that are not yet implemented. Th
 **Problem**: reachctl has 40+ commands, only 9 are documented.
 
 **Recommended**: Add disclaimer at top:
+
 ```markdown
 # Reach CLI Reference
 
-**Note**: This documentation covers the most common commands. 
+**Note**: This documentation covers the most common commands.
 For a complete list, run `reach --help`.
 ```
 
@@ -91,6 +98,7 @@ For a complete list, run `reach --help`.
 
 **Location**: `apps/arcade/src/app/page.tsx`, line 85  
 **Current**:
+
 ```typescript
 upgrade to the ReadyLayer cloud for enterprise-grade governance
 ```
@@ -98,6 +106,7 @@ upgrade to the ReadyLayer cloud for enterprise-grade governance
 **Problem**: "ReadyLayer" branding is inconsistent (sometimes "Reach Cloud", "ReadyLayer", "Cloud").
 
 **Recommended**: Standardize on one brand name:
+
 ```typescript
 upgrade to Reach Cloud for enterprise-grade governance
 ```
@@ -120,6 +129,7 @@ upgrade to Reach Cloud for enterprise-grade governance
 
 **Location**: `docs/QUICKSTART_TECH.md`, line 142  
 **Current**:
+
 ```yaml
 docker run -d --name reach -p 8787:8787 reach/reach:latest
 ```
@@ -127,8 +137,10 @@ docker run -d --name reach -p 8787:8787 reach/reach:latest
 **Problem**: Docker image may not be published yet.
 
 **Recommended**: Add note:
+
 ```markdown
 # Docker image coming soon. Build from source:
+
 docker build -t reach/reach:latest .
 ```
 
@@ -136,13 +148,13 @@ docker build -t reach/reach:latest .
 
 ## Summary Table
 
-| File | Line | Issue | Severity | Fix Type |
-|------|------|-------|----------|----------|
-| README.md | 82 | Unimplemented enterprise features | HIGH | Remove specific claims |
-| ADOPTION_PLAYBOOK.md | 13 | Non-existent command | MEDIUM | Update to reality |
-| page.tsx | 89 | Overstated simplicity | MEDIUM | Adjust claim |
-| cli.md | - | Incomplete docs | LOW | Add disclaimer |
-| page.tsx | 85 | Brand inconsistency | LOW | Standardize |
+| File                 | Line | Issue                             | Severity | Fix Type               |
+| -------------------- | ---- | --------------------------------- | -------- | ---------------------- |
+| README.md            | 82   | Unimplemented enterprise features | HIGH     | Remove specific claims |
+| ADOPTION_PLAYBOOK.md | 13   | Non-existent command              | MEDIUM   | Update to reality      |
+| page.tsx             | 89   | Overstated simplicity             | MEDIUM   | Adjust claim           |
+| cli.md               | -    | Incomplete docs                   | LOW      | Add disclaimer         |
+| page.tsx             | 85   | Brand inconsistency               | LOW      | Standardize            |
 
 ---
 

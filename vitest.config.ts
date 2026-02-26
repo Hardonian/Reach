@@ -29,7 +29,6 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["src/**/*.test.ts", "packages/**/*.test.ts"],
-    // Exclude: node_modules/build artifacts, and src/determinism/__tests__ (uses Node.js native test runner)
     exclude: ["node_modules", "dist", ".git", ".github", "src/determinism/__tests__"],
   },
 });

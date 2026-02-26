@@ -281,6 +281,34 @@ case "$cmd" in
     shift
     run_reachctl status "$@"
     ;;
+  login)
+    shift
+    run_reachctl login "$@"
+    ;;
+  logout)
+    shift
+    run_reachctl logout "$@"
+    ;;
+  org)
+    shift
+    run_reachctl org "$@"
+    ;;
+  cloud)
+    shift
+    run_reachctl cloud "$@"
+    ;;
+  eval)
+    shift
+    run_reachctl eval "$@"
+    ;;
+  api-key)
+    shift
+    run_reachctl api-key "$@"
+    ;;
+  artifacts)
+    shift
+    run_reachctl artifacts "$@"
+    ;;
   version|--version|-v)
     shift
     run_reachctl version "$@"

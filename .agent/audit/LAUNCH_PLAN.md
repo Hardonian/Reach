@@ -14,27 +14,31 @@
 ### Week 1 Focus
 
 #### Day 1-2: Critical Honesty Patches
-| Task | File | Effort | Owner |
-|------|------|--------|-------|
-| Fix enterprise features claim | README.md | 30 min | Docs |
-| Adjust homepage copy | page.tsx | 30 min | Marketing |
-| Add CLI disclaimer | cli.md | 15 min | Docs |
+
+| Task                          | File      | Effort | Owner     |
+| ----------------------------- | --------- | ------ | --------- |
+| Fix enterprise features claim | README.md | 30 min | Docs      |
+| Adjust homepage copy          | page.tsx  | 30 min | Marketing |
+| Add CLI disclaimer            | cli.md    | 15 min | Docs      |
 
 **Acceptance Criteria**:
+
 - [ ] No unimplemented features claimed as available
 - [ ] Homepage accurately reflects setup requirements
 
 ---
 
 #### Day 2-3: Cloud Authentication (Critical Gap)
-| Task | Command | Effort | Owner |
-|------|---------|--------|-------|
-| Implement login | `reach login` | 1 day | Backend |
-| Implement logout | `reach logout` | 2 hrs | Backend |
-| Implement org switch | `reach org` | 4 hrs | Backend |
-| Add auth to wrapper | `reach` bash script | 2 hrs | CLI |
+
+| Task                 | Command             | Effort | Owner   |
+| -------------------- | ------------------- | ------ | ------- |
+| Implement login      | `reach login`       | 1 day  | Backend |
+| Implement logout     | `reach logout`      | 2 hrs  | Backend |
+| Implement org switch | `reach org`         | 4 hrs  | Backend |
+| Add auth to wrapper  | `reach` bash script | 2 hrs  | CLI     |
 
 **Implementation Spec**:
+
 ```go
 // reachctl login command
 func runLogin(ctx context.Context, args []string, out io.Writer) int {
@@ -47,6 +51,7 @@ func runLogin(ctx context.Context, args []string, out io.Writer) int {
 ```
 
 **Acceptance Criteria**:
+
 - [ ] `reach login` opens browser for OAuth
 - [ ] Token stored securely in ~/.reach/
 - [ ] `reach logout` clears credentials
@@ -55,13 +60,15 @@ func runLogin(ctx context.Context, args []string, out io.Writer) int {
 ---
 
 #### Day 3-5: CLI Documentation Expansion
-| Task | Pages | Effort | Owner |
-|------|-------|--------|-------|
-| Document all 40+ commands | cli.md | 2 days | Docs |
-| Create command quick reference | cli-quickref.md | 4 hrs | Docs |
-| Add examples for each command | cli.md | 4 hrs | DevRel |
+
+| Task                           | Pages           | Effort | Owner  |
+| ------------------------------ | --------------- | ------ | ------ |
+| Document all 40+ commands      | cli.md          | 2 days | Docs   |
+| Create command quick reference | cli-quickref.md | 4 hrs  | Docs   |
+| Add examples for each command  | cli.md          | 4 hrs  | DevRel |
 
 **Acceptance Criteria**:
+
 - [ ] Every CLI command has documentation
 - [ ] Every command has at least one example
 - [ ] Exit codes documented
@@ -69,13 +76,15 @@ func runLogin(ctx context.Context, args []string, out io.Writer) int {
 ---
 
 #### Day 4-5: CI/CD Integration Guide
-| Task | Deliverable | Effort | Owner |
-|------|-------------|--------|-------|
-| GitHub Actions guide | docs/ci-cd.md | 4 hrs | DevRel |
-| GitLab CI example | docs/ci-cd.md | 2 hrs | DevRel |
-| Pre-commit hook example | docs/ci-cd.md | 2 hrs | DevRel |
+
+| Task                    | Deliverable   | Effort | Owner  |
+| ----------------------- | ------------- | ------ | ------ |
+| GitHub Actions guide    | docs/ci-cd.md | 4 hrs  | DevRel |
+| GitLab CI example       | docs/ci-cd.md | 2 hrs  | DevRel |
+| Pre-commit hook example | docs/ci-cd.md | 2 hrs  | DevRel |
 
 **Acceptance Criteria**:
+
 - [ ] GitHub Actions workflow example works
 - [ ] GitLab CI example validated
 - [ ] Copy-paste ready YAML blocks
@@ -100,39 +109,40 @@ reach login --help        # Auth commands exist
 
 ### Week 2-3: Enhanced Documentation
 
-| Task | Deliverable | Effort | Dependencies |
-|------|-------------|--------|--------------|
-| How It Works page | /how-it-works | 3 days | Design |
-| OSS vs Enterprise | /oss-vs-enterprise | 2 days | Marketing |
-| Gates deep-dive | /docs/gates | 3 days | Product |
-| Troubleshooting expansion | /docs/troubleshooting | 2 days | Support |
+| Task                      | Deliverable           | Effort | Dependencies |
+| ------------------------- | --------------------- | ------ | ------------ |
+| How It Works page         | /how-it-works         | 3 days | Design       |
+| OSS vs Enterprise         | /oss-vs-enterprise    | 2 days | Marketing    |
+| Gates deep-dive           | /docs/gates           | 3 days | Product      |
+| Troubleshooting expansion | /docs/troubleshooting | 2 days | Support      |
 
 ---
 
 ### Week 3: Cloud Command Suite
 
-| Task | Command | Effort |
-|------|---------|--------|
-| API key management | `reach api-key` | 1 day |
-| Artifact sync | `reach artifacts sync` | 1 day |
-| Cloud status | `reach cloud status` | 4 hrs |
-| Webhook management | `reach webhook` | 1 day |
+| Task               | Command                | Effort |
+| ------------------ | ---------------------- | ------ |
+| API key management | `reach api-key`        | 1 day  |
+| Artifact sync      | `reach artifacts sync` | 1 day  |
+| Cloud status       | `reach cloud status`   | 4 hrs  |
+| Webhook management | `reach webhook`        | 1 day  |
 
 ---
 
 ### Week 4: Eval & Testing Commands
 
-| Task | Command | Effort |
-|------|---------|--------|
-| Eval runner | `reach eval run` | 2 days |
-| Eval comparison | `reach eval compare` | 1 day |
-| Regression test | `reach eval regression` | 1 day |
+| Task            | Command                 | Effort |
+| --------------- | ----------------------- | ------ |
+| Eval runner     | `reach eval run`        | 2 days |
+| Eval comparison | `reach eval compare`    | 1 day  |
+| Regression test | `reach eval regression` | 1 day  |
 
 ---
 
 ## Dependencies & Risks
 
 ### Critical Path
+
 ```
 reach login ─┬─> reach org ─┬─> Cloud features usable
              │              └─> Team governance
@@ -142,17 +152,18 @@ reach login ─┬─> reach org ─┬─> Cloud features usable
 
 ### Risk Mitigation
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Auth service not ready | HIGH | Implement offline mode for local-only usage |
-| CLI docs incomplete | MEDIUM | Ship with `reach --help` as primary reference |
-| Cloud commands missing | HIGH | Defer cloud launch by 1 week, focus on OSS |
+| Risk                   | Impact | Mitigation                                    |
+| ---------------------- | ------ | --------------------------------------------- |
+| Auth service not ready | HIGH   | Implement offline mode for local-only usage   |
+| CLI docs incomplete    | MEDIUM | Ship with `reach --help` as primary reference |
+| Cloud commands missing | HIGH   | Defer cloud launch by 1 week, focus on OSS    |
 
 ---
 
 ## Success Metrics
 
 ### Launch Week Targets
+
 - [ ] 100% of P0 commands implemented
 - [ ] 0 theatre items (no misleading claims)
 - [ ] `reach doctor` passes on fresh install
@@ -160,6 +171,7 @@ reach login ─┬─> reach org ─┬─> Cloud features usable
 - [ ] All docs pages accessible
 
 ### 30-Day Targets
+
 - [ ] 80% of P1 commands implemented
 - [ ] CI/CD integration guide > 100 views
 - [ ] Zero critical bugs in authentication
@@ -169,19 +181,20 @@ reach login ─┬─> reach org ─┬─> Cloud features usable
 
 ## Resource Allocation
 
-| Role | Stage 1 Hours | Stage 2 Hours |
-|------|---------------|---------------|
-| Backend (Go) | 24 | 32 |
-| Frontend (Next.js) | 8 | 16 |
-| Documentation | 24 | 24 |
-| DevRel/Examples | 8 | 16 |
-| QA/Testing | 8 | 12 |
+| Role               | Stage 1 Hours | Stage 2 Hours |
+| ------------------ | ------------- | ------------- |
+| Backend (Go)       | 24            | 32            |
+| Frontend (Next.js) | 8             | 16            |
+| Documentation      | 24            | 24            |
+| DevRel/Examples    | 8             | 16            |
+| QA/Testing         | 8             | 12            |
 
 ---
 
 ## Final Launch Checklist
 
 ### Pre-Launch (Day -1)
+
 - [ ] All honesty patches applied
 - [ ] `reach doctor` passes in clean environment
 - [ ] `reach login` works end-to-end
@@ -192,6 +205,7 @@ reach login ─┬─> reach org ─┬─> Cloud features usable
 - [ ] Security page complete
 
 ### Launch Day
+
 - [ ] Homepage live
 - [ ] Docs site indexed
 - [ ] GitHub release published
@@ -199,6 +213,7 @@ reach login ─┬─> reach org ─┬─> Cloud features usable
 - [ ] Social announcement ready
 
 ### Post-Launch (Day +7)
+
 - [ ] Bug reports triaged
 - [ ] First external contribution merged
 - [ ] Usage metrics reviewed

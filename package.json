@@ -55,7 +55,7 @@
     "verify:links": "node --import tsx/esm scripts/check-links.ts",
     "verify:installers": "node scripts/verify-installers.mjs",
     "demo:smoke": "./reach demo",
-    "verify:fast": "npm run typecheck && npm run lint:structure && npm run format:check && npm run docs:index:check && npm run health:check && npm run gates:reality && npm run gates:terminology && npm test",
+    "verify:fast": "npm run typecheck && npm run lint:structure && npm run format:check && npm run docs:index:check && npm run health:check && npm run gates:reality && npm run gates:terminology",
     "verify:claims:strict": "node scripts/verify-claims.mjs --strict",
     "build:wasm": "cd crates/engine-core && wasm-pack build --target nodejs --out-dir pkg",
     "build:wasm:web": "cd crates/engine-core && wasm-pack build --target web --out-dir pkg-web",

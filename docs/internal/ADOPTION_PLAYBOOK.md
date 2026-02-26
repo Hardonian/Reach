@@ -9,7 +9,7 @@ Winning strategies for transitioning users from Demo success to production Gates
 - **Location:** Header/Modal on `arcade` success.
 - **Trigger:** 5 seconds after run completion.
 - **Copy:** `Build with confidence. Enable Release Gates for your repo.`
-- **Action:** Links to `reach gate connect` instructions.
+- **Action:** Links to GitHub integration setup documentation. (CLI command `reach gate connect` coming in v0.4)
 
 ### 2. Adoption Sequence (Email)
 

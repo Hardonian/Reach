@@ -79,4 +79,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 
-**Note**: This is the open-source core. Enterprise features (cloud-hosted runners, advanced analytics, team governance) are available in [Reach Cloud](https://reach.dev).
+**Note**: This is the open-source core. Enterprise cloud features (SaaS hosting, team collaboration, audit dashboards) are available in [Reach Cloud](https://reach.dev). See our [roadmap](ROADMAP.md) for upcoming features including cloud-hosted runners, advanced analytics, and team governance.
