@@ -210,6 +210,211 @@ func (c *CAS) GC() (int, error) {
 	return deleted, nil
 }
 
+// StatusEx returns detailed status information including size and object count
+func (c *CAS) StatusEx() (*CASStatus, error) {
+	status := &CASStatus{
+		Root:             c.root,
+		FormatVersion:    CACObjectFormatVersion,
+		ObjectsByType:    make(map[string]int),
+		EvictionPolicy:   string(c.config.EvictionPolicy),
+		MaxSizeBytes:     c.config.MaxCASSizeBytes,
+		TotalSizeBytes:   0,
+		ObjectCount:      0,
+		FragmentationRatio: 0,
+	}
+
+	// Calculate actual disk usage and object count
+	var totalFileSize int64
+	for t := range allowedObjectTypes {
+		d := filepath.Join(c.root, string(t))
+		entries, err := os.ReadDir(d)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				status.ObjectsByType[string(t)] = 0
+				continue
+			}
+			return nil, err
+		}
+		count := 0
+		for _, e := range entries {
+			if e.IsDir() || validSHA256Hex(e.Name()) {
+				count++
+				// Get file size
+				if info, err := e.Info(); err == nil {
+					totalFileSize += info.Size()
+				}
+			}
+		}
+		status.ObjectsByType[string(t)] = count
+		status.ObjectCount += count
+	}
+
+	status.TotalSizeBytes = totalFileSize
+
+	// Calculate fragmentation ratio (actual size / expected minimum size)
+	// If we have more disk usage than expected from object count, there's fragmentation
+	minExpectedSize := int64(status.ObjectCount) * 1024 // Assume minimum 1KB per object
+	if totalFileSize > minExpectedSize {
+		status.FragmentationRatio = float64(totalFileSize-minExpectedSize) / float64(totalFileSize)
+	}
+
+	return status, nil
+}
+
+// Compact performs garbage collection to remove unreachable objects
+// aggressive=true will perform full garbage collection
+func (c *CAS) Compact(aggressive bool) (int, error) {
+	deleted := 0
+
+	// First do basic GC
+	n, err := c.GC()
+	if err != nil {
+		return deleted, err
+	}
+	deleted += n
+
+	if aggressive {
+		// In aggressive mode, also clean up LRU entries that are too old
+		if c.config.EvictionPolicy == EvictionPolicyLRU {
+			n, err = c.evictOldLRU()
+			if err != nil {
+				return deleted, err
+			}
+			deleted += n
+		}
+	}
+
+	return deleted, nil
+}
+
+// EvictLRU removes least recently used objects to free space
+func (c *CAS) EvictLRU(targetBytes int64) (int64, error) {
+	if c.config.EvictionPolicy != EvictionPolicyLRU {
+		return 0, nil // Only evict if LRU policy is enabled
+	}
+
+	c.lruMu.Lock()
+	defer c.lruMu.Unlock()
+
+	// Get all objects sorted by access time
+	var objects []struct {
+		hash     string
+		type     ObjectType
+		accessed time.Time
+		size     int64
+	}
+
+	for t := range allowedObjectTypes {
+		d := filepath.Join(c.root, string(t))
+		entries, err := os.ReadDir(d)
+		if err != nil {
+			continue
+		}
+		for _, e := range entries {
+			if e.IsDir() || !validSHA256Hex(e.Name()) {
+				continue
+			}
+			info, _ := e.Info()
+			accessed := c.lruAccess[e.Name()]
+			if accessed.IsZero() {
+				accessed = time.Now().Add(-c.config.LRUWindow * 2) // Older than 2 windows
+			}
+			objects = append(objects, struct {
+				hash     string
+				type     ObjectType
+				accessed time.Time
+				size     int64
+			}{e.Name(), t, accessed, info.Size()})
+		}
+	}
+
+	// Sort by access time (oldest first)
+	sort.Slice(objects, func(i, j int) bool {
+		return objects[i].accessed.Before(objects[j].accessed)
+	})
+
+	// Delete oldest objects until we free enough space
+	var freed int64
+	for _, obj := range objects {
+		if freed >= targetBytes {
+			break
+		}
+		path := c.objectPath(obj.type, obj.hash)
+		if err := os.Remove(path); err == nil {
+			freed += obj.size
+			deleted++
+			// Update LRU tracking - for deterministic order, use hash as tiebreaker
+			sortedKeys := make([]string, 0, len(c.lruAccess))
+			for k := range c.lruAccess {
+				sortedKeys = append(sortedKeys, k)
+			}
+			sort.Strings(sortedKeys)
+			for _, k := range sortedKeys {
+				if k == obj.hash {
+					delete(c.lruAccess, k)
+					break
+				}
+			}
+		}
+	}
+
+	return freed, nil
+}
+
+// evictOldLRU removes LRU entries that are outside the retention window
+func (c *CAS) evictOldLRU() (int, error) {
+	c.lruMu.Lock()
+	defer c.lruMu.Unlock()
+
+	cutoff := time.Now().Add(-c.config.LRUWindow)
+	deleted := 0
+
+	for hash, accessed := range c.lruAccess {
+		if accessed.Before(cutoff) {
+			delete(c.lruAccess, hash)
+			deleted++
+		}
+	}
+
+	return deleted, nil
+}
+
+// EvictSizeCap enforces the maximum CAS size limit
+func (c *CAS) EvictSizeCap() (int64, error) {
+	if c.config.EvictionPolicy != EvictionPolicySizeCap {
+		return 0, nil
+	}
+
+	if c.config.MaxCASSizeBytes <= 0 {
+		return 0, nil
+	}
+
+	// Get current status
+	status, err := c.StatusEx()
+	if err != nil {
+		return 0, err
+	}
+
+	if status.TotalSizeBytes <= c.config.MaxCASSizeBytes {
+		return 0, nil
+	}
+
+	// Need to free targetBytes
+	targetBytes := status.TotalSizeBytes - c.config.MaxCASSizeBytes
+	return c.EvictLRU(targetBytes)
+}
+
+// UpdateLRU records an access for LRU tracking
+func (c *CAS) UpdateLRU(t ObjectType, hash string) {
+	if c.config.EvictionPolicy != EvictionPolicyLRU {
+		return
+	}
+
+	c.lruMu.Lock()
+	defer c.lruMu.Unlock()
+	c.lruAccess[hash] = time.Now()
+}
+
 func (c *CAS) objectPath(t ObjectType, hash string) string {
 	return filepath.Join(c.root, string(t), hash)
 }
