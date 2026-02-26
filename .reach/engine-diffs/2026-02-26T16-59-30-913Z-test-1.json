@@ -1,0 +1,77 @@
+{
+  "metadata": {
+    "timestamp": "2026-02-26T16:59:30.913Z",
+    "requestId": "test-1",
+    "primaryEngine": "requiem",
+    "secondaryEngine": "rust",
+    "comparison": {
+      "match": false,
+      "severity": "minor",
+      "differences": [
+        {
+          "field": "trace.algorithm",
+          "primary": "minimax_regret",
+          "secondary": "minimax_regret_fallback",
+          "type": "value"
+        }
+      ]
+    }
+  },
+  "request": {
+    "algorithm": "minimax_regret",
+    "actions": [
+      "a1",
+      "a2"
+    ],
+    "states": [
+      "s1",
+      "s2"
+    ]
+  },
+  "results": {
+    "primary": {
+      "status": "success",
+      "recommendedAction": "a1",
+      "ranking": [
+        "a1",
+        "a2"
+      ],
+      "fingerprint": "29bd793de74bd09671e7d584ab466234",
+      "meta": {
+        "engine": "requiem",
+        "engineVersion": "0.1.0-stub",
+        "durationMs": 0,
+        "completedAt": "2026-02-26T16:59:30.913Z"
+      },
+      "traceSummary": {
+        "algorithm": "minimax_regret"
+      }
+    },
+    "secondary": {
+      "status": "success",
+      "recommendedAction": "a1",
+      "ranking": [
+        "a1",
+        "a2"
+      ],
+      "fingerprint": "",
+      "meta": {
+        "engine": "rust",
+        "engineVersion": "0.3.1-ts",
+        "durationMs": 0,
+        "completedAt": "2026-02-26T16:59:30.913Z"
+      },
+      "traceSummary": {
+        "algorithm": "minimax_regret_fallback"
+      }
+    }
+  },
+  "diff": [
+    {
+      "field": "trace.algorithm",
+      "primary": "minimax_regret",
+      "secondary": "minimax_regret_fallback",
+      "type": "value"
+    }
+  ]
+}
