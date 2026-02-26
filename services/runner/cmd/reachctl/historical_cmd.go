@@ -3,9 +3,11 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -537,6 +539,7 @@ func GetDaemonMetricsStatus() string {
 		return fmt.Sprintf("OK (executions: %d, queue: %d)", metrics.TotalExecutions, metrics.QueueDepth)
 	}
 	return "OK (connected)"
+}
 
 // ============================================================================
 // DIFF COMMAND
