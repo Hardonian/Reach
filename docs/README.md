@@ -5,6 +5,8 @@ Welcome to the Reach Documentation. This repository follows the **Antigravity** 
 ## 🚀 Getting Started
 
 - [Quickstart (Technical)](QUICKSTART_TECH.md) - Get up and running in 5 minutes.
+- [Quickstart (OSS)](quickstart.md) - Fastest local OSS run/replay path.
+- [OSS vs Cloud/Enterprise](oss-vs-enterprise.md) - Capability and boundary matrix.
 - [Install Guide](INSTALL.md) - Detailed installation for all platforms.
 - [CLI Reference](cli.md) - Mastery of `reachctl` and `./reach`.
 - [Troubleshooting](TROUBLESHOOTING.md) - Resolve common issues.
@@ -128,5 +130,6 @@ _Reach: The Deterministic Spine for Agentic Intelligence._
 - [Technical Due Diligence](TECHNICAL_DUE_DILIGENCE.md)
 - [Testing Smoke](testing-smoke.md)
 - [Threat Model](THREAT_MODEL.md)
+- [Verify SCCL](VERIFY_SCCL.md)
 - [Time Capsule](TIME_CAPSULE.md)
 - [Traceability](traceability.md)

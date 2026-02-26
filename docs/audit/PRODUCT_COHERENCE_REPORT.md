@@ -62,3 +62,7 @@ Security appears as a dominant theme rather than a confidence multiplier for the
 
 ## Certification conclusion
 Reach is credible but not yet narratively disciplined enough for broad-market adoption efficiency. The blocking issue is not missing capability; it is excessive front-door complexity and diluted product center.
+
+
+## Execution linkage
+This report's remediation is operationalized in `docs/audit/POST_REMEDIATION_EXECUTION_DIRECTIVES.md`, which converts findings into acceptance criteria and freeze conditions for outward-facing scope expansion.
