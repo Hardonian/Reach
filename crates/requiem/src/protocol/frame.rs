@@ -38,8 +38,8 @@ pub const MAGIC: u32 = 0x52454348;
 /// This prevents memory exhaustion attacks
 pub const MAX_PAYLOAD_BYTES: u32 = 64 * 1024 * 1024;
 
-/// Frame header size in bytes
-pub const HEADER_SIZE: usize = 26;
+/// Header size: Magic(4) + Version(4) + MsgType(4) + Flags(4) + CorrelationID(4) + PayloadLen(4) = 24
+pub const HEADER_SIZE: usize = 24;
 
 /// Frame footer size (CRC) in bytes
 pub const FOOTER_SIZE: usize = 4;
@@ -299,13 +299,8 @@ impl Frame {
         src.advance(HEADER_SIZE);
 
         // Extract payload with guarded allocation
-        // Only allocate full capacity if it's within untrusted limit or we've validated the header
-        let mut payload = if payload_len > MAX_UNTRUSTED_ALLOCATION {
-            // Potential DoS vector: capping initial allocation
-            Vec::with_capacity(MAX_UNTRUSTED_ALLOCATION as usize)
-        } else {
-            Vec::with_capacity(payload_len as usize)
-        };
+        // ADVERSARIAL: Cap pre-allocation to prevent memory-based DoS
+        let mut payload = Vec::with_capacity(std::cmp::min(payload_len, MAX_UNTRUSTED_ALLOCATION) as usize);
         
         payload.extend_from_slice(&src[..payload_len as usize]);
         src.advance(payload_len as usize);

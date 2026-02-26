@@ -7,7 +7,8 @@
 
 export const MAGIC = 0x52454348; // "RECH"
 export const MAX_PAYLOAD_BYTES = 64 * 1024 * 1024; // 64 MiB
-export const HEADER_SIZE = 26;
+/** Header size: Magic(4) + Version(4) + MsgType(4) + Flags(4) + CorrelationID(4) + PayloadLen(4) = 24 */
+export const HEADER_SIZE = 24;
 export const FOOTER_SIZE = 4;
 export const FRAME_OVERHEAD = HEADER_SIZE + FOOTER_SIZE;
 
@@ -186,7 +187,7 @@ export function decodeFrame(buffer: Uint8Array): { frame: Frame; remaining: Uint
       { msgType: msgTypeRaw }
     );
   }
-  
+
   // Validate payload size
   if (payloadLen > MAX_PAYLOAD_BYTES) {
     throw new FrameError(
@@ -195,18 +196,21 @@ export function decodeFrame(buffer: Uint8Array): { frame: Frame; remaining: Uint
       { size: payloadLen, max: MAX_PAYLOAD_BYTES }
     );
   }
-  
+
   // Check if we have complete frame
   const totalFrameLen = FRAME_OVERHEAD + payloadLen;
   if (buffer.length < totalFrameLen) {
     return null; // Need more data
   }
-  
-  // Extract payload
-  const payload = buffer.slice(HEADER_SIZE, HEADER_SIZE + payloadLen);
-  
+
+  // Extract payload with guarded allocation
+  // ADVERSARIAL: Cap pre-allocation for security
+  const payload = new Uint8Array(payloadLen);
+  payload.set(buffer.subarray(HEADER_SIZE, HEADER_SIZE + payloadLen));
+
   // Verify CRC
   const expectedCRC = readUInt32LE(buffer, HEADER_SIZE + payloadLen);
+
   const frame: Frame = {
     versionMajor,
     versionMinor,
