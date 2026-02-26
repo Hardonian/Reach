@@ -1921,6 +1921,255 @@ export const MIGRATIONS: string[] = [
     updated_at
   FROM signals;
   `,
+
+  /* 031 — monitoring trends and SLO burn tracking */
+  `
+  CREATE TABLE IF NOT EXISTS slo_definitions (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+    name TEXT NOT NULL,
+    description TEXT,
+    resource_type TEXT NOT NULL CHECK(resource_type IN ('gate', 'signal', 'workflow', 'tenant')),
+    resource_id TEXT,
+    metric_type TEXT NOT NULL CHECK(metric_type IN ('availability', 'latency', 'error_rate', 'throughput', 'custom')),
+    target_value REAL NOT NULL,
+    target_unit TEXT NOT NULL,
+    window_days INTEGER NOT NULL DEFAULT 30,
+    burn_rate_alert_threshold REAL DEFAULT 2.0,
+    is_active INTEGER DEFAULT 1,
+    created_by TEXT REFERENCES users(id),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS slo_measurements (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    slo_id TEXT NOT NULL REFERENCES slo_definitions(id),
+    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+    period_start TEXT NOT NULL,
+    period_end TEXT NOT NULL,
+    actual_value REAL NOT NULL,
+    target_value REAL NOT NULL,
+    error_budget_remaining REAL NOT NULL,
+    error_budget_burn_rate REAL NOT NULL,
+    is_breaching INTEGER DEFAULT 0,
+    measurements_count INTEGER DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS monitoring_trends (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+    metric_name TEXT NOT NULL,
+    metric_category TEXT NOT NULL,
+    resource_type TEXT,
+    resource_id TEXT,
+    timestamp TEXT NOT NULL,
+    value REAL NOT NULL,
+    unit TEXT,
+    metadata_json TEXT DEFAULT '{}'
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_slo_def_tenant ON slo_definitions(tenant_id, resource_type, is_active);
+  CREATE INDEX IF NOT EXISTS idx_slo_meas_slo ON slo_measurements(slo_id, period_start DESC);
+  CREATE INDEX IF NOT EXISTS idx_slo_meas_breach ON slo_measurements(is_breaching, created_at);
+  CREATE INDEX IF NOT EXISTS idx_monitoring_trends ON monitoring_trends(tenant_id, metric_name, timestamp DESC);
+  CREATE INDEX IF NOT EXISTS idx_monitoring_resource ON monitoring_trends(tenant_id, resource_type, resource_id, timestamp DESC);
+  `,
+
+  /* 032 — role editor with scoped custom roles */
+  `
+  CREATE TABLE IF NOT EXISTS roles (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+    name TEXT NOT NULL,
+    description TEXT,
+    is_system_role INTEGER DEFAULT 0,
+    is_custom INTEGER DEFAULT 1,
+    permissions_json TEXT NOT NULL DEFAULT '[]',
+    resource_scopes_json TEXT DEFAULT '{}',
+    inherits_from TEXT REFERENCES roles(id),
+    created_by TEXT REFERENCES users(id),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(tenant_id, name)
+  );
+
+  CREATE TABLE IF NOT EXISTS role_permissions (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    role_id TEXT NOT NULL REFERENCES roles(id),
+    permission TEXT NOT NULL,
+    resource_type TEXT,
+    resource_id TEXT,
+    conditions_json TEXT DEFAULT '{}',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS user_role_assignments (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    user_id TEXT NOT NULL REFERENCES users(id),
+    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+    role_id TEXT NOT NULL REFERENCES roles(id),
+    assigned_by TEXT REFERENCES users(id),
+    assigned_at TEXT NOT NULL DEFAULT (datetime('now')),
+    expires_at TEXT,
+    UNIQUE(user_id, tenant_id, role_id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_roles_tenant ON roles(tenant_id, is_system_role);
+  CREATE INDEX IF NOT EXISTS idx_role_perms_role ON role_permissions(role_id);
+  CREATE INDEX IF NOT EXISTS idx_user_roles_user ON user_role_assignments(user_id, tenant_id);
+  CREATE INDEX IF NOT EXISTS idx_user_roles_role ON user_role_assignments(role_id);
+  `,
+
+  /* 033 — incident communications and approval workflow */
+  `
+  CREATE TABLE IF NOT EXISTS incidents (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+    title TEXT NOT NULL,
+    description TEXT,
+    severity TEXT NOT NULL CHECK(severity IN ('critical', 'high', 'medium', 'low', 'info')),
+    status TEXT NOT NULL CHECK(status IN ('detected', 'investigating', 'mitigating', 'monitoring', 'resolved', 'postmortem')),
+    affected_services_json TEXT DEFAULT '[]',
+    affected_gates_json TEXT DEFAULT '[]',
+    affected_signals_json TEXT DEFAULT '[]',
+    detected_at TEXT NOT NULL,
+    acknowledged_at TEXT,
+    mitigated_at TEXT,
+    resolved_at TEXT,
+    created_by TEXT REFERENCES users(id),
+    acknowledged_by TEXT REFERENCES users(id),
+    lead_responder TEXT REFERENCES users(id),
+    postmortem_url TEXT,
+    postmortem_status TEXT CHECK(postmortem_status IN ('pending', 'draft', 'published')),
+    lessons_learned TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS incident_updates (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    incident_id TEXT NOT NULL REFERENCES incidents(id),
+    status TEXT NOT NULL,
+    message TEXT NOT NULL,
+    is_public INTEGER DEFAULT 1,
+    created_by TEXT REFERENCES users(id),
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS incident_subscriptions (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+    email TEXT NOT NULL,
+    notify_on_severity_json TEXT DEFAULT '["critical", "high"]',
+    notify_on_status_change INTEGER DEFAULT 1,
+    notify_on_update INTEGER DEFAULT 1,
+    unsubscribe_token TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS approval_requests (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+    resource_type TEXT NOT NULL,
+    resource_id TEXT NOT NULL,
+    action TEXT NOT NULL,
+    proposed_changes_json TEXT NOT NULL,
+    risk_level TEXT CHECK(risk_level IN ('low', 'medium', 'high', 'critical')),
+    impact_summary TEXT,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'approved', 'rejected', 'expired', 'cancelled')),
+    requested_by TEXT NOT NULL REFERENCES users(id),
+    requested_at TEXT NOT NULL DEFAULT (datetime('now')),
+    approver_role_id TEXT REFERENCES roles(id),
+    assigned_approver_id TEXT REFERENCES users(id),
+    resolved_by TEXT REFERENCES users(id),
+    resolved_at TEXT,
+    resolution_reason TEXT,
+    expires_at TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_incidents_tenant ON incidents(tenant_id, status, detected_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_incident_updates ON incident_updates(incident_id, created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_incident_subs_tenant ON incident_subscriptions(tenant_id);
+  CREATE INDEX IF NOT EXISTS idx_approvals_tenant ON approval_requests(tenant_id, status);
+  CREATE INDEX IF NOT EXISTS idx_approvals_resource ON approval_requests(resource_type, resource_id);
+  CREATE INDEX IF NOT EXISTS idx_approvals_expires ON approval_requests(expires_at) WHERE status = 'pending';
+  `,
+
+  /* 034 — compliance exports and reality-based changelog */
+  `
+  CREATE TABLE IF NOT EXISTS compliance_exports (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+    export_type TEXT NOT NULL CHECK(export_type IN ('audit', 'policy', 'gate_history', 'full_compliance', 'custom')),
+    name TEXT NOT NULL,
+    description TEXT,
+    date_from TEXT NOT NULL,
+    date_to TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'generating', 'ready', 'failed', 'expired')),
+    file_url TEXT,
+    file_size_bytes INTEGER,
+    manifest_json TEXT NOT NULL DEFAULT '{}',
+    included_tables_json TEXT DEFAULT '[]',
+    row_count INTEGER,
+    signature TEXT,
+    signature_algorithm TEXT DEFAULT 'SHA256-RSA',
+    signed_by TEXT REFERENCES users(id),
+    signed_at TEXT,
+    verification_hash TEXT,
+    expires_at TEXT,
+    created_by TEXT REFERENCES users(id),
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS changelog_entries (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    tenant_id TEXT REFERENCES tenants(id),
+    version TEXT NOT NULL,
+    version_tag TEXT,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    change_type TEXT NOT NULL CHECK(change_type IN ('feature', 'fix', 'security', 'performance', 'breaking', 'deprecation', 'docs')),
+    source_migration_id TEXT,
+    source_commit_sha TEXT,
+    source_pr_number INTEGER,
+    source_feature_flag TEXT,
+    source_author TEXT,
+    affected_components_json TEXT DEFAULT '[]',
+    breaking_change_details TEXT,
+    migration_required INTEGER DEFAULT 0,
+    is_published INTEGER DEFAULT 0,
+    published_at TEXT,
+    published_by TEXT REFERENCES users(id),
+    auto_generated INTEGER DEFAULT 0,
+    generation_source TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS changelog_drafts (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    tenant_id TEXT REFERENCES tenants(id),
+    title TEXT NOT NULL,
+    description TEXT,
+    detected_migrations_json TEXT DEFAULT '[]',
+    detected_commits_json TEXT DEFAULT '[]',
+    detected_api_changes_json TEXT DEFAULT '[]',
+    status TEXT DEFAULT 'draft' CHECK(status IN ('draft', 'reviewing', 'approved', 'rejected')),
+    reviewer_notes TEXT,
+    published_entry_id TEXT REFERENCES changelog_entries(id),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_compliance_exports_tenant ON compliance_exports(tenant_id, created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_compliance_exports_status ON compliance_exports(status);
+  CREATE INDEX IF NOT EXISTS idx_changelog_tenant ON changelog_entries(tenant_id, is_published, published_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_changelog_version ON changelog_entries(version);
+  CREATE INDEX IF NOT EXISTS idx_changelog_source ON changelog_entries(source_commit_sha, source_migration_id);
+  CREATE INDEX IF NOT EXISTS idx_changelog_drafts ON changelog_drafts(tenant_id, status);
+  `,
 ];
 
 export function applyMigrations(db: Database.Database): void {

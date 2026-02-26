@@ -1,9 +1,14 @@
 // Simple Slot component implementation
 import * as React from "react";
 
-export function Slot({ children, ...props }: React.HTMLAttributes<HTMLElement> & { children?: React.ReactNode }) {
+type SlotProps = {
+  children?: React.ReactNode;
+};
+
+export function Slot({ children, ...props }: SlotProps & Omit<React.HTMLAttributes<HTMLElement>, "children">) {
   if (React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement<any>, props as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return React.cloneElement(children as React.ReactElement<any>, props);
   }
   return null;
 }
