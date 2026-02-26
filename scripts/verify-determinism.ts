@@ -179,6 +179,76 @@ function testArraySorting(): VerificationResult {
   };
 }
 
+// Test 5: Cross-platform canonical bytes (LF line endings)
+function testCrossPlatformCanonicalBytes(): VerificationResult {
+  log('Testing cross-platform canonical bytes (LF line endings)...');
+  
+  const testObj = {
+    requestId: 'req-canonical-test-v1',
+    timestamp: '2024-01-01T00:00:00Z',
+    params: {
+      algorithm: 'Adaptive',
+      actions: ['action_a', 'action_b', 'action_c'],
+      states: ['state_1', 'state_2'],
+      outcomes: {
+        'state_1': { 'action_a': 0.8, 'action_b': 0.5, 'action_c': 0.3 },
+        'state_2': { 'action_a': 0.2, 'action_b': 0.9, 'action_c': 0.7 }
+      },
+      weights: { 'weight_1': 0.5, 'weight_2': 0.5 },
+      strict: true,
+      temperature: 0.7,
+      optimism: 0.5,
+      seed: 42
+    }
+  };
+  
+  const canonical = toCanonicalJson(testObj);
+  
+  // Verify canonical bytes use LF only (no CRLF)
+  const hasCRLF = /\r\n/.test(canonical);
+  if (hasCRLF) {
+    return {
+      gate: 'M-CrossPlatform',
+      passed: false,
+      critical: true,
+      message: 'Canonical JSON contains CRLF line endings - must use LF only for cross-platform consistency',
+    };
+  }
+  
+  // Verify UTF-8 encoding consistency
+  const utf8Bytes = Buffer.from(canonical, 'utf-8');
+  const reEncoded = utf8Bytes.toString('utf-8');
+  
+  if (canonical !== reEncoded) {
+    return {
+      gate: 'M-CrossPlatform',
+      passed: false,
+      critical: true,
+      message: 'Canonical JSON is not valid UTF-8 - cross-platform inconsistency',
+    };
+  }
+  
+  // Expected hash for this canonical form (SHA-256 fallback)
+  const expectedHash = '7c461e405eac90fee3b551a6fe4444ef7ab39d24fbba94a8ea91091f5fabc8b0';
+  const actualHash = hashString(canonical);
+  
+  if (actualHash !== expectedHash) {
+    return {
+      gate: 'M-CrossPlatform',
+      passed: false,
+      critical: true,
+      message: `Canonical hash mismatch: expected ${expectedHash}, got ${actualHash}`,
+    };
+  }
+  
+  return {
+    gate: 'M-CrossPlatform',
+    passed: true,
+    critical: true,
+    message: 'Canonical bytes are cross-platform consistent (LF, UTF-8)',
+  };
+}
+
 // Main
 async function main(): Promise<number> {
   log('Starting determinism verification...');
@@ -190,6 +260,7 @@ async function main(): Promise<number> {
   results.push(testCanonicalJson());
   results.push(testObjectKeySorting());
   results.push(testArraySorting());
+  results.push(testCrossPlatformCanonicalBytes());
   
   // Report results
   let criticalFailures = 0;

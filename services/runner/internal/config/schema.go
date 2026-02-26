@@ -44,6 +44,9 @@ type Config struct {
 
 	// Daemon controls daemon stability features.
 	Daemon DaemonConfig `json:"daemon"`
+
+	// CAS controls content-addressable storage settings.
+	CAS CASConfig `json:"cas"`
 }
 
 // MeshConfig controls the distributed agent mesh layer.
@@ -245,6 +248,21 @@ type ModelConfig struct {
 	LocalModelID string `json:"local_model_id" env:"REACH_MODEL_LOCAL_MODEL_ID" default:""`
 }
 
+// CASConfig controls content-addressable storage settings.
+type CASConfig struct {
+	// MaxCASSizeBytes is the maximum size of the CAS in bytes (0 = unlimited, default 10GB)
+	MaxCASSizeBytes int64 `json:"max_cas_size_bytes" env:"REACH_CAS_MAX_SIZE_BYTES" default:"10737418240"`
+
+	// EvictionPolicy is the eviction policy: "none", "lru", or "size-cap"
+	EvictionPolicy string `json:"eviction_policy" env:"REACH_CAS_EVICTION_POLICY" default:"none"`
+
+	// LRUWindow defines the time window for LRU tracking (e.g., "24h", "7d")
+	LRUWindow string `json:"lru_window" env:"REACH_CAS_LRU_WINDOW" default:"24h"`
+
+	// AtomicWritesEnabled enables atomic write operations (temp file + rename)
+	AtomicWritesEnabled bool `json:"atomic_writes_enabled" env:"REACH_CAS_ATOMIC_WRITES" default:"true"`
+}
+
 // DaemonConfig controls daemon stability features.
 type DaemonConfig struct {
 	// MaxQueueDepth is the maximum number of jobs in the internal queue.
@@ -310,6 +328,12 @@ func Default() *Config {
 			MaxConcurrentTasks:        10,
 			TaskRoutingEnabled:        false,
 			CorrelationLogging:        true,
+		},
+		Daemon: DaemonConfig{
+			MaxQueueDepth:           1000,
+			HeartbeatInterval:       100,
+			MemoryThresholdPercent:  80,
+			EnableStalePipeCleanup:  true,
 		},
 	}
 }

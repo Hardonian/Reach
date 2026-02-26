@@ -56,11 +56,12 @@ const TS_PATTERNS: Pattern[] = [
   {
     id: "JSON_STRINGIFY_NON_CANONICAL",
     regex:
-      /JSON\.stringify\s*\([^)]+\)(?!\s*(?:\/\/\s*canonical|;\s*\/\/\s*canonical))/g,
-    risk: "MEDIUM",
+      /JSON\.stringify\s*\([^)]+\)(?!\s*(?:\/\/\s*canonical|;\s*\/\/\s*canonical|toCanonicalJson))/g,
+    risk: "CRITICAL",
     description:
-      "JSON.stringify without canonicalization may produce unstable key ordering",
-    remedy: "Use canonicalJson() from src/determinism/canonicalJson.ts",
+      "JSON.stringify without canonicalization produces unstable key ordering - CRITICAL in fingerprint paths",
+    remedy: "Use toCanonicalJson() from src/engine/translate for all fingerprint-contributing serialization",
+    paths: ["src/engine", "src/determinism", "services/runner/internal/determinism", "services/runner/internal/poee"],
   },
   {
     id: "LOCALE_FORMAT",

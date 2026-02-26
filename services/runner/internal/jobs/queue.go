@@ -2,13 +2,15 @@ package jobs
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"hash/fnv"
 	"math"
 	"math/rand"
+	"sync"
+	"sync/atomic"
 	"time"
 
+	reacherrors "reach/services/runner/internal/errors"
 	"reach/services/runner/internal/storage"
 )
 
@@ -37,15 +39,58 @@ type QueueMetrics struct {
 	DeadLetter map[JobType]int
 }
 
+// ErrQueueFull is returned when the queue exceeds its maximum depth.
+var ErrQueueFull = reacherrors.New(reacherrors.CodeQueueFull, "queue capacity exceeded")
+
+// ErrDuplicateJob is returned when a job with duplicate idempotency key is enqueued.
+var ErrDuplicateJob = reacherrors.New(reacherrors.CodeResourceExhausted, "duplicate idempotency key")
+
+// DurableQueue provides a bounded durable job queue with backpressure.
 type DurableQueue struct {
-	db *storage.SQLiteStore
+	db           *storage.SQLiteStore
+	maxDepth     int
+	currentDepth atomic.Int64
+	semaphore    chan struct{}
+	mu           sync.RWMutex
 }
 
-var ErrDuplicateJob = errors.New("duplicate idempotency key")
+// NewDurableQueue creates a new bounded durable queue.
+func NewDurableQueue(db *storage.SQLiteStore) *DurableQueue {
+	return &DurableQueue{
+		db:        db,
+		maxDepth:  1000,
+		semaphore: make(chan struct{}, 1000),
+	}
+}
 
-func NewDurableQueue(db *storage.SQLiteStore) *DurableQueue { return &DurableQueue{db: db} }
-
+// Enqueue adds a job to the queue with backpressure.
 func (q *DurableQueue) Enqueue(ctx context.Context, job QueueJob) error {
+	// Check queue depth and apply backpressure
+	depth := q.currentDepth.Load()
+	if int(depth) >= q.maxDepth {
+		return reacherrors.New(reacherrors.CodeQueueFull, fmt.Sprintf("queue capacity exceeded: %d/%d", depth, q.maxDepth))
+	}
+
+	// Try to acquire a slot (non-blocking check)
+	select {
+	case q.semaphore <- struct{}{}:
+		// Slot acquired
+	default:
+		return reacherrors.New(reacherrors.CodeQueueFull, fmt.Sprintf("queue full: %d/%d", depth, q.maxDepth))
+	}
+
+	// Increment depth counter
+	q.currentDepth.Add(1)
+
+	// Ensure we release on error
+	success := false
+	defer func() {
+		if !success {
+			<-q.semaphore
+			q.currentDepth.Add(-1)
+		}
+	}()
+
 	if job.MaxAttempts <= 0 {
 		job.MaxAttempts = 5
 	}
@@ -56,32 +101,40 @@ func (q *DurableQueue) Enqueue(ctx context.Context, job QueueJob) error {
 		job.NextRunAt = time.Now().UTC()
 	}
 	if _, err := q.db.GetJobByIdempotency(ctx, job.TenantID, job.IdempotencyKey); err == nil {
+		success = true
 		return ErrDuplicateJob
 	}
 	now := time.Now().UTC()
-	return q.db.EnqueueJob(ctx, storage.JobRecord{ID: job.ID, TenantID: job.TenantID, SessionID: job.SessionID, RunID: job.RunID, AgentID: job.AgentID, NodeID: job.NodeID, Type: string(job.Type), PayloadJSON: job.PayloadJSON, IdempotencyKey: job.IdempotencyKey, Priority: job.Priority, Status: "queued", Attempts: 0, MaxAttempts: job.MaxAttempts, NextRunAt: job.NextRunAt, CreatedAt: now, UpdatedAt: now})
+	if err := q.db.EnqueueJob(ctx, storage.JobRecord{ID: job.ID, TenantID: job.TenantID, SessionID: job.SessionID, RunID: job.RunID, AgentID: job.AgentID, NodeID: job.NodeID, Type: string(job.Type), PayloadJSON: job.PayloadJSON, IdempotencyKey: job.IdempotencyKey, Priority: job.Priority, Status: "queued", Attempts: 0, MaxAttempts: job.MaxAttempts, NextRunAt: job.NextRunAt, CreatedAt: now, UpdatedAt: now}); err != nil {
+		return err
+	}
+
+	success = true
+	return nil
 }
 
-func (q *DurableQueue) Lease(ctx context.Context, limit int, leaseFor time.Duration) (string, []storage.JobRecord, error) {
-	token := fmt.Sprintf("lease-%d", time.Now().UnixNano())
-	jobs, err := q.db.LeaseReadyJobs(ctx, time.Now().UTC(), limit, token, leaseFor)
-	return token, jobs, err
+// ReleaseSlot releases a queue slot after job processing.
+func (q *DurableQueue) ReleaseSlot() {
+	select {
+	case <-q.semaphore:
+		q.currentDepth.Add(-1)
+	default:
+	}
 }
 
-func (q *DurableQueue) Complete(ctx context.Context, jobID, leaseToken string, resultJSON string) error {
-	return q.db.CompleteJob(ctx, jobID, leaseToken, resultJSON, time.Now().UTC())
+// Depth returns the current queue depth.
+func (q *DurableQueue) Depth() int {
+	return int(q.currentDepth.Load())
 }
 
-func (q *DurableQueue) Fail(ctx context.Context, rec storage.JobRecord, leaseToken string, reason string) error {
-	next := retryAt(rec, reason)
-	dead := rec.Attempts+1 >= rec.MaxAttempts
-	return q.db.FailJob(ctx, rec.ID, leaseToken, reason, next, dead)
+// MaxDepth returns the maximum queue depth.
+func (q *DurableQueue) MaxDepth() int {
+	return q.maxDepth
 }
 
-func retryAt(rec storage.JobRecord, salt string) time.Time {
-	base := math.Min(math.Pow(2, float64(rec.Attempts+1)), 64)
-	h := fnv.New32a()
-	_, _ = h.Write([]byte(rec.ID + salt))
-	jitter := time.Duration(rand.New(rand.NewSource(int64(h.Sum32()))).Intn(1000)) * time.Millisecond
-	return time.Now().UTC().Add(time.Duration(base)*time.Second + jitter)
+// AvailableSlots returns the number of available queue slots.
+func (q *DurableQueue) AvailableSlots() int {
+	return q.maxDepth - int(q.currentDepth.Load())
 }
+
+// ErrDuplicateJob is returned when a job with
