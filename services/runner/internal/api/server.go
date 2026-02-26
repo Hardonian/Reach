@@ -778,7 +778,18 @@ func (s *Server) handleListNodes(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, 200, map[string]any{"nodes": nodes})
 }
-func (s *Server) handleMetrics(w http.ResponseWriter, _ *http.Request) {
+func (s *Server) handleMetrics(w http.ResponseWriter, r *http.Request) {
+	// Check if JSON output is requested
+	if strings.Contains(r.Header.Get("Accept"), "application/json") || r.URL.Query().Get("format") == "json" {
+		w.Header().Set("Content-Type", "application/json")
+		jsonMetrics, err := s.metrics.ToJSON(DefaultMetricsConfig())
+		if err != nil {
+			writeError(w, 500, "failed to generate metrics")
+			return
+		}
+		_, _ = w.Write([]byte(jsonMetrics))
+		return
+	}
 	w.Header().Set("Content-Type", "text/plain; version=0.0.4")
 	_, _ = w.Write([]byte(fmt.Sprintf("runs_created_total %d\n", s.runsCreated.Load())))
 	_, _ = w.Write([]byte(fmt.Sprintf("spawn_attempts_total %d\n", s.spawnAttempts.Load())))

@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -233,6 +234,7 @@ func appendWindow(dst []float64, value float64) []float64 {
 	return dst
 }
 
+// percentiles computes p50 and p95 from input slice
 func percentiles(in []float64) (float64, float64) {
 	if len(in) == 0 {
 		return 0, 0
@@ -250,6 +252,21 @@ func percentiles(in []float64) (float64, float64) {
 		return cp[idx]
 	}
 	return at(0.50), at(0.95)
+}
+
+// percentile computes a single percentile value from a sorted slice
+func percentile(sorted []float64, p float64) float64 {
+	if len(sorted) == 0 {
+		return 0
+	}
+	idx := int(float64(len(sorted)-1) * p)
+	if idx < 0 {
+		idx = 0
+	}
+	if idx >= len(sorted) {
+		idx = len(sorted) - 1
+	}
+	return sorted[idx]
 }
 
 func (m *metrics) prometheus() string {
@@ -291,5 +308,70 @@ func (m *metrics) prometheus() string {
 	for runID, dropped := range m.sseDropped {
 		fmt.Fprintf(&b, "reach_sse_dropped_events_total{run_id=%q} %d\n", runID, dropped)
 	}
+	// New metrics for prometheus output
+	b.WriteString("# HELP reach_total_executions_total total number of executions\n")
+	b.WriteString("# TYPE reach_total_executions_total counter\n")
+	fmt.Fprintf(&b, "reach_total_executions_total %d\n", m.totalExecutions)
+
+	b.WriteString("# HELP reach_daemon_restarts_total daemon restart count\n")
+	b.WriteString("# TYPE reach_daemon_restarts_total counter\n")
+	fmt.Fprintf(&b, "reach_daemon_restarts_total %d\n", m.daemonRestarts)
+
+	b.WriteString("# HELP reach_queue_depth current queue depth\n")
+	b.WriteString("# TYPE reach_queue_depth gauge\n")
+	fmt.Fprintf(&b, "reach_queue_depth %d\n", m.queueDepth)
+
+	b.WriteString("# HELP reach_memory_usage_bytes memory usage (RSS) in bytes\n")
+	b.WriteString("# TYPE reach_memory_usage_bytes gauge\n")
+	fmt.Fprintf(&b, "reach_memory_usage_bytes %d\n", m.memoryUsageBytes)
+
+	b.WriteString("# HELP reach_cas_hit_rate_ppm CAS hit rate in PPM\n")
+	b.WriteString("# TYPE reach_cas_hit_rate_ppm gauge\n")
+	fmt.Fprintf(&b, "reach_cas_hit_rate_ppm %d\n", m.casMetrics.HitRate())
+
+	b.WriteString("# HELP reach_avg_exec_time_micros average execution time in microseconds\n")
+	b.WriteString("# TYPE reach_avg_exec_time_micros gauge\n")
+	fmt.Fprintf(&b, "reach_avg_exec_time_micros %d\n", m.avgExecTimeMicros())
+
 	return b.String()
+}
+
+// JSONMetrics represents the structured JSON output for metrics
+type JSONMetrics struct {
+	TotalExecutions  uint64               `json:"total_executions"`
+	AvgExecTime      FixedPointMicros     `json:"avg_exec_time"` // in microseconds
+	Latencies        *LatencyPercentiles  `json:"latencies"`
+	CASHitRate       uint64               `json:"cas_hit_rate_ppm"` // parts per million
+	QueueDepth       int32                `json:"queue_depth"`
+	DaemonRestarts   uint64               `json:"daemon_restarts"`
+	MemoryUsage      uint64               `json:"memory_usage_bytes"` // RSS in bytes
+	UptimeSeconds    float64              `json:"uptime_seconds"`
+}
+
+// ToJSON returns the metrics as JSON string
+func (m *metrics) ToJSON(cfg MetricsConfig) (string, error) {
+	latencies := m.computeLatencyPercentiles()
+	m.mu.Lock()
+	casHitRate := m.casMetrics.HitRate()
+	m.mu.Unlock()
+
+	result := JSONMetrics{
+		TotalExecutions: atomic.LoadUint64(&m.totalExecutions),
+		AvgExecTime:     m.avgExecTimeMicros(),
+		CASHitRate:      casHitRate,
+		QueueDepth:      atomic.LoadInt32(&m.queueDepth),
+		DaemonRestarts:  atomic.LoadUint64(&m.daemonRestarts),
+		MemoryUsage:     atomic.LoadUint64(&m.memoryUsageBytes),
+		UptimeSeconds:   time.Since(m.startTime).Seconds(),
+	}
+
+	if cfg.IncludeLatencies {
+		result.Latencies = &latencies
+	}
+
+	data, err := json.Marshal(result)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
 }
