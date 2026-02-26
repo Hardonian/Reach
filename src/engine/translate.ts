@@ -13,6 +13,7 @@ import {
   ExecutionParams,
 } from './contract';
 import { createHash } from 'crypto';
+import { blake3 } from '@napi-rs/blake3';
 import { WorkflowStep, ExecResultPayload, Duration } from '../protocol/messages';
 
 // ============================================================================
@@ -255,8 +256,9 @@ function canonicalReplacer(key: string, value: unknown): unknown {
 export function computeDeterministicHash(obj: unknown): string {
   const canonical = toCanonicalJson(obj);
   
-  // Use Node.js crypto for hashing
-  return createHash('sha256').update(canonical).digest('hex').substring(0, 32);
+  // Use BLAKE3 for deterministic hashing - faster and more secure than SHA-256
+  const hash = blake3(canonical);
+  return hash.toString('hex').substring(0, 32);
 }
 
 // ============================================================================
