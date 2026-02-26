@@ -387,14 +387,14 @@ export class DualEngineAdapter {
     
     let requiemReady = false;
     try {
-      requiemReady = requiem.isReady() || await requiem.configure();
+      requiemReady = !!(requiem.isReady() || await requiem.configure());
     } catch {
       // Already false
     }
     
     let rustReady = false;
     try {
-      rustReady = rust.isReady() || await rust.initialize();
+      rustReady = !!(rust.isReady() || await rust.initialize());
     } catch {
       // Already false
     }

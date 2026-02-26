@@ -4,24 +4,24 @@
  * Provides integration with the Requiem CLI decision engine.
  * Uses process spawning to execute Requiem commands with security hardening.
  * 
+ *
  * SECURITY HARDENING (v1.2):
  * - Binary trust verification (version lock, path validation)
  * - Environment sanitization (secrets filtered from child process)
  * - Resource limits enforcement (request size, memory, concurrent processes)
  * - Path traversal protection
- * 
+ *
  * @module engine/adapters/requiem
  */
 
 import { ExecRequest, ExecResult } from '../contract';
-import { 
-  toRequiemFormat, fromRequiemFormat, clampObjectPrecision, 
-  clampPrecisionOpt, decisionToWorkflowStep, resultFromProtocol 
+import {
+  decisionToWorkflowStep, resultFromProtocol
 } from '../translate';
 import { BaseEngineAdapter } from './base';
 import { spawn, execFile as execFileCb, ChildProcess } from 'child_process';
-import { ProtocolClient, ConnectionState } from '../../protocol/client';
-import { ExecRequestPayload, ExecutionControls, Policy } from '../../protocol/messages';
+import { ProtocolClient } from '../../protocol/client';
+import { ExecRequestPayload, ExecutionControls } from '../../protocol/messages';
 import { promisify } from 'util';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -36,29 +36,29 @@ export interface RequiemConfig {
    * Path to the Requiem CLI executable
    */
   cliPath?: string;
-  
+
   /**
    * Timeout for each execution in milliseconds
    */
   timeout?: number;
-  
+
   /**
    * Expected Requiem version (semver range)
    * If provided, binary trust check will enforce version match
    */
   expectedVersion?: string;
-  
+
   /**
    * Allow unknown/unverified engine binaries
    * WARNING: Only enable in development/testing
    */
   allowUnknownEngine?: boolean;
-  
+
   /**
    * Maximum request size in bytes (default: 10MB)
    */
   maxRequestBytes?: number;
-  
+
   /**
    * Maximum matrix dimensions (actions × states)
    * Prevents OOM from huge decision matrices
@@ -113,7 +113,7 @@ interface BinaryTrustResult {
 
 /**
  * Requiem CLI Engine Adapter
- * 
+ *
  * Spawns the Requiem CLI as a subprocess to execute decisions.
  * Uses semaphore to limit concurrent executions.
  * Implements security hardening for production use.
@@ -128,30 +128,30 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
   private client: ProtocolClient | null = null;
   private daemon: ChildProcess | null = null;
   private pipePath: string;
-  
+
   /**
    * Create a new Requiem engine adapter
-   * 
+   *
    * @param config - Optional configuration with security options
    */
   constructor(config: RequiemConfig = {}) {
     super(); // Initialize base class with semaphore
-    
+
     this.config = {
       maxRequestBytes: 10 * 1024 * 1024, // 10MB default
       maxMatrixCells: 1_000_000, // 1M cells default (e.g., 1000x1000)
       ...config,
     };
-    
+
     this.cliPath = config.cliPath || this.resolveCliPath();
     this.timeout = config.timeout || 30000;
-    
+
     // Determine IPC path based on OS
-    this.pipePath = process.platform === 'win32' 
+    this.pipePath = process.platform === 'win32'
       ? `\\\\.\\pipe\\requiem-${process.pid}`
       : path.join(process.env.TEMP || '/tmp', `requiem-${process.pid}.sock`);
   }
-  
+
   /**
    * Resolve the Requiem CLI path with security checks
    */
@@ -162,24 +162,24 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
       path.join(__dirname, '..', '..', '..', 'node_modules', '.bin', 'requiem'),
       path.join(__dirname, '..', '..', '..', '.bin', 'requiem'),
     ];
-    
+
     for (const p of embeddedPaths) {
       if (this.isExecutable(p)) {
         return p;
       }
     }
-    
+
     // Priority 2: Check REQUIEM_BIN environment variable
     const envPath = process.env.REQUIEM_BIN;
     if (envPath) {
       // Path will be validated during configure()
       return envPath;
     }
-    
+
     // Priority 3: Fallback to PATH lookup
     return 'requiem';
   }
-  
+
   /**
    * Check if a path is an executable regular file
    */
@@ -187,25 +187,25 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
     try {
       const stats = fs.statSync(filePath);
       if (!stats.isFile()) return false;
-      
+
       // Check if executable (Unix only)
       if (process.platform !== 'win32') {
         const mode = stats.mode;
         return (mode & 0o111) !== 0; // Any execute bit set
       }
-      
+
       return true;
     } catch {
       return false;
     }
   }
-  
+
   /**
    * Verify binary trust (version lock, path validation, permissions)
    */
   private async verifyBinaryTrust(): Promise<BinaryTrustResult> {
     const result: BinaryTrustResult = { trusted: false, path: this.cliPath };
-    
+
     try {
       // Check if file exists and is executable
       if (!this.isExecutable(this.cliPath)) {
@@ -215,11 +215,11 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
           result.trusted = true; // Defer to system PATH
           return result;
         }
-        
+
         result.reason = 'binary_not_executable';
         return result;
       }
-      
+
       // Check file permissions (Unix: reject if writable by group/others)
       if (process.platform !== 'win32') {
         try {
@@ -234,20 +234,20 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
           // Continue if stat fails
         }
       }
-      
+
       // Version verification
       try {
         const versionResult = await execFile(this.cliPath, ['--version'], {
           timeout: 5000,
           env: this.buildSanitizedEnv(), // Use sanitized env for version check
         });
-        
+
         const versionOutput = versionResult.stdout + versionResult.stderr;
         const versionMatch = versionOutput.match(/requiem[\s/]+v?(\d+\.\d+\.?\d*)/i);
-        
+
         if (versionMatch) {
           result.version = versionMatch[1];
-          
+
           // Check against expected version if specified
           if (this.config.expectedVersion && result.version) {
             if (!this.versionMatches(result.version, this.config.expectedVersion)) {
@@ -263,7 +263,7 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
           return result;
         }
       }
-      
+
       result.trusted = true;
       this.verifiedBinaryPath = this.cliPath;
       return result;
@@ -272,7 +272,7 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
       return result;
     }
   }
-  
+
   /**
    * Check if version matches expected semver range (simplified)
    */
@@ -284,28 +284,28 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
     }
     return version === expected || version.startsWith(expected + '.');
   }
-  
+
   /**
    * Build sanitized environment for child process
    * Filters out secrets and sensitive data
    */
   private buildSanitizedEnv(): Record<string, string> {
     const sanitized: Record<string, string> = {};
-    
+
     // Always include safe allowlist variables if they exist
     for (const key of SAFE_ENV_ALLOWLIST) {
       if (process.env[key] !== undefined) {
         sanitized[key] = process.env[key] as string;
       }
     }
-    
+
     // Filter out secrets from all environment variables
     for (const [key, value] of Object.entries(process.env)) {
       if (value === undefined) continue;
-      
+
       // Skip if already added from allowlist
       if (key in sanitized) continue;
-      
+
       // Check against secret patterns
       let isSecret = false;
       for (const pattern of SECRET_ENV_PATTERNS) {
@@ -314,26 +314,26 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
           break;
         }
       }
-      
+
       if (!isSecret) {
         sanitized[key] = value;
       }
     }
-    
+
     // Add deterministic mode markers
     sanitized.REACH_SANDBOX_MODE = '1';
     sanitized.PYTHONHASHSEED = '0'; // Ensure Python determinism
-    
+
     return sanitized;
   }
-  
+
   /**
    * Check if the engine is ready
    */
   isReady(): boolean {
     return this.isConfigured && this.binaryTrustVerified;
   }
-  
+
   /**
    * Configure the adapter (verify CLI, start daemon, and connect client)
    */
@@ -341,7 +341,7 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
     try {
       // 1. Verify binary trust
       const trustResult = await this.verifyBinaryTrust();
-      
+
       if (!trustResult.trusted) {
         if (this.config.allowUnknownEngine) {
           console.warn(`Requiem binary trust warning: ${trustResult.reason}. Continuing due to allowUnknownEngine=true`);
@@ -355,12 +355,12 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
       } else {
         this.binaryTrustVerified = true;
       }
-      
+
       // 2. Start persistent daemon in serve mode
       if (!this.daemon) {
         await this.startDaemon();
       }
-      
+
       // 3. Initialize protocol client
       if (!this.client) {
         this.client = new ProtocolClient({
@@ -368,10 +368,10 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
           connectTimeoutMs: 5000,
           requestTimeoutMs: this.timeout,
         });
-        
+
         await this.client.connect();
       }
-      
+
       this.isConfigured = true;
       return true;
     } catch (error) {
@@ -387,17 +387,17 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
    */
   private async startDaemon(): Promise<void> {
     const binaryPath = this.verifiedBinaryPath || this.cliPath;
-    
+
     return new Promise((resolve, reject) => {
-      info(`Starting Requiem daemon at ${this.pipePath}`);
-      
+      console.info(`Starting Requiem daemon at ${this.pipePath}`);
+
       this.daemon = spawn(binaryPath, ['serve', '--socket', this.pipePath], {
         stdio: ['ignore', 'pipe', 'pipe'],
         env: this.buildSanitizedEnv(),
       });
-      
+
       let initialized = false;
-      
+
       this.daemon.stdout?.on('data', (data) => {
         const output = data.toString();
         if (output.includes('listening on') || output.includes('server at')) {
@@ -407,7 +407,7 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
           }
         }
       });
-      
+
       this.daemon.stderr?.on('data', (data) => {
         const output = data.toString();
         // Log errors from daemon
@@ -417,7 +417,7 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
           console.warn('Requiem daemon stderr:', this.sanitizeLogOutput(output));
         }
       });
-      
+
       this.daemon.on('error', (err) => {
         if (!initialized) {
           reject(err);
@@ -426,7 +426,7 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
           this.handleDaemonExit();
         }
       });
-      
+
       this.daemon.on('exit', (code) => {
         if (!initialized) {
           reject(new Error(`Requiem daemon exited with code ${code} before initialization`));
@@ -434,7 +434,7 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
           this.handleDaemonExit();
         }
       });
-      
+
       // Timeout for startup
       setTimeout(() => {
         if (!initialized) {
@@ -462,15 +462,15 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
       await this.client.disconnect().catch(() => {});
       this.client = null;
     }
-    
+
     if (this.daemon) {
       this.daemon.kill();
       this.daemon = null;
     }
-    
+
     this.isConfigured = false;
   }
-  
+
   /**
    * Validate request against resource limits
    */
@@ -479,14 +479,14 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
     const numActions = request.params.actions.length;
     const numStates = request.params.states.length;
     const matrixCells = numActions * numStates;
-    
+
     if (this.config.maxMatrixCells && matrixCells > this.config.maxMatrixCells) {
       return {
         valid: false,
         error: `matrix_too_large: ${matrixCells} cells exceeds limit of ${this.config.maxMatrixCells}`,
       };
     }
-    
+
     // Check request size (estimate)
     const requestJson = JSON.stringify(request);
     if (this.config.maxRequestBytes && requestJson.length > this.config.maxRequestBytes) {
@@ -495,14 +495,14 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
         error: `request_too_large: ${requestJson.length} bytes exceeds limit of ${this.config.maxRequestBytes}`,
       };
     }
-    
+
     return { valid: true };
   }
-  
+
   /**
    * Evaluate a decision request using Requiem CLI
    * Uses semaphore to limit concurrent executions and seed for determinism
-   * 
+   *
    * @param request - The execution request
    * @returns The execution result
    */
@@ -526,13 +526,13 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
         error: limitCheck.error,
       };
     }
-    
+
     // Use semaphore protection and ensure seed is derived
     return this.executeWithSemaphore(request, async (req) => {
       return this.doEvaluate(req);
     });
   }
-  
+
   /**
    * Internal evaluation logic (called within semaphore)
    */
@@ -548,10 +548,6 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
       throw new Error('Requiem binary trust verification failed. Set allowUnknownEngine=true to override (not recommended for production).');
     }
     
-    // Convert request to Requiem format (includes seed)
-    const requestJson = toRequiemFormat(request);
-    
-    const startTime = performance.now();
     
     try {
       // Use the protocol client for communication
@@ -576,8 +572,6 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
       const result = await this.client.execute(payload);
       return resultFromProtocol(result, request.requestId);
     } catch (error) {
-      const durationMs = Math.round(performance.now() - startTime);
-      
       // Return error result
       return {
         requestId: request.requestId,
@@ -591,7 +585,7 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
         meta: {
           engine: 'requiem',
           engineVersion: 'unknown',
-          durationMs,
+          durationMs: 0,
           completedAt: new Date().toISOString(),
         },
         error: error instanceof Error ? error.message : String(error),
@@ -599,51 +593,6 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
     }
   }
   
-  /**
-   * Spawn Requiem CLI and get result
-   */
-  private async spawnRequiem(inputJson: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      
-      // Use verified binary path if available
-      const binaryPath = this.verifiedBinaryPath || this.cliPath;
-      
-      const proc = spawn(binaryPath, ['evaluate', '-'], {
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: this.timeout,
-        env: this.buildSanitizedEnv(), // SECURITY: Use sanitized environment
-      });
-      
-      proc.stdout.on('data', (chunk: Buffer) => {
-        chunks.push(chunk);
-      });
-      
-      proc.stderr.on('data', (chunk: Buffer) => {
-        // Log stderr but don't fail
-        const stderrText = chunk.toString();
-        // Filter out any potential secrets from stderr
-        const sanitizedStderr = this.sanitizeLogOutput(stderrText);
-        console.warn('Requiem stderr:', sanitizedStderr);
-      });
-      
-      proc.on('error', (error) => {
-        reject(new Error(`Failed to spawn Requiem CLI: ${error.message}`));
-      });
-      
-      proc.on('close', (code) => {
-        if (code === 0) {
-          resolve(Buffer.concat(chunks).toString());
-        } else {
-          reject(new Error(`Requiem CLI exited with code ${code}`));
-        }
-      });
-      
-      // Write input to stdin
-      proc.stdin.write(inputJson);
-      proc.stdin.end();
-    });
-  }
   
   /**
    * Sanitize log output to prevent secret leakage

@@ -428,3 +428,51 @@ export function resultFromProtocol(result: ExecResultPayload, requestId: string)
     error,
   };
 }
+
+/**
+ * Generate a unique request ID
+ */
+export function generateRequestId(): string {
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 9);
+  return `req_${timestamp}_${random}`;
+}
+
+/**
+ * Compare two ExecResults for equality (for dual-run mode)
+ */
+export function compareExecResults(a: ExecResult, b: ExecResult): {
+  match: boolean;
+  differences: string[];
+} {
+  const differences: string[] = [];
+  
+  if (a.status !== b.status) {
+    differences.push(`status: ${a.status} vs ${b.status}`);
+  }
+  
+  if (a.recommendedAction !== b.recommendedAction) {
+    differences.push(`recommendedAction: ${a.recommendedAction} vs ${b.recommendedAction}`);
+  }
+  
+  if (a.fingerprint !== b.fingerprint) {
+    differences.push(`fingerprint: ${a.fingerprint} vs ${b.fingerprint}`);
+  }
+  
+  // Check ranking order
+  if (a.ranking.length !== b.ranking.length) {
+    differences.push(`ranking.length: ${a.ranking.length} vs ${b.ranking.length}`);
+  } else {
+    for (let i = 0; i < a.ranking.length; i++) {
+      if (a.ranking[i] !== b.ranking[i]) {
+        differences.push(`ranking[${i}]: ${a.ranking[i]} vs ${b.ranking[i]}`);
+        break;
+      }
+    }
+  }
+  
+  return {
+    match: differences.length === 0,
+    differences,
+  };
+}

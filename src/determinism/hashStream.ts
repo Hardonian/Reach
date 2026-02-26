@@ -53,7 +53,8 @@ export class HashStream {
       throw new Error("HashStream: already finalized");
     }
     this.finalized = true;
-    return this.hash.digest("hex");
+    const digest = this.hash.digest("hex");
+    return typeof digest === 'string' ? digest : digest.toString('hex');
   }
 }
 
@@ -64,7 +65,8 @@ export class HashStream {
 export function hashString(input: string): string {
   const hasher = createHasher();
   hasher.update(input, "utf8");
-  return hasher.digest("hex");
+  const digest = hasher.digest("hex");
+  return typeof digest === 'string' ? digest : digest.toString('hex');
 }
 
 /**
@@ -73,7 +75,8 @@ export function hashString(input: string): string {
 export function hashBuffer(buf: Buffer | Uint8Array): string {
   const hasher = createHasher();
   hasher.update(buf);
-  return hasher.digest("hex");
+  const digest = hasher.digest("hex");
+  return typeof digest === 'string' ? digest : digest.toString('hex');
 }
 
 /**
@@ -96,7 +99,8 @@ export async function hashReadableStream(stream: Readable): Promise<string> {
     });
 
     stream.on("end", () => {
-      resolve(hasher.digest("hex"));
+      const digest = hasher.digest("hex");
+      resolve(typeof digest === 'string' ? digest : digest.toString('hex'));
     });
 
     stream.on("error", (err: Error) => {

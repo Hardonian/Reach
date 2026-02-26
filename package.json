@@ -95,5 +95,28 @@
     "blake3": "^2.1.7",
     "cbor": "^10.0.3",
     "zod": "^4.3.6"
+  },
+  "cspell": {
+    "words": [
+      "blake3",
+      "sccl",
+      "cbor",
+      "requiem",
+      "maximin",
+      "sess",
+      "readylayer",
+      "cutover",
+      "bitrot",
+      "raii",
+      "emfile",
+      "epipe",
+      "eaddrinuse",
+      "multihash",
+      "enoent",
+      "pidfile",
+      "sigsegv",
+      "rlimit",
+      "millis"
+    ]
   }
 }

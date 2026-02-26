@@ -104,7 +104,8 @@ export function computeCID(content: string | Buffer | Uint8Array): CID {
     hasher.update(content);
   }
   
-  return hasher.digest('hex');
+  const digest = hasher.digest('hex');
+  return typeof digest === 'string' ? digest : digest.toString('hex');
 }
 
 /**
@@ -126,7 +127,8 @@ export async function computeCIDFromStream(stream: Readable): Promise<CID> {
     });
     
     stream.on('end', () => {
-      resolve(hasher.digest('hex'));
+      const digest = hasher.digest('hex');
+      resolve(typeof digest === 'string' ? digest : digest.toString('hex'));
     });
     
     stream.on('error', (err: Error) => {
@@ -310,6 +312,31 @@ export class ContentAddressableStorage {
   }
   
   /**
+   * Export an artifact to a file on disk with security validation
+   * 
+   * @param cid - The CID to export
+   * @param targetPath - The destination path (will be validated against baseDir)
+   * @throws Error if path is outside workspace or artifact not found
+   */
+  async saveToFile(cid: CID, targetPath: string): Promise<string> {
+    const entry = await this.get(cid);
+    
+    // SECURITY: Validate path confinement to workspace
+    const realPath = validatePathConfinement(targetPath, this.config.baseDir);
+    
+    // Ensure parent directory exists
+    const parentDir = path.dirname(realPath);
+    if (!fs.existsSync(parentDir)) {
+      fs.mkdirSync(parentDir, { recursive: true });
+    }
+    
+    // Write content to validated path
+    fs.writeFileSync(realPath, entry.content);
+    
+    return realPath;
+  }
+  
+  /**
    * Retrieve content as stream by CID with verification
    * 
    * @param cid - The CID to retrieve
@@ -405,9 +432,7 @@ export class ContentAddressableStorage {
  *   verifyOnWrite: true,
  * });
  */
-export function createVerifiedStorage<
-  _T extends Record<string, unknown>
->(
+export function createVerifiedStorage(
   storage: {
     get(key: string): Promise<{ content: Buffer; metadata: Record<string, unknown> }>;
     put(key: string, content: Buffer, metadata?: Record<string, unknown>): Promise<string>;
@@ -453,18 +478,13 @@ export function createVerifiedStorage<
     async put(key: string, content: Buffer, metadata?: Record<string, unknown>): Promise<string> {
       const cid = computeCID(content);
       
-      // Store with computed CID in metadata
       const metadataWithCid = {
         ...metadata,
         cid,
         size: content.length,
       };
       
-      // Note: metadataWithCid would be passed to storage in production
-      // For now, compute and log the CID
-      void cid; // Acknowledge CID computation for verification
-      
-      return storage.put(key, content);
+      return storage.put(key, content, metadataWithCid);
     },
     
     /**
