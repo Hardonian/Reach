@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { BRAND_NAME } from "/src/lib/brand";
+import { BRAND_NAME } from "@/lib/brand";
 
 interface ApiKey {
   id: string;

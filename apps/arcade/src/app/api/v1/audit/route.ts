@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/cloud-auth";
-import { listAuditEvents, countAuditEvents, type AuditFilter } from "@/lib/cloud-db";
+import { listAuditEvents, countAuditEvents, type AuditFilter } from "@/lib/db/ops";
 
 export const runtime = "nodejs";
 

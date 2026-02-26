@@ -739,6 +739,29 @@ export const MIGRATIONS: string[] = [
   CREATE INDEX IF NOT EXISTS idx_artifacts_org_spec_hash ON artifacts(org_id, workspace_id, spec_hash);
   `,
 
+  /* 018 — gate versions for rollback support */
+  `
+  CREATE TABLE IF NOT EXISTS gate_versions (
+    gate_id       TEXT NOT NULL REFERENCES gates(id),
+    tenant_id     TEXT NOT NULL REFERENCES tenants(id),
+    version       INTEGER NOT NULL,
+    name          TEXT NOT NULL,
+    repo_owner    TEXT NOT NULL,
+    repo_name     TEXT NOT NULL,
+    default_branch TEXT NOT NULL DEFAULT 'main',
+    trigger_types TEXT NOT NULL,
+    required_checks TEXT NOT NULL,
+    thresholds    TEXT NOT NULL,
+    status        TEXT NOT NULL,
+    created_at    TEXT NOT NULL,
+    created_by    TEXT REFERENCES users(id),
+    change_reason TEXT,
+    PRIMARY KEY (gate_id, version)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_gate_versions_tenant ON gate_versions(tenant_id, gate_id, version DESC);
+  `,
+
   /* 017 — RLS-like enforcement for multi-tenant isolation */
   `
   -- Session variables table to track current tenant context

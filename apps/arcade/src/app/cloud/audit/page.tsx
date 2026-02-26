@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 interface AuditEvent {
@@ -132,7 +132,23 @@ function exportToCSV(events: AuditEvent[], filename = "audit-log.csv") {
   URL.revokeObjectURL(url);
 }
 
-export default function AuditLogPage() {
+function LoadingStatePage() {
+  return (
+    <div className="p-8">
+      <div className="animate-pulse space-y-4">
+        <div className="h-8 bg-surface rounded w-1/4"></div>
+        <div className="h-12 bg-surface rounded"></div>
+        <div className="space-y-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-16 bg-surface rounded"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AuditLogContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -414,5 +430,13 @@ export default function AuditLogPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function AuditLogPage() {
+  return (
+    <Suspense fallback={<LoadingStatePage />}>
+      <AuditLogContent />
+    </Suspense>
   );
 }
