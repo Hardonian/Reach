@@ -53,6 +53,7 @@ export class ProtocolClient extends EventEmitter {
     reject: (error: Error) => void;
     timeout: NodeJS.Timeout;
     expectedType: MessageType;
+    createdAt: number;
   }> = new Map();
   private nextCorrelationId = 1;
   
@@ -75,10 +76,14 @@ export class ProtocolClient extends EventEmitter {
     // Periodic cleanup of stale pending requests (every 10s)
     this.cleanupTimer = setInterval(() => {
       const now = Date.now();
+      const maxAgeMs = this.config.requestTimeoutMs * 2; // Fail-safe limit
+      
       for (const [correlationId, pending] of this.pendingRequests) {
-        // If we missed the timeout for some reason or it's just very old
-        // Note: each pending request already has its own timeout, 
-        // but this is a fail-safe against leaked timers/map entries.
+        if (now - pending.createdAt > maxAgeMs) {
+          this.pendingRequests.delete(correlationId);
+          clearTimeout(pending.timeout);
+          pending.reject(new Error(`Correlation ID ${correlationId} leaked (stale for ${now - pending.createdAt}ms)`));
+        }
       }
     }, 10000);
   }
@@ -160,6 +165,10 @@ export class ProtocolClient extends EventEmitter {
   /** Disconnect from server */
   async disconnect(): Promise<void> {
     this.stopHeartbeat();
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+      this.cleanupTimer = null;
+    }
     if (!this.socket) {
       return;
     }
@@ -345,6 +354,7 @@ export class ProtocolClient extends EventEmitter {
         reject,
         timeout,
         expectedType: expectedResponseType,
+        createdAt: Date.now(),
       });
       
       this.sendFrame({
