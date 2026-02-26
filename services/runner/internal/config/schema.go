@@ -41,6 +41,9 @@ type Config struct {
 	// Mesh controls distributed agent mesh coordination.
 	// Disabled by default — must be explicitly enabled. Single-node users are never affected.
 	Mesh MeshConfig `json:"mesh"`
+
+	// Daemon controls daemon stability features.
+	Daemon DaemonConfig `json:"daemon"`
 }
 
 // MeshConfig controls the distributed agent mesh layer.
@@ -240,6 +243,21 @@ type ModelConfig struct {
 
 	// LocalModelID is the local model name
 	LocalModelID string `json:"local_model_id" env:"REACH_MODEL_LOCAL_MODEL_ID" default:""`
+}
+
+// DaemonConfig controls daemon stability features.
+type DaemonConfig struct {
+	// MaxQueueDepth is the maximum number of jobs in the internal queue.
+	MaxQueueDepth int `json:"max_queue_depth" env:"REACH_DAEMON_MAX_QUEUE_DEPTH" default:"1000"`
+
+	// HeartbeatInterval is the number of requests between heartbeat health checks.
+	HeartbeatInterval int `json:"heartbeat_interval" env:"REACH_DAEMON_HEARTBEAT_INTERVAL" default:"100"`
+
+	// MemoryThresholdPercent is the memory usage threshold (0-100) for graceful restart.
+	MemoryThresholdPercent int `json:"memory_threshold_percent" env:"REACH_DAEMON_MEMORY_THRESHOLD" default:"80"`
+
+	// EnableStalePipeCleanup enables cleanup of crashed connections.
+	EnableStalePipeCleanup bool `json:"enable_stale_pipe_cleanup" env:"REACH_DAEMON_STALE_PIPE_CLEANUP" default:"true"`
 }
 
 // Default returns the default configuration.

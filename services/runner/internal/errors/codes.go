@@ -17,6 +17,7 @@ const (
 	CodeCancelled         Code = "CANCELLED"
 	CodeResourceExhausted Code = "RESOURCE_EXHAUSTED"
 	CodeRateLimitExceeded Code = "RATE_LIMIT_EXCEEDED"
+	CodeQueueFull         Code = "QUEUE_FULL"
 
 	// Execution errors
 	CodeExecutionFailed    Code = "EXECUTION_FAILED"
@@ -123,7 +124,8 @@ func (c Code) IsRetryable() bool {
 		CodeStorageReadFailed,
 		CodeStorageWriteFailed,
 		CodeResourceExhausted,
-		CodeExecutionTimeout:
+		CodeExecutionTimeout,
+		CodeQueueFull:
 		return true
 	default:
 		return false
