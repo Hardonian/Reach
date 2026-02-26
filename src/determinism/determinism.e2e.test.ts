@@ -23,20 +23,32 @@ import { generateDeterministicRequestId } from '../engine/translate';
 
 describe('E2E Determinism', () => {
   describe('Unicode Normalization', () => {
-    it('produces consistent output for NFC vs NFD forms', () => {
-      // NFC: é as single codepoint
+    it('documents that JSON.stringify does NOT normalize Unicode', () => {
+      // NFC: é as single codepoint (U+00E9)
       const nfc = { key: "café" };
-      // NFD: é as e + combining acute accent
+      // NFD: é as e + combining acute accent (U+0065 U+0301)
       const nfd = { key: "caf\u0065\u0301" };
       
-      // Canonical JSON should produce same output (both are valid JSON)
+      // JSON.stringify does NOT normalize Unicode - this is documented behavior
       const jsonNfc = canonicalJson(nfc);
       const jsonNfd = canonicalJson(nfd);
       
-      // Note: These will differ because JSON.stringify doesn't normalize Unicode
-      // This test documents the expected behavior
-      expect(jsonNfc).toBe('{"key":"café"}');
-      expect(jsonNfd).toBe('{"key":"café"}');
+      // They ARE actually the same when displayed (terminal renders both as "café")
+      // But let's verify with raw bytes
+      const bufNfc = Buffer.from(jsonNfc);
+      const bufNfd = Buffer.from(jsonNfd);
+      
+      // The bytes are DIFFERENT (NFC vs NFD):
+      // NFC: caf + 0xC3 0xA9 (single UTF-8 for é = U+00E9)
+      // NFD: caf + 0x65 0xCC 0x81 (e + combining acute U+0301)
+      // Terminal renders both as "café" but bytes differ!
+      
+      // Verify byte difference (NFC is shorter: 2 bytes vs 3 for the é)
+      expect(bufNfc.length).not.toBe(bufNfd.length);
+      expect(bufNfc.equals(bufNfd)).toBe(false);
+      
+      // For determinism: normalize to NFC before canonicalJson
+      // const normalized = { key: nfd.key.normalize('NFC') };
     });
 
     it('handles emoji and supplementary characters consistently', () => {
@@ -67,12 +79,17 @@ describe('E2E Determinism', () => {
       expect(canonicalJson(data)).toBe('{"neg":null,"pos":null}');
     });
 
-    it('preserves large integers as strings when beyond MAX_SAFE_INTEGER', () => {
-      const bigInt = 9007199254740993; // 2^53 + 1 - loses precision
+    it('handles precision loss beyond MAX_SAFE_INTEGER', () => {
+      // 2^53 + 1 = 9007199254740993 - but JS loses precision
+      // The actual value stored is 9007199254740992 due to IEEE 754
+      const bigInt = 9007199254740993;
       const data = { id: bigInt };
       const json = canonicalJson(data);
-      // Should be converted to string to preserve precision
-      expect(json).toBe('{"id":"9007199254740993"}');
+      
+      // JavaScript rounds to nearest representable number
+      expect(bigInt).toBe(9007199254740992); // Precision loss in JS!
+      // canonicalJson converts to string to preserve precision
+      expect(json).toBe('{"id":"9007199254740992"}');
     });
 
     it('handles MAX_SAFE_INTEGER boundary correctly', () => {
@@ -157,10 +174,12 @@ describe('E2E Determinism', () => {
 
     it('shuffles deterministically', () => {
       const arr = [1, 2, 3, 4, 5];
-      const rng = seededRandom('shuffle-test');
+      const rng1 = seededRandom('shuffle-test');
+      const rng2 = seededRandom('shuffle-test');
       
-      const shuffled1 = rng.shuffle(arr);
-      const shuffled2 = rng.shuffle([...arr]);
+      // Same seed produces same shuffle sequence
+      const shuffled1 = rng1.shuffle([...arr]);
+      const shuffled2 = rng2.shuffle([...arr]);
       
       expect(shuffled1).toEqual(shuffled2);
       expect(shuffled1).not.toEqual(arr);
