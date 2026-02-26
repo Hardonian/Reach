@@ -54,12 +54,6 @@ func TestCASLoad(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Create deterministic payload
-	payload := make([]byte, payloadSize)
-	for i := range payload {
-		payload[i] = byte(i % 256)
-	}
-
 	// Track hashes for reads
 	hashes := make([]string, cycles)
 
@@ -68,7 +62,7 @@ func TestCASLoad(t *testing.T) {
 		// Create deterministic unique payload based on index
 		payload := make([]byte, payloadSize)
 		for j := 0; j < payloadSize; j++ {
-			payload[j] = byte((i + j) % 256)
+			payload[j] = byte((i*payloadSize + j) % 256)
 		}
 		h, err := cas.Put(ObjectTranscript, payload)
 		if err != nil {
@@ -83,8 +77,13 @@ func TestCASLoad(t *testing.T) {
 		if err != nil {
 			t.Fatalf("read failed at cycle %d: %v", i, err)
 		}
-		if len(data) != payloadSize {
-			t.Fatalf("payload size mismatch at cycle %d: got %d, want %d", i, len(data), payloadSize)
+		// Verify content matches what was stored
+		expectedPayload := make([]byte, payloadSize)
+		for j := 0; j < payloadSize; j++ {
+			expectedPayload[j] = byte((i*payloadSize + j) % 256)
+		}
+		if string(data) != string(expectedPayload) {
+			t.Fatalf("payload mismatch at cycle %d", i)
 		}
 	}
 
