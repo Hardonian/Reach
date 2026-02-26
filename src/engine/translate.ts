@@ -283,6 +283,8 @@ export function toRequiemFormat(request: ExecRequest): string {
     confidence: clampPrecisionOpt(request.params.confidence),
     iterations: request.params.iterations,
     epsilon: clampPrecisionOpt(request.params.epsilon),
+    // Pass the deterministic seed for RNG/Adaptive algorithm
+    seed: request.params.seed,
   };
   
   return JSON.stringify(requiemRequest);
@@ -337,6 +339,8 @@ export function toRustFormat(request: ExecRequest): string {
     confidence: clampPrecisionOpt(request.params.confidence),
     iterations: request.params.iterations,
     epsilon: clampPrecisionOpt(request.params.epsilon),
+    // Pass the deterministic seed for RNG/Adaptive algorithm
+    seed: request.params.seed,
   };
   
   return JSON.stringify(rustRequest);

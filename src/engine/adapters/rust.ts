@@ -9,6 +9,7 @@
 
 import { ExecRequest, ExecResult } from '../contract';
 import { toRustFormat, fromRustFormat } from '../translate';
+import { ProcessSemaphore, getSemaphore, deriveSeed, BaseEngineAdapter } from './base';
 
 /**
  * Proper interface matching actual WASM module exports
@@ -174,11 +175,16 @@ export async function loadWasmModule(wasmPath: string): Promise<RustWasmModule> 
 
 /**
  * Create a Rust engine adapter with proper type safety
+ * Now extends BaseEngineAdapter for semaphore and seed support
  */
-export class RustEngineAdapter {
+export class RustEngineAdapter extends BaseEngineAdapter {
   private wasmModule: RustWasmModule | null = null;
   private isLoaded = false;
   private loadError: Error | null = null;
+  
+  constructor() {
+    super(); // Initialize base class with semaphore
+  }
   
   /**
    * Initialize the WASM module
@@ -248,11 +254,22 @@ export class RustEngineAdapter {
   
   /**
    * Evaluate a decision request
+   * Uses semaphore to limit concurrent executions and seed for determinism
    * 
    * @param request - The execution request
    * @returns The execution result
    */
   async evaluate(request: ExecRequest): Promise<ExecResult> {
+    // Use semaphore protection and ensure seed is derived
+    return this.executeWithSemaphore(request, async (req) => {
+      return this.doEvaluate(req);
+    });
+  }
+  
+  /**
+   * Internal evaluation logic (called within semaphore)
+   */
+  private async doEvaluate(request: ExecRequest): Promise<ExecResult> {
     if (!this.wasmModule) {
       throw new Error('WASM module not loaded. Call initialize() first.');
     }

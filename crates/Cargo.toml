@@ -5,6 +5,7 @@ members = [
   "engine",
   "ffi/uniffi",
   "ffi/c_abi",
+  "requiem",
 ]
 resolver = "2"
 

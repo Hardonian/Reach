@@ -15,7 +15,6 @@ export type ExecutionAlgorithm =
   | 'maximin'
   | 'weighted_sum'
   | 'adaptive';
-  | 'adaptive';
 
 /**
  * Execution parameters for a decision request
@@ -32,6 +31,11 @@ export interface ExecutionParams {
   confidence?: number;
   iterations?: number;
   epsilon?: number;
+  /**
+   * Deterministic seed for RNG/Adaptive algorithm.
+   * If not provided, will be derived from requestId.
+   */
+  seed?: number;
 }
 
 /**
