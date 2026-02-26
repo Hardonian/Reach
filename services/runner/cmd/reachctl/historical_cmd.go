@@ -343,21 +343,33 @@ func runBaselineList(ctx context.Context, dataRoot string, args []string, out io
 // ============================================================================
 
 // runMetrics handles the metrics history command.
+// If --daemon flag is provided, it fetches live metrics from the running daemon.
 func runMetrics(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("metrics", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 
-	pipelineID := fs.String("pipeline-id", "", "Pipeline ID to analyze (required)")
-	window := fs.Int("window", 30, "Analysis window in days")
+	daemonMode := fs.Bool("daemon", false, "Fetch live metrics from the running daemon")
+	jsonOutput := fs.Bool("json", false, "Output in JSON format")
+	serverURL := fs.String("server", "http://localhost:8080", "Server URL for daemon mode")
+	pipelineID := fs.String("pipeline-id", "", "Pipeline ID to analyze (required for historical mode)")
+	window := fs.Int("window", 30, "Analysis window in days (historical mode)")
 	outputJSON := fs.String("output-json", "", "Output JSON file path")
 	outputMD := fs.String("output-md", "", "Output Markdown file path")
 	_ = fs.Parse(args)
 
-	if *pipelineID == "" {
-		_, _ = fmt.Fprintln(errOut, "Error: --pipeline-id is required")
-		return 1
+	// If --daemon flag is provided, fetch live daemon metrics
+	if *daemonMode {
+		return runDaemonMetrics(*serverURL, *jsonOutput, out, errOut)
 	}
 
+	// Default behavior: if no pipeline-id, show daemon metrics help
+	if *pipelineID == "" {
+		// Try to fetch daemon metrics by default when no pipeline-id is provided
+		serverURL := getenv("REACH_SERVER_URL", "http://localhost:8080")
+		return runDaemonMetrics(serverURL, *jsonOutput, out, errOut)
+	}
+
+	// Historical metrics mode
 	mgr, err := historical.NewManager(historical.Config{DataDir: dataRoot})
 	if err != nil {
 		_, _ = fmt.Fprintf(errOut, "Failed to create historical manager: %v\n", err)
@@ -395,6 +407,136 @@ func runMetrics(ctx context.Context, dataRoot string, args []string, out io.Writ
 		"report":      report,
 	})
 }
+
+// DaemonMetricsResponse represents the JSON metrics response from the daemon
+type DaemonMetricsResponse struct {
+	TotalExecutions uint64 `json:"total_executions"`
+	AvgExecTime     uint64 `json:"avg_exec_time"`
+	Latencies       *struct {
+		P50 uint64 `json:"p50"`
+		P95 uint64 `json:"p95"`
+		P99 uint64 `json:"p99"`
+	} `json:"latencies"`
+	CASHitRate     uint64 `json:"cas_hit_rate_ppm"`
+	QueueDepth     int32  `json:"queue_depth"`
+	DaemonRestarts uint64 `json:"daemon_restarts"`
+	MemoryUsage    uint64 `json:"memory_usage_bytes"`
+	UptimeSeconds  float64 `json:"uptime_seconds"`
+}
+
+// runDaemonMetrics fetches and displays live metrics from the daemon
+func runDaemonMetrics(serverURL string, jsonOutput bool, out io.Writer, errOut io.Writer) int {
+	url := serverURL + "/v1/metrics?format=json"
+
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	resp, err := client.Get(url)
+	if err != nil {
+		if jsonOutput {
+			emptyMetrics := DaemonMetricsResponse{}
+			data, _ := json.Marshal(emptyMetrics)
+			_, _ = fmt.Fprintln(out, string(data))
+		} else {
+			fmt.Fprintln(errOut, "Warning: Could not connect to daemon. Daemon may not be running.")
+			fmt.Fprintln(out, "Reach Metrics (Daemon not running or unreachable)")
+			fmt.Fprintln(out, "=============================================")
+			fmt.Fprintf(out, "Server: %s\n", serverURL)
+			fmt.Fprintln(out, "Status: Daemon not reachable")
+			fmt.Fprintln(out)
+			fmt.Fprintln(out, "To view daemon metrics, ensure the daemon is running:")
+			fmt.Fprintln(out, "  reach serve")
+		}
+		return 1
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		if jsonOutput {
+			emptyMetrics := DaemonMetricsResponse{}
+			data, _ := json.Marshal(emptyMetrics)
+			_, _ = fmt.Fprintln(out, string(data))
+		} else {
+			fmt.Fprintf(errOut, "Error: Server returned status %d\n", resp.StatusCode)
+		}
+		return 1
+	}
+
+	var metrics DaemonMetricsResponse
+	if err := json.NewDecoder(resp.Body).Decode(&metrics); err != nil {
+		if jsonOutput {
+			emptyMetrics := DaemonMetricsResponse{}
+			data, _ := json.Marshal(emptyMetrics)
+			_, _ = fmt.Fprintln(out, string(data))
+		} else {
+			fmt.Fprintf(errOut, "Error: Failed to parse metrics response: %v\n", err)
+		}
+		return 1
+	}
+
+	if jsonOutput {
+		data, err := json.Marshal(metrics)
+		if err != nil {
+			emptyMetrics := DaemonMetricsResponse{}
+			data, _ := json.Marshal(emptyMetrics)
+			_, _ = fmt.Fprintln(out, string(data))
+			return 1
+		}
+		_, _ = fmt.Fprintln(out, string(data))
+	} else {
+		printDaemonMetricsHuman(metrics, out)
+	}
+
+	return 0
+}
+
+// printDaemonMetricsHuman prints daemon metrics in human-readable format
+func printDaemonMetricsHuman(m DaemonMetricsResponse, out io.Writer) {
+	fmt.Fprintln(out, "Reach Metrics")
+	fmt.Fprintln(out, "=============")
+	fmt.Fprintf(out, "Total Executions:   %d\n", m.TotalExecutions)
+	fmt.Fprintf(out, "Avg Exec Time:      %d μs\n", m.AvgExecTime)
+	if m.Latencies != nil {
+		fmt.Fprintf(out, "Latency P50:       %d μs\n", m.Latencies.P50)
+		fmt.Fprintf(out, "Latency P95:       %d μs\n", m.Latencies.P95)
+		fmt.Fprintf(out, "Latency P99:       %d μs\n", m.Latencies.P99)
+	}
+	fmt.Fprintf(out, "CAS Hit Rate:      %d PPM\n", m.CASHitRate)
+	fmt.Fprintf(out, "Queue Depth:       %d\n", m.QueueDepth)
+	fmt.Fprintf(out, "Daemon Restarts:   %d\n", m.DaemonRestarts)
+	fmt.Fprintf(out, "Memory Usage:      %d bytes (%.2f MB)\n", m.MemoryUsage, float64(m.MemoryUsage)/(1024*1024))
+	fmt.Fprintf(out, "Uptime:            %.2f seconds\n", m.UptimeSeconds)
+}
+
+// GetDaemonMetricsStatus returns the daemon metrics status for doctor command
+func GetDaemonMetricsStatus() string {
+	serverURL := getenv("REACH_SERVER_URL", "http://localhost:8080")
+	url := serverURL + "/v1/metrics?format=json"
+
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	resp, err := client.Get(url)
+	if err != nil {
+		return fmt.Sprintf("UNAVAILABLE (%v)", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Sprintf("UNAVAILABLE (status %d)", resp.StatusCode)
+	}
+
+	var metrics DaemonMetricsResponse
+	if err := json.NewDecoder(resp.Body).Decode(&metrics); err != nil {
+		return fmt.Sprintf("UNAVAILABLE (%v)", err)
+	}
+
+	if metrics.TotalExecutions > 0 {
+		return fmt.Sprintf("OK (executions: %d, queue: %d)", metrics.TotalExecutions, metrics.QueueDepth)
+	}
+	return "OK (connected)"
 
 // ============================================================================
 // DIFF COMMAND

@@ -309,10 +309,19 @@ export class ProtocolClient extends EventEmitter {
   }
 
   private getNextCorrelationId(): number {
-    const id = this.nextCorrelationId++;
+    let id = this.nextCorrelationId++;
     if (this.nextCorrelationId > 0x7FFFFFFF) {
       this.nextCorrelationId = 1;
     }
+    
+    // ADVERSARIAL: Skip IDs that are currently pending to prevent collisions on wrap-around
+    while (this.pendingRequests.has(id)) {
+      id = this.nextCorrelationId++;
+      if (this.nextCorrelationId > 0x7FFFFFFF) {
+        this.nextCorrelationId = 1;
+      }
+    }
+    
     return id;
   }
   
@@ -323,15 +332,15 @@ export class ProtocolClient extends EventEmitter {
     
     const encoded = encodeFrame(frame);
     
-    return new Promise((resolve, reject) => {
-      this.socket!.write(encoded, (error) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve();
-        }
+    // BACKPRESSURE: Respect drain event to prevent unbounded buffering
+    if (!this.socket.write(encoded)) {
+      return new Promise((resolve, reject) => {
+        this.socket!.once('drain', () => resolve());
+        this.socket!.once('error', (err) => reject(err));
       });
-    });
+    }
+    
+    return Promise.resolve();
   }
   
   private correlationCounter = 0;

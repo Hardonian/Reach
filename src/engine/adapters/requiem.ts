@@ -147,9 +147,16 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
     this.timeout = config.timeout || 30000;
 
     // Determine IPC path based on OS
+    // ADVERSARIAL: Added random suffix to prevent collisions within same process
+    const randomId = Math.random().toString(36).substring(2, 8);
     this.pipePath = process.platform === 'win32'
-      ? `\\\\.\\pipe\\requiem-${process.pid}`
-      : path.join(process.env.TEMP || '/tmp', `requiem-${process.pid}.sock`);
+      ? `\\\\.\\pipe\\requiem-${process.pid}-${randomId}`
+      : path.join(process.env.TEMP || '/tmp', `requiem-${process.pid}-${randomId}.sock`);
+
+    // Clean up daemon on process exit
+    process.on('exit', () => {
+      this.shutdownDaemon();
+    });
   }
 
   /**
@@ -391,7 +398,13 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
     return new Promise((resolve, reject) => {
       console.info(`Starting Requiem daemon at ${this.pipePath}`);
 
-      this.daemon = spawn(binaryPath, ['serve', '--socket', this.pipePath], {
+      const args = [
+        'serve',
+        '--socket', this.pipePath,
+        '--parent-pid', process.pid.toString()
+      ];
+
+      this.daemon = spawn(binaryPath, args, {
         stdio: ['ignore', 'pipe', 'pipe'],
         env: this.buildSanitizedEnv(),
       });
@@ -442,6 +455,24 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
         }
       }, 10000);
     });
+  }
+
+  /**
+   * Shut down the daemon process
+   */
+  private shutdownDaemon(): void {
+    if (this.daemon) {
+      try {
+        this.daemon.kill();
+        this.daemon = null;
+      } catch (_e) {
+        // Ignore
+      }
+    }
+    if (this.client) {
+      this.client.disconnect();
+      this.client = null;
+    }
   }
 
   /**
