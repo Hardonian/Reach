@@ -1,37 +1,44 @@
-# Security Overview
+# Reach Security Overview
 
-Reach is designed as a secure-by-default, deterministic decision engine. We prioritize structural integrity and transparency over complex, hidden abstractions.
+Reach is a command-line tool designed with a foundational focus on security, integrity, and predictability. This document provides a high-level overview of our security posture, intended for engineering leaders, security teams, and other technical stakeholders.
 
-## Built with Deterministic Integrity
+Our security philosophy is centered on **verifiable deterministic integrity**. We believe that predictable, verifiable behavior is the bedrock of secure software.
 
-At the core of Reach is a deterministic engine implemented in Rust. Every decision, verification, and audit log is governed by cryptographic hashing. This ensures that the same inputs always produce the same outputs, and that any tampering with historical data is immediately detectable.
+## Key Security Features
 
-## Strict by Default
+### 1. Deterministic by Design
 
-We follow a philosophy of minimal attack surface.
+The core of Reach is a deterministic engine: for a given version, the same input is guaranteed to produce the exact same output, every time, on any platform.
 
-- **Schema Enforcement:** All configuration and data ingest are strictly validated against known schemas. Unknown or malformed fields are rejected.
-- **Fail-Closed:** System errors result in a safe termination of execution rather than proceeding in an uncertain state.
-- **Redaction:** Sensitive data is automatically redacted from logs and diagnostic reports locally, before it is ever shared.
+-   **Integrity Verification**: This allows any user to verify that their copy of Reach has not been tampered with. By compiling the tool from source and comparing its output against known vectors, you can prove its integrity.
+-   **Predictable Behavior**: Determinism eliminates an entire class of "works on my machine" bugs and ensures that automation and policies built on Reach are reliable and predictable. Any deviation from deterministic behavior is treated as a security-relevant event.
 
-## Signed & Verifiable Releases
+### 2. Signed and Verifiable Release Artifacts
 
-Every release of Reach is built in a clean environment and cryptographically signed.
+You don't have to trust the binaries you download; we provide the tools to prove their authenticity.
 
-- **Transparency:** We provide a Software Bill of Materials (SBOM) for every release, allowing you to audit our dependency tree.
-- **Integrity:** All binaries are shipped with SHA-256 checksums and `cosign` signatures.
-- **Reproducibility:** We strive for reproducible builds, allowing third parties to verify that our distributed binaries match our public source code.
+-   **Cryptographic Signatures**: Every official release is signed using `cosign`. This signature proves that the release was created by the Reach development team and has not been altered.
+-   **SHA256 Hashes**: We publish a full manifest of SHA256 hashes for all release files. This file is itself signed, creating a chain of trust.
+-   **Software Bill of Materials (SBOM)**: Every release includes a machine-readable SBOM (CycloneDX format), giving you a complete and transparent inventory of every dependency included in the build.
 
-## Continuous Security Scanning
+### 3. Continuous Security Monitoring
 
-Security is integrated into our development lifecycle:
+Security is integrated directly into our development workflow.
 
-- **Dependency Audits:** We monitor our supply chain daily for new vulnerabilities.
-- **Secret Scanning:** Automated tools prevent the accidental inclusion of credentials in the codebase.
-- **Determinism Gates:** Our CI pipeline enforces that no non-deterministic or "theatrical" logic enters the production branch.
+-   **Automated Dependency Scanning**: Our CI/CD pipeline automatically runs `cargo audit` and `npm audit` on every proposed change, blocking the merge of code that introduces known high-severity vulnerabilities.
+-   **Static Analysis & Secret Scanning**: We enforce strict code quality rules and automatically scan for accidentally committed credentials before any code is merged.
+-   **Reproducible Builds**: Our builds are reproducible, ensuring a direct and verifiable link between the source code you see and the binary you run.
 
-## Transparent Disclosure Policy
+### 4. Minimalist and Secure by Default
 
-We value the work of security researchers and follow a responsible disclosure process. If you find a vulnerability, please report it to `security@reach.dev`. We commit to acknowledging your report within 72 hours and working with you to provide a timely remediation.
+-   **Small Attack Surface**: The core tool is intentionally minimal, with a small, carefully managed dependency tree.
+-   **Fail-Closed Design**: In cases of error or ambiguity, Reach is designed to exit with an error code rather than continue in an uncertain or potentially insecure state.
+-   **Explicit Configuration**: Features that interact with the network or file system beyond their immediate scope must be explicitly enabled by the user.
 
-For technical details, please refer to our [Security Posture](./security-posture.md) and [STRIDE Threat Model](./threat-model-stride.md).
+## Responsible Disclosure
+
+We are committed to working with the security community to identify and resolve vulnerabilities. Our `SECURITY.md` file contains our full policy and instructions for submitting a report to our private disclosure channel. We have a defined process for timely validation, patching, and communication.
+
+## Conclusion
+
+Reach is built for teams that value stability, predictability, and auditable integrity. Our security model is not based on opaque promises, but on open processes and verifiable proof. We invite you to inspect our source code, review our release artifacts, and reproduce our builds to confirm these guarantees for yourself.

@@ -116,8 +116,8 @@ export default function ExecutiveDigestsPage() {
           <p className="text-muted-foreground">Schedule automated digests for stakeholders</p>
         </div>
         <Dialog>
-          <DialogTrigger asChild>
-            <Button><Mail className="w-4 h-4 mr-2" /> New Digest</Button>
+          <DialogTrigger>
+            <Mail className="w-4 h-4 mr-2" /> New Digest
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>

@@ -1,81 +1,43 @@
-# STRIDE Threat Model
+# STRIDE Threat Model for Reach
 
-This document outlines the formal threat model for the Reach CLI and core engine using the STRIDE methodology.
+## 1. Introduction
 
-## System Scope & Components
+This document provides a threat model for the Reach system using the STRIDE framework. STRIDE is a methodology for identifying and categorizing threats, an acronym for:
 
-1. **Reach CLI (Go/TS Wrapper):** User interface for command execution.
-2. **Decision Engine (Rust Core):** Cryptographic and deterministic logic.
-3. **Artifact Store:** Local file system storage for event logs and snapshots.
-4. **CI/CD Pipeline:** Build, test, and release infrastructure.
-5. **Installers:** Direct-to-consumer deployment scripts.
+-   **S**poofing
+-   **T**ampering
+-   **R**epudiation
+-   **I**nformation Disclosure
+-   **D**enial of Service
+-   **E**levation of Privilege
 
----
+This model focuses on the core Reach CLI and its interaction with user data and the local system.
 
-## 1. Spoofing (Identity)
+## 2. System Components
 
-**Threat:** An attacker poses as a legitimate Reach binary or a trusted contributor.
+For this analysis, we decompose Reach into the following key components and trust boundaries:
 
-- **Attack Vector:** Distribution of a fake `reach` binary; spoofed commits in the repository.
-- **Current Controls:** `cosign` signatures on releases; developer access controlled by GitHub MFA and mandatory PR reviews.
-- **Residual Risk:** Social engineering of organization administrators.
-- **Hardening:** Require hardware tokens (YubiKey) for all core maintainers.
-
-## 2. Tampering (Integrity)
-
-**Threat:** Unauthorized modification of decision records, binaries, or configuration.
-
-- **Attack Vector:** Modifying local `.zeo` SQLite database files; patching the `reach` binary on disk.
-- **Current Controls:** Deterministic hashing of all audit records; `SHA256SUMS` verification for the binary.
-- **Residual Risk:** Attacker with local root access can modify the binary and the verification tools simultaneously.
-- **Hardening:** Support for OS-level integrity protection (e.g., Code Signing on macOS/Windows).
-
-## 3. Repudiation (Auditability)
-
-**Threat:** A user or administrator performs an action but denies it, or the system fails to log a critical event.
-
-- **Attack Vector:** Silencing the audit logger; deleting historical logs from the artifact store.
-- **Current Controls:** Append-only event logs; deterministic chain of custody for all governance decisions.
-- **Residual Risk:** Erasure of logs by an attacker with filesystem access.
-- **Hardening:** Implement remote append-only logging to a verified cloud substrate (OIDC-authenticated).
-
-## 4. Information Disclosure (Privacy)
-
-**Threat:** Exposure of sensitive configuration, secrets, or internal decision logic to unauthorized parties.
-
-- **Attack Vector:** Secrets leaked in CI logs; unredacted diagnostic reports (`bugreport`) containing PII.
-- **Current Controls:** Automated redaction in `reach bugreport`; `gitleaks` scanning in CI.
-- **Residual Risk:** Accidental inclusion of sensitive data in custom policy files.
-- **Hardening:** Implement local-first encryption for sensitive fields in the local database.
-
-## 5. Denial of Service (Availability)
-
-**Threat:** Preventing the core engine from processing decisions or making the CLI unusable.
-
-- **Attack Vector:** Providing malformed input that triggers an infinite loop or crash in the Rust core; filling up the local disk with massive event logs.
-- **Current Controls:** Rust memory safety; strict schema validation; per-entry size limits in archive ingest.
-- **Residual Risk:** Resource exhaustion (CPU/Disk) through oversized policy files.
-- **Hardening:** Implement strict resource quotas (memory/CPU time) for the decision engine execution.
-
-## 6. Elevation of Privilege (Authorization)
-
-**Threat:** An unprivileged user gaining access to administrative or "enterprise-only" features.
-
-- **Attack Vector:** Manipulating environment variables to bypass OSS-only gates; exploiting a parser bug to execute unauthorized code.
-- **Current Controls:** `verify:oss` enforcement in CI; clear code-level separation between CLI commands.
-- **Residual Risk:** Flaws in the CLI's argument parsing logic that allow command injection.
-- **Hardening:** Move to a capability-based security model where the CLI must explicitly register and be granted the permissions it uses.
+-   **User's Terminal**: The shell environment where the CLI is executed.
+-   **Reach CLI Binary**: The compiled, signed executable.
+-   **Configuration Files**: User-provided `.reach.toml` or other policy/config files.
+-   **Input/Output Data**: Files or data being processed by Reach.
+-   **Release Artifact Storage**: GitHub Releases where binaries are stored.
+-   **CI/CD Environment**: GitHub Actions runner.
 
 ---
 
-## Scope Diagram Description
+## 3. Threat Analysis
 
-The Reach system forms a circular chain of integrity:
-
-- **Source Code** is verified by **CI/CD**.
-- **CI/CD** produces **Signed Artifacts**.
-- **Signed Artifacts** download and verify themselves via **Installers**.
-- **Installers** deploy the **CLI** to the **User Environment**.
-- **CLI** generates **Deterministic Logs** which are then verified against **Source Code** invariants.
-
-Any break in this chain (e.g., untrusted source, unsigned artifact, unverified log) results in a total loss of system trust.
+| Component | Threat Category | Threat Scenario | Mitigation | Residual Risk | Roadmap/Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **CLI Binary** | **Spoofing** | A user is tricked into downloading and running a malicious binary disguised as `reach`. | - Official download page with clear instructions.<br>- Signed `SHA256SUMS` file.<br>- Manual verification steps documented. | Medium | Promote `reach verify-security` command once implemented. Improve user awareness. |
+| **CLI Binary** | **Tampering** | A legitimate `reach` binary is modified on disk by malware after installation. | - The CLI cannot prevent tampering of itself once on a compromised system.<br>- Determinism checks would fail if the binary is re-run against source. | High | This is an OS-level security issue. We can only provide tools for verification, not prevent the attack. |
+| **Config Files** | **Tampering** | A user's policy or configuration file is maliciously altered to produce an unintended outcome. | - Reach processes the config it is given.<br>- Users should use filesystem permissions to protect configs.<br>- Storing configs in Git provides an audit trail. | Medium | Consider a `--strict` mode that warns on unexpected config keys. |
+| **Release Artifacts** | **Tampering** | A release binary on GitHub is replaced with a malicious version. | - All release artifacts and their SHA256 sums are signed with `cosign`.<br>- Users are instructed to verify signatures. | Low | Requires compromise of both GitHub repository and the signing key. |
+| **CLI Execution** | **Repudiation** | A user (or malicious actor) performs an action with Reach and later denies it. | - Reach is a local CLI; it has no server-side audit trail.<br>- Shell history and file modification times provide weak, client-side evidence. | High | Not in scope. Reach is not an audited, server-based system. |
+| **CLI Output** | **Information Disclosure** | A bug in Reach causes it to leak sensitive information from an input file into its logs or error messages. | - Strict error handling that avoids echoing excessive context.<br>- Core logic written in Rust for memory safety.<br>- Code reviews specifically check for this. | Low | Ongoing vigilance is required. A bug could always introduce this. |
+| **Config Files** | **Information Disclosure** | A user accidentally commits a configuration file containing secrets to a public Git repository. | - Documentation warns against storing secrets in config files.<br>- Recommend using environment variables for secrets. | High | This is a user practice issue. We can only guide them. |
+| **CLI Binary** | **Denial of Service** | A maliciously crafted input file (e.g., a "zip bomb" if Reach processed zips) causes the CLI to crash or consume all system resources. | - Strict input parsing and validation.<br>- Resource limits on certain operations.<br>- Rust's memory safety prevents many classes of crashes. | Medium | A complex, unforeseen input could still find a parsing bug or trigger a resource-intensive edge case. |
+| **CI/CD** | **Denial of Service** | An attacker submits a PR with code designed to exhaust CI resources (e.g., an infinite loop in a test). | - GitHub Actions has built-in timeouts for all jobs.<br>- Our CI scripts are designed to fail fast. | Low | Primarily mitigated by the CI provider's platform controls. |
+| **CLI Execution** | **Elevation of Privilege** | A bug in the Reach CLI allows it to perform actions on the host system that the user running it is not authorized to do. | - Reach is not a privileged process; it runs with the same permissions as the user who executes it.<br>- It does not use `sudo` or other privilege escalation mechanisms. | Low | A vulnerability would need to be chained with an OS-level exploit, which is out of scope for our model. |
+| **Plugins** | **Elevation of Privilege** | A malicious third-party plugin, when loaded by Reach, accesses files or network resources it shouldn't. | - Currently, plugins run with the same permissions as the core process.<br>- Documentation must clearly state the trust model for plugins. | High | This is a major gap. The roadmap includes sandboxing plugins (e.g., using WASM). |

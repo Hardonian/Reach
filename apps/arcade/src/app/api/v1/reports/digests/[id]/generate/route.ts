@@ -85,7 +85,7 @@ export async function POST(
       WHERE id = ?
     `).run(now, nextScheduled, id);
 
-    auditLog(ctx, "digest_generated", "digest", id, { executionId });
+    auditLog(ctx, "digest_generated", "digest", id, { executionId }, req);
 
     return NextResponse.json({
       success: true,

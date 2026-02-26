@@ -29,8 +29,9 @@ const useDialog = () => {
 };
 
 const DialogTrigger = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>(
-  ({ onClick, ...props }, ref) => {
+  ({ onClick, children, ...props }, ref) => {
     const { setOpen } = useDialog();
+    
     return (
       <button
         ref={ref}
@@ -39,7 +40,9 @@ const DialogTrigger = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttrib
           onClick?.(e);
         }}
         {...props}
-      />
+      >
+        {children}
+      </button>
     );
   }
 );

@@ -1,80 +1,58 @@
-# Supply-Chain Threat Simulation
+# Reach Supply Chain Threat Simulation
 
-This document simulates potential supply-chain attack vectors against Reach and evaluates current mitigations and residual risks.
+## 1. Introduction
 
----
+The security of our users depends not only on the code we write but also on the integrity of our entire software supply chain. This document outlines potential attacks on our supply chain and the mitigations we have in place. This is a living document that is updated as new threats emerge and our defenses evolve.
 
-## 1. Threat Categories
+## 2. Threat Analysis
 
-### Dependency Compromise
+We model threats based on their point of entry into our supply chain.
 
-**Attack Scenario:** A malicious update is pushed to a deep dependency (e.g., a low-level utility in the `node_modules` tree).
+### Threat 1: Compromised Dependency
 
-- **Impact:** Remote code execution (RCE) during build or runtime; exfiltration of project secrets.
-- **Current Mitigation:** `npm audit`, `cargo audit`, and `verify:no-toxic-deps` scripts. Specific known toxic packages are blacklisted.
-- **Residual Risk:** Zero-day dependency compromise remains the highest risk.
-- **Hardening:** Pinning dependencies to specific hashes (using `package-lock.json`) and transitioning to vendor-based dependency management for critical paths.
+-   **Attack Scenario**: A malicious actor publishes a new version of a dependency that contains a backdoor, or takes over an existing unmaintained dependency. This is the most common supply chain attack vector.
+-   **Specific "xz-style" Analysis**:
+    -   **Vector**: An obfuscated backdoor is introduced into a core, widely-used dependency by a seemingly trusted maintainer over a long period.
+    -   **Reach Mitigation**:
+        1.  **Minimal Dependencies**: The core Rust engine has a minimal, carefully audited dependency set. We are less likely to pull in an obscure, un-vetted utility.
+        2.  **Lockfiles**: `Cargo.lock` and `package-lock.json` prevent a malicious version from being used automatically. The update must be a deliberate act.
+        3.  **CI Audits**: `cargo audit` and `npm audit` run on every PR, which would flag a *known* malicious version. This would not have caught `xz` before disclosure but is a critical layer of defense.
+        4.  **Reproducible Builds**: If a malicious dependency altered build output, it would break our determinism checks, causing a build failure. This is a powerful, though indirect, defense against certain classes of tampering.
+        5.  **Vendor/Cache Dependencies (Future)**: We are evaluating vendoring critical dependencies to further isolate our builds from upstream registry compromises.
+-   **Residual Risk**: High. A sophisticated, previously unknown backdoor in a dependency remains a significant industry-wide threat. Our primary mitigation is a small dependency footprint and rapid patching once a vulnerability is disclosed.
 
-### Malicious Contributor Injection
+### Threat 2: Compromised Build Environment (CI Poisoning)
 
-**Attack Scenario:** An attacker gains contributor status or compromises an existing contributor's account to introduce a subtle logic bug or a "backdoor" in the determinism core.
+-   **Attack Scenario**: An attacker gains access to our GitHub Actions environment and modifies the build script to inject malicious code into the final binary *after* the source code has been checked out and tested.
+-   **Reach Mitigation**:
+    1.  **Hardened GitHub Actions**: We enforce branch protection rules, requiring reviews for all changes, including to `.github/workflows/`.
+    2.  **Third-Party Action Pinning**: We pin the versions of third-party GitHub Actions we use to a specific commit hash to prevent a malicious update to an Action from affecting our build.
+    3.  **Post-Build Verification**: Our release process includes downloading the CI-built artifact and verifying its hash against a locally-reproduced build.
+    4.  **Artifact Signing**: `cosign` signatures provide a final guarantee. An attacker would need to compromise both the build environment and our signing keys to succeed.
+-   **Residual Risk**: Medium. Compromise of the underlying GitHub Actions infrastructure is a possibility, though unlikely.
 
-- **Impact:** System-wide loss of integrity; undetectable manipulation of decision logic.
-- **Current Mitigation:** Mandatory peer review for all PRs; `guard-structure.ps1` to prevent unauthorized file layout changes; CI determinism gates (`verify:determinism`).
-- **Residual Risk:** High-sophistication "underhanded code" that passes human review.
-- **Hardening:** Require GPG-signed commits; implement multi-party approval for changes to `crates/engine-core`.
+### Threat 3: Release Artifact Tampering
 
-### CI Poisoning
+-   **Attack Scenario**: An attacker with access to our release storage (e.g., GitHub Releases) replaces a legitimate binary with a compromised one after it has been built and signed.
+-   **Reach Mitigation**:
+    1.  **Signed Hashes**: We do not just sign the binaries; we sign the `SHA256SUMS` file. Users are instructed to first verify the signature on the hash file, then use that trusted file to verify the hash of the binary. An attacker would need to forge the signature to replace the hash file.
+    2.  **Public Attestations**: Signatures and SBOMs are uploaded as immutable attestations where the platform supports it.
+    3.  **Separation of Duties**: The ability to create a release is separate from the ability to generate a signature.
+-   **Residual Risk**: Low. This would require compromising both our GitHub account and our signing key infrastructure.
 
-**Attack Scenario:** An attacker compromises the GitHub Actions workflow or the secrets stored in the repository.
+### Threat 4: Malicious Install Script
 
-- **Impact:** Unauthorized release of malicious binaries; bypass of security gates.
-- **Current Mitigation:** Environment protection rules; restricted repository secrets access; concurrency controls in `release.yml`.
-- **Residual Risk:** Compromise of the GitHub organization itself.
-- **Hardening:** Move to OIDC-based authentication for all cloud interactions; use self-hosted, hardened CI runners for release builds.
+-   **Attack Scenario**: The `install.sh` script recommended for users is compromised to perform malicious actions on the user's machine.
+-   **Reach Mitigation**:
+    1.  **Minimalist Script**: Our install script is designed to be simple and readable. Its only purpose is to detect the user's OS/architecture, download the correct `.tar.gz` from the official GitHub releases page, verify its hash against the signed `SHA256SUMS` file, and unpack it.
+    2.  **No `sudo`**: The script installs to the user's home directory and does not require root privileges.
+    3.  **User Verification**: We encourage users to inspect the script before running it via `curl | bash`.
+-   **Residual Risk**: Medium. The "curl-to-bash" pattern is controversial. While we provide alternative manual download instructions, many users will prefer the convenience, trusting the source.
 
-### Artifact Tampering
+### Threat 5: Determinism Semantic Drift
 
-**Attack Scenario:** An attacker intercepts the release process or compromises the distribution server (GitHub Releases) to replace a signed binary with a malicious one.
-
-- **Impact:** Users download and execute malware.
-- **Current Mitigation:** `SHA256SUMS` manifest and `cosign` signatures. The installer scripts verify the hash before execution.
-- **Residual Risk:** Users bypassing the installer and downloading raw binaries without verification.
-- **Hardening:** Publicly log all release signatures to a transparency log (e.g., Rekor).
-
-### Install Script Compromise
-
-**Attack Scenario:** The `install.sh` or `install.ps1` script is modified to include a malicious payload.
-
-- **Impact:** Immediate RCE on the user's machine during installation.
-- **Current Mitigation:** The install scripts are part of the signed release package and are reviewed during every release cycle.
-- **Residual Risk:** Attacker compromising the URL used for the initial `curl | bash` command.
-- **Hardening:** Encourage users to download the signed `tar.gz` and verify manually rather than using one-liner installers.
-
----
-
-## 2. "If an xz-style incident happened to Reach"
-
-### How Audits Surface It
-
-The Reach `security-audit.yml` runs daily. A sudden change in binary size, a new dependency inclusion, or a failure in the `verify:no-toxic-deps` firewall would be the first indicators. If the attacker introduced a non-deterministic delay or side-effect, the `verify:determinism` suite would likely fail.
-
-### How SBOM Exposes It
-
-The SBOM (`reach-sbom.cyclonedx.json`) captures the entire dependency tree for every release. Security researchers can use this manifest to quickly identify if a compromised version of a library has been bundled into Reach.
-
-### How Signed Artifacts Limit Blast Radius
-
-If a single build runner was compromised, the resulting binary might match the source but fail a secondary verification check. Because artifacts are signed, an attacker cannot silently modify a binary without breaking the `cosign` signature.
-
-### Where Risk Remains
-
-The primary risk remains "stealthy" logic changes. If a malicious contributor introduces code that is functionally correct but contains a hidden vulnerability (like the `xz` multi-stage payload), it is extremely difficult to detect with automated tools.
-
----
-
-## 3. Practical Hardening Recommendations
-
-1. **Mandatory Signing:** Enforce GPG signing for all commits to the `main` branch.
-2. **Binary Diffing:** Implement automated binary diffing between CI versions to highlight unexpected changes in compiled output.
-3. **Dependency Vendoring:** Move from remote package registries to vendored dependencies for the core Rust engine to eliminate third-party registry risk.
+-   **Attack Scenario**: A malicious contribution alters the logic of the determinism hashing itself, effectively "blessing" a malicious change to the core engine's output and allowing the CI checks to pass.
+-   **Reach Mitigation**:
+    1.  **CODEOWNERS**: The `determinism.vectors.json` file and the core hashing logic are owned by a small group of core maintainers. Changes require mandatory review from this group.
+    2.  **Architectural Review**: Any change to the fundamental determinism logic is considered a major architectural change and is subject to intense scrutiny.
+-   **Residual Risk**: Low. This would require collusion or a significant lapse in the review process by multiple core maintainers.
