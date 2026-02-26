@@ -24,7 +24,6 @@ const aliases = [
 export default defineConfig({
   resolve: {
     alias: aliases,
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
   },
   test: {
     globals: true,

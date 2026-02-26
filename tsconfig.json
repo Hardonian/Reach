@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "Bundler",
     "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
