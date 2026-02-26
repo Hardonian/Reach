@@ -233,7 +233,8 @@ export function decodeFrame(buffer: Uint8Array): { frame: Frame; remaining: Uint
 
 /** Streaming frame parser with buffering */
 export class FrameParser {
-  private buffer: Uint8Array = new Uint8Array(0);
+  private chunks: Uint8Array[] = [];
+  private currentSize: number = 0;
   private maxBufferSize: number;
   
   constructor(options: { maxBufferSize?: number } = {}) {
@@ -242,42 +243,42 @@ export class FrameParser {
   
   /** 
    * Add data to buffer
-   * OPTIMIZED: Uses Buffer.allocUnsafe for faster allocation 
-   * and minimizes copies by only growing when necessary.
+   * OPTIMIZED: Uses a chunk-based approach to avoid O(N^2) copies during assembly.
    */
   append(data: Uint8Array): void {
-    const requiredSize = this.buffer.length + data.length;
+    if (data.length === 0) return;
     
-    if (requiredSize > this.maxBufferSize) {
+    if (this.currentSize + data.length > this.maxBufferSize) {
       throw new FrameError(
-        `Buffer overflow: ${requiredSize} bytes exceeds ${this.maxBufferSize}`,
+        `Buffer overflow: ${this.currentSize + data.length} bytes exceeds ${this.maxBufferSize}`,
         'IO_ERROR'
       );
     }
 
-    const newBuffer = Buffer.allocUnsafe(requiredSize);
-    newBuffer.set(this.buffer);
-    newBuffer.set(data, this.buffer.length);
-    this.buffer = new Uint8Array(newBuffer);
+    this.chunks.push(data);
+    this.currentSize += data.length;
   }
   
   /** Try to parse a frame from buffer */
   parse(): Frame | null {
-    if (this.buffer.length === 0) {
+    if (this.currentSize === 0) {
       return null;
     }
     
+    // Assemble buffer only when needed
+    const buffer = this.assemble();
+    
     try {
-      const result = decodeFrame(this.buffer);
+      const result = decodeFrame(buffer);
       if (result) {
-        this.buffer = result.remaining;
+        this.setBuffer(result.remaining);
         return result.frame;
       }
       return null;
     } catch (error) {
       if (error instanceof FrameError && error.code === 'INVALID_MAGIC') {
         // Try to resync by finding next magic
-        this.resync();
+        this.resync(buffer);
         return null;
       }
       // Re-throw payload too large errors (don't silently drop)
@@ -287,9 +288,27 @@ export class FrameParser {
       throw error;
     }
   }
+
+  private assemble(): Uint8Array {
+    if (this.chunks.length === 1) {
+      return this.chunks[0];
+    }
+    const combined = new Uint8Array(this.currentSize);
+    let offset = 0;
+    for (const chunk of this.chunks) {
+      combined.set(chunk, offset);
+      offset += chunk.length;
+    }
+    return combined;
+  }
+
+  private setBuffer(buffer: Uint8Array): void {
+    this.chunks = buffer.length > 0 ? [buffer] : [];
+    this.currentSize = buffer.length;
+  }
   
   /** Find and skip to next valid magic bytes */
-  private resync(): void {
+  private resync(buffer: Uint8Array): void {
     const magicBytes = new Uint8Array([
       MAGIC & 0xFF,
       (MAGIC >>> 8) & 0xFF,
@@ -297,27 +316,28 @@ export class FrameParser {
       (MAGIC >>> 24) & 0xFF,
     ]);
     
-    for (let i = 1; i <= this.buffer.length - 4; i++) {
-      if (this.buffer[i] === magicBytes[0] &&
-          this.buffer[i + 1] === magicBytes[1] &&
-          this.buffer[i + 2] === magicBytes[2] &&
-          this.buffer[i + 3] === magicBytes[3]) {
-        this.buffer = this.buffer.slice(i);
+    for (let i = 1; i <= buffer.length - 4; i++) {
+      if (buffer[i] === magicBytes[0] &&
+          buffer[i + 1] === magicBytes[1] &&
+          buffer[i + 2] === magicBytes[2] &&
+          buffer[i + 3] === magicBytes[3]) {
+        this.setBuffer(buffer.slice(i));
         return;
       }
     }
     
     // No magic found, keep last 3 bytes (might be partial magic)
-    this.buffer = this.buffer.slice(-3);
+    this.setBuffer(buffer.slice(-3));
   }
   
   /** Clear buffer */
   clear(): void {
-    this.buffer = new Uint8Array(0);
+    this.chunks = [];
+    this.currentSize = 0;
   }
   
   /** Get current buffer size */
   get bufferSize(): number {
-    return this.buffer.length;
+    return this.currentSize;
   }
 }

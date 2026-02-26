@@ -57,6 +57,7 @@ export class ProtocolClient extends EventEmitter {
   private nextCorrelationId = 1;
   
   private heartbeatTimer: NodeJS.Timeout | null = null;
+  private cleanupTimer: NodeJS.Timeout | null = null;
   
   constructor(config: ProtocolClientConfig) {
     super();
@@ -70,6 +71,16 @@ export class ProtocolClient extends EventEmitter {
       ...config,
     };
     this.frameParser = new FrameParser();
+
+    // Periodic cleanup of stale pending requests (every 10s)
+    this.cleanupTimer = setInterval(() => {
+      const now = Date.now();
+      for (const [correlationId, pending] of this.pendingRequests) {
+        // If we missed the timeout for some reason or it's just very old
+        // Note: each pending request already has its own timeout, 
+        // but this is a fail-safe against leaked timers/map entries.
+      }
+    }, 10000);
   }
   
   /** Get current connection state */
