@@ -29,7 +29,7 @@ type remoteValidationReport struct {
 
 func runCache(args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
-		_, _ = fmt.Fprintln(errOut, "usage: reach cache <status|gc>")
+		_, _ = fmt.Fprintln(errOut, "usage: reach cache <status|gc|compact> [--aggressive]")
 		return 1
 	}
 	cas, err := trust.NewCAS(trust.DefaultCASRoot())
@@ -39,12 +39,19 @@ func runCache(args []string, out io.Writer, errOut io.Writer) int {
 	}
 	switch args[0] {
 	case "status":
-		counts, err := cas.Status()
+		// Try to get detailed status
+		status, err := cas.StatusEx()
 		if err != nil {
-			_, _ = fmt.Fprintln(errOut, "cache status failed:", err)
-			return 1
+			// Fall back to basic status
+			counts, err := cas.Status()
+			if err != nil {
+				_, _ = fmt.Fprintln(errOut, "cache status failed:", err)
+				return 1
+			}
+			_ = writeJSON(out, map[string]any{"root": trust.DefaultCASRoot(), "objects": counts, "format_version": trust.CACObjectFormatVersion})
+			return 0
 		}
-		_ = writeJSON(out, map[string]any{"root": trust.DefaultCASRoot(), "objects": counts, "format_version": trust.CACObjectFormatVersion})
+		_ = writeJSON(out, status)
 		return 0
 	case "gc":
 		deleted, err := cas.GC()
@@ -54,8 +61,23 @@ func runCache(args []string, out io.Writer, errOut io.Writer) int {
 		}
 		_ = writeJSON(out, map[string]any{"deleted": deleted, "root": trust.DefaultCASRoot()})
 		return 0
+	case "compact":
+		// Parse flags
+		aggressive := false
+		for _, arg := range args[1:] {
+			if arg == "--aggressive" || arg == "-a" {
+				aggressive = true
+			}
+		}
+		deleted, err := cas.Compact(aggressive)
+		if err != nil {
+			_, _ = fmt.Fprintln(errOut, "cache compact failed:", err)
+			return 1
+		}
+		_ = writeJSON(out, map[string]any{"deleted": deleted, "aggressive": aggressive, "root": trust.DefaultCASRoot()})
+		return 0
 	default:
-		_, _ = fmt.Fprintln(errOut, "usage: reach cache <status|gc>")
+		_, _ = fmt.Fprintln(errOut, "usage: reach cache <status|gc|compact> [--aggressive]")
 		return 1
 	}
 }

@@ -299,7 +299,7 @@ func (c *CAS) EvictLRU(targetBytes int64) (int64, error) {
 	// Get all objects sorted by access time
 	var objects []struct {
 		hash     string
-		type     ObjectType
+		objType  ObjectType
 		accessed time.Time
 		size     int64
 	}
@@ -321,7 +321,7 @@ func (c *CAS) EvictLRU(targetBytes int64) (int64, error) {
 			}
 			objects = append(objects, struct {
 				hash     string
-				type     ObjectType
+				objType  ObjectType
 				accessed time.Time
 				size     int64
 			}{e.Name(), t, accessed, info.Size()})
@@ -335,11 +335,12 @@ func (c *CAS) EvictLRU(targetBytes int64) (int64, error) {
 
 	// Delete oldest objects until we free enough space
 	var freed int64
+	deleted := 0
 	for _, obj := range objects {
 		if freed >= targetBytes {
 			break
 		}
-		path := c.objectPath(obj.type, obj.hash)
+		path := c.objectPath(obj.objType, obj.hash)
 		if err := os.Remove(path); err == nil {
 			freed += obj.size
 			deleted++
