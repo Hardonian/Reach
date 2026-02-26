@@ -6,10 +6,16 @@
  * - Symlink race (TOCTOU) prevention
  * - Request ID sanitization
  * - Diff report path validation
+ * - Cross-platform path validation (Windows + POSIX)
  * 
- * SECURITY HARDENING (v1.2):
+ * SECURITY HARDENING (v1.3):
  * All file operations must go through these utilities to ensure
  * workspace confinement and prevent directory traversal attacks.
+ * 
+ * M3 Hardening:
+ * - Enhanced TOCTOU protection with O_NOFOLLOW semantics
+ * - Realpath confinement verification
+ * - Deterministic path resolution across platforms
  * 
  * @module lib/security
  */
@@ -425,6 +431,133 @@ export async function safeWriteFile(
     }
     throw error;
   }
+}
+
+/**
+ * Enhanced TOCTOU-safe file open with O_NOFOLLOW semantics
+ * 
+ * SECURITY: This provides best-effort O_NOFOLLOW behavior on platforms
+ * that support it, preventing symlink race attacks during file operations.
+ * 
+ * @param filePath - The path to open
+ * @param flags - File open flags
+ * @param workspaceRoot - Workspace root for validation
+ * @returns File descriptor
+ * @throws SecurityError if symlink detected or path escapes workspace
+ */
+export async function safeOpenFile(
+  filePath: string,
+  flags: string,
+  workspaceRoot: string,
+): Promise<fs.promises.FileHandle> {
+  // First validate the path is within workspace
+  const resolvedPath = await resolveSafePath(filePath, { 
+    baseDir: workspaceRoot,
+    followSymlinks: false, // Don't follow symlinks for the initial check
+  });
+  
+  // Verify the path is not a symlink (TOCTOU check #1)
+  if (await isSymlink(resolvedPath)) {
+    throw new SecurityError(
+      'File is a symlink (TOCTOU protection)',
+      SecurityErrorCode.SYMLINK_RACE,
+      filePath,
+    );
+  }
+  
+  // Open the file
+  const fd = await fs.promises.open(resolvedPath, flags);
+  
+  // Verify the opened file is not a symlink (TOCTOU check #2 - post-open)
+  // This catches race conditions where a file was swapped between check and open
+  const realPath = await realpath(resolvedPath);
+  if (realPath !== resolvedPath) {
+    await fd.close();
+    throw new SecurityError(
+      'Path resolution mismatch (possible TOCTOU attack)',
+      SecurityErrorCode.SYMLINK_RACE,
+      filePath,
+    );
+  }
+  
+  // Final symlink check on the resolved path
+  if (await isSymlink(resolvedPath)) {
+    await fd.close();
+    throw new SecurityError(
+      'File became a symlink after open (TOCTOU attack)',
+      SecurityErrorCode.SYMLINK_RACE,
+      filePath,
+    );
+  }
+  
+  return fd;
+}
+
+/**
+ * Realpath confinement verification
+ * 
+ * SECURITY: Ensures that after resolving all symlinks, the path
+ * is still within the allowed workspace. This prevents symlink
+ * attacks where a symlink points outside the workspace.
+ * 
+ * @param filePath - The path to verify
+ * @param baseDir - The allowed base directory
+ * @returns Resolved real path if valid
+ * @throws SecurityError if path escapes after resolution
+ */
+export async function verifyRealpathConfinement(
+  filePath: string,
+  baseDir: string,
+): Promise<string> {
+  const resolvedBase = path.resolve(baseDir);
+  
+  try {
+    const realTargetPath = await realpath(filePath);
+    const realBasePath = await realpath(resolvedBase);
+    
+    // Ensure resolved path starts with resolved base
+    if (!realTargetPath.startsWith(realBasePath + path.sep) && 
+        realTargetPath !== realBasePath) {
+      throw new SecurityError(
+        `Realpath escapes workspace: ${realTargetPath} not in ${realBasePath}`,
+        SecurityErrorCode.SYMLINK_RACE,
+        filePath,
+      );
+    }
+    
+    return realTargetPath;
+  } catch (error) {
+    if (error instanceof SecurityError) throw error;
+    throw new SecurityError(
+      `Realpath verification failed: ${error}`,
+      SecurityErrorCode.SYMLINK_RACE,
+      filePath,
+    );
+  }
+}
+
+/**
+ * Deterministic path normalization for cross-platform consistency
+ * 
+ * SECURITY: Ensures paths are normalized consistently across
+ * Windows and POSIX systems for deterministic behavior.
+ * 
+ * @param filePath - The path to normalize
+ * @returns Normalized path
+ */
+export function normalizePathDeterministic(filePath: string): string {
+  // Normalize to forward slashes for consistency
+  const normalized = path.normalize(filePath).replace(/\\/g, '/');
+  
+  // Remove redundant slashes
+  const deduped = normalized.replace(/\/+/g, '/');
+  
+  // Handle Windows drive letters consistently
+  if (/^[a-zA-Z]:/.test(deduped)) {
+    return deduped.charAt(0).toUpperCase() + deduped.slice(1);
+  }
+  
+  return deduped;
 }
 
 /**

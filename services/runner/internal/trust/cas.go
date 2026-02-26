@@ -87,6 +87,28 @@ func NewCAS(root string) (*CAS, error) {
 	return &CAS{root: root}, nil
 }
 
+// NewCASWithConfig creates a new CAS with explicit configuration
+func NewCASWithConfig(root string, config CASConfig) (*CAS, error) {
+	if strings.TrimSpace(root) == "" {
+		return nil, errors.New("cas root is required")
+	}
+	if err := os.MkdirAll(root, 0o755); err != nil {
+		return nil, fmt.Errorf("create cas root: %w", err)
+	}
+	// Set defaults
+	if config.MaxCASSizeBytes == 0 {
+		config.MaxCASSizeBytes = DefaultCASMaxSize
+	}
+	if config.LRUWindow == 0 {
+		config.LRUWindow = 24 * time.Hour
+	}
+	return &CAS{
+		root:      root,
+		config:    config,
+		lruAccess: make(map[string]time.Time),
+	}, nil
+}
+
 func (c *CAS) Put(t ObjectType, payload []byte) (string, error) {
 	if err := validateType(t); err != nil {
 		return "", err

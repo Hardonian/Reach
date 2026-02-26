@@ -5,9 +5,15 @@
  * - Secret stripping from child process environments
  * - Binary trust gate with version locking
  * - Path validation for trusted binaries
+ * - Cross-platform binary integrity verification
  * 
  * SECURITY: This module ensures sensitive credentials never leak to child processes
  * and that only trusted binaries are executed.
+ * 
+ * M3 Hardening:
+ * - Enhanced secret pattern detection
+ * - Windows-specific env leakage prevention
+ * - Deterministic binary trust verification
  * 
  * @module lib/env-security
  */
@@ -83,6 +89,18 @@ export const SECRET_ENV_PATTERNS = [
   /^SECRET_/i,
   /^TOKEN_/i,
   /^PASSWORD/i,
+  /API_KEY/i,
+  /SIGNING_KEY/i,
+  /MASTER_KEY/i,
+  /DB_PASS/i,
+  /DATABASE_URL/i,
+  /CONNECTION_STRING/i,
+  /JWT_SECRET/i,
+  /OAUTH_SECRET/i,
+  /REFRESH_TOKEN/i,
+  /CERTIFICATE/i,
+  /_PEM$/i,
+  /_CERT$/i,
 ];
 
 /**
@@ -94,6 +112,20 @@ export const SENSITIVE_ENV_VARS = new Set([
   'REACH_TOKEN',
   'REQUIEM_AUTH_TOKEN',
   'REQUIEM_API_SECRET',
+  'REQUIEM_TOKEN',
+  'REQUIEM_ENCRYPTION_KEY',
+  'OPENAI_API_KEY',
+  'ANTHROPIC_API_KEY',
+  'GOOGLE_API_KEY',
+  'AZURE_API_KEY',
+  'AWS_ACCESS_KEY_ID',
+  'AWS_SECRET_ACCESS_KEY',
+  'GCP_SERVICE_ACCOUNT_KEY',
+  'GITHUB_PERSONAL_ACCESS_TOKEN',
+  'DOCKER_HUB_TOKEN',
+  'KUBERNETES_TOKEN',
+  'SSL_CERTIFICATE',
+  'TLS_PRIVATE_KEY',
 ]);
 
 /**
@@ -330,6 +362,131 @@ export function createRequiemEnv(
   }
   
   return env;
+}
+
+/**
+ * Windows-specific environment variables that may leak sensitive info
+ * These are stripped on Windows platforms for defense in depth
+ */
+const WINDOWS_SENSITIVE_PATTERNS = [
+  /^USERNAME$/i,  // May contain identifying info
+  /^USERDOMAIN$/i,
+  /^LOGONSERVER$/i,
+  /^COMPUTERNAME$/i, // May be sensitive in some contexts
+];
+
+/**
+ * Check if running on Windows
+ */
+function isWindows(): boolean {
+  return process.platform === 'win32';
+}
+
+/**
+ * Enhanced environment sanitization with platform-specific protections
+ * 
+ * SECURITY: On Windows, additional environment variables are stripped
+ * to prevent information leakage through child processes.
+ * 
+ * @param env - The environment to sanitize
+ * @param platformSpecific - Whether to apply platform-specific rules
+ * @returns Sanitized environment
+ */
+export function sanitizeEnvironmentEnhanced(
+  env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
+  platformSpecific = true,
+): Record<string, string> {
+  const sanitized = sanitizeEnvironment(env);
+  
+  // Apply Windows-specific protections
+  if (platformSpecific && isWindows()) {
+    for (const key of Object.keys(sanitized)) {
+      for (const pattern of WINDOWS_SENSITIVE_PATTERNS) {
+        if (pattern.test(key)) {
+          delete sanitized[key];
+          break;
+        }
+      }
+    }
+  }
+  
+  return sanitized;
+}
+
+/**
+ * Validate REQUIEM_BIN trust with enhanced checks
+ * 
+ * SECURITY: Combines version lock, path trust, and optional hash verification
+ * for comprehensive binary integrity validation.
+ * 
+ * @param binaryPath - Path to the binary
+ * @param expectedVersion - Expected version
+ * @param currentVersion - Current running version
+ * @param expectedHash - Optional expected SHA-256 hash
+ * @throws BinaryTrustError if any validation fails
+ */
+export function validateRequiemBinTrust(
+  binaryPath: string,
+  expectedVersion: string,
+  currentVersion: string,
+  expectedHash?: string,
+): void {
+  // Validate binary trust (version + path)
+  validateBinaryTrust({
+    binaryPath,
+    expectedVersion,
+    currentVersion,
+    allowedPaths: ['/usr/bin', '/usr/local/bin', '/bin', '/opt/reach/bin', 'C:\\Program Files\\Reach'],
+    requireExecutable: true,
+  });
+  
+  // If hash provided, verify integrity
+  if (expectedHash) {
+    verifyBinaryHash(binaryPath, expectedHash);
+  }
+}
+
+/**
+ * Create a completely sanitized environment for untrusted child processes
+ * 
+ * SECURITY: Creates a minimal environment with only essential variables,
+ * stripping all potentially sensitive information.
+ * 
+ * @param additionalVars - Additional safe variables to include
+ * @returns Minimal safe environment
+ */
+export function createMinimalEnv(
+  additionalVars: Record<string, string> = {}
+): Record<string, string> {
+  // Start with only essential system variables
+  const minimal: Record<string, string> = {};
+  
+  const essentialVars = [
+    'PATH',
+    'HOME',
+    'USER',
+    'TEMP',
+    'TMP',
+    'SystemRoot', // Windows
+    'windir',     // Windows
+    'PROGRAMDATA', // Windows
+  ];
+  
+  for (const key of essentialVars) {
+    const value = process.env[key];
+    if (value !== undefined) {
+      minimal[key] = value;
+    }
+  }
+  
+  // Add verified safe additional variables
+  for (const [key, value] of Object.entries(additionalVars)) {
+    if (!isSensitiveEnvVar(key)) {
+      minimal[key] = value;
+    }
+  }
+  
+  return minimal;
 }
 
 /**

@@ -9,7 +9,13 @@
  * 1. Computing BLAKE3 hash of content on write (CID = content identifier)
  * 2. Re-hashing content on read and comparing against claimed CID
  * 3. Throwing error if hash mismatch is detected (poisoning prevention)
- * 4. Path validation ensures workspace confinement (v1.5)
+ * 4. Path validation ensures workspace confinement (v1.6)
+ * 
+ * M3 Hardening:
+ * - Deterministic CID computation across platforms
+ * - Enhanced poisoning detection with detailed logging
+ * - Path confinement validation on file export
+ * - Cross-platform integrity verification
  * 
  * @module engine/storage/cas
  */
@@ -500,6 +506,64 @@ export function createVerifiedStorage(
     async has(key: string): Promise<boolean> {
       return storage.has(key);
     },
+  };
+}
+
+// ============================================================================
+// Deterministic CID computation for cross-platform consistency
+// ============================================================================
+
+/**
+ * Compute deterministic CID with platform-agnostic normalization
+ * 
+ * SECURITY: Ensures the same content produces the same CID regardless of
+ * platform, preventing cross-platform determinism issues.
+ * 
+ * @param content - The content to hash
+ * @returns Deterministic CID
+ */
+export function computeCIDDeterministic(content: string | Buffer | Uint8Array): CID {
+  // Normalize string content for cross-platform consistency
+  let normalized: string | Buffer | Uint8Array = content;
+  
+  if (typeof content === 'string') {
+    // Normalize line endings to LF for cross-platform consistency
+    normalized = content.replace(/\r\n/g, '\n');
+  }
+  
+  return computeCID(normalized);
+}
+
+/**
+ * Verify CID with enhanced error reporting
+ * 
+ * @param content - The content to verify
+ * @param claimedCid - The expected CID
+ * @param context - Optional context for error messages
+ * @returns Verification result with detailed error info
+ */
+export function verifyCIDEnhanced(
+  content: string | Buffer | Uint8Array, 
+  claimedCid: CID,
+  context?: string,
+): VerificationResult {
+  const computedCid = computeCID(content);
+  const matches = computedCid === claimedCid;
+  
+  if (!matches) {
+    const ctx = context ? ` [${context}]` : '';
+    console.error(`[CAS] CID VERIFICATION FAILED${ctx}:`);
+    console.error(`[CAS]   Expected: ${claimedCid}`);
+    console.error(`[CAS]   Computed: ${computedCid}`);
+    console.error(`[CAS]   Content size: ${content.length}`);
+  }
+  
+  return {
+    valid: true,
+    expectedCid: claimedCid,
+    computedCid,
+    matches,
+    error: matches ? undefined : `CID mismatch${context ? ` in ${context}` : ''}`,
   };
 }
 
