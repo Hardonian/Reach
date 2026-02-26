@@ -39,6 +39,8 @@ pub struct ServerConfig {
     pub max_request_size: usize,
     /// Require CRC verification
     pub require_crc: bool,
+    /// Parent process ID (for watchdog)
+    pub parent_pid: Option<u32>,
 }
 
 impl Default for ServerConfig {
@@ -54,6 +56,7 @@ impl Default for ServerConfig {
             connection_timeout_secs: 300,
             max_request_size: 64 * 1024 * 1024,
             require_crc: true,
+            parent_pid: None,
         }
     }
 }
@@ -109,12 +112,23 @@ impl Server {
 
         // Start Parent Watchdog (5s heartbeat / death signal)
         let shutdown_watchdog = self.shutdown.subscribe();
+        let parent_pid = self.config.parent_pid;
+        
         let watchdog_handle = tokio::spawn(async move {
             let mut interval = tokio::time::interval(std::time::Duration::from_secs(5));
             loop {
                 interval.tick().await;
-                // On Windows, if we are reparented to PID 1 or if parent is gone
-                // This is a simplified check for "zombie prevention"
+                
+                // On Windows, check if parent process is still alive
+                #[cfg(windows)]
+                if let Some(pid) = parent_pid {
+                    if !is_parent_alive(pid) {
+                        warn!("Parent process {} is gone, shutting down", pid);
+                        break;
+                    }
+                }
+
+                // On Unix, check if reparented to 1
                 #[cfg(unix)]
                 if std::process::id() != 1 && unsafe { libc::getppid() } == 1 {
                     warn!("Parent process died (reparented to 1), shutting down");
@@ -122,7 +136,7 @@ impl Server {
                 }
                 
                 // If shutdown signaled
-                if shutdown_watchdog.is_empty() && shutdown_watchdog.len() > 0 {
+                if !shutdown_watchdog.is_empty() {
                     break;
                 }
             }
@@ -353,19 +367,30 @@ where
     let mut connection_state = ProtocolState::Disconnected;
     let mut session_id = String::new();
 
+    let read_timeout = std::time::Duration::from_secs(60);
+
     loop {
-        // Read data
-        match read_half.read_buf(&mut buf).await {
-            Ok(0) => {
+        // Read data with timeout to prevent idle connection hanging
+        let read_result = tokio::time::timeout(
+            read_timeout,
+            read_half.read_buf(&mut buf)
+        ).await;
+
+        match read_result {
+            Ok(Ok(0)) => {
                 // Connection closed
                 break;
             }
-            Ok(n) => {
+            Ok(Ok(n)) => {
                 let mut s = stats.write().await;
                 s.bytes_received += n as u64;
             }
-            Err(e) => {
+            Ok(Err(e)) => {
                 return Err(ProtocolError::Io(e));
+            }
+            Err(_) => {
+                warn!("Connection timed out after being idle for {}s", read_timeout.as_secs());
+                break;
             }
         }
 
@@ -621,13 +646,39 @@ fn create_error_frame(error: &ProtocolError, session_id: &str, correlation_id: u
     frame_message(MessageType::Error, &error_payload, correlation_id)
 }
 
+#[cfg(windows)]
+fn is_parent_alive(parent_pid: u32) -> bool {
+    use windows::Win32::System::Threading::{OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, GetExitCodeProcess};
+    use windows::Win32::Foundation::{CloseHandle, STILL_ACTIVE};
+    
+    unsafe {
+        let handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, parent_pid);
+        match handle {
+            Ok(h) => {
+                let mut exit_code = 0u32;
+                let alive = if GetExitCodeProcess(h, &mut exit_code).is_ok() {
+                    exit_code == STILL_ACTIVE.0 as u32
+                } else {
+                    false
+                };
+                let _ = CloseHandle(h);
+                alive
+            }
+            Err(_) => false,
+        }
+    }
+}
+
 /// Find magic bytes in buffer
 fn find_magic(buf: &BytesMut) -> Option<usize> {
     let magic_bytes = crate::protocol::MAGIC.to_le_bytes();
-    buf.windows(4)
-        .position(|window| window == magic_bytes)
+    for i in 0..buf.len().saturating_sub(4) {
+        if buf[i..i+4] == magic_bytes {
+            return Some(i);
+        }
+    }
+    None
 }
-
 /// Use FrameCodec from frame module
 use crate::protocol::frame::{FrameCodec, find_magic as _find_magic};
 
