@@ -1,5 +1,5 @@
 import React from "react";
-import * as Slot from "@radix-ui/react-slot";
+import * as Slot from "@/lib/slot";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "default" | "secondary" | "outline" | "ghost" | "link";
