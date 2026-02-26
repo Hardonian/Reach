@@ -133,6 +133,97 @@ func (m *metrics) RecordInvariantViolation(name string) {
 	m.invariantViolations[name]++
 }
 
+// ObserveExecution records an execution time for metrics collection
+// d is the execution duration in seconds
+func (m *metrics) ObserveExecution(d time.Duration) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.totalExecutions++
+	m.executionTimes = appendWindow(m.executionTimes, d.Seconds())
+}
+
+// IncTotalExecutions increments the total executions counter
+func (m *metrics) IncTotalExecutions() {
+	atomic.AddUint64(&m.totalExecutions, 1)
+}
+
+// CASHit records a CAS hit
+func (m *metrics) CASHit() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.casMetrics.Hits++
+}
+
+// CASMiss records a CAS miss
+func (m *metrics) CASMiss() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.casMetrics.Misses++
+}
+
+// SetQueueDepth sets the current queue depth
+func (m *metrics) SetQueueDepth(depth int32) {
+	atomic.StoreInt32(&m.queueDepth, depth)
+}
+
+// IncDaemonRestarts increments the daemon restarts counter
+func (m *metrics) IncDaemonRestarts() {
+	atomic.AddUint64(&m.daemonRestarts, 1)
+}
+
+// SetMemoryUsage sets the current memory usage in bytes (RSS)
+func (m *metrics) SetMemoryUsage(bytes uint64) {
+	atomic.StoreUint64(&m.memoryUsageBytes, bytes)
+}
+
+// Uptime returns the daemon uptime
+func (m *metrics) Uptime() time.Duration {
+	return time.Since(m.startTime)
+}
+
+// Fixed-point latency calculations
+
+// secondsToMicros converts seconds to fixed-point microseconds
+func secondsToMicros(seconds float64) FixedPointMicros {
+	return FixedPointMicros(seconds * 1_000_000)
+}
+
+// computeLatencyPercentiles computes p50, p95, p99 latencies in microseconds
+func (m *metrics) computeLatencyPercentiles() LatencyPercentiles {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if len(m.executionTimes) == 0 {
+		return LatencyPercentiles{}
+	}
+
+	sorted := make([]float64, len(m.executionTimes))
+	copy(sorted, m.executionTimes)
+	sort.Float64s(sorted)
+
+	return LatencyPercentiles{
+		P50: secondsToMicros(percentile(sorted, 0.50)),
+		P95: secondsToMicros(percentile(sorted, 0.95)),
+		P99: secondsToMicros(percentile(sorted, 0.99)),
+	}
+}
+
+// avgExecTimeMicros returns the average execution time in microseconds
+func (m *metrics) avgExecTimeMicros() FixedPointMicros {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if len(m.executionTimes) == 0 {
+		return 0
+	}
+
+	var sum float64
+	for _, t := range m.executionTimes {
+		sum += t
+	}
+	return secondsToMicros(sum / float64(len(m.executionTimes)))
+}
+
 func appendWindow(dst []float64, value float64) []float64 {
 	const maxSamples = 4096
 	dst = append(dst, value)
