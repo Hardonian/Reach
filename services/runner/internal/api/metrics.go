@@ -1,12 +1,56 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
 	"sync"
 	"time"
 )
+
+// MetricsConfig defines what metrics to include in JSON output
+type MetricsConfig struct {
+	IncludeLatencies      bool `json:"include_latencies"`
+	IncludeQueueDepth      bool `json:"include_queue_depth"`
+	IncludeMemoryUsage     bool `json:"include_memory_usage"`
+	IncludeCASHitRate      bool `json:"include_cas_hit_rate"`
+}
+
+// DefaultMetricsConfig returns the default configuration for metrics
+func DefaultMetricsConfig() MetricsConfig {
+	return MetricsConfig{
+		IncludeLatencies:      true,
+		IncludeQueueDepth:     true,
+		IncludeMemoryUsage:    true,
+		IncludeCASHitRate:     true,
+	}
+}
+
+// Fixed-point latency values in microseconds
+type FixedPointMicros uint64
+
+// LatencyPercentiles holds fixed-point percentile values in microseconds
+type LatencyPercentiles struct {
+	P50 FixedPointMicros `json:"p50"`
+	P95 FixedPointMicros `json:"p95"`
+	P99 FixedPointMicros `json:"p99"`
+}
+
+// CASMetrics tracks Compare-And-Swap hit rate in PPM (parts per million)
+type CASMetrics struct {
+	Hits   uint64 `json:"hits"`
+	Misses uint64 `json:"misses"`
+}
+
+// HitRate returns the hit rate as PPM (parts per million)
+func (c *CASMetrics) HitRate() uint64 {
+	total := c.Hits + c.Misses
+	if total == 0 {
+		return 0
+	}
+	return (c.Hits * 1000000) / total
+}
 
 type metrics struct {
 	mu                  sync.Mutex
@@ -16,6 +60,14 @@ type metrics struct {
 	sseQueueDepth       map[string]int
 	sseDropped          map[string]uint64
 	invariantViolations map[string]uint64
+	// New metrics fields
+	totalExecutions     uint64
+	executionTimes      []float64 // Store in seconds for internal use
+	casMetrics          CASMetrics
+	queueDepth          int32 // Current pending jobs (atomic)
+	daemonRestarts     uint64
+	memoryUsageBytes   uint64 // RSS in bytes
+	startTime          time.Time
 }
 
 func newMetrics() *metrics {
@@ -26,6 +78,10 @@ func newMetrics() *metrics {
 		sseQueueDepth:       map[string]int{},
 		sseDropped:          map[string]uint64{},
 		invariantViolations: map[string]uint64{},
+		executionTimes:      []float64{},
+		casMetrics:          CASMetrics{},
+		queueDepth:          0,
+		startTime:           time.Now(),
 	}
 }
 
