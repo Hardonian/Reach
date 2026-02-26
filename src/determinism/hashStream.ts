@@ -1,17 +1,17 @@
 /**
- * hashStream — streaming SHA-256 hasher for large artifacts
+ * hashStream — streaming BLAKE3 hasher for large artifacts
  *
  * Hashes data in chunks without buffering the entire input in memory.
  * Suitable for large files (capsule bundles, artifact archives).
  *
- * Uses Node.js built-in crypto — no external dependencies.
+ * Uses BLAKE3 for high performance and cross-platform fingerprint stability.
  */
 
-import { createHash, Hash } from "crypto";
+import { createHasher, Hasher } from "blake3";
 import { Readable } from "stream";
 
 /**
- * A streaming SHA-256 hash builder.
+ * A streaming BLAKE3 hash builder.
  * Feed data in chunks, then finalize to get the hex digest.
  *
  * @example
@@ -21,11 +21,11 @@ import { Readable } from "stream";
  * const digest = hasher.finalize(); // hex string
  */
 export class HashStream {
-  private readonly hash: Hash;
+  private readonly hash: Hasher;
   private finalized = false;
 
   constructor() {
-    this.hash = createHash("sha256");
+    this.hash = createHasher();
   }
 
   /**
@@ -36,12 +36,16 @@ export class HashStream {
     if (this.finalized) {
       throw new Error("HashStream: cannot update after finalize()");
     }
-    this.hash.update(chunk);
+    if (typeof chunk === 'string') {
+      this.hash.update(chunk, "utf8");
+    } else {
+      this.hash.update(chunk);
+    }
     return this;
   }
 
   /**
-   * Finalizes and returns the SHA-256 hex digest.
+   * Finalizes and returns the BLAKE3 hex digest.
    * After this call, the HashStream cannot accept more data.
    */
   finalize(): string {
@@ -58,18 +62,22 @@ export class HashStream {
  * For larger inputs, use HashStream to avoid holding the full buffer.
  */
 export function hashString(input: string): string {
-  return createHash("sha256").update(input, "utf8").digest("hex");
+  const hasher = createHasher();
+  hasher.update(input, "utf8");
+  return hasher.digest("hex");
 }
 
 /**
  * Hashes a Buffer synchronously.
  */
 export function hashBuffer(buf: Buffer | Uint8Array): string {
-  return createHash("sha256").update(buf).digest("hex");
+  const hasher = createHasher();
+  hasher.update(buf);
+  return hasher.digest("hex");
 }
 
 /**
- * Reads a Node.js Readable stream and returns its SHA-256 hex digest.
+ * Reads a Node.js Readable stream and returns its BLAKE3 hex digest.
  * Does not buffer the stream in memory — reads in chunks.
  *
  * @example
@@ -77,14 +85,18 @@ export function hashBuffer(buf: Buffer | Uint8Array): string {
  */
 export async function hashReadableStream(stream: Readable): Promise<string> {
   return new Promise((resolve, reject) => {
-    const hash = createHash("sha256");
+    const hasher = createHasher();
 
     stream.on("data", (chunk: Buffer | string) => {
-      hash.update(chunk);
+      if (typeof chunk === 'string') {
+        hasher.update(chunk, "utf8");
+      } else {
+        hasher.update(chunk);
+      }
     });
 
     stream.on("end", () => {
-      resolve(hash.digest("hex"));
+      resolve(hasher.digest("hex"));
     });
 
     stream.on("error", (err: Error) => {
@@ -98,8 +110,9 @@ export async function hashReadableStream(stream: Readable): Promise<string> {
  * The order of inputs is preserved (use sortStrings first if order varies).
  *
  * @example
- * combineHashes(["abc123", "def456"]) // sha256 of "abc123:def456"
+ * combineHashes(["abc123", "def456"]) // blake3 of "abc123:def456"
  */
 export function combineHashes(hashes: readonly string[]): string {
   return hashString(hashes.join(":"));
 }
+

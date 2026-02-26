@@ -12,6 +12,8 @@ import {
   ExecResult,
   ExecutionParams,
 } from './contract';
+import { createHash } from 'crypto';
+import { WorkflowStep, ExecResultPayload, Duration } from '../protocol/messages';
 
 // ============================================================================
 // Precision Clamping for Determinism
@@ -129,7 +131,7 @@ export function decisionInputToExecRequest(
 /**
  * Clamp precision for optional number values
  */
-function clampPrecisionOpt(value: number | undefined): number | undefined {
+export function clampPrecisionOpt(value: number | undefined): number | undefined {
   if (value === undefined) {
     return undefined;
   }
@@ -254,7 +256,6 @@ export function computeDeterministicHash(obj: unknown): string {
   const canonical = toCanonicalJson(obj);
   
   // Use Node.js crypto for hashing
-  import { createHash } from 'crypto';
   return createHash('sha256').update(canonical).digest('hex').substring(0, 32);
 }
 
@@ -378,49 +379,52 @@ export function fromRustFormat(jsonString: string, requestId: string, durationMs
 // ============================================================================
 
 /**
- * Generate a unique request ID
+ * Convert ExecRequest to a Protocol WorkflowStep
  */
-function generateRequestId(): string {
-  const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 9);
-  return `req_${timestamp}_${random}`;
+export function decisionToWorkflowStep(request: ExecRequest): WorkflowStep {
+  return {
+    id: 'decision_step',
+    step_type: 'decision',
+    config: {
+      algorithm: request.params.algorithm,
+      actions: request.params.actions,
+      states: request.params.states,
+      outcomes: clampObjectPrecision(request.params.outcomes),
+      weights: clampObjectPrecision(request.params.weights),
+      strict: request.params.strict,
+      temperature: clampPrecisionOpt(request.params.temperature),
+      optimism: clampPrecisionOpt(request.params.optimism),
+      confidence: clampPrecisionOpt(request.params.confidence),
+      iterations: request.params.iterations,
+      epsilon: clampPrecisionOpt(request.params.epsilon),
+      seed: request.params.seed,
+    },
+    depends_on: [],
+  };
 }
 
 /**
- * Compare two ExecResults for equality (for dual-run mode)
+ * Convert Protocol ExecResultPayload to ExecResult contract
  */
-export function compareExecResults(a: ExecResult, b: ExecResult): {
-  match: boolean;
-  differences: string[];
-} {
-  const differences: string[] = [];
-  
-  if (a.status !== b.status) {
-    differences.push(`status: ${a.status} vs ${b.status}`);
-  }
-  
-  if (a.recommendedAction !== b.recommendedAction) {
-    differences.push(`recommendedAction: ${a.recommendedAction} vs ${b.recommendedAction}`);
-  }
-  
-  if (a.fingerprint !== b.fingerprint) {
-    differences.push(`fingerprint: ${a.fingerprint} vs ${b.fingerprint}`);
-  }
-  
-  // Check ranking order
-  if (a.ranking.length !== b.ranking.length) {
-    differences.push(`ranking.length: ${a.ranking.length} vs ${b.ranking.length}`);
-  } else {
-    for (let i = 0; i < a.ranking.length; i++) {
-      if (a.ranking[i] !== b.ranking[i]) {
-        differences.push(`ranking[${i}]: ${a.ranking[i]} vs ${b.ranking[i]}`);
-        break;
-      }
-    }
-  }
-  
+export function resultFromProtocol(result: ExecResultPayload, requestId: string): ExecResult {
+  const status = result.status.type === 'failed' ? 'error' : 'success';
+  const error = result.status.type === 'failed' ? result.status.reason : undefined;
+
   return {
-    match: differences.length === 0,
-    differences,
+    requestId: result.run_id || requestId,
+    status,
+    recommendedAction: '', // Will be populated from events in a real impl
+    ranking: [],
+    trace: {
+      algorithm: 'unknown',
+    },
+    fingerprint: result.result_digest,
+    meta: {
+      engine: 'requiem',
+      engineVersion: 'unknown',
+      durationMs: Number(Duration.toMillis(result.metrics.elapsed_us)),
+      completedAt: new Date().toISOString(),
+    },
+    error,
   };
 }

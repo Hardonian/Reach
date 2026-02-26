@@ -16,8 +16,9 @@ import {
 
 /** Client configuration */
 export interface ProtocolClientConfig {
-  host: string;
-  port: number;
+  host?: string;
+  port?: number;
+  path?: string; // For Named Pipes (Windows) or Unix Sockets (POSIX)
   connectTimeoutMs?: number;
   requestTimeoutMs?: number;
   autoReconnect?: boolean;
@@ -56,6 +57,9 @@ export class ProtocolClient extends EventEmitter {
   constructor(config: ProtocolClientConfig) {
     super();
     this.config = {
+      host: '127.0.0.1',
+      port: 9000,
+      path: '',
       connectTimeoutMs: 5000,
       requestTimeoutMs: 30000,
       autoReconnect: true,
@@ -125,12 +129,17 @@ export class ProtocolClient extends EventEmitter {
         this.handleData(data);
       });
       
-      this.socket.connect({
-        host: this.config.host,
-        port: this.config.port,
-      });
+      if (this.config.path) {
+        this.socket.connect(this.config.path);
+      } else {
+        this.socket.connect({
+          host: this.config.host,
+          port: this.config.port,
+        });
+      }
     });
   }
+
   
   /** Disconnect from server */
   async disconnect(): Promise<void> {

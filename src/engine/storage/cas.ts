@@ -6,18 +6,21 @@
  * where malicious content could be substituted in storage.
  * 
  * This module ensures data integrity by:
- * 1. Computing SHA-256 hash of content on write (CID = content identifier)
+ * 1. Computing BLAKE3 hash of content on write (CID = content identifier)
  * 2. Re-hashing content on read and comparing against claimed CID
  * 3. Throwing error if hash mismatch is detected (poisoning prevention)
+ * 4. Path validation ensures workspace confinement (v1.5)
  * 
  * @module engine/storage/cas
  */
 
-import { createHash } from 'crypto';
+import { createHasher } from 'blake3';
 import { Readable } from 'stream';
+import * as path from 'path';
+import * as fs from 'fs';
 
 /**
- * Content Identifier (CID) - a SHA-256 hash of the content
+ * Content Identifier (CID) - a BLAKE3 hash of the content
  * This serves as both the address and integrity check for stored content
  */
 export type CID = string;
@@ -49,6 +52,11 @@ export interface VerificationResult {
  */
 export interface CASConfig {
   /**
+   * Root directory for disk-based storage (if any)
+   */
+  baseDir?: string;
+
+  /**
    * Enable or disable CID verification on read (default: true)
    */
   verifyOnRead?: boolean;
@@ -71,6 +79,7 @@ export interface CASConfig {
 
 // Default configuration
 const DEFAULT_CONFIG: Required<CASConfig> = {
+  baseDir: process.cwd(),
   verifyOnRead: true,
   verifyOnWrite: true,
   maxSize: 100 * 1024 * 1024, // 100MB
@@ -78,24 +87,24 @@ const DEFAULT_CONFIG: Required<CASConfig> = {
 };
 
 /**
- * Compute deterministic CID (SHA-256 hash) from content
+ * Compute deterministic CID (BLAKE3 hash) from content
  * 
  * This is deterministic - same content always produces same CID.
  * Uses streaming to handle large content efficiently.
  * 
  * @param content - The content to hash (string, Buffer, or stream)
- * @returns The SHA-256 hash as a hex string (CID)
+ * @returns The BLAKE3 hash as a hex string (CID)
  */
 export function computeCID(content: string | Buffer | Uint8Array): CID {
-  const hash = createHash('sha256');
+  const hasher = createHasher();
   
   if (typeof content === 'string') {
-    hash.update(content, 'utf8');
+    hasher.update(content, 'utf8');
   } else {
-    hash.update(content);
+    hasher.update(content);
   }
   
-  return hash.digest('hex');
+  return hasher.digest('hex');
 }
 
 /**
@@ -106,14 +115,18 @@ export function computeCID(content: string | Buffer | Uint8Array): CID {
  */
 export async function computeCIDFromStream(stream: Readable): Promise<CID> {
   return new Promise((resolve, reject) => {
-    const hash = createHash('sha256');
+    const hasher = createHasher();
     
     stream.on('data', (chunk: Buffer | string) => {
-      hash.update(chunk);
+      if (typeof chunk === 'string') {
+        hasher.update(chunk, 'utf8');
+      } else {
+        hasher.update(chunk);
+      }
     });
     
     stream.on('end', () => {
-      resolve(hash.digest('hex'));
+      resolve(hasher.digest('hex'));
     });
     
     stream.on('error', (err: Error) => {
@@ -166,6 +179,29 @@ export async function verifyCIDFromStream(stream: Readable, claimedCid: CID): Pr
 }
 
 /**
+ * Validates that a path is within the workspace using realpath.
+ * Prevents O_NOFOLLOW / symlink-based traversal.
+ * 
+ * @param targetPath - The path to validate
+ * @param baseDir - The allowed root directory
+ * @throws Error if path is outside workspace
+ */
+export function validatePathConfinement(targetPath: string, baseDir: string): string {
+  const absoluteBase = path.resolve(baseDir);
+  const absoluteTarget = path.resolve(targetPath);
+  
+  // Use realpath to resolve all symlinks and '..'
+  const realTarget = fs.realpathSync(absoluteTarget);
+  const realBase = fs.realpathSync(absoluteBase);
+  
+  if (!realTarget.startsWith(realBase)) {
+    throw new Error(`Security violation: Path ${targetPath} is outside workspace ${baseDir}`);
+  }
+  
+  return realTarget;
+}
+
+/**
  * Error thrown when CID verification fails
  */
 export class CIDVerificationError extends Error {
@@ -179,6 +215,7 @@ export class CIDVerificationError extends Error {
     this.computedCid = computedCid;
   }
 }
+
 
 // ============================================================================
 // In-Memory CAS Implementation (can be replaced with disk/cloud storage)

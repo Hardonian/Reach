@@ -15,11 +15,14 @@ use crate::protocol::{
 use bytes::BytesMut;
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::{Mutex, RwLock};
 use tokio_util::codec::{Decoder, Encoder};
 use tracing::{debug, error, info, warn};
+
+#[cfg(windows)]
+use tokio::net::windows::named_pipe::{ServerOptions};
 
 /// Server configuration
 #[derive(Debug, Clone)]
@@ -42,7 +45,11 @@ impl Default for ServerConfig {
     fn default() -> Self {
         Self {
             tcp_bind: None, // TCP disabled by default for security
-            socket_path: Some("/tmp/requiem.sock".to_string()),
+            socket_path: Some(if cfg!(windows) {
+                r"\\.\pipe\requiem".to_string()
+            } else {
+                "/tmp/requiem.sock".to_string()
+            }),
             max_connections: 100,
             connection_timeout_secs: 300,
             max_request_size: 64 * 1024 * 1024,
@@ -115,17 +122,38 @@ impl Server {
             handles.push(handle);
         }
 
-        // TODO: Named pipes and Unix sockets
+        // Unix sockets on POSIX
         #[cfg(unix)]
         if let Some(socket_path) = &self.config.socket_path {
-            info!("Starting Unix socket server at {}", socket_path);
-            // Unix socket implementation would go here
+            let path = socket_path.clone();
+            let state = self.state.clone();
+            let stats = self.stats.clone();
+            let shutdown = self.shutdown.subscribe();
+            
+            info!("Starting Unix socket server at {}", path);
+            let handle = tokio::spawn(async move {
+                if let Err(e) = run_unix_server(&path, state, stats, shutdown).await {
+                    error!("Unix server error: {}", e);
+                }
+            });
+            handles.push(handle);
         }
 
+        // Named pipes on Windows
         #[cfg(windows)]
         if let Some(pipe_name) = &self.config.socket_path {
-            info!("Starting named pipe server at {}", pipe_name);
-            // Windows named pipe implementation would go here
+            let name = pipe_name.clone();
+            let state = self.state.clone();
+            let stats = self.stats.clone();
+            let shutdown = self.shutdown.subscribe();
+            
+            info!("Starting named pipe server at {}", name);
+            let handle = tokio::spawn(async move {
+                if let Err(e) = run_named_pipe_server(&name, state, stats, shutdown).await {
+                    error!("Named pipe server error: {}", e);
+                }
+            });
+            handles.push(handle);
         }
 
         // Wait for shutdown signal
@@ -170,17 +198,25 @@ async fn run_tcp_server(
 
     loop {
         tokio::select! {
-            Ok((stream, peer_addr)) = listener.accept() => {
-                let state = state.clone();
-                let stats = stats.clone();
-                
-                tokio::spawn(async move {
-                    info!("New connection from {}", peer_addr);
-                    if let Err(e) = handle_connection(stream, state, stats).await {
-                        warn!("Connection from {} error: {}", peer_addr, e);
+            result = listener.accept() => {
+                match result {
+                    Ok((stream, peer_addr)) => {
+                        let state = state.clone();
+                        let stats = stats.clone();
+                        
+                        tokio::spawn(async move {
+                            info!("New connection from {}", peer_addr);
+                            if let Err(e) = handle_connection(stream, state, stats).await {
+                                warn!("Connection from {} error: {}", peer_addr, e);
+                            }
+                            info!("Connection from {} closed", peer_addr);
+                        });
                     }
-                    info!("Connection from {} closed", peer_addr);
-                });
+                    Err(e) => {
+                        error!("Accept error: {}", e);
+                        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                    }
+                }
             }
             _ = shutdown.recv() => {
                 break;
@@ -191,14 +227,105 @@ async fn run_tcp_server(
     Ok(())
 }
 
-/// Handle a single connection
-async fn handle_connection(
-    stream: TcpStream,
+/// Run Unix socket server
+#[cfg(unix)]
+async fn run_unix_server(
+    path: &str,
     state: Arc<RwLock<ServerState>>,
     stats: Arc<RwLock<ProtocolStats>>,
-) -> Result<(), ProtocolError> {
-    let (mut read_half, mut write_half) = stream.into_split();
+    mut shutdown: tokio::sync::broadcast::Receiver<()>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    use tokio::net::UnixListener;
+    
+    // Remove existing socket file if it exists
+    let _ = std::fs::remove_file(path);
+    
+    let listener = UnixListener::bind(path)?;
+    info!("Unix server listening on {}", path);
+
+    loop {
+        tokio::select! {
+            result = listener.accept() => {
+                match result {
+                    Ok((stream, _)) => {
+                        let state = state.clone();
+                        let stats = stats.clone();
+                        
+                        tokio::spawn(async move {
+                            if let Err(e) = handle_connection(stream, state, stats).await {
+                                warn!("Unix connection error: {}", e);
+                            }
+                        });
+                    }
+                    Err(e) => {
+                        error!("Accept error: {}", e);
+                        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                    }
+                }
+            }
+            _ = shutdown.recv() => {
+                break;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+/// Run Windows named pipe server
+#[cfg(windows)]
+async fn run_named_pipe_server(
+    pipe_name: &str,
+    state: Arc<RwLock<ServerState>>,
+    stats: Arc<RwLock<ProtocolStats>>,
+    mut shutdown: tokio::sync::broadcast::Receiver<()>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    info!("Named pipe server listening on {}", pipe_name);
+
+    loop {
+        let server = ServerOptions::new()
+            .first_pipe_instance(true)
+            .create(pipe_name)?;
+
+        tokio::select! {
+            res = server.connect() => {
+                match res {
+                    Ok(_) => {
+                        let state = state.clone();
+                        let stats = stats.clone();
+                        tokio::spawn(async move {
+                            if let Err(e) = handle_connection(server, state, stats).await {
+                                warn!("Named pipe connection error: {}", e);
+                            }
+                        });
+                    }
+                    Err(e) => {
+                        error!("Named pipe connect error: {}", e);
+                        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                    }
+                }
+            }
+            _ = shutdown.recv() => {
+                break;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+/// Handle a single connection (generic over stream type)
+async fn handle_connection<S>(
+    stream: S,
+    state: Arc<RwLock<ServerState>>,
+    stats: Arc<RwLock<ProtocolStats>>,
+) -> Result<(), ProtocolError> 
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
+    let (mut read_half, mut write_half) = tokio::io::split(stream);
     let mut codec = FrameCodec;
+
     let mut buf = BytesMut::with_capacity(4096);
     let mut connection_state = ProtocolState::Disconnected;
     let mut session_id = String::new();

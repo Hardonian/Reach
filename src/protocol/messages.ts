@@ -5,7 +5,7 @@
  * Uses CBOR for serialization with fixed-point numeric types.
  */
 
-import * as cbor from 'cbor';
+import cbor from 'cbor';
 
 // ============================================================================
 // Fixed-Point Numeric Types
@@ -66,6 +66,8 @@ export function ppmToRatio(ppm: FixedPpm): number {
 export type FixedDuration = bigint;
 
 export const Duration = {
+  ZERO: BigInt(0) as FixedDuration,
+  
   fromMicros(micros: number | bigint): FixedDuration {
     return BigInt(micros);
   },

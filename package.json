@@ -92,6 +92,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "blake3": "^2.1.7",
     "cbor": "^10.0.3",
     "zod": "^4.3.6"
   }

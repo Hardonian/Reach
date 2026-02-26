@@ -14,9 +14,14 @@
  */
 
 import { ExecRequest, ExecResult } from '../contract';
-import { toRequiemFormat, fromRequiemFormat } from '../translate';
+import { 
+  toRequiemFormat, fromRequiemFormat, clampObjectPrecision, 
+  clampPrecisionOpt, decisionToWorkflowStep, resultFromProtocol 
+} from '../translate';
 import { BaseEngineAdapter } from './base';
-import { spawn, execFile as execFileCb } from 'child_process';
+import { spawn, execFile as execFileCb, ChildProcess } from 'child_process';
+import { ProtocolClient, ConnectionState } from '../../protocol/client';
+import { ExecRequestPayload, ExecutionControls, Policy } from '../../protocol/messages';
 import { promisify } from 'util';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -120,6 +125,9 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
   private config: RequiemConfig;
   private binaryTrustVerified = false;
   private verifiedBinaryPath?: string;
+  private client: ProtocolClient | null = null;
+  private daemon: ChildProcess | null = null;
+  private pipePath: string;
   
   /**
    * Create a new Requiem engine adapter
@@ -137,6 +145,11 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
     
     this.cliPath = config.cliPath || this.resolveCliPath();
     this.timeout = config.timeout || 30000;
+    
+    // Determine IPC path based on OS
+    this.pipePath = process.platform === 'win32' 
+      ? `\\\\.\\pipe\\requiem-${process.pid}`
+      : path.join(process.env.TEMP || '/tmp', `requiem-${process.pid}.sock`);
   }
   
   /**
@@ -322,11 +335,11 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
   }
   
   /**
-   * Configure the adapter (e.g., verify CLI is available and trusted)
+   * Configure the adapter (verify CLI, start daemon, and connect client)
    */
   async configure(): Promise<boolean> {
     try {
-      // Verify binary trust
+      // 1. Verify binary trust
       const trustResult = await this.verifyBinaryTrust();
       
       if (!trustResult.trusted) {
@@ -343,13 +356,119 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
         this.binaryTrustVerified = true;
       }
       
+      // 2. Start persistent daemon in serve mode
+      if (!this.daemon) {
+        await this.startDaemon();
+      }
+      
+      // 3. Initialize protocol client
+      if (!this.client) {
+        this.client = new ProtocolClient({
+          path: this.pipePath,
+          connectTimeoutMs: 5000,
+          requestTimeoutMs: this.timeout,
+        });
+        
+        await this.client.connect();
+      }
+      
       this.isConfigured = true;
       return true;
-    } catch {
+    } catch (error) {
+      console.error('Failed to configure Requiem engine:', error);
       this.isConfigured = false;
       this.binaryTrustVerified = false;
       return false;
     }
+  }
+
+  /**
+   * Start the Requiem daemon process
+   */
+  private async startDaemon(): Promise<void> {
+    const binaryPath = this.verifiedBinaryPath || this.cliPath;
+    
+    return new Promise((resolve, reject) => {
+      info(`Starting Requiem daemon at ${this.pipePath}`);
+      
+      this.daemon = spawn(binaryPath, ['serve', '--socket', this.pipePath], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: this.buildSanitizedEnv(),
+      });
+      
+      let initialized = false;
+      
+      this.daemon.stdout?.on('data', (data) => {
+        const output = data.toString();
+        if (output.includes('listening on') || output.includes('server at')) {
+          if (!initialized) {
+            initialized = true;
+            resolve();
+          }
+        }
+      });
+      
+      this.daemon.stderr?.on('data', (data) => {
+        const output = data.toString();
+        // Log errors from daemon
+        if (!initialized) {
+          console.error('Requiem daemon startup error:', output);
+        } else {
+          console.warn('Requiem daemon stderr:', this.sanitizeLogOutput(output));
+        }
+      });
+      
+      this.daemon.on('error', (err) => {
+        if (!initialized) {
+          reject(err);
+        } else {
+          console.error('Requiem daemon error:', err);
+          this.handleDaemonExit();
+        }
+      });
+      
+      this.daemon.on('exit', (code) => {
+        if (!initialized) {
+          reject(new Error(`Requiem daemon exited with code ${code} before initialization`));
+        } else {
+          this.handleDaemonExit();
+        }
+      });
+      
+      // Timeout for startup
+      setTimeout(() => {
+        if (!initialized) {
+          reject(new Error('Requiem daemon startup timeout'));
+        }
+      }, 10000);
+    });
+  }
+
+  /**
+   * Handle unexpected daemon exit
+   */
+  private handleDaemonExit(): void {
+    this.daemon = null;
+    this.isConfigured = false;
+    this.client = null;
+    console.error('Requiem daemon exited unexpectedly. Engine will reconfigure on next request.');
+  }
+
+  /**
+   * Shutdown the engine and daemon
+   */
+  async shutdown(): Promise<void> {
+    if (this.client) {
+      await this.client.disconnect().catch(() => {});
+      this.client = null;
+    }
+    
+    if (this.daemon) {
+      this.daemon.kill();
+      this.daemon = null;
+    }
+    
+    this.isConfigured = false;
   }
   
   /**
@@ -435,10 +554,27 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
     const startTime = performance.now();
     
     try {
-      // Spawn Requiem CLI process with sanitized environment
-      const result = await this.spawnRequiem(requestJson);
-      // Parse result
-      return fromRequiemFormat(result, request.requestId);
+      // Use the protocol client for communication
+      if (!this.client) {
+        throw new Error('Protocol client not initialized');
+      }
+
+      const payload: ExecRequestPayload = {
+        run_id: request.requestId,
+        workflow: {
+          name: `decide_${request.requestId}`,
+          version: '1.0.0',
+          steps: [decisionToWorkflowStep(request)],
+        },
+        controls: ExecutionControls.default(),
+        policy: { rules: [], default_decision: { type: 'allow' } },
+        metadata: {
+          timestamp: request.timestamp,
+        },
+      };
+
+      const result = await this.client.execute(payload);
+      return resultFromProtocol(result, request.requestId);
     } catch (error) {
       const durationMs = Math.round(performance.now() - startTime);
       
