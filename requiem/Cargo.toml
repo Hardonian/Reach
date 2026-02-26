@@ -1,0 +1,57 @@
+[package]
+name = "requiem"
+version = "0.1.0"
+edition = "2021"
+description = "Reach Engine Protocol - Streaming binary protocol server"
+license = "MIT"
+authors = ["Reach Engineering <engineering@reach.io>"]
+
+[lib]
+name = "requiem"
+path = "src/lib.rs"
+
+[[bin]]
+name = "requiem"
+path = "src/bin/requiem.rs"
+
+[dependencies]
+# Serialization - using minimal-serde for CBOR support
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+ciborium = "0.2"  # CBOR serialization for binary payloads
+
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+tokio-util = { version = "0.7", features = ["codec"] }
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Hashing/crc
+crc32c = "0.6"
+blake3 = "1.5"
+
+# Logging/tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Fixed-point math (re-export for consumers)
+num-traits = "0.2"
+
+# CLI
+clap = { version = "4.4", features = ["derive"] }
+
+# Cross-platform sockets
+# Windows: named pipes; Unix: unix sockets
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.52", features = ["Win32_System_Pipes", "Win32_Security", "Win32_Foundation"] }
+
+[dev-dependencies]
+tokio-test = "0.4"
+proptest = "1.4"
+criterion = { version = "0.5", features = ["async_tokio"] }
+
+[[bench]]
+name = "protocol_bench"
+harness = false
