@@ -115,7 +115,7 @@ const faqs = [
     category: "Enterprise",
     question: "What enterprise controls are provided?",
     answer:
-      "Enterprise features include SSO/SAML integration, custom compliance reporting (SOC2/GDPR), audit log streaming, and dedicated support queues.",
+      "Enterprise features include audit log streaming with CSV export, custom compliance reporting (SOC2/GDPR), granular RBAC, API key lifecycle management, and dedicated support queues. SAML/SCIM is on the Enterprise Roadmap for Q2.",
   },
   {
     category: "SLA",

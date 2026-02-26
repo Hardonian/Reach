@@ -77,6 +77,170 @@ export function updateGate(id: string, tenantId: string, patch: Partial<Gate>): 
   return true;
 }
 
+export interface GateVersion {
+  version: number;
+  gate_id: string;
+  tenant_id: string;
+  name: string;
+  repo_owner: string;
+  repo_name: string;
+  default_branch: string;
+  trigger_types: string[];
+  required_checks: string[];
+  thresholds: Record<string, unknown>;
+  status: string;
+  created_at: string;
+  created_by: string | null;
+  change_reason: string | null;
+}
+
+export function createGateVersion(
+  gateId: string,
+  tenantId: string,
+  gate: Gate,
+  createdBy: string | null,
+  changeReason: string | null,
+): void {
+  const db = getDB();
+  const now = new Date().toISOString();
+  
+  // Get next version number
+  const result = db
+    .prepare("SELECT MAX(version) as max_version FROM gate_versions WHERE gate_id=? AND tenant_id=?")
+    .get(gateId, tenantId) as { max_version: number | null } | undefined;
+  const version = (result?.max_version ?? 0) + 1;
+  
+  db.prepare(
+    `INSERT INTO gate_versions (gate_id, tenant_id, version, name, repo_owner, repo_name, default_branch,
+     trigger_types, required_checks, thresholds, status, created_at, created_by, change_reason)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+  ).run(
+    gateId,
+    tenantId,
+    version,
+    gate.name,
+    gate.repo_owner,
+    gate.repo_name,
+    gate.default_branch,
+    JSON.stringify(gate.trigger_types),
+    JSON.stringify(gate.required_checks),
+    JSON.stringify(gate.thresholds),
+    gate.status,
+    now,
+    createdBy,
+    changeReason,
+  );
+}
+
+export function listGateVersions(gateId: string, tenantId: string, limit = 50): GateVersion[] {
+  const db = getDB();
+  const rows = db
+    .prepare(
+      `SELECT * FROM gate_versions WHERE gate_id=? AND tenant_id=? ORDER BY version DESC LIMIT ?`,
+    )
+    .all(gateId, tenantId, limit) as Array<{
+      gate_id: string;
+      tenant_id: string;
+      version: number;
+      name: string;
+      repo_owner: string;
+      repo_name: string;
+      default_branch: string;
+      trigger_types: string;
+      required_checks: string;
+      thresholds: string;
+      status: string;
+      created_at: string;
+      created_by: string | null;
+      change_reason: string | null;
+    }>;
+  
+  return rows.map((r) => ({
+    ...r,
+    trigger_types: JSON.parse(r.trigger_types),
+    required_checks: JSON.parse(r.required_checks),
+    thresholds: JSON.parse(r.thresholds),
+  }));
+}
+
+export function getGateVersion(
+  gateId: string,
+  tenantId: string,
+  version: number,
+): GateVersion | undefined {
+  const db = getDB();
+  const row = db
+    .prepare("SELECT * FROM gate_versions WHERE gate_id=? AND tenant_id=? AND version=?")
+    .get(gateId, tenantId, version) as
+    | {
+        gate_id: string;
+        tenant_id: string;
+        version: number;
+        name: string;
+        repo_owner: string;
+        repo_name: string;
+        default_branch: string;
+        trigger_types: string;
+        required_checks: string;
+        thresholds: string;
+        status: string;
+        created_at: string;
+        created_by: string | null;
+        change_reason: string | null;
+      }
+    | undefined;
+  
+  if (!row) return undefined;
+  return {
+    ...row,
+    trigger_types: JSON.parse(row.trigger_types),
+    required_checks: JSON.parse(row.required_checks),
+    thresholds: JSON.parse(row.thresholds),
+  };
+}
+
+export function rollbackGate(
+  gateId: string,
+  tenantId: string,
+  targetVersion: number,
+  reason: string,
+  userId: string,
+): boolean {
+  const db = getDB();
+  const target = getGateVersion(gateId, tenantId, targetVersion);
+  if (!target) return false;
+  
+  // Create a snapshot of current state before rollback
+  const current = getGate(gateId, tenantId);
+  if (current) {
+    createGateVersion(gateId, tenantId, current, userId, `Pre-rollback to version ${targetVersion}`);
+  }
+  
+  // Apply the target version configuration
+  const now = new Date().toISOString();
+  db.prepare(
+    `UPDATE gates SET name=?,default_branch=?,trigger_types=?,required_checks=?,thresholds=?,status=?,updated_at=? WHERE id=? AND tenant_id=?`,
+  ).run(
+    target.name,
+    target.default_branch,
+    JSON.stringify(target.trigger_types),
+    JSON.stringify(target.required_checks),
+    JSON.stringify(target.thresholds),
+    target.status,
+    now,
+    gateId,
+    tenantId,
+  );
+  
+  // Record the rollback as a new version
+  const rolledBackGate = getGate(gateId, tenantId);
+  if (rolledBackGate) {
+    createGateVersion(gateId, tenantId, rolledBackGate, userId, `Rollback to version ${targetVersion}: ${reason}`);
+  }
+  
+  return true;
+}
+
 export function deleteGate(id: string, tenantId: string): boolean {
   const db = getDB();
   const res = db.prepare("DELETE FROM gates WHERE id=? AND tenant_id=?").run(id, tenantId);

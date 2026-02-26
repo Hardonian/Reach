@@ -77,9 +77,11 @@ export default function EnterprisePage() {
               while maintaining strict permission boundaries.
             </p>
             <ul className="text-xs space-y-2 text-gray-500">
-              <li>• Okta/SAML SSO Integration</li>
+              <li>• GitHub OAuth + Magic Link Authentication</li>
+              <li>• Role-Based Access Control (RBAC)</li>
               <li>• Team-based Policy Scoping</li>
               <li>• Centralized Governance Dashboard</li>
+              <li>• SAML/SCIM (Enterprise Roadmap Q2)</li>
             </ul>
           </div>
         </div>
