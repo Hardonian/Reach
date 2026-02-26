@@ -1,0 +1,113 @@
+{
+  "run_meta": {
+    "model": "Kimi",
+    "mode": "Bias-Closure Implementation Engine",
+    "date_utc": "",
+    "commit_sha": "",
+    "report_author": ""
+  },
+  "integrity_assertions": {
+    "determinism_semantics_unchanged": true,
+    "oss_enterprise_boundary_respected": true
+  },
+  "verification": [
+    { "command": "npm run lint", "status": "pass", "notes": "" },
+    { "command": "npm run typecheck", "status": "pass", "notes": "" },
+    { "command": "npm run test", "status": "pass", "notes": "" },
+    { "command": "npm run build", "status": "pass", "notes": "" },
+    { "command": "npm run verify:routes", "status": "pass", "notes": "" },
+    { "command": "npm run verify:oss", "status": "pass", "notes": "" },
+    { "command": "npm run verify:boundaries", "status": "pass", "notes": "" }
+  ],
+  "smoke_routes": [
+    { "path": "/", "status_code": 200, "notes": "" },
+    { "path": "/pricing", "status_code": 200, "notes": "" },
+    { "path": "/app", "status_code": 200, "notes": "" }
+  ],
+  "closures": {
+    "route_nav_integrity": {
+      "status": "Blocked",
+      "evidence_paths": [],
+      "verification_steps": [],
+      "impact_note": ""
+    },
+    "api_key_lifecycle_ui": {
+      "status": "Blocked",
+      "evidence_paths": [],
+      "verification_steps": [],
+      "impact_note": ""
+    },
+    "audit_workflow_ui": {
+      "status": "Blocked",
+      "evidence_paths": [],
+      "verification_steps": [],
+      "impact_note": ""
+    },
+    "what_failed_explainer": {
+      "status": "Blocked",
+      "evidence_paths": [],
+      "verification_steps": [],
+      "impact_note": ""
+    },
+    "policy_gate_rollback": {
+      "status": "Blocked",
+      "evidence_paths": [],
+      "verification_steps": [],
+      "impact_note": ""
+    },
+    "ownership_metadata": {
+      "status": "Blocked",
+      "evidence_paths": [],
+      "verification_steps": [],
+      "impact_note": ""
+    },
+    "identity_claims_parity": {
+      "status": "Blocked",
+      "evidence_paths": [],
+      "verification_steps": [],
+      "impact_note": ""
+    },
+    "enterprise_analytics_ui": {
+      "status": "Blocked",
+      "evidence_paths": [],
+      "verification_steps": [],
+      "impact_note": ""
+    },
+    "compliance_export_bundle": {
+      "status": "Blocked",
+      "evidence_paths": [],
+      "verification_steps": [],
+      "impact_note": ""
+    },
+    "trace_explorer_live": {
+      "status": "Blocked",
+      "evidence_paths": [],
+      "verification_steps": [],
+      "impact_note": ""
+    },
+    "integration_setup_wizard": {
+      "status": "Blocked",
+      "evidence_paths": [],
+      "verification_steps": [],
+      "impact_note": ""
+    },
+    "alert_delivery_ledger": {
+      "status": "Blocked",
+      "evidence_paths": [],
+      "verification_steps": [],
+      "impact_note": ""
+    },
+    "onboarding_server_persistence": {
+      "status": "Blocked",
+      "evidence_paths": [],
+      "verification_steps": [],
+      "impact_note": ""
+    },
+    "executive_reporting": {
+      "status": "Blocked",
+      "evidence_paths": [],
+      "verification_steps": [],
+      "impact_note": ""
+    }
+  }
+}

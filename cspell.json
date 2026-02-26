@@ -73,7 +73,15 @@
     "subheaders",
     "sub-header",
     "preimage",
-    "preimages"
+    "preimages",
+    "SCIM",
+    "scim",
+    "deprioritization",
+    "deprioritized",
+    "rollups",
+    "underbuilt",
+    "inspectable",
+    "chargeback"
   ],
   "ignorePaths": ["node_modules", "dist", "build", "*.log"]
 }

@@ -9,9 +9,6 @@ const NAV_ITEMS = [
   { href: "/cloud/projects", label: "Projects", icon: "📁" },
   { href: "/cloud/workflows", label: "Workflows", icon: "⚡" },
   { href: "/cloud/runs", label: "Runs", icon: "▶" },
-  { href: "/builder", label: "Builder", icon: "🔧" },
-  { href: "/marketplace", label: "Marketplace", icon: "🛒" },
-  { href: "/cloud/billing", label: "Billing", icon: "💳" },
   { href: "/cloud/audit", label: "Audit Log", icon: "📋" },
 ];
 

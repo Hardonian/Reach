@@ -3,7 +3,7 @@
 This is a blind-spot read, not a roadmap. Evidence is pulled from current repo state.
 
 | Bias pattern | Evidence | Adoption risk |
-|---|---|---|
+| --- | --- | --- |
 | Determinism-first positioning overwhelms user-outcome framing | [README.md](README.md) opens with “Deterministic… Verifiable, replayable, auditable.”; [docs/README.md](docs/README.md) top links center proof/determinism/CLI; [apps/arcade/src/lib/copy/index.ts](apps/arcade/src/lib/copy/index.ts) hero variants prioritize “Deterministic”, “Replay”, “Proof”. Repo text density scan also shows very high `deterministic/determinism/replay/governance` vs low `self-serve/scim`. | Teams understand theory but not “how this reduces incident load/cost this week.” You lose buyers before technical value is felt. |
 | Compliance signaling exceeds shipped enterprise workflows | [apps/arcade/src/app/enterprise/page.tsx](apps/arcade/src/app/enterprise/page.tsx) and [apps/arcade/src/app/faq/page.tsx](apps/arcade/src/app/faq/page.tsx) claim SSO/SAML, audit streaming, custom compliance reporting; auth routes are GitHub/password/magic-link only in [apps/arcade/src/app/api/v1/auth](apps/arcade/src/app/api/v1/auth). No SCIM surface found. | Security/compliance reviewers detect claim/reality gaps quickly; trust drops during due diligence. |
 | CLI + verification guardrails prioritized over operator UX loops | Root scripts in [package.json](package.json) and many `scripts/verify-*` checks; docs entry points emphasize CLI and checks in [docs/README.md](docs/README.md). | Great for maintainers, but non-CLI stakeholders (security reviewers, managers) struggle to self-serve in product UI. |
@@ -16,4 +16,5 @@ This is a blind-spot read, not a roadmap. Evidence is pulled from current repo s
 | API capability exists but is under-surfaced in UI | Real APIs for audit/API keys/governance analytics exist ([apps/arcade/src/app/api/v1/audit/route.ts](apps/arcade/src/app/api/v1/audit/route.ts), [apps/arcade/src/app/api/v1/api-keys/route.ts](apps/arcade/src/app/api/v1/api-keys/route.ts), [apps/arcade/src/app/api/v1/governance/enterprise/analytics/route.ts](apps/arcade/src/app/api/v1/governance/enterprise/analytics/route.ts)), while UI pages are static/demo-like ([apps/arcade/src/app/settings/api-keys/page.tsx](apps/arcade/src/app/settings/api-keys/page.tsx), [apps/arcade/src/app/settings/advanced/security/page.tsx](apps/arcade/src/app/settings/advanced/security/page.tsx)). | Customers conclude features are missing, even when backend exists. |
 
 ## Bottom line
+
 The dominant bias is not “too much governance.” It is **governance symbolism outpacing operator-grade usability**. That gap is what threatens adoption.

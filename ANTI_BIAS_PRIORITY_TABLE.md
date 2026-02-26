@@ -3,7 +3,7 @@
 Ranking is based on adoption lift, trust lift, revenue impact, risk reduction, and onboarding friction reduction.
 
 | Feature | Persona | Impact (1-5) | Effort (S/M/L) | Bias origin | Should ship before public launch? (Yes/No) |
-|---|---|---:|---|---|---|
+| --- | --- | ---: | --- | --- | --- |
 | Route/nav integrity (remove dead links or implement pages) | All | 5 | S | Architecture-map-first bias | Yes |
 | Real API key lifecycle UI (create/revoke/rotate/show-once) | Platform Engineer, Security Reviewer | 5 | M | Backend-complete mindset | Yes |
 | Audit log UI with filter/export/signature context | Security Reviewer, CTO | 5 | M | Compliance signaling over reviewer workflow | Yes |
@@ -24,5 +24,6 @@ Ranking is based on adoption lift, trust lift, revenue impact, risk reduction, a
 | Ownership/runbook metadata on signals/gates | Platform Engineer | 4 | S | Architecture depth over operations hygiene | Yes |
 
 ## Read this table correctly
+
 - “Yes” items are not the most elegant architecture work. They are the work that prevents credibility collapse during first contact.
 - Several “No” items are still high-value, but can follow once launch trust is stabilized.

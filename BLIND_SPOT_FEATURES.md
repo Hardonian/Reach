@@ -3,7 +3,7 @@
 ## Coverage cross-reference (expected vs shipped)
 
 | Persona | Expected feature | Current state | Evidence |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Platform Engineer | Alerting + operational controls tied to real systems | Partial (real APIs in settings + static duplicate console pages) | [apps/arcade/src/app/settings/alerts/page.tsx](apps/arcade/src/app/settings/alerts/page.tsx), [apps/arcade/src/app/console/alerts/page.tsx](apps/arcade/src/app/console/alerts/page.tsx), [apps/arcade/src/components/stitch/console/pages/AlertsCenter.tsx](apps/arcade/src/components/stitch/console/pages/AlertsCenter.tsx) |
 | Platform Engineer | Live trace exploration | Partial/mostly static in console surface | [apps/arcade/src/components/stitch/console/pages/TraceExplorer.tsx](apps/arcade/src/components/stitch/console/pages/TraceExplorer.tsx) |
 | Security Reviewer | Audit workflow in UI | Hidden/partial (API exists; major UI surfaces static/mock) | [apps/arcade/src/app/api/v1/audit/route.ts](apps/arcade/src/app/api/v1/audit/route.ts), [apps/arcade/src/app/settings/advanced/security/page.tsx](apps/arcade/src/app/settings/advanced/security/page.tsx), [apps/arcade/src/app/governance/page.tsx](apps/arcade/src/app/governance/page.tsx) |
@@ -20,6 +20,7 @@
 ## Category A — Hygiene features (should obviously exist)
 
 ### A1. Real API key management UI (not demo table)
+
 - Description: Wire create/revoke/list key flows in settings with one-time key reveal and rotation UX.
 - Persona: Platform Engineer, Security Reviewer.
 - Why missing (likely bias): Backend-first completion counted as done; UI rigor deprioritized.
@@ -29,6 +30,7 @@
 - Minimal scope: Replace demo key state in [settings/api-keys](apps/arcade/src/app/settings/api-keys/page.tsx) with `/api/v1/api-keys` GET/POST/DELETE.
 
 ### A2. Audit log viewer with filters/export
+
 - Description: Tenant audit table with search, actor/action/resource filters, and CSV export.
 - Persona: Security Reviewer, CTO.
 - Why missing: Compliance narrative favored over reviewer workflow.
@@ -38,6 +40,7 @@
 - Minimal scope: New page using `/api/v1/audit`; link from security/governance/settings.
 
 ### A3. Nav integrity gate + route cleanup
+
 - Description: Prevent shipping links to missing pages.
 - Persona: All.
 - Why missing: Architecture mapping outran product completion.
@@ -51,6 +54,7 @@
 ## Category B — Trust builders (enterprise expectations)
 
 ### B1. Enterprise identity baseline (SAML SSO + SCIM) or hard claim downgrade
+
 - Description: Either implement SAML/SCIM minimum or remove claim-level language.
 - Persona: Security Reviewer, CTO.
 - Why missing: Compliance signaling bias.
@@ -60,6 +64,7 @@
 - Minimal scope: SAML login + SCIM user provisioning endpoints + docs parity; otherwise immediate marketing/docs correction.
 
 ### B2. Signed compliance export bundle
+
 - Description: One-click export of audit events, policy versions, gate results, and signature hashes.
 - Persona: Security Reviewer.
 - Why missing: Evidence primitives built, reviewer package flow not built.
@@ -69,6 +74,7 @@
 - Minimal scope: Export endpoint + verification manifest + downloadable archive.
 
 ### B3. Incident communications workflow
+
 - Description: Public status updates, incident subscriptions, and postmortem links sourced from real incidents.
 - Persona: CTO, Non-technical stakeholder.
 - Why missing: Internal runbook thinking over external communication UX.
@@ -82,6 +88,7 @@
 ## Category C — Adoption accelerators (friction reducers)
 
 ### C1. Server-side onboarding state and first-success continuity
+
 - Description: Persist onboarding progress in backend, not browser localStorage only.
 - Persona: CTO, Platform Engineer, Non-technical stakeholder.
 - Why missing: Local-first bias.
@@ -91,6 +98,7 @@
 - Minimal scope: Read/write onboarding progress API + migrate dashboard checklist state.
 
 ### C2. Integration setup wizard with connection tests
+
 - Description: Guided integration install (GitHub, webhook, Slack/PagerDuty via webhook templates) with validation.
 - Persona: Platform Engineer.
 - Why missing: UI polish on mock integration cards instead of setup completion.
@@ -100,6 +108,7 @@
 - Minimal scope: Replace static integration cards with live integration states + test action.
 
 ### C3. Live API reference generated from real endpoints
+
 - Description: Docs API pages should reflect actual routes/schemas, with request examples that run.
 - Persona: OSS Maintainer, Platform Engineer.
 - Why missing: Documentation drift and dual-doc-system bias.
@@ -113,6 +122,7 @@
 ## Category D — Defensive features (risk mitigation)
 
 ### D1. Policy/gate rollback control
+
 - Description: Revert to prior policy/gate versions with auditable reason.
 - Persona: Platform Engineer, Security Reviewer.
 - Why missing: Replay/integrity primitives prioritized over operational rollback UX.
@@ -122,6 +132,7 @@
 - Minimal scope: Version snapshots + “rollback to previous known-good” action + audit entry.
 
 ### D2. Approval workflow for high-impact governance changes
+
 - Description: Human approval queue for enforce/freeze/high-risk policy changes.
 - Persona: Security Reviewer, CTO.
 - Why missing: Governance semantics prioritized over governance operations.
@@ -131,6 +142,7 @@
 - Minimal scope: Approval state machine + approver assignment + timeout/escalation.
 
 ### D3. Alert delivery reliability visibility
+
 - Description: Delivery logs, retries, and dead-letter view for alerts/webhooks.
 - Persona: Platform Engineer.
 - Why missing: Alert dispatch exists in backend but no operator visibility layer.
@@ -144,6 +156,7 @@
 ## Category E — Visibility & observability gaps
 
 ### E1. Real trace explorer connected to run data
+
 - Description: Replace static timeline with queryable traces and deep links from reports/alerts.
 - Persona: Platform Engineer, ML Engineer.
 - Why missing: Demo visualization favored over live operational tooling.
@@ -153,6 +166,7 @@
 - Minimal scope: Trace list API + trace detail model + filters/search.
 
 ### E2. Monitoring trends and SLO burn visualization
+
 - Description: Trend charts for drift/latency/error and budget burn by signal.
 - Persona: Platform Engineer, CTO.
 - Why missing: Snapshot card bias over operational trend analysis.
@@ -162,6 +176,7 @@
 - Minimal scope: Query rollups + charting + severity thresholds.
 
 ### E3. One-click "what failed?" explainer path
+
 - Description: From failed report -> exact failing rule/tool/input delta -> suggested action.
 - Persona: ML Engineer, Platform Engineer.
 - Why missing: Replay/proof depth over remediation UX.
@@ -175,6 +190,7 @@
 ## Category F — Governance usability gaps
 
 ### F1. Role editor with scoped custom roles
+
 - Description: Manage role templates and resource-level permissions in UI.
 - Persona: Security Reviewer, Platform Engineer.
 - Why missing: RBAC enforcement exists but admin ergonomics is underbuilt.
@@ -184,6 +200,7 @@
 - Minimal scope: CRUD for roles + permission matrix + inheritance rules.
 
 ### F2. Policy impact simulator (dry-run)
+
 - Description: Show what a policy change would block/allow before enforcement.
 - Persona: Security Reviewer, ML Engineer.
 - Why missing: Deterministic compiler emphasis without operator preview UX.
@@ -193,6 +210,7 @@
 - Minimal scope: Replay recent runs against proposed policy and summarize delta.
 
 ### F3. Surface existing enterprise governance analytics
+
 - Description: Expose `/api/v1/governance/enterprise/analytics` in console.
 - Persona: CTO, Security Reviewer.
 - Why missing: Backend done, UI never productized.
@@ -206,6 +224,7 @@
 ## Category G — "Too boring to build" features
 
 ### G1. Scheduled executive reporting (email/PDF/CSV)
+
 - Description: Weekly/monthly digest for risk, drift, incidents, spend, and compliance deltas.
 - Persona: CTO, Non-technical stakeholder.
 - Why missing: Engineering elegance bias; viewed as non-core.
@@ -215,6 +234,7 @@
 - Minimal scope: Scheduled job + template + distribution list.
 
 ### G2. Reality-based changelog pipeline
+
 - Description: Generate changelog from shipped features/flags/migrations, not static curated cards.
 - Persona: OSS Maintainer, CTO.
 - Why missing: Narrative control bias.
@@ -224,6 +244,7 @@
 - Minimal scope: Release metadata extractor + approval step + publish.
 
 ### G3. Ownership and runbook links per signal/gate
+
 - Description: Every monitor/gate has owner, escalation contact, and runbook URL.
 - Persona: Platform Engineer, Non-technical stakeholder.
 - Why missing: Model/governance depth over incident boring basics.
@@ -235,4 +256,5 @@
 ---
 
 ## Pattern-level diagnosis
+
 Most blind spots are not missing because they are hard. They are missing because they are **operationally boring** and don’t satisfy the current internal prestige axis (determinism proofs, boundary purity, architecture narratives).
