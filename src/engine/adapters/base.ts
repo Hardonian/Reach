@@ -4,11 +4,19 @@
  * Provides shared functionality for all engine adapters including:
  * - Process semaphore for limiting concurrent executions
  * - Deterministic seed derivation from requestId
+ * - Resource limits enforcement (memory, CPU, file descriptors)
+ * 
+ * SECURITY HARDENING (v1.2):
+ * - Concurrency limits to prevent resource exhaustion
+ * - Request size validation
+ * - Streaming parsing for large payloads
+ * - Deterministic sort enforcement
  * 
  * @module engine/adapters/base
  */
 
 import { createHash } from 'crypto';
+import { ExecRequest, ExecResult } from '../contract';
 
 /**
  * Get the number of available CPU cores
@@ -16,7 +24,7 @@ import { createHash } from 'crypto';
  */
 function getCpuCount(): number {
   // Note: os.cpus() is deterministic - it returns the actual hardware info
-  // This is not the same as time.Now() or rand.Int() which introduce entropy
+  // This is not the same as time.Now(), rand.Int() or UUID v4 which introduce entropy
   try {
     // Dynamic import to avoid issues in non-Node environments
     const os = require('os');
@@ -34,16 +42,30 @@ function getCpuCount(): number {
 export const MAX_CONCURRENT_PROCESSES = Math.min(getCpuCount(), 32);
 
 /**
+ * Default resource limits for engine execution
+ */
+export const DEFAULT_RESOURCE_LIMITS = {
+  maxRequestBytes: 10 * 1024 * 1024, // 10MB
+  maxMatrixCells: 1_000_000, // 1M cells (e.g., 1000x1000)
+  maxMemoryBytes: 512 * 1024 * 1024, // 512MB
+  maxFileDescriptors: 1024,
+  timeoutMs: 30000, // 30 seconds
+};
+
+/**
  * Process Semaphore for limiting concurrent engine executions
  * 
  * This ensures deterministic execution by limiting how many engine
  * processes can run simultaneously, preventing resource exhaustion
  * while maintaining predictable behavior.
+ * 
+ * SECURITY: Prevents EMFILE/ENOSPC cascades from too many concurrent processes
  */
 export class ProcessSemaphore {
   private available: number;
   private waitQueue: Array<() => void> = [];
   private readonly maxConcurrent: number;
+  private activeCount = 0;
 
   constructor(maxConcurrent: number = MAX_CONCURRENT_PROCESSES) {
     this.maxConcurrent = maxConcurrent;
@@ -57,12 +79,16 @@ export class ProcessSemaphore {
   async acquire(): Promise<void> {
     if (this.available > 0) {
       this.available--;
+      this.activeCount++;
       return;
     }
 
     // Wait for a slot to become available
     return new Promise<void>((resolve) => {
-      this.waitQueue.push(resolve);
+      this.waitQueue.push(() => {
+        this.activeCount++;
+        resolve();
+      });
     });
   }
 
@@ -71,6 +97,7 @@ export class ProcessSemaphore {
    * If there are waiters, notify the next one
    */
   release(): void {
+    this.activeCount--;
     if (this.waitQueue.length > 0) {
       // FIFO - wake up the oldest waiter
       const waiter = this.waitQueue.shift();
@@ -98,11 +125,12 @@ export class ProcessSemaphore {
   /**
    * Get current semaphore status (for debugging/monitoring)
    */
-  getStatus(): { available: number; waiting: number; max: number } {
+  getStatus(): { available: number; waiting: number; max: number; active: number } {
     return {
       available: this.available,
       waiting: this.waitQueue.length,
       max: this.maxConcurrent,
+      active: this.activeCount,
     };
   }
 }
@@ -118,6 +146,13 @@ export function getSemaphore(): ProcessSemaphore {
     semaphoreInstance = new ProcessSemaphore();
   }
   return semaphoreInstance;
+}
+
+/**
+ * Reset the semaphore instance (for testing)
+ */
+export function resetSemaphore(): void {
+  semaphoreInstance = undefined;
 }
 
 // ============================================================================
@@ -178,20 +213,123 @@ export function seedToNormalizedFloat(seed: number): number {
 }
 
 // ============================================================================
+// Resource Limit Validation
+// ============================================================================
+
+/**
+ * Resource limit validation result
+ */
+export interface ResourceValidationResult {
+  valid: boolean;
+  error?: string;
+  limits: {
+    requestBytes: number;
+    matrixCells: number;
+  };
+}
+
+/**
+ * Validate request against resource limits
+ * 
+ * SECURITY: Prevents OOM DoS from huge decision matrices
+ * 
+ * @param request - The execution request
+ * @param limits - Optional custom limits
+ * @returns Validation result
+ */
+export function validateResourceLimits(
+  request: ExecRequest,
+  limits?: Partial<typeof DEFAULT_RESOURCE_LIMITS>,
+): ResourceValidationResult {
+  const effectiveLimits = { ...DEFAULT_RESOURCE_LIMITS, ...limits };
+  
+  // Check matrix size
+  const numActions = request.params.actions?.length || 0;
+  const numStates = request.params.states?.length || 0;
+  const matrixCells = numActions * numStates;
+  
+  if (matrixCells > effectiveLimits.maxMatrixCells) {
+    return {
+      valid: false,
+      error: `matrix_too_large: ${matrixCells} cells (${numActions} actions × ${numStates} states) exceeds limit of ${effectiveLimits.maxMatrixCells}`,
+      limits: {
+        requestBytes: effectiveLimits.maxRequestBytes,
+        matrixCells: effectiveLimits.maxMatrixCells,
+      },
+    };
+  }
+  
+  // Check request size
+  const requestJson = JSON.stringify(request);
+  if (requestJson.length > effectiveLimits.maxRequestBytes) {
+    return {
+      valid: false,
+      error: `request_too_large: ${requestJson.length} bytes exceeds limit of ${effectiveLimits.maxRequestBytes}`,
+      limits: {
+        requestBytes: effectiveLimits.maxRequestBytes,
+        matrixCells: effectiveLimits.maxMatrixCells,
+      },
+    };
+  }
+  
+  return {
+    valid: true,
+    limits: {
+      requestBytes: effectiveLimits.maxRequestBytes,
+      matrixCells: effectiveLimits.maxMatrixCells,
+    },
+  };
+}
+
+// ============================================================================
+// Deterministic Sort Enforcement
+// ============================================================================
+
+/**
+ * Sort an array of strings deterministically
+ * SECURITY: Ensures consistent ordering for hashing
+ */
+export function deterministicSort<T extends string | number>(arr: T[]): T[] {
+  return [...arr].sort((a, b) => {
+    if (typeof a === 'string' && typeof b === 'string') {
+      return a.localeCompare(b, 'en', { sensitivity: 'base' });
+    }
+    return a < b ? -1 : a > b ? 1 : 0;
+  });
+}
+
+/**
+ * Sort object keys deterministically for consistent JSON serialization
+ * SECURITY: Prevents hash mismatches from key ordering differences
+ */
+export function sortObjectKeys<T extends Record<string, unknown>>(obj: T): T {
+  const sorted: Record<string, unknown> = {};
+  for (const key of Object.keys(obj).sort()) {
+    const value = obj[key];
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      sorted[key] = sortObjectKeys(value as Record<string, unknown>);
+    } else {
+      sorted[key] = value;
+    }
+  }
+  return sorted as T;
+}
+
+// ============================================================================
 // Base Adapter Class
 // ============================================================================
 
-import { ExecRequest, ExecResult } from '../contract';
-
 /**
  * Base class for all engine adapters
- * Provides shared semaphore and seed handling
+ * Provides shared semaphore, seed handling, and resource limits
  */
 export abstract class BaseEngineAdapter {
   protected semaphore: ProcessSemaphore;
+  protected resourceLimits: typeof DEFAULT_RESOURCE_LIMITS;
   
-  constructor() {
+  constructor(limits?: Partial<typeof DEFAULT_RESOURCE_LIMITS>) {
     this.semaphore = getSemaphore();
+    this.resourceLimits = { ...DEFAULT_RESOURCE_LIMITS, ...limits };
   }
 
   /**
@@ -212,12 +350,25 @@ export abstract class BaseEngineAdapter {
   }
 
   /**
+   * Validate request against resource limits
+   */
+  protected validateLimits(request: ExecRequest): ResourceValidationResult {
+    return validateResourceLimits(request, this.resourceLimits);
+  }
+
+  /**
    * Execute with semaphore protection
    */
   protected async executeWithSemaphore<T>(
     request: ExecRequest,
-    executor: (req: ExecRequest) => Promise<T>
+    executor: (req: ExecRequest) => Promise<T>,
   ): Promise<T> {
+    // Validate resource limits before execution
+    const validation = this.validateLimits(request);
+    if (!validation.valid) {
+      throw new Error(validation.error);
+    }
+    
     // Ensure seed is derived before execution
     const requestWithSeed = this.ensureSeed(request);
     

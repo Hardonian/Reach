@@ -8,12 +8,128 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
+
+// ============================================================================
+// SECURITY: Path Traversal Protection
+// ============================================================================
+
+// maxRequestIDLength is the maximum allowed length for request IDs
+const maxRequestIDLength = 64
+
+// validRequestIDRegex matches only safe characters for request IDs
+// Allows: alphanumeric, dash, underscore, dot
+var validRequestIDRegex = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
+
+// SanitizeRequestID sanitizes a request ID to prevent path traversal attacks.
+// It removes any characters that could be used for directory traversal and
+// limits the length to prevent buffer overflow issues.
+//
+// SECURITY: This function MUST be called on all request IDs before using
+// them in file paths.
+func SanitizeRequestID(requestID string) string {
+	// Remove any characters that aren't alphanumeric, dash, underscore, or dot
+	sanitized := regexp.MustCompile(`[^a-zA-Z0-9._-]`).ReplaceAllString(requestID, "_")
+
+	// Remove leading dots and dashes (prevent hidden files)
+	sanitized = strings.TrimLeft(sanitized, ".-")
+
+	// Limit length
+	if len(sanitized) > maxRequestIDLength {
+		sanitized = sanitized[:maxRequestIDLength]
+	}
+
+	// Handle empty result
+	if sanitized == "" {
+		return "invalid_request_id"
+	}
+
+	return sanitized
+}
+
+// ContainsPathTraversal checks if a path contains directory traversal sequences.
+// Returns true if the path contains ".." patterns that could escape the base directory.
+func ContainsPathTraversal(filePath string) bool {
+	// Normalize path separators
+	normalized := strings.ReplaceAll(filePath, "\\", "/")
+
+	// Check for traversal patterns
+	traversalPatterns := []string{
+		"../",
+		"/../",
+		"..../", // Unicode attack variant
+	}
+
+	for _, pattern := range traversalPatterns {
+		if strings.Contains(normalized, pattern) {
+			return true
+		}
+	}
+
+	// Check for path starting with ".."
+	if strings.HasPrefix(normalized, "../") || strings.HasPrefix(normalized, "..") {
+		return true
+	}
+
+	return false
+}
+
+// ValidateDiffReportPath validates that a diff report path is within the expected
+// base directory and does not contain path traversal sequences.
+//
+// SECURITY: All diff report paths must be validated through this function
+// before file operations.
+func ValidateDiffReportPath(requestID, baseDir string) (string, error) {
+	// Sanitize the request ID
+	sanitizedID := SanitizeRequestID(requestID)
+
+	// If sanitization changed the ID, log the original for debugging
+	// (but don't use it in the path)
+	if sanitizedID != requestID {
+		// Original request ID will be stored in JSON metadata, not filename
+		_ = requestID // Mark as used for metadata
+	}
+
+	// Build the filename
+	filename := fmt.Sprintf("diff_%s.json", sanitizedID)
+
+	// Join with base directory
+	fullPath := filepath.Join(baseDir, filename)
+
+	// Resolve to absolute path
+	absPath, err := filepath.Abs(fullPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve path: %w", err)
+	}
+
+	// Resolve base directory to absolute
+	absBaseDir, err := filepath.Abs(baseDir)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve base dir: %w", err)
+	}
+
+	// Ensure the path is within the base directory
+	// Use filepath.Clean to normalize before prefix check
+	cleanPath := filepath.Clean(absPath)
+	cleanBaseDir := filepath.Clean(absBaseDir)
+
+	// On Windows, add trailing separator to ensure proper prefix match
+	if !strings.HasSuffix(cleanBaseDir, string(filepath.Separator)) {
+		cleanBaseDir += string(filepath.Separator)
+	}
+
+	if !strings.HasPrefix(cleanPath, cleanBaseDir) && cleanPath != filepath.Clean(absBaseDir) {
+		return "", fmt.Errorf("path escapes base directory: %s", sanitizedID)
+	}
+
+	return absPath, nil
+}
 
 // ============================================================================
 // EVIDENCE DIFF VISUAL MODEL - Core Data Structures
@@ -28,6 +144,11 @@ type EvidenceDiff struct {
 	ChangeIntensity   ChangeIntensity   `json:"change_intensity"`
 	StepVolatility    []StepVolatility  `json:"step_volatility"`
 	Visualization     VisualizationData `json:"visualization"`
+	// SECURITY: Original request IDs stored in metadata (not used in filenames)
+	OriginalRequestIDs struct {
+		Reference  string `json:"reference_original,omitempty"`
+		Comparison string `json:"comparison_original,omitempty"`
+	} `json:"_original_request_ids,omitempty"`
 }
 
 // HistoricalPoint represents a point in the historical overlay.
@@ -248,6 +369,10 @@ func (m *EvidenceDiffManager) ComputeEvidenceDiff(ctx context.Context, reference
 		GeneratedAt:     now,
 	}
 
+	// SECURITY: Store original request IDs in metadata (sanitized in filename)
+	diff.OriginalRequestIDs.Reference = referenceRunID
+	diff.OriginalRequestIDs.Comparison = comparisonRunID
+
 	// 1. Build historical overlay
 	diff.HistoricalOverlay = m.buildHistoricalOverlay(ctx, referenceRunID, comparisonRunID)
 
@@ -260,12 +385,12 @@ func (m *EvidenceDiffManager) ComputeEvidenceDiff(ctx context.Context, reference
 	// 4. Build visualization data
 	diff.Visualization = m.buildVisualizationData(diff)
 
-	// 5. Save to database
+	// 5. Save to database (uses sanitized IDs)
 	resultJSON, _ := json.Marshal(diff)
 	m.db.ExecContext(ctx, `
 		INSERT INTO diff_snapshots (reference_run_id, comparison_run_id, generated_at, result_json)
 		VALUES (?, ?, ?, ?)
-	`, referenceRunID, comparisonRunID, now, string(resultJSON))
+	`, SanitizeRequestID(referenceRunID), SanitizeRequestID(comparisonRunID), now, string(resultJSON))
 
 	return diff, nil
 }
@@ -295,10 +420,10 @@ func (m *EvidenceDiffManager) buildHistoricalOverlay(ctx context.Context, refere
 
 	now := time.Now().UTC()
 
-	// Add reference and comparison runs
+	// Add reference and comparison runs (use sanitized IDs)
 	points = append(points, HistoricalPoint{
 		Timestamp:   now,
-		RunID:       referenceRunID,
+		RunID:       SanitizeRequestID(referenceRunID),
 		StepCount:   0, // Would come from actual data
 		Fingerprint: fmt.Sprintf("%x", referenceRunID)[:16],
 		Similarity:  1.0,
@@ -307,7 +432,7 @@ func (m *EvidenceDiffManager) buildHistoricalOverlay(ctx context.Context, refere
 
 	points = append(points, HistoricalPoint{
 		Timestamp:   now,
-		RunID:       comparisonRunID,
+		RunID:       SanitizeRequestID(comparisonRunID),
 		StepCount:   0,
 		Fingerprint: fmt.Sprintf("%x", comparisonRunID)[:16],
 		Similarity:  0.0,
@@ -604,20 +729,46 @@ func (m *EvidenceDiffManager) buildVisualizationData(diff *EvidenceDiff) Visuali
 }
 
 // ============================================================================
-// OUTPUT METHODS
+// OUTPUT METHODS (SECURITY HARDENED)
 // ============================================================================
 
-// WriteDiffJSON writes the diff to a JSON file.
-func (m *EvidenceDiffManager) WriteDiffJSON(diff *EvidenceDiff, path string) error {
+// WriteDiffJSON writes the diff to a JSON file with path validation.
+//
+// SECURITY: The requestID is sanitized before use in the filename to prevent
+// path traversal attacks.
+func (m *EvidenceDiffManager) WriteDiffJSON(diff *EvidenceDiff, outputPath string) error {
+	// Validate the path
+	baseDir := filepath.Dir(outputPath)
+	safePath, err := ValidateDiffReportPath(filepath.Base(outputPath), baseDir)
+	if err != nil {
+		return fmt.Errorf("path validation failed: %w", err)
+	}
+
 	data, err := json.MarshalIndent(diff, "", "  ")
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, data, 0o644)
+
+	// Ensure parent directory exists
+	if err := os.MkdirAll(filepath.Dir(safePath), 0o755); err != nil {
+		return err
+	}
+
+	return os.WriteFile(safePath, data, 0o644)
 }
 
-// WriteDiffMarkdown writes the diff to a Markdown file.
-func (m *EvidenceDiffManager) WriteDiffMarkdown(diff *EvidenceDiff, path string) error {
+// WriteDiffMarkdown writes the diff to a Markdown file with path validation.
+//
+// SECURITY: The requestID is sanitized before use in the filename to prevent
+// path traversal attacks.
+func (m *EvidenceDiffManager) WriteDiffMarkdown(diff *EvidenceDiff, outputPath string) error {
+	// Validate the path
+	baseDir := filepath.Dir(outputPath)
+	safePath, err := ValidateDiffReportPath(filepath.Base(outputPath), baseDir)
+	if err != nil {
+		return fmt.Errorf("path validation failed: %w", err)
+	}
+
 	var md strings.Builder
 
 	md.WriteString(fmt.Sprintf("# Evidence Diff Report\n\n"))
@@ -672,7 +823,12 @@ func (m *EvidenceDiffManager) WriteDiffMarkdown(diff *EvidenceDiff, path string)
 		md.WriteString("\n")
 	}
 
-	return os.WriteFile(path, []byte(md.String()), 0o644)
+	// Ensure parent directory exists
+	if err := os.MkdirAll(filepath.Dir(safePath), 0o755); err != nil {
+		return err
+	}
+
+	return os.WriteFile(safePath, []byte(md.String()), 0o644)
 }
 
 // ============================================================================

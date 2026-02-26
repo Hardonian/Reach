@@ -14,7 +14,19 @@ export type ExecutionAlgorithm =
   | 'minimax_regret'
   | 'maximin'
   | 'weighted_sum'
-  | 'adaptive';
+  | 'adaptive'
+  | 'softmax'
+  | 'hurwicz'
+  | 'laplace'
+  | 'starr'
+  | 'savage'
+  | 'wald'
+  | 'hodges_lehmann'
+  | 'brown_robinson'
+  | 'nash'
+  | 'pareto'
+  | 'epsilon_contamination'
+  | 'topsis';
 
 /**
  * Execution parameters for a decision request

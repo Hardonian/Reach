@@ -1,88 +1,97 @@
-# Reach Engine Cutover Audit: Rust → Requiem (C++)
+# Requiem Cutover Audit: Systems Audit + Determinism Stress Modeling
 
-**Status**: Production-Bound Infrastructure Audit  
-**Version**: 1.0.0-audit  
-**Project**: Zeo / Reach CLI  
-
----
-
-## 1. Executive Summary
-
-- **High Precision Drift**: The primary risk is bit-level divergence in floating-point operations between Rust (IEEE 754 via LLVM) and Requiem (C++).
-- **Dual-Run Resource Exhaustion**: Running two engines concurrently for every request doubles latency and memory footprint, risking OOM in resource-constrained environments.
-- **Silent Rollback Invalidation**: If the Rust engine is treated as a "cold" fallback, environment drift (bitrot) may make the fallback fail exactly when needed.
-- **CAS Canonicalization Mismatch**: Subtle differences in JSON key ordering or number formatting between engines will break Merkle integrity.
-- **Windows Path Sensitivity**: Reach CLI on Windows is vulnerable to quoting and path normalization differences between the Node.js wrapper and the C++ binary.
-- **Concurrency Race Conditions**: High-volume parallel calls (1,000+) to a CLI-based engine will likely hit OS process limits (PID exhaustion).
-- **Sandbox Escape Potential**: Moving from a WASM-sandboxed Rust engine to a native C++ binary increases the attack surface for path traversal and environment leakage.
-- **Observability Gaps**: Current telemetry may not distinguish between "Result Mismatch" (Logic Drift) and "Execution Failure" (Engine Crash) in dual-run mode.
-- **Plugin ABI Instability**: External plugins compiled against the Rust ABI will likely break under Requiem without a stable FFI layer.
-- **Determinism Under Stress**: High lock contention in Requiem’s internal scheduler could lead to non-deterministic task ordering in "turbo" mode.
+**Mode**: Parallel Systems Audit (Requiem Cutover)  
+**Status**: Production-Bound Infrastructure  
+**Auditor**: Gemini 3 Flash (Antigravity Mode)
 
 ---
 
-## 2. Critical Risks (Top 10 Ranked)
+## EXECUTIVE SUMMARY
 
-| Rank | Risk | Severity | Detection Strategy | Mitigation Strategy |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | **Floating Point Drift** | CRITICAL | Compare full trace outputs, not just recommended actions. | Use fixed-point arithmetic or standardized decimal libraries for utilities. |
-| 2 | **Process Limit Exhaustion** | HIGH | Stress test with 1,000+ concurrent `reach decide` calls. | Implement a persistent Engine Daemon mode to avoid fork/exec overhead. |
-| 3 | **JSON Canonicalization** | HIGH | Hash the identical input in both engines and compare the CID. | Enforce a strict "Canonical JSON" spec (RFC 8785) in both implementations. |
-| 4 | **Incomplete Rollback** | HIGH | Periodic "Fallback Smoke Tests" where Requiem is intentionally disabled. | Automate fallback validation in CI; treat Rust engine as Tier 1 during cutover. |
-| 5 | **CAS Directory Race** | MEDIUM | Concurrent writes to the same local artifact cache. | Implement file-system level advisory locks (.lock files) for CAS writes. |
-| 6 | **Windows Quoting Drift** | MEDIUM | Cross-platform parity tests with paths containing spaces and special chars. | Use a shared Path Normalization library or strictly use UNC paths. |
-| 7 | **Environment Leakage** | MEDIUM | Red-team scan for `env` vars visible in engine debug logs. | Implement a "Secret Stripper" middleware in the EngineAdapter. |
-| 8 | **Memory Leakage (C++)** | MEDIUM | Long-running "Serve Mode" soak tests (24h+ duration). | Enforce RAII patterns and run with AddressSanitizer (ASan) in CI. |
-| 9 | **Dual-Run Performance** | LOW | Measurement of P99 latency during 10% sampling. | Use "Fire-and-Forget" for the secondary run; compare asynchronously via ledger. |
-| 10 | **ABI Version Mismatch** | LOW | Version-gate all EngineAdapter calls. | Include `engine_version` in the request header; fail fast on mismatch. |
+1. **Architecture Drift**: Requiem is currently in "stub mode" in the TS adapter; the C++ binary and CMake build system are missing from the workspace, creating a phantom cutover risk.
+2. **Precision Divergence**: The $10^{-10}$ rounding in `translate.ts` is a significant risk for C++ parity; bit-level drift in IEEE-754 floats will break fingerprints.
+3. **Concurrency Bottleneck**: Subprocess execution via temp files creates a $O(N)$ disk I/O bottleneck and risks PID/File-handle exhaustion at 500+ concurrent calls.
+4. **Semantic Mismatch**: The current fingerprint uses SHA-256 via Node `crypto`, while audit documents mandate BLAKE3, creating a "semantic trap" during CAS verification.
+5. **Rollback Vulnerability**: Treat the Rust engine as "Warm" fallback. Environment bitrot on fallback paths is likely if skip-validation is allowed.
+6. **I/O Atomicity**: CAS writes lack advisory locking; concurrent runs and GC sweeps could result in partial/corrupted capsules.
+7. **Workspace Perimeter**: Symlink loops and path traversal in pack extraction remain unmitigated in the native C++ transition.
+8. **Daemon State Leak**: Long-running "Serve Mode" processes are prone to memory fragmentation and RAII failures not present in the Rust/WASM model.
+9. **Decision-Audit Integrity**: Determinism is lost if the `requestId` is not used as a cryptographic seed for all engine-internal RNG operations.
+10. **Conclusion**: The cutover is viable but requires a move to a length-prefixed streaming protocol and fixed-point math to survive at scale.
 
 ---
 
-## 3. Determinism Failure Matrix
+## SECTION 1 — ENGINE CUTOVER FAILURE MODEL
 
-| Cause | Symptom | How to Catch Early |
-| :--- | :--- | :--- |
-| **P-Thread Scheduling** | Non-deterministic ordering in parallel execution graphs. | Run the same graph 100x and compare the execution trace CID. |
-| **System Entropy (unseeded)** | Differing outcomes in "Adaptive" mode. | Inject a deterministic seed from Reach CLI into the engine via `ExecRequest`. |
-| **IO Ordering (Windows)** | Race conditions when two workers read the same lockfile. | Use the `Strict Deterministic` mode to disable file-system caching for critical runs. |
-| **Large Artifact Overload** | Out-of-order event sequences for 100MB+ outputs. | Stream events through a sequence-numbered buffer; verify seq continuity. |
-| **Engine Timeout Drift** | One engine succeeds, one fails due to tiny clock differences. | Standardize timeout logic to "Cycles" or "Instructions" rather than wall-clock time. |
+### Top 12 Realistic Cutover Risks
 
----
-
-## 4. Red-Team Checklist
-
-- [ ] **Path Traversal**: Can `artifacts.uri` point outside the workspace (e.g., `../../etc/passwd`)?
-- [ ] **Symlink Escape**: Does the engine follow symlinks to sensitive host files?
-- [ ] **Env Leakage**: Does `REACH_DEBUG=1` print API keys or Bearer tokens to stdout?
-- [ ] **Signal Hijacking**: Does `SIGINT` leave orphaned Requiem zombie processes?
-- [ ] **Plugin Injection**: Can a malformed plugin override the `EngineAdapter` singleton?
-- [ ] **CAS Poisoning**: Can a secondary run write to a CID that the primary run later reads?
-- [ ] **Resource Exhaustion**: Does a 1GB outcome matrix cause a host-level OOM crash?
+| Rank | Risk | Trigger Condition | Detection Signal | Mitigation Guardrail |
+| :--- | :---: | :--- | :--- | :--- |
+| **1** | **Float Precision Drift** | Actions with relative utilities $< 10^{-10}$. | Fingerprint mismatch in dual-run. | Implement Fixed-Point math or IEEE-754 strict rounding in C++. |
+| **2** | **Tie-Break Mismatch** | Multiple actions with identical max regret. | `recommended_action` differs in Dual-Run. | Mandate deterministic alpha-sort on ActionID for all ties. |
+| **3** | **Process Limit Exhaustion** | 500+ concurrent `reach decide` invocations. | `EMFILE` or `EPIPE` errors in adapter logs. | Move to a persistent Engine Daemon (Serve Mode) with semaphores. |
+| **4** | **I/O Race on Multi-Run** | Concurrent runs writing to same `.reach/engine-diffs`. | Overwritten or corrupted JSON diff reports. | Use UUID-v4 for diff filenames; implement atomic renames. |
+| **5** | **Named Pipe Cleanup Failure** | Windows Daemon crash without closing pipe. | `EADDRINUSE` on serve-mode restart. | Use auto-cleaning pipe handles with process-heartbeat checks. |
+| **6** | **CAS CID Collision** | SHA-256 (TS) vs BLAKE3 (Rust/C++) mismatch. | `ErrNotFound` on valid CID lookup. | Enforce Unified Multihash prefixing for all storage entries. |
+| **7** | **Incomplete Rollback** | `REACH_ENGINE_FORCE_RUST` set but ignored. | Requiem execution found in logs despite flag. | Unified flag-check at the static `EngineAdapter` factory level. |
+| **8** | **Large Artifact Hang** | JSON payload $> 500\text{MB}$ via temp files. | execution timeout ($> 30\text{s}$) during I/O phase. | Implement streaming JSON input; bypass temp file disk-sync. |
+| **9** | **Encoding Corruption** | Unicode/UTF-16 paths used in Windows environment. | `ENOENT` for existing files during discovery. | Force UTF-8 normalization at the system boundary. |
+| **10** | **Zombie Serving** | Parent process killed; C++ `serve` lingers. | Port/Socket exhaustion on host node. | Implement Parent Death Signal (PDS) or pidfile locking. |
+| **11** | **Memory Ballooning** | Large outcome matrices processed on the heap. | SIGSEGV or exit code 137 (OOM). | Enforce RAII; set hard memory limits via rlimit/cgroups. |
+| **12** | **Sampling Blindness** | Edge case bug not caught in 1% sample rate. | Mismatch reported only in 100% soak tests. | Implement Adaptive Sampling: 100% for first 1,000 runs of new IDs. |
 
 ---
 
-## 5. 6-Month Risk Forecast
+## SECTION 2 — DETERMINISM FAILURE MATRIX
 
-| Risk Area | Probability | Impact | Forecast |
-| :--- | :---: | :---: | :--- |
-| **CAS Scalability** | High | High | Local file-system CAS will choke at 100k+ runs. Transition to S3/GCS backend required. |
-| **Adapter Fragmentation** | Medium | Medium | Logic drift between `rust.ts` and `requiem.ts` will lead to "Dual-Run Hell" where 1% of runs always fail mismatch. |
-| **Observability Debt** | High | Low | Debugging mismatches in production will be impossible without "Full Replay Capsules" saved on error. |
-| **Windows Parity** | Medium | High | Hidden bugs in Windows-specific threading or IO will plague enterprise users on Azure. |
-| **Plugin Compatibility** | Low | Medium | Static linking in Requiem will make the plugin ecosystem rigid and hard to extend. |
-
----
-
-## 6. Surgical Guardrails (Immediate Actions)
-
-1. **Precision Clamp**: Update `translate.ts` to strictly round ALL floating point utilities to 10 decimal places before fingerprinting.
-2. **Deterministic Seed Injection**: Modify `ExecRequest` to include a `seed` field derived from the `requestId`. Require Requiem to use this for all RNG calls.
-3. **Ghost Comparison**: Implement the dual-run comparison *after* returning the result to the user to eliminate latency impact, logging mismatches to a "Drift Ledger".
-4. **Process Guard**: In `EngineAdapter`, wrap CLI calls in a semaphore that caps maximum concurrent engine processes at `min(OS_CPU_COUNT, 32)`.
-5. **CID Verification on Read**: Enforce that any artifact read from CAS is re-hashed and compared against its CID *before* it reaches the engine logic.
+| Cause | Symptom | Early Detection | Preventative Control |
+| :--- | :---: | :--- | :--- |
+| **P-Thread Schedule** | Non-deterministic ordering in parallel graphs. | Trace CID mismatch on 100x repeats. | Seed the C++ task scheduler with `requestId`. |
+| **JSON Key Order** | Fingerprint mismatch on identical output. | Canonicalization unit test failures. | Use `std::map` or sorted JSON emitters in Requiem. |
+| **System Entropy** | Differing outcomes in "Adaptive" mode. | Dual-run trace diffs in "Quality" mode. | Inject a deterministic seed for all internal RNG. |
+| **Float Rounding** | Ranking drift at the 11th decimal place. | Trace comparison in dual-run mode. | Force `decimal.h` or fixed-point utility math. |
+| **IO Buffer Truncation** | Invalid JSON parse error on CLI exit. | Subprocess exit code != 0. | Implement a length-prefixed streaming protocol. |
+| **Env Var Pollution** | Cache miss on identical code/input. | Trace metadata diffs. | Strip non-core env vars before engine spawn. |
 
 ---
 
-> [!IMPORTANT]
-> **Conclusion**: The migration is structurally sound but sensitive to OS-level entropy. The "Dual-Run" mode is your best defense, but only if it compares the **Deterministic Fingerprint** and **Recommended Action** with zero tolerance.
+## SECTION 3 — SECURITY & SANDBOX RED TEAM
+
+### Red Team Checklist
+
+- [ ] **Path Traversal**: Attempt to point `artifacts.uri` to `../../etc/passwd`.
+- [ ] **Symlink Loop**: Create a symlink in a pack that points to the root of the CAS.
+- [ ] **Signal Hijacking**: Send `SIGINT` to Reach and check for lingering `requiem serve` processes.
+- [ ] **Binary Injection**: Set `REQUIEM_BIN` to a shell script that steals environment secrets.
+- [ ] **CAS Poisoning**: Induce a secondary dual-run to write a malicious CID that the primary later consumes.
+- [ ] **OOM DoS**: Submit a 1GB decision matrix to crash the host node's scheduler.
+- [ ] **Plugin ABI Misuse**: Create a "malicious" plugin that modifies the result object after engine return but before hashing.
+
+---
+
+## SECTION 4 — 6-MONTH RISK FORECAST
+
+| Risk | Prob | Impact | Early Signal | Guardrail |
+| :--- | :---: | :---: | :--- | :--- |
+| **CAS Scalability** | High | High | WAL growth $> 10\text{GB}$ in SQLite. | Transition to S3/GCS backend. |
+| **Logic Drift** | Med | High | 0.5% Mismatch rate in Dual-Run. | "Zero-Tolerance" mismatch policy in CI. |
+| **Observability Debt** | High | Low | Debug failures without Replay Capsules. | Persist full Replay Capsules on 500 errors. |
+| **Windows Parity** | Med | High | Thread-lock timeout only on Azure nodes. | Mandatory Windows-native CI runners. |
+| **Plugin Isolation** | Low | Med | Plugin crashing the core C++ process. | WASM-based plugin runner in Requiem. |
+
+---
+
+## SECTION 5 — HIGH-LEVERAGE GUARDRAILS
+
+1. **Binary Version Lock**: `EngineAdapter` must check `requiem --version`. Fail fast if version != pinned semver.
+2. **Strict Float Clamp**: Standardize on 10 decimal places across both Rust/C++ for all utility fingerprinting.
+3. **Recursive Hash Check**: Enforce that any artifact read from CAS is re-hashed and compared against CID *before* it reaches the engine logic.
+4. **Process Semaphore**: Cap maximum concurrent engine processes at `min(OS_CPU_COUNT, 32)` to prevent PID/Memory exhaustion.
+5. **Audit Pulse**: In dual-run mode, if `fingerprint` mismatches, mark the run `UNSAFE` in the ledger even if `ActionID` matches.
+6. **Deterministic Seed**: Derive a 64-bit seed from `requestId` and pass it to Requiem CLI for all probabilistic branch calls.
+7. **Atomic Diff writes**: Use write-then-rename for all `.reach/engine-diffs` files to ensure report integrity.
+
+---
+
+> [!CAUTION]
+> **Verdict**: The current "Stub Mode" implementation is a significant blind spot. Transition to a native C++ engine without a streaming I/O protocol and fixed-point math will increase system entropy and reduce long-term determinism.
