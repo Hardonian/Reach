@@ -9,7 +9,12 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
+	"time"
 )
+
+// DefaultCASMaxSize is the default maximum CAS size (10GB)
+const DefaultCASMaxSize int64 = 10 * 1024 * 1024 * 1024
 
 type ObjectType string
 
@@ -27,8 +32,41 @@ var allowedObjectTypes = map[ObjectType]struct{}{
 	ObjectStepProof:      {},
 }
 
+// EvictionPolicy defines the eviction strategy
+type EvictionPolicy string
+
+const (
+	EvictionPolicyNone    EvictionPolicy = "none"
+	EvictionPolicyLRU    EvictionPolicy = "lru"
+	EvictionPolicySizeCap EvictionPolicy = "size-cap"
+)
+
+// CASStatus holds detailed status information about the CAS
+type CASStatus struct {
+	Root                string         `json:"root"`
+	FormatVersion       string         `json:"format_version"`
+	TotalSizeBytes      int64          `json:"total_size_bytes"`
+	ObjectCount         int            `json:"object_count"`
+	FragmentationRatio  float64        `json:"fragmentation_ratio"`
+	ObjectsByType       map[string]int `json:"objects_by_type"`
+	EvictionPolicy      string         `json:"eviction_policy"`
+	MaxSizeBytes        int64          `json:"max_size_bytes"`
+}
+
+// CASConfig holds configuration for CAS behavior
+type CASConfig struct {
+	MaxCASSizeBytes     int64
+	EvictionPolicy      EvictionPolicy
+	LRUWindow           time.Duration
+	AtomicWritesEnabled bool
+}
+
+// CAS is the Content Addressable Storage implementation
 type CAS struct {
-	root string
+	root        string
+	config      CASConfig
+	lruMu       sync.RWMutex
+	lruAccess   map[string]time.Time // hash -> last access time
 }
 
 func DefaultCASRoot() string {

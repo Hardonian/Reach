@@ -108,7 +108,8 @@ export interface DoctorTruthReport {
 // ============================================================================
 
 export class EngineDetector {
-  private cache = new Map<EngineType, EngineStatus>();
+  private cache = new Map<EngineType, { status: EngineStatus; cachedAt: number }>();
+  private readonly CACHE_TTL_MS = 5000; // 5 second TTL for cache freshness
 
   /**
    * Detect all available engines and their status.
@@ -143,10 +144,30 @@ export class EngineDetector {
   }
 
   /**
+   * Get cached status with TTL check.
+   */
+  private getCached(type: EngineType): EngineStatus | null {
+    const cached = this.cache.get(type);
+    if (!cached) return null;
+    if (Date.now() - cached.cachedAt > this.CACHE_TTL_MS) {
+      this.cache.delete(type);
+      return null;
+    }
+    return cached.status;
+  }
+
+  /**
+   * Set cached status with timestamp.
+   */
+  private setCached(type: EngineType, status: EngineStatus): void {
+    this.cache.set(type, { status, cachedAt: Date.now() });
+  }
+
+  /**
    * Detect Rust/WASM engine.
    */
   detectRust(): EngineStatus {
-    const cached = this.cache.get(EngineType.RUST);
+    const cached = this.getCached(EngineType.RUST);
     if (cached) return cached;
 
     const status: EngineStatus = {
@@ -183,7 +204,7 @@ export class EngineDetector {
       status.lastError = String(err);
     }
 
-    this.cache.set(EngineType.RUST, status);
+    this.setCached(EngineType.RUST, status);
     return status;
   }
 
@@ -191,7 +212,7 @@ export class EngineDetector {
    * Detect Requiem C++ engine.
    */
   detectRequiem(): EngineStatus {
-    const cached = this.cache.get(EngineType.REQUIEM);
+    const cached = this.getCached(EngineType.REQUIEM);
     if (cached) return cached;
 
     const status: EngineStatus = {
@@ -242,7 +263,7 @@ export class EngineDetector {
       status.lastError = String(err);
     }
 
-    this.cache.set(EngineType.REQUIEM, status);
+    this.setCached(EngineType.REQUIEM, status);
     return status;
   }
 
@@ -260,6 +281,52 @@ export class EngineDetector {
 
 export class EngineSelector {
   private detector = new EngineDetector();
+  private lastEnv: Record<string, string | undefined> = {};
+  private envCheckInterval: ReturnType<typeof setInterval> | null = null;
+
+  constructor() {
+    // Start watching for environment changes
+    this.startEnvWatcher();
+  }
+
+  /**
+   * Watch for environment variable changes that affect engine selection.
+   */
+  private startEnvWatcher(): void {
+    this.lastEnv = this.captureEnvVars();
+    // Check every 1 second for env changes
+    this.envCheckInterval = setInterval(() => {
+      const current = this.captureEnvVars();
+      if (!this.envVarsEqual(current, this.lastEnv)) {
+        this.detector.clearCache();
+        this.lastEnv = current;
+      }
+    }, 1000);
+  }
+
+  /**
+   * Stop the environment watcher.
+   */
+  stopEnvWatcher(): void {
+    if (this.envCheckInterval) {
+      clearInterval(this.envCheckInterval);
+      this.envCheckInterval = null;
+    }
+  }
+
+  /**
+   * Compare environment variables for changes.
+   */
+  private envVarsEqual(
+    a: Record<string, string | undefined>,
+    b: Record<string, string | undefined>
+  ): boolean {
+    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+    for (const key of keys) {
+      if (a[key] !== b[key]) return false;
+    }
+    return true;
+  }
 
   /**
    * Select engine based on environment and availability.

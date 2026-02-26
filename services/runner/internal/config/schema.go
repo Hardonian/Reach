@@ -335,5 +335,11 @@ func Default() *Config {
 			MemoryThresholdPercent:  80,
 			EnableStalePipeCleanup:  true,
 		},
+		CAS: CASConfig{
+			MaxCASSizeBytes:     10 * 1024 * 1024 * 1024, // 10GB
+			EvictionPolicy:      "none",
+			LRUWindow:           "24h",
+			AtomicWritesEnabled: true,
+		},
 	}
 }

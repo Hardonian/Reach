@@ -254,9 +254,13 @@ export class VersionNegotiator extends EventEmitter {
 export class FrameCodec extends EventEmitter {
   private partialFrame: Buffer | null = null;
   private expectedLength = 0;
+  private partialFrameBytes = 0;
+  private readonly MAX_PARTIAL_FRAME_BYTES: number;
 
   constructor(private readonly config: ProtocolConfig) {
     super();
+    // Allow up to 2x max frame size for partial buffer to handle overlapping frames
+    this.MAX_PARTIAL_FRAME_BYTES = config.maxFrameBytes * 2;
   }
 
   /**
@@ -431,12 +435,28 @@ export class FrameCodec extends EventEmitter {
   /**
    * Feed data into the decoder for streaming frame parsing.
    * Returns array of complete frames, leaves partial data in buffer.
+   * 
+   * SECURITY: Bounded buffer prevents memory exhaustion attacks.
    */
   feed(data: Buffer): Frame[] {
     if (this.partialFrame) {
       this.partialFrame = Buffer.concat([this.partialFrame, data]);
+      this.partialFrameBytes += data.length;
     } else {
       this.partialFrame = data;
+      this.partialFrameBytes = data.length;
+    }
+
+    // SECURITY: Prevent unbounded buffer growth
+    if (this.partialFrameBytes > this.MAX_PARTIAL_FRAME_BYTES) {
+      const overflow = this.partialFrameBytes - this.MAX_PARTIAL_FRAME_BYTES;
+      this.partialFrame = null;
+      this.partialFrameBytes = 0;
+      throw new ProtocolError(
+        ProtocolErrorCode.PROTOCOL_ERROR,
+        `Partial frame buffer overflow: ${overflow} bytes over limit`,
+        false
+      );
     }
 
     const frames: Frame[] = [];
@@ -452,10 +472,12 @@ export class FrameCodec extends EventEmitter {
         // Calculate consumed bytes
         const consumed = this.calculateFrameSize(frame);
         this.partialFrame = this.partialFrame.slice(consumed);
+        this.partialFrameBytes = this.partialFrame?.length ?? 0;
         frames.push(frame);
       } catch (err) {
         // On error, clear partial frame to prevent corruption propagation
         this.partialFrame = null;
+        this.partialFrameBytes = 0;
         throw err;
       }
     }

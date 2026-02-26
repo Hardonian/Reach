@@ -450,19 +450,30 @@ export function resultFromProtocol(result: ExecResultPayload, requestId: string)
 /**
  * Generate a unique but deterministic-pattern request ID
  * 
- * SECURITY: Does NOT use Math.random() to avoid entropy injection.
- * Uses timestamp + counter + hostname hash for uniqueness.
+ * SECURITY: Does NOT use Math.random() or platform-specific values to avoid entropy injection.
+ * Uses timestamp + counter + deterministic hash for uniqueness.
+ * 
+ * DETERMINISM: Platform-agnostic - produces same format on Windows, macOS, Linux.
  */
 let requestCounter = 0;
 export function generateRequestId(): string {
   const timestamp = Date.now().toString(36);
   const counter = (requestCounter++).toString(36).padStart(4, '0');
-  // Use hostname + pid to ensure uniqueness across processes
-  const hostHash = createHash('sha256')
-    .update(`${process.pid}-${process.platform}`)
+  // Use deterministic hash based on pid and timestamp only (no platform-specific values)
+  const deterministicHash = createHash('sha256')
+    .update(`${process.pid}-${timestamp}-${counter}`)
     .digest('hex')
     .substring(0, 4);
-  return `req_${timestamp}_${counter}_${hostHash}`;
+  return `req_${timestamp}_${counter}_${deterministicHash}`;
+}
+
+/**
+ * Generate a deterministic request ID for testing purposes.
+ * Produces identical output for identical inputs.
+ */
+export function generateDeterministicRequestId(seed: string): string {
+  const hash = createHash('sha256').update(seed).digest('hex');
+  return `req_det_${hash.substring(0, 16)}`;
 }
 
 /**
