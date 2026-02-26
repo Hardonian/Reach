@@ -2,6 +2,7 @@
   "version": "0.2",
   "language": "en",
   "words": [
+    "ACTIONID",
     "Requiem",
     "antisandbox",
     "Antigravity",
@@ -14,6 +15,7 @@
     "cspell",
     "CTYPE",
     "Cutover",
+    "getppid",
     "dataloader",
     "decide",
     "determinism",
@@ -34,6 +36,8 @@
     "outcomes",
     "pidfile",
     "PYTHONHASHSEED",
+    "RECH",
+    "reparented",
     "RAII",
     "readylayer",
     "replayability",
@@ -44,7 +48,8 @@
     "SIGSEGV",
     "unseeded",
     "vitest",
-    "WASM"
+    "WASM",
+    "zombification"
   ],
   "ignorePaths": [
     "node_modules",
