@@ -11,7 +11,6 @@ import {
   ExecRequest,
   ExecResult,
   ExecutionParams,
-  EngineType,
 } from './contract';
 
 // ============================================================================
@@ -255,7 +254,7 @@ export function computeDeterministicHash(obj: unknown): string {
   const canonical = toCanonicalJson(obj);
   
   // Use Node.js crypto for hashing
-  const { createHash } = require('crypto');
+  import { createHash } from 'crypto';
   return createHash('sha256').update(canonical).digest('hex').substring(0, 32);
 }
 

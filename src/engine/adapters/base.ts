@@ -16,6 +16,7 @@
  */
 
 import { createHash } from 'crypto';
+import os from 'os';
 import { ExecRequest, ExecResult } from '../contract';
 
 /**
@@ -27,7 +28,6 @@ function getCpuCount(): number {
   // This is not the same as time.Now(), rand.Int() or UUID v4 which introduce entropy
   try {
     // Dynamic import to avoid issues in non-Node environments
-    const os = require('os');
     const cpus = os.cpus();
     return cpus ? cpus.length : 4;
   } catch {

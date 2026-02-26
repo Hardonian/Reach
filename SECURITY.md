@@ -83,3 +83,63 @@ If a credential is found, revoke/rotate immediately and scrub history where need
 ## Unsafe pack warning posture
 
 `reach run <pack>` warns when pack names are not explicitly marked safe. Treat these warnings as a manual review gate before running packs that can access files, network, or external systems.
+
+---
+
+## Engine Security Hardening (v1.2)
+
+### Red-Team Mitigations Implemented
+
+The following security mitigations were implemented in response to red-team findings:
+
+#### 1. Symlink Race (TOCTOU) Protection
+- TOCTOU-safe path normalization in Requiem runtime
+- Symlink detection before and after path resolution
+- Rejects paths escaping workspace via symlinks
+
+#### 2. Binary Hijacking Prevention
+- Environment sanitization: secrets filtered from child processes
+- Binary trust verification: version lock, path validation, permission checks
+- Secret patterns: `*_TOKEN`, `*_SECRET`, `*_KEY`, `AUTH*`, `COOKIE*`, `SESSION*`, `REACH_ENCRYPTION_KEY`
+
+#### 3. OOM DoS Prevention
+- Request size limits: 10MB default (configurable)
+- Matrix dimension limits: 1M cells maximum (actions × states)
+- Concurrency semaphore to prevent resource exhaustion
+- Memory limits via `setrlimit` (POSIX) / Job Objects (Windows)
+
+#### 4. Path Traversal Protection
+- Request ID sanitization: only `[A-Za-z0-9._-]` allowed
+- Diff reports constrained to `.reach/engine-diffs/`
+- Absolute paths rejected by default
+- Original request IDs stored in metadata (not filenames)
+
+#### 5. Plugin ABI Mutation Protection
+- Hash-after-freeze invariant: results hashed immediately
+- Plugins receive immutable copies/const views
+- Policy disclosure for any plugin modifications
+
+#### 6. LLM Freeze Integrity
+- CAS integrity: BLAKE3(original bytes) as key
+- Double verification: stored_blob_hash + decompressed content
+- `verify_llm_freeze_integrity(cid)` for explicit verification
+- Symlink rejection in CAS paths
+
+#### 7. Determinism Guardrails
+- Precision clamping: 10 decimal places
+- Deterministic sort enforcement for all maps/arrays
+- UTF-8 normalized encoding at boundaries
+- BLAKE3 only (legacy SHA-256 rejected)
+
+### Verification
+
+```bash
+# Run security tests
+npm test -- src/lib/security.test.ts
+npm test -- src/engine/adapters/requiem.test.ts
+
+# All tests
+npm test
+```
+
+See [docs/SECURITY_HARDENING_v1.2.md](docs/SECURITY_HARDENING_v1.2.md) for detailed implementation notes.

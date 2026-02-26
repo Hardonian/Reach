@@ -121,7 +121,7 @@ impl HelloAckPayload {
                 | CapabilityFlags::FIXED_POINT,
             engine_version: env!("CARGO_PKG_VERSION").to_string(),
             contract_version: "1.0.0".to_string(),
-            hash_version: "sha256".to_string(),
+            hash_version: "blake3".to_string(),
             cas_version: "1".to_string(),
             session_id: session_id.to_string(),
         }

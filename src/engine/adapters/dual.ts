@@ -11,8 +11,8 @@
 
 import { ExecRequest, ExecResult } from '../contract';
 import { compareExecResults } from '../translate';
-import { getRequiemEngine, RequiemEngineAdapter } from './requiem';
-import { getRustEngine, RustEngineAdapter } from './rust';
+import { getRequiemEngine } from './requiem';
+import { getRustEngine } from './rust';
 import { deriveSeed } from './base';
 
 /**
@@ -363,7 +363,7 @@ export class DualEngineAdapter {
    */
   async evaluate(request: ExecRequest): Promise<ExecResult> {
     // Execute with both engines
-    const { requiem, rust, comparison } = await evaluateWithBothEngines(request);
+    const { requiem, rust } = await evaluateWithBothEngines(request);
     
     // Use Requiem as primary if available, otherwise Rust
     const primary = requiem ?? rust;
@@ -389,15 +389,14 @@ export class DualEngineAdapter {
     try {
       requiemReady = requiem.isReady() || await requiem.configure();
     } catch {
-      requiemReady = false;
+      // Already false
     }
     
     let rustReady = false;
     try {
-      const initResult = rust.isReady() || await rust.initialize();
-      rustReady = Boolean(initResult);
+      rustReady = rust.isReady() || await rust.initialize();
     } catch {
-      rustReady = false;
+      // Already false
     }
     
     return requiemReady || rustReady;

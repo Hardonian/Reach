@@ -230,6 +230,20 @@ export class ProtocolClient extends EventEmitter {
     if (!(ack.capabilities & CapabilityFlags.BINARY_PROTOCOL)) {
       throw new Error('Server does not support binary protocol');
     }
+    
+    // Verify protocol version
+    const [major, minor] = ack.selected_version;
+    if (major !== 1 || minor !== 0) {
+      throw new Error(`Unsupported protocol version: ${major}.${minor}`);
+    }
+    
+    // Verify hash primitive is blake3 (fail closed on mismatch)
+    if (ack.hash_version !== 'blake3') {
+      throw new Error(
+        `Hash primitive mismatch: expected 'blake3', got '${ack.hash_version}'. ` +
+        'Client requires blake3 for deterministic hashing.'
+      );
+    }
   }
   
   private async sendFrame(frame: Frame): Promise<void> {
