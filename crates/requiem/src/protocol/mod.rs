@@ -119,9 +119,10 @@ pub fn deserialize_message<T: for<'de> serde::Deserialize<'de>>(bytes: &[u8]) ->
 pub fn frame_message<T: serde::Serialize>(
     msg_type: MessageType,
     msg: &T,
+    correlation_id: u32,
 ) -> Result<Frame, ProtocolError> {
     let payload = serialize_message(msg)?;
-    Frame::new(msg_type, payload).map_err(Into::into)
+    Ok(Frame::new(msg_type, payload)?.with_correlation_id(correlation_id))
 }
 
 /// Parse a frame payload into a message

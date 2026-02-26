@@ -7,9 +7,12 @@
 
 export const MAGIC = 0x52454348; // "RECH"
 export const MAX_PAYLOAD_BYTES = 64 * 1024 * 1024; // 64 MiB
-export const HEADER_SIZE = 22;
+export const HEADER_SIZE = 26;
 export const FOOTER_SIZE = 4;
 export const FRAME_OVERHEAD = HEADER_SIZE + FOOTER_SIZE;
+
+/** Pre-allocation limit for untrusted sessions (1 MiB) */
+export const MAX_UNTRUSTED_ALLOCATION = 1024 * 1024;
 
 export const PROTOCOL_VERSION_MAJOR = 1;
 export const PROTOCOL_VERSION_MINOR = 0;
@@ -24,6 +27,7 @@ export enum FrameFlags {
 
 /** Message types */
 export enum MessageType {
+  Heartbeat = 0x00,
   Hello = 0x01,
   HelloAck = 0x02,
   ExecRequest = 0x10,
@@ -39,6 +43,7 @@ export interface Frame {
   versionMinor: number;
   msgType: MessageType;
   flags: FrameFlags;
+  correlationId: number;
   payload: Uint8Array;
 }
 
@@ -112,7 +117,8 @@ function calculateFrameCRC(frame: Frame): number {
   writeUInt16LE(header, 6, frame.versionMinor);
   writeUInt32LE(header, 8, frame.msgType);
   writeUInt32LE(header, 12, frame.flags);
-  writeUInt32LE(header, 16, frame.payload.length);
+  writeUInt32LE(header, 16, frame.correlationId);
+  writeUInt32LE(header, 20, frame.payload.length);
   
   // Calculate CRC over header (excluding CRC field) + payload
   const crcData = new Uint8Array(HEADER_SIZE + frame.payload.length);
@@ -134,7 +140,8 @@ export function encodeFrame(frame: Frame): Uint8Array {
   writeUInt16LE(buffer, 6, frame.versionMinor);
   writeUInt32LE(buffer, 8, frame.msgType);
   writeUInt32LE(buffer, 12, frame.flags);
-  writeUInt32LE(buffer, 16, payloadLen);
+  writeUInt32LE(buffer, 16, frame.correlationId);
+  writeUInt32LE(buffer, 20, payloadLen);
   
   // Write payload
   buffer.set(frame.payload, HEADER_SIZE);
@@ -168,7 +175,8 @@ export function decodeFrame(buffer: Uint8Array): { frame: Frame; remaining: Uint
   const versionMinor = readUInt16LE(buffer, 6);
   const msgTypeRaw = readUInt32LE(buffer, 8);
   const flags = readUInt32LE(buffer, 12);
-  const payloadLen = readUInt32LE(buffer, 16);
+  const correlationId = readUInt32LE(buffer, 16);
+  const payloadLen = readUInt32LE(buffer, 20);
   
   // Validate message type
   if (!Object.values(MessageType).includes(msgTypeRaw)) {
@@ -204,6 +212,7 @@ export function decodeFrame(buffer: Uint8Array): { frame: Frame; remaining: Uint
     versionMinor,
     msgType: msgTypeRaw as MessageType,
     flags,
+    correlationId,
     payload,
   };
   const calculatedCRC = calculateFrameCRC(frame);
@@ -231,20 +240,25 @@ export class FrameParser {
     this.maxBufferSize = options.maxBufferSize ?? 64 * 1024 * 1024;
   }
   
-  /** Add data to buffer */
+  /** 
+   * Add data to buffer
+   * OPTIMIZED: Uses Buffer.allocUnsafe for faster allocation 
+   * and minimizes copies by only growing when necessary.
+   */
   append(data: Uint8Array): void {
-    const newBuffer = new Uint8Array(this.buffer.length + data.length);
-    newBuffer.set(this.buffer);
-    newBuffer.set(data, this.buffer.length);
-    this.buffer = newBuffer;
+    const requiredSize = this.buffer.length + data.length;
     
-    // Prevent unbounded growth
-    if (this.buffer.length > this.maxBufferSize) {
+    if (requiredSize > this.maxBufferSize) {
       throw new FrameError(
-        `Buffer overflow: ${this.buffer.length} bytes exceeds ${this.maxBufferSize}`,
+        `Buffer overflow: ${requiredSize} bytes exceeds ${this.maxBufferSize}`,
         'IO_ERROR'
       );
     }
+
+    const newBuffer = Buffer.allocUnsafe(requiredSize);
+    newBuffer.set(this.buffer);
+    newBuffer.set(data, this.buffer.length);
+    this.buffer = new Uint8Array(newBuffer);
   }
   
   /** Try to parse a frame from buffer */

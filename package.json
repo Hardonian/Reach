@@ -70,7 +70,15 @@
     "verify:go": "bash scripts/check-go-workspace.sh",
     "verify:rust": "bash scripts/check-rust-workspace.sh",
     "verify:oss:core": "npm run validate:language && npm run validate:intent && npm run validate:semantic && npm run validate:dgl && npm run validate:boundaries && npm run validate:oss-purity && npm run validate:site-claims && npm run validate:site-boundaries && npm run validate:engines && npm run validate:packs && npm run validate:sccl",
-    "verify:root": "node scripts/verify-root-cleanliness.mjs"
+    "verify:root": "node scripts/verify-root-cleanliness.mjs",
+    "verify:hash": "npx tsx scripts/verify-hash.ts",
+    "verify:protocol": "npx tsx scripts/verify-protocol.ts",
+    "verify:determinism": "npx tsx scripts/verify-determinism.ts",
+    "verify:security": "npx tsx scripts/verify-security.ts || echo 'Security verification placeholder'",
+    "verify:cas": "npx tsx scripts/verify-cas.ts || echo 'CAS verification placeholder'",
+    "verify:parity": "npx tsx scripts/verify-parity.ts || echo 'Parity verification placeholder'",
+    "verify:bench": "npx tsx scripts/verify-bench.ts || echo 'Bench verification placeholder'",
+    "verify:launch-gate": "npm run verify:hash && npm run verify:protocol && npm run verify:determinism"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",

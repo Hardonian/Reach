@@ -1,7 +1,7 @@
-# DGL Report (dgl_1772132403858)
+# DGL Report (dgl_1772135747645)
 
-- Base: dffa49c020646260518cbf57c296e11253301e2f
-- Head: 6e67a2eb11e313e2594f55dd807a5b142b0c526f
+- Base: 0817cd32973b11f44580a907e1ba6cb02fdf6ca9
+- Head: 3513ebf6ae139441abd0a54c9cb49de3b86c0c62
 - Context Hash: 3c9411bdc7a334014d08c3d764330ebc414673b77892a3903e166998032407ea
 - Blast Radius: 100
 - Drift Forecast: 89.5%
@@ -10,4 +10,4 @@
 - OpenAPI Breaking: 0
 
 ## Violations
-- **WARN** [dependency_graph] package.json#L1 — Review high-risk deps (auth/network/crypto/telemetry) before merge.
+No violations detected.

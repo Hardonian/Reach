@@ -566,6 +566,7 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
         policy: { rules: [], default_decision: { type: 'allow' } },
         metadata: {
           timestamp: request.timestamp,
+          seed: this.deriveSeed(request.requestId),
         },
       };
 
@@ -667,6 +668,28 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
     // Allow only alphanumeric, dash, underscore, dot
     // Replace any other characters with underscore
     return requestId.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 64);
+  }
+
+  /**
+   * Derive a deterministic numeric seed from requestId
+   */
+  private deriveSeed(requestId: string): string {
+    // Use a simple hash to turn string into a 64-bit hex string for the engine
+    let h1 = 0xDEADBEEF;
+    let h2 = 0x41C64E6D;
+    for (let i = 0; i < requestId.length; i++) {
+        const char = requestId.charCodeAt(i);
+        h1 = Math.imul(h1 ^ char, 2654435761);
+        h2 = Math.imul(h2 ^ char, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+    h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+    h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    
+    const high = (h1 >>> 0).toString(16).padStart(8, '0');
+    const low = (h2 >>> 0).toString(16).padStart(8, '0');
+    return `${high}${low}`;
   }
 }
 

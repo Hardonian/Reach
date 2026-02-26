@@ -9,7 +9,7 @@ import * as net from 'net';
 import { EventEmitter } from 'events';
 import { Frame, FrameParser, MessageType, encodeFrame } from './frame';
 import {
-  HelloPayload, HelloAckPayload, ExecRequestPayload, ExecResultPayload,
+  HelloAckPayload, ExecRequestPayload, ExecResultPayload,
   HealthRequestPayload, HealthResultPayload, ErrorPayload, createHello,
   serializeCbor, deserializeCbor, CapabilityFlags,
 } from './messages';
@@ -48,11 +48,15 @@ export class ProtocolClient extends EventEmitter {
   private state: ConnectionState = ConnectionState.Disconnected;
   private frameParser: FrameParser;
   private _sessionId: string | null = null;
-  private pendingRequests: Map<string, {
+  private pendingRequests: Map<number, {
     resolve: (value: Frame) => void;
     reject: (error: Error) => void;
     timeout: NodeJS.Timeout;
+    expectedType: MessageType;
   }> = new Map();
+  private nextCorrelationId = 1;
+  
+  private heartbeatTimer: NodeJS.Timeout | null = null;
   
   constructor(config: ProtocolClientConfig) {
     super();
@@ -104,6 +108,7 @@ export class ProtocolClient extends EventEmitter {
         clearTimeout(timeout);
         try {
           await this.performHandshake();
+          this.startHeartbeat();
           this.setState(ConnectionState.Ready);
           this.emit('connect');
           resolve();
@@ -143,6 +148,7 @@ export class ProtocolClient extends EventEmitter {
   
   /** Disconnect from server */
   async disconnect(): Promise<void> {
+    this.stopHeartbeat();
     if (!this.socket) {
       return;
     }
@@ -223,6 +229,7 @@ export class ProtocolClient extends EventEmitter {
       versionMinor: 0,
       msgType: MessageType.Hello,
       flags: 0,
+      correlationId: 0, // Handshake doesn't need correlation
       payload: serializeCbor(hello),
     });
     
@@ -255,6 +262,40 @@ export class ProtocolClient extends EventEmitter {
     }
   }
   
+  private startHeartbeat(): void {
+    this.stopHeartbeat();
+    this.heartbeatTimer = setInterval(() => {
+      if (this.state === ConnectionState.Ready) {
+        this.sendFrame({
+          versionMajor: 1,
+          versionMinor: 0,
+          msgType: MessageType.Heartbeat,
+          flags: 0,
+          correlationId: 0,
+          payload: new Uint8Array(0),
+        }).catch((err) => {
+          this.emit('error', new Error(`Heartbeat failed: ${err.message}`));
+          this.handleDisconnect();
+        });
+      }
+    }, 5000);
+  }
+
+  private stopHeartbeat(): void {
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
+  }
+
+  private getNextCorrelationId(): number {
+    const id = this.nextCorrelationId++;
+    if (this.nextCorrelationId > 0x7FFFFFFF) {
+      this.nextCorrelationId = 1;
+    }
+    return id;
+  }
+  
   private async sendFrame(frame: Frame): Promise<void> {
     if (!this.socket) {
       throw new Error('Not connected');
@@ -280,47 +321,33 @@ export class ProtocolClient extends EventEmitter {
     payload: T,
     expectedResponseType: MessageType
   ): Promise<Frame> {
-    // Deterministic correlation ID (no Math.random())
-    const counter = (this.correlationCounter++).toString(36).padStart(6, '0');
-    const correlationId = `${Date.now().toString(36)}-${counter}`;
+    const correlationId = this.getNextCorrelationId();
     
     return new Promise((resolve, reject) => {
-      // Set timeout
       const timeout = setTimeout(() => {
         this.pendingRequests.delete(correlationId);
-        reject(new Error('Request timeout'));
+        reject(new Error(`Request timeout (type: ${requestType}, id: ${correlationId})`));
       }, this.config.requestTimeoutMs);
       
-      // Store pending request
       this.pendingRequests.set(correlationId, {
-        resolve: (frame) => {
-          clearTimeout(timeout);
-          resolve(frame);
-        },
-        reject: (error) => {
-          clearTimeout(timeout);
-          reject(error);
-        },
+        resolve,
+        reject,
         timeout,
+        expectedType: expectedResponseType,
       });
       
-      // Send request
       this.sendFrame({
         versionMajor: 1,
         versionMinor: 0,
         msgType: requestType,
         flags: 0,
+        correlationId,
         payload: serializeCbor(payload),
       }).catch((error) => {
         this.pendingRequests.delete(correlationId);
         clearTimeout(timeout);
         reject(error);
       });
-      
-      // Wait for response
-      this.waitForResponse(expectedResponseType, correlationId)
-        .then(resolve)
-        .catch(reject);
     });
   }
   
@@ -330,63 +357,34 @@ export class ProtocolClient extends EventEmitter {
   ): Promise<Frame> {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
+        cleanup();
         reject(new Error(`Timeout waiting for ${expectedType}`));
       }, timeoutMs);
       
-      const checkFrame = () => {
-        const frame = this.frameParser.parse();
-        if (frame) {
-          if (frame.msgType === expectedType) {
-            clearTimeout(timeout);
-            resolve(frame);
-            return;
-          } else if (frame.msgType === MessageType.Error) {
-            clearTimeout(timeout);
-            const error = deserializeCbor<ErrorPayload>(frame.payload);
-            reject(new Error(`Server error: ${error.message} (${error.code})`));
-            return;
-          }
+      const onFrame = (frame: Frame) => {
+        if (frame.msgType === expectedType) {
+          cleanup();
+          resolve(frame);
+        } else if (frame.msgType === MessageType.Error) {
+          cleanup();
+          const error = deserializeCbor<ErrorPayload>(frame.payload);
+          reject(new Error(`Server error: ${error.message} (${error.code})`));
         }
-        
-        // Check again soon
-        setTimeout(checkFrame, 10);
       };
-      
-      checkFrame();
-    });
-  }
-  
-  private async waitForResponse(
-    expectedType: MessageType,
-    correlationId: string
-  ): Promise<Frame> {
-    const pending = this.pendingRequests.get(correlationId);
-    if (!pending) {
-      throw new Error('Request not found');
-    }
-    
-    return new Promise((resolve, reject) => {
-      const checkResponse = () => {
-        // This is simplified - in reality we'd correlate by ID
-        // For now, just wait for any matching response type
-        const frame = this.frameParser.parse();
-        if (frame) {
-          if (frame.msgType === expectedType) {
-            this.pendingRequests.delete(correlationId);
-            resolve(frame);
-            return;
-          } else if (frame.msgType === MessageType.Error) {
-            this.pendingRequests.delete(correlationId);
-            const error = deserializeCbor<ErrorPayload>(frame.payload);
-            reject(new Error(`Server error: ${error.message} (${error.code})`));
-            return;
-          }
-        }
-        
-        setTimeout(checkResponse, 10);
+
+      const onError = (err: Error) => {
+        cleanup();
+        reject(err);
       };
-      
-      checkResponse();
+
+      const cleanup = () => {
+        clearTimeout(timeout);
+        this.removeListener('frame', onFrame);
+        this.removeListener('error', onError);
+      };
+
+      this.on('frame', onFrame);
+      this.on('error', onError);
     });
   }
   
@@ -404,18 +402,39 @@ export class ProtocolClient extends EventEmitter {
         const frame = this.frameParser.parse();
         if (!frame) break;
         
+        this.emit('frame', frame);
         this.handleFrame(frame);
       } catch (error) {
         this.emit('error', error as Error);
+        break;
       }
     }
   }
   
   private handleFrame(frame: Frame): void {
-    // Handle unsolicited frames (errors, etc.)
+    // Check if this frame matches a pending request
+    if (frame.correlationId !== 0) {
+      const pending = this.pendingRequests.get(frame.correlationId);
+      if (pending) {
+        clearTimeout(pending.timeout);
+        this.pendingRequests.delete(frame.correlationId);
+
+        if (frame.msgType === MessageType.Error) {
+          const error = deserializeCbor<ErrorPayload>(frame.payload);
+          pending.reject(new Error(`Server error: ${error.message} (${error.code})`));
+        } else if (frame.msgType !== pending.expectedType) {
+          pending.reject(new Error(`Response type mismatch: expected ${pending.expectedType}, got ${frame.msgType}`));
+        } else {
+          pending.resolve(frame);
+        }
+        return;
+      }
+    }
+
+    // Handle unsolicited frames
     if (frame.msgType === MessageType.Error) {
       const error = deserializeCbor<ErrorPayload>(frame.payload);
-      this.emit('error', new Error(`Server error: ${error.message}`));
+      this.emit('error', new Error(`Unsolicited server error: ${error.message}`));
     }
   }
   
@@ -425,9 +444,9 @@ export class ProtocolClient extends EventEmitter {
     this.frameParser.clear();
     
     // Reject all pending requests
-    for (const [id, pending] of this.pendingRequests) {
+    for (const [correlationId, pending] of this.pendingRequests) {
       clearTimeout(pending.timeout);
-      pending.reject(new Error('Connection closed'));
+      pending.reject(new Error(`Connection closed (matching request id: ${correlationId})`));
     }
     this.pendingRequests.clear();
     

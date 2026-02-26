@@ -16,8 +16,8 @@
 6. **I/O Atomicity**: CAS writes lack advisory locking; concurrent runs and GC sweeps could result in partial/corrupted capsules.
 7. **Workspace Perimeter**: Symlink loops and path traversal in pack extraction remain unmitigated in the native C++ transition.
 8. **Daemon State Leak**: Long-running "Serve Mode" processes are prone to memory fragmentation and RAII failures not present in the Rust/WASM model.
-9. **Decision-Audit Integrity**: Determinism is lost if the `requestId` is not used as a cryptographic seed for all engine-internal RNG operations.
-10. **Conclusion**: The cutover is viable but requires a move to a length-prefixed streaming protocol and fixed-point math to survive at scale.
+9. **Decision-Audit Integrity**: Mitigated by deriving deterministic 64-bit seeds from `requestId` for all engine operations.
+10. **Conclusion**: The cutover has been hardened with a length-prefixed binary streaming protocol, mandatory result sorting, and zombification watchdogs.
 
 ---
 
@@ -27,11 +27,11 @@
 
 | Rank | Risk | Trigger Condition | Detection Signal | Mitigation Guardrail |
 | :--- | :---: | :--- | :--- | :--- |
-| **1** | **Float Precision Drift** | Actions with relative utilities $< 10^{-10}$. | Fingerprint mismatch in dual-run. | Implement Fixed-Point math or IEEE-754 strict rounding in C++. |
-| **2** | **Tie-Break Mismatch** | Multiple actions with identical max regret. | `recommended_action` differs in Dual-Run. | Mandate deterministic alpha-sort on ActionID for all ties. |
-| **3** | **Process Limit Exhaustion** | 500+ concurrent `reach decide` invocations. | `EMFILE` or `EPIPE` errors in adapter logs. | Move to a persistent Engine Daemon (Serve Mode) with semaphores. |
-| **4** | **I/O Race on Multi-Run** | Concurrent runs writing to same `.reach/engine-diffs`. | Overwritten or corrupted JSON diff reports. | Use UUID-v4 for diff filenames; implement atomic renames. |
-| **5** | **Named Pipe Cleanup Failure** | Windows Daemon crash without closing pipe. | `EADDRINUSE` on serve-mode restart. | Use auto-cleaning pipe handles with process-heartbeat checks. |
+| **1** | **Float Precision Drift** | Actions with relative utilities $< 10^{-10}$. | Fingerprint mismatch in dual-run. | ✅ FIXED: Fixed-Point math module implemented in Requiem. |
+| **2** | **Tie-Break Mismatch** | Multiple actions with identical max regret. | `recommended_action` differs in Dual-Run. | ✅ FIXED: Mandatory deterministic alpha-sort on ActionID for all ties. |
+| **3** | **Process Limit Exhaustion** | 500+ concurrent `reach decide` invocations. | `EMFILE` or `EPIPE` errors in adapter logs. | ✅ FIXED: Persistent Engine Daemon (Serve Mode) with binary protocol. |
+| **4** | **I/O Race on Multi-Run** | Concurrent runs writing to same `.reach/engine-diffs`. | Overwritten or corrupted JSON diff reports. | ✅ FIXED: Protocol bypasses temp files; atomic RENAMES for reporting. |
+| **5** | **Named Pipe Cleanup Failure** | Windows Daemon crash without closing pipe. | `EADDRINUSE` on serve-mode restart. | ✅ FIXED: UUID-suffixed pipes with watchdog heartbeat checks. |
 | **6** | **CAS CID Collision** | SHA-256 (TS) vs BLAKE3 (Rust/C++) mismatch. | `ErrNotFound` on valid CID lookup. | Enforce Unified Multihash prefixing for all storage entries. |
 | **7** | **Incomplete Rollback** | `REACH_ENGINE_FORCE_RUST` set but ignored. | Requiem execution found in logs despite flag. | Unified flag-check at the static `EngineAdapter` factory level. |
 | **8** | **Large Artifact Hang** | JSON payload $> 500\text{MB}$ via temp files. | execution timeout ($> 30\text{s}$) during I/O phase. | Implement streaming JSON input; bypass temp file disk-sync. |

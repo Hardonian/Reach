@@ -8,26 +8,7 @@
           "rules": []
         }
       },
-      "results": [
-        {
-          "level": "warning",
-          "message": {
-            "text": "dependency_graph: Review high-risk deps (auth/network/crypto/telemetry) before merge."
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "package.json"
-                },
-                "region": {
-                  "startLine": 1
-                }
-              }
-            }
-          ]
-        }
-      ]
+      "results": []
     }
   ]
 }

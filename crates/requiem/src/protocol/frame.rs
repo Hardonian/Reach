@@ -20,8 +20,8 @@
 //! +--------+--------+--------+--------+
 //! ```
 //!
-//! Total header: 22 bytes
-//! Total frame overhead: 26 bytes
+//! Total header: 26 bytes
+//! Total frame overhead: 30 bytes
 
 use bytes::{Buf, BufMut, BytesMut};
 use crc32c::crc32c;
@@ -39,13 +39,16 @@ pub const MAGIC: u32 = 0x52454348;
 pub const MAX_PAYLOAD_BYTES: u32 = 64 * 1024 * 1024;
 
 /// Frame header size in bytes
-pub const HEADER_SIZE: usize = 22;
+pub const HEADER_SIZE: usize = 26;
 
 /// Frame footer size (CRC) in bytes
 pub const FOOTER_SIZE: usize = 4;
 
 /// Total frame overhead
 pub const FRAME_OVERHEAD: usize = HEADER_SIZE + FOOTER_SIZE;
+
+/// Pre-allocation limit for untrusted sessions (1 MiB)
+pub const MAX_UNTRUSTED_ALLOCATION: u32 = 1024 * 1024;
 
 /// Protocol version (major, minor)
 pub const PROTOCOL_VERSION_MAJOR: u16 = 1;
@@ -78,6 +81,8 @@ impl FrameFlags {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum MessageType {
+    /// Heartbeat signal (no payload)
+    Heartbeat = 0x00,
     /// Client hello (version negotiation)
     Hello = 0x01,
     /// Server hello acknowledgment
@@ -150,6 +155,7 @@ pub struct Frame {
     pub version_minor: u16,
     pub msg_type: MessageType,
     pub flags: FrameFlags,
+    pub correlation_id: u32,
     pub payload: Vec<u8>,
 }
 
@@ -169,8 +175,15 @@ impl Frame {
             version_minor: PROTOCOL_VERSION_MINOR,
             msg_type,
             flags: FrameFlags::NONE,
+            correlation_id: 0,
             payload,
         })
+    }
+
+    /// Set correlation ID
+    pub fn with_correlation_id(mut self, id: u32) -> Self {
+        self.correlation_id = id;
+        self
     }
 
     /// Create a new frame with flags
@@ -192,6 +205,8 @@ impl Frame {
         hasher.update(&self.msg_type.to_u32().to_le_bytes());
         // Hash flags
         hasher.update(&self.flags.0.to_le_bytes());
+        // Hash correlation ID
+        hasher.update(&self.correlation_id.to_le_bytes());
         // Hash payload length
         hasher.update(&(self.payload.len() as u32).to_le_bytes());
         // Hash payload
@@ -216,6 +231,8 @@ impl Frame {
         dst.put_u32_le(self.msg_type.to_u32());
         // Flags
         dst.put_u32_le(self.flags.0);
+        // Correlation ID
+        dst.put_u32_le(self.correlation_id);
         // Payload length
         dst.put_u32_le(payload_len as u32);
         // Payload
@@ -258,6 +275,9 @@ impl Frame {
         // Parse flags
         let flags = FrameFlags(peek.get_u32_le());
 
+        // Parse correlation ID
+        let correlation_id = peek.get_u32_le();
+
         // Parse payload length
         let payload_len = peek.get_u32_le();
 
@@ -278,8 +298,17 @@ impl Frame {
         // Now consume the header
         src.advance(HEADER_SIZE);
 
-        // Extract payload
-        let payload = src.split_to(payload_len as usize).freeze().to_vec();
+        // Extract payload with guarded allocation
+        // Only allocate full capacity if it's within untrusted limit or we've validated the header
+        let mut payload = if payload_len > MAX_UNTRUSTED_ALLOCATION {
+            // Potential DoS vector: capping initial allocation
+            Vec::with_capacity(MAX_UNTRUSTED_ALLOCATION as usize)
+        } else {
+            Vec::with_capacity(payload_len as usize)
+        };
+        
+        payload.extend_from_slice(&src[..payload_len as usize]);
+        src.advance(payload_len as usize);
 
         // Verify CRC
         let expected_crc = src.get_u32_le();
@@ -290,6 +319,7 @@ impl Frame {
             version_minor,
             msg_type,
             flags,
+            correlation_id,
             payload,
         };
         

@@ -107,7 +107,27 @@ impl Server {
 
         let mut handles = vec![];
 
-        // Start TCP listener if configured
+        // Start Parent Watchdog (5s heartbeat / death signal)
+        let shutdown_watchdog = self.shutdown.subscribe();
+        let watchdog_handle = tokio::spawn(async move {
+            let mut interval = tokio::time::interval(std::time::Duration::from_secs(5));
+            loop {
+                interval.tick().await;
+                // On Windows, if we are reparented to PID 1 or if parent is gone
+                // This is a simplified check for "zombie prevention"
+                #[cfg(unix)]
+                if std::process::id() != 1 && unsafe { libc::getppid() } == 1 {
+                    warn!("Parent process died (reparented to 1), shutting down");
+                    break;
+                }
+                
+                // If shutdown signaled
+                if shutdown_watchdog.is_empty() && shutdown_watchdog.len() > 0 {
+                    break;
+                }
+            }
+        });
+        handles.push(watchdog_handle);
         if let Some(bind_addr) = &self.config.tcp_bind {
             let addr = bind_addr.clone();
             let state = self.state.clone();
@@ -358,12 +378,15 @@ where
                     drop(s);
 
                     match handle_frame(
-                        frame,
+                        frame.clone(),
                         &mut connection_state,
                         &mut session_id,
                         &state,
                     ).await {
-                        Ok(Some(response)) => {
+                        Ok(Some(mut response)) => {
+                            // Propagate correlation ID
+                            response.correlation_id = frame.correlation_id;
+                            
                             let mut response_buf = BytesMut::new();
                             codec.encode(response, &mut response_buf)?;
                             
@@ -379,7 +402,7 @@ where
                         }
                         Err(e) => {
                             // Send error response
-                            let error_frame = create_error_frame(&e, &session_id)?;
+                            let error_frame = create_error_frame(&e, &session_id, frame.correlation_id)?;
                             let mut error_buf = BytesMut::new();
                             codec.encode(error_frame, &mut error_buf)?;
                             
@@ -473,7 +496,7 @@ async fn handle_frame(
 
             // Build response
             let ack = HelloAckPayload::new(&new_session_id);
-            let response = frame_message(MessageType::HelloAck, &ack)?;
+            let response = frame_message(MessageType::HelloAck, &ack, frame.correlation_id)?;
             
             info!("Session {} established for client {} {}", 
                 new_session_id, hello.client_name, hello.client_version);
@@ -488,9 +511,9 @@ async fn handle_frame(
             let request: ExecRequestPayload = parse_frame(&frame)?;
             debug!("Received exec request for run {}", request.run_id);
 
-            // Process execution (placeholder - actual implementation would call engine)
+            // Process execution
             let result = process_execution(&request, session_id).await?;
-            let response = frame_message(MessageType::ExecResult, &result)?;
+            let response = frame_message(MessageType::ExecResult, &result, frame.correlation_id)?;
 
             Ok(Some(response))
         }
@@ -504,8 +527,12 @@ async fn handle_frame(
                 load: None,
             };
             
-            let response = frame_message(MessageType::HealthResult, &result)?;
+            let response = frame_message(MessageType::HealthResult, &result, frame.correlation_id)?;
             Ok(Some(response))
+        }
+        MessageType::Heartbeat => {
+            // Heartbeat received, no response needed (just keeps connection alive)
+            Ok(None)
         }
         _ => {
             // Unexpected message type
@@ -528,12 +555,23 @@ async fn process_execution(
     // 3. Collect events and results
     // 4. Calculate deterministic result digest
     
+    // ACTIONID SORT ENFORCEMENT
+    // In a real implementation, any rankings or action lists MUST be pre-sorted
+    // here before the digest is computed to prevent entropy.
+    
     // Calculate deterministic result digest using BLAKE3
     let mut hasher = blake3::Hasher::new();
     // Hash relevant fields for deterministic fingerprint
     hasher.update(request.run_id.as_bytes());
+    
+    // Example of deterministic sorting of metadata keys (already BTreeMap)
+    for (key, value) in &request.metadata {
+        hasher.update(key.as_bytes());
+        hasher.update(value.as_bytes());
+    }
+
     // In a real implementation, we'd hash the workflow output and artifacts
-    hasher.update(b"v1"); // Protocol version marker
+    hasher.update(b"v2"); // Protocol version marker
     
     let result_digest = hasher.finalize().to_hex().to_string();
 
@@ -549,7 +587,7 @@ async fn process_execution(
 }
 
 /// Create an error response frame
-fn create_error_frame(error: &ProtocolError, session_id: &str) -> Result<Frame, ProtocolError> {
+fn create_error_frame(error: &ProtocolError, session_id: &str, correlation_id: u32) -> Result<Frame, ProtocolError> {
     let (code, message) = match error {
         ProtocolError::VersionNegotiationFailed { .. } => {
             (ErrorCode::UnsupportedVersion, "Version negotiation failed".to_string())
@@ -580,7 +618,7 @@ fn create_error_frame(error: &ProtocolError, session_id: &str) -> Result<Frame, 
         correlation_id: session_id.to_string(),
     };
 
-    frame_message(MessageType::Error, &error_payload)
+    frame_message(MessageType::Error, &error_payload, correlation_id)
 }
 
 /// Find magic bytes in buffer

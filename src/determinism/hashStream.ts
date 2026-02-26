@@ -18,8 +18,8 @@ let warned = false;
 
 function getHash(input: string | Buffer | Uint8Array, encoding?: 'hex'): string {
   try {
-    // Try to use blake3
-    const result = hash(input, { length: 32 });
+    // Try to use blake3 - hash function takes (input, options)
+    const result = hash(input);
     if (encoding === 'hex') {
       return typeof result === 'string' ? result : result.toString('hex');
     }
@@ -113,19 +113,16 @@ export function hashBuffer(buf: Buffer | Uint8Array): string {
  */
 export async function hashReadableStream(stream: Readable): Promise<string> {
   return new Promise((resolve, reject) => {
-    const hasher = createHasher();
+    // Use HashStream instead of createHasher (which doesn't exist in this API)
+    const hasher = new HashStream();
 
     stream.on("data", (chunk: Buffer | string) => {
-      if (typeof chunk === 'string') {
-        hasher.update(chunk, "utf8");
-      } else {
-        hasher.update(chunk);
-      }
+      hasher.update(chunk);
     });
 
     stream.on("end", () => {
-      const digest = hasher.digest("hex");
-      resolve(typeof digest === 'string' ? digest : digest.toString('hex'));
+      const digest = hasher.finalize();
+      resolve(digest);
     });
 
     stream.on("error", (err: Error) => {
