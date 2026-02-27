@@ -131,3 +131,39 @@ jobs:
       - name: Scan integration-hub module
         run: govulncheck ./...
         working-directory: services/integration-hub
+
+  m3-security-boundary-hardening:
+    name: M3 Security Boundary Hardening
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run M3 Security Verification
+        run: npm run verify:security
+
+      - name: Run Security Unit Tests
+        run: npx vitest run src/lib/security.test.ts src/lib/env-security.test.ts src/lib/pack-extraction.test.ts src/lib/plugin-freeze.test.ts src/engine/storage/cas
+
+      - name: Upload security test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-test-results-${{ matrix.os }}
+          path: |
+            test-results/
+            coverage/
+          retention-days: 7
