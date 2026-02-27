@@ -4,11 +4,7 @@
   "version": "0.0.1",
   "publisher": "reach",
   "engines": { "vscode": "^1.85.0" },
-  "activationEvents": [
-    "onCommand:reach.syncStatus",
-    "onCommand:reach.createBranch",
-    "onCommand:reach.packPatch"
-  ],
+  "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
