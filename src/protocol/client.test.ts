@@ -10,7 +10,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ProtocolClient, ConnectionState } from './client';
-import { FrameParser, MessageType, encodeFrame, decodeFrame, MAX_PAYLOAD_BYTES, FrameError } from './frame';
+import { FrameParser, MessageType, encodeFrame, decodeFrame, MAX_PAYLOAD_BYTES, FrameError, HEADER_SIZE, FOOTER_SIZE } from './frame';
 import { createHello, serializeCbor, HelloAckPayload, CapabilityFlags } from './messages';
 
 // ============================================================================
