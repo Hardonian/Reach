@@ -8,11 +8,11 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	pb "reach/internal/packkit/proofbundle"
 )
