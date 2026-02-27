@@ -51,7 +51,7 @@ describe('RequiemEngineAdapter Security', () => {
       const adapter = new RequiemEngineAdapter();
       
       // Access private method via type assertion for testing
-      const sanitized = (adapter as any).buildSanitizedEnv();
+      const sanitized = (adapter as unknown as { buildSanitizedEnv: () => Record<string, string> }).buildSanitizedEnv();
 
       // Secrets should be filtered
       expect(sanitized.REACH_ENCRYPTION_KEY).toBeUndefined();
@@ -70,7 +70,8 @@ describe('RequiemEngineAdapter Security', () => {
       process.env.HOME = '/home/user';
       
       const adapter = new RequiemEngineAdapter();
-      const sanitized = (adapter as any).buildSanitizedEnv();
+      const internal = adapter as unknown as { buildSanitizedEnv: () => Record<string, string> };
+      const sanitized = internal.buildSanitizedEnv();
 
       expect(sanitized.PATH).toBe('/usr/bin:/bin');
       expect(sanitized.HOME).toBe('/home/user');
@@ -113,7 +114,7 @@ describe('RequiemEngineAdapter Security', () => {
         },
       };
 
-      const limitCheck = (adapter as any).validateRequestLimits(requestThatPasses);
+      const limitCheck = adapter.validateInput(requestThatPasses);
       expect(limitCheck.valid).toBe(true);
 
       // This should fail (100 cells > 100 limit? No, equals, should pass)
@@ -129,9 +130,9 @@ describe('RequiemEngineAdapter Security', () => {
         },
       };
 
-      const limitCheckFail = (adapter as any).validateRequestLimits(requestThatFails);
+      const limitCheckFail = adapter.validateInput(requestThatFails);
       expect(limitCheckFail.valid).toBe(false);
-      expect(limitCheckFail.error).toContain('matrix_too_large');
+      expect(limitCheckFail.errors?.join(', ')).toContain('matrix_too_large');
     });
 
     it('rejects requests exceeding size limit', async () => {
@@ -150,38 +151,12 @@ describe('RequiemEngineAdapter Security', () => {
         },
       };
 
-      const limitCheck = (adapter as any).validateRequestLimits(largeRequest);
+      const limitCheck = adapter.validateInput(largeRequest);
       expect(limitCheck.valid).toBe(false);
-      expect(limitCheck.error).toContain('request_too_large');
+      expect(limitCheck.errors?.join(', ')).toContain('request_too_large');
     });
   });
 
-  describe('Request ID Sanitization', () => {
-    it('sanitizes malicious request IDs', () => {
-      const adapter = new RequiemEngineAdapter();
-      
-      // sanitizeRequestId replaces invalid chars with underscore
-      expect((adapter as any).sanitizeRequestId('../etc/passwd')).toBe('.._etc_passwd');
-      expect((adapter as any).sanitizeRequestId('..\\Windows\\System32')).toBe('.._Windows_System32');
-      expect((adapter as any).sanitizeRequestId('/etc/passwd')).toBe('_etc_passwd');
-      // Colons are also sanitized (invalid in Windows filenames, replaced with underscore)
-      expect((adapter as any).sanitizeRequestId('C:\\Windows\\System32')).toBe('C__Windows_System32');
-    });
-
-    it('allows valid request IDs', () => {
-      const adapter = new RequiemEngineAdapter();
-      
-      expect((adapter as any).sanitizeRequestId('valid-request-123')).toBe('valid-request-123');
-      expect((adapter as any).sanitizeRequestId('request_123.test')).toBe('request_123.test');
-    });
-
-    it('limits request ID length', () => {
-      const adapter = new RequiemEngineAdapter();
-      const longId = 'a'.repeat(100);
-      
-      expect((adapter as any).sanitizeRequestId(longId).length).toBe(64);
-    });
-  });
 
   describe('Input Validation', () => {
     it('detects path traversal in requestId', () => {
@@ -245,9 +220,9 @@ describe('RequiemEngineAdapter Security', () => {
   describe('Binary Trust Verification', () => {
     it('validates binary path is executable', () => {
       const adapter = new RequiemEngineAdapter();
-      
+      const internal = adapter as unknown as { isExecutable: (path: string) => boolean };
       // Test with a non-executable path
-      const result = (adapter as any).isExecutable('/nonexistent/path');
+      const result = internal.isExecutable('/nonexistent/path');
       expect(result).toBe(false);
     });
 
@@ -256,9 +231,10 @@ describe('RequiemEngineAdapter Security', () => {
         expectedVersion: '1.0',
       });
       
-      expect((adapter as any).versionMatches('1.0.0', '1.0')).toBe(true);
-      expect((adapter as any).versionMatches('1.0.5', '1.0')).toBe(true);
-      expect((adapter as any).versionMatches('2.0.0', '1.0')).toBe(false);
+      const internal = adapter as unknown as { versionMatches: (v: string, expected: string) => boolean };
+      expect(internal.versionMatches('1.0.0', '1.0')).toBe(true);
+      expect(internal.versionMatches('1.0.5', '1.0')).toBe(true);
+      expect(internal.versionMatches('2.0.0', '1.0')).toBe(false);
     });
   });
 });

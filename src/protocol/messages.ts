@@ -1,12 +1,11 @@
 /**
  * Protocol Message Types (TypeScript)
- * 
+ *
  * TypeScript equivalents of the Rust message payloads.
  * Uses CBOR for serialization with fixed-point numeric types.
  */
 
 import { encode as cborEncode, decode as cborDecode } from 'cbor';
-import CborEncoder from 'cbor/types/lib/encoder';
 
 // ============================================================================
 // Fixed-Point Numeric Types
@@ -14,7 +13,7 @@ import CborEncoder from 'cbor/types/lib/encoder';
 
 /**
  * Fixed-point Q32.32 format (64-bit)
- * 
+ *
  * Represented as raw i64 in protocol.
  * Use conversion functions for f64 operations.
  */
@@ -33,290 +32,176 @@ export function q32_32ToF64(value: FixedQ32_32): number {
   return Number(value) / Number(SCALE);
 }
 
-/**
- * Basis points (16-bit)
- * 100 bps = 1%, 10000 bps = 100%
- */
-export type FixedBps = number;
-
-export function bpsFromPercent(percent: number): FixedBps {
-  return Math.round(percent * 100);
-}
-
-export function bpsToPercent(bps: FixedBps): number {
-  return bps / 100;
-}
-
-/**
- * Parts per million (32-bit)
- * 1,000,000 ppm = 100%
- */
-export type FixedPpm = number;
-
-export function ppmFromRatio(ratio: number): FixedPpm {
-  return Math.round(ratio * 1_000_000);
-}
-
-export function ppmToRatio(ppm: FixedPpm): number {
-  return ppm / 1_000_000;
-}
-
-/**
- * Duration in microseconds (64-bit)
- */
-export type FixedDuration = bigint;
-
-export const Duration = {
-  ZERO: BigInt(0) as FixedDuration,
-  
-  fromMicros(micros: number | bigint): FixedDuration {
-    return BigInt(micros);
-  },
-  
-  fromMillis(millis: number | bigint): FixedDuration {
-    return BigInt(millis) * BigInt(1000);
-  },
-  
-  fromSeconds(seconds: number | bigint): FixedDuration {
-    return BigInt(seconds) * BigInt(1_000_000);
-  },
-  
-  toMicros(d: FixedDuration): bigint {
-    return d;
-  },
-  
-  toMillis(d: FixedDuration): bigint {
-    return d / BigInt(1000);
-  },
-  
-  toSeconds(d: FixedDuration): bigint {
-    return d / BigInt(1_000_000);
-  },
-};
-
-/**
- * Throughput in micro-operations per second
- */
-export type FixedThroughput = bigint;
-
-export function throughputFromOpsPerSec(ops: number): FixedThroughput {
-  return BigInt(Math.round(ops * 1_000_000));
-}
-
-export function throughputToOpsPerSec(tp: FixedThroughput): number {
-  return Number(tp) / 1_000_000;
-}
-
 // ============================================================================
-// Capability Flags
+// Message Types
 // ============================================================================
 
-export enum CapabilityFlags {
-  NONE = 0,
-  BINARY_PROTOCOL = 1 << 0,
-  CBOR_ENCODING = 1 << 1,
-  COMPRESSION = 1 << 2,
-  SANDBOX = 1 << 3,
-  LLM = 1 << 4,
-  FIXED_POINT = 1 << 5,
-  STREAMING = 1 << 6,
+/**
+ * Message envelope - all protocol messages are wrapped in this
+ */
+export interface Envelope {
+  version: number;
+  sequence: number;
+  timestamp: number; // Unix timestamp in ms
+  payload: Payload;
 }
 
-// ============================================================================
-// Message Payloads
-// ============================================================================
+export type Payload =
+  | { type: 'hello'; data: Hello }
+  | { type: 'hello_ack'; data: HelloAck }
+  | { type: 'ping'; data: Ping }
+  | { type: 'pong'; data: Pong }
+  | { type: 'execute'; data: ExecRequestPayload }
+  | { type: 'result'; data: ExecResultPayload }
+  | { type: 'error'; data: ErrorResult }
+  | { type: 'status'; data: StatusRequest }
+  | { type: 'status_result'; data: StatusResult };
 
-export interface HelloPayload {
-  client_name: string;
+export interface Hello {
   client_version: string;
-  min_version: [number, number];
-  max_version: [number, number];
-  capabilities: CapabilityFlags;
-  preferred_encoding: 'cbor' | 'json';
+  protocol_version: number;
+  capabilities: string[];
 }
 
-export function createHello(
-  clientName: string,
-  clientVersion: string
-): HelloPayload {
-  return {
-    client_name: clientName,
-    client_version: clientVersion,
-    min_version: [1, 0],
-    max_version: [1, 0],
-    capabilities: CapabilityFlags.BINARY_PROTOCOL |
-                  CapabilityFlags.CBOR_ENCODING |
-                  CapabilityFlags.FIXED_POINT,
-    preferred_encoding: 'cbor',
-  };
+export interface HelloAck {
+  server_version: string;
+  protocol_version: number;
+  capabilities: string[];
 }
 
-export interface HelloAckPayload {
-  selected_version: [number, number];
-  capabilities: CapabilityFlags;
-  engine_version: string;
-  contract_version: string;
-  hash_version: string;
-  cas_version: string;
-  session_id: string;
+export interface Ping {
+  nonce: number;
 }
 
-export interface Workflow {
-  name: string;
+export interface Pong {
+  nonce: number;
+  timestamp: number;
+}
+
+// ============================================================================
+// Execution Types
+// ============================================================================
+
+export interface Policy {
+  id: string;
   version: string;
-  steps: WorkflowStep[];
+  rules: unknown[];
+}
+
+export interface Decision {
+  id: string;
+  action: string;
+  confidence: number;
+  metadata?: Record<string, unknown>;
 }
 
 export interface WorkflowStep {
   id: string;
-  step_type: 'tool_call' | 'emit_artifact' | 'decision' | 'pause';
-  config: Record<string, unknown>;
-  depends_on: string[];
-}
-
-export interface ExecutionControls {
-  max_steps?: number;
-  step_timeout_us: FixedDuration;
-  run_timeout_us: FixedDuration;
-  budget_limit_usd: FixedQ32_32;
-  min_step_interval_us: FixedDuration;
-}
-
-export const ExecutionControls = {
-  default(): ExecutionControls {
-    return {
-      max_steps: undefined,
-      step_timeout_us: Duration.fromSeconds(0),
-      run_timeout_us: Duration.fromSeconds(0),
-      budget_limit_usd: BigInt(0),
-      min_step_interval_us: Duration.fromSeconds(0),
-    };
-  },
-};
-
-export interface Policy {
-  rules: PolicyRule[];
-  default_decision: Decision;
-}
-
-export interface PolicyRule {
-  name: string;
-  condition: PolicyCondition;
   decision: Decision;
+  dependencies: string[];
 }
 
-export type PolicyCondition =
-  | { type: 'capability'; name: string }
-  | { type: 'step_limit'; max: number }
-  | { type: 'budget_limit'; max_usd: FixedQ32_32 }
-  | { type: 'tool_allowed'; tool_name: string }
-  | { type: 'and'; conditions: PolicyCondition[] }
-  | { type: 'or'; conditions: PolicyCondition[] };
-
-export type Decision =
-  | { type: 'allow' }
-  | { type: 'deny'; reason: string }
-  | { type: 'prompt' };
+export interface Workflow {
+  id: string;
+  steps: WorkflowStep[];
+}
 
 export interface ExecRequestPayload {
   run_id: string;
-  workflow: Workflow;
-  controls: ExecutionControls;
-  policy: Policy;
-  metadata: Record<string, string>;
+  pack_id: string;
+  workflow?: Workflow;
+  decision?: Decision;
+  params: Record<string, unknown>;
+  policy?: Policy;
+  controls?: ExecutionControls;
+}
+
+export interface ExecutionMetrics {
+  cpu_time_ms: number;
+  memory_peak_bytes: number;
+  io_read_bytes: number;
+  io_write_bytes: number;
 }
 
 export interface ExecResultPayload {
   run_id: string;
-  status: RunStatus;
-  result_digest: string;
-  events: RunEvent[];
-  final_action?: Action;
-  metrics: ExecutionMetrics;
-  session_id: string;
+  success: boolean;
+  result?: unknown;
+  fingerprint: string;
+  execution_time_ms: number;
+  metrics?: ExecutionMetrics;
 }
 
-export type RunStatus =
-  | { type: 'completed' }
-  | { type: 'paused'; reason: string }
-  | { type: 'cancelled'; reason: string }
-  | { type: 'failed'; reason: string };
-
-export interface RunEvent {
-  event_id: string;
-  event_type: string;
-  timestamp_us: bigint;
-  payload: Record<string, unknown>;
-}
-
-export type Action =
-  | { type: 'tool_call'; step_id: string; tool_name: string; input: Record<string, unknown> }
-  | { type: 'emit_artifact'; step_id: string; artifact_id: string }
-  | { type: 'done' };
-
-export interface ExecutionMetrics {
-  steps_executed: number;
-  elapsed_us: FixedDuration;
-  budget_spent_usd: FixedQ32_32;
-  throughput: FixedThroughput;
-  cas_hit_rate: FixedPpm;
-  latency_p50_us: FixedDuration;
-  latency_p95_us: FixedDuration;
-  latency_p99_us: FixedDuration;
-  latency_histogram: Histogram;
-}
-
-export interface Histogram {
-  boundaries: FixedDuration[];
-  counts: bigint[];
-}
-
-export interface HealthRequestPayload {
-  detailed: boolean;
-}
-
-export interface HealthResultPayload {
-  status: HealthStatus;
-  version: string;
-  uptime_us: FixedDuration;
-  load?: LoadMetrics;
-}
-
-export type HealthStatus =
-  | { type: 'healthy' }
-  | { type: 'degraded'; reason: string }
-  | { type: 'unhealthy'; reason: string };
-
-export interface LoadMetrics {
-  active_runs: number;
-  queued_runs: number;
-  cpu_bps: FixedBps;
-  memory_bps: FixedBps;
-}
-
-export interface ErrorPayload {
+export interface ErrorResult {
+  run_id: string;
   code: ErrorCode;
   message: string;
-  details: Record<string, string>;
-  correlation_id: string;
+  recoverable: boolean;
 }
 
-export enum ErrorCode {
-  // Protocol errors (1xx)
-  InvalidMessage = 100,
-  UnsupportedVersion = 101,
-  EncodingError = 102,
-  
-  // Execution errors (2xx)
-  ExecutionFailed = 200,
-  BudgetExceeded = 201,
-  Timeout = 202,
-  PolicyDenied = 203,
-  
-  // System errors (3xx)
-  InternalError = 300,
-  ResourceExhausted = 301,
-  ServiceUnavailable = 302,
+export type ErrorCode =
+  | 'E_INVALID_INPUT'
+  | 'E_POLICY_VIOLATION'
+  | 'E_EXECUTION_FAILED'
+  | 'E_TIMEOUT'
+  | 'E_INTERNAL'
+  | 'E_RESOURCE_EXHAUSTED'
+  | 'E_DETERMINISM_FAILED'
+  | 'E_PROTOCOL_MISMATCH';
+
+export interface StatusRequest {
+  run_id?: string;
+}
+
+export interface StatusResult {
+  ready: boolean;
+  version: string;
+  queued_runs: number;
+  active_runs: number;
+}
+
+// ============================================================================
+// Execution Controls
+// ============================================================================
+
+/**
+ * Duration specification - can be millis or human-readable
+ */
+export type Duration = number | string;
+
+/**
+ * Execution controls for fine-tuning behavior
+ */
+export interface ExecutionControls {
+  /**
+   * Maximum execution time
+   */
+  timeout?: Duration;
+
+  /**
+   * Maximum memory usage in bytes
+   */
+  memory_limit?: number;
+
+  /**
+   * Priority level (lower = higher priority)
+   */
+  priority?: number;
+
+  /**
+   * Whether execution can be retried on failure
+   */
+  retryable?: boolean;
+
+  /**
+   * Maximum number of retries
+   */
+  max_retries?: number;
+
+  /**
+   * Enable detailed tracing
+   */
+  trace?: boolean;
 }
 
 // ============================================================================
@@ -324,64 +209,192 @@ export enum ErrorCode {
 // ============================================================================
 
 /**
- * Serialize payload to CBOR (Canonical)
- * Ensures deterministic byte output for binary digests.
+ * Serialize an envelope to CBOR bytes
  */
-export function serializeCbor(payload: unknown): Uint8Array {
-  // Use canonical encoding for map key stability (deterministic byte output)
-  const encoded = CborEncoder.encodeCanonical(payload);
-  return new Uint8Array(encoded);
+export function serialize(envelope: Envelope): Buffer {
+  return cborEncode(envelope);
 }
 
 /**
- * Deterministically sort RunEvents by timestamp and ID
- * CRITICAL: Enforced to ensure result_digest stability
+ * Deserialize CBOR bytes to an envelope
  */
-export function sortRunEvents(events: RunEvent[]): RunEvent[] {
-  return [...events].sort((a, b) => {
-    // Primary: Timestamp
-    if (a.timestamp_us < b.timestamp_us) return -1;
-    if (a.timestamp_us > b.timestamp_us) return 1;
-    // Secondary: Event ID (ActionID sorting guard)
-    return a.event_id.localeCompare(b.event_id);
-  });
+export function deserialize(data: Buffer): Envelope {
+  return cborDecode(data) as Envelope;
+}
+
+// ============================================================================
+// Factory Functions
+// ============================================================================
+
+/**
+ * Create a hello message
+ */
+export function createHello(
+  sequence: number,
+  clientVersion: string,
+  protocolVersion: number,
+  capabilities: string[] = []
+): Envelope {
+  return {
+    version: 1,
+    sequence,
+    timestamp: Date.now(),
+    payload: {
+      type: 'hello',
+      data: {
+        client_version: clientVersion,
+        protocol_version: protocolVersion,
+        capabilities,
+      },
+    },
+  };
 }
 
 /**
- * Deserialize payload from CBOR
+ * Create a hello acknowledgment
  */
-export function deserializeCbor<T>(data: Uint8Array): T {
-  return cborDecode(data) as T;
+export function createHelloAck(
+  sequence: number,
+  serverVersion: string,
+  protocolVersion: number,
+  capabilities: string[] = []
+): Envelope {
+  return {
+    version: 1,
+    sequence,
+    timestamp: Date.now(),
+    payload: {
+      type: 'hello_ack',
+      data: {
+        server_version: serverVersion,
+        protocol_version: protocolVersion,
+        capabilities,
+      },
+    },
+  };
 }
 
 /**
- * Serialize to JSON (for debugging/fallback)
+ * Create a ping message
  */
-export function serializeJson(payload: unknown): Uint8Array {
-  const json = JSON.stringify(payload, (_, value) => {
-    // Convert BigInt to string for JSON
-    if (typeof value === 'bigint') {
-      return value.toString();
-    }
-    return value;
-  });
-  return new TextEncoder().encode(json);
+export function createPing(sequence: number, nonce: number): Envelope {
+  return {
+    version: 1,
+    sequence,
+    timestamp: Date.now(),
+    payload: { type: 'ping', data: { nonce } },
+  };
 }
 
 /**
- * Deserialize from JSON
+ * Create a pong response
  */
-export function deserializeJson<T>(data: Uint8Array): T {
-  const json = new TextDecoder().decode(data);
-  return JSON.parse(json, (_, value) => {
-    // Convert string numbers back to BigInt where appropriate
-    if (typeof value === 'string' && /^\d+$/.test(value)) {
-      try {
-        return BigInt(value);
-      } catch {
-        return value;
-      }
-    }
-    return value;
-  });
+export function createPong(sequence: number, nonce: number): Envelope {
+  return {
+    version: 1,
+    sequence,
+    timestamp: Date.now(),
+    payload: { type: 'pong', data: { nonce, timestamp: Date.now() } },
+  };
+}
+
+/**
+ * Create an execute request
+ */
+export function createExecute(
+  sequence: number,
+  run_id: string,
+  pack_id: string,
+  params: Record<string, unknown>,
+  policy?: Policy,
+  workflow?: Workflow,
+  decision?: Decision,
+  controls?: ExecutionControls
+): Envelope {
+  return {
+    version: 1,
+    sequence,
+    timestamp: Date.now(),
+    payload: {
+      type: 'execute',
+      data: { run_id, pack_id, params, policy, workflow, decision, controls },
+    },
+  };
+}
+
+/**
+ * Create an execute result
+ */
+export function createResult(
+  sequence: number,
+  run_id: string,
+  success: boolean,
+  result: unknown,
+  fingerprint: string,
+  execution_time_ms: number,
+  metrics?: ExecutionMetrics
+): Envelope {
+  return {
+    version: 1,
+    sequence,
+    timestamp: Date.now(),
+    payload: {
+      type: 'result',
+      data: { run_id, success, result, fingerprint, execution_time_ms, metrics },
+    },
+  };
+}
+
+/**
+ * Create an error result
+ */
+export function createError(
+  sequence: number,
+  run_id: string,
+  code: ErrorCode,
+  message: string,
+  recoverable: boolean
+): Envelope {
+  return {
+    version: 1,
+    sequence,
+    timestamp: Date.now(),
+    payload: {
+      type: 'error',
+      data: { run_id, code, message, recoverable },
+    },
+  };
+}
+
+/**
+ * Create a status request
+ */
+export function createStatusRequest(sequence: number, run_id?: string): Envelope {
+  return {
+    version: 1,
+    sequence,
+    timestamp: Date.now(),
+    payload: { type: 'status', data: { run_id } },
+  };
+}
+
+/**
+ * Create a status result
+ */
+export function createStatusResult(
+  sequence: number,
+  ready: boolean,
+  version: string,
+  queued_runs: number,
+  active_runs: number
+): Envelope {
+  return {
+    version: 1,
+    sequence,
+    timestamp: Date.now(),
+    payload: {
+      type: 'status_result',
+      data: { ready, version, queued_runs, active_runs },
+    },
+  };
 }

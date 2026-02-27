@@ -1,0 +1,98 @@
+{
+  "run_id": "cpx-f2573b047061a332",
+  "timestamp": "2026-02-27T03:42:57.602Z",
+  "base_sha": "base-sha-3",
+  "packs": [
+    {
+      "pack_id": "28b6ef11396818d256dbf0a9b5dd3b9db90f7a468fdf0bec26334a51ebeaf475",
+      "provider": "provider-a",
+      "model": "m1",
+      "patch_content_hash": "28b6ef11396818d256dbf0a9b5dd3b9db90f7a468fdf0bec26334a51ebeaf475",
+      "patch_structural_hash": "baed039dfa46a804ce79c44ae343d7004875eaca378ed14e976049a858fdb495",
+      "patch_intent_hash": "229fa1c9676e317175bf444f22381b32bfb16c83f801499de688988dbac5fccd"
+    },
+    {
+      "pack_id": "de44e91d20665cec6b26337e5be947941b7d0ed97bf8121f9c19cda0cb4c5aa2",
+      "provider": "provider-b",
+      "model": "m2",
+      "patch_content_hash": "de44e91d20665cec6b26337e5be947941b7d0ed97bf8121f9c19cda0cb4c5aa2",
+      "patch_structural_hash": "572ae82805d5092cf2631be2e86a3d51de508ec1328e6921cb085dc857c844d9",
+      "patch_intent_hash": "33fbdab23e2ed795c0c574aa63a04225f973c5df128fa5a11c355907cd9a72b5"
+    }
+  ],
+  "per_patch": [
+    {
+      "pack_id": "28b6ef11396818d256dbf0a9b5dd3b9db90f7a468fdf0bec26334a51ebeaf475",
+      "score_total": -0.0708,
+      "score_breakdown": {
+        "dgl_error": 0,
+        "dgl_warn": 0,
+        "openapi_break": 0,
+        "trust_boundary": 0,
+        "blast_radius": 0.0012,
+        "provider_calibration": -0.07200000000000001,
+        "ack_penalty": 0,
+        "route_mismatch": 0
+      },
+      "top_risks": [],
+      "top_strengths": [
+        "No DGL violations in supplied report",
+        "No route mismatch signal provided",
+        "Provider confidence 90%"
+      ]
+    },
+    {
+      "pack_id": "de44e91d20665cec6b26337e5be947941b7d0ed97bf8121f9c19cda0cb4c5aa2",
+      "score_total": -0.0772,
+      "score_breakdown": {
+        "dgl_error": 0,
+        "dgl_warn": 0,
+        "openapi_break": 0,
+        "trust_boundary": 0,
+        "blast_radius": 0.0012,
+        "provider_calibration": -0.0784,
+        "ack_penalty": 0,
+        "route_mismatch": 0
+      },
+      "top_risks": [],
+      "top_strengths": [
+        "No DGL violations in supplied report",
+        "No route mismatch signal provided",
+        "Provider confidence 78%"
+      ]
+    }
+  ],
+  "conflict_matrix": {
+    "28b6ef11396818d256dbf0a9b5dd3b9db90f7a468fdf0bec26334a51ebeaf475": {
+      "de44e91d20665cec6b26337e5be947941b7d0ed97bf8121f9c19cda0cb4c5aa2": {
+        "text_conflict": 0,
+        "structural_conflict": 0,
+        "semantic_conflict": 0.7,
+        "boundary_conflict": 0,
+        "reasons": [
+          "Task intent differs between patches"
+        ]
+      }
+    },
+    "de44e91d20665cec6b26337e5be947941b7d0ed97bf8121f9c19cda0cb4c5aa2": {
+      "28b6ef11396818d256dbf0a9b5dd3b9db90f7a468fdf0bec26334a51ebeaf475": {
+        "text_conflict": 0,
+        "structural_conflict": 0,
+        "semantic_conflict": 0.7,
+        "boundary_conflict": 0,
+        "reasons": [
+          "Task intent differs between patches"
+        ]
+      }
+    }
+  },
+  "arbitration": {
+    "decision_type": "PROPOSE_MERGE_PLAN",
+    "rationale": [
+      "Candidates overlap with semantic disagreement."
+    ],
+    "recommended_next_actions": [
+      "Use generated merge plan and run targeted route + contract tests."
+    ]
+  }
+}

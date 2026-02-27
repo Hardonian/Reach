@@ -10,6 +10,7 @@
 import { describe, it, expect } from 'vitest';
 import { RequiemEngineAdapter } from './requiem';
 import { DualEngineAdapter } from './dual';
+import { RustEngineAdapter } from './rust';
 import { FuzzGenerator } from './base';
 
 describe('RequiemEngineAdapter Fuzzing', () => {
@@ -58,5 +59,32 @@ describe('DualEngineAdapter Fuzzing', () => {
     
     expect(validation.valid).toBe(false);
     expect(validation.errors?.some(e => e.includes('floating_point_values_detected'))).toBe(true);
+  });
+});
+
+describe('RustEngineAdapter Fuzzing', () => {
+  it('rejects float fuzz requests (determinism guard)', async () => {
+    const adapter = new RustEngineAdapter();
+    
+    // Mock the WASM module to simulate a loaded state
+    // We need to bypass private access modifier for testing
+    (adapter as any).wasmModule = {
+      evaluate: () => '{}',
+      version: () => '1.0.0',
+      validate_input: () => 'true',
+      get_algorithms: () => '[]'
+    };
+    (adapter as any).isLoaded = true;
+
+    const request = FuzzGenerator.generateFloatRequest();
+    
+    // Test validateInput directly
+    const validation = adapter.validateInput(request);
+    
+    expect(validation.valid).toBe(false);
+    expect(validation.errors?.some(e => e.includes('floating_point_values_detected'))).toBe(true);
+
+    // Test evaluate flow
+    await expect(adapter.evaluate(request)).rejects.toThrow(/Input validation failed/);
   });
 });

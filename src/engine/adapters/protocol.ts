@@ -17,12 +17,12 @@
 
 import { ExecRequest, ExecResult } from '../contract';
 import { BaseEngineAdapter, deriveSeed } from './base';
+import { hasFloatingPointValues } from '../utils/validation';
 import { 
   ProtocolClient, 
   ConnectionState,
   type ProtocolClientConfig 
 } from '../../protocol/client';
-import { hasFloatingPointValues } from '../utils/validation';
 import { 
   createHello,
   type ExecRequestPayload,
@@ -61,6 +61,11 @@ export interface ProtocolAdapterConfig {
    * Expected engine version (semver)
    */
   expectedVersion?: string;
+
+  /**
+   * Custom logger for debugging frame serialization and protocol events
+   */
+  logger?: (message: string, data?: unknown) => void;
 }
 
 /**
@@ -208,6 +213,11 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
     // Convert ExecRequest to protocol format
     const protocolRequest = this.toProtocolRequest(request);
     
+    // Log request payload for debugging serialization issues
+    if (this.config.logger) {
+      this.config.logger('[ProtocolAdapter] Sending execution request', { run_id: protocolRequest.run_id, payload_size: JSON.stringify(protocolRequest).length });
+    }
+
     // Execute via binary protocol
     const result = await this.client.execute(protocolRequest);
     

@@ -9,8 +9,7 @@
 
 import { ExecRequest, ExecResult } from '../contract';
 import { toRustFormat, fromRustFormat } from '../translate';
-import { ProcessSemaphore, getSemaphore, deriveSeed, BaseEngineAdapter } from './base';
-import { hasFloatingPointValues } from '../utils/validation';
+import { BaseEngineAdapter } from './base';
 
 /**
  * Proper interface matching actual WASM module exports
@@ -121,7 +120,7 @@ export function validateWasmModule(module: unknown): WasmModuleValidation {
       const versionResult = (wasmModule.version as () => string)();
       version = versionResult;
     }
-  } catch (e) {
+  } catch {
     // Version call failed, that's okay
   }
   
@@ -130,7 +129,7 @@ export function validateWasmModule(module: unknown): WasmModuleValidation {
       const algResult = (wasmModule.get_algorithms as () => string)();
       algorithms = JSON.parse(algResult);
     }
-  } catch (e) {
+  } catch {
     // Algorithms call failed, that's okay
   }
   

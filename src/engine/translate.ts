@@ -332,18 +332,41 @@ export function resultFromProtocol(result: ExecResultPayload, requestId: string)
   const status = result.status.type === 'failed' ? 'error' : 'success';
   const error = result.status.type === 'failed' ? result.status.reason : undefined;
 
+  let recommendedAction = '';
+  let ranking: string[] = [];
+  let trace: ExecResult['trace'] = { algorithm: 'unknown' };
+
+  // DETERMINISM: Extract first decision event (most engines produce exactly one)
+  const events = (result as any).events as any[] || [];
+  const decisionEvent = events.find(e => e.event_type === 'DecisionMade');
+  
+  if (decisionEvent) {
+    const p = decisionEvent.payload;
+    recommendedAction = String(p.action || '');
+    ranking = Array.isArray(p.ranking) ? p.ranking.map(String) : [];
+    
+    if (p.trace && typeof p.trace === 'object') {
+      const t = p.trace as Record<string, unknown>;
+      trace = {
+        algorithm: String(t.algorithm || 'unknown'),
+        regretTable: t.regret_table as Record<string, Record<string, number>> | undefined,
+        maxRegret: t.max_regret as Record<string, number> | undefined,
+        minUtility: t.min_utility as Record<string, number> | undefined,
+        weightedScores: t.weighted_scores as Record<string, number> | undefined,
+      };
+    }
+  }
+
   return {
     requestId: result.run_id || requestId,
     status,
-    recommendedAction: '', // Will be populated from events in a real impl
-    ranking: [],
-    trace: {
-      algorithm: 'unknown',
-    },
+    recommendedAction,
+    ranking,
+    trace,
     fingerprint: result.result_digest,
     meta: {
       engine: 'requiem',
-      engineVersion: 'unknown',
+      engineVersion: '1.0.0', // Standardized version for cutover
       durationMs: Number(Duration.toMillis(result.metrics.elapsed_us)),
       completedAt: new Date().toISOString(),
     },

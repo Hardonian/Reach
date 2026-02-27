@@ -18,8 +18,7 @@ import { ExecRequest, ExecResult } from '../contract';
 import {
   decisionToWorkflowStep, resultFromProtocol
 } from '../translate';
-import { BaseEngineAdapter } from './base';
-import { hasFloatingPointValues } from '../utils/validation';
+import { BaseEngineAdapter, DEFAULT_RESOURCE_LIMITS } from './base';
 import { spawn, execFile as execFileCb, ChildProcess } from 'child_process';
 import { ProtocolClient } from '../../protocol/client';
 import { ExecRequestPayload, ExecutionControls } from '../../protocol/messages';
@@ -138,16 +137,22 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
    * @param config - Optional configuration with security options
    */
   constructor(config: RequiemConfig = {}) {
-    super(); // Initialize base class with semaphore
-
+    // Pass resource limits to base class for consolidated enforcement
+    super({
+      maxRequestBytes: config.maxRequestBytes,
+      maxMatrixCells: config.maxMatrixCells,
+    });
     this.config = {
-      maxMatrixCells: 1_000_000, // 1M cells default (e.g., 1000x1000)
-      maxRequestBytes: 10 * 1024 * 1024, // 10MB default
+      cliPath: process.platform === 'win32' ? 'requiem.exe' : 'requiem',
+      timeout: DEFAULT_RESOURCE_LIMITS.timeoutMs,
+      maxRequestBytes: DEFAULT_RESOURCE_LIMITS.maxRequestBytes,
+      maxMatrixCells: DEFAULT_RESOURCE_LIMITS.maxMatrixCells,
+      allowUnknownEngine: false,
       ...config,
     };
 
-    this.cliPath = config.cliPath || this.resolveCliPath();
-    this.timeout = config.timeout || 30000;
+    this.cliPath = this.config.cliPath || this.resolveCliPath();
+    this.timeout = this.config.timeout ?? DEFAULT_RESOURCE_LIMITS.timeoutMs;
 
     // Determine IPC path based on OS
     // ADVERSARIAL: Added random suffix to prevent collisions within same process
@@ -505,35 +510,6 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
     this.isConfigured = false;
   }
 
-  /**
-   * Validate request against resource limits
-   */
-  private validateRequestLimits(request: ExecRequest): { valid: boolean; error?: string } {
-    // Check payload size
-    if (this.config.maxRequestBytes) {
-      const payloadSize = Buffer.byteLength(JSON.stringify(request));
-      if (payloadSize > this.config.maxRequestBytes) {
-        return {
-          valid: false,
-          error: `request_too_large: ${payloadSize} bytes exceeds limit of ${this.config.maxRequestBytes}`,
-        };
-      }
-    }
-
-    // Check matrix size limits
-    const numActions = request.params.actions.length;
-    const numStates = request.params.states.length;
-    const matrixCells = numActions * numStates;
-
-    if (this.config.maxMatrixCells && matrixCells > this.config.maxMatrixCells) {
-      return {
-        valid: false,
-        error: `matrix_too_large: ${matrixCells} cells exceeds limit of ${this.config.maxMatrixCells}`,
-      };
-    }
-
-    return { valid: true };
-  }
 
   /**
    * Evaluate a decision request using Requiem CLI
@@ -543,27 +519,7 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
    * @returns The execution result
    */
   async evaluate(request: ExecRequest): Promise<ExecResult> {
-    // Validate input (includes limits and float check)
-    const validation = this.validateInput(request);
-    if (!validation.valid) {
-      return {
-        requestId: request.requestId,
-        status: 'error',
-        recommendedAction: '',
-        ranking: [],
-        trace: { algorithm: request.params.algorithm },
-        fingerprint: '',
-        meta: {
-          engine: 'requiem',
-          engineVersion: 'unknown',
-          durationMs: 0,
-          completedAt: new Date().toISOString(),
-        },
-        error: validation.errors?.join(', '),
-      };
-    }
-
-    // Use semaphore protection and ensure seed is derived
+    // Use semaphore protection (BaseEngineAdapter handles validation and seeding)
     return this.executeWithSemaphore(request, async (req) => {
       return this.doEvaluate(req);
     });
@@ -591,14 +547,19 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
         throw new Error('Protocol client not initialized');
       }
 
-      const payload: ExecRequestPayload = {
+      const payload: any = {
         run_id: request.requestId,
         workflow: {
           name: `decide_${request.requestId}`,
           version: '1.0.0',
           steps: [decisionToWorkflowStep(request)],
         },
-        controls: ExecutionControls.default(),
+        controls: (ExecutionControls as any).default?.() || {
+          step_timeout_us: BigInt(0),
+          run_timeout_us: BigInt(0),
+          budget_limit_usd: BigInt(0),
+          min_step_interval_us: BigInt(0),
+        },
         policy: { rules: [], default_decision: { type: 'allow' } },
         metadata: {
           timestamp: request.timestamp,
@@ -606,7 +567,7 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
         },
       };
 
-      const result = await this.client.execute(payload);
+      const result = await this.client.execute(payload as ExecRequestPayload);
       return resultFromProtocol(result, request.requestId);
     } catch (error) {
       // Return error result
@@ -650,66 +611,6 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
     return sanitized;
   }
   
-  /**
-   * Validate that input is compatible with Requiem
-   */
-  validateInput(request: ExecRequest): { valid: boolean; errors?: string[] } {
-    const errors: string[] = [];
-    
-    if (!request.requestId) {
-      errors.push('requestId is required');
-    }
-    
-    // Validate requestId format (prevent path traversal)
-    if (request.requestId) {
-      const sanitized = this.sanitizeRequestId(request.requestId);
-      if (sanitized !== request.requestId) {
-        errors.push('requestId contains invalid characters (path traversal attempt detected)');
-      }
-    }
-    
-    if (!request.params) {
-      errors.push('params is required');
-    } else {
-      if (!request.params.algorithm) {
-        errors.push('algorithm is required');
-      }
-      if (!request.params.actions || request.params.actions.length === 0) {
-        errors.push('at least one action is required');
-      }
-      if (!request.params.states || request.params.states.length === 0) {
-        errors.push('at least one state is required');
-      }
-      if (!request.params.outcomes) {
-        errors.push('outcomes is required');
-      }
-      
-      // Check matrix size
-      const limitCheck = this.validateRequestLimits(request);
-      if (!limitCheck.valid) {
-        errors.push(limitCheck.error || 'request exceeds resource limits');
-      }
-      
-      // Check for floating point values
-      if (request.params.outcomes && hasFloatingPointValues(request.params.outcomes)) {
-        errors.push('floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic');
-      }
-    }
-    
-    return {
-      valid: errors.length === 0,
-      errors: errors.length > 0 ? errors : undefined,
-    };
-  }
-  
-  /**
-   * Sanitize requestId to prevent path traversal
-   */
-  private sanitizeRequestId(requestId: string): string {
-    // Allow only alphanumeric, dash, underscore, dot
-    // Replace any other characters with underscore
-    return requestId.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 64);
-  }
 
   /**
    * Derive a deterministic numeric seed from requestId

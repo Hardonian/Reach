@@ -322,6 +322,9 @@ export class ContentAddressableStorage {
   /**
    * Export an artifact to a file on disk with security validation
    * 
+   * SECURITY: Use atomic write strategy (write to temp + rename)
+   * Prevents partial writes if process crashes.
+   * 
    * @param cid - The CID to export
    * @param targetPath - The destination path (will be validated against baseDir)
    * @throws Error if path is outside workspace or artifact not found
@@ -338,8 +341,21 @@ export class ContentAddressableStorage {
       fs.mkdirSync(parentDir, { recursive: true });
     }
     
-    // Write content to validated path
-    fs.writeFileSync(realPath, entry.content);
+    // ATOMIC WRITE STRATEGY:
+    // 1. Write to temporary file in the same directory
+    // 2. Rename (atomic on most FS) to target path
+    const tempPath = `${realPath}.tmp.${Date.now()}.${Math.random().toString(36).substring(2, 7)}`;
+    
+    try {
+      fs.writeFileSync(tempPath, entry.content);
+      fs.renameSync(tempPath, realPath);
+    } catch (error) {
+      // Cleanup temp file on failure
+      if (fs.existsSync(tempPath)) {
+        try { fs.unlinkSync(tempPath); } catch { /* ignore cleanup error */ }
+      }
+      throw error;
+    }
     
     return realPath;
   }

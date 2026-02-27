@@ -375,7 +375,7 @@ export abstract class BaseEngineAdapter {
       // Path traversal protection
       const sanitized = request.requestId.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 64);
       if (sanitized !== request.requestId) {
-        errors.push('requestId contains invalid characters (path traversal attempt detected)');
+        errors.push('requestId contains invalid characters or path traversal attempt detected');
       }
     }
     
@@ -445,7 +445,23 @@ export abstract class BaseEngineAdapter {
     // Ensure seed is derived before execution
     const requestWithSeed = this.ensureSeed(request);
     
-    return this.semaphore.run(() => executor(requestWithSeed));
+    const result = await this.semaphore.run(() => executor(requestWithSeed));
+    
+    // Determinism Guard: Verify result integrity
+    if (result && typeof result === 'object' && ('fingerprint' in (result as Record<string, unknown>))) {
+      this.verifyResult(result as unknown as ExecResult);
+    }
+    
+    return result;
+  }
+
+  /**
+   * Verify result integrity and determinism markers
+   */
+  protected verifyResult(result: ExecResult): void {
+    if (result.status === 'success' && !result.fingerprint) {
+      throw new Error(`Determinism Guard: engine ${result.meta.engine} failed to provide a fingerprint for successful result`);
+    }
   }
 
   /**
