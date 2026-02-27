@@ -17,12 +17,12 @@
 
 import { ExecRequest, ExecResult } from '../contract';
 import { BaseEngineAdapter, deriveSeed } from './base';
-import { hasFloatingPointValues } from '../utils/validation';
 import { 
   ProtocolClient, 
   ConnectionState,
   type ProtocolClientConfig 
 } from '../../protocol/client';
+import { hasFloatingPointValues } from '../utils/validation';
 import { 
   createHello,
   type ExecRequestPayload,

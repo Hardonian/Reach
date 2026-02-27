@@ -15,6 +15,8 @@
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { ProtocolClient, ConnectionState } from '../../src/protocol/client';
+import { ProtocolEngineAdapter } from '../../src/engine/adapters/protocol';
+import { FuzzGenerator } from '../../src/engine/adapters/base';
 import { MessageType, encodeFrame } from '../../src/protocol/frame';
 import { 
   createHello, 
@@ -369,6 +371,25 @@ describe('MERGE GATE: Protocol E2E Tests', () => {
       // Compare using frame data (not stdout)
       expect(result1.result_digest).toBe(result2.result_digest);
       expect(result1.status).toEqual(result2.status);
+    });
+  });
+
+  // ============================================================================
+  // Gate 8: Adapter Input Validation
+  // ============================================================================
+
+  describe('Gate 8: Adapter Input Validation', () => {
+    it('should reject floating point values at adapter level', async () => {
+      // This verifies the adapter's guard works before hitting the wire
+      const adapter = new ProtocolEngineAdapter({
+        client: { host: TEST_CONFIG.host, port: TEST_CONFIG.port }
+      });
+
+      const request = FuzzGenerator.generateFloatRequest();
+      const result = await adapter.evaluate(request);
+
+      expect(result.status).toBe('error');
+      expect(result.error).toContain('floating_point_values_detected');
     });
   });
 });
