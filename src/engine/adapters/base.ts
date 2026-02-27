@@ -361,6 +361,24 @@ export abstract class BaseEngineAdapter {
   }
 
   /**
+   * Check for floating point values in object tree
+   * Ensures numeric integrity for fixed-point arithmetic
+   */
+  protected hasFloatingPointValues(obj: unknown): boolean {
+    if (typeof obj === 'number') {
+      return !Number.isInteger(obj);
+    }
+    if (typeof obj === 'object' && obj !== null) {
+      for (const value of Object.values(obj as Record<string, unknown>)) {
+        if (this.hasFloatingPointValues(value)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
    * Validate request against resource limits
    */
   protected validateLimits(request: ExecRequest): ResourceValidationResult {
@@ -396,3 +414,77 @@ export abstract class BaseEngineAdapter {
    */
   abstract isReady(): boolean;
 }
+
+// ============================================================================
+// Fuzz Testing Utilities
+// ============================================================================
+
+/**
+ * Fuzz testing generator for robustness validation
+ */
+export const FuzzGenerator = {
+  /**
+   * Generate a valid execution request with random data
+   */
+  generateValidRequest(id: string = 'fuzz-test'): ExecRequest {
+    const actions = ['a1', 'a2', 'a3'];
+    const states = ['s1', 's2'];
+    const outcomes: Record<string, Record<string, number>> = {};
+    
+    for (const action of actions) {
+      outcomes[action] = {};
+      for (const state of states) {
+        outcomes[action][state] = Math.floor(Math.random() * 100);
+      }
+    }
+    
+    return {
+      requestId: id,
+      timestamp: new Date().toISOString(),
+      params: {
+        algorithm: 'minimax_regret',
+        actions,
+        states,
+        outcomes,
+      },
+    };
+  },
+
+  /**
+   * Generate a request with floating point values (invalid)
+   */
+  generateFloatRequest(id: string = 'fuzz-float'): ExecRequest {
+    const req = this.generateValidRequest(id);
+    if (req.params.outcomes['a1']) {
+      req.params.outcomes['a1']['s1'] = 1.5;
+    }
+    return req;
+  },
+
+  /**
+   * Generate a request with massive payload (stress test)
+   */
+  generateMassiveRequest(id: string = 'fuzz-massive', size: number = 1000): ExecRequest {
+    const actions = Array.from({ length: size }, (_, i) => `a${i}`);
+    const states = ['s1', 's2'];
+    const outcomes: Record<string, Record<string, number>> = {};
+    
+    for (const action of actions) {
+      outcomes[action] = {};
+      for (const state of states) {
+        outcomes[action][state] = Math.floor(Math.random() * 100);
+      }
+    }
+    
+    return {
+      requestId: id,
+      timestamp: new Date().toISOString(),
+      params: {
+        algorithm: 'minimax_regret',
+        actions,
+        states,
+        outcomes,
+      },
+    };
+  }
+};

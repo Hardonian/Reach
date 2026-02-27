@@ -2,13 +2,16 @@
  * Engine Contract Translation
  * 
  * Normalizes request/response formats between Reach and different engines.
- * Ensures canonical JSON formatting for deterministic hashing.
+ * All hashing is delegated to the Rust/WASM deterministic engine core.
+ * 
+ * NOTE: This module does NOT implement hashing locally.
+ * The single source of truth for hashing is:
+ *   Go: services/runner/internal/determinism/determinism.go
+ *   Rust: crates/engine-core/src/digest.rs
  * 
  * @module engine/translate
  */
 
-import { hash, hash as blake3Hash } from '../lib/hash';
-import { toCanonicalJson } from '../lib/canonical';
 import {
   ExecRequest,
   ExecResult,
@@ -56,7 +59,7 @@ export function clampObjectPrecision<T>(obj: T): T {
   
   if (typeof obj === 'object') {
     const result: Record<string, unknown> = {};
-    for (const key of Object.keys(obj as Record<string, unknown>)) {
+    for (const key of Object.keys(obj as Record<string, unknown>).sort()) {
       result[key] = clampObjectPrecision((obj as Record<string, unknown>)[key]);
     }
     return result as T;
@@ -66,7 +69,7 @@ export function clampObjectPrecision<T>(obj: T): T {
 }
 
 // ============================================================================
-// DecisionInput/Output Types (from fallback.ts)
+// DecisionInput/Output Types
 // ============================================================================
 
 export interface DecisionInputLegacy {
@@ -115,10 +118,10 @@ export function decisionInputToExecRequest(
     timestamp: new Date().toISOString(),
     params: {
       algorithm: normalizeAlgorithm(options?.algorithm || input.algorithm || 'minimax_regret'),
-      actions: input.actions,
-      states: input.states,
+      actions: [...input.actions].sort(), // Deterministic ordering
+      states: [...input.states].sort(),   // Deterministic ordering
       outcomes: normalizeOutcomes(input.outcomes),
-      weights: input.weights,
+      weights: input.weights ? normalizeWeights(input.weights) : undefined,
       strict: input.strict,
       temperature: clampPrecisionOpt(input.temperature),
       optimism: clampPrecisionOpt(input.optimism),
@@ -151,15 +154,33 @@ function normalizeAlgorithm(alg: string): ExecutionParams['algorithm'] {
       return 'minimax_regret';
     case 'maximin':
     case 'worst_case':
+    case 'wald':
       return 'maximin';
     case 'weighted_sum':
     case 'weighted':
       return 'weighted_sum';
+    case 'softmax':
+      return 'softmax';
+    case 'hurwicz':
+      return 'hurwicz';
+    case 'laplace':
+      return 'laplace';
     case 'adaptive':
       return 'adaptive';
     default:
       return 'minimax_regret';
   }
+}
+
+/**
+ * Normalize weights to ensure deterministic ordering
+ */
+function normalizeWeights(weights: Record<string, number>): Record<string, number> {
+  const sorted: Record<string, number> = {};
+  for (const key of Object.keys(weights).sort()) {
+    sorted[key] = clampPrecision(weights[key]);
+  }
+  return sorted;
 }
 
 /**
@@ -206,87 +227,11 @@ export function execResultToDecisionOutput(result: ExecResult): DecisionOutputLe
     ranking: result.ranking,
     trace: {
       algorithm: result.trace.algorithm,
-      regret_table: clampObjectPrecision(result.trace.regretTable),
-      max_regret: clampObjectPrecision(result.trace.maxRegret),
-      min_utility: clampObjectPrecision(result.trace.minUtility),
-      weighted_scores: clampObjectPrecision(result.trace.weightedScores),
+      regret_table: result.trace.regretTable ? clampObjectPrecision(result.trace.regretTable) : undefined,
+      max_regret: result.trace.maxRegret ? clampObjectPrecision(result.trace.maxRegret) : undefined,
+      min_utility: result.trace.minUtility ? clampObjectPrecision(result.trace.minUtility) : undefined,
+      weighted_scores: result.trace.weightedScores ? clampObjectPrecision(result.trace.weightedScores) : undefined,
       fingerprint: result.fingerprint,
-    },
-  };
-}
-
-// ============================================================================
-// Canonical JSON Normalization
-// ============================================================================
-
-
-
-/**
- * Compute deterministic hash of an object
- */
-export function computeDeterministicHash(obj: unknown): string {
-  const canonical = toCanonicalJson(obj);
-  
-  // Use BLAKE3 for deterministic hashing - faster and more secure than SHA-256
-  const hashResult = blake3Hash(canonical);
-  return hashResult.substring(0, 32);
-}
-
-// ============================================================================
-// Requiem Format Translation (Future)
-// ============================================================================
-
-/**
- * Convert ExecRequest to Requiem CLI format
- */
-export function toRequiemFormat(request: ExecRequest): string {
-  // Requiem expects a JSON object with specific field names
-  // Apply precision clamping to all numeric values
-  const requiemRequest = {
-    request_id: request.requestId,
-    timestamp: request.timestamp,
-    algorithm: request.params.algorithm,
-    actions: request.params.actions,
-    states: request.params.states,
-    outcomes: clampObjectPrecision(request.params.outcomes),
-    weights: clampObjectPrecision(request.params.weights),
-    strict: request.params.strict,
-    temperature: clampPrecisionOpt(request.params.temperature),
-    optimism: clampPrecisionOpt(request.params.optimism),
-    confidence: clampPrecisionOpt(request.params.confidence),
-    iterations: request.params.iterations,
-    epsilon: clampPrecisionOpt(request.params.epsilon),
-    // Pass the deterministic seed for RNG/Adaptive algorithm
-    seed: request.params.seed,
-  };
-  
-  return JSON.stringify(requiemRequest);
-}
-
-/**
- * Parse Requiem CLI output to ExecResult
- */
-export function fromRequiemFormat(jsonString: string, requestId: string): ExecResult {
-  const parsed = JSON.parse(jsonString);
-  
-  return {
-    requestId: parsed.request_id || requestId,
-    status: parsed.status || 'success',
-    recommendedAction: parsed.recommended_action || parsed.recommendedAction,
-    ranking: parsed.ranking || [],
-    trace: {
-      algorithm: parsed.trace?.algorithm || 'unknown',
-      regretTable: clampObjectPrecision(parsed.trace?.regret_table || parsed.trace?.regretTable),
-      maxRegret: clampObjectPrecision(parsed.trace?.max_regret || parsed.trace?.maxRegret),
-      minUtility: clampObjectPrecision(parsed.trace?.min_utility || parsed.trace?.minUtility),
-      weightedScores: clampObjectPrecision(parsed.trace?.weighted_scores || parsed.trace?.weightedScores),
-    },
-    fingerprint: parsed.fingerprint || computeDeterministicHash(parsed),
-    meta: {
-      engine: 'requiem',
-      engineVersion: parsed.meta?.engine_version || parsed.meta?.engineVersion || 'unknown',
-      durationMs: parsed.meta?.duration_ms || parsed.meta?.durationMs || 0,
-      completedAt: parsed.meta?.completed_at || parsed.meta?.completedAt || new Date().toISOString(),
     },
   };
 }
@@ -297,6 +242,8 @@ export function fromRequiemFormat(jsonString: string, requestId: string): ExecRe
 
 /**
  * Convert ExecRequest to Rust/WASM format
+ * 
+ * NOTE: Hashing is performed by the Rust engine, not here.
  */
 export function toRustFormat(request: ExecRequest): string {
   // Rust engine uses snake_case - apply precision clamping
@@ -305,14 +252,13 @@ export function toRustFormat(request: ExecRequest): string {
     states: request.params.states,
     outcomes: clampObjectPrecision(request.params.outcomes),
     algorithm: request.params.algorithm,
-    weights: clampObjectPrecision(request.params.weights),
+    weights: request.params.weights ? clampObjectPrecision(request.params.weights) : undefined,
     strict: request.params.strict,
     temperature: clampPrecisionOpt(request.params.temperature),
     optimism: clampPrecisionOpt(request.params.optimism),
     confidence: clampPrecisionOpt(request.params.confidence),
     iterations: request.params.iterations,
     epsilon: clampPrecisionOpt(request.params.epsilon),
-    // Pass the deterministic seed for RNG/Adaptive algorithm
     seed: request.params.seed,
   };
   
@@ -321,6 +267,8 @@ export function toRustFormat(request: ExecRequest): string {
 
 /**
  * Parse Rust/WASM output to ExecResult
+ * 
+ * The fingerprint is computed by the Rust engine and returned in the result.
  */
 export function fromRustFormat(jsonString: string, requestId: string, durationMs: number): ExecResult {
   const parsed = JSON.parse(jsonString);
@@ -332,15 +280,16 @@ export function fromRustFormat(jsonString: string, requestId: string, durationMs
     ranking: parsed.ranking,
     trace: {
       algorithm: parsed.trace?.algorithm || 'unknown',
-      regretTable: clampObjectPrecision(parsed.trace?.regret_table),
-      maxRegret: clampObjectPrecision(parsed.trace?.max_regret),
-      minUtility: clampObjectPrecision(parsed.trace?.min_utility),
-      weightedScores: clampObjectPrecision(parsed.trace?.weighted_scores),
+      regretTable: parsed.trace?.regret_table ? clampObjectPrecision(parsed.trace.regret_table) : undefined,
+      maxRegret: parsed.trace?.max_regret ? clampObjectPrecision(parsed.trace.max_regret) : undefined,
+      minUtility: parsed.trace?.min_utility ? clampObjectPrecision(parsed.trace.min_utility) : undefined,
+      weightedScores: parsed.trace?.weighted_scores ? clampObjectPrecision(parsed.trace?.weighted_scores) : undefined,
     },
-    fingerprint: parsed.trace?.fingerprint || computeDeterministicHash(parsed),
+    // Fingerprint comes from the Rust engine - single source of truth
+    fingerprint: parsed.trace?.fingerprint || '',
     meta: {
       engine: 'rust',
-      engineVersion: '0.3.1',
+      engineVersion: parsed.meta?.engine_version || '0.3.1',
       durationMs,
       completedAt: new Date().toISOString(),
     },
@@ -348,7 +297,7 @@ export function fromRustFormat(jsonString: string, requestId: string, durationMs
 }
 
 // ============================================================================
-// Utilities
+// Protocol Translation
 // ============================================================================
 
 /**
@@ -363,7 +312,7 @@ export function decisionToWorkflowStep(request: ExecRequest): WorkflowStep {
       actions: request.params.actions,
       states: request.params.states,
       outcomes: clampObjectPrecision(request.params.outcomes),
-      weights: clampObjectPrecision(request.params.weights),
+      weights: request.params.weights ? clampObjectPrecision(request.params.weights) : undefined,
       strict: request.params.strict,
       temperature: clampPrecisionOpt(request.params.temperature),
       optimism: clampPrecisionOpt(request.params.optimism),
@@ -402,31 +351,34 @@ export function resultFromProtocol(result: ExecResultPayload, requestId: string)
   };
 }
 
-/**
- * Generate a unique but deterministic-pattern request ID
- * 
- * SECURITY: Does NOT use Math.random() or platform-specific values to avoid entropy injection.
- * Uses timestamp + counter + deterministic hash for uniqueness.
- * 
- * DETERMINISM: Platform-agnostic - produces same format on Windows, macOS, Linux.
- */
+// ============================================================================
+// Request ID Generation (Non-Deterministic, Metadata Only)
+// ============================================================================
+
 let requestCounter = 0;
+
+/**
+ * Generate a unique request ID.
+ * 
+ * NOTE: This is NOT used for fingerprinting. It's for request correlation
+ * in logs and metrics only. The fingerprint is computed from content only.
+ */
 export function generateRequestId(): string {
   const timestamp = Date.now().toString(36);
   const counter = (requestCounter++).toString(36).padStart(4, '0');
-  // Use deterministic hash based on pid and timestamp only (no platform-specific values)
-  const deterministicHash = hash(`${process.pid}-${timestamp}-${counter}`).substring(0, 4);
-  return `req_${timestamp}_${counter}_${deterministicHash}`;
+  return `req_${timestamp}_${counter}`;
 }
 
 /**
  * Generate a deterministic request ID for testing purposes.
- * Produces identical output for identical inputs.
  */
 export function generateDeterministicRequestId(seed: string): string {
-  const hashValue = hash(seed);
-  return `req_det_${hashValue.substring(0, 16)}`;
+  return `req_det_${seed.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 16)}`;
 }
+
+// ============================================================================
+// Result Comparison
+// ============================================================================
 
 /**
  * Compare two ExecResults for equality (for dual-run mode)

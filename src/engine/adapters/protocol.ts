@@ -152,6 +152,26 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
     if (this.config.useJsonFallback && this.fallbackAdapter) {
       return this.fallbackAdapter.evaluate(request);
     }
+
+    // Validate input (includes float check)
+    const validation = this.validateInput(request);
+    if (!validation.valid) {
+      return {
+        requestId: request.requestId,
+        status: 'error',
+        recommendedAction: '',
+        ranking: [],
+        trace: { algorithm: request.params.algorithm },
+        fingerprint: '',
+        meta: {
+          engine: 'protocol',
+          engineVersion: 'unknown',
+          durationMs: 0,
+          completedAt: new Date().toISOString(),
+        },
+        error: validation.errors?.join(', '),
+      };
+    }
     
     // Use semaphore protection and binary protocol
     return this.executeWithSemaphore(request, async (req) => {
@@ -159,6 +179,23 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
     });
   }
   
+  /**
+   * Validate that input is compatible with Protocol Engine
+   */
+  validateInput(request: ExecRequest): { valid: boolean; errors?: string[] } {
+    const errors: string[] = [];
+    
+    // Check for floating point values
+    if (request.params.outcomes && this.hasFloatingPointValues(request.params.outcomes)) {
+      errors.push('floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic');
+    }
+    
+    return {
+      valid: errors.length === 0,
+      errors: errors.length > 0 ? errors : undefined,
+    };
+  }
+
   /**
    * Internal evaluation using binary protocol
    */

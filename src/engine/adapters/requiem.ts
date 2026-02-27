@@ -25,6 +25,7 @@ import { ExecRequestPayload, ExecutionControls } from '../../protocol/messages';
 import { promisify } from 'util';
 import * as path from 'path';
 import * as fs from 'fs';
+import { createHash } from 'crypto';
 
 const execFile = promisify(execFileCb);
 
@@ -53,11 +54,6 @@ export interface RequiemConfig {
    * WARNING: Only enable in development/testing
    */
   allowUnknownEngine?: boolean;
-
-  /**
-   * Maximum request size in bytes (default: 10MB)
-   */
-  maxRequestBytes?: number;
 
   /**
    * Maximum matrix dimensions (actions × states)
@@ -138,7 +134,6 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
     super(); // Initialize base class with semaphore
 
     this.config = {
-      maxRequestBytes: 10 * 1024 * 1024, // 10MB default
       maxMatrixCells: 1_000_000, // 1M cells default (e.g., 1000x1000)
       ...config,
     };
@@ -518,15 +513,6 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
       };
     }
 
-    // Check request size (estimate)
-    const requestJson = JSON.stringify(request);
-    if (this.config.maxRequestBytes && requestJson.length > this.config.maxRequestBytes) {
-      return {
-        valid: false,
-        error: `request_too_large: ${requestJson.length} bytes exceeds limit of ${this.config.maxRequestBytes}`,
-      };
-    }
-
     return { valid: true };
   }
 
@@ -538,9 +524,9 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
    * @returns The execution result
    */
   async evaluate(request: ExecRequest): Promise<ExecResult> {
-    // Validate resource limits before acquiring semaphore
-    const limitCheck = this.validateRequestLimits(request);
-    if (!limitCheck.valid) {
+    // Validate input (includes limits and float check)
+    const validation = this.validateInput(request);
+    if (!validation.valid) {
       return {
         requestId: request.requestId,
         status: 'error',
@@ -554,7 +540,7 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
           durationMs: 0,
           completedAt: new Date().toISOString(),
         },
-        error: limitCheck.error,
+        error: validation.errors?.join(', '),
       };
     }
 
@@ -684,6 +670,11 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
       if (!limitCheck.valid) {
         errors.push(limitCheck.error || 'request exceeds resource limits');
       }
+      
+      // Check for floating point values
+      if (request.params.outcomes && this.hasFloatingPointValues(request.params.outcomes)) {
+        errors.push('floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic');
+      }
     }
     
     return {
@@ -705,22 +696,10 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
    * Derive a deterministic numeric seed from requestId
    */
   private deriveSeed(requestId: string): string {
-    // Use a simple hash to turn string into a 64-bit hex string for the engine
-    let h1 = 0xDEADBEEF;
-    let h2 = 0x41C64E6D;
-    for (let i = 0; i < requestId.length; i++) {
-        const char = requestId.charCodeAt(i);
-        h1 = Math.imul(h1 ^ char, 2654435761);
-        h2 = Math.imul(h2 ^ char, 1597334677);
-    }
-    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
-    h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
-    h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-    
-    const high = (h1 >>> 0).toString(16).padStart(8, '0');
-    const low = (h2 >>> 0).toString(16).padStart(8, '0');
-    return `${high}${low}`;
+    // Use SHA-256 to derive a deterministic 64-bit seed (first 16 hex chars)
+    // This replaces the ad-hoc MurmurHash3 implementation with a standard primitive.
+    // Note: Ideally this would be BLAKE3 to match the engine, but SHA-256 is standard in Node.
+    return createHash('sha256').update(requestId).digest('hex').substring(0, 16);
   }
 }
 

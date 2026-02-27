@@ -234,6 +234,25 @@ describe('RequiemEngineAdapter Security', () => {
       const validation = adapter.validateInput(validRequest);
       expect(validation.valid).toBe(true);
     });
+
+    it('rejects floating point values in outcomes', () => {
+      const adapter = new RequiemEngineAdapter();
+      
+      const floatRequest: ExecRequest = {
+        requestId: 'float-test-1',
+        timestamp: new Date().toISOString(),
+        params: {
+          algorithm: 'minimax_regret',
+          actions: ['a1'],
+          states: ['s1'],
+          outcomes: { a1: { s1: 1.5 } },
+        },
+      };
+
+      const validation = adapter.validateInput(floatRequest);
+      expect(validation.valid).toBe(false);
+      expect(validation.errors?.some(e => e.includes('floating_point_values_detected'))).toBe(true);
+    });
   });
 
   describe('Binary Trust Verification', () => {

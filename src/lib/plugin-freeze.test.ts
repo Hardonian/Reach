@@ -15,12 +15,12 @@ import {
   deepFreeze,
   isFrozen,
   isDeeplyFrozen,
-  toCanonicalJson,
   computeResultFingerprint,
   createVerifiedResult,
   computeAggregateFingerprint,
   ResultMutationError,
 } from './plugin-freeze';
+import { toCanonicalJson } from './canonical';
 
 describe('toCanonicalJson', () => {
   it('produces consistent output', () => {

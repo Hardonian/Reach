@@ -236,6 +236,14 @@ export class RustEngineAdapter extends BaseEngineAdapter {
     }
     
     try {
+      // Check for floating point values
+      if (request.params.outcomes && this.hasFloatingPointValues(request.params.outcomes)) {
+        return {
+          valid: false,
+          errors: ['floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic'],
+        };
+      }
+
       const requestJson = toRustFormat(request);
       const result = this.wasmModule.validate_input(requestJson);
       const isValid = result === 'true';

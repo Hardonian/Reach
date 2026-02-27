@@ -63,7 +63,7 @@ const LEGACY_ALLOWED_ROOT_FILES = new Set([
   'READY_LAYER_STRATEGY.md', 'RELEASE.md', 'RUN_CAPSULES_REPLAY.md', 'SECURITY_HARDENING_REPORT.md',
   'SECURITY_MODEL.md', 'SKILLS.md', 'SPEC_FORMALIZATION_SUMMARY.md', 'SUPPORT.md',
   'TRUST_NEGOTIATION_SPEC.md',
-  'brand.test.ts', 'config.go', 'decide-cli.ts', 'engine.rs', 'fallback.ts', 'index.ts',
+  'brand.test.ts', 'config.go', 'decide-cli.ts', 'engine.rs', 'fallback.ts.deprecated', 'index.ts',
   'json_test.go', 'junctions-cli.ts', 'lib.rs', 'main.go', 'oss_workflow_test.go', 'parity.js',
   'parser.test.ts', 'parser.ts', 'reach', 'reach-policy.txt', 'reach-to-readylayer.patch',
   'reach.workspace.json', 'storage.go', 'types.rs', 'validate-cli.ts', 'doctor-validation.yml'

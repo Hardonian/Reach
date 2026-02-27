@@ -61,7 +61,7 @@ describe('sanitizeEnvironment', () => {
       DEFINED: 'value',
       UNDEFINED: undefined,
     };
-    const cleanEnv = sanitizeEnvironment(env as Record<string, string>);
+    const cleanEnv = sanitizeEnvironment(env as unknown as Record<string, string>);
     expect(cleanEnv.DEFINED).toBe('value');
     expect(cleanEnv.UNDEFINED).toBeUndefined();
   });

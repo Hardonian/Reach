@@ -5,7 +5,8 @@
  * Uses CBOR for serialization with fixed-point numeric types.
  */
 
-import { encode as cborEncode, decode as cborDecode, Encoder as CborEncoder } from 'cbor';
+import { encode as cborEncode, decode as cborDecode } from 'cbor';
+import CborEncoder from 'cbor/types/lib/encoder';
 
 // ============================================================================
 // Fixed-Point Numeric Types
