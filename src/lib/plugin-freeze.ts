@@ -13,7 +13,8 @@
  * @module lib/plugin-freeze
  */
 
-import { createHash } from 'node:crypto';
+import { hash } from './hash';
+import { toCanonicalJson } from './canonical';
 
 /**
  * Error thrown when result mutation is detected or attempted
@@ -35,7 +36,7 @@ export class ResultMutationError extends Error {
 export interface FrozenResult<T = unknown> {
   /** The frozen (immutable) data */
   readonly data: Readonly<T>;
-  /** SHA-256 fingerprint of canonical data */
+  /** BLAKE3 fingerprint of canonical data */
   readonly fingerprint: string;
   /** Timestamp when frozen */
   readonly frozenAt: string;
@@ -72,52 +73,14 @@ export interface FreezeOptions {
 }
 
 /**
- * Convert value to canonical JSON string for deterministic hashing
- * 
- * SECURITY: Ensures consistent ordering of keys for deterministic fingerprints.
- * Handles circular references by throwing (they indicate potential issues).
- * 
- * @param value - The value to canonicalize
- * @returns Canonical JSON string
- */
-export function toCanonicalJson(value: unknown): string {
-  // Use deterministic sorting of keys
-  const sorted = sortKeysDeep(value);
-  return JSON.stringify(sorted);
-}
-
-/**
- * Recursively sort object keys for canonical representation
- */
-function sortKeysDeep(value: unknown): unknown {
-  if (value === null || typeof value !== 'object') {
-    return value;
-  }
-  
-  if (Array.isArray(value)) {
-    return value.map(sortKeysDeep);
-  }
-  
-  // Handle objects - sort keys alphabetically
-  const sorted: Record<string, unknown> = {};
-  const keys = Object.keys(value).sort();
-  
-  for (const key of keys) {
-    sorted[key] = sortKeysDeep((value as Record<string, unknown>)[key]);
-  }
-  
-  return sorted;
-}
-
-/**
- * Compute SHA-256 fingerprint of canonical result bytes
+ * Compute BLAKE3 fingerprint of canonical result bytes
  * 
  * @param data - The data to fingerprint
- * @returns Hex-encoded SHA-256 hash
+ * @returns Hex-encoded BLAKE3 hash
  */
 export function computeResultFingerprint(data: unknown): string {
   const canonical = toCanonicalJson(data);
-  return createHash('sha256').update(canonical, 'utf8').digest('hex');
+  return hash(canonical);
 }
 
 /**
@@ -322,5 +285,5 @@ export function createVerifiedResult<T>(result: FrozenResult<T>): {
  */
 export function computeAggregateFingerprint(results: FrozenResult<unknown>[]): string {
   const fingerprints = results.map(r => r.fingerprint).sort();
-  return createHash('sha256').update(fingerprints.join('')).digest('hex');
+  return hash(fingerprints.join(''));
 }

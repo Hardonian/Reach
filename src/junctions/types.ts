@@ -2,7 +2,7 @@
  * Junction Types and Configuration
  */
 
-import crypto from 'crypto';
+import { hash } from '../lib/hash';
 
 export type JunctionType = 'diff_critical' | 'drift_alert' | 'trust_drop' | 'policy_violation';
 export type SourceType = 'diff' | 'drift' | 'policy' | 'trust';
@@ -51,7 +51,7 @@ export function generateJunctionFingerprint(trigger: JunctionTrigger): string {
     triggerData: sortObjectKeys(trigger.triggerData),
   });
   
-  return crypto.createHash('sha256').update(canonical).digest('hex').substring(0, 16);
+  return hash(canonical).substring(0, 16);
 }
 
 /**
@@ -59,7 +59,7 @@ export function generateJunctionFingerprint(trigger: JunctionTrigger): string {
  */
 export function generateDeduplicationKey(trigger: JunctionTrigger): string {
   const keyData = `${trigger.type}:${trigger.sourceType}:${trigger.sourceRef}`;
-  return crypto.createHash('sha256').update(keyData).digest('hex').substring(0, 16);
+  return hash(keyData).substring(0, 16);
 }
 
 /**

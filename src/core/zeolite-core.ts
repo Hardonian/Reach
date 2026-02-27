@@ -1,4 +1,5 @@
-import { createHash } from "node:crypto";
+import { createHash } from 'crypto';
+import { hash } from '../lib/hash';
 import type { DecisionSpec, EvidenceEvent, FinalizedDecisionTranscript } from "@zeo/contracts";
 // @ts-ignore - resolve missing core module
 import { executeDecision } from "@zeo/core";
@@ -28,7 +29,7 @@ const transcriptSpecs = new Map<string, DecisionSpec>();
 const transcriptEvidence = new Map<string, EvidenceEvent[]>();
 
 function stableId(input: string): string {
-  return createHash("sha256").update(input).digest("hex").slice(0, 16);
+  return hash(input).slice(0, 16);
 }
 
 function makeNegotiationSpec(): DecisionSpec {

@@ -976,6 +976,32 @@ async function main(): Promise<void> {
         }
         break;
 
+      case 'proof':
+        {
+          const { proofCreate, proofVerify, proofExport, proofSign, proofValidateRemote, printProofHelp } = await import('./proof-cli.js');
+          switch (subcommand) {
+            case 'create':
+              await proofCreate(rest[0] || '', opts);
+              break;
+            case 'verify':
+              await proofVerify(opts);
+              break;
+            case 'export':
+              await proofExport(rest[0] || '', opts);
+              break;
+            case 'sign':
+              await proofSign(opts);
+              break;
+            case 'validate-remote':
+              await proofValidateRemote(rest[0] || '', opts);
+              break;
+            case 'help':
+            default:
+              printProofHelp();
+          }
+        }
+        break;
+
       case 'help':
       case '--help':
       case '-h':
@@ -1065,6 +1091,11 @@ Commands:
   run export --zip <path>   Export run artifacts to zip
   vitals summary            Vitals summary
   vitals trend <metric>     Vitals trend
+  proof create <id>         Create proof bundle from run ID
+  proof verify              Verify proof bundle
+  proof export <id>         Export proof bundle to file
+  proof sign                Sign proof bundle with plugin
+  proof validate-remote <id> Validate proof remotely (if enabled)
 
 Options:
   --json                    Output as JSON

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { createHash } from 'crypto';
+import { hash } from '../lib/hash';
 import { execSync } from 'child_process';
 import { ConflictClass, PatchApplyResult, PatchPack, RepoState, ScclRunRecord, SyncPlan, WorkspaceManifest } from './types.js';
 
@@ -63,14 +63,14 @@ export function classifyConflicts(files: string[]): ConflictClass[] {
 export function emitRunRecord(pack: PatchPack, result: PatchApplyResult, headSha: string, root = process.cwd()): ScclRunRecord {
   const dir = path.join(root, 'dgl', 'sccl', 'run-records');
   fs.mkdirSync(dir, { recursive: true });
-  const patchHash = createHash('sha256').update(JSON.stringify(pack.files.sort((a, b) => a.path.localeCompare(b.path)))).digest('hex');
+  const patchHash = hash(JSON.stringify(pack.files.sort((a, b) => a.path.localeCompare(b.path))));
   const run: ScclRunRecord = {
-    run_id: `sccl_${createHash('sha256').update(`${pack.base_sha}:${headSha}:${patchHash}`).digest('hex').slice(0, 16)}`,
+    run_id: `sccl_${hash(`${pack.base_sha}:${headSha}:${patchHash}`).slice(0, 16)}`,
     timestamp: new Date().toISOString(),
     base_sha: pack.base_sha,
     head_sha: headSha,
     patch_hash: patchHash,
-    context_hash: pack.context_hash ?? createHash('sha256').update(`${pack.base_sha}:${headSha}`).digest('hex'),
+    context_hash: pack.context_hash ?? hash(`${pack.base_sha}:${headSha}`),
     actor: pack.actor,
     dgl_report_paths: pack.dgl_report_paths ?? [],
     cpx_arbitration_id: pack.cpx_arbitration_id,

@@ -20,7 +20,9 @@
  * @module engine/storage/cas
  */
 
-import { createHasher } from 'blake3';
+import * as blake3 from 'blake3';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createBlake3Hash = (blake3 as any).createHash.bind(blake3);
 import { Readable } from 'stream';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -102,7 +104,7 @@ const DEFAULT_CONFIG: Required<CASConfig> = {
  * @returns The BLAKE3 hash as a hex string (CID)
  */
 export function computeCID(content: string | Buffer | Uint8Array): CID {
-  const hasher = createHasher();
+  const hasher = createBlake3Hash();
   
   if (typeof content === 'string') {
     hasher.update(content, 'utf8');
@@ -122,7 +124,7 @@ export function computeCID(content: string | Buffer | Uint8Array): CID {
  */
 export async function computeCIDFromStream(stream: Readable): Promise<CID> {
   return new Promise((resolve, reject) => {
-    const hasher = createHasher();
+    const hasher = createBlake3Hash();
     
     stream.on('data', (chunk: Buffer | string) => {
       if (typeof chunk === 'string') {

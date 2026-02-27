@@ -7,29 +7,13 @@
  * @module engine/translate
  */
 
+import { hash, hash as blake3Hash } from '../lib/hash';
+import { toCanonicalJson } from '../lib/canonical';
 import {
   ExecRequest,
   ExecResult,
   ExecutionParams,
 } from './contract';
-import { createHash } from 'crypto';
-
-// BLAKE3 hash implementation with fallback
-// Prefer native @napi-rs/blake3 if available, otherwise use crypto.createHash with BLAKE3 via wasm or fail closed
-let blake3Hash: (data: string) => Buffer;
-try {
-  // Try to import native BLAKE3
-  const { blake3 } = require('@napi-rs/blake3');
-  blake3Hash = (data: string) => blake3(data);
-} catch {
-  // Fallback: Use SHA-256 with explicit warning (deterministic but different hash primitive)
-  // This should fail closed in production, but allows development without native module
-  if (process.env.REACH_STRICT_HASH === '1') {
-    throw new Error('hash_unavailable_blake3: @napi-rs/blake3 required in strict mode');
-  }
-  console.warn('[translate] WARNING: Using SHA-256 fallback (not for production)');
-  blake3Hash = (data: string) => createHash('sha256').update(data).digest();
-}
 import { WorkflowStep, ExecResultPayload, Duration } from '../protocol/messages';
 
 // ============================================================================
@@ -235,36 +219,7 @@ export function execResultToDecisionOutput(result: ExecResult): DecisionOutputLe
 // Canonical JSON Normalization
 // ============================================================================
 
-/**
- * Convert any value to canonical JSON string for deterministic hashing.
- * Ensures consistent key ordering and number formatting.
- */
-export function toCanonicalJson(obj: unknown): string {
-  return JSON.stringify(obj, canonicalReplacer, 0);
-}
 
-/**
- * JSON replacer for canonical formatting
- */
-function canonicalReplacer(key: string, value: unknown): unknown {
-  // Handle numbers - ensure consistent precision
-  if (typeof value === 'number') {
-    // Round to 10 decimal places to avoid floating point inconsistencies
-    // while maintaining sufficient precision
-    return clampPrecision(value);
-  }
-  
-  // Handle objects - sort keys for determinism
-  if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-    const sorted: Record<string, unknown> = {};
-    for (const k of Object.keys(value as Record<string, unknown>).sort()) {
-      sorted[k] = (value as Record<string, unknown>)[k];
-    }
-    return sorted;
-  }
-  
-  return value;
-}
 
 /**
  * Compute deterministic hash of an object
@@ -273,8 +228,8 @@ export function computeDeterministicHash(obj: unknown): string {
   const canonical = toCanonicalJson(obj);
   
   // Use BLAKE3 for deterministic hashing - faster and more secure than SHA-256
-  const hash = blake3Hash(canonical);
-  return hash.toString('hex').substring(0, 32);
+  const hashResult = blake3Hash(canonical);
+  return hashResult.substring(0, 32);
 }
 
 // ============================================================================
@@ -460,10 +415,7 @@ export function generateRequestId(): string {
   const timestamp = Date.now().toString(36);
   const counter = (requestCounter++).toString(36).padStart(4, '0');
   // Use deterministic hash based on pid and timestamp only (no platform-specific values)
-  const deterministicHash = createHash('sha256')
-    .update(`${process.pid}-${timestamp}-${counter}`)
-    .digest('hex')
-    .substring(0, 4);
+  const deterministicHash = hash(`${process.pid}-${timestamp}-${counter}`).substring(0, 4);
   return `req_${timestamp}_${counter}_${deterministicHash}`;
 }
 
@@ -472,8 +424,8 @@ export function generateRequestId(): string {
  * Produces identical output for identical inputs.
  */
 export function generateDeterministicRequestId(seed: string): string {
-  const hash = createHash('sha256').update(seed).digest('hex');
-  return `req_det_${hash.substring(0, 16)}`;
+  const hashValue = hash(seed);
+  return `req_det_${hashValue.substring(0, 16)}`;
 }
 
 /**

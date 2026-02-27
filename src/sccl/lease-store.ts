@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { createHash, randomUUID } from 'crypto';
+import { randomUUID } from 'crypto';
+import { hash } from '../lib/hash';
 import { Lease } from './types.js';
 
 interface LeaseStoreFile {
@@ -15,7 +16,7 @@ function storePath(root = process.cwd()): string {
 }
 
 function digestOf(leases: Lease[]): string {
-  return createHash('sha256').update(JSON.stringify([...leases].sort((a, b) => a.lease_id.localeCompare(b.lease_id)))).digest('hex');
+  return hash(JSON.stringify([...leases].sort((a, b) => a.lease_id.localeCompare(b.lease_id))));
 }
 
 export function listLeases(root = process.cwd(), now = new Date()): Lease[] {

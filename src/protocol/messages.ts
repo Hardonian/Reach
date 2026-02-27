@@ -5,7 +5,7 @@
  * Uses CBOR for serialization with fixed-point numeric types.
  */
 
-import cbor from 'cbor';
+import { encode as cborEncode, decode as cborDecode, Encoder as CborEncoder } from 'cbor';
 
 // ============================================================================
 // Fixed-Point Numeric Types
@@ -327,9 +327,8 @@ export enum ErrorCode {
  * Ensures deterministic byte output for binary digests.
  */
 export function serializeCbor(payload: unknown): Uint8Array {
-  // Use canonical encoding for map key stability if available (node-cbor pattern)
-  const cborAny = cbor as unknown as { encodeCanonical?: (v: unknown) => Buffer; encode: (v: unknown) => Buffer };
-  const encoded = cborAny.encodeCanonical ? cborAny.encodeCanonical(payload) : cborAny.encode(payload);
+  // Use canonical encoding for map key stability (deterministic byte output)
+  const encoded = CborEncoder.encodeCanonical(payload);
   return new Uint8Array(encoded);
 }
 
@@ -351,7 +350,7 @@ export function sortRunEvents(events: RunEvent[]): RunEvent[] {
  * Deserialize payload from CBOR
  */
 export function deserializeCbor<T>(data: Uint8Array): T {
-  return cbor.decode(data) as T;
+  return cborDecode(data) as T;
 }
 
 /**

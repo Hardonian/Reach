@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { createHash } from 'crypto';
+import { hash } from '../lib/hash';
 import { execSync } from 'child_process';
 
 export type TaskClass = 'refactor' | 'bugfix' | 'docs' | 'security' | 'perf' | 'ui' | 'infra';
@@ -81,7 +81,7 @@ export function validatePatchPack(pack: unknown): { ok: boolean; errors: string[
 }
 
 function stableHash(parts: unknown[]): string {
-  return createHash('sha256').update(JSON.stringify(parts)).digest('hex');
+  return hash(JSON.stringify(parts));
 }
 
 function normalizePack(pack: PatchPack) {

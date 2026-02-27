@@ -13,7 +13,7 @@
  * @module engine/proof/bundle
  */
 
-import { createHash, createHmac } from 'crypto';
+import { hash } from '../../lib/hash';
 import { CID, computeCID } from '../storage/cas.js';
 
 /**
@@ -184,18 +184,11 @@ function buildTreeRecursive(hashes: string[]): MerkleNode {
 }
 
 function hashLeaf(data: string): string {
-  return createHash('sha256')
-    .update(Buffer.from([0x00])) // Leaf prefix
-    .update(data)
-    .digest('hex');
+  return hash(Buffer.concat([Buffer.from([0x00]), Buffer.from(data)]));
 }
 
 function hashBranch(left: string, right: string): string {
-  return createHash('sha256')
-    .update(Buffer.from([0x01])) // Branch prefix
-    .update(left)
-    .update(right)
-    .digest('hex');
+  return hash(Buffer.concat([Buffer.from([0x01]), Buffer.from(left), Buffer.from(right)]));
 }
 
 /**
@@ -247,12 +240,9 @@ export function createProofBundle(options: {
   const tree = buildMerkleTree(leaves);
   
   // Generate deterministic bundle ID
-  const bundleId = createHash('sha256')
-    .update(options.requestId)
-    .update(tree.hash)
-    .update(options.engine.version)
-    .digest('hex')
-    .slice(0, 32);
+  const bundleId = hash(
+    options.requestId + tree.hash + options.engine.version
+  ).slice(0, 32);
   
   return {
     version: PROOF_BUNDLE_VERSION,
@@ -361,12 +351,9 @@ export function verifyBundleConsistency(bundle: ProofBundle): {
   }
   
   // Verify bundle ID
-  const expectedBundleId = createHash('sha256')
-    .update(bundle.requestId)
-    .update(bundle.merkleRoot)
-    .update(bundle.engine.version)
-    .digest('hex')
-    .slice(0, 32);
+  const expectedBundleId = hash(
+    bundle.requestId + bundle.merkleRoot + bundle.engine.version
+  ).slice(0, 32);
   
   if (bundle.bundleId !== expectedBundleId) {
     errors.push('Bundle ID mismatch: potential integrity violation');

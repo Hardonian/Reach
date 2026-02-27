@@ -88,6 +88,7 @@
     "verify:ops:stabilization": "npm run verify:daemon && npm run verify:protocol:ops && npm run verify:load-lite && npm run verify:rollback",
     "verify:cutover": "npx tsx scripts/verify-cutover.ts",
     "verify:dual-run": "npx tsx scripts/verify-dual-run.ts",
+    "verify:proof": "npx tsx scripts/verify-proof.ts",
     "reach:doctor:cutover": "npx tsx -e \"import { runCutoverDoctor } from './src/cli/doctor-cutover.js'; runCutoverDoctor();\""
   },
   "devDependencies": {

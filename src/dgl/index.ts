@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { createHash } from "crypto";
+import { hash } from '../lib/hash';
 import { execSync } from "child_process";
 import type { AgentContract, DglReport, DglViolation } from "./types.js";
 import { diffAstExports } from "./ast-diff.js";
@@ -32,19 +32,19 @@ function readJson<T>(p: string, fallback: T): T {
 function sha256File(relPath: string): string {
   const abs = path.join(process.cwd(), relPath);
   if (!fs.existsSync(abs)) return "missing";
-  return createHash("sha256").update(fs.readFileSync(abs, "utf-8")).digest("hex");
+  return hash(fs.readFileSync(abs, "utf-8"));
 }
 
 export function computeContextSnapshotHash(): string {
   const architectureHash = sha256File("docs/architecture/dgl.md");
   const languageHash = sha256File("config/canonical-language.json");
   const intentHash = sha256File("docs/architecture/intent-manifest.json");
-  return createHash("sha256").update([architectureHash, languageHash, intentHash].join("::")).digest("hex");
+  return hash([architectureHash, languageHash, intentHash].join("::"));
 }
 
 export function computeIntentFingerprint(manifestPath: string): string {
   const content = fs.readFileSync(manifestPath, "utf-8");
-  return createHash("sha256").update(content).digest("hex");
+  return hash(content);
 }
 
 export function validateAgentContractPayload(payload: unknown): { ok: boolean; errors: string[] } {
@@ -86,11 +86,11 @@ function changedFiles(baseSha: string, headSha: string, changedOnly: boolean): s
 }
 
 function cacheKey(baseSha: string, headSha: string, files: string[]): string {
-  const configHash = createHash("sha256")
-    .update(fs.existsSync(path.join(process.cwd(), "config/dgl-openapi.json")) ? fs.readFileSync(path.join(process.cwd(), "config/dgl-openapi.json"), "utf-8") : "")
-    .digest("hex");
-  const contentHash = createHash("sha256").update(files.join("|")).digest("hex");
-  return createHash("sha256").update([baseSha, headSha, contentHash, configHash, SCHEMA_VERSION, TOOL_VERSION].join("::")).digest("hex");
+  const configHash = hash(
+    fs.existsSync(path.join(process.cwd(), "config/dgl-openapi.json")) ? fs.readFileSync(path.join(process.cwd(), "config/dgl-openapi.json"), "utf-8") : ""
+  );
+  const contentHash = hash(files.join("|"));
+  return hash([baseSha, headSha, contentHash, configHash, SCHEMA_VERSION, TOOL_VERSION].join("::"));
 }
 
 function pruneCache(dir: string): void {
