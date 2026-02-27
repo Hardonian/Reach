@@ -17,8 +17,8 @@
 
 import { ExecRequest, ExecResult } from '../contract';
 import { BaseEngineAdapter, deriveSeed } from './base';
+import { hasFloatingPointValues } from '../utils/validation';
 import { 
-  hasFloatingPointValues,
   ProtocolClient, 
   ConnectionState,
   type ProtocolClientConfig 

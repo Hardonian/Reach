@@ -19,6 +19,7 @@ import {
   decisionToWorkflowStep, resultFromProtocol
 } from '../translate';
 import { BaseEngineAdapter } from './base';
+import { hasFloatingPointValues } from '../utils/validation';
 import { spawn, execFile as execFileCb, ChildProcess } from 'child_process';
 import { ProtocolClient } from '../../protocol/client';
 import { ExecRequestPayload, ExecutionControls } from '../../protocol/messages';
@@ -690,7 +691,7 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
       }
       
       // Check for floating point values
-      if (request.params.outcomes && this.hasFloatingPointValues(request.params.outcomes)) {
+      if (request.params.outcomes && hasFloatingPointValues(request.params.outcomes)) {
         errors.push('floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic');
       }
     }
