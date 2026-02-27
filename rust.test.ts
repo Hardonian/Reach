@@ -9,7 +9,7 @@
  * @module engine/adapters/rust.test
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { RustEngineAdapter } from './rust';
 
 describe('RustEngineAdapter', () => {
@@ -29,6 +29,26 @@ describe('RustEngineAdapter', () => {
       
       expect(adapter.isReady()).toBe(false);
       expect(adapter.getLoadError()).toBeDefined();
+    });
+
+    it('transitions to ready state on successful load', async () => {
+      const adapter = new RustEngineAdapter();
+      const mockPath = '/virtual/mock-wasm-success';
+      
+      // Mock the dynamic import for the specific path
+      vi.doMock(mockPath, () => ({
+        default: {
+          evaluate: () => '{}',
+          version: () => '1.0.0',
+          validate_input: () => 'true',
+          get_algorithms: () => '[]'
+        }
+      }));
+
+      await adapter.initialize(mockPath);
+      
+      expect(adapter.isReady()).toBe(true);
+      expect(adapter.getVersion()).toBe('1.0.0');
     });
   });
 });

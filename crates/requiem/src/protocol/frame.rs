@@ -103,6 +103,7 @@ impl MessageType {
     /// Convert from u32, returns None for unknown values
     pub fn from_u32(value: u32) -> Option<Self> {
         match value {
+            0x00 => Some(Self::Heartbeat),
             0x01 => Some(Self::Hello),
             0x02 => Some(Self::HelloAck),
             0x10 => Some(Self::ExecRequest),
@@ -423,6 +424,12 @@ fn find_magic(src: &BytesMut) -> Option<usize> {
         .position(|window| window == magic_bytes)
 }
 
+// Compile-time assertions for protocol alignment
+const _ASSERT_HEADER_SIZE: () = assert!(HEADER_SIZE == 24, "Header size must be 24 bytes");
+const _ASSERT_FRAME_OVERHEAD: () = assert!(FRAME_OVERHEAD == 28, "Frame overhead must be 28 bytes");
+const _ASSERT_MAGIC_VALUE: () = assert!(MAGIC == 0x52454348, "Magic must be 'RECH' (0x52454348)");
+const _ASSERT_MAX_PAYLOAD: () = assert!(MAX_PAYLOAD_BYTES == 64 * 1024 * 1024, "Max payload must be 64 MiB");
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -509,6 +516,7 @@ mod tests {
     #[test]
     fn test_message_type_roundtrip() {
         for msg_type in [
+            MessageType::Heartbeat,
             MessageType::Hello,
             MessageType::HelloAck,
             MessageType::ExecRequest,
@@ -521,6 +529,13 @@ mod tests {
             let decoded = MessageType::from_u32(encoded).unwrap();
             assert_eq!(msg_type, decoded);
         }
+    }
+
+    #[test]
+    fn test_heartbeat_message_type() {
+        // Heartbeat (0x00) must be recognized
+        assert_eq!(MessageType::Heartbeat as u32, 0x00);
+        assert_eq!(MessageType::from_u32(0x00), Some(MessageType::Heartbeat));
     }
 
     #[test]
