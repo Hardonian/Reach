@@ -61,4 +61,20 @@ describe('ProtocolEngineAdapter', () => {
     const result = await adapter.evaluate(request);
     expect(result.status).not.toBe('error');
   });
+
+  it('logs request payload when logger is provided', async () => {
+    const logger = vi.fn();
+    adapter = new ProtocolEngineAdapter({
+      client: { host: '127.0.0.1', port: 9000 },
+      logger
+    });
+    
+    // Initialize adapter to set up client mock
+    await adapter.configure();
+    
+    const request = FuzzGenerator.generateValidRequest();
+    await adapter.evaluate(request);
+    
+    expect(logger).toHaveBeenCalledWith(expect.stringContaining('[ProtocolAdapter]'), expect.objectContaining({ run_id: request.requestId }));
+  });
 });

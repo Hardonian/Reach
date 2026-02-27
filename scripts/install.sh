@@ -1,135 +1,209 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="reach/reach"
-BIN_DIR="${REACH_BIN_DIR:-$HOME/.reach/bin}"
-TMP_DIR="$(mktemp -d)"
-trap 'rm -rf "$TMP_DIR"' EXIT
+# Reach Installation Script
+# Supports: Linux, macOS
+# Prerequisites: Node.js 18+, pnpm, Git
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
+log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+log_step() { echo -e "${BLUE}[STEP]${NC} $1"; }
 
 need_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
-    echo "error: required command not found: $1" >&2
+    log_error "required command not found: $1"
+    echo ""
+    echo "Please install $1:"
+    case "$1" in
+      node)
+        echo "  - Via nvm: https://github.com/nvm-sh/nvm"
+        echo "  - Via package manager: https://nodejs.org/"
+        ;;
+      pnpm)
+        echo "  - npm install -g pnpm"
+        echo "  - Via standalone: https://pnpm.io/installation"
+        ;;
+      git)
+        echo "  - Via package manager or https://git-scm.com/"
+        ;;
+      cargo)
+        echo "  - Via rustup: https://rustup.rs/"
+        echo "  - Required only for building Requiem engine from source"
+        ;;
+    esac
     exit 1
   fi
 }
 
-detect_platform() {
-  local uname_s uname_m
-  uname_s="$(uname -s | tr '[:upper:]' '[:lower:]')"
-  uname_m="$(uname -m)"
+check_version() {
+  local cmd min_version current_version
+  cmd="$1"
+  min_version="$2"
 
-  case "$uname_s" in
-    linux*) GOOS="linux" ;;
-    darwin*) GOOS="darwin" ;;
-    *)
-      echo "error: unsupported OS: $uname_s" >&2
-      exit 1
-      ;;
-  esac
+  current_version="$($cmd --version | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)"
 
-  case "$uname_m" in
-    x86_64|amd64) GOARCH="amd64" ;;
-    arm64|aarch64) GOARCH="arm64" ;;
-    *)
-      echo "error: unsupported architecture: $uname_m" >&2
-      exit 1
-      ;;
-  esac
-}
+  # Simple version comparison (major.minor only)
+  local current_major current_minor min_major min_minor
+  current_major="$(echo "$current_version" | cut -d. -f1)"
+  current_minor="$(echo "$current_version" | cut -d. -f2)"
+  min_major="$(echo "$min_version" | cut -d. -f1)"
+  min_minor="$(echo "$min_version" | cut -d. -f2)"
 
-fetch_latest_version() {
-  local latest_url
-  latest_url="https://api.github.com/repos/${REPO}/releases/latest"
-  if command -v curl >/dev/null 2>&1; then
-    curl -fsSL "$latest_url" | sed -n 's/.*"tag_name": "v\([^"]*\)".*/\1/p' | head -n1
-  elif command -v wget >/dev/null 2>&1; then
-    wget -qO- "$latest_url" | sed -n 's/.*"tag_name": "v\([^"]*\)".*/\1/p' | head -n1
-  fi
-}
-
-download_file() {
-  local url out
-  url="$1"
-  out="$2"
-  if command -v curl >/dev/null 2>&1; then
-    curl -fL "$url" -o "$out"
-  else
-    wget -O "$out" "$url"
-  fi
-}
-
-install_from_release() {
-  local version artifact_url sums_url artifact sums expected
-  version="${REACH_VERSION:-$(fetch_latest_version || true)}"
-  if [[ -z "$version" ]]; then
+  if [[ "$current_major" -lt "$min_major" ]] || \
+     ([[ "$current_major" -eq "$min_major" ]] && [[ "$current_minor" -lt "$min_minor" ]]); then
+    log_warn "$cmd version $current_version is older than recommended $min_version"
     return 1
   fi
 
-  artifact="reach_${version}_${GOOS}_${GOARCH}"
-  artifact_url="https://github.com/${REPO}/releases/download/v${version}/${artifact}"
-  sums_url="https://github.com/${REPO}/releases/download/v${version}/SHA256SUMS"
-
-  echo "Installing Reach v${version} from GitHub releases..."
-  download_file "$artifact_url" "$TMP_DIR/reach"
-  download_file "$sums_url" "$TMP_DIR/SHA256SUMS"
-
-  expected="$(awk -v target="$artifact" '$2==target {print $1}' "$TMP_DIR/SHA256SUMS")"
-  if [[ -z "$expected" ]]; then
-    echo "error: checksum entry not found for ${artifact}" >&2
-    return 1
-  fi
-
-  if command -v sha256sum >/dev/null 2>&1; then
-    actual="$(sha256sum "$TMP_DIR/reach" | awk '{print $1}')"
-  else
-    actual="$(shasum -a 256 "$TMP_DIR/reach" | awk '{print $1}')"
-  fi
-
-  if [[ "$actual" != "$expected" ]]; then
-    echo "error: checksum verification failed for downloaded artifact" >&2
-    exit 1
-  fi
-
-  mkdir -p "$BIN_DIR"
-  install -m 0755 "$TMP_DIR/reach" "$BIN_DIR/reach"
-  ln -sf "$BIN_DIR/reach" "$BIN_DIR/reachctl"
+  log_info "$cmd version $current_version ✓"
   return 0
 }
 
-install_from_source() {
-  need_cmd go
-  local root
-  root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-  if [[ ! -d "$root/.git" ]]; then
-    echo "error: local source checkout not found for fallback build" >&2
-    exit 1
+install_node_deps() {
+  log_step "Installing Node.js dependencies..."
+  cd "$PROJECT_ROOT"
+
+  if [[ ! -f "pnpm-lock.yaml" ]]; then
+    log_warn "No pnpm-lock.yaml found, using npm package-lock.json"
   fi
 
-  echo "No release artifacts found; building reach locally..."
-  mkdir -p "$BIN_DIR"
-  (
-    cd "$root/services/runner"
-    CGO_ENABLED=0 go build -trimpath -o "$BIN_DIR/reach" ./cmd/reachctl
-  )
-  ln -sf "$BIN_DIR/reach" "$BIN_DIR/reachctl"
+  pnpm install --frozen-lockfile || pnpm install
+
+  log_info "Node.js dependencies installed"
 }
 
-detect_platform
-need_cmd install
-if ! command -v curl >/dev/null 2>&1 && ! command -v wget >/dev/null 2>&1; then
-  echo "error: curl or wget is required" >&2
-  exit 1
+build_rust_engine() {
+  if ! command -v cargo >/dev/null 2>&1; then
+    log_warn "Rust/Cargo not found. Skipping Requiem engine build."
+    log_warn "The TypeScript fallback will be used (slower but functional)."
+    return 0
+  fi
+
+  log_step "Building Requiem engine (Rust)..."
+  cd "$PROJECT_ROOT"
+
+  # Build the release version
+  if cargo build --release -p requiem 2>/dev/null; then
+    log_info "Requiem engine built successfully"
+
+    # Create .reach/bin directory
+    mkdir -p "$PROJECT_ROOT/.reach/bin"
+
+    # Copy binary to predictable location
+    local binary_path
+    binary_path="$PROJECT_ROOT/target/release/requiem"
+    if [[ -f "$binary_path" ]]; then
+      cp "$binary_path" "$PROJECT_ROOT/.reach/bin/requiem"
+      chmod +x "$PROJECT_ROOT/.reach/bin/requiem"
+      log_info "Requiem binary: $PROJECT_ROOT/.reach/bin/requiem"
+    fi
+  else
+    log_warn "Requiem engine build failed. TypeScript fallback will be used."
+  fi
+}
+
+setup_environment() {
+  log_step "Setting up environment..."
+
+  # Create .reach directory structure
+  mkdir -p "$PROJECT_ROOT/.reach/bin"
+  mkdir -p "$PROJECT_ROOT/.reach/data"
+  mkdir -p "$PROJECT_ROOT/.reach/logs"
+
+  # Create local config if it doesn't exist
+  if [[ ! -f "$PROJECT_ROOT/.reach/config.json" ]]; then
+    cat > "$PROJECT_ROOT/.reach/config.json" <<'EOF'
+{
+  "version": "0.3.1",
+  "engine": {
+    "default": "auto",
+    "fallback": "typescript"
+  },
+  "protocol": {
+    "version": 1,
+    "default": "json"
+  },
+  "determinism": {
+    "hash": "blake3",
+    "precision": 10
+  }
+}
+EOF
+    log_info "Created default config: .reach/config.json"
+  fi
+
+  # Add .reach/bin to PATH if not present
+  if [[ ":$PATH:" != *":$PROJECT_ROOT/.reach/bin:"* ]]; then
+    log_info "Add to your shell profile to use reach command:"
+    echo "  export PATH=\"$PROJECT_ROOT/.reach/bin:\$PATH\""
+  fi
+}
+
+run_verification() {
+  log_step "Running verification..."
+  cd "$PROJECT_ROOT"
+
+  if pnpm run typecheck >/dev/null 2>&1; then
+    log_info "TypeScript type check passed"
+  else
+    log_warn "TypeScript type check has warnings (see pnpm run typecheck)"
+  fi
+
+  if pnpm run lint >/dev/null 2>&1; then
+    log_info "Lint check passed"
+  else
+    log_warn "Lint check has warnings"
+  fi
+}
+
+# =============================================================================
+# Main
+# =============================================================================
+
+log_info "Reach Installation Script"
+log_info "Project: $PROJECT_ROOT"
+echo ""
+
+# Check prerequisites
+log_step "Checking prerequisites..."
+need_cmd git
+need_cmd node
+need_cmd pnpm
+
+check_version node 18.0 || true
+check_version pnpm 8.0 || true
+
+if command -v cargo >/dev/null 2>&1; then
+  check_version cargo 1.75 || true
 fi
 
-if ! install_from_release; then
-  install_from_source
-fi
+echo ""
 
-cat <<MSG
-Installed Reach CLI to: $BIN_DIR/reach
-Optional compatibility alias: $BIN_DIR/reachctl
-Add this directory to PATH if needed:
-  export PATH="$BIN_DIR:\$PATH"
-Verify installation:
-  reach version
-MSG
+# Run installation steps
+install_node_deps
+build_rust_engine
+setup_environment
+run_verification
+
+echo ""
+log_info "Installation complete!"
+echo ""
+echo "Next steps:"
+echo "  1. pnpm verify:fast    # Quick validation"
+echo "  2. pnpm verify:smoke   # Smoke test"
+echo "  3. pnpm verify         # Full verification"
+echo ""
+echo "Documentation:"
+echo "  - docs/GO_LIVE.md      # Go-live guide"
+echo "  - docs/ARCHITECTURE.md # System design"
+echo ""

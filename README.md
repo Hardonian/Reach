@@ -1,59 +1,83 @@
 # Reach OSS
 
-Reach is an OSS-first deterministic execution and replay platform for policy-governed runs. It gives teams a reproducible **run → transcript → verify → replay** lifecycle with evidence artifacts and stable fingerprints.
+**Deterministic execution and replay for policy-governed runs.**
 
-## What you get in OSS
+Reach provides a reproducible **run → transcript → verify → replay** lifecycle with evidence artifacts and stable fingerprints.
 
-- Deterministic run execution and replay verification.
-- Local evidence viewer (`apps/arcade`) for transcript inspection.
-- Policy gate validation and conformance fixtures.
-- Route and boundary checks to prevent hard-500 regressions.
+[![CI](https://github.com/reach/decision-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/reach/decision-engine/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Cloud/Enterprise capabilities
-
-- Multi-tenant account and org management.
-- Hosted key custody and signing orchestration.
-- Managed audit stream retention and enterprise operations.
-
-See the full matrix: [docs/oss-vs-enterprise.md](docs/oss-vs-enterprise.md).
-
-
-## How Reach differs from git/CI
-
-Reach governs semantic state, not just file diffs:
-- `reach state diff` classifies model/prompt/context/policy/eval/runtime drift.
-- Policy snapshots bind decisions to the exact policy in force.
-- Replay and integrity scoring expose transition trust, not just pass/fail CI state.
-
-## Quickstart (TTFV)
+## Quick Start
 
 ```bash
-npm install
-npm run verify:oss
-npm run verify:routes
+# Install
+pnpm install
+
+# Verify everything works
+pnpm verify
+
+# Run smoke test
+pnpm verify:smoke
 ```
 
-Then start the demo viewer:
+See [docs/GO_LIVE.md](docs/GO_LIVE.md) for detailed installation and debugging.
+
+## What You Get
+
+- **Deterministic Execution:** Identical inputs produce identical fingerprints
+- **Evidence Transcripts:** Complete audit trail of every run
+- **Replay Verification:** Re-execute runs to verify integrity
+- **Policy Gates:** Enforce rules at execution time
+- **OSS-First:** All core features work without cloud dependencies
+
+## Architecture
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Reach     │────▶│  Requiem    │────▶│   Replay    │
+│   CLI/TS    │     │ Engine/Rust │     │  Verifier   │
+└─────────────┘     └─────────────┘     └─────────────┘
+       │                                    │
+       ▼                                    ▼
+┌─────────────┐                      ┌─────────────┐
+│  Evidence   │◀─────────────────────│  Fingerprint│
+│  Transcript │                      │   Match     │
+└─────────────┘                      └─────────────┘
+```
+
+## Project Structure
+
+| Directory | Purpose |
+|-----------|---------|
+| `src/` | TypeScript CLI and core |
+| `crates/` | Rust engine (Requiem) |
+| `docs/` | Documentation and specs |
+| `tests/` | Integration tests |
+| `scripts/` | Build and validation |
+
+## Verification
 
 ```bash
-cd apps/arcade
-npm install
-npm run dev
+# Quick check (lint + typecheck + unit tests)
+pnpm verify:fast
+
+# Full verification
+pnpm verify
+
+# OSS compliance
+pnpm verify:oss
+
+# Determinism stress test
+pnpm verify:determinism
 ```
 
-Open `http://localhost:3000/demo/evidence-viewer` and load the sample run.
+## Documentation
 
-Detailed setup: [docs/quickstart.md](docs/quickstart.md).
+- [Go-Live Guide](docs/GO_LIVE.md) - Installation and operations
+- [Architecture](docs/ARCHITECTURE.md) - System design
+- [Contributing](CONTRIBUTING.md) - How to contribute
+- [Security](SECURITY.md) - Security policy
 
-## Support and community
+## License
 
-- Contributing guide: [CONTRIBUTING.md](CONTRIBUTING.md)
-- Security reporting: [SECURITY.md](SECURITY.md)
-- Issue templates: [.github/ISSUE_TEMPLATE](.github/ISSUE_TEMPLATE)
-
-## Reliability guardrails
-
-- OSS and language gates: `npm run verify:oss`
-- Root cleanliness gate: `npm run verify:root`
-- Route safety gate: `npm run verify:routes`
-- Import boundaries gate: `npm run validate:boundaries`
+MIT © Reach Contributors
