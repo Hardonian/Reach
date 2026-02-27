@@ -9,6 +9,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { RequiemEngineAdapter } from './requiem';
+import { DualEngineAdapter } from './dual';
 import { FuzzGenerator } from './base';
 
 describe('RequiemEngineAdapter Fuzzing', () => {
@@ -46,5 +47,16 @@ describe('RequiemEngineAdapter Fuzzing', () => {
     const validation = adapter.validateInput(request);
     expect(validation.valid).toBe(false);
     expect(validation.errors?.some(e => e.includes('matrix_too_large'))).toBe(true);
+  });
+});
+
+describe('DualEngineAdapter Fuzzing', () => {
+  it('rejects float fuzz requests (determinism guard)', () => {
+    const adapter = new DualEngineAdapter();
+    const request = FuzzGenerator.generateFloatRequest();
+    const validation = adapter.validateInput(request);
+    
+    expect(validation.valid).toBe(false);
+    expect(validation.errors?.some(e => e.includes('floating_point_values_detected'))).toBe(true);
   });
 });

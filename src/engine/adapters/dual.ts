@@ -359,9 +359,64 @@ export async function evaluateWithBothEngines(
  */
 export class DualEngineAdapter {
   /**
+   * Check for floating point values in object tree
+   * Ensures numeric integrity for fixed-point arithmetic
+   */
+  private hasFloatingPointValues(obj: unknown): boolean {
+    if (typeof obj === 'number') {
+      return !Number.isInteger(obj);
+    }
+    if (typeof obj === 'object' && obj !== null) {
+      for (const value of Object.values(obj as Record<string, unknown>)) {
+        if (this.hasFloatingPointValues(value)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Validate that input is compatible with Engines
+   */
+  validateInput(request: ExecRequest): { valid: boolean; errors?: string[] } {
+    const errors: string[] = [];
+    
+    // Check for floating point values
+    if (request.params.outcomes && this.hasFloatingPointValues(request.params.outcomes)) {
+      errors.push('floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic');
+    }
+    
+    return {
+      valid: errors.length === 0,
+      errors: errors.length > 0 ? errors : undefined,
+    };
+  }
+
+  /**
    * Evaluate with both engines and return primary result with ghost comparison
    */
   async evaluate(request: ExecRequest): Promise<ExecResult> {
+    // Validate input first
+    const validation = this.validateInput(request);
+    if (!validation.valid) {
+      return {
+        requestId: request.requestId,
+        status: 'error',
+        recommendedAction: '',
+        ranking: [],
+        trace: { algorithm: request.params.algorithm },
+        fingerprint: '',
+        meta: {
+          engine: 'dual',
+          engineVersion: 'unknown',
+          durationMs: 0,
+          completedAt: new Date().toISOString(),
+        },
+        error: validation.errors?.join(', '),
+      };
+    }
+
     // Execute with both engines
     const { requiem, rust } = await evaluateWithBothEngines(request);
     
