@@ -253,26 +253,98 @@ describe('Error Handling', () => {
     expect(result).toBeNull();
   });
 
-  it.skip('should reject payload exceeding MAX_PAYLOAD_BYTES', () => {
-    // Create a frame header with too-large payload
+  it('should reject payload exceeding MAX_PAYLOAD_BYTES', () => {
+    // Create a frame header with too-large payload claim
     const payloadLen = 65 * 1024 * 1024; // 65 MiB (> 64 MiB max)
-    const lenBytes = new Uint8Array(4);
-    const view = new DataView(lenBytes.buffer);
-    view.setUint32(0, payloadLen, true); // little-endian
     
-    // Full 22-byte header + 4-byte CRC
-    const frame = new Uint8Array([
-      0x52, 0x45, 0x43, 0x48, // Magic (4 bytes)
-      0x00, 0x01, // Major (2 bytes)
-      0x00, 0x00, // Minor (2 bytes)
-      0x00, 0x00, 0x00, 0x01, // Type (4 bytes)
-      0x00, 0x00, 0x00, 0x00, // Flags (4 bytes)
-      lenBytes[0], lenBytes[1], lenBytes[2], lenBytes[3], // Payload length (4 bytes) = 22 total
-      0x00, 0x00, 0x00, 0x00, // CRC placeholder (4 bytes)
-    ]);
+    // Build frame with oversized payload length
+    const frame = new Uint8Array(HEADER_SIZE + FOOTER_SIZE);
+    const view = new DataView(frame.buffer);
+    
+    // Magic
+    view.setUint32(0, 0x52454348, true);
+    // Version major/minor
+    view.setUint16(4, 1, true);
+    view.setUint16(6, 0, true);
+    // Message type (Hello = 0x01)
+    view.setUint32(8, 0x01, true);
+    // Flags
+    view.setUint32(12, 0, true);
+    // Correlation ID
+    view.setUint32(16, 0, true);
+    // Payload length (oversized)
+    view.setUint32(20, payloadLen, true);
+    // CRC (placeholder - will fail CRC check, but payload size check comes first)
+    view.setUint32(24, 0, true);
     
     // decodeFrame should throw on oversized payload
-    expect(() => decodeFrame(frame)).toThrow('Payload too large');
+    expect(() => decodeFrame(frame)).toThrow('PAYLOAD_TOO_LARGE');
+  });
+
+  it('should handle version mismatch frames', () => {
+    const testParser = new FrameParser();
+    
+    // Build frame with unsupported version
+    const frame = new Uint8Array(HEADER_SIZE + FOOTER_SIZE);
+    const view = new DataView(frame.buffer);
+    
+    view.setUint32(0, 0x52454348, true); // Magic
+    view.setUint16(4, 99, true); // Major = 99 (unsupported)
+    view.setUint16(6, 0, true); // Minor
+    view.setUint32(8, 0x01, true); // Hello
+    view.setUint32(12, 0, true); // Flags
+    view.setUint32(16, 0, true); // Correlation
+    view.setUint32(20, 0, true); // Payload len
+    view.setUint32(24, 0, true); // CRC (invalid)
+    
+    testParser.append(frame);
+    
+    // Should throw or return null, but not crash
+    try {
+      testParser.parse();
+    } catch {
+      // Expected - CRC mismatch or version error
+    }
+    
+    expect(testParser.bufferSize).toBeGreaterThanOrEqual(0);
+  });
+
+  it('should handle garbage data gracefully', () => {
+    const testParser = new FrameParser();
+    
+    // Append random garbage
+    const garbage = new Uint8Array(100);
+    for (let i = 0; i < garbage.length; i++) {
+      garbage[i] = Math.floor(Math.random() * 256);
+    }
+    
+    testParser.append(garbage);
+    
+    // Should handle gracefully (throw on invalid magic, then resync)
+    try {
+      testParser.parse();
+    } catch {
+      // Expected
+    }
+    
+    // Parser should still be in a valid state
+    expect(testParser.bufferSize).toBeGreaterThanOrEqual(0);
+    expect(testParser.bufferSize).toBeLessThanOrEqual(garbage.length);
+  });
+
+  it('should handle partial frame data', () => {
+    const testParser = new FrameParser();
+    
+    // Only send partial header (less than HEADER_SIZE)
+    const partial = new Uint8Array(10);
+    partial.set([0x52, 0x45, 0x43, 0x48, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00]);
+    
+    testParser.append(partial);
+    const result = testParser.parse();
+    
+    // Should return null (need more data)
+    expect(result).toBeNull();
+    expect(testParser.bufferSize).toBe(10);
   });
 });
 

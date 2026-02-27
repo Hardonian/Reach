@@ -50,5 +50,23 @@ describe('RustEngineAdapter', () => {
       expect(adapter.isReady()).toBe(true);
       expect(adapter.getVersion()).toBe('1.0.0');
     });
+
+    it('rejects invalid WASM module (missing functions)', async () => {
+      const adapter = new RustEngineAdapter();
+      const mockPath = '/virtual/mock-wasm-invalid';
+      
+      // Mock an invalid module (missing evaluate)
+      vi.doMock(mockPath, () => ({
+        default: {
+          version: () => '1.0.0',
+          validate_input: () => 'true',
+          get_algorithms: () => '[]'
+          // evaluate is missing
+        }
+      }));
+
+      await expect(adapter.initialize(mockPath)).rejects.toThrow(/Missing required exports: evaluate/);
+      expect(adapter.isReady()).toBe(false);
+    });
   });
 });

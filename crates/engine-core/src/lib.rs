@@ -1,5 +1,20 @@
+//! # Engine Core (DEPRECATED)
+//!
+//! ⚠️ **DEPRECATION NOTICE**: This crate is deprecated and maintained for
+//! backward compatibility only. New development should use the Requiem
+//! protocol stack (`crates/requiem`) instead.
+//!
+//! This module provides core deterministic engine types that are being
+//! phased out in favor of the binary protocol implementation.
+
+#![allow(deprecated)]
+
 pub mod invariants;
 use serde::{Deserialize, Serialize};
+
+/// Deprecated: Use `requiem::ProtocolError` instead
+#[deprecated(since = "0.3.0", note = "Use requiem::ProtocolError instead")]
+pub type LegacyError = Box<dyn std::error::Error>;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 

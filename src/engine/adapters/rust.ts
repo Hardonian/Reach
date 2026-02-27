@@ -66,13 +66,22 @@ export interface WasmValidationResult {
 }
 
 /**
+ * Structured error for WASM validation
+ */
+export interface WasmValidationError {
+  type: 'missing_export' | 'invalid_type' | 'execution_error' | 'general';
+  message: string;
+  field?: string;
+}
+
+/**
  * Runtime validation result for the loaded WASM module
  */
 export interface WasmModuleValidation {
   isValid: boolean;
   version?: string;
   algorithms?: string[];
-  errors: string[];
+  errors: WasmValidationError[];
 }
 
 /**
@@ -82,13 +91,13 @@ export interface WasmModuleValidation {
  * @returns Validation result
  */
 export function validateWasmModule(module: unknown): WasmModuleValidation {
-  const errors: string[] = [];
+  const errors: WasmValidationError[] = [];
   
   // Check if module is an object
   if (module === null || typeof module !== 'object') {
     return {
       isValid: false,
-      errors: ['Module is not an object'],
+      errors: [{ type: 'invalid_type', message: 'Module is not an object' }],
     };
   }
   
@@ -99,7 +108,11 @@ export function validateWasmModule(module: unknown): WasmModuleValidation {
   
   for (const func of requiredFunctions) {
     if (typeof wasmModule[func] !== 'function') {
-      errors.push(`Missing required function: ${func}`);
+      errors.push({
+        type: 'missing_export',
+        message: `Missing required function: ${func}`,
+        field: func
+      });
     }
   }
   
@@ -165,9 +178,26 @@ export async function loadWasmModule(wasmPath: string): Promise<RustWasmModule> 
   const validation = validateWasmModule(module);
   
   if (!validation.isValid) {
-    throw new Error(
-      `WASM module validation failed: ${validation.errors.join(', ')}`
-    );
+    // Format errors for better readability
+    const missingFuncs = validation.errors
+      .filter(e => e.type === 'missing_export')
+      .map(e => e.field || e.message);
+    
+    const otherErrors = validation.errors
+      .filter(e => e.type !== 'missing_export')
+      .map(e => e.message);
+      
+    let errorMessage = 'WASM module validation failed';
+    
+    if (missingFuncs.length > 0) {
+      errorMessage += `\n  Missing required exports: ${missingFuncs.join(', ')}`;
+    }
+    
+    if (otherErrors.length > 0) {
+      errorMessage += `\n  Other errors: ${otherErrors.join(', ')}`;
+    }
+
+    throw new Error(errorMessage);
   }
   
   return module as RustWasmModule;
