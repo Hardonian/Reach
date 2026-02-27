@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-02-27T03:52:28.117Z",
+  "updated_at": "2026-02-27T18:30:59.742Z",
   "leases": [
     {
       "lease_id": "lease_a",
@@ -13,8 +13,8 @@
         "device_id": "mac",
         "agent_id": "reach-cli"
       },
-      "acquired_at": "2026-02-27T03:52:28.116Z",
-      "expires_at": "2026-02-27T04:02:28.116Z",
+      "acquired_at": "2026-02-27T18:30:59.741Z",
+      "expires_at": "2026-02-27T18:40:59.741Z",
       "ttl_seconds": 900
     },
     {
@@ -28,8 +28,8 @@
         "device_id": "linux",
         "agent_id": "web-agent"
       },
-      "acquired_at": "2026-02-27T03:52:28.116Z",
-      "expires_at": "2026-02-27T04:02:28.116Z",
+      "acquired_at": "2026-02-27T18:30:59.741Z",
+      "expires_at": "2026-02-27T18:40:59.741Z",
       "ttl_seconds": 900
     }
   ]
