@@ -4179,7 +4179,7 @@ func meshOn(dataDir string, out io.Writer, errOut io.Writer) int {
 	})
 }
 
-func meshOff(dataDir string, out io.Writer, errOut io.Writer) int {
+func meshOff(dataDir string, out io.Writer, _ io.Writer) int {
 	// In a real implementation, would connect to running daemon
 	// For now, just remove pid file
 	pidFile := filepath.Join(dataDir, "mesh.pid")
@@ -4433,7 +4433,7 @@ func meshQR(dataDir string, out io.Writer, errOut io.Writer) int {
 }
 
 // generateTextQR creates a simple text representation of a QR code
-func generateTextQR(out io.Writer, text string) {
+func generateTextQR(out io.Writer, _ string) {
 	// This is a simplified placeholder - real QR would use qrencode library
 	// For now, create a visual frame that suggests QR structure
 	fmt.Fprintln(out, "  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”")
