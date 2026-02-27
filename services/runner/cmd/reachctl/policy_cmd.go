@@ -20,7 +20,7 @@ import (
 )
 
 // runPolicyCommand dispatches `reachctl policy <subcommand>`.
-func runPolicyCommand(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runPolicyCommand(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		usagePolicy(errOut)
 		return 1
@@ -28,11 +28,11 @@ func runPolicyCommand(ctx context.Context, dataRoot string, args []string, out i
 
 	switch args[0] {
 	case "evaluate":
-		return runPolicyEvaluate(ctx, dataRoot, args[1:], out, errOut)
+		return runPolicyEvaluate(context.TODO(), dataRoot, args[1:], out, errOut)
 	case "enforce":
-		return runPolicyEnforce(ctx, dataRoot, args[1:], out, errOut)
+		return runPolicyEnforce(context.TODO(), dataRoot, args[1:], out, errOut)
 	case "show":
-		return runPolicyShow(ctx, dataRoot, args[1:], out, errOut)
+		return runPolicyShow(context.TODO(), dataRoot, args[1:], out, errOut)
 	default:
 		_, _ = fmt.Fprintf(errOut, "unknown policy subcommand: %q\n", args[0])
 		usagePolicy(errOut)

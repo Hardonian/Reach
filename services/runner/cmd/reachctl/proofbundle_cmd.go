@@ -18,7 +18,7 @@ import (
 )
 
 // runProofBundle handles 'reach proof bundle <command>'
-func runProofBundle(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runProofBundle(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		usageProofBundle(out)
 		return 1
@@ -26,7 +26,7 @@ func runProofBundle(ctx context.Context, dataRoot string, args []string, out io.
 
 	switch args[0] {
 	case "export":
-		return runProofBundleExport(ctx, dataRoot, args[1:], out, errOut)
+		return runProofBundleExport(context.TODO(), dataRoot, args[1:], out, errOut)
 	default:
 		usageProofBundle(out)
 		return 1
@@ -34,7 +34,7 @@ func runProofBundle(ctx context.Context, dataRoot string, args []string, out io.
 }
 
 // runProofBundleExport handles 'reach proof bundle export <runId> [--output <file>]'
-func runProofBundleExport(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runProofBundleExport(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("proof bundle export", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	outputFlag := fs.String("output", "", "Output file path (default: <runId>.reach-proof.json)")
@@ -137,7 +137,7 @@ func runProofBundleExport(ctx context.Context, dataRoot string, args []string, o
 }
 
 // runProofVerifyBundle handles 'reach proof verify --bundle <file>'
-func runProofVerifyBundle(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runProofVerifyBundle(_ context.Context, _ string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("proof verify --bundle", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	bundleFlag := fs.String("bundle", "", "Path to proof bundle file (.reach-proof.json)")

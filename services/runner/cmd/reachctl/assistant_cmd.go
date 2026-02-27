@@ -56,7 +56,7 @@ type AssistantReport struct {
 }
 
 // runAssistant dispatches `reachctl assistant <subcommand>`.
-func runAssistant(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runAssistant(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		usageAssistant(out)
 		return 1
@@ -64,13 +64,13 @@ func runAssistant(ctx context.Context, dataRoot string, args []string, out io.Wr
 
 	switch args[0] {
 	case "suggest":
-		return runAssistantSuggest(ctx, dataRoot, args[1:], out, errOut)
+		return runAssistantSuggest(context.TODO(), dataRoot, args[1:], out, errOut)
 	case "explain":
 		if len(args) < 2 {
 			usageAssistant(out)
 			return 1
 		}
-		return runAssistantExplain(ctx, dataRoot, args[1], args[2:], out, errOut)
+		return runAssistantExplain(context.TODO(), dataRoot, args[1], args[2:], out, errOut)
 	default:
 		_, _ = fmt.Fprintf(errOut, "unknown assistant subcommand: %q\n", args[0])
 		usageAssistant(out)

@@ -63,7 +63,7 @@ type ArtifactFileRef struct {
 }
 
 // runArtifact handles artifact-related commands: ingest, export, verify
-func runArtifact(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runArtifact(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		usageArtifact(out)
 		return 1
@@ -71,13 +71,13 @@ func runArtifact(ctx context.Context, dataRoot string, args []string, out io.Wri
 
 	switch args[0] {
 	case "ingest":
-		return runArtifactIngest(ctx, dataRoot, args[1:], out, errOut)
+		return runArtifactIngest(context.TODO(), dataRoot, args[1:], out, errOut)
 	case "export":
-		return runArtifactExport(ctx, dataRoot, args[1:], out, errOut)
+		return runArtifactExport(context.TODO(), dataRoot, args[1:], out, errOut)
 	case "verify":
-		return runArtifactVerify(ctx, dataRoot, args[1:], out, errOut)
+		return runArtifactVerify(context.TODO(), dataRoot, args[1:], out, errOut)
 	case "list":
-		return runArtifactList(ctx, dataRoot, args[1:], out, errOut)
+		return runArtifactList(context.TODO(), dataRoot, args[1:], out, errOut)
 	default:
 		usageArtifact(out)
 		return 1

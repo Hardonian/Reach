@@ -49,7 +49,7 @@ type RetentionCompactResult struct {
 }
 
 // runRetention handles retention-related commands
-func runRetention(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runRetention(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		fmt.Fprintln(errOut, "Usage: reachctl retention <status|compact|prune>")
 		return 1
@@ -57,11 +57,11 @@ func runRetention(ctx context.Context, dataRoot string, args []string, out io.Wr
 
 	switch args[0] {
 	case "status":
-		return runRetentionStatus(ctx, dataRoot, args[1:], out, errOut)
+		return runRetentionStatus(context.TODO(), dataRoot, args[1:], out, errOut)
 	case "compact":
-		return runRetentionCompact(ctx, dataRoot, args[1:], out, errOut)
+		return runRetentionCompact(context.TODO(), dataRoot, args[1:], out, errOut)
 	case "prune":
-		return runRetentionPrune(ctx, dataRoot, args[1:], out, errOut)
+		return runRetentionPrune(context.TODO(), dataRoot, args[1:], out, errOut)
 	default:
 		fmt.Fprintf(errOut, "Unknown retention command: %s\n", args[0])
 		return 1

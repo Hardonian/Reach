@@ -726,7 +726,7 @@ func runStressMatrix(_ context.Context, dataRoot string, args []string, out io.W
 }
 
 // runStressEntropy handles 'reach stress entropy <pipeline>'
-func runStressEntropy(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runStressEntropy(_ context.Context, _ string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("stress entropy", flag.ContinueOnError)
 	jsonFlag := fs.Bool("json", false, "output JSON")
 	_ = fs.Parse(args)
@@ -802,7 +802,7 @@ func runDebug(_ context.Context, dataRoot string, args []string, out io.Writer, 
 
 	switch args[0] {
 	case "canonical":
-		return runDebugCanonical(ctx, dataRoot, args[1:], out, errOut)
+		return runDebugCanonical(context.TODO(), dataRoot, args[1:], out, errOut)
 	default:
 		usageDebug(out)
 		return 1
@@ -810,7 +810,7 @@ func runDebug(_ context.Context, dataRoot string, args []string, out io.Writer, 
 }
 
 // runDebugCanonical handles 'reach debug canonical <json-file>'
-func runDebugCanonical(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runDebugCanonical(_ context.Context, _ string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("debug canonical", flag.ContinueOnError)
 	jsonFlag := fs.Bool("json", false, "output JSON")
 	_ = fs.Parse(args)
@@ -1157,7 +1157,7 @@ type PluginManifest struct {
 	Capabilities         []string          `json:"capabilities"`
 }
 
-func runPluginsList(dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runPluginsList(dataRoot string, _ []string, out io.Writer, _ io.Writer) int {
 	pluginDir := filepath.Join(dataRoot, "plugins")
 	_ = os.MkdirAll(pluginDir, 0o755)
 	entries, err := os.ReadDir(pluginDir)
@@ -1652,7 +1652,7 @@ func runExplain(_ context.Context, dataRoot string, args []string, out io.Writer
 	return writeJSON(out, msg)
 }
 
-func runOperator(_ context.Context, dataRoot string, out io.Writer, errOut io.Writer) int {
+func runOperator(_ context.Context, dataRoot string, out io.Writer, _ io.Writer) int {
 	isMobile := os.Getenv("REACH_MOBILE") == "1" || os.Getenv("TERMUX_VERSION") != ""
 
 	coord := federation.NewCoordinator(filepath.Join(dataRoot, "federation_reputation.json"))
@@ -1876,7 +1876,7 @@ func printMobileOperatorDashboard(out io.Writer, m *OperatorMetrics) {
 	fmt.Fprintln(out)
 }
 
-func runArena(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runArena(_ context.Context, _ string, args []string, out io.Writer, _ io.Writer) int {
 	if len(args) < 2 || args[0] != "run" {
 		usage(out)
 		return 1
@@ -3354,7 +3354,7 @@ func runPackInit(args []string, out io.Writer, errOut io.Writer) int {
 	})
 }
 
-func runPackScore(args []string, out io.Writer, errOut io.Writer) int {
+func runPackScore(args []string, _ io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		_, _ = fmt.Fprintln(errOut, "usage: reach pack score <path> [--json] [--badges]")
 		return 1
@@ -3378,7 +3378,7 @@ func runPackScore(args []string, out io.Writer, errOut io.Writer) int {
 	return 0
 }
 
-func runPackDocs(args []string, out io.Writer, errOut io.Writer) int {
+func runPackDocs(args []string, _ io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		_, _ = fmt.Fprintln(errOut, "usage: reach pack docs <path> [--output <path>] [--with-scores]")
 		return 1
@@ -3571,7 +3571,7 @@ func runWizard(_ context.Context, dataRoot string, args []string, out io.Writer,
 	_ = fs.Parse(args)
 
 	wizard := NewWizard(dataRoot, out, errOut, *quickMode, *jsonOut)
-	return wizard.Run(ctx)
+	return wizard.Run(context.TODO())
 }
 
 // Wizard guides users through pack selection, input, run, verify, share
@@ -3624,7 +3624,7 @@ func (w *Wizard) Run(_ context.Context) int {
 	}
 
 	// Step 3: Run
-	if err := w.stepRun(ctx); err != nil {
+	if err := w.stepRun(context.TODO()); err != nil {
 		w.logError("Run failed", err)
 		return 1
 	}
@@ -4112,7 +4112,7 @@ func shareCapsule(path string, out, errOut io.Writer) int {
 }
 
 // runMesh handles mesh networking commands
-func runMesh(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runMesh(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		usageMesh(out)
 		return 1
@@ -4448,7 +4448,7 @@ func generateTextQR(out io.Writer, text string) {
 	fmt.Fprintln(out, "  (Use: pkg install libqrencode for real QR codes)")
 }
 
-func runGate(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runGate(_ context.Context, _ string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		usageGate(out)
 		return 1
@@ -4643,7 +4643,7 @@ func runVersion(args []string, out io.Writer) int {
 
 // PoEE CLI Handlers
 
-func runDelegate(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runDelegate(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 3 {
 		_, _ = fmt.Fprintln(errOut, "usage: reach delegate <peer> <pack> <input>")
 		return 1
@@ -4734,7 +4734,7 @@ func runDelegate(ctx context.Context, dataRoot string, args []string, out io.Wri
 	return writeJSON(out, result)
 }
 
-func runVerifyProof(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runVerifyProof(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		_, _ = fmt.Fprintln(errOut, "usage: reach verify-proof <proof.json>")
 		return 1
@@ -4859,7 +4859,7 @@ Examples:
 `)
 }
 
-func runDiffRun(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runDiffRun(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 2 {
 		_, _ = fmt.Fprintln(errOut, "usage: reachctl diff-run <runA> <runB> [--json]")
 		return 1
@@ -4893,7 +4893,7 @@ func runDiffRun(ctx context.Context, dataRoot string, args []string, out io.Writ
 	return 0
 }
 
-func runVerifyDeterminism(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runVerifyDeterminism(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("verify-determinism", flag.ContinueOnError)
 	n := fs.Int("n", 5, "number of trials")
 	packID := fs.String("pack", "", "pack to execute (optional if runId provided)")
@@ -4930,7 +4930,7 @@ func runVerifyDeterminism(ctx context.Context, dataRoot string, args []string, o
 	return 0
 }
 
-func runBenchmark(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runBenchmark(_ context.Context, dataRoot string, args []string, out io.Writer, _ io.Writer) int {
 	fs := flag.NewFlagSet("benchmark", flag.ContinueOnError)
 	packID := fs.String("pack", "arcadeSafe.demo", "pack to benchmark")
 	trials := fs.Int("trials", 3, "number of trials for averaging")
@@ -5006,8 +5006,7 @@ func runBenchmark(ctx context.Context, dataRoot string, args []string, out io.Wr
 
 // runBench dispatches `reachctl bench <subcommand>`.
 // Currently supports: bench reproducibility
-func runBench(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
-	_ = ctx
+func runBench(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		_, _ = fmt.Fprintln(errOut, "usage: reach bench <subcommand>")
 		_, _ = fmt.Fprintln(errOut, "  reproducibility <pipelineId> [--runs N] [--json]")
@@ -5180,7 +5179,7 @@ func runDoctor(args []string, out, errOut io.Writer) int {
 }
 
 // runCheckpoint creates a checkpoint of a run for time travel
-func runCheckpoint(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runCheckpoint(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("checkpoint", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	jsonFlag := fs.Bool("json", false, "Output in JSON format")
@@ -5217,7 +5216,7 @@ func runCheckpoint(ctx context.Context, dataRoot string, args []string, out io.W
 }
 
 // runRewind restores a run from a checkpoint
-func runRewind(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runRewind(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("rewind", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	jsonFlag := fs.Bool("json", false, "Output in JSON format")
@@ -5254,7 +5253,7 @@ func runRewind(ctx context.Context, dataRoot string, args []string, out io.Write
 }
 
 // runSimulate simulates a run against historical data
-func runSimulate(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runSimulate(_ context.Context, _ string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) > 0 && args[0] == "upgrade" {
 		fs := flag.NewFlagSet("simulate upgrade", flag.ContinueOnError)
 		fs.SetOutput(errOut)
@@ -5321,7 +5320,7 @@ func runSimulate(ctx context.Context, dataRoot string, args []string, out io.Wri
 	return 0
 }
 
-func runState(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runState(_ context.Context, _ string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) == 0 {
 		_, _ = fmt.Fprintln(errOut, "usage: reach state <show|diff|graph> [...]")
 		return 1
@@ -5427,7 +5426,7 @@ func runVerifySecurity(dataRoot string, args []string, out io.Writer, errOut io.
 // runChaos runs differential chaos analysis — Phase G.
 // It perturbs execution parameters across multiple seeds and reports
 // invariant violations, step key drift, and proof hash drift.
-func runChaos(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runChaos(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("chaos", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	jsonFlag := fs.Bool("json", false, "Output in JSON format")
@@ -5437,7 +5436,7 @@ func runChaos(ctx context.Context, dataRoot string, args []string, out io.Writer
 
 	// Check for byzantine subcommand
 	if len(args) > 0 && args[0] == "byzantine" {
-		return runByzantine(ctx, dataRoot, args[1:], out, errOut)
+		return runByzantine(context.TODO(), dataRoot, args[1:], out, errOut)
 	}
 
 	if *level < 1 || *level > 5 {
@@ -5568,7 +5567,7 @@ func runChaos(ctx context.Context, dataRoot string, args []string, out io.Writer
 
 // runTrust computes the trust score for the workspace — Phase E.
 // Uses actual run records and policy evaluation to produce a real score.
-func runTrust(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runTrust(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("trust", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	jsonFlag := fs.Bool("json", false, "Output in JSON format")
@@ -5640,7 +5639,7 @@ func runTrust(ctx context.Context, dataRoot string, args []string, out io.Writer
 }
 
 // runSteps lists steps for a run with proof hashes
-func runSteps(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runSteps(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("steps", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	jsonFlag := fs.Bool("json", false, "Output in JSON format")
@@ -5723,7 +5722,7 @@ func runSteps(ctx context.Context, dataRoot string, args []string, out io.Writer
 }
 
 // runProvenance shows provenance information for a run
-func runProvenance(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runProvenance(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("provenance", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	jsonFlag := fs.Bool("json", false, "Output in JSON format")
@@ -5812,7 +5811,7 @@ func runProvenance(ctx context.Context, dataRoot string, args []string, out io.W
 }
 
 // runVerifyPeer handles the verify-peer command for independent re-verification
-func runVerifyPeer(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runVerifyPeer(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("verify-peer", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	jsonFlag := fs.Bool("json", false, "Output in JSON format")
@@ -5938,7 +5937,7 @@ func runVerifyPeer(ctx context.Context, dataRoot string, args []string, out io.W
 }
 
 // runConsensus handles the consensus command for multi-node consensus simulation
-func runConsensus(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runConsensus(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("consensus", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	jsonFlag := fs.Bool("json", false, "Output in JSON format")
@@ -6010,7 +6009,7 @@ func runConsensus(ctx context.Context, dataRoot string, args []string, out io.Wr
 }
 
 // runPeer handles the peer command for peer trust index
-func runPeer(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runPeer(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("peer", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	jsonFlag := fs.Bool("json", false, "Output in JSON format")
@@ -6086,7 +6085,7 @@ func loadDeterminismConfidence(dataRoot string) int {
 }
 
 // runByzantine handles the byzantine fault simulation
-func runByzantine(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runByzantine(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("byzantine", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	jsonFlag := fs.Bool("json", false, "Output in JSON format")

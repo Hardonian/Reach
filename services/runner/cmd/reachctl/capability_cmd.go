@@ -36,7 +36,7 @@ type CapabilityCheckResult struct {
 }
 
 // runCapability handles capability-related commands
-func runCapability(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runCapability(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		fmt.Fprintln(errOut, "Usage: reachctl capability <list|check|register>")
 		return 1
@@ -44,11 +44,11 @@ func runCapability(ctx context.Context, dataRoot string, args []string, out io.W
 
 	switch args[0] {
 	case "list":
-		return runCapabilityList(ctx, dataRoot, args[1:], out, errOut)
+		return runCapabilityList(context.TODO(), dataRoot, args[1:], out, errOut)
 	case "check":
-		return runCapabilityCheck(ctx, dataRoot, args[1:], out, errOut)
+		return runCapabilityCheck(context.TODO(), dataRoot, args[1:], out, errOut)
 	case "register":
-		return runCapabilityRegister(ctx, dataRoot, args[1:], out, errOut)
+		return runCapabilityRegister(context.TODO(), dataRoot, args[1:], out, errOut)
 	default:
 		fmt.Fprintf(errOut, "Unknown capability command: %s\n", args[0])
 		return 1
