@@ -67,6 +67,10 @@ describe('RustEngineAdapter', () => {
 
       await expect(adapter.initialize(mockPath)).rejects.toThrow(/Missing required exports: evaluate/);
       expect(adapter.isReady()).toBe(false);
+
+      const loadError = adapter.getLoadError();
+      expect(loadError).toBeDefined();
+      expect(loadError?.message).toContain('Missing required exports: evaluate');
     });
   });
 });

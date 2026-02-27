@@ -9,10 +9,10 @@ export const ConnectionState = {
 
 export class MockProtocolClient {
   public isReady = false;
-  public connectionState = ConnectionState.Disconnected;
-  public config: any;
+  public connectionState: typeof ConnectionState[keyof typeof ConnectionState] = ConnectionState.Disconnected;
+  public config: unknown;
 
-  constructor(config: any) {
+  constructor(config: unknown) {
     this.config = config;
   }
 

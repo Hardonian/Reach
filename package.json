@@ -93,7 +93,9 @@
     "verify:cutover": "npx tsx scripts/verify-cutover.ts",
     "verify:dual-run": "npx tsx scripts/verify-dual-run.ts",
     "verify:proof": "npx tsx scripts/verify-proof.ts",
-    "reach:doctor:cutover": "npx tsx -e \"import { runCutoverDoctor } from './src/cli/doctor-cutover.js'; runCutoverDoctor();\""
+    "reach:doctor:cutover": "npx tsx -e \"import { runCutoverDoctor } from './src/cli/doctor-cutover.js'; runCutoverDoctor();\"",
+    "reach:health": "node scripts/reach-health.mjs",
+    "reach:health:detailed": "node scripts/reach-health.mjs --detailed"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",
