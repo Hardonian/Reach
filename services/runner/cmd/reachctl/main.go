@@ -230,6 +230,8 @@ func run(ctx context.Context, args []string, out io.Writer, errOut io.Writer) in
 		return runBench(ctx, dataRoot, args[1:], out, errOut)
 	case "sign":
 		return runSign(ctx, dataRoot, args[1:], out, errOut)
+	case "signing":
+		return runSigningPlugin(ctx, dataRoot, args[1:], out, errOut)
 	case "verify-signature":
 		return runVerifySignature(ctx, dataRoot, args[1:], out, errOut)
 	case "provenance":

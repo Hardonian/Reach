@@ -12,6 +12,8 @@ import (
 	"io"
 	"sort"
 	"strings"
+
+	signing "reach/internal/packkit/signing"
 )
 
 // Version is the current proof bundle format version.
@@ -442,4 +444,109 @@ func AddSignature(bundle *ProofBundle, keyID, algorithm, signatureHex string) {
 		Algorithm: algorithm,
 		Signature: signatureHex,
 	}
+}
+
+// Sign signs the proof bundle using the specified signer plugin.
+// The signer must be initialized and available.
+func Sign(bundle *ProofBundle, signer signing.SignerPlugin, keyID string) error {
+	if bundle == nil {
+		return fmt.Errorf("proofbundle: cannot sign nil bundle")
+	}
+	if signer == nil {
+		return fmt.Errorf("proofbundle: signer cannot be nil")
+	}
+
+	// Get canonical JSON for signing (without signature field)
+	data, err := CanonicalJSON(bundle)
+	if err != nil {
+		return fmt.Errorf("proofbundle: failed to get canonical JSON: %w", err)
+	}
+
+	// Determine algorithm
+	algorithms := signer.SupportedAlgorithms()
+	if len(algorithms) == 0 {
+		return fmt.Errorf("proofbundle: signer supports no algorithms")
+	}
+	algorithm := string(algorithms[0])
+
+	// Sign the data
+	sig, err := signer.Sign(data, algorithm)
+	if err != nil {
+		return fmt.Errorf("proofbundle: signing failed: %w", err)
+	}
+
+	// Add signature to bundle
+	bundle.Signature = &BundleSignature{
+		KeyID:     keyID,
+		Algorithm: algorithm,
+		Signature: hex.EncodeToString(sig),
+	}
+
+	return nil
+}
+
+// SignWithPlugin signs the proof bundle using a plugin by name.
+// Uses the global registry to resolve the plugin.
+func SignWithPlugin(bundle *ProofBundle, pluginName, keyID string) error {
+	signer, err := signing.GlobalRegistry.Get(pluginName)
+	if err != nil {
+		return fmt.Errorf("proofbundle: failed to get signer plugin: %w", err)
+	}
+	return Sign(bundle, signer, keyID)
+}
+
+// VerifySignature verifies the proof bundle signature using the specified signer.
+// Returns nil if verification succeeds, error otherwise.
+func VerifySignature(bundle *ProofBundle, signer signing.SignerPlugin) error {
+	if bundle == nil {
+		return fmt.Errorf("proofbundle: cannot verify nil bundle")
+	}
+	if bundle.Signature == nil {
+		return fmt.Errorf("proofbundle: bundle has no signature")
+	}
+	if signer == nil {
+		return fmt.Errorf("proofbundle: signer cannot be nil")
+	}
+
+	// Get canonical JSON (without signature)
+	data, err := CanonicalJSON(bundle)
+	if err != nil {
+		return fmt.Errorf("proofbundle: failed to get canonical JSON: %w", err)
+	}
+
+	// Decode signature
+	sigBytes, err := hex.DecodeString(bundle.Signature.Signature)
+	if err != nil {
+		return fmt.Errorf("proofbundle: invalid signature encoding: %w", err)
+	}
+
+	// Verify
+	valid, err := signer.Verify(data, sigBytes, bundle.Signature.Algorithm)
+	if err != nil {
+		return fmt.Errorf("proofbundle: verification error: %w", err)
+	}
+	if !valid {
+		return fmt.Errorf("proofbundle: signature verification failed")
+	}
+
+	return nil
+}
+
+// VerifySignatureWithPlugin verifies the proof bundle signature using a plugin by name.
+func VerifySignatureWithPlugin(bundle *ProofBundle, pluginName string) error {
+	signer, err := signing.GlobalRegistry.Get(pluginName)
+	if err != nil {
+		return fmt.Errorf("proofbundle: failed to get signer plugin: %w", err)
+	}
+	return VerifySignature(bundle, signer)
+}
+
+// GetSignerPlugin returns the signer plugin by name from the global registry.
+func GetSignerPlugin(name string) (signing.SignerPlugin, error) {
+	return signing.GlobalRegistry.Get(name)
+}
+
+// ListSignerPlugins returns all available signer plugin names.
+func ListSignerPlugins() []string {
+	return signing.GlobalRegistry.List()
 }
