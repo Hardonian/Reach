@@ -85,7 +85,10 @@
     "verify:load-lite": "npx tsx src/engine/verify/ops-tests.ts .reach/runtime load",
     "verify:rollback": "npx tsx src/engine/verify/ops-tests.ts .reach/runtime rollback",
     "verify:ops": "npx tsx src/engine/verify/ops-tests.ts .reach/runtime all",
-    "verify:ops:stabilization": "npm run verify:daemon && npm run verify:protocol:ops && npm run verify:load-lite && npm run verify:rollback"
+    "verify:ops:stabilization": "npm run verify:daemon && npm run verify:protocol:ops && npm run verify:load-lite && npm run verify:rollback",
+    "verify:cutover": "npx tsx scripts/verify-cutover.ts",
+    "verify:dual-run": "npx tsx scripts/verify-dual-run.ts",
+    "reach:doctor:cutover": "npx tsx -e \"import { runCutoverDoctor } from './src/cli/doctor-cutover.js'; runCutoverDoctor();\""
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",

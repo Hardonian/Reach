@@ -778,7 +778,15 @@ async function main(): Promise<void> {
   try {
     switch (command) {
       case 'doctor':
-        await doctor(opts);
+        if (subcommand === 'cutover') {
+          const { runCutoverDoctor } = await import('./doctor-cutover.js');
+          const report = await runCutoverDoctor(opts.json);
+          if (opts.json) {
+            console.log(JSON.stringify(report, null, 2));
+          }
+        } else {
+          await doctor(opts);
+        }
         break;
 
       case 'demo':

@@ -126,7 +126,7 @@ export class EngineDetector {
    * Detect TypeScript fallback engine.
    */
   detectTypeScript(): EngineStatus {
-    const cached = this.cache.get(EngineType.TYPESCRIPT);
+    const cached = this.getCached(EngineType.TYPESCRIPT);
     if (cached) return cached;
 
     // TypeScript is always available as it's the current runtime
@@ -139,7 +139,7 @@ export class EngineDetector {
       health: "healthy",
     };
 
-    this.cache.set(EngineType.TYPESCRIPT, status);
+    this.setCached(EngineType.TYPESCRIPT, status);
     return status;
   }
 
@@ -322,7 +322,7 @@ export class EngineSelector {
     b: Record<string, string | undefined>
   ): boolean {
     const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
-    for (const key of keys) {
+    for (const key of Array.from(keys)) {
       if (a[key] !== b[key]) return false;
     }
     return true;
