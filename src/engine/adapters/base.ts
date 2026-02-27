@@ -416,6 +416,20 @@ export abstract class BaseEngineAdapter {
   }
 
   /**
+   * Validate request against resource limits (helper for subclasses)
+   */
+  protected validateLimits(request: ExecRequest): ResourceValidationResult {
+    return validateResourceLimits(request, this.resourceLimits);
+  }
+
+  /**
+   * Check for floating point values (helper for subclasses)
+   */
+  protected hasFloatingPointValues(obj: unknown): boolean {
+    return hasFloatingPointValues(obj);
+  }
+
+  /**
    * Execute with semaphore protection
    */
   protected async executeWithSemaphore<T>(
