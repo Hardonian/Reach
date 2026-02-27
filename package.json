@@ -74,6 +74,7 @@
     "verify:hash": "npx tsx scripts/verify-hash.ts",
     "verify:protocol": "npx tsx scripts/verify-protocol.ts",
     "verify:determinism": "npx tsx scripts/verify-determinism.ts",
+    "verify:self-test": "cd services/runner && go run cmd/reachctl/main.go self-test --n 200",
     "verify:security": "npx tsx scripts/verify-security.ts",
     "verify:cas": "npx tsx scripts/verify-cas.ts || echo 'CAS verification placeholder'",
     "verify:parity": "npx tsx scripts/verify-parity.ts || echo 'Parity verification placeholder'",

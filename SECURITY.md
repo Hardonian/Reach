@@ -1,4 +1,9 @@
-# Security Policy & Threat Model ## Reporting a vulnerability
+# Security Policy & Threat Model
+
+**Status:** Implemented (v1.2 Hardening)
+**Last Updated:** 2026-02-27
+
+## Reporting a vulnerability
 
 Please report security issues privately by emailing **security@reach.dev** with:
 - affected component(s)

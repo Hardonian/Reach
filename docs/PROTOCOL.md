@@ -1,12 +1,12 @@
 # Reach Binary Protocol Specification
 
 **Version:** 1.0  
-**Status:** Stable  
-**Last Updated:** 2026-02-26
+**Status:** Implemented (Production)  
+**Last Updated:** 2026-02-27
 
 ## Overview
 
-The Reach Binary Protocol (codenamed "Requiem") is a streaming, length-prefixed binary protocol designed for communication between the Reach CLI and the Requiem execution engine. It provides:
+The Reach Binary Protocol (codenamed "Requiem") is a streaming, length-prefixed binary protocol for communication between the Reach CLI and the Requiem execution engine. It provides:
 
 - **Deterministic serialization** via canonical CBOR encoding
 - **Fixed-point numeric types** for cross-platform consistency
@@ -265,6 +265,20 @@ Maximum resync attempts: 3 per connection
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2026-02-26 | Initial stable release |
+
+## Implementation Status
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| CBOR canonical encoding | ✅ Implemented | All payloads use canonical CBOR |
+| Fixed-point numeric types | ✅ Implemented | Q32.32, BPS, PPM, Duration, Throughput |
+| Streaming frame support | ✅ Implemented | Length-prefixed frames |
+| Automatic resynchronization | ✅ Implemented | Max 3 attempts per connection |
+| CRC32C integrity | ✅ Implemented | Required by default |
+| Version negotiation | ✅ Implemented | Hello/HelloAck handshake |
+| Compression (zlib) | ✅ Implemented | Flag-controlled |
+| TLS wrapper | ❌ Not implemented | Use external TLS proxy |
+| Authentication | ❌ Not implemented | Local IPC only |
 
 ## References
 

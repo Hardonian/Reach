@@ -1,0 +1,69 @@
+{
+  "fixture_version": "1.0.0",
+  "fixture_type": "self_test",
+  "description": "Determinism self-test fixture - 200 iterations for core hashing operations",
+  "iterations": 200,
+  "operations": [
+    {
+      "name": "hash_simple_map",
+      "description": "Hash a simple map with sorted keys",
+      "input": {
+        "name": "test-step",
+        "type": "action",
+        "inputs": {"path": "/tmp/test", "content": "hello"}
+      },
+      "expected_stable": true
+    },
+    {
+      "name": "hash_nested_map",
+      "description": "Hash nested maps with various key orders",
+      "input": {
+        "outer": {
+          "inner": {"z": 1, "a": 2},
+          "value": "test"
+        },
+        "list": [{"q": 5, "p": 6}]
+      },
+      "expected_stable": true
+    },
+    {
+      "name": "hash_event_log",
+      "description": "Hash event log with multiple events",
+      "input": {
+        "event_log": [
+          {"step": "start", "timestamp": "2024-01-01T00:00:00Z"},
+          {"step": "tool_call", "tool": "echo", "inputs": {"message": "hello"}},
+          {"step": "end", "status": "success"}
+        ],
+        "run_id": "test-run-001"
+      },
+      "expected_stable": true
+    },
+    {
+      "name": "hash_proof_chain",
+      "description": "Hash proof chain with dependencies",
+      "input": {
+        "step_proofs": [
+          {"hash": "abc123", "step_key_hash": "key1"},
+          {"hash": "def456", "step_key_hash": "key2"},
+          {"hash": "ghi789", "step_key_hash": "key3"}
+        ],
+        "context_fingerprint": "ctx-123",
+        "engine_version": "1.0.0"
+      },
+      "expected_stable": true
+    },
+    {
+      "name": "hash_with_float_equivalents",
+      "description": "Test fixed-point: integers that could be floats should hash identically",
+      "input": {
+        "value_int": 100,
+        "value_float_string": "100.0",
+        "same_semantic": true
+      },
+      "expected_stable": true
+    }
+  ],
+  "pass_condition": "all_operations_produce_identical_hashes_across_200_iterations",
+  "failure_code": "NON_DETERMINISTIC_HASH_DETECTED"
+}

@@ -31,6 +31,12 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("loading environment: %w", err)
 	}
 
+	// REACH_DEBUG disables production mode (safety override)
+	// This must be processed after loadFromEnv so it can override REACH_PRODUCTION
+	if os.Getenv("REACH_DEBUG") != "" {
+		cfg.Safety.ProductionMode = false
+	}
+
 	return cfg, nil
 }
 
@@ -218,6 +224,9 @@ func GetEnvDocs() map[string]string {
 		"REACH_DETERMINISM_VERIFY_ON_LOAD":  "Verify determinism on load (default: true)",
 		"REACH_DETERMINISM_CANONICAL_TIME":  "Use canonical time format (default: true)",
 		"REACH_CONFIG_PATH":                 "Path to config file",
+		"REACH_PRODUCTION":                 "Enable production mode with safety checks (default: true, use 'false' to disable)",
+		"REACH_DEBUG":                      "Disable production mode for development (any value disables)",
+		"REQUIEM_BIN":                      "Override path to Requiem engine binary",
 	}
 }
 
@@ -235,6 +244,7 @@ func PrintEnvDocs() {
 		"Telemetry":   {},
 		"Security":    {},
 		"Determinism": {},
+		"Safety":      {},
 		"General":     {},
 	}
 
@@ -256,6 +266,8 @@ func PrintEnvDocs() {
 			category = "Security"
 		case strings.Contains(env, "DETERMINISM"):
 			category = "Determinism"
+		case strings.Contains(env, "PRODUCTION") || strings.Contains(env, "DEBUG") || strings.Contains(env, "REQUIEM"):
+			category = "Safety"
 		}
 		categories[category] = append(categories[category], fmt.Sprintf("  %-40s %s", env, doc))
 	}
@@ -272,4 +284,38 @@ func PrintEnvDocs() {
 }
 func IsCloudEnabled() bool {
 	return os.Getenv("REACH_CLOUD") == "1"
+}
+
+// ValidateRequiemBin validates the REQUIEM_BIN override path.
+// Returns warnings for: non-absolute paths, non-existent paths, non-executable files.
+func ValidateRequiemBin(path string) (warnings []string, err error) {
+	if path == "" {
+		return nil, nil // No override, nothing to validate
+	}
+
+	// Check if path is absolute
+	if !filepath.IsAbs(path) {
+		warnings = append(warnings, "REQUIEM_BIN path is not absolute - this may cause issues in production")
+	}
+
+	// Check if file exists
+	info, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return warnings, fmt.Errorf("REQUIEM_BIN path does not exist: %s", path)
+	}
+	if err != nil {
+		return warnings, fmt.Errorf("error checking REQUIEM_BIN path: %w", err)
+	}
+
+	// Check if it's a regular file
+	if !info.Mode().IsRegular() {
+		return warnings, fmt.Errorf("REQUIEM_BIN path is not a regular file: %s", path)
+	}
+
+	// Check if executable (check owner execute bit)
+	if info.Mode().Perm()&0111 == 0 {
+		warnings = append(warnings, "REQUIEM_BIN path is not executable - consider adding execute permissions")
+	}
+
+	return warnings, nil
 }

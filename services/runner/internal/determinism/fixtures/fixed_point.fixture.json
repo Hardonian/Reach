@@ -1,0 +1,71 @@
+{
+  "fixture_version": "1.0.0",
+  "fixture_type": "fixed_point",
+  "description": "Fixed-point arithmetic contract - no float conversions in digest path",
+  "contract": {
+    "rule": "Integer values must be serialized consistently. Float representations of integers (e.g., 1.0 vs 1) must NOT produce.",
+    "rational different hashese": "Cross-platform consistency requires avoiding IEEE 754 float behavior differences"
+  },
+  "test_cases": [
+    {
+      "name": "integer_as_integer",
+      "input": {"value": 100},
+      "expected_hash_behavior": "stable"
+    },
+    {
+      "name": "integer_as_float_string",
+      "input": {"value": "100.0"},
+      "expected_hash_behavior": "stable",
+      "note": "String representation is different from integer, but stable"
+    },
+    {
+      "name": "integer_same_semantic",
+      "input_a": {"value": 100},
+      "input_b": {"value": 100.0},
+      "expected_equal": false,
+      "rationale": "JSON type differs: number vs string, so hashes differ. This is intentional."
+    },
+    {
+      "name": "nested_fixed_point",
+      "input": {
+        "metrics": {
+          "count": 50,
+          "total": 1000,
+          "average": 20.0
+        }
+      },
+      "expected_hash_behavior": "stable"
+    },
+    {
+      "name": "array_of_integers",
+      "input": {
+        "values": [1, 2, 3, 4, 5]
+      },
+      "expected_hash_behavior": "stable"
+    },
+    {
+      "name": "array_of_floats",
+      "input": {
+        "values": [1.0, 2.0, 3.0, 4.0, 5.0]
+      },
+      "expected_hash_behavior": "stable"
+    },
+    {
+      "name": "mixed_precision",
+      "input": {
+        "precise": 3.14159,
+        "integer_equivalent": 3,
+        "string_number": "3"
+      },
+      "expected_hash_behavior": "stable",
+      "note": "Each representation hashes differently but consistently"
+    }
+  ],
+  "float_prohibition": {
+    "enforced": true,
+    "rule": "The determinism package must NOT use float64 in canonical serialization paths. Use integer or string representations for precise values.",
+    "exception": "Only non-deterministic display/rendering may use float64"
+  },
+  "pass_condition": "all_test_cases_produce_stable_hashes_no_float_conversions_in_digest",
+  "failure_code": "FLOAT_CONVERSION_IN_DIGEST_PATH"
+}

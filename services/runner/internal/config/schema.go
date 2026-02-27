@@ -47,6 +47,10 @@ type Config struct {
 
 	// CAS controls content-addressable storage settings.
 	CAS CASConfig `json:"cas"`
+
+	// Safety controls operator safety features.
+	// Production mode is enabled by default for safety.
+	Safety SafetyConfig `json:"safety"`
 }
 
 // MeshConfig controls the distributed agent mesh layer.
@@ -263,6 +267,17 @@ type CASConfig struct {
 	AtomicWritesEnabled bool `json:"atomic_writes_enabled" env:"REACH_CAS_ATOMIC_WRITES" default:"true"`
 }
 
+// SafetyConfig controls operator safety features.
+type SafetyConfig struct {
+	// ProductionMode enables all safety checks by default.
+	// Set to false via REACH_DEBUG or REACH_PRODUCTION=false to disable.
+	ProductionMode bool `json:"production_mode" env:"REACH_PRODUCTION" default:"true"`
+
+	// RequiemBinPath allows overriding the path to the Requiem engine binary.
+	// Use with caution - path will be validated when set.
+	RequiemBinPath string `json:"requiem_bin_path" env:"REQUIEM_BIN" default:""`
+}
+
 // DaemonConfig controls daemon stability features.
 type DaemonConfig struct {
 	// MaxQueueDepth is the maximum number of jobs in the internal queue.
@@ -340,6 +355,9 @@ func Default() *Config {
 			EvictionPolicy:      "none",
 			LRUWindow:           "24h",
 			AtomicWritesEnabled: true,
+		},
+		Safety: SafetyConfig{
+			ProductionMode: true,
 		},
 	}
 }

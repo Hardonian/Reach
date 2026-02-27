@@ -3,9 +3,6 @@ package jobs
 import (
 	"context"
 	"fmt"
-	"hash/fnv"
-	"math"
-	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
