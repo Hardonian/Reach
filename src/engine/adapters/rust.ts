@@ -236,22 +236,24 @@ export class RustEngineAdapter extends BaseEngineAdapter {
       };
     }
     
+    // 1. Unified Base Validation (Structure, Limits, Floats)
+    const baseValidation = super.validateInput(request);
+    if (!baseValidation.valid) {
+      return {
+        valid: false,
+        errors: baseValidation.errors,
+      };
+    }
+    
     try {
-      // Check for floating point values
-      if (request.params.outcomes && hasFloatingPointValues(request.params.outcomes)) {
-        return {
-          valid: false,
-          errors: ['floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic'],
-        };
-      }
-
+      // 2. WASM-specific validation
       const requestJson = toRustFormat(request);
       const result = this.wasmModule.validate_input(requestJson);
       const isValid = result === 'true';
       
       return {
         valid: isValid,
-        errors: isValid ? undefined : ['Validation failed by WASM module'],
+        errors: isValid ? undefined : ['Validation failed by WASM module core'],
       };
     } catch (error) {
       return {
