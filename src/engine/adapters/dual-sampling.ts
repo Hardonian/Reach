@@ -15,6 +15,7 @@ import { compareExecResults } from '../translate';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { createHash } from 'crypto';
+import { hasFloatingPointValues } from '../utils/validation';
 
 /**
  * Sampling configuration for adaptive dual-run
@@ -108,6 +109,11 @@ export class AdaptiveDualRunSampler {
    * Determine if dual-run should be executed for this request
    */
   shouldSample(request: ExecRequest, engineVersion: string): boolean {
+    // Do not sample invalid requests (e.g. containing floats)
+    if (!this.validateInput(request).valid) {
+      return false;
+    }
+
     const tenantId = this.extractTenantId(request);
     const algorithm = request.params.algorithm;
     
@@ -143,6 +149,23 @@ export class AdaptiveDualRunSampler {
     return Math.random() < this.config.baseRate;
   }
   
+  /**
+   * Validate that input is suitable for sampling
+   */
+  validateInput(request: ExecRequest): { valid: boolean; errors?: string[] } {
+    const errors: string[] = [];
+    
+    // Check for floating point values
+    if (request.params.outcomes && hasFloatingPointValues(request.params.outcomes)) {
+      errors.push('floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic');
+    }
+    
+    return {
+      valid: errors.length === 0,
+      errors: errors.length > 0 ? errors : undefined,
+    };
+  }
+
   /**
    * Get the sampling rate that will be applied for a request
    */

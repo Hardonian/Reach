@@ -14,6 +14,7 @@ import { compareExecResults } from '../translate';
 import { getRequiemEngine } from './requiem';
 import { getRustEngine } from './rust';
 import { deriveSeed } from './base';
+import { hasFloatingPointValues } from '../utils/validation';
 
 /**
  * Result of a ghost comparison between two engines
@@ -359,31 +360,13 @@ export async function evaluateWithBothEngines(
  */
 export class DualEngineAdapter {
   /**
-   * Check for floating point values in object tree
-   * Ensures numeric integrity for fixed-point arithmetic
-   */
-  private hasFloatingPointValues(obj: unknown): boolean {
-    if (typeof obj === 'number') {
-      return !Number.isInteger(obj);
-    }
-    if (typeof obj === 'object' && obj !== null) {
-      for (const value of Object.values(obj as Record<string, unknown>)) {
-        if (this.hasFloatingPointValues(value)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /**
    * Validate that input is compatible with Engines
    */
   validateInput(request: ExecRequest): { valid: boolean; errors?: string[] } {
     const errors: string[] = [];
     
     // Check for floating point values
-    if (request.params.outcomes && this.hasFloatingPointValues(request.params.outcomes)) {
+    if (request.params.outcomes && hasFloatingPointValues(request.params.outcomes)) {
       errors.push('floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic');
     }
     

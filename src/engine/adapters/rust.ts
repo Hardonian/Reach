@@ -10,6 +10,7 @@
 import { ExecRequest, ExecResult } from '../contract';
 import { toRustFormat, fromRustFormat } from '../translate';
 import { ProcessSemaphore, getSemaphore, deriveSeed, BaseEngineAdapter } from './base';
+import { hasFloatingPointValues } from '../utils/validation';
 
 /**
  * Proper interface matching actual WASM module exports
@@ -237,7 +238,7 @@ export class RustEngineAdapter extends BaseEngineAdapter {
     
     try {
       // Check for floating point values
-      if (request.params.outcomes && this.hasFloatingPointValues(request.params.outcomes)) {
+      if (request.params.outcomes && hasFloatingPointValues(request.params.outcomes)) {
         return {
           valid: false,
           errors: ['floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic'],

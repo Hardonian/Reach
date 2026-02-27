@@ -18,6 +18,7 @@
 import { createHash } from 'crypto';
 import os from 'os';
 import { ExecRequest, ExecResult } from '../contract';
+import { hasFloatingPointValues } from '../utils/validation';
 
 /**
  * Get the number of available CPU cores
@@ -365,17 +366,7 @@ export abstract class BaseEngineAdapter {
    * Ensures numeric integrity for fixed-point arithmetic
    */
   protected hasFloatingPointValues(obj: unknown): boolean {
-    if (typeof obj === 'number') {
-      return !Number.isInteger(obj);
-    }
-    if (typeof obj === 'object' && obj !== null) {
-      for (const value of Object.values(obj as Record<string, unknown>)) {
-        if (this.hasFloatingPointValues(value)) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return hasFloatingPointValues(obj);
   }
 
   /**

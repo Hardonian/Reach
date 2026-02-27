@@ -18,6 +18,7 @@
 import { ExecRequest, ExecResult } from '../contract';
 import { BaseEngineAdapter, deriveSeed } from './base';
 import { 
+  hasFloatingPointValues,
   ProtocolClient, 
   ConnectionState,
   type ProtocolClientConfig 
@@ -186,7 +187,7 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
     const errors: string[] = [];
     
     // Check for floating point values
-    if (request.params.outcomes && this.hasFloatingPointValues(request.params.outcomes)) {
+    if (request.params.outcomes && hasFloatingPointValues(request.params.outcomes)) {
       errors.push('floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic');
     }
     

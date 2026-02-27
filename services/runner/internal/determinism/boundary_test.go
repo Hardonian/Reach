@@ -264,8 +264,8 @@ func TestDigestContext_WithLabels(t *testing.T) {
 	}
 }
 
-// BenchmarkHash measures the performance of the Hash function.
-func BenchmarkHash(b *testing.B) {
+// BenchmarkDigestAuthority_Hash measures the performance of the Hash function.
+func BenchmarkDigestAuthority_Hash(b *testing.B) {
 	data := map[string]any{
 		"run_id":         "abc123",
 		"engine_version": "1.0.0",
@@ -278,8 +278,8 @@ func BenchmarkHash(b *testing.B) {
 	}
 }
 
-// BenchmarkHashLarge measures performance with large data.
-func BenchmarkHashLarge(b *testing.B) {
+// BenchmarkDigestAuthority_HashLarge measures performance with large data.
+func BenchmarkDigestAuthority_HashLarge(b *testing.B) {
 	events := make([]map[string]any, 100)
 	for i := 0; i < 100; i++ {
 		events[i] = map[string]any{
