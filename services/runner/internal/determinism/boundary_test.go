@@ -48,19 +48,30 @@ func TestEntropyCheck_FloatingPoint(t *testing.T) {
 	}
 }
 
-// TestEntropyCheck_UnsortedMap verifies that unsorted maps are detected.
-func TestEntropyCheck_UnsortedMap(t *testing.T) {
+// TestEntropyCheck_MapContents verifies map contents are checked.
+func TestEntropyCheck_MapContents(t *testing.T) {
 	da := NewDigestAuthority("1.0.0")
 
-	// Map with unsorted keys (z before a)
-	unsorted := map[string]any{
-		"z": 1,
-		"a": 2,
+	// Map with valid contents
+	valid := map[string]any{
+		"a": 1,
+		"b": "string",
+		"c": true,
 	}
 
-	err := da.EntropyCheck(unsorted, "test")
+	err := da.EntropyCheck(valid, "test")
+	if err != nil {
+		t.Errorf("Expected no error for valid map, got: %v", err)
+	}
+
+	// Map with invalid contents (float)
+	invalid := map[string]any{
+		"a": 3.14,
+	}
+
+	err = da.EntropyCheck(invalid, "test")
 	if err == nil {
-		t.Error("Expected error for unsorted map keys, got nil")
+		t.Error("Expected error for map with float, got nil")
 	}
 }
 

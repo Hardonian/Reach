@@ -98,13 +98,9 @@ func (da *DigestAuthority) entropyCheckRecursive(v any, path string) error {
 		return fmt.Errorf("entropy violation at %s: floating-point is forbidden in digest path (use fixed-point)", path)
 
 	case map[string]any:
-		// Check that keys are sorted (simple heuristic: iterate and check)
-		var prevKey string
+		// Check map contents for entropy (order check is not reliable in Go)
+		// The canonicalization layer will sort keys before hashing
 		for key := range val {
-			if key < prevKey {
-				return fmt.Errorf("entropy violation at %s: map keys not sorted (\"%s\" < \"%s\")", path, key, prevKey)
-			}
-			prevKey = key
 			if err := da.entropyCheckRecursive(val[key], path+"."+key); err != nil {
 				return err
 			}
@@ -134,13 +130,9 @@ func (da *DigestAuthority) entropyCheckRecursive(v any, path string) error {
 				}
 			}
 		case reflect.Map:
-			// Generic map - check keys are sorted
+			// Check map contents for entropy (order check is not reliable in Go)
+			// The canonicalization layer will sort keys before hashing
 			keys := rv.MapKeys()
-			for i := 1; i < len(keys); i++ {
-				if keys[i].String() < keys[i-1].String() {
-					return fmt.Errorf("entropy violation at %s: map keys not sorted", path)
-				}
-			}
 			for _, key := range keys {
 				if err := da.entropyCheckRecursive(rv.MapIndex(key).Interface(), path+"."+key.String()); err != nil {
 					return err

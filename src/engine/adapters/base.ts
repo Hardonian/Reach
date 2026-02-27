@@ -362,18 +362,57 @@ export abstract class BaseEngineAdapter {
   }
 
   /**
-   * Check for floating point values in object tree
-   * Ensures numeric integrity for fixed-point arithmetic
+   * Validate that input is compatible with the engine
+   * Consolidates checks for IDs, algorithm, structure, floats, and resource limits.
    */
-  protected hasFloatingPointValues(obj: unknown): boolean {
-    return hasFloatingPointValues(obj);
-  }
+  validateInput(request: ExecRequest): { valid: boolean; errors?: string[] } {
+    const errors: string[] = [];
+    
+    // 1. Basic ID and structure validation
+    if (!request.requestId) {
+      errors.push('requestId is required');
+    } else {
+      // Path traversal protection
+      const sanitized = request.requestId.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 64);
+      if (sanitized !== request.requestId) {
+        errors.push('requestId contains invalid characters (path traversal attempt detected)');
+      }
+    }
+    
+    if (!request.params) {
+      errors.push('params is required');
+      return { valid: false, errors };
+    }
 
-  /**
-   * Validate request against resource limits
-   */
-  protected validateLimits(request: ExecRequest): ResourceValidationResult {
-    return validateResourceLimits(request, this.resourceLimits);
+    if (!request.params.algorithm) {
+      errors.push('algorithm is required');
+    }
+    if (!request.params.actions || request.params.actions.length === 0) {
+      errors.push('at least one action is required');
+    }
+    if (!request.params.states || request.params.states.length === 0) {
+      errors.push('at least one state is required');
+    }
+    if (!request.params.outcomes) {
+      errors.push('outcomes is required');
+    }
+
+    // 2. Resource limit validation
+    const limitCheck = this.validateLimits(request);
+    if (!limitCheck.valid) {
+      errors.push(limitCheck.error || 'request exceeds resource limits');
+    }
+
+    // 3. Numeric Integrity (Fixed-point enforcement)
+    // Trace: Verify ONLY integers participate in outcomes
+    if (request.params.outcomes && this.hasFloatingPointValues(request.params.outcomes)) {
+      errors.push('floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic');
+    }
+    
+    return {
+      valid: errors.length === 0,
+      errors: errors.length > 0 ? errors : undefined,
+    };
   }
 
   /**
@@ -383,10 +422,10 @@ export abstract class BaseEngineAdapter {
     request: ExecRequest,
     executor: (req: ExecRequest) => Promise<T>,
   ): Promise<T> {
-    // Validate resource limits before execution
-    const validation = this.validateLimits(request);
+    // Validate all invariants before execution
+    const validation = this.validateInput(request);
     if (!validation.valid) {
-      throw new Error(validation.error);
+      throw new Error(`Execution blocked by invariant failure: ${validation.errors?.join(', ')}`);
     }
     
     // Ensure seed is derived before execution

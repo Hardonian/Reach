@@ -56,6 +56,12 @@ export interface RequiemConfig {
   allowUnknownEngine?: boolean;
 
   /**
+   * Maximum request payload size in bytes
+   * Prevents DoS with massive decision payloads
+   */
+  maxRequestBytes?: number;
+
+  /**
    * Maximum matrix dimensions (actions × states)
    * Prevents OOM from huge decision matrices
    */
@@ -135,6 +141,7 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
 
     this.config = {
       maxMatrixCells: 1_000_000, // 1M cells default (e.g., 1000x1000)
+      maxRequestBytes: 10 * 1024 * 1024, // 10MB default
       ...config,
     };
 
@@ -460,7 +467,7 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
       try {
         this.daemon.kill();
         this.daemon = null;
-      } catch (_e) {
+      } catch {
         // Ignore
       }
     }
@@ -501,6 +508,17 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
    * Validate request against resource limits
    */
   private validateRequestLimits(request: ExecRequest): { valid: boolean; error?: string } {
+    // Check payload size
+    if (this.config.maxRequestBytes) {
+      const payloadSize = Buffer.byteLength(JSON.stringify(request));
+      if (payloadSize > this.config.maxRequestBytes) {
+        return {
+          valid: false,
+          error: `request_too_large: ${payloadSize} bytes exceeds limit of ${this.config.maxRequestBytes}`,
+        };
+      }
+    }
+
     // Check matrix size limits
     const numActions = request.params.actions.length;
     const numStates = request.params.states.length;

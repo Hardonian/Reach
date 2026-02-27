@@ -10,14 +10,13 @@
  * @module engine/adapters/requiem.test
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import {
   RequiemEngineAdapter,
   getRequiemEngine,
-  initRequiemEngine,
   __security__,
 } from './requiem';
 import type { ExecRequest } from '../contract';
@@ -102,19 +101,7 @@ describe('RequiemEngineAdapter Security', () => {
         maxMatrixCells: 100, // Small limit for testing
       });
 
-      const hugeRequest: ExecRequest = {
-        requestId: 'test-1',
-        timestamp: new Date().toISOString(),
-        params: {
-          algorithm: 'minimax_regret',
-          actions: Array(20).fill('action'), // 20 actions
-          states: Array(20).fill('state'),   // 20 states = 400 cells (should pass)
-          outcomes: {},
-        },
-      };
-
-      // This should pass (400 < 100? No, this is 400 > 100)
-      // Actually let me fix the test
+      // This should pass (25 cells < 100 limit)
       const requestThatPasses: ExecRequest = {
         requestId: 'test-1',
         timestamp: new Date().toISOString(),
