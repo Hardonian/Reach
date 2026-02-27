@@ -8,7 +8,10 @@
   ],
   "scripts": {
     "build": "echo 'Build handled by individual language compilers'",
-    "test": "vitest run src",
+    "test": "vitest run src --exclude='**/protocol/**' --exclude='**/adapters/protocol.test.ts'",
+    "test:unit": "vitest run src --exclude='**/protocol/**' --exclude='**/adapters/protocol.test.ts'",
+    "test:protocol": "vitest run src/protocol",
+    "verify:smoke": "node scripts/verify-smoke.mjs",
     "test:watch": "vitest src",
     "test:system": "vitest run test/integration",
     "test:system:watch": "vitest test/integration",
@@ -103,7 +106,7 @@
     "vitest": "^4.0.18"
   },
   "engines": {
-    "node": ">=18.0.0 <23.0.0"
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",

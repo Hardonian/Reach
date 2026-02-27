@@ -10,7 +10,7 @@
  * @module engine/adapters/requiem.test
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -20,6 +20,36 @@ import {
   __security__,
 } from './requiem';
 import type { ExecRequest } from '../contract';
+import { ProtocolClient } from '../../protocol/client';
+
+// Mock child_process for daemon spawning
+vi.mock('child_process', () => ({
+  spawn: vi.fn().mockImplementation(() => ({
+    stdout: { on: vi.fn((event, cb) => { 
+      // Simulate daemon starting immediately
+      if (event === 'data') cb(Buffer.from('listening on socket')); 
+    }) },
+    stderr: { on: vi.fn() },
+    on: vi.fn(),
+    kill: vi.fn(),
+    unref: vi.fn(),
+    pid: 12345
+  })),
+  execFile: vi.fn((cmd, args, opts, cb) => {
+    if (typeof opts === 'function') { cb = opts; }
+    cb(null, { stdout: 'requiem 1.0.0', stderr: '' });
+  }),
+}));
+
+// Mock ProtocolClient with spy factory to allow per-test overrides
+vi.mock('../../protocol/client', async () => {
+  const { MockProtocolClient, ConnectionState } = await import('../../../tests/mocks/protocol-client');
+  const ProtocolClientSpy = vi.fn().mockImplementation((config) => new MockProtocolClient(config));
+  return {
+    ProtocolClient: ProtocolClientSpy,
+    ConnectionState,
+  };
+});
 
 describe('RequiemEngineAdapter Security', () => {
   const testDir = path.join(os.tmpdir(), 'reach-requiem-test-' + Date.now());
@@ -236,6 +266,29 @@ describe('RequiemEngineAdapter Security', () => {
       expect(internal.versionMatches('1.0.5', '1.0')).toBe(true);
       expect(internal.versionMatches('2.0.0', '1.0')).toBe(false);
     });
+  });
+});
+
+describe('RequiemEngineAdapter Configuration', () => {
+  it('handles protocol client connection failure', async () => {
+    const adapter = new RequiemEngineAdapter({ allowUnknownEngine: true });
+    
+    // Override the mock to return a client that fails to connect
+    vi.mocked(ProtocolClient).mockImplementationOnce(() => ({
+      connect: vi.fn().mockRejectedValue(new Error('Connection refused')),
+      disconnect: vi.fn().mockResolvedValue(undefined),
+      execute: vi.fn(),
+      health: vi.fn(),
+      isReady: false,
+      connectionState: 'disconnected',
+      config: {},
+      getStats: vi.fn(),
+    } as any));
+
+    const result = await adapter.configure();
+    
+    expect(result).toBe(false);
+    expect(ProtocolClient).toHaveBeenCalled();
   });
 });
 

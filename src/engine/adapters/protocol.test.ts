@@ -3,25 +3,11 @@ import { ProtocolEngineAdapter } from './protocol';
 import { FuzzGenerator } from './base';
 
 // Mock the ProtocolClient to isolate adapter logic
-vi.mock('../../protocol/client', () => {
+vi.mock('../../protocol/client', async () => {
+  const { MockProtocolClient, ConnectionState } = await import('../../../tests/mocks/protocol-client');
   return {
-    ProtocolClient: vi.fn().mockImplementation(() => ({
-      connect: vi.fn().mockResolvedValue(undefined),
-      disconnect: vi.fn().mockResolvedValue(undefined),
-      execute: vi.fn().mockResolvedValue({
-        run_id: 'test-id',
-        status: { type: 'completed' },
-        result_digest: 'blake3:mock-digest',
-        events: [],
-        metrics: { elapsed_us: 1000 },
-        final_action: { type: 'done' }
-      }),
-      isReady: true,
-    })),
-    ConnectionState: {
-      Ready: 'ready',
-      Disconnected: 'disconnected'
-    }
+    ProtocolClient: MockProtocolClient,
+    ConnectionState,
   };
 });
 

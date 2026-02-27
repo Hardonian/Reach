@@ -54,6 +54,8 @@ const ALLOWED_ROOT_DIRS = new Set([
 
 // Legacy root-level sources and formal specs kept for compatibility.
 const LEGACY_ALLOWED_ROOT_FILES = new Set([
+  'fallback.js', 'fallback.d.ts',  // Compatibility stubs for integration tests
+  'validation.ts', 'cspell.json',  // Development tooling
   'ADAPTIVE_ENGINE_SPEC.md', 'ARCHITECTURE.md', 'AUDIT_REPORT.md', 'AUTOPACK_SPEC.md',
   'CAPABILITY_REGISTRY.md', 'CAPABILITY_SYSTEM.md', 'CLOUD_ADAPTER_MODEL.md',
   'DOCS_DRIFT_GUARD.md', 'EXECUTION_PACK_SPEC.md', 'EXECUTION_PROTOCOL.md',

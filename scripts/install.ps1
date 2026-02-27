@@ -1,80 +1,206 @@
+# Reach Installation Script (Windows)
+# Prerequisites: Node.js 18+, pnpm, Git
+
 $ErrorActionPreference = 'Stop'
 
-$Repo = 'reach/reach'
-$BinDir = if ($env:REACH_BIN_DIR) { $env:REACH_BIN_DIR } else { Join-Path $HOME '.reach/bin' }
-$TempDir = Join-Path ([System.IO.Path]::GetTempPath()) ("reach-install-" + [System.Guid]::NewGuid().ToString('N'))
-New-Item -ItemType Directory -Path $TempDir -Force | Out-Null
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectRoot = Resolve-Path (Join-Path $ScriptDir '..')
 
-try {
-    $goArch = switch ($env:PROCESSOR_ARCHITECTURE.ToLower()) {
-        'amd64' { 'amd64' }
-        'arm64' { 'arm64' }
-        default { throw "Unsupported architecture: $env:PROCESSOR_ARCHITECTURE" }
-    }
+function Write-Info { param([string]$Message) Write-Host "[INFO] $Message" -ForegroundColor Green }
+function Write-Warn { param([string]$Message) Write-Host "[WARN] $Message" -ForegroundColor Yellow }
+function Write-Error { param([string]$Message) Write-Host "[ERROR] $Message" -ForegroundColor Red }
+function Write-Step { param([string]$Message) Write-Host "[STEP] $Message" -ForegroundColor Cyan }
 
-    $version = $env:REACH_VERSION
-    if (-not $version) {
-        try {
-            $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/releases/latest"
-            $version = $release.tag_name.TrimStart('v')
-        }
-        catch {
-            $version = $null
-        }
-    }
-
-    $installedFromRelease = $false
-    if ($version) {
-        Write-Host "Installing Reach v$version from GitHub releases..."
-        $artifact = "reach_${version}_windows_${goArch}.exe"
-        $artifactUrl = "https://github.com/$Repo/releases/download/v$version/$artifact"
-        $sumUrl = "https://github.com/$Repo/releases/download/v$version/SHA256SUMS"
-        $artifactPath = Join-Path $TempDir 'reach.exe'
-        $sumPath = Join-Path $TempDir 'SHA256SUMS'
-
-        try {
-            Invoke-WebRequest -Uri $artifactUrl -OutFile $artifactPath
-            Invoke-WebRequest -Uri $sumUrl -OutFile $sumPath
-            $expectedLine = Select-String -Path $sumPath -Pattern ([regex]::Escape($artifact)) | Select-Object -First 1
-            if (-not $expectedLine) { throw "Checksum entry not found for $artifact" }
-            $expected = ($expectedLine.Line -split '\s+')[0]
-            $actual = (Get-FileHash -Algorithm SHA256 -Path $artifactPath).Hash.ToLower()
-            if ($actual -ne $expected.ToLower()) { throw 'Checksum verification failed' }
-            New-Item -ItemType Directory -Path $BinDir -Force | Out-Null
-            Copy-Item -Path $artifactPath -Destination (Join-Path $BinDir 'reach.exe') -Force
-            Copy-Item -Path $artifactPath -Destination (Join-Path $BinDir 'reachctl.exe') -Force
-            $installedFromRelease = $true
-        }
-        catch {
-            Write-Host "Release install failed: $($_.Exception.Message)"
-        }
-    }
-
-    if (-not $installedFromRelease) {
-        if (-not (Get-Command go -ErrorAction SilentlyContinue)) {
-            throw 'Go is required to build from source when release artifacts are unavailable.'
-        }
-        $root = Resolve-Path (Join-Path $PSScriptRoot '..')
-        if (-not (Test-Path (Join-Path $root '.git'))) {
-            throw 'Local source checkout not found for fallback build.'
-        }
-        Write-Host 'No release artifacts found; building Reach locally...'
-        New-Item -ItemType Directory -Path $BinDir -Force | Out-Null
-        Push-Location (Join-Path $root 'services/runner')
-        go build -trimpath -o (Join-Path $BinDir 'reach.exe') ./cmd/reachctl
-        Pop-Location
-        Copy-Item -Path (Join-Path $BinDir 'reach.exe') -Destination (Join-Path $BinDir 'reachctl.exe') -Force
-    }
-
-    Write-Host "Installed Reach CLI to $(Join-Path $BinDir 'reach.exe')"
-    Write-Host "Optional compatibility alias: $(Join-Path $BinDir 'reachctl.exe')"
-    Write-Host 'Add this directory to PATH if needed:'
-    Write-Host "  `$env:Path = `"$BinDir;`$env:Path`""
-    Write-Host 'Verify installation:'
-    Write-Host '  reach version'
+function Test-Command {
+    param([string]$Command)
+    return [bool](Get-Command $Command -ErrorAction SilentlyContinue)
 }
-finally {
-    if (Test-Path $TempDir) {
-        Remove-Item -Path $TempDir -Recurse -Force
+
+function Get-Version {
+    param([string]$Command)
+    try {
+        $output = & $Command --version 2>$null
+        if ($output -match '(\d+\.\d+\.\d+)') {
+            return $matches[1]
+        }
+    } catch {}
+    return $null
+}
+
+function Test-Version {
+    param([string]$Command, [string]$MinVersion)
+    $currentVersion = Get-Version $Command
+    if (-not $currentVersion) {
+        Write-Warn "Could not determine $Command version"
+        return $false
+    }
+
+    $current = [version]$currentVersion
+    $min = [version]$MinVersion
+
+    if ($current -lt $min) {
+        Write-Warn "$Command version $currentVersion is older than recommended $MinVersion"
+        return $false
+    }
+
+    Write-Info "$Command version $currentVersion OK"
+    return $true
+}
+
+function Install-NodeDeps {
+    Write-Step "Installing Node.js dependencies..."
+    Set-Location $ProjectRoot
+
+    try {
+        & pnpm install --frozen-lockfile 2>$null
+        if ($LASTEXITCODE -ne 0) { throw }
+    } catch {
+        & pnpm install
+    }
+
+    Write-Info "Node.js dependencies installed"
+}
+
+function Build-RustEngine {
+    if (-not (Test-Command cargo)) {
+        Write-Warn "Rust/Cargo not found. Skipping Requiem engine build."
+        Write-Warn "The TypeScript fallback will be used (slower but functional)."
+        return
+    }
+
+    Write-Step "Building Requiem engine (Rust)..."
+    Set-Location $ProjectRoot
+
+    try {
+        & cargo build --release -p requiem 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Info "Requiem engine built successfully"
+
+            # Create directories
+            New-Item -ItemType Directory -Force -Path "$ProjectRoot\.reach\bin" | Out-Null
+
+            # Copy binary
+            $sourcePath = "$ProjectRoot\target\release\requiem.exe"
+            $destPath = "$ProjectRoot\.reach\bin\requiem.exe"
+            if (Test-Path $sourcePath) {
+                Copy-Item -Path $sourcePath -Destination $destPath -Force
+                Write-Info "Requiem binary: $destPath"
+            }
+        } else {
+            Write-Warn "Requiem engine build failed. TypeScript fallback will be used."
+        }
+    } catch {
+        Write-Warn "Requiem engine build failed: $($_.Exception.Message)"
     }
 }
+
+function Setup-Environment {
+    Write-Step "Setting up environment..."
+
+    # Create directories
+    New-Item -ItemType Directory -Force -Path "$ProjectRoot\.reach\bin" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$ProjectRoot\.reach\data" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$ProjectRoot\.reach\logs" | Out-Null
+
+    # Create config if not exists
+    $configPath = "$ProjectRoot\.reach\config.json"
+    if (-not (Test-Path $configPath)) {
+        $config = @{
+            version = "0.3.1"
+            engine = @{
+                default = "auto"
+                fallback = "typescript"
+            }
+            protocol = @{
+                version = 1
+                default = "json"
+            }
+            determinism = @{
+                hash = "blake3"
+                precision = 10
+            }
+        } | ConvertTo-Json -Depth 4
+        Set-Content -Path $configPath -Value $config
+        Write-Info "Created default config: .reach\config.json"
+    }
+
+    # Check PATH
+    $pathEntry = "$ProjectRoot\.reach\bin"
+    if (-not ($env:Path -like "*$pathEntry*")) {
+        Write-Info "Add to your PATH to use reach command:"
+        Write-Host "  `$env:Path = `"$pathEntry;`$env:Path`""
+    }
+}
+
+function Run-Verification {
+    Write-Step "Running verification..."
+    Set-Location $ProjectRoot
+
+    try {
+        & pnpm run typecheck 2>$null | Out-Null
+        Write-Info "TypeScript type check passed"
+    } catch {
+        Write-Warn "TypeScript type check has warnings (see: pnpm run typecheck)"
+    }
+}
+
+# =============================================================================
+# Main
+# =============================================================================
+
+Write-Info "Reach Installation Script"
+Write-Info "Project: $ProjectRoot"
+Write-Host ""
+
+# Check prerequisites
+Write-Step "Checking prerequisites..."
+
+$prerequisites = @('git', 'node', 'pnpm')
+foreach ($cmd in $prerequisites) {
+    if (-not (Test-Command $cmd)) {
+        Write-Error "Required command not found: $cmd"
+        Write-Host "Please install $cmd:"
+        switch ($cmd) {
+            'node' {
+                Write-Host "  - Via nvm-windows: https://github.com/coreybutler/nvm-windows"
+                Write-Host "  - Via installer: https://nodejs.org/"
+            }
+            'pnpm' {
+                Write-Host "  - npm install -g pnpm"
+                Write-Host "  - Via standalone: https://pnpm.io/installation"
+            }
+            'git' {
+                Write-Host "  - Via installer: https://git-scm.com/"
+            }
+        }
+        exit 1
+    }
+}
+
+Test-Version node 18.0.0 | Out-Null
+Test-Version pnpm 8.0.0 | Out-Null
+
+if (Test-Command cargo) {
+    Test-Version cargo 1.75.0 | Out-Null
+}
+
+Write-Host ""
+
+# Run installation steps
+Install-NodeDeps
+Build-RustEngine
+Setup-Environment
+Run-Verification
+
+Write-Host ""
+Write-Info "Installation complete!"
+Write-Host ""
+Write-Host "Next steps:"
+Write-Host "  1. pnpm verify:fast    # Quick validation"
+Write-Host "  2. pnpm verify:smoke   # Smoke test"
+Write-Host "  3. pnpm verify         # Full verification"
+Write-Host ""
+Write-Host "Documentation:"
+Write-Host "  - docs\GO_LIVE.md      # Go-live guide"
+Write-Host "  - docs\ARCHITECTURE.md # System design"
+Write-Host ""
