@@ -12,7 +12,7 @@ import (
 
 // runSelfTest executes the deterministic self-test suite.
 // This runs 200 iterations of key operations to verify identical digest output.
-func runSelfTest(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runSelfTest(_ context.Context, _ string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("self-test", flag.ContinueOnError)
 	n := fs.Int("n", 200, "number of iterations per operation")
 	verbose := fs.Bool("v", false, "verbose output")

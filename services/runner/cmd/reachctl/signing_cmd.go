@@ -18,7 +18,7 @@ import (
 )
 
 // runSign implements `reachctl sign <runId>`.
-func runSign(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runSign(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("sign", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	keyDirFlag := fs.String("key-dir", "", "Directory containing signing keys (default: data/.keys)")
@@ -75,12 +75,12 @@ func runSign(ctx context.Context, dataRoot string, args []string, out io.Writer,
 	}
 
 	result := map[string]any{
-		"run_id":        sig.RunID,
-		"proof_hash":    sig.ProofHash,
-		"algorithm":     sig.Algorithm,
-		"public_key":    sig.PublicKey,
-		"signature_hex": sig.SignatureHex[:16] + "...", // truncated — never expose full sig in non-JSON mode
-		"signed_at":     sig.SignedAt,
+		"run_id":         sig.RunID,
+		"proof_hash":     sig.ProofHash,
+		"algorithm":      sig.Algorithm,
+		"public_key":     sig.PublicKey,
+		"signature_hex":  sig.SignatureHex[:16] + "...", // truncated — never expose full sig in non-JSON mode
+		"signed_at":      sig.SignedAt,
 		"signature_file": sigPath,
 	}
 
@@ -100,7 +100,7 @@ func runSign(ctx context.Context, dataRoot string, args []string, out io.Writer,
 }
 
 // runVerifySignature implements `reachctl verify-signature <runId|sigFile>`.
-func runVerifySignature(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runVerifySignature(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("verify-signature", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	jsonFlag := fs.Bool("json", false, "Output JSON")

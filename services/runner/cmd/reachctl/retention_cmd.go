@@ -69,7 +69,7 @@ func runRetention(ctx context.Context, dataRoot string, args []string, out io.Wr
 }
 
 // runRetentionStatus shows current retention status
-func runRetentionStatus(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runRetentionStatus(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("retention status", flag.ContinueOnError)
 	_ = fs.Parse(args)
 
@@ -111,7 +111,7 @@ func runRetentionStatus(ctx context.Context, dataRoot string, args []string, out
 }
 
 // runRetentionCompact compacts old data while preserving proof chains
-func runRetentionCompact(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runRetentionCompact(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("retention compact", flag.ContinueOnError)
 	dryRun := fs.Bool("dry-run", false, "Show what would be compacted without actually compacting")
 	_ = fs.Parse(args)
@@ -160,7 +160,7 @@ func runRetentionCompact(ctx context.Context, dataRoot string, args []string, ou
 }
 
 // runRetentionPrune deletes old data beyond retention period
-func runRetentionPrune(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runRetentionPrune(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("retention prune", flag.ContinueOnError)
 	dryRun := fs.Bool("dry-run", false, "Show what would be pruned without actually pruning")
 	olderThan := fs.Int("older-than", 90, "Delete records older than N days")

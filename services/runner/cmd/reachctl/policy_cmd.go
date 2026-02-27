@@ -41,7 +41,7 @@ func runPolicyCommand(ctx context.Context, dataRoot string, args []string, out i
 }
 
 // runPolicyEvaluate evaluates the workspace policy against a specific run.
-func runPolicyEvaluate(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runPolicyEvaluate(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("policy evaluate", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	policyFile := fs.String("policy", "", "Path to policy file (default: reach-policy.txt in data dir)")
@@ -105,7 +105,7 @@ func runPolicyEvaluate(ctx context.Context, dataRoot string, args []string, out 
 
 // runPolicyEnforce enforces the policy status for a branch.
 // It scans all runs and reports which would be denied under the current policy.
-func runPolicyEnforce(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runPolicyEnforce(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("policy enforce", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	branchFlag := fs.String("on", "main", "Branch to enforce policy on")
@@ -151,12 +151,12 @@ func runPolicyEnforce(ctx context.Context, dataRoot string, args []string, out i
 
 	if *jsonFlag {
 		return writeJSON(out, map[string]any{
-			"branch":        *branchFlag,
-			"policy_fp":     pol.Fingerprint(),
-			"total_runs":    len(results),
-			"denied_runs":   deniedCount,
-			"dry_run":       *dryRun,
-			"run_results":   results,
+			"branch":      *branchFlag,
+			"policy_fp":   pol.Fingerprint(),
+			"total_runs":  len(results),
+			"denied_runs": deniedCount,
+			"dry_run":     *dryRun,
+			"run_results": results,
 		})
 	}
 
@@ -179,7 +179,7 @@ func runPolicyEnforce(ctx context.Context, dataRoot string, args []string, out i
 }
 
 // runPolicyShow prints the active policy configuration.
-func runPolicyShow(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runPolicyShow(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("policy show", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	policyFile := fs.String("policy", "", "Path to policy file")
@@ -194,14 +194,14 @@ func runPolicyShow(ctx context.Context, dataRoot string, args []string, out io.W
 
 	if *jsonFlag {
 		return writeJSON(out, map[string]any{
-			"version":                  pol.Version,
-			"fingerprint":              pol.Fingerprint(),
-			"require_deterministic":    pol.RequireDeterministic,
-			"require_signed":           pol.RequireSigned,
+			"version":                   pol.Version,
+			"fingerprint":               pol.Fingerprint(),
+			"require_deterministic":     pol.RequireDeterministic,
+			"require_signed":            pol.RequireSigned,
 			"max_external_dependencies": pol.MaxExternalDependencies,
-			"require_plugin_pinned":    pol.RequirePluginPinned,
-			"min_reproducibility_rate": pol.MinReproducibilityRate,
-			"forbid_chaos_on_main":     pol.ForbidChaosOnMain,
+			"require_plugin_pinned":     pol.RequirePluginPinned,
+			"min_reproducibility_rate":  pol.MinReproducibilityRate,
+			"forbid_chaos_on_main":      pol.ForbidChaosOnMain,
 		})
 	}
 

@@ -18,12 +18,12 @@ import (
 
 // Artifact types supported by ingest
 const (
-	ArtifactTypeRunBundle  = "run-bundle"
-	ArtifactTypeProof      = "proof"
-	ArtifactTypeDiff       = "diff"
-	ArtifactTypeDecision   = "decision"
-	ArtifactTypeLogs       = "logs"
-	ArtifactTypeCapsule    = "capsule"
+	ArtifactTypeRunBundle = "run-bundle"
+	ArtifactTypeProof     = "proof"
+	ArtifactTypeDiff      = "diff"
+	ArtifactTypeDecision  = "decision"
+	ArtifactTypeLogs      = "logs"
+	ArtifactTypeCapsule   = "capsule"
 )
 
 // ArtifactRecord represents an ingested artifact
@@ -85,7 +85,7 @@ func runArtifact(ctx context.Context, dataRoot string, args []string, out io.Wri
 }
 
 // runArtifactIngest handles 'reachctl artifact ingest <path>'
-func runArtifactIngest(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runArtifactIngest(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		_, _ = fmt.Fprintln(errOut, "usage: reachctl artifact ingest <path|zip|url> [--type type] [--json]")
 		return 1
@@ -136,13 +136,13 @@ func runArtifactIngest(ctx context.Context, dataRoot string, args []string, out 
 
 	// Create artifact record
 	record := ArtifactRecord{
-		ArtifactID:   artifactID,
-		Type:         *artifactType,
-		ContentHash:  contentHash,
-		Size:         size,
-		Metadata:     metadata,
-		IndexedAt:    time.Now().UTC().Format(time.RFC3339),
-		SourcePath:   sourcePath,
+		ArtifactID:  artifactID,
+		Type:        *artifactType,
+		ContentHash: contentHash,
+		Size:        size,
+		Metadata:    metadata,
+		IndexedAt:   time.Now().UTC().Format(time.RFC3339),
+		SourcePath:  sourcePath,
 	}
 
 	// Save artifact index
@@ -172,7 +172,7 @@ func runArtifactIngest(ctx context.Context, dataRoot string, args []string, out 
 }
 
 // runArtifactExport handles 'reachctl artifact export <entityId>'
-func runArtifactExport(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runArtifactExport(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		_, _ = fmt.Fprintln(errOut, "usage: reachctl artifact export <entityId> [--output file.zip]")
 		return 1
@@ -230,7 +230,7 @@ func runArtifactExport(ctx context.Context, dataRoot string, args []string, out 
 }
 
 // runArtifactVerify handles 'reachctl artifact verify <bundle.zip>'
-func runArtifactVerify(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runArtifactVerify(_ context.Context, _ string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		_, _ = fmt.Fprintln(errOut, "usage: reachctl artifact verify <bundle.zip> [--json]")
 		return 1
@@ -299,7 +299,7 @@ func runArtifactVerify(ctx context.Context, dataRoot string, args []string, out 
 }
 
 // runArtifactList handles 'reachctl artifact list'
-func runArtifactList(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runArtifactList(_ context.Context, dataRoot string, args []string, out io.Writer, _ io.Writer) int {
 	fs := flag.NewFlagSet("artifact list", flag.ContinueOnError)
 	jsonOutput := fs.Bool("json", false, "output as JSON")
 	filterType := fs.String("type", "", "filter by type")

@@ -134,4 +134,47 @@ func (q *DurableQueue) AvailableSlots() int {
 	return q.maxDepth - int(q.currentDepth.Load())
 }
 
-// ErrDuplicateJob is returned when a job with
+// Lease fetches available jobs and signs them with a lease token.
+func (q *DurableQueue) Lease(ctx context.Context, limit int, duration time.Duration) (string, []QueueJob, error) {
+	token := q.generateToken()
+	now := time.Now().UTC()
+	records, err := q.db.LeaseReadyJobs(ctx, now, limit, token, duration)
+	if err != nil {
+		return "", nil, err
+	}
+
+	jobs := make([]QueueJob, len(records))
+	for i, r := range records {
+		jobs[i] = QueueJob{
+			ID:             r.ID,
+			TenantID:       r.TenantID,
+			SessionID:      r.SessionID,
+			RunID:          r.RunID,
+			AgentID:        r.AgentID,
+			NodeID:         r.NodeID,
+			Type:           JobType(r.Type),
+			PayloadJSON:    r.PayloadJSON,
+			IdempotencyKey: r.IdempotencyKey,
+			Priority:       r.Priority,
+			MaxAttempts:    r.MaxAttempts,
+			NextRunAt:      r.NextRunAt,
+		}
+	}
+
+	return token, jobs, nil
+}
+
+// Complete marks a job as successfully finished.
+func (q *DurableQueue) Complete(ctx context.Context, jobID, token, resultJSON string) error {
+	defer q.ReleaseSlot()
+	return q.db.CompleteJob(ctx, jobID, token, resultJSON, time.Now().UTC())
+}
+
+func (q *DurableQueue) generateToken() string {
+	b := make([]byte, 16)
+	// Simple random token for lease identification
+	for i := range b {
+		b[i] = byte(time.Now().UnixNano() ^ int64(i))
+	}
+	return fmt.Sprintf("lease-%X", b)
+}

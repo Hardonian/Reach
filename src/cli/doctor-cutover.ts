@@ -511,6 +511,7 @@ function generateDeterministicHash(obj: unknown): string {
   const canonical = JSON.stringify(obj, Object.keys(obj as object).sort());
   try {
     // Try BLAKE3 if available
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { blake3 } = require('@napi-rs/blake3');
     return blake3(canonical).toString('hex').slice(0, 32);
   } catch {

@@ -290,7 +290,7 @@ func runOSSOnlyNotice(command string, errOut io.Writer) int {
 	return 1
 }
 
-func runFederation(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runFederation(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		usage(out)
 		return 1
@@ -355,7 +355,7 @@ func runArcade(dataRoot string, args []string, out io.Writer) int {
 	return 1
 }
 
-func runCapsule(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runCapsule(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		usage(out)
 		return 1
@@ -451,7 +451,7 @@ func runCapsule(ctx context.Context, dataRoot string, args []string, out io.Writ
 	}
 }
 
-func runProof(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runProof(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 2 {
 		usageProof(out)
 		return 1
@@ -471,7 +471,7 @@ func runProof(ctx context.Context, dataRoot string, args []string, out io.Writer
 }
 
 // runProofVerify handles 'reach proof verify <runId>'
-func runProofVerify(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runProofVerify(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		_, _ = fmt.Fprintln(errOut, "usage: reach proof verify <runId|transcript> [--json]")
 		return 1
@@ -506,7 +506,7 @@ func runProofVerify(ctx context.Context, dataRoot string, args []string, out io.
 }
 
 // runProofExplain handles 'reach proof explain <runId> [--step N]'
-func runProofExplain(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runProofExplain(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("proof explain", flag.ContinueOnError)
 	stepIdx := fs.Int("step", -1, "step index to explain")
 	jsonFlag := fs.Bool("json", false, "output JSON")
@@ -540,7 +540,7 @@ func runProofExplain(ctx context.Context, dataRoot string, args []string, out io
 }
 
 // runProofDiffHash handles 'reach proof diff-hash <runA> <runB>'
-func runProofDiffHash(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runProofDiffHash(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("proof diff-hash", flag.ContinueOnError)
 	jsonFlag := fs.Bool("json", false, "output JSON")
 	_ = fs.Parse(args)
@@ -606,7 +606,7 @@ Examples:
 }
 
 // runStress handles 'reach stress <command>'
-func runStress(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runStress(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		usageStress(out)
 		return 1
@@ -626,7 +626,7 @@ func runStress(ctx context.Context, dataRoot string, args []string, out io.Write
 }
 
 // runStressRun handles 'reach stress run --matrix'
-func runStressRun(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runStressRun(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("stress run", flag.ContinueOnError)
 	matrix := fs.Bool("matrix", false, "run cross-environment matrix")
 	jsonFlag := fs.Bool("json", false, "output JSON")
@@ -669,7 +669,7 @@ func runStressRun(ctx context.Context, dataRoot string, args []string, out io.Wr
 }
 
 // runStressMatrix handles 'reach stress run --matrix'
-func runStressMatrix(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runStressMatrix(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("stress run --matrix", flag.ContinueOnError)
 	jsonFlag := fs.Bool("json", false, "output JSON")
 	trials := fs.Int("trials", 3, "trials per configuration")
@@ -714,7 +714,7 @@ func runStressMatrix(ctx context.Context, dataRoot string, args []string, out io
 }
 
 // runStressEntropy handles 'reach stress entropy <pipeline>'
-func runStressEntropy(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runStressEntropy(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("stress entropy", flag.ContinueOnError)
 	jsonFlag := fs.Bool("json", false, "output JSON")
 	_ = fs.Parse(args)
@@ -782,7 +782,7 @@ Examples:
 }
 
 // runDebug handles 'reach debug <command>'
-func runDebug(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runDebug(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	if len(args) < 1 {
 		usageDebug(out)
 		return 1
@@ -5096,7 +5096,7 @@ func runDoctor(args []string, out, errOut io.Writer) int {
 	// Print Engine Verification status
 	fmt.Fprintln(out, "\n=== Engine Status ===")
 	fmt.Fprintf(out, "Engine Version:      %s\n", engineVersion)
-	
+
 	// Check if engine binary exists and is executable
 	engineBinary := "engine-json"
 	if requiemBinPath != "" {

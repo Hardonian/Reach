@@ -79,7 +79,7 @@ func runAssistant(ctx context.Context, dataRoot string, args []string, out io.Wr
 }
 
 // runAssistantSuggest implements `reachctl assistant suggest <runId>`.
-func runAssistantSuggest(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runAssistantSuggest(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("assistant suggest", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	jsonFlag := fs.Bool("json", false, "Output JSON")
@@ -102,7 +102,7 @@ func runAssistantSuggest(ctx context.Context, dataRoot string, args []string, ou
 }
 
 // runAssistantExplain implements `reachctl assistant explain <topic>`.
-func runAssistantExplain(ctx context.Context, dataRoot string, topic string, args []string, out io.Writer, errOut io.Writer) int {
+func runAssistantExplain(_ context.Context, dataRoot string, topic string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("assistant explain", flag.ContinueOnError)
 	fs.SetOutput(errOut)
 	jsonFlag := fs.Bool("json", false, "Output JSON")
@@ -276,7 +276,7 @@ func printAssistantReport(out io.Writer, r *AssistantReport) {
 }
 
 // explainTrust provides a detailed explanation of the trust model.
-func explainTrust(dataRoot string, jsonOutput bool, out io.Writer, errOut io.Writer) int {
+func explainTrust(dataRoot string, jsonOutput bool, out io.Writer, _ io.Writer) int {
 	score := computeTrustScore(dataRoot)
 	components := map[string]any{
 		"trust_score":        score,
@@ -319,25 +319,25 @@ func explainTrust(dataRoot string, jsonOutput bool, out io.Writer, errOut io.Wri
 }
 
 // explainPolicy provides a detailed explanation of the active policy.
-func explainPolicy(dataRoot string, jsonOutput bool, out io.Writer, errOut io.Writer) int {
+func explainPolicy(dataRoot string, jsonOutput bool, out io.Writer, _ io.Writer) int {
 	pol, _ := loadWorkspacePolicy(dataRoot, "")
 	violations := countPolicyViolations(dataRoot, "")
 	explanation := map[string]any{
 		"policy_fingerprint": pol.Fingerprint(),
 		"policy_version":     pol.Version,
 		"active_rules": map[string]any{
-			"require_deterministic":    pol.RequireDeterministic,
-			"require_signed":           pol.RequireSigned,
+			"require_deterministic":     pol.RequireDeterministic,
+			"require_signed":            pol.RequireSigned,
 			"max_external_dependencies": pol.MaxExternalDependencies,
-			"require_plugin_pinned":    pol.RequirePluginPinned,
-			"min_reproducibility_rate": pol.MinReproducibilityRate,
-			"forbid_chaos_on_main":     pol.ForbidChaosOnMain,
+			"require_plugin_pinned":     pol.RequirePluginPinned,
+			"min_reproducibility_rate":  pol.MinReproducibilityRate,
+			"forbid_chaos_on_main":      pol.ForbidChaosOnMain,
 		},
 		"current_violations": violations,
 		"explanation": map[string]any{
-			"what_is_policy": "A governance policy is a versioned set of rules that must pass before a run is considered trustworthy.",
-			"how_to_evaluate": "Run `reach policy evaluate <runId>` to check a specific run.",
-			"how_to_enforce":  "Run `reach policy enforce --on main` to enforce policy across all runs on a branch.",
+			"what_is_policy":   "A governance policy is a versioned set of rules that must pass before a run is considered trustworthy.",
+			"how_to_evaluate":  "Run `reach policy evaluate <runId>` to check a specific run.",
+			"how_to_enforce":   "Run `reach policy enforce --on main` to enforce policy across all runs on a branch.",
 			"how_to_configure": "Create or edit `reach-policy.txt` in your data directory. See `reach policy show` for current values.",
 		},
 	}
@@ -362,10 +362,10 @@ func explainPolicy(dataRoot string, jsonOutput bool, out io.Writer, errOut io.Wr
 	return 0
 }
 
-func explainReproducibility(dataRoot string, jsonOutput bool, out io.Writer, errOut io.Writer) int {
+func explainReproducibility(dataRoot string, jsonOutput bool, out io.Writer, _ io.Writer) int {
 	score := loadReproScore(dataRoot)
 	explanation := map[string]any{
-		"reproducibility_score": score,
+		"reproducibility_score":   score,
 		"what_is_reproducibility": "Reproducibility measures how consistently a pipeline produces identical proof hashes across multiple runs.",
 		"how_to_measure":          "Run `reach bench reproducibility <pipelineId> --runs 10` to benchmark.",
 		"score_meaning": map[string]string{
@@ -386,12 +386,12 @@ func explainReproducibility(dataRoot string, jsonOutput bool, out io.Writer, err
 	return 0
 }
 
-func explainChaos(dataRoot string, jsonOutput bool, out io.Writer, errOut io.Writer) int {
+func explainChaos(dataRoot string, jsonOutput bool, out io.Writer, _ io.Writer) int {
 	instability := loadChaosInstability(dataRoot)
 	explanation := map[string]any{
 		"chaos_instability_pct": instability,
-		"what_is_chaos": "Chaos testing perturbs execution parameters to verify that determinism invariants hold under adverse conditions.",
-		"how_to_run":    "Use `reach chaos <pipeline> --seeds 5 --level 2` to run differential chaos analysis.",
+		"what_is_chaos":         "Chaos testing perturbs execution parameters to verify that determinism invariants hold under adverse conditions.",
+		"how_to_run":            "Use `reach chaos <pipeline> --seeds 5 --level 2` to run differential chaos analysis.",
 		"instability_thresholds": map[string]string{
 			"0-5%":    "Excellent — invariants hold under all tested chaos scenarios",
 			"5-20%":   "Acceptable — minor sensitivity, investigate affected steps",

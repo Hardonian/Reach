@@ -262,8 +262,10 @@ export class AdaptiveDualRunSampler {
       
       // Atomic rename (works on POSIX, best effort on Windows)
       try {
-        const { renameSync } = require('fs');
-        renameSync(tempPath, filepath);
+        // Use fs module directly for sync rename
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const fs = require('fs');
+        fs.renameSync(tempPath, filepath);
       } catch {
         // Fallback: just write directly if rename fails
         writeFileSync(filepath, JSON.stringify(report, null, 2));
@@ -288,6 +290,7 @@ export class AdaptiveDualRunSampler {
    */
   private loadKnownWorkloads(): void {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { readdirSync, readFileSync } = require('fs');
       
       if (!existsSync(this.config.diffStoragePath)) {
@@ -394,7 +397,7 @@ export class AdaptiveDualRunSampler {
    * Reset stability for a specific workload (e.g., after engine update)
    */
   resetStability(tenantId?: string, engineVersion?: string, algorithm?: string): void {
-    for (const [key, stability] of Array.from(this.stabilityMap.entries())) {
+    for (const [, stability] of Array.from(this.stabilityMap.entries())) {
       if (
         (!tenantId || stability.tenantId === tenantId) &&
         (!engineVersion || stability.engineVersion === engineVersion) &&

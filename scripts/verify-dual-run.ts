@@ -66,7 +66,11 @@ function createTestRequest(requestId: string, algorithm = 'minimax_regret'): Exe
 async function runVerification(quick = false): Promise<VerificationResult> {
   const checks: Array<{ name: string; passed: boolean; message: string; details?: Record<string, unknown> }> = [];
   let samplingTest;
-  let storageTest;
+  const storageTest = {
+    diffPath: DEFAULT_SAMPLING_CONFIG.diffStoragePath,
+    fileCount: 0,
+    sampleReport: undefined as DiffReport | undefined,
+  };
   
   // 1. Check sampler can be instantiated
   let sampler: AdaptiveDualRunSampler;
@@ -236,11 +240,11 @@ async function runVerification(quick = false): Promise<VerificationResult> {
     }
   }
   
-  storageTest = {
-    diffPath,
-    fileCount,
-    sampleReport,
-  };
+  // Update storageTest values (already initialized)
+  storageTest.fileCount = fileCount;
+  if (sampleReport) {
+    storageTest.sampleReport = sampleReport;
+  }
   
   // 6. Check stability stats
   try {

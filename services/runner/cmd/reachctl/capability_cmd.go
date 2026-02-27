@@ -56,7 +56,7 @@ func runCapability(ctx context.Context, dataRoot string, args []string, out io.W
 }
 
 // runCapabilityList lists all registered capabilities
-func runCapabilityList(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runCapabilityList(_ context.Context, _ string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("capability list", flag.ContinueOnError)
 	category := fs.String("category", "", "Filter by category (core, plugin, system)")
 	_ = fs.Parse(args)
@@ -86,7 +86,7 @@ func runCapabilityList(ctx context.Context, dataRoot string, args []string, out 
 }
 
 // runCapabilityCheck checks if an action is allowed
-func runCapabilityCheck(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runCapabilityCheck(_ context.Context, _ string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("capability check", flag.ContinueOnError)
 	action := fs.String("action", "", "Action to check")
 	_ = fs.Parse(args)
@@ -101,7 +101,7 @@ func runCapabilityCheck(ctx context.Context, dataRoot string, args []string, out
 }
 
 // runCapabilityRegister registers a new capability
-func runCapabilityRegister(ctx context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
+func runCapabilityRegister(_ context.Context, dataRoot string, args []string, out io.Writer, errOut io.Writer) int {
 	fs := flag.NewFlagSet("capability register", flag.ContinueOnError)
 	name := fs.String("name", "", "Capability name")
 	description := fs.String("description", "", "Capability description")

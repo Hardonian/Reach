@@ -485,6 +485,7 @@ export class ControlPlaneEventExporter {
   
   private cleanupOldFiles(): void {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { readdirSync, statSync, unlinkSync } = require('fs');
       
       const files = readdirSync(this.config.outputPath)
