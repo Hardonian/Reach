@@ -99,14 +99,14 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",
-    "@types/node": "^25.3.0",
-    "@typescript-eslint/parser": "^8.56.0",
+    "@types/node": "^25.6.0",
+    "@typescript-eslint/parser": "^8.58.2",
     "eslint": "^9.39.3",
-    "prettier": "^3.8.1",
+    "prettier": "^3.8.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.56.0",
-    "vitest": "^4.0.18"
+    "typescript-eslint": "^8.58.2",
+    "vitest": "^4.1.4"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -118,7 +118,7 @@
   "license": "MIT",
   "dependencies": {
     "blake3": "^2.1.7",
-    "cbor": "^10.0.3",
+    "cbor": "^10.0.12",
     "zod": "^4.3.6"
   },
   "cspell": {
