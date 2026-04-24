@@ -486,9 +486,9 @@ function daysBetween(startDate: string, endDate: string): number {
 }
 
 function classifyDecay(evidence: EvidenceItem, _asOfDate: string): DecayStatus {
-  if (evidence.expiresAt && daysBetween(evidence.expiresAt, asOfDate) >= 0) return "expired";
+  if (evidence.expiresAt && daysBetween(evidence.expiresAt, _asOfDate) >= 0) return "expired";
   if (!evidence.assertedAt) return "unknown";
-  const ageDays = daysBetween(evidence.assertedAt, asOfDate);
+  const ageDays = daysBetween(evidence.assertedAt, _asOfDate);
   if (ageDays <= DECAY_WINDOWS_DAYS.fresh) return "fresh";
   if (ageDays <= DECAY_WINDOWS_DAYS.aging) return "aging";
   if (ageDays <= DECAY_WINDOWS_DAYS.stale) return "stale";
@@ -497,7 +497,7 @@ function classifyDecay(evidence: EvidenceItem, _asOfDate: string): DecayStatus {
 
 function decaySummary(evidence: EvidenceItem[], _asOfDate: string): Record<DecayStatus, number> {
   const summary: Record<DecayStatus, number> = { fresh: 0, aging: 0, stale: 0, expired: 0, unknown: 0 };
-  for (const item of evidence) summary[classifyDecay(item, asOfDate)] += 1;
+  for (const item of evidence) summary[classifyDecay(item, _asOfDate)] += 1;
   return summary;
 }
 
@@ -604,7 +604,7 @@ async function runDecisionInWorkspace(
   void ws.evidence.length;
   // Tasks are distinct from evidence in workspace model
   const unresolvedTasks = ws.tasks.filter((t) => !t.completed).length;
-  const decay = decaySummary(ws.evidence, asOfDate);
+  const decay = decaySummary(ws.evidence, _asOfDate);
   const boundarySummary = `Flip dist ${minFlipDistance.toFixed(2)}; ${unresolvedTasks} tasks; decay: ${decay.stale + decay.expired} issues.`;
 
   return {
@@ -617,7 +617,7 @@ async function runDecisionInWorkspace(
       .slice()
       .sort((a, b) => a.cost.timeMinutes - b.cost.timeMinutes || a.id.localeCompare(b.id))
       .slice(0, 3)
-      .map((e) => ({ id: e.id, summary: e.summary, cost: e.cost, decay: classifyDecay(e, asOfDate) })),
+      .map((e) => ({ id: e.id, summary: e.summary, cost: e.cost, decay: classifyDecay(e, _asOfDate) })),
     plan: {
       nextSteps: (Array.isArray(result?.nextBestEvidence) ? result.nextBestEvidence : []).slice(0, 3).map(item => item.prompt),
       stopConditions: transcriptRecord.plan?.stop_conditions ?? [],
