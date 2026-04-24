@@ -60,7 +60,7 @@ export interface VerificationResult {
  */
 export interface CASConfig {
   /**
-   * Root directory for disk-based storage (if any)
+   * Root directory for disk-based storage (if unknown)
    */
   baseDir?: string;
 
@@ -445,7 +445,7 @@ export class ContentAddressableStorage {
 // ============================================================================
 
 /**
- * Create a wrapper that adds CID verification to any storage driver
+ * Create a wrapper that adds CID verification to unknown storage driver
  * 
  * This can be used to wrap existing storage implementations (SQLite, S3, etc.)
  * to add CID verification without modifying the underlying storage code.

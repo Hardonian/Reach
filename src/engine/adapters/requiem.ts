@@ -547,14 +547,14 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
         throw new Error('Protocol client not initialized');
       }
 
-      const payload: any = {
+      const payload: unknown = {
         run_id: request.requestId,
         workflow: {
           name: `decide_${request.requestId}`,
           version: '1.0.0',
           steps: [decisionToWorkflowStep(request)],
         },
-        controls: (ExecutionControls as any).default?.() || {
+        controls: (ExecutionControls as unknown).default?.() || {
           step_timeout_us: BigInt(0),
           run_timeout_us: BigInt(0),
           budget_limit_usd: BigInt(0),

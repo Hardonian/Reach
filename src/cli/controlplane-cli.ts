@@ -134,8 +134,7 @@ function healthFromFailures(failures: number): Health {
 
 function collectModuleStats(root: string): ControlPlaneStatus["modules"] {
   const modules = ["zeo", "keys", "settler", "readylayer"];
-  const now = Date.now();
-  return modules.map((module) => {
+    return modules.map((module) => {
     const relevantLogs = KNOWN_LOGS.map((log) => join(root, log)).filter((file) => existsSync(file));
     const failures = relevantLogs.reduce((acc, file) => acc + (readFileSync(file, "utf8").toLowerCase().includes("fail") ? 1 : 0), 0);
     const lastExecution = relevantLogs.length > 0

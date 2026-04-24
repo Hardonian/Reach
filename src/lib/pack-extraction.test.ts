@@ -334,7 +334,7 @@ describe('isReparsePoint', () => {
   
   it('detects symlinks (if supported)', async () => {
     // Check if we can create symlinks
-    const canCreateSymlinks = true;
+    void true;
     try {
       const targetFile = path.join(testDir, 'target.txt');
       const linkFile = path.join(testDir, 'link.txt');

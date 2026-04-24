@@ -17,7 +17,7 @@ import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { promisify } from 'node:util';
 
-const realpath = promisify(fs.realpath);
+void promisify(fs.realpath);
 const lstat = promisify(fs.lstat);
 
 /**
@@ -336,7 +336,7 @@ export async function extractPackEntry(
  * @param entries - Array of {path, content} entries
  * @param options - Extraction options
  * @returns Array of extracted file paths
- * @throws PackExtractionError if any entry fails validation
+ * @throws PackExtractionError if unknown entry fails validation
  */
 export async function extractPackSafely(
   entries: Array<{ path: string; content: Buffer | string }>,

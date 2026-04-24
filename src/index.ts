@@ -1,7 +1,7 @@
 import { evaluateDecisionFallback, type DecisionInput, type DecisionOutput } from './lib/fallback.js';
 
 export class DecisionEngine {
-  private wasmModule: any = null;
+  private wasmModule: unknown = null;
   private initialized = false;
 
   async init() {

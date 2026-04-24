@@ -8,16 +8,14 @@
  * - Running nightly replay pipelines
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 import {
   createRealityAdapterRegistry,
-  getDefaultCatalogEntries,
-  getDefaultSourceDescriptors,
   type Adapter,
-  type AdapterInfo,
+
 } from "@zeo/adapters";
-import { createDatasetBuilder, validateDataset, filterDatasetByTime, type ReplayDataset } from "@zeo/dataset-builder";
+import { createDatasetBuilder, validateDataset } from "@zeo/dataset-builder";
 
 export interface RealityCliArgs {
   reality: string | undefined;
@@ -30,7 +28,7 @@ export interface RealityCliArgs {
   out: string | undefined;
   replay: string | undefined;
   nightly: boolean | undefined;
-  parallel: number | undefined;
+  _parallel: number | undefined;
 }
 
 export function parseRealityArgs(argv: string[]): RealityCliArgs {
@@ -45,7 +43,7 @@ export function parseRealityArgs(argv: string[]): RealityCliArgs {
     out: undefined,
     replay: undefined,
     nightly: false,
-    parallel: 4,
+    _parallel: 4,
   };
 
   for (let i = 0; i < argv.length; i++) {
@@ -285,7 +283,7 @@ export async function runReplayPipeline(datasetPath: string): Promise<number> {
 
 export async function runNightlyPipeline(
   outDir: string | undefined,
-  parallel: number
+  _parallel: number
 ): Promise<number> {
   console.log("\n=== Zeo Nightly Pipeline ===\n");
   console.log("This runs the full reality data pipeline:");

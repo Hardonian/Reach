@@ -5,7 +5,7 @@
  * many use cases but will diverge across runs if keys are inserted in
  * different orders. DeterministicMap always iterates in sorted key order.
  *
- * Use this in any path that contributes to proof hashes or canonical output.
+ * Use this in unknown path that contributes to proof hashes or canonical output.
  */
 
 /**

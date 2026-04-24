@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync, rmdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, unlinkSync, mkdirSync, rmdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
@@ -16,11 +16,9 @@ import {
   LockfileManager,
   BoundedQueue,
   HeartbeatManager,
-  DaemonLifecycleManager,
-  getDefaultConfig,
 } from '../engine/daemon/lifecycle';
 
-import { FrameCodec, ProtocolError, ProtocolErrorCode } from '../engine/protocol/frames';
+import { FrameCodec, ProtocolError } from '../engine/protocol/frames';
 import { EngineDetector, EngineSelector } from '../engine/safety/rollback';
 
 describe('Adversarial M1 Tests', () => {

@@ -335,7 +335,7 @@ export class RustEngineAdapter extends BaseEngineAdapter {
   }
   
   /**
-   * Get the last load error if any
+   * Get the last load error if unknown
    */
   getLoadError(): Error | null {
     return this.loadError;

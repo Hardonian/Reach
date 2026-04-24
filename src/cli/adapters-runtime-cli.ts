@@ -5,13 +5,10 @@
  * zeo ingest --range <start:end> --out <dataset.json>
  */
 
-import { mkdir, writeFile } from "fs/promises";
-import { existsSync } from "fs";
-import { resolve, join } from "path";
+import { writeFile } from "fs/promises";
+import { resolve } from "path";
 import {
   createAdapterRuntime,
-  runAdapter,
-  ingestData,
   createQuarantineStore,
 } from "@zeo/adapters-runtime";
 import { createRealityAdapterRegistry } from "@zeo/adapters";
@@ -265,7 +262,7 @@ async function runIngestCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
   return 0;
 }
 
-async function runQuarantineCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
+async function runQuarantineCommand(_args: AdaptersRuntimeCliArgs): Promise<number> {
   const store = createQuarantineStore({ retentionHours: 168 });
 
   console.log("=== Quarantine Status ===\n");

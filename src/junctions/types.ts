@@ -12,8 +12,8 @@ export interface JunctionTrigger {
   sourceType: SourceType;
   sourceRef: string;
   severityScore: number;
-  triggerData: Record<string, any>;
-  triggerTrace: Record<string, any>;
+  triggerData: Record<string, unknown>;
+  triggerTrace: Record<string, unknown>;
   scopeKeys?: Record<string, string>;
 }
 
@@ -65,7 +65,7 @@ export function generateDeduplicationKey(trigger: JunctionTrigger): string {
 /**
  * Sort object keys recursively for deterministic JSON serialization
  */
-function sortObjectKeys(obj: any): any {
+function sortObjectKeys(obj: unknown): unknown {
   if (obj === null || obj === undefined) {
     return obj;
   }
@@ -75,7 +75,7 @@ function sortObjectKeys(obj: any): any {
   }
   
   if (typeof obj === 'object') {
-    const sorted: any = {};
+    const sorted: unknown = {};
     const keys = Object.keys(obj).sort();
     for (const key of keys) {
       sorted[key] = sortObjectKeys(obj[key]);

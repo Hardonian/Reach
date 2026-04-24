@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { listRecentArtifacts } from "@zeo/ledger";
 
-export async function runAuditCommand(args: string[]): Promise<number> {
+export async function runAuditCommand(_args: string[]): Promise<number> {
   const recent = listRecentArtifacts(20);
   console.log("\n=== Zeo Autopilot Drift Audit ===");
 

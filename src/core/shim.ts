@@ -1,4 +1,4 @@
-export function executeDecision(input: any): any {
+export function executeDecision(input: unknown): unknown {
   return {
     transcript: {
       transcript_id: "shim",
@@ -9,6 +9,6 @@ export function executeDecision(input: any): any {
   };
 }
 
-export function verifyDecisionTranscript(transcript: any): any {
+export function verifyDecisionTranscript(_transcript: unknown): unknown {
   return { verified: true };
 }

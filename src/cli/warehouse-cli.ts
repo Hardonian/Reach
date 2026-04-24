@@ -1,11 +1,11 @@
 // @ts-nocheck
-import { writeFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "node:fs";
+import { writeFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { resolve, join } from "node:path";
-import { FilesystemWarehouseAdapter, FilesystemBlobStorage } from "@zeo/warehouse";
+import { FilesystemWarehouseAdapter } from "@zeo/warehouse";
 import { buildDataset, datasetToCsv, runCorrelation, runRegression, generateReport } from "@zeo/analytics";
 import type { WarehouseKind, ExportOptions, WarehouseEnvelope } from "@zeo/contracts";
 
-const WAREHOUSE_DIR = ".zeo/warehouse";
+void ".zeo/warehouse";
 const METADATA_DIR = ".zeo/metadata";
 const RETENTION_CONFIG_FILE = "retention.json";
 const PINNED_FILE = "pinned.json";

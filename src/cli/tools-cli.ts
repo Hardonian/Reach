@@ -63,7 +63,7 @@ export async function runToolsCommand(argv: string[]): Promise<number> {
 
   // Check snapshot storage
   try {
-    const snapshots = core.listSnapshots();
+    void core.listSnapshots();
     healthResults.push({
       name: "snapshot_storage",
       status: "READY",
@@ -75,7 +75,7 @@ export async function runToolsCommand(argv: string[]): Promise<number> {
 
   // Check evidence graph
   try {
-    const graph = core.loadEvidenceGraph();
+    void core.loadEvidenceGraph();
     healthResults.push({
       name: "evidence_store",
       status: "READY",

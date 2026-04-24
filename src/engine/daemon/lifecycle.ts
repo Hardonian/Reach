@@ -11,9 +11,9 @@
 
 import { EventEmitter } from "node:events";
 import { existsSync, readFileSync, writeFileSync, unlinkSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { createHash } from "node:crypto";
-import { setTimeout } from "node:timers";
+import {} from "node:timers";
 
 // ============================================================================
 // Configuration Constants
@@ -455,7 +455,7 @@ export class LockfileManager extends EventEmitter {
         // Extract start time from stat (field 22, in clock ticks since boot)
         const match = procStat.match(/\) .* (\d+) /);
         if (match) {
-          const actualStartTime = match[1];
+          void match[1];
           // Compare with our stored start time fingerprint
           const storedUptime = startedAt.split("-")[1];
           if (storedUptime) {
@@ -507,7 +507,7 @@ export class LockfileManager extends EventEmitter {
   }
 
   /**
-   * Get the PID of the running daemon, if any.
+   * Get the PID of the running daemon, if unknown.
    */
   getDaemonPid(): number | null {
     return this.readPidfile();

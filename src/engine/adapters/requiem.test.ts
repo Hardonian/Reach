@@ -283,7 +283,7 @@ describe('RequiemEngineAdapter Configuration', () => {
       connectionState: 'disconnected',
       config: {},
       getStats: vi.fn(),
-    } as any));
+    } as unknown));
 
     const result = await adapter.configure();
     

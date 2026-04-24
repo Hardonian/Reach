@@ -13,7 +13,7 @@ import { Readable } from "stream";
 
 // BLAKE3 hash implementation with fallback
 // Prefer native blake3 if available, otherwise use crypto.createHash with warning
-let hasherAvailable = true;
+// hasher availability tracking disabled
 let warned = false;
 
 function getHash(input: string | Buffer | Uint8Array, encoding?: 'hex'): string {

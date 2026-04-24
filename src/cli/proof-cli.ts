@@ -11,15 +11,13 @@
  * @module cli/proof-cli
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { existsSync, readFileSync, mkdirSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { createHash } from 'crypto';
 import {
   ProofBundle,
   createProofBundle,
   verifyBundleConsistency,
-  serializeBundle,
-  deserializeBundle,
   computeBundleCID,
   exportBundle,
   importBundle,

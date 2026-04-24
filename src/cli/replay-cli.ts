@@ -155,9 +155,9 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
   }
 
   const { replayCase } = replayMod;
-  const { createTracker, checkBudget, recordUsage, createBudgetGuard, SAFE_DEFAULTS } = budgetsMod;
+  const { createTracker, checkBudget, createBudgetGuard, SAFE_DEFAULTS } = budgetsMod;
   const { getJobQueue } = jobsMod;
-  const { readReproPackZip, replayFromPack, createAssumptionTracker, EXIT_CODES } = reproMod;
+  const { readReproPackZip, replayFromPack, createAssumptionTracker } = reproMod;
   const { runDecision } = coreMod;
   // ─── Repro Pack Replay ────────────────────────────────────────────────────
   if (args.pack) {
@@ -316,7 +316,7 @@ export async function runReplayCommand(args: ReplayCliArgs): Promise<number> {
   }
 
   // Initialize job queue for async processing
-  const jobQueue = getJobQueue({ autoStart: true });
+  void getJobQueue({ autoStart: true });
 
   // Run each case
   const results: ReplayResult[] = [];

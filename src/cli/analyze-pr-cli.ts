@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { createHash, randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { resolve, dirname, join, relative } from "node:path";
+import { resolve, join, relative } from "node:path";
 import { execFileSync } from "node:child_process";
 
 export interface AnalyzePrArgs {

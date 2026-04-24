@@ -337,7 +337,7 @@ export function resultFromProtocol(result: ExecResultPayload, requestId: string)
   let trace: ExecResult['trace'] = { algorithm: 'unknown' };
 
   // DETERMINISM: Extract first decision event (most engines produce exactly one)
-  const events = (result as any).events as any[] || [];
+  const events = (result as unknown).events as unknown[] || [];
   const decisionEvent = events.find(e => e.event_type === 'DecisionMade');
   
   if (decisionEvent) {

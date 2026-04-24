@@ -6,7 +6,7 @@ export interface CtaContext {
 }
 
 function missingEvidenceCount(model: DashboardViewModel): number {
-  return model.lists.findings.filter((finding: any) => finding.severity >= 4).length;
+  return model.lists.findings.filter((finding: unknown) => finding.severity >= 4).length;
 }
 
 export function generateCtas(model: DashboardViewModel, persona: DashboardPersona, context: CtaContext = {}): DashboardViewModel["ctas"] {

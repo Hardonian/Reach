@@ -99,7 +99,7 @@ export function runModelAdapterCheck(): DoctorCheck {
     }
 
     // Check each adapter has required fields
-    const validAdapters = adapters.filter((a: any) => 
+    const validAdapters = adapters.filter((a: unknown) => 
       a.id && a.provider && a.model && typeof a.execute === 'function'
     );
 
@@ -108,7 +108,7 @@ export function runModelAdapterCheck(): DoctorCheck {
       name: "Model Adapter Integrity",
       status: validAdapters.length === adapters.length ? "pass" : "warning",
       message: `${validAdapters.length}/${adapters.length} adapters valid`,
-      details: { adapters: adapters.map((a: any) => a.id) },
+      details: { adapters: adapters.map((a: unknown) => a.id) },
     };
   } catch (err) {
     return {

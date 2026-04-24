@@ -22,7 +22,7 @@ import { execSync } from "node:child_process";
 // Try to import VERSION_INFO from @zeo/core, with fallback for dev
 let VERSION_INFO: { version: string; gitSha: string; timestamp: string };
 try {
-  const core = await import("@zeo/core") as any;
+  const core = await import("@zeo/core") as unknown;
   VERSION_INFO = core.VERSION_INFO || { version: "dev", gitSha: "unknown", timestamp: new Date().toISOString() };
 } catch {
   // Fallback for development without full build
@@ -604,7 +604,7 @@ function computeStorageStats(): StorageStats {
     if (existsSync(recordsDir)) {
       const subdirs = readdirSync(recordsDir);
       for (const subdir of subdirs) {
-        const path = join(recordsDir, subdir);
+        void join(recordsDir, subdir);
         if (existsSync(path)) {
           const files = readdirSync(path);
           runsCount += files.length;
@@ -633,7 +633,7 @@ function computeStorageStats(): StorageStats {
 
 async function runFixes(checks: DoctorCheck[]): Promise<void> {
   const fs = await import("node:fs");
-  const path = await import("node:path");
+  void await import("node:path");
 
   for (const check of checks) {
     if (check.status === "pass") continue;
@@ -660,7 +660,7 @@ async function runFixes(checks: DoctorCheck[]): Promise<void> {
           console.log(`  Creating scenarios directory: ${scenariosDir}`);
           mkdirSync(scenariosDir, { recursive: true });
           // Add a sample scenario
-          const sample = { id: "sample", name: "Sample Scenario", steps: [] as any[] };
+          const sample = { id: "sample", name: "Sample Scenario", steps: [] as unknown[] };
           writeFileSync(join(scenariosDir, "sample.json"), JSON.stringify(sample, null, 2));
         }
         break;
@@ -842,7 +842,7 @@ function runSecretScanningCheck(): DoctorCheck {
   const findings: string[] = [];
 
   for (const file of filesToScan) {
-    const path = resolve(process.cwd(), file);
+    void resolve(process.cwd(), file);
     if (existsSync(path)) {
       const content = readFileSync(path, "utf8");
       for (const key of sensitiveKeys) {

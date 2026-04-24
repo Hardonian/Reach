@@ -9,10 +9,11 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { FrameParser, decodeFrame, encodeFrame, MessageType, MAX_PAYLOAD_BYTES, HEADER_SIZE, FOOTER_SIZE } from './frame';
+import { FrameParser, decodeFrame, encodeFrame, MessageType, HEADER_SIZE, FOOTER_SIZE } from './frame';
 import { createHello, serializeCbor } from './messages';
 
 describe('Protocol Fuzz-lite', () => {
+  let result: unknown = null;
   it('should reject garbage frame with invalid magic', () => {
     const garbage = new Uint8Array([
       0xDE, 0xAD, 0xBE, 0xEF, // Invalid magic
@@ -91,7 +92,6 @@ describe('Protocol Fuzz-lite', () => {
     parser.append(encoded);
     
     // After resync, should be able to parse valid frame
-    let result = null;
     try {
       result = parser.parse();
     } catch {
@@ -127,7 +127,7 @@ describe('Protocol Fuzz-lite', () => {
     parser.append(firstHalf);
     
     // Should return null (need more data)
-    const result = parser.parse();
+    result = parser.parse();
     expect(result).toBeNull();
     expect(parser.bufferSize).toBe(firstHalf.length);
     
@@ -181,7 +181,7 @@ describe('Protocol Fuzz-lite', () => {
     parser.append(frame);
     
     // Should return null (waiting for payload)
-    const result = parser.parse();
+    result = parser.parse();
     expect(result).toBeNull();
     expect(parser.bufferSize).toBe(HEADER_SIZE);
     
@@ -276,7 +276,7 @@ describe('Protocol Fuzz-lite', () => {
     // Parse all frames
     let count = 0;
     while (true) {
-      const result = parser.parse();
+      result = parser.parse();
       if (result === null) break;
       expect(result.msgType).toBe(MessageType.Hello);
       expect(result.correlationId).toBe(count);

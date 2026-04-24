@@ -15,17 +15,17 @@ import { resolve, join, relative } from "node:path";
 import { cwd } from "node:process";
 import {
   StaticHotPathScanner,
-  scanHotPaths,
+
   type ScanOptions,
   type HotPathSeverity,
   type ScanResult,
-  type HotPathFinding,
-  Profiler,
+
+
   getGlobalProfiler,
-  startQuickProfile,
-  endQuickProfile,
+
+
   type ProfileReport,
-  type ProfilerOptions,
+
 } from "@zeo/perf";
 import {
   makeNegotiationExample,
@@ -36,7 +36,7 @@ import {
   canonicalizeDecisionSpec,
 } from "@zeo/core";
 import { replayCase } from "@zeo/replay";
-import { ZeoError, type ReplayDataset, type ReplayOptions } from "@zeo/contracts";
+import { ZeoError, type ReplayDataset } from "@zeo/contracts";
 
 export interface PerfCliArgs {
   command: "scan" | "profile" | "benchmark" | "compare" | "regression" | null;
@@ -268,7 +268,7 @@ async function runScanCommand(args: PerfCliArgs): Promise<number> {
       try {
         const content = readFileSync(file, "utf8");
         allFiles.push({ path: relative(cwd(), file), content });
-      } catch (err) {
+      } catch {
         console.warn(`Warning: Could not read ${file}`);
       }
     }
@@ -356,7 +356,7 @@ async function runProfileCommand(args: PerfCliArgs): Promise<number> {
   const spec = args.example === "ops" ? makeOpsExample() : makeNegotiationExample();
   const canonicalSpec = canonicalizeDecisionSpec(spec);
   const decisionHash = hashDecisionSpec(canonicalSpec);
-  const seed = args.seed || computeDeterministicSeed(decisionHash, undefined, args.depth);
+  args.seed = args.seed || computeDeterministicSeed(decisionHash, undefined, args.depth);
 
   console.log(`Example: ${args.example}`);
   console.log(`Depth: ${args.depth}`);
@@ -443,7 +443,7 @@ async function runBenchmarkCommand(args: PerfCliArgs): Promise<number> {
   if (args.warmup > 0) {
     console.log("Running warmup...");
     for (let i = 0; i < args.warmup; i++) {
-      const seed = computeDeterministicSeed(decisionHash, undefined, args.depth);
+      void computeDeterministicSeed(decisionHash, undefined, args.depth);
       runDecision(spec, { depth: args.depth });
     }
   }
@@ -457,7 +457,7 @@ async function runBenchmarkCommand(args: PerfCliArgs): Promise<number> {
     const memBefore = process.memoryUsage().heapUsed;
     const start = performance.now();
 
-    const seed = computeDeterministicSeed(decisionHash, undefined, args.depth);
+    void computeDeterministicSeed(decisionHash, undefined, args.depth);
     runDecision(spec, { depth: args.depth });
 
     const duration = performance.now() - start;
@@ -656,7 +656,7 @@ async function runRegressionCommand(args: PerfCliArgs): Promise<number> {
       const start = performance.now();
       try {
         await replayCase(testCase, { depth: 2, limits: { maxCheckpoints: 10 }, strict: false });
-      } catch (err) {
+      } catch {
         // Continue even if case has issues - we're measuring performance
       }
       const duration = performance.now() - start;
@@ -769,7 +769,7 @@ export async function runPerfCommand(args: PerfCliArgs): Promise<number> {
         console.error(`Unknown command: ${args.command}`);
         return 1;
     }
-  } catch (err) {
+  } catch {
     const zeError = ZeoError.from(err);
     console.error(`[${zeError.code}] ${zeError.message}`);
     if (process.env.DEBUG && zeError.details) {

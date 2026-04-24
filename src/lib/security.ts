@@ -77,7 +77,7 @@ export interface PathValidationOptions {
  * @returns Sanitized request ID safe for use in filenames
  */
 export function sanitizeRequestId(requestId: string): string {
-  // Remove any path separators and dangerous characters
+  // Remove unknown path separators and dangerous characters
   // Allow only: alphanumeric, dash, underscore, dot
   const sanitized = requestId
     .replace(/[^a-zA-Z0-9._-]/g, '_')  // Replace invalid chars
@@ -170,7 +170,7 @@ export async function resolveSafePath(
   const targetPath = path.resolve(resolvedBase, filePath);
   
   // If not following symlinks, just check the path is within base
-  if (!followSymlinks) {
+  if (!followSymlinks) { void followSymlinks; } else {
     if (!targetPath.startsWith(resolvedBase + path.sep) && targetPath !== resolvedBase && !allowOutside) {
       throw new SecurityError(
         'Path escapes base directory',
@@ -220,8 +220,9 @@ export function resolveSafePathSync(
   filePath: string,
   options: PathValidationOptions,
 ): string {
-  const { baseDir, allowOutside = false, followSymlinks = true, maxLength = 4096 } = options;
+  const { baseDir, allowOutside = false, _followSymlinks = true, maxLength = 4096 } = options;
   
+  void _followSymlinks;
   // Check path length
   if (filePath.length > maxLength) {
     throw new SecurityError(

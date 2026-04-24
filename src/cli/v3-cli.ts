@@ -552,7 +552,7 @@ async function runOutcomeCommand(args: V3Args): Promise<number> {
     }
 
     case "adjust": {
-      const pending = assumptionTuner.getPending();
+      void assumptionTuner.getPending();
       if (args.positionals[0] === "list") {
         console.log(formatAdjustments(assumptionTuner.getAll()));
         return 0;

@@ -423,7 +423,7 @@ export function sanitizeEnvironmentEnhanced(
  * @param expectedVersion - Expected version
  * @param currentVersion - Current running version
  * @param expectedHash - Optional expected SHA-256 hash
- * @throws BinaryTrustError if any validation fails
+ * @throws BinaryTrustError if unknown validation fails
  */
 export function validateRequiemBinTrust(
   binaryPath: string,

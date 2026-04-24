@@ -14,9 +14,9 @@
  * @module determinism/determinism.e2e.test
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { createHash } from 'node:crypto';
-import { canonicalJson, canonicalEqual } from './canonicalJson';
+import { canonicalJson } from './canonicalJson';
 import { sortByKey, sortByNumericKey, sortStrings } from './deterministicSort';
 import { seededRandom } from './seededRandom';
 import { generateDeterministicRequestId } from '../engine/translate';

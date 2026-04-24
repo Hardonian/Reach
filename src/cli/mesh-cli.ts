@@ -12,7 +12,7 @@
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { randomUUID } from "node:crypto";
+import {} from "node:crypto";
 import { performance } from "node:perf_hooks";
 
 export interface MeshCliArgs {
@@ -90,7 +90,7 @@ async function cmdSignEnvelope(args: MeshCliArgs): Promise<number> {
     return 1;
   }
 
-  const { createJobEnvelope, computeCanonicalHash } = await import("@zeo/mesh");
+  const { computeCanonicalHash } = await import("@zeo/mesh");
 
   const raw = JSON.parse(readFileSync(filePath, "utf8"));
 
@@ -202,7 +202,7 @@ async function cmdMesh(args: MeshCliArgs): Promise<number> {
 
 async function cmdMeshStatus(args: MeshCliArgs): Promise<number> {
   const { MeshOrchestrator } = await import("@zeo/mesh");
-  const mode = (args.mode ?? "off") as any;
+  const mode = (args.mode ?? "off") as unknown;
   const orch = new MeshOrchestrator({ mode });
   const status = orch.getMeshStatus();
 
@@ -230,7 +230,7 @@ async function cmdMeshBatch(args: MeshCliArgs): Promise<number> {
   const { MeshOrchestrator, ENVELOPE_VERSION } = await import("@zeo/mesh");
   const { KERNEL_SCHEMA_VERSION } = await import("@zeo/kernel");
 
-  const mode = (args.mode ?? "local") as any;
+  const mode = (args.mode ?? "local") as unknown;
   const count = args.count ?? 5;
   const concurrency = args.concurrency ?? 4;
 
@@ -257,14 +257,14 @@ async function cmdMeshBatch(args: MeshCliArgs): Promise<number> {
         assumptions: [{ id: "a1", text: "Stable", status: "assumption" as const, confidence: "medium" as const }],
         objectives: [{ metric: "ROI", weight: 1 }],
       },
-      evidenceSnapshot: { version: "1.0.0", nodes: [] as any[] },
-      policySnapshot: { policies: [] as any[], enforcementStrength: "basic" as const },
-      toolResultsSnapshot: { tools: [] as any[] },
+      evidenceSnapshot: { version: "1.0.0", nodes: [] as unknown[] },
+      policySnapshot: { policies: [] as unknown[], enforcementStrength: "basic" as const },
+      toolResultsSnapshot: { tools: [] as unknown[] },
       config: { seed: `batch-${i}`, floatPrecision: 10, maxDepth: 2 as const, maxBranchesPerAction: 4, useQuantEngine: false },
       schemaVersion: KERNEL_SCHEMA_VERSION,
     },
     tenant_id: "tenant_batch",
-    policy_snapshot: { policies: [] as any[], enforcementStrength: "basic" as const },
+    policy_snapshot: { policies: [] as unknown[], enforcementStrength: "basic" as const },
   }));
 
   const start = performance.now();

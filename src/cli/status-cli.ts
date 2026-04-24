@@ -1,6 +1,5 @@
 // @ts-nocheck
 import { listRecentArtifacts } from "@zeo/ledger";
-import { performance } from "node:perf_hooks";
 import os from "node:os";
 
 export async function runStatusCommand(): Promise<number> {

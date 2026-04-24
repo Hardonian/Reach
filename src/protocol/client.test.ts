@@ -8,9 +8,9 @@
  * - End-to-end fingerprint stability
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { ProtocolClient, ConnectionState } from './client';
-import { FrameParser, MessageType, encodeFrame, decodeFrame, MAX_PAYLOAD_BYTES, FrameError, HEADER_SIZE, FOOTER_SIZE } from './frame';
+import { describe, it, expect, beforeEach } from 'vitest';
+import {} from './client';
+import { FrameParser, MessageType, encodeFrame, decodeFrame, HEADER_SIZE, FOOTER_SIZE } from './frame';
 import { createHello, serializeCbor, HelloAckPayload, CapabilityFlags } from './messages';
 
 // ============================================================================

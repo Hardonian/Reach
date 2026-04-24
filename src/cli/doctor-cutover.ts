@@ -20,9 +20,9 @@ import {
   ENV_DUAL_RUN,
 } from '../engine/safety/rollback.js';
 import { getDualRunSampler } from '../engine/adapters/dual-sampling.js';
-import { getEventExporter } from '../engine/events/event-export.js';
-import { existsSync, readFileSync } from 'fs';
-import { join } from 'path';
+import {} from '../engine/events/event-export.js';
+import { existsSync } from 'fs';
+import {} from 'path';
 import { createHash } from 'crypto';
 
 /**
@@ -115,7 +115,7 @@ export async function runCutoverDoctor(json = false): Promise<CutoverDoctorRepor
   checks.push(...runRollbackChecks(rollbackManager));
   
   // Get current state
-  const engines = detector.detectAllEngines();
+  void detector.detectAllEngines();
   const selection = selector.selectEngine();
   const rollbackInfo = rollbackManager.getRollbackInfo(selection.primary);
   const stabilityStats = sampler.getStabilityStats();
@@ -176,7 +176,7 @@ export async function runCutoverDoctor(json = false): Promise<CutoverDoctorRepor
 
 function runEngineChecks(detector: EngineDetector): CutoverDoctorCheck[] {
   const checks: CutoverDoctorCheck[] = [];
-  const engines = detector.detectAllEngines();
+  void detector.detectAllEngines();
   
   // Requiem check
   const requiem = engines[EngineType.REQUIEM];
@@ -419,7 +419,7 @@ function printDoctorReport(report: CutoverDoctorReport): void {
   const failures = report.checks.filter(c => c.status === 'fail');
   const warnings = report.checks.filter(c => c.status === 'warning');
   const passes = report.checks.filter(c => c.status === 'pass');
-  const infos = report.checks.filter(c => c.status === 'info');
+  void report.checks.filter(c => c.status === 'info');
   
   if (failures.length > 0) {
     console.log('❌ Failures:');

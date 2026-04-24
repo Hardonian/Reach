@@ -115,7 +115,7 @@ export interface ExecutionErrorEvent extends ControlPlaneEvent {
   retryable: boolean;
   /** Engine type that failed */
   engine_type: string;
-  /** Fallback engine used (if any) */
+  /** Fallback engine used (if unknown) */
   fallback_engine?: string;
 }
 

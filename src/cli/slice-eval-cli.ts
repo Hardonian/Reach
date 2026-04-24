@@ -5,7 +5,7 @@
  * CLI interface for slice-based evaluation with gating rules.
  */
 
-import { resolve, join } from "node:path";
+import { resolve } from "node:path";
 import { readFileSync, existsSync } from "node:fs";
 import {
   runSliceEvaluation,

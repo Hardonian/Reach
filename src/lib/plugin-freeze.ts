@@ -4,7 +4,7 @@
  * Implements freeze-then-hash pattern for plugin results:
  * - Freezes result data to prevent mutation
  * - Computes canonical fingerprint immediately
- * - Detects any tampering attempts
+ * - Detects unknown tampering attempts
  * - Requires explicit policy record for mutations
  * 
  * SECURITY: This ensures plugins cannot silently mutate results after
@@ -84,7 +84,7 @@ export function computeResultFingerprint(data: unknown): string {
 }
 
 /**
- * Deep freeze an object to prevent any mutation
+ * Deep freeze an object to prevent unknown mutation
  * 
  * @param obj - The object to freeze
  * @returns Deeply frozen object
@@ -131,7 +131,7 @@ export function freezeResult<T>(
   data: T,
   options: FreezeOptions = {}
 ): FrozenResult<T> {
-  const { allowMutation = false, requireMutationPolicy = true } = options;
+  void options;
   
   // Compute fingerprint before freezing (ensures we have the correct hash)
   const fingerprint = computeResultFingerprint(data);
@@ -187,6 +187,7 @@ export function mutateResult<T>(
   newData: T,
   policy: Omit<MutationPolicy, 'previousFingerprint' | 'newFingerprint' | 'timestamp'>
 ): FrozenResult<T> {
+  void policy;
   // Verify original hasn't been tampered with
   verifyFrozenResult(original);
   

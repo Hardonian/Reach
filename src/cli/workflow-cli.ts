@@ -485,7 +485,7 @@ function daysBetween(startDate: string, endDate: string): number {
   return Math.floor((end - start) / (24 * 60 * 60 * 1000));
 }
 
-function classifyDecay(evidence: EvidenceItem, asOfDate: string): DecayStatus {
+function classifyDecay(evidence: EvidenceItem, _asOfDate: string): DecayStatus {
   if (evidence.expiresAt && daysBetween(evidence.expiresAt, asOfDate) >= 0) return "expired";
   if (!evidence.assertedAt) return "unknown";
   const ageDays = daysBetween(evidence.assertedAt, asOfDate);
@@ -495,7 +495,7 @@ function classifyDecay(evidence: EvidenceItem, asOfDate: string): DecayStatus {
   return "expired";
 }
 
-function decaySummary(evidence: EvidenceItem[], asOfDate: string): Record<DecayStatus, number> {
+function decaySummary(evidence: EvidenceItem[], _asOfDate: string): Record<DecayStatus, number> {
   const summary: Record<DecayStatus, number> = { fresh: 0, aging: 0, stale: 0, expired: 0, unknown: 0 };
   for (const item of evidence) summary[classifyDecay(item, asOfDate)] += 1;
   return summary;
@@ -524,7 +524,7 @@ function formatResultCard(result: RunResult): string {
 async function runDecisionInWorkspace(
   ws: DecisionWorkspace,
   envelopePath: string | undefined,
-  asOfDate: string,
+  _asOfDate: string,
   dependsOn: string[],
   informs: string[]
 ): Promise<RunResult> {
@@ -601,7 +601,7 @@ async function runDecisionInWorkspace(
   const minFlipDistance = flipDistances.length > 0 ? Math.min(...flipDistances) : Infinity;
 
   const fragility = minFlipDistance >= 5 ? "Stable" : minFlipDistance >= 3 ? "Fragile" : "Knife-edge";
-  const totalEvidence = ws.evidence.length;
+  void ws.evidence.length;
   // Tasks are distinct from evidence in workspace model
   const unresolvedTasks = ws.tasks.filter((t) => !t.completed).length;
   const decay = decaySummary(ws.evidence, asOfDate);
@@ -664,7 +664,7 @@ function collectWorkspaces(): DecisionWorkspace[] {
     .map((entry) => loadWorkspace(entry.name));
 }
 
-function collectGraph(asOfDate: string): { nodes: GraphNode[]; edges: GraphEdge[] } {
+function collectGraph(_asOfDate: string): { nodes: GraphNode[]; edges: GraphEdge[] } {
   const nodes = new Map<string, GraphNode>();
   const edges: GraphEdge[] = [];
   for (const ws of collectWorkspaces()) {
@@ -887,8 +887,8 @@ export async function runWorkflowCommand(args: WorkflowArgs): Promise<number> {
     const decisionId = `dec_${hash({ title, templateId }).slice(0, 12)}`;
     const createdAt = nowIso();
     const reviewAt = new Date(Date.parse(createdAt) + template.reviewAfterDays * 24 * 3600 * 1000).toISOString().slice(0, 10);
-    const evidence = template.requiredEvidence.map((value, index) => parseNoteToEvidence(`template evidence requirement: ${value}`, createdAt.slice(0, 10), reviewAt)).map((proposal, index) => ({ ...proposal, id: `ev_${hash({ decisionId, index, summary: proposal.summary }).slice(0, 10)}` }));
-    const assumptions = template.requiredAssumptions.map((value, index) => parseNoteToEvidence(`template assumption: ${value}`, createdAt.slice(0, 10), reviewAt)).map((proposal, index) => ({ ...proposal, id: `ev_${hash({ decisionId, index, summary: proposal.summary, kind: "assumption" }).slice(0, 10)}` }));
+    const evidence = template.requiredEvidence.map((value, _index) => parseNoteToEvidence(`template evidence requirement: ${value}`, createdAt.slice(0, 10), reviewAt)).map((proposal, index) => ({ ...proposal, id: `ev_${hash({ decisionId, index, summary: proposal.summary }).slice(0, 10)}` }));
+    const assumptions = template.requiredAssumptions.map((value, _index) => parseNoteToEvidence(`template assumption: ${value}`, createdAt.slice(0, 10), reviewAt)).map((proposal, index) => ({ ...proposal, id: `ev_${hash({ decisionId, index, summary: proposal.summary, kind: "assumption" }).slice(0, 10)}` }));
     const seededEvidence = [...evidence, ...assumptions];
     const ws: DecisionWorkspace = {
       decisionId,

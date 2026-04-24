@@ -20,7 +20,7 @@ import {
   getDefaultConfig,
 } from "../daemon/lifecycle.js";
 import {
-  ProtocolHandler,
+
   FrameCodec,
   VersionNegotiator,
   FrameType,
@@ -66,7 +66,7 @@ class TestRunner extends EventEmitter {
       this.results.push(result);
       this.emit("test_pass", result);
       return result;
-    } catch (err) {
+    } catch {
       const duration = performance.now() - start;
       const result: TestResult = {
         name,
@@ -439,7 +439,7 @@ export async function verifyProtocol(): Promise<TestResult[]> {
 
 export async function verifyLoadLite(
   concurrency = 200,
-  durationMs = 5000
+  _durationMs = 5000
 ): Promise<TestResult[]> {
   const runner = new TestRunner();
 
@@ -462,7 +462,7 @@ export async function verifyLoadLite(
                 completed.push(item);
               }
             }
-          } catch (err) {
+          } catch {
             errors.push(err instanceof Error ? err : new Error(String(err)));
           }
         })()
@@ -574,7 +574,7 @@ export async function verifyRollback(): Promise<TestResult[]> {
           "Reason should mention FORCE_RUST"
         );
       }
-    } catch (err) {
+    } catch {
       // Expected if Rust engine not available - this is correct behavior
       assert.ok(
         err instanceof Error && err.message.includes("FORCE_RUST"),
@@ -601,7 +601,7 @@ export async function verifyRollback(): Promise<TestResult[]> {
           "FORCE_REQUIEM should select Requiem engine"
         );
       }
-    } catch (err) {
+    } catch {
       // Expected if Requiem engine not available - this is correct behavior
       assert.ok(
         err instanceof Error && err.message.includes("FORCE_REQUIEM"),
@@ -628,7 +628,7 @@ export async function verifyRollback(): Promise<TestResult[]> {
         /rollback safety violation/,
         "Should detect engine mismatch"
       );
-    } catch (err) {
+    } catch {
       // If selectEngine threw, that's also acceptable (Rust unavailable)
       assert.ok(
         err instanceof Error && (err.message.includes("FORCE_RUST") || err.message.includes("rollback safety")),
@@ -685,7 +685,7 @@ export async function verifyRollback(): Promise<TestResult[]> {
 
       // Should capture environment variables
       assert.strictEqual(selection.envVars[ENV_FORCE_REQUIEM], "0", "Should capture FORCE_REQUIEM");
-    } catch (err) {
+    } catch {
       // May throw if forced engine unavailable, but env vars should still be captured
       assert.ok(true, "Env var capture is tested in selection flow");
     } finally {

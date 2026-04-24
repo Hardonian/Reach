@@ -6,13 +6,9 @@ async function loadCore() {
     return mod;
 }
 
-function value(argv: string[], flag: string): string | null {
-    const idx = argv.indexOf(flag);
-    return idx >= 0 ? argv[idx + 1] ?? null : null;
-}
 
 export async function runGraphCommand(argv: string[]): Promise<number> {
-    const [entity, action] = argv;
+    void argv; const action = argv[1];
     const mod = await loadCore();
     const {
         buildGraph,
@@ -38,7 +34,7 @@ export async function runGraphCommand(argv: string[]): Promise<number> {
     });
 
     // Cast to FinalizedDecisionTranscript[] as the type from core might differ slightly in strictness
-    const graph = buildGraph(transcripts as any[]);
+    const graph = buildGraph(transcripts as unknown[]);
 
     // Check for cycles first as they invalidate the graph logic generally
     const cycles = detectCycles(graph);
@@ -64,7 +60,7 @@ export async function runGraphCommand(argv: string[]): Promise<number> {
             try {
                 const env = loadEnvelopeFromFile(resolve(cwd, targetHash));
                 hash = env.transcript_hash;
-            } catch (e) {
+            } catch {
                 // ignore, assume it's a hash
             }
         }

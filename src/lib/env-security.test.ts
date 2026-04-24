@@ -19,8 +19,7 @@ import {
   verifyBinaryHash,
   createRequiemEnv,
   BinaryTrustError,
-  SENSITIVE_ENV_VARS,
-  SECRET_ENV_PATTERNS,
+
 } from './env-security';
 
 describe('sanitizeEnvironment', () => {

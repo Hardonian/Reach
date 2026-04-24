@@ -8,19 +8,19 @@ describe('route integration helpers', () => {
   ];
 
   it('paginates and filters runs', () => {
-    const out = listRuns(records as any, { page: 1, limit: 1, provider: 'openai' });
+    const out = listRuns(records as unknown, { page: 1, limit: 1, provider: 'openai' });
     expect(out.total).toBe(1);
     expect(out.rows[0].run_id).toBe('a');
   });
 
   it('paginates violations with stable ordering', () => {
-    const out = listViolations(records[0] as any, { page: 1, limit: 10, severity: 'error' });
+    const out = listViolations(records[0] as unknown, { page: 1, limit: 10, severity: 'error' });
     expect(out.total).toBe(1);
-    expect((out.rows[0] as any).type).toBe('openapi');
+    expect((out.rows[0] as unknown).type).toBe('openapi');
   });
 
   it('filters turbulence by prefix', () => {
-    const out = listTurbulence(records[0] as any, { pathPrefix: 'src/' });
+    const out = listTurbulence(records[0] as unknown, { pathPrefix: 'src/' });
     expect(out.total).toBe(1);
   });
 });

@@ -38,25 +38,25 @@ export function resolveLlmConfig(args: DoctorArgs): LlmConfig {
   const env = process.env;
 
   const provider = args.provider
-    ?? (localConfig.llm as any)?.provider
-    ?? (projectConfig.llm as any)?.provider
+    ?? (localConfig.llm as unknown)?.provider
+    ?? (projectConfig.llm as unknown)?.provider
     ?? env.ZEO_LLM_PROVIDER
     ?? "openai";
 
   const model = args.model
-    ?? (localConfig.llm as any)?.model
-    ?? (projectConfig.llm as any)?.model
+    ?? (localConfig.llm as unknown)?.model
+    ?? (projectConfig.llm as unknown)?.model
     ?? env.ZEO_LLM_MODEL
     ?? "gpt-4.1-mini";
 
   const baseUrl = args.baseUrl
-    ?? (localConfig.llm as any)?.baseUrl
-    ?? (projectConfig.llm as any)?.baseUrl
+    ?? (localConfig.llm as unknown)?.baseUrl
+    ?? (projectConfig.llm as unknown)?.baseUrl
     ?? env.ZEO_LLM_BASE_URL;
 
   const apiKey = args.apiKey
-    ?? (localConfig.llm as any)?.apiKey
-    ?? (projectConfig.llm as any)?.apiKey
+    ?? (localConfig.llm as unknown)?.apiKey
+    ?? (projectConfig.llm as unknown)?.apiKey
     ?? env.ZEO_LLM_API_KEY
     ?? env.OPENAI_API_KEY
     ?? env.ANTHROPIC_API_KEY
@@ -74,7 +74,7 @@ export function resolveLlmConfig(args: DoctorArgs): LlmConfig {
     throw new Error(`Missing API key for provider ${normalized}. Set via --api-key or env/config.`);
   }
 
-  if ((projectConfig.llm as any)?.apiKey || (localConfig.llm as any)?.apiKey) {
+  if ((projectConfig.llm as unknown)?.apiKey || (localConfig.llm as unknown)?.apiKey) {
     throw new Error("API keys in .zeo/config*.json are forbidden. Use environment variables or --api-key at runtime.");
   }
 

@@ -28,7 +28,7 @@ export interface PolicyViolationTrigger extends JunctionTrigger {
 export function evaluatePolicyViolation(data: PolicyViolationData): {
   shouldTrigger: boolean;
   severityScore: number;
-  triggerTrace: Record<string, any>;
+  triggerTrace: Record<string, unknown>;
 } {
   // Different thresholds based on severity
   const severityThresholds = {
@@ -68,8 +68,8 @@ export function evaluatePolicyViolation(data: PolicyViolationData): {
     severityScore = Math.max(0, severityScore - 0.1);
   }
   
-  const shouldTrigger = severityScore >= threshold;
   
+  const shouldTrigger = severityScore >= threshold;
   const triggerTrace = {
     algorithm: 'policy_violation_evaluation',
     thresholds: {
@@ -98,7 +98,7 @@ export function createPolicyViolationTrigger(
   data: PolicyViolationData,
   scopeKeys?: Record<string, string>
 ): PolicyViolationTrigger {
-  const { shouldTrigger, severityScore, triggerTrace } = evaluatePolicyViolation(data);
+  const { severityScore, triggerTrace } = evaluatePolicyViolation(data);
   
   return {
     type: 'policy_violation',

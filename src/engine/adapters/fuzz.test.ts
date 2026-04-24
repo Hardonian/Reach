@@ -68,13 +68,13 @@ describe('RustEngineAdapter Fuzzing', () => {
     
     // Mock the WASM module to simulate a loaded state
     // We need to bypass private access modifier for testing
-    (adapter as any).wasmModule = {
+    (adapter as unknown).wasmModule = {
       evaluate: () => '{}',
       version: () => '1.0.0',
       validate_input: () => 'true',
       get_algorithms: () => '[]'
     };
-    (adapter as any).isLoaded = true;
+    (adapter as unknown).isLoaded = true;
 
     const request = FuzzGenerator.generateFloatRequest();
     

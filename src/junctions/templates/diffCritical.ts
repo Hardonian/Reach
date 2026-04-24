@@ -3,7 +3,7 @@
  * Triggers when a significant change is detected in run diffs
  */
 
-import { JunctionTrigger, JunctionType, SourceType } from '../types';
+import { JunctionTrigger } from '../types';
 
 export interface DiffCriticalData {
   runId: string;
@@ -30,7 +30,7 @@ export interface DiffCriticalTrigger extends JunctionTrigger {
 export function evaluateDiffCritical(data: DiffCriticalData): {
   shouldTrigger: boolean;
   severityScore: number;
-  triggerTrace: Record<string, any>;
+  triggerTrace: Record<string, unknown>;
 } {
   const threshold = 0.7; // 70% significance triggers critical
   
@@ -47,8 +47,8 @@ export function evaluateDiffCritical(data: DiffCriticalData): {
     severityScore = Math.min(1.0, severityScore + 0.1);
   }
   
-  const shouldTrigger = severityScore >= threshold;
   
+  const shouldTrigger = severityScore >= threshold;
   const triggerTrace = {
     algorithm: 'diff_critical_evaluation',
     thresholds: {
@@ -73,7 +73,7 @@ export function createDiffCriticalTrigger(
   data: DiffCriticalData,
   scopeKeys?: Record<string, string>
 ): DiffCriticalTrigger {
-  const { shouldTrigger, severityScore, triggerTrace } = evaluateDiffCritical(data);
+  const { severityScore, triggerTrace } = evaluateDiffCritical(data);
   
   return {
     type: 'diff_critical',

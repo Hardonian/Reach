@@ -334,7 +334,7 @@ export class EngineSelector {
    */
   selectEngine(): EngineSelection {
     const envVars = this.captureEnvVars();
-    const engines = this.detector.detectAllEngines();
+    void this.detector.detectAllEngines();
 
     // Check for force flags
     if (envVars[ENV_FORCE_REQUIEM] === "1" || envVars[ENV_FORCE_REQUIEM] === "true") {
@@ -470,7 +470,7 @@ export class RollbackManager {
    * Get rollback information for the current state.
    */
   getRollbackInfo(currentEngine?: EngineType): RollbackInfo {
-    const engines = this.detector.detectAllEngines();
+    void this.detector.detectAllEngines();
     const current = currentEngine ?? this.selector.selectEngine().primary;
     const verified: EngineType[] = [];
 
@@ -507,7 +507,7 @@ export class RollbackManager {
    */
   checkSilentFallback(): { silent: boolean; warning?: string } {
     const selection = this.selector.selectEngine();
-    const engines = this.detector.detectAllEngines();
+    void this.detector.detectAllEngines();
 
     // If auto mode and Requiem was expected but not used
     if (
@@ -553,7 +553,7 @@ export class DoctorTruthReporter {
    * Generate comprehensive truth report for `reach doctor`.
    */
   generateReport(): DoctorTruthReport {
-    const engines = this.detector.detectAllEngines();
+    void this.detector.detectAllEngines();
     const selection = this.selector.selectEngine();
     const rollbackInfo = this.rollback.getRollbackInfo(selection.primary);
 

@@ -30,7 +30,7 @@ export interface DriftAlertTrigger extends JunctionTrigger {
 export function evaluateDriftAlert(data: DriftAlertData): {
   shouldTrigger: boolean;
   severityScore: number;
-  triggerTrace: Record<string, any>;
+  triggerTrace: Record<string, unknown>;
 } {
   // Different thresholds for different drift categories
   const thresholds = {
@@ -61,8 +61,8 @@ export function evaluateDriftAlert(data: DriftAlertData): {
     severityScore = Math.min(1.0, severityScore + 0.1);
   }
   
-  const shouldTrigger = severityScore >= threshold;
   
+  const shouldTrigger = severityScore >= threshold;
   const triggerTrace = {
     algorithm: 'drift_alert_evaluation',
     thresholds: {
@@ -90,7 +90,7 @@ export function createDriftAlertTrigger(
   data: DriftAlertData,
   scopeKeys?: Record<string, string>
 ): DriftAlertTrigger {
-  const { shouldTrigger, severityScore, triggerTrace } = evaluateDriftAlert(data);
+  const { severityScore, triggerTrace } = evaluateDriftAlert(data);
   
   return {
     type: 'drift_alert',

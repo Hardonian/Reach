@@ -3,7 +3,7 @@ import { getRequiemEngine } from "../engine/adapters/requiem";
 import { ExecRequest } from "../engine/contract";
 
 export interface DecisionEngine {
-  evaluate(input: DecisionInput): Promise<DecisionOutput>;
+  evaluate(_input: DecisionInput): Promise<DecisionOutput>;
 }
 
 /**
@@ -11,7 +11,7 @@ export interface DecisionEngine {
  * Uses the existing fallback implementation as the reference.
  */
 export class TsReferenceEngine implements DecisionEngine {
-  async evaluate(input: DecisionInput): Promise<DecisionOutput> {
+  async evaluate(_input: DecisionInput): Promise<DecisionOutput> {
     // Import dynamically to allow tree-shaking
     const { evaluateDecisionFallback } = await import("../lib/fallback");
     return evaluateDecisionFallback(input);
@@ -23,7 +23,7 @@ export class TsReferenceEngine implements DecisionEngine {
  * Integration with the native high-performance engine.
  */
 export class RequiemEngine implements DecisionEngine {
-  async evaluate(input: DecisionInput): Promise<DecisionOutput> {
+  async evaluate(_input: DecisionInput): Promise<DecisionOutput> {
     const engine = getRequiemEngine();
     
     // Convert DecisionInput to canonical ExecRequest
@@ -31,7 +31,7 @@ export class RequiemEngine implements DecisionEngine {
       requestId: `req_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
       timestamp: new Date().toISOString(),
       params: {
-        algorithm: (input.algorithm as any) || 'adaptive',
+        algorithm: (input.algorithm as unknown) || 'adaptive',
         actions: input.actions,
         states: input.states,
         outcomes: input.outcomes,
@@ -55,7 +55,7 @@ export class RequiemEngine implements DecisionEngine {
     return {
       recommended_action: result.recommendedAction,
       ranking: result.ranking,
-      trace: result.trace as any
+      trace: result.trace as unknown
     };
   }
 }
@@ -65,7 +65,7 @@ export class RequiemEngine implements DecisionEngine {
  * Will be implemented when Rust/WASM engine is available.
  */
 export class WasmEngine implements DecisionEngine {
-  async evaluate(input: DecisionInput): Promise<DecisionOutput> {
+  async evaluate(_input: DecisionInput): Promise<DecisionOutput> {
     // TODO: Replace with actual WASM engine integration when available
     throw new Error("WASM engine not available yet");
   }
@@ -127,7 +127,7 @@ export function getDecisionEngine(): DecisionEngine {
  * Evaluate a decision using the configured engine
  */
 export async function evaluateDecision(
-  input: DecisionInput,
+  _input: DecisionInput,
 ): Promise<DecisionOutput> {
   const engine = getDecisionEngine();
   return engine.evaluate(input);

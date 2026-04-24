@@ -20,14 +20,14 @@ import { BaseEngineAdapter, deriveSeed } from './base';
 import { hasFloatingPointValues } from '../utils/validation';
 import { 
   ProtocolClient, 
-  ConnectionState,
+
   type ProtocolClientConfig 
 } from '../../protocol/client';
 import { 
-  createHello,
+
   type ExecRequestPayload,
   type ExecResultPayload,
-  type ExecutionMetrics,
+
   ExecutionControls,
   Duration,
   type Workflow,

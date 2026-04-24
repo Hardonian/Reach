@@ -14,7 +14,7 @@ interface CompatConfig {
   path_prefixes?: string[];
 }
 
-function parseScalar(v: string): any {
+function parseScalar(v: string): unknown {
   const t = v.trim();
   if (t === "true") return true;
   if (t === "false") return false;
@@ -22,7 +22,7 @@ function parseScalar(v: string): any {
   if ((t.startsWith("'") && t.endsWith("'")) || (t.startsWith('"') && t.endsWith('"'))) return t.slice(1, -1);
   if (t.startsWith("[") && t.endsWith("]")) return t.slice(1, -1).split(",").map((x) => parseScalar(x));
   if (t.startsWith("{") && t.endsWith("}")) {
-    const out: Record<string, any> = {};
+    const out: Record<string, unknown> = {};
     const body = t.slice(1, -1).trim();
     if (!body) return out;
     for (const pair of body.split(",")) {
@@ -34,9 +34,9 @@ function parseScalar(v: string): any {
   return t;
 }
 
-function parseYamlLike(raw: string): any {
-  const root: any = {};
-  const stack: Array<{ indent: number; key: string | null; obj: any }> = [{ indent: -1, key: null, obj: root }];
+function parseYamlLike(raw: string): unknown {
+  const root: unknown = {};
+  const stack: Array<{ indent: number; key: string | null; obj: unknown }> = [{ indent: -1, key: null, obj: root }];
   const lines = raw.split(/\r?\n/);
   for (const line of lines) {
     if (!line.trim() || line.trim().startsWith("#")) continue;
@@ -49,7 +49,7 @@ function parseYamlLike(raw: string): any {
       const arr = Array.isArray(parent) ? parent : (stack[stack.length - 1].obj = []);
       if (item.includes(":")) {
         const [k, ...rest] = item.split(":");
-        const o: any = {};
+        const o: unknown = {};
         o[k.trim()] = rest.join(":").trim() ? parseScalar(rest.join(":").trim()) : {};
         arr.push(o);
         stack.push({ indent, key: k.trim(), obj: o });
@@ -70,23 +70,23 @@ function parseYamlLike(raw: string): any {
   return root;
 }
 
-function readSpec(filePath: string): any {
+function readSpec(filePath: string): unknown {
   const raw = fs.readFileSync(filePath, "utf-8");
   if (filePath.endsWith(".json")) return JSON.parse(raw);
   return parseYamlLike(raw);
 }
 
 
-function asArray(v: any): any[] {
+function asArray(v: unknown): unknown[] {
   if (Array.isArray(v)) return v;
   if (!v || typeof v !== "object") return [];
   return Object.values(v);
 }
 
-function methodsFor(spec: any): Array<{ method: string; path: string; op: any }> {
+function methodsFor(spec: unknown): Array<{ method: string; path: string; op: unknown }> {
   const paths = spec?.paths ?? {};
-  const out: Array<{ method: string; path: string; op: any }> = [];
-  for (const [p, item] of Object.entries<any>(paths)) {
+  const out: Array<{ method: string; path: string; op: unknown }> = [];
+  for (const [p, item] of Object.entries<unknown>(paths)) {
     for (const m of ["get", "post", "put", "patch", "delete", "head", "options"]) {
       if (item?.[m]) out.push({ method: m.toUpperCase(), path: p, op: item[m] });
     }
@@ -94,7 +94,7 @@ function methodsFor(spec: any): Array<{ method: string; path: string; op: any }>
   return out;
 }
 
-function schemaSignature(schema: any): string { return JSON.stringify(schema ?? {}); }
+function schemaSignature(schema: unknown): string { return JSON.stringify(schema ?? {}); }
 function parseConfig(root: string): CompatConfig {
   const cfgPath = path.join(root, "config", "dgl-openapi.json");
   if (!fs.existsSync(cfgPath)) return {};
@@ -118,8 +118,8 @@ export function compareOpenApi(baseSpecPath: string, headSpecPath: string, root:
     const next = headMap.get(key);
     if (!next) { violations.push({ type: "openapi", severity: "error", paths: [headSpecPath], line: 1, evidence: `Removed endpoint ${key}`, suggested_fix: "Restore endpoint or add explicit acknowledgement under dgl/intent-acknowledgements/." }); continue; }
 
-    const bp = new Set(asArray(baseOp.op.parameters).filter((p: any) => p.required).map((p: any) => `${p.in}:${p.name}`));
-    const np = new Set(asArray(next.op.parameters).filter((p: any) => p.required).map((p: any) => `${p.in}:${p.name}`));
+    const bp = new Set(asArray(baseOp.op.parameters).filter((p: unknown) => p.required).map((p: unknown) => `${p.in}:${p.name}`));
+    const np = new Set(asArray(next.op.parameters).filter((p: unknown) => p.required).map((p: unknown) => `${p.in}:${p.name}`));
     for (const p of np) if (!bp.has(p)) violations.push({ type: "openapi", severity: "error", paths: [headSpecPath], line: 1, evidence: `New required parameter ${p} in ${key}`, suggested_fix: "Make parameter optional, version the endpoint, or acknowledge intentionally breaking change." });
 
     const baseResp = Object.keys(baseOp.op.responses ?? {}); const nextResp = Object.keys(next.op.responses ?? {});

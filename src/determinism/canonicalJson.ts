@@ -83,7 +83,7 @@ function canonicalize(value: JsonValue): JsonValue {
 }
 
 /**
- * Returns a deterministic JSON string for any JSON-serializable value.
+ * Returns a deterministic JSON string for unknown JSON-serializable value.
  * Object keys are sorted alphabetically at every nesting level.
  *
  * @example

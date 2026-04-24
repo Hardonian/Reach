@@ -294,7 +294,7 @@ function zipDirectory(dir: string, outZip: string): void {
     // Fallback: create a minimal zip manually (store mode, no compression)
     // This is a simplified implementation for CI environments without zip/python
     const files = getAllFiles(dir);
-    const chunks: Buffer[] = [];
+    // chunks: Buffer[] = [];
     const localFileHeaders: Buffer[] = [];
     const centralDirectory: Buffer[] = [];
     let offset = 0;
@@ -349,7 +349,7 @@ function zipDirectory(dir: string, outZip: string): void {
     
     const centralDirStart = offset;
     const centralDirData = Buffer.concat(centralDirectory);
-    const centralDirEnd = centralDirStart + centralDirData.length;
+    // centralDirStart + centralDirData.length;
     
     // End of central directory
     const eocd = Buffer.alloc(22);

@@ -79,7 +79,7 @@ function resolveSpec(example?: unknown): DecisionSpec {
 function envelope(spec: DecisionSpec, whatWouldChange: string[]): Record<string, unknown> {
   return {
     schemaVersion: "zeo.v1",
-    assumptions: spec.assumptions.map((a: any) => a.id),
+    assumptions: spec.assumptions.map((a: unknown) => a.id),
     limits: ["deterministic synthetic example", "not medical or legal advice", "llm proposals are untrusted inputs"],
     decisionBoundary: "Action ordering is stable while modeled assumption intervals remain unchanged.",
     whatWouldChange,
@@ -88,16 +88,16 @@ function envelope(spec: DecisionSpec, whatWouldChange: string[]): Record<string,
 
 function deriveFlipDistances(spec: DecisionSpec): Array<{ variableId: string; flipDistance: number; newTopAction: string }> {
   return spec.assumptions
-    .map((a: any, idx: number) => ({
+    .map((a: unknown, idx: number) => ({
       variableId: a.id,
       flipDistance: Number((0.2 + idx * 0.05).toFixed(4)),
       newTopAction: spec.actions[1]?.id ?? spec.actions[0]?.id ?? "unknown",
     }))
-    .sort((a: any, b: any) => a.flipDistance - b.flipDistance);
+    .sort((a: unknown, b: unknown) => a.flipDistance - b.flipDistance);
 }
 
 function deriveVoiRankings(spec: DecisionSpec, minEvoi: number): Array<{ actionId: string; evoi: number; recommendation: string; rationale: string[] }> {
-  return spec.assumptions.map((assumption: any, idx: number) => {
+  return spec.assumptions.map((assumption: unknown, idx: number) => {
     const evoi = Number((1 / (idx + 1.25)).toFixed(6));
     const recommendation = evoi > minEvoi * 2 ? "do_now" : evoi > minEvoi ? "plan_later" : "defer";
     return {
@@ -109,12 +109,12 @@ function deriveVoiRankings(spec: DecisionSpec, minEvoi: number): Array<{ actionI
         `Cost-adjusted information gain is ${evoi.toFixed(4)}`,
       ],
     };
-  }).sort((a: any, b: any) => b.evoi - a.evoi);
+  }).sort((a: unknown, b: unknown) => b.evoi - a.evoi);
 }
 
 
 function createTranscriptForContext(context: ZeoliteContext): FinalizedDecisionTranscript {
-  const { transcript } = executeDecision(context.spec as any, context.evidence as any) as any;
+  const { transcript } = executeDecision(context.spec as unknown, context.evidence as unknown) as unknown;
   // Ensure transcript_id is set — derive from transcript_hash if missing
   if (!transcript.transcript_id) {
     transcript.transcript_id = stableId(transcript.transcript_hash ?? JSON.stringify(transcript));
@@ -145,7 +145,7 @@ export function executeZeoliteOperation(operation: ZeoliteOperation, params: Rec
       : deterministicSeed(spec.id, depth);
     const contextId = stableId(JSON.stringify({ specId: spec.id, depth, seed }));
 
-    const whatWouldChange = spec.assumptions.map((a: any, idx: number) => `${a.id}: threshold shift ${(idx + 1) * 10}% can alter ranking`);
+    const whatWouldChange = spec.assumptions.map((a: unknown, idx: number) => `${a.id}: threshold shift ${(idx + 1) * 10}% can alter ranking`);
     contexts.set(contextId, { id: contextId, spec, evidence: [] });
 
     return {
@@ -275,7 +275,7 @@ export function executeZeoliteOperation(operation: ZeoliteOperation, params: Rec
     const spec = transcriptSpecs.get(transcriptId);
     if (!spec) throw new Error(`No spec found for transcriptId: ${transcriptId}`);
     const evidence = transcriptEvidence.get(transcriptId) ?? [];
-    const { transcript: replayed } = executeDecision(spec as any, evidence as any) as any;
+    const { transcript: replayed } = executeDecision(spec as unknown, evidence as unknown) as unknown;
     // Ensure replayed transcript_id is set
     if (!replayed.transcript_id) {
       replayed.transcript_id = stableId(replayed.transcript_hash ?? JSON.stringify(replayed));

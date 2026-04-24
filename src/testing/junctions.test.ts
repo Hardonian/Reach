@@ -3,24 +3,23 @@
  * Tests for junction detection, deduplication, and lifecycle
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   createDiffCriticalTrigger,
   evaluateDiffCritical,
   DIFF_CRITICAL_FIXTURE,
 } from '../junctions/templates/diffCritical';
 import {
-  createDriftAlertTrigger,
+
   evaluateDriftAlert,
   DRIFT_ALERT_FIXTURE,
 } from '../junctions/templates/driftAlert';
 import {
-  createTrustDropTrigger,
+
   evaluateTrustDrop,
   TRUST_DROP_FIXTURE,
 } from '../junctions/templates/trustDrop';
 import {
-  createPolicyViolationTrigger,
   evaluatePolicyViolation,
   POLICY_VIOLATION_FIXTURE,
 } from '../junctions/templates/policyViolation';

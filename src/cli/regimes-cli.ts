@@ -9,9 +9,9 @@
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { resolve, join } from "node:path";
-import { detectRegimes, type NumericPoint, type DetectorConfig } from "@zeo/regimes";
-import type { ObservationBatch, RegimeEvent, RegimeState, RegimeDomain, RegimeKind } from "@zeo/contracts";
+import { resolve } from "node:path";
+import { detectRegimes, type DetectorConfig } from "@zeo/regimes";
+import type { ObservationBatch, RegimeEvent, RegimeDomain } from "@zeo/contracts";
 
 export interface RegimesCliArgs {
   detect: string | undefined;
