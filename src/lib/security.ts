@@ -196,7 +196,7 @@ export async function resolveSafePath(
     }
     
     return realPath;
-  } catch (error) {
+  } catch {
     // If realpath fails, the file doesn't exist or is not accessible
     // Return the resolved path if it's within base
     if (!targetPath.startsWith(resolvedBase) && !allowOutside) {

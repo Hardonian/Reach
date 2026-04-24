@@ -82,7 +82,7 @@ describe('E2E Determinism', () => {
     it('handles precision loss beyond MAX_SAFE_INTEGER', () => {
       // 2^53 + 1 = 9007199254740993 - but JS loses precision
       // The actual value stored is 9007199254740992 due to IEEE 754
-      const bigInt = 9007199254740993;
+      const bigInt = Number(9007199254740993n);
       const data = { id: bigInt };
       const json = canonicalJson(data);
       

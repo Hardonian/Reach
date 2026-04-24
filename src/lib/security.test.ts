@@ -330,7 +330,7 @@ describe('safeReadFile / safeWriteFile', () => {
 
 describe('isSymlink / isSymlinkSync', () => {
   const testDir = path.join(os.tmpdir(), 'reach-symlink-test-' + Date.now());
-  let canCreateSymlinks = true;
+  const canCreateSymlinks = true;
 
   beforeEach(async () => {
     await fs.promises.mkdir(testDir, { recursive: true });

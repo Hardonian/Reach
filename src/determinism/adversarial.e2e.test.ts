@@ -36,13 +36,13 @@ describe('Adversarial M1 Tests', () => {
     afterEach(() => {
       try {
         unlinkSync(lockfilePath);
-      } catch {}
+      } catch { /* file may not exist */ }
       try {
         unlinkSync(pidfilePath);
-      } catch {}
+      } catch { /* file may not exist */ }
       try {
         rmdirSync(testDir);
-      } catch {}
+      } catch { /* dir may not exist */ }
     });
 
     it('detects stale lock from dead process', () => {
@@ -211,7 +211,7 @@ describe('Adversarial M2 Tests', () => {
   describe('Numeric Precision Edge Cases', () => {
     it('handles -0 correctly', () => {
       expect(Object.is(-0, 0)).toBe(false);
-      expect(-0 === 0).toBe(true);
+      expect(Object.is(-0, 0) === false).toBe(true);
       expect(JSON.stringify(-0)).toBe('0');
     });
 

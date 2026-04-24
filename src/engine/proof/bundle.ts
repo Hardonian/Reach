@@ -13,6 +13,8 @@
  * @module engine/proof/bundle
  */
 
+import { readFileSync, writeFileSync } from 'fs';
+
 import { hash } from '../../lib/hash';
 import { CID, computeCID } from '../storage/cas.js';
 
@@ -392,17 +394,15 @@ export function computeBundleCID(bundle: ProofBundle): CID {
  * Export bundle to file (deterministic format)
  */
 export function exportBundle(bundle: ProofBundle, filepath: string): void {
-  const fs = require('fs');
   const serialized = serializeBundle(bundle);
-  fs.writeFileSync(filepath, serialized, 'utf8');
+  writeFileSync(filepath, serialized, 'utf8');
 }
 
 /**
  * Import bundle from file
  */
 export function importBundle(filepath: string): ProofBundle {
-  const fs = require('fs');
-  const content = fs.readFileSync(filepath, 'utf8');
+  const content = readFileSync(filepath, 'utf8');
   return deserializeBundle(content);
 }
 
