@@ -165,7 +165,7 @@ export function decodeFrame(buffer: Uint8Array): { frame: Frame; remaining: Uint
   const magic = readUInt32LE(buffer, 0);
   if (magic !== MAGIC) {
     throw new FrameError(
-      `Invalid magic: expected 0x${MAGIC.toString(16).toUpperCase()}, got 0x${magic.toString(16).toUpperCase()}`,
+      `INVALID_MAGIC: expected 0x${MAGIC.toString(16).toUpperCase()}, got 0x${magic.toString(16).toUpperCase()}`,
       'INVALID_MAGIC',
       { expected: MAGIC, got: magic }
     );
@@ -182,7 +182,7 @@ export function decodeFrame(buffer: Uint8Array): { frame: Frame; remaining: Uint
   // Validate message type
   if (!Object.values(MessageType).includes(msgTypeRaw)) {
     throw new FrameError(
-      `Unknown message type: 0x${msgTypeRaw.toString(16).toUpperCase()}`,
+      `UNKNOWN_MSG_TYPE: 0x${msgTypeRaw.toString(16).toUpperCase()}`,
       'UNKNOWN_MSG_TYPE',
       { msgType: msgTypeRaw }
     );
@@ -191,7 +191,7 @@ export function decodeFrame(buffer: Uint8Array): { frame: Frame; remaining: Uint
   // Validate payload size
   if (payloadLen > MAX_PAYLOAD_BYTES) {
     throw new FrameError(
-      `Payload too large: ${payloadLen} bytes (max ${MAX_PAYLOAD_BYTES})`,
+      `PAYLOAD_TOO_LARGE: ${payloadLen} bytes (max ${MAX_PAYLOAD_BYTES})`,
       'PAYLOAD_TOO_LARGE',
       { size: payloadLen, max: MAX_PAYLOAD_BYTES }
     );
@@ -223,7 +223,7 @@ export function decodeFrame(buffer: Uint8Array): { frame: Frame; remaining: Uint
   
   if (expectedCRC !== calculatedCRC) {
     throw new FrameError(
-      `CRC mismatch: expected 0x${expectedCRC.toString(16).toUpperCase()}, calculated 0x${calculatedCRC.toString(16).toUpperCase()}`,
+      `CRC_MISMATCH: expected 0x${expectedCRC.toString(16).toUpperCase()}, calculated 0x${calculatedCRC.toString(16).toUpperCase()}`,
       'CRC_MISMATCH',
       { expected: expectedCRC, calculated: calculatedCRC }
     );

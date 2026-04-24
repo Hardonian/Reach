@@ -169,9 +169,9 @@ export async function resolveSafePath(
   // Join and resolve the target path
   const targetPath = path.resolve(resolvedBase, filePath);
   
-  // If not following symlinks, just check the path starts with base
+  // If not following symlinks, just check the path is within base
   if (!followSymlinks) {
-    if (!targetPath.startsWith(resolvedBase) && !allowOutside) {
+    if (!targetPath.startsWith(resolvedBase + path.sep) && targetPath !== resolvedBase && !allowOutside) {
       throw new SecurityError(
         'Path escapes base directory',
         SecurityErrorCode.PATH_ESCAPE,
@@ -186,7 +186,8 @@ export async function resolveSafePath(
     const realPath = await realpath(targetPath);
     
     // Ensure resolved path is within base directory
-    if (!realPath.startsWith(resolvedBase) && !allowOutside) {
+    // Use path.sep to avoid false prefix matches (e.g. /tmp/foo vs /tmp/foobar)
+    if (!realPath.startsWith(resolvedBase + path.sep) && realPath !== resolvedBase && !allowOutside) {
       throw new SecurityError(
         'Resolved path escapes base directory (possible symlink attack)',
         SecurityErrorCode.SYMLINK_RACE,
@@ -219,7 +220,7 @@ export function resolveSafePathSync(
   filePath: string,
   options: PathValidationOptions,
 ): string {
-  const { baseDir, allowOutside = false, maxLength = 4096 } = options;
+  const { baseDir, allowOutside = false, followSymlinks = true, maxLength = 4096 } = options;
   
   // Check path length
   if (filePath.length > maxLength) {
@@ -268,7 +269,9 @@ export function resolveSafePathSync(
     const realPath = fs.realpathSync(targetPath);
     
     // Ensure resolved path is within base directory
-    if (!realPath.startsWith(resolvedBase) && !allowOutside) {
+    // Use path.relative to robustly check containment
+    const relativePath = path.relative(resolvedBase, realPath);
+    if ((relativePath.startsWith('..') || path.isAbsolute(relativePath)) && !allowOutside) {
       throw new SecurityError(
         'Resolved path escapes base directory (possible symlink attack)',
         SecurityErrorCode.SYMLINK_RACE,
@@ -277,8 +280,18 @@ export function resolveSafePathSync(
     }
     
     return realPath;
-  } catch {
-    // If realpath fails, return the resolved path if within base
+  } catch (error) {
+    // If it's our SecurityError, re-throw it
+    if (error instanceof SecurityError) throw error;
+    // Otherwise, check if the target path itself is within base
+    const relativeTarget = path.relative(resolvedBase, targetPath);
+    if ((relativeTarget.startsWith('..') || path.isAbsolute(relativeTarget)) && !allowOutside) {
+      throw new SecurityError(
+        'Path escapes base directory',
+        SecurityErrorCode.PATH_ESCAPE,
+        filePath,
+      );
+    }
     return targetPath;
   }
 }

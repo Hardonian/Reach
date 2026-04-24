@@ -85,6 +85,6 @@ describe('RustEngineAdapter Fuzzing', () => {
     expect(validation.errors?.some(e => e.includes('floating_point_values_detected'))).toBe(true);
 
     // Test evaluate flow
-    await expect(adapter.evaluate(request)).rejects.toThrow(/Input validation failed/);
+    await expect(adapter.evaluate(request)).rejects.toThrow(/floating_point_values_detected/);
   });
 });

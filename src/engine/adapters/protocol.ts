@@ -215,7 +215,9 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
     
     // Log request payload for debugging serialization issues
     if (this.config.logger) {
-      this.config.logger('[ProtocolAdapter] Sending execution request', { run_id: protocolRequest.run_id, payload_size: JSON.stringify(protocolRequest).length });
+      // Use replacer to handle BigInt serialization
+      const payloadSize = JSON.stringify(protocolRequest, (_, v) => typeof v === 'bigint' ? v.toString() : v).length;
+      this.config.logger('[ProtocolAdapter] Sending execution request', { run_id: protocolRequest.run_id, payload_size: payloadSize });
     }
 
     // Execute via binary protocol
