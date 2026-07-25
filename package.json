@@ -106,7 +106,7 @@
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.10"
   },
   "engines": {
     "node": ">=18.0.0"
