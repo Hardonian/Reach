@@ -159,7 +159,7 @@ $prerequisites = @('git', 'node', 'pnpm')
 foreach ($cmd in $prerequisites) {
     if (-not (Test-Command $cmd)) {
         Write-Error "Required command not found: $cmd"
-        Write-Host "Please install $cmd:"
+        Write-Host "Please install ${cmd}:"
         switch ($cmd) {
             'node' {
                 Write-Host "  - Via nvm-windows: https://github.com/coreybutler/nvm-windows"

@@ -207,6 +207,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -217,6 +219,9 @@ jobs:
           cache: true
       - name: install
         run: npm install
+      - name: install arcade dependencies
+        run: npm install
+        working-directory: apps/arcade
       - name: verify:oss gate
         run: npm run verify:oss
       - name: validate:oss-purity
