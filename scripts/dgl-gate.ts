@@ -4,6 +4,7 @@ import path from "path";
 import { execSync } from "child_process";
 import { computeContextSnapshotHash, scanDgl, toMarkdown, toSarif, computeIntentFingerprint, validateAgentContractPayload } from "../src/dgl/index.js";
 import { compareOpenApi } from "../src/dgl/openapi-compat.js";
+import { exportRun, runStatus } from "../src/dgl/run-workflow.js";
 
 const args = process.argv.slice(2);
 const cmd = args[0] || "scan";
@@ -137,11 +138,17 @@ if (cmd === "run-export") {
   const outZip = flag("--zip", path.join(root, "dgl", "exports", `${id}.zip`));
   const runFile = path.join(runsDir, `${id}.json`);
   const run = JSON.parse(fs.readFileSync(runFile, "utf-8")) as { dgl_report_paths?: string[] };
-  fs.mkdirSync(path.dirname(outZip), { recursive: true });
-  const files = [...(run.dgl_report_paths ?? []), runFile].join(" ");
-  execSync(`zip -j ${outZip} ${files}`);
+  exportRun(runFile, outZip);
   console.log(JSON.stringify({ zip: outZip }, null, 2));
   process.exit(0);
+}
+
+if (cmd === "run-status") {
+  const id = flag("--id", args[1] ?? "");
+  if (!id) throw new Error("missing run id: use run-status --id <id>");
+  const record = JSON.parse(fs.readFileSync(path.join(runsDir, `${id}.json`), "utf-8"));
+  console.log(JSON.stringify({ run_id: id, status: runStatus(record), governed: record.governed === true, violations: record.violations ?? [] }, null, 2));
+  process.exit(record.status === "failed" || runStatus(record) === "failed" ? 1 : 0);
 }
 
 if (cmd === "run-list") {
@@ -184,6 +191,8 @@ fs.writeFileSync(runRecordPath, JSON.stringify({
   drift_forecast_score: report.drift_forecast_score,
   summary_scores: report.summary,
   violations: report.violations,
+  status: report.violations.some((v) => v.severity === "error") ? "failed" : "passed",
+  governed: true,
   turbulence_hotspots: report.turbulence_hotspots,
 }, null, 2));
 
