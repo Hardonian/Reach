@@ -30,7 +30,7 @@
     "@types/node": "^20.0.0",
     "eslint": "^9.15.0",
     "typescript": "^5.3.0",
-    "typescript-eslint": "^8.14.0",
+    "typescript-eslint": "^8.65.0",
     "vitest": "^4.0.0"
   },
   "engines": {
@@ -43,6 +43,8 @@
     "request": "npm:@reach/empty@1.0.0",
     "marked": "npm:@reach/empty@1.0.0",
     "hono": "npm:@reach/empty@1.0.0",
-    "node-llama-cpp": "npm:@reach/empty@1.0.0"
+    "node-llama-cpp": "npm:@reach/empty@1.0.0",
+    "brace-expansion": "^5.0.8",
+    "minimatch": "^10.2.5"
   }
 }
