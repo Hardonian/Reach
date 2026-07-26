@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "product": "Reach OSS",
+  "scope": "local_repository",
+  "claims": {"hosted": false, "customer_proof": false, "revenue_proof": false},
+  "commands": {
+    "status": "pnpm reach:health",
+    "doctor": "pnpm reach:dgl:doctor",
+    "verify": "pnpm verify:ops",
+    "rollback": "pnpm verify:rollback"
+  },
+  "evidence": {"source": "command_output_and_local_artifacts", "required_exit_code": 0},
+  "rollback": {"mode": "engine_selection_verification", "command": "pnpm verify:rollback", "destructive": false}
+}

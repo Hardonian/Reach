@@ -2,21 +2,18 @@
 
 **Deterministic execution and replay for policy-governed runs.**
 
-Reach provides a reproducible run → transcript → verify → replay lifecycle with cryptographically linked evidence artifacts and stable fingerprints. The Requiem C++ engine guarantees identical outputs for identical inputs.
+Reach is an OSS execution and replay toolkit for teams that need inspectable run transcripts, evidence artifacts, and deterministic fingerprints. The repository contains local TypeScript, Go, and Rust components; hosted control-plane, enterprise, customer, and revenue claims are out of scope for this OSS repository.
 
 ## Quick Start
 
 ```bash
 # Install (requires Node 18+, pnpm 8+, Rust 1.75+)
-git clone https://github.com/reach/decision-engine.git
-cd decision-engine
+git clone https://github.com/Hardonian/Reach.git
+cd Reach
 pnpm install
 
 # Smoke test - verifies engine, determinism, and protocol
 pnpm verify:smoke
-
-# Run a pack
-reach run my-pack --input '{"key": "value"}'
 ```
 
 ## What This Is
@@ -54,19 +51,25 @@ This makes Reach suitable for audit-heavy environments where results must be ind
 └─────────────┘     └─────────────┘     └─────────────┘
 ```
 
-## Smoke Test Expected Output
+## Smoke Test
 
-```
-$ pnpm verify:smoke
+Run the command and treat its exit code and emitted checks as authoritative. Output varies by installed toolchain and engine availability; the repository does not promise a fixed duration or version string.
 
-> reach verify:smoke
-[INFO] Checking engine binary... OK (Requiem v1.2.0)
-[INFO] Determinism check... OK (5/5 runs matched)
-[INFO] Protocol handshake... OK (v1.0 ↔ v1.0)
-[INFO] CAS integrity... OK
-[INFO] Security hardening... OK (symlink protection, env sanitization)
-[SUCCESS] Smoke test passed in 2.3s
+```bash
+pnpm verify:smoke
 ```
+
+## Operator Commands
+
+| Command | Purpose | Exit contract |
+|---------|---------|---------------|
+| `pnpm reach:health` | Read-only local repository/runtime health | non-zero when a required check fails |
+| `pnpm reach:dgl:doctor` | Inspect governance/doctor checks | non-zero on failed checks |
+| `pnpm verify:smoke` | Engine, determinism, and protocol smoke verification | non-zero on failure |
+| `pnpm verify:rollback` | Exercise the rollback selection path | non-zero on failure |
+| `pnpm verify:ops` | Run the local operator verification suite | non-zero on failure |
+
+Evidence is local and machine-readable where the command supports it; no command is proof of hosted availability, customer adoption, or revenue.
 
 ## Troubleshooting
 
