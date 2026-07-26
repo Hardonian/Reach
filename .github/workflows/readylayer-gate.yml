@@ -88,9 +88,9 @@ jobs:
 
           RESPONSE=$(curl -s -w "\n%{http_code}" \
             -X POST "${READYLAYER_BASE_URL}/api/ci/ingest" \
-            -H "Authorization: Bearer ${READYLAYER_API_KEY}" \
+            -H "Authorization: Bearer ${READYLAYER_API_KEY:-}" \
             -H "Content-Type: application/json" \
-            -d "$INGEST_PAYLOAD")
+            -d "$INGEST_PAYLOAD" || printf '\n000')
 
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           BODY=$(echo "$RESPONSE" | head -n -1)
