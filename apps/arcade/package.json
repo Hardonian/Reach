@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@xyflow/react": "^12.10.1",
-    "better-sqlite3": "^12.6.2",
+    "better-sqlite3": "^13.0.2",
     "ioredis": "^5.9.3",
     "next": "16.2.12",
     "react": "19.2.3",
@@ -34,7 +34,7 @@
     "@tailwindcss/postcss": "^4.2.0",
     "@tailwindcss/typography": "^0.5.19",
     "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^20",
+    "@types/node": "^26.1.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.24",
