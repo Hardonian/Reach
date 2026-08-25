@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@xyflow/react": "^12.10.1",
-    "better-sqlite3": "^12.6.2",
+    "better-sqlite3": "^13.0.3",
     "ioredis": "^5.9.3",
     "next": "16.2.12",
     "react": "19.2.3",
