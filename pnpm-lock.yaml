@@ -99,8 +99,8 @@ importers:
         specifier: 19.2.3
         version: 19.2.3(react@19.2.3)
       stripe:
-        specifier: ^20.3.1
-        version: 20.4.1(@types/node@20.19.43)
+        specifier: ^22.4.0
+        version: 22.4.0(@types/node@20.19.43)
       zod:
         specifier: ^4.3.6
         version: 4.4.3
@@ -2646,11 +2646,11 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
 
-  stripe@20.4.1:
-    resolution: {integrity: sha512-axCguHItc8Sxt0HC6aSkdVRPffjYPV7EQqZRb2GkIa8FzWDycE7nHJM19C6xAIynH1Qp1/BHiopSi96jGBxT0w==}
-    engines: {node: '>=16'}
+  stripe@22.4.0:
+    resolution: {integrity: sha512-LVJ+tcSYeqOSnXr3i+Kz2tZ7y0crLLdP2uwD/4wccrmEVyn0g/Heo0pF7as7rxS/sOjJzrb1lxgZY0Y0Dx1pSA==}
+    engines: {node: '>=18'}
     peerDependencies:
-      '@types/node': '>=16'
+      '@types/node': '>=18'
     peerDependenciesMeta:
       '@types/node':
         optional: true
@@ -5469,7 +5469,7 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
-  stripe@20.4.1(@types/node@20.19.43):
+  stripe@22.4.0(@types/node@20.19.43):
     optionalDependencies:
       '@types/node': 20.19.43
 
