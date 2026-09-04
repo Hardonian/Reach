@@ -4,6 +4,10 @@
 
 Reach provides a reproducible run → transcript → verify → replay lifecycle with cryptographically linked evidence artifacts and stable fingerprints. The Requiem C++ engine guarantees identical outputs for identical inputs.
 
+<!-- BEGIN: EPYC GPU STACK -->
+![EPYC GPU Stack — private, local-first inference fabric](assets/epyc-gpu-fabric.svg)
+<!-- END: EPYC GPU STACK -->
+
 ## Quick Start
 
 ```bash
