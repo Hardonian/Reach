@@ -20,7 +20,7 @@ func TestRedact(t *testing.T) {
 		{"bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9", "[REDACTED]"},
 		{"mongodb://user:pass@localhost/db", "[REDACTED]"},
 		{"postgres://admin:secret@host/db", "[REDACTED]"},
-		{"AKIAIOSFODNN7EXAMPLE", "[REDACTED]"},
+		{"AKIA_EXAMPLE_KEY_PLACEHOLDER", "[REDACTED]"},
 		{"https://user:password@example.com", "[REDACTED]"},
 	}
 	

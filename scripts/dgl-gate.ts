@@ -12,7 +12,7 @@ const flag = (name: string, fallback = "") => {
   return idx >= 0 ? args[idx + 1] : fallback;
 };
 const git = (c: string) => execSync(`git ${c}`, { encoding: "utf-8" }).trim();
-const base = flag("--base", git("rev-parse HEAD~1"));
+const base = flag("--base", (() => { try { return git("rev-parse HEAD~1"); } catch { return git("rev-parse HEAD"); } })());
 const head = flag("--head", git("rev-parse HEAD"));
 const changedOnly = !args.includes("--full");
 
