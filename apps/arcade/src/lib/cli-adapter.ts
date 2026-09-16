@@ -32,7 +32,7 @@ export async function runReachCli(command: string, args: string[]): Promise<Adap
   }
 
   return new Promise((resolve) => {
-    const child = spawn(cli, [command, ...args, '--json'], {
+    const child = spawn(/* turbopackIgnore: true */ cli, [command, ...args, '--json'], {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: { ...process.env, NO_COLOR: '1' }
     });
