@@ -91,7 +91,10 @@ jobs:
           VIOLATIONS=0
           
           for pkg in "${BLOCKED_PKGS[@]}"; do
-            if grep -r "\"$pkg\"" --include="package.json" --include="package-lock.json" . 2>/dev/null | grep -v node_modules | grep -v .git; then
+            # Find real usages, excluding overrides redirected to @reach/empty (the firewall mitigation)
+            MATCHES=$(grep -r "\"$pkg\"" --include="package.json" --include="package-lock.json" . 2>/dev/null | grep -v node_modules | grep -v .git | grep -v "@reach/empty" || true)
+            if [ -n "$MATCHES" ]; then
+              echo "$MATCHES"
               echo "❌ BLOCKED PACKAGE DETECTED: $pkg"
               VIOLATIONS=$((VIOLATIONS + 1))
             fi
@@ -125,11 +128,11 @@ jobs:
         run: go install golang.org/x/vuln/cmd/govulncheck@latest
 
       - name: Scan runner module
-        run: govulncheck ./...
+        run: govulncheck -scan=module ./...
         working-directory: services/runner
 
       - name: Scan integration-hub module
-        run: govulncheck ./...
+        run: govulncheck -scan=module ./...
         working-directory: services/integration-hub
 
   m3-security-boundary-hardening:

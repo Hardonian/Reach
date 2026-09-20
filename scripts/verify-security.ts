@@ -677,6 +677,11 @@ function expect<T>(value: T) {
         throw new Error(`Expected array to contain ${item}`);
       }
     },
+    toBeInstanceOf(Class: new (...args: unknown[]) => unknown) {
+      if (!(value instanceof Class)) {
+        throw new Error(`Expected value to be instance of ${Class.name}`);
+      }
+    },
     toHaveLength(expected: number) {
       if (!Array.isArray(value) || value.length !== expected) {
         throw new Error(`Expected array length ${expected}, got ${(value as unknown[]).length}`);

@@ -11,6 +11,7 @@
     "test": "vitest run src",
     "test:unit": "vitest run src",
     "test:protocol": "vitest run src/protocol",
+    "verify:no-toxic-deps": "node scripts/verify-no-toxic-deps.mjs",
     "verify:smoke": "node scripts/verify-smoke.mjs",
     "verify:protocol": "vitest run src/protocol",
     "verify:fresh-install": "node scripts/verify-fresh-install.mjs",

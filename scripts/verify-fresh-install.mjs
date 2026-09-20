@@ -73,12 +73,13 @@ try {
   }
 
   // Check pnpm
+  let hasPnpm = false;
   try {
     const pnpmVersion = run('pnpm --version', { silent: true }).trim();
     success(`pnpm ${pnpmVersion}`);
+    hasPnpm = true;
   } catch {
-    error('pnpm not found - install with: npm install -g pnpm');
-    exitCode = 1;
+    warn('pnpm not found - will fall back to npm');
   }
 
   log('2/7', 'Checking lockfile...');
@@ -94,11 +95,14 @@ try {
   }
 
   log('3/7', 'Installing dependencies...');
+  const pkg = hasPnpm ? 'pnpm' : 'npm';
   try {
-    if (hasPnpmLock) {
+    if (hasPnpmLock && hasPnpm) {
       run('pnpm install --frozen-lockfile');
+    } else if (hasNpmLock) {
+      run('npm ci');
     } else {
-      run('pnpm install');
+      run(`${pkg} install`);
     }
     success('Dependencies installed');
   } catch (e) {
@@ -108,7 +112,7 @@ try {
 
   log('4/7', 'Running type check...');
   try {
-    run('pnpm run typecheck', { silent: true });
+    run(`${pkg} run typecheck`, { silent: true });
     success('TypeScript type check passed');
   } catch (e) {
     error('Type check failed');
@@ -117,7 +121,7 @@ try {
 
   log('5/7', 'Running lint...');
   try {
-    run('pnpm run lint', { silent: true });
+    run(`${pkg} run lint`, { silent: true });
     success('Lint passed');
   } catch (e) {
     warn('Lint has warnings (non-fatal)');
@@ -125,7 +129,7 @@ try {
 
   log('6/7', 'Running unit tests...');
   try {
-    run('pnpm run test:unit', { silent: true });
+    run(`${pkg} run test:unit`, { silent: true });
     success('Unit tests passed');
   } catch (e) {
     error('Unit tests failed');
@@ -134,7 +138,7 @@ try {
 
   log('7/7', 'Running protocol tests...');
   try {
-    run('pnpm run test:protocol', { silent: true });
+    run(`${pkg} run test:protocol`, { silent: true });
     success('Protocol tests passed');
   } catch (e) {
     error('Protocol tests failed');

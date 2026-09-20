@@ -25,6 +25,7 @@ import * as fs from 'fs';
 import { promisify } from 'util';
 
 const realpath = promisify(fs.realpath);
+const readlink = promisify(fs.readlink);
 const lstat = promisify(fs.lstat);
 
 /**
@@ -196,7 +197,27 @@ export async function resolveSafePath(
     
     return realPath;
   } catch (error) {
-    // If realpath fails, the file doesn't exist or is not accessible
+    // Re-throw security errors so symlink attacks aren't silently swallowed
+    if (error instanceof SecurityError) {
+      throw error;
+    }
+    // If realpath fails, check if it's a symlink whose target escapes base
+    try {
+      const linkTarget = await readlink(targetPath);
+      const resolvedLink = path.resolve(resolvedBase, linkTarget);
+      if (!resolvedLink.startsWith(resolvedBase) && !allowOutside) {
+        throw new SecurityError(
+          'Symlink target escapes base directory (possible symlink attack)',
+          SecurityErrorCode.SYMLINK_RACE,
+          filePath,
+        );
+      }
+    } catch (linkError) {
+      if (linkError instanceof SecurityError) {
+        throw linkError;
+      }
+      // Not a symlink or can't read link — fall through
+    }
     // Return the resolved path if it's within base
     if (!targetPath.startsWith(resolvedBase) && !allowOutside) {
       throw new SecurityError(
@@ -219,7 +240,7 @@ export function resolveSafePathSync(
   filePath: string,
   options: PathValidationOptions,
 ): string {
-  const { baseDir, allowOutside = false, maxLength = 4096 } = options;
+  const { baseDir, allowOutside = false, followSymlinks = true, maxLength = 4096 } = options;
   
   // Check path length
   if (filePath.length > maxLength) {
@@ -263,6 +284,11 @@ export function resolveSafePathSync(
     );
   }
   
+  // If not following symlinks, just return the resolved path
+  if (!followSymlinks) {
+    return targetPath;
+  }
+  
   // Try to resolve symlinks
   try {
     const realPath = fs.realpathSync(targetPath);
@@ -277,8 +303,29 @@ export function resolveSafePathSync(
     }
     
     return realPath;
-  } catch {
-    // If realpath fails, return the resolved path if within base
+  } catch (error) {
+    // Re-throw security errors so symlink attacks aren't silently swallowed
+    if (error instanceof SecurityError) {
+      throw error;
+    }
+    // If realpath fails, check if it's a symlink whose target escapes base
+    // (handles Windows where realpathSync may fail for symlinks)
+    try {
+      const linkTarget = fs.readlinkSync(targetPath);
+      const resolvedLink = path.resolve(resolvedBase, linkTarget);
+      if (!resolvedLink.startsWith(resolvedBase) && !allowOutside) {
+        throw new SecurityError(
+          'Symlink target escapes base directory (possible symlink attack)',
+          SecurityErrorCode.SYMLINK_RACE,
+          filePath,
+        );
+      }
+    } catch (linkError) {
+      if (linkError instanceof SecurityError) {
+        throw linkError;
+      }
+      // Not a symlink or can't read link — fall through
+    }
     return targetPath;
   }
 }
