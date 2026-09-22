@@ -99,6 +99,10 @@ $ pnpm verify:smoke
 | `pnpm verify:oss` | OSS purity + boundaries | ~1m |
 | `pnpm verify:determinism` | 200-run stress test | ~5m |
 
+---
+
+Part of the [Hardonia](https://github.com/Hardonian) sovereign stack by [AI Automated Systems](https://aiautomatedsystems.ca).
+
 ## License
 
 MIT © Reach Contributors
