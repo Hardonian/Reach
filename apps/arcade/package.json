@@ -21,7 +21,7 @@
     "check:mode-links": "node ./scripts/check-mode-links.mjs"
   },
   "dependencies": {
-    "@xyflow/react": "^12.10.1",
+    "@xyflow/react": "^12.11.6",
     "better-sqlite3": "^13.0.2",
     "ioredis": "^6.0.0",
     "next": "16.3.3",
