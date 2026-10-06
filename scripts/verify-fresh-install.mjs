@@ -47,6 +47,12 @@ function run(command, options = {}) {
       ...options,
     });
   } catch (e) {
+    // Silent mode swallows the child's output — surface it on failure so a
+    // red step is diagnosable instead of one opaque ✗ line.
+    if (options.silent && (e.stdout || e.stderr)) {
+      process.stdout.write(e.stdout || '');
+      process.stderr.write(e.stderr || '');
+    }
     if (options.fallback) {
       return options.fallback;
     }
