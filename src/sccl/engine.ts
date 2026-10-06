@@ -12,11 +12,20 @@ export function discoverRepo(root = process.cwd()): string {
   return git('rev-parse --show-toplevel', root);
 }
 
-export function getRepoState(manifest: WorkspaceManifest, root = process.cwd()): RepoState {
+export function getRepoState(
+  manifest: WorkspaceManifest,
+  root = process.cwd(),
+  opts: { fetch?: boolean } = {},
+): RepoState {
   const repoRoot = discoverRepo(root);
   const remote = manifest.git.remote;
   const upstreamRef = `${remote}/${manifest.git.default_branch}`;
-  try { git(`fetch ${remote}`, repoRoot); } catch { /* offline-safe */ }
+  // Freshness fetch is a CLI convenience; callers that must stay offline-fast
+  // (unit tests) pass { fetch: false } — an unconditional network call here
+  // made gate tests exceed CI timeouts on slow runners.
+  if (opts.fetch !== false) {
+    try { git(`fetch ${remote}`, repoRoot); } catch { /* offline-safe */ }
+  }
   const localHead = git('rev-parse HEAD', repoRoot);
   let upstreamHead = localHead;
   let baseHead = localHead;

@@ -10,7 +10,7 @@ const leaseFile = path.join(root, 'dgl', 'sccl', 'leases.json');
 describe('sccl gate', () => {
   it('fails when run record is missing', () => {
     fs.rmSync(runsDir, { recursive: true, force: true });
-    const result = validateScclGate(root);
+    const result = validateScclGate(root, { fetch: false });
     expect(result.ok).toBe(false);
     expect(result.failures.join(' ')).toContain('missing run record');
   });
@@ -24,7 +24,7 @@ describe('sccl gate', () => {
     ] }, null, 2));
     fs.mkdirSync(runsDir, { recursive: true });
     fs.writeFileSync(path.join(runsDir, 'gate_test.json'), JSON.stringify({ run_id: 'gate_test' }, null, 2));
-    const result = validateScclGate(root);
+    const result = validateScclGate(root, { fetch: false });
     expect(result.failures.join(' ')).toContain('lease conflict');
   });
 });

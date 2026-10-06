@@ -26,9 +26,9 @@ function hasDuplicateBranchLeases(leases: Lease[]): boolean {
   return false;
 }
 
-export function validateScclGate(root = process.cwd()): ScclGateResult {
+export function validateScclGate(root = process.cwd(), opts: { fetch?: boolean } = {}): ScclGateResult {
   const manifest = loadWorkspaceManifest(root);
-  const state = getRepoState(manifest, root);
+  const state = getRepoState(manifest, root, opts);
   const leases = listLeases(root);
   const failures: string[] = [];
   if (state.stale_base) failures.push(`stale base: local branch is ${state.stale_commits} commits behind ${manifest.git.remote}/${manifest.git.default_branch}`);
