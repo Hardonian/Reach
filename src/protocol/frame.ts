@@ -56,7 +56,7 @@ export class FrameError extends Error {
                           'PAYLOAD_TOO_LARGE' | 'CRC_MISMATCH' | 'INCOMPLETE' | 'IO_ERROR',
     public readonly details?: Record<string, unknown>
   ) {
-    super(message);
+    super(`${code}: ${message}`);
     this.name = 'FrameError';
   }
 }
