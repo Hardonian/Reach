@@ -54,8 +54,9 @@ jobs:
         run: cd apps/arcade && npm ci
 
       - name: Audit Arcade
-        run: cd apps/arcade && npm audit --audit-level=high
-        continue-on-error: true  # Known braces GHSA-vfj7-8cjw-p6xm (all braces versions vulnerable, no patched release) via eslint-config-next tooling chain
+        # Named-exception audit (scripts/audit-arcade.mjs): known-unfixable
+        # advisories are documented in the script; NEW findings fail the step.
+        run: node scripts/audit-arcade.mjs
 
   prod-install-check:
     name: Production Install Verification
