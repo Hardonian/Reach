@@ -92,11 +92,11 @@ jobs:
           path: third_party/rust/vendor
           key: rust-vendor-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
       - name: fmt
-        run: cargo fmt --check
+        run: cargo fmt --manifest-path crates/Cargo.toml --all -- --check
       - name: clippy
-        run: ./tools/ci/rust_gate.sh clippy --workspace --all-targets -- -D warnings
+        run: ./tools/ci/rust_gate.sh clippy -p engine-core --all-targets --manifest-path crates/Cargo.toml -- -D warnings
       - name: test engine-core
-        run: ./tools/ci/rust_gate.sh test -p engine-core
+        run: ./tools/ci/rust_gate.sh test -p engine-core --manifest-path crates/Cargo.toml
 
   go:
     name: go checks

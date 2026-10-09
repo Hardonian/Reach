@@ -11,4 +11,4 @@ echo "[e2e-smoke] marketplace install-intent/install/uninstall flow"
 )
 
 echo "[e2e-smoke] policy deny negative test"
-cargo test -p engine-core policy_denies -- --nocapture
+cargo test -p engine-core --manifest-path crates/Cargo.toml policy_denies -- --nocapture
