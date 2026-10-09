@@ -1,18 +1,18 @@
 /**
  * Reach Protocol Version Utilities
- * 
+ *
  * Provides spec version checking and compatibility validation.
  */
 
 /**
  * Current protocol spec version
  */
-export const CURRENT_SPEC_VERSION = "1.0.0";
+export const CURRENT_SPEC_VERSION = '1.0.0';
 
 /**
  * Minimum supported spec version (for backward compatibility)
  */
-export const MIN_SPEC_VERSION = "1.0.0";
+export const MIN_SPEC_VERSION = '1.0.0';
 
 /**
  * Parse a SemVer version string into components
@@ -22,12 +22,14 @@ export const MIN_SPEC_VERSION = "1.0.0";
 export function parseVersion(version) {
   const match = version.match(/^(\d+)\.(\d+)\.(\d+)$/);
   if (!match) {
-    throw new Error(`Invalid version format: ${version}. Expected MAJOR.MINOR.PATCH`);
+    throw new Error(
+      `Invalid version format: ${version}. Expected MAJOR.MINOR.PATCH`,
+    );
   }
   return {
     major: parseInt(match[1], 10),
     minor: parseInt(match[2], 10),
-    patch: parseInt(match[3], 10)
+    patch: parseInt(match[3], 10),
   };
 }
 
@@ -40,7 +42,7 @@ export function parseVersion(version) {
 export function compareVersions(a, b) {
   const va = parseVersion(a);
   const vb = parseVersion(b);
-  
+
   if (va.major !== vb.major) return va.major - vb.major;
   if (va.minor !== vb.minor) return va.minor - vb.minor;
   return va.patch - vb.patch;
@@ -55,56 +57,56 @@ export function checkSpecVersion(specVersion) {
   if (!specVersion) {
     return {
       supported: false,
-      error: "MISSING_SPEC_VERSION",
-      message: "specVersion is required"
+      error: 'MISSING_SPEC_VERSION',
+      message: 'specVersion is required',
     };
   }
-  
+
   try {
     parseVersion(specVersion);
   } catch (error) {
     return {
       supported: false,
-      error: "INVALID_SPEC_VERSION",
-      message: `Invalid specVersion format: ${specVersion}`
+      error: 'INVALID_SPEC_VERSION',
+      message: `Invalid specVersion format: ${specVersion}`,
     };
   }
-  
+
   const current = parseVersion(CURRENT_SPEC_VERSION);
   const target = parseVersion(specVersion);
-  
+
   // Major version mismatch = breaking change
   if (target.major !== current.major) {
     return {
       supported: false,
-      error: "SPEC_VERSION_MISMATCH",
+      error: 'SPEC_VERSION_MISMATCH',
       message: `Spec version ${specVersion} is not compatible with current version ${CURRENT_SPEC_VERSION}. Major version mismatch.`,
       currentVersion: CURRENT_SPEC_VERSION,
-      targetVersion: specVersion
+      targetVersion: specVersion,
     };
   }
-  
+
   // Check minimum version
   if (compareVersions(specVersion, MIN_SPEC_VERSION) < 0) {
     return {
       supported: false,
-      error: "SPEC_VERSION_TOO_OLD",
+      error: 'SPEC_VERSION_TOO_OLD',
       message: `Spec version ${specVersion} is below minimum supported version ${MIN_SPEC_VERSION}`,
-      minVersion: MIN_SPEC_VERSION
+      minVersion: MIN_SPEC_VERSION,
     };
   }
-  
+
   // Future minor version = may have warnings
   if (target.minor > current.minor) {
     return {
       supported: true,
-      warning: "NEWER_SPEC_VERSION",
+      warning: 'NEWER_SPEC_VERSION',
       message: `Spec version ${specVersion} is newer than current ${CURRENT_SPEC_VERSION}. Some features may not be supported.`,
       currentVersion: CURRENT_SPEC_VERSION,
-      targetVersion: specVersion
+      targetVersion: specVersion,
     };
   }
-  
+
   return { supported: true };
 }
 
@@ -118,15 +120,15 @@ export function validatePackSpecVersion(pack) {
     return {
       valid: false,
       error: {
-        code: "PACK_MISSING_SPEC_VERSION",
-        message: "Pack is missing required specVersion field",
-        recoverable: false
-      }
+        code: 'PACK_MISSING_SPEC_VERSION',
+        message: 'Pack is missing required specVersion field',
+        recoverable: false,
+      },
     };
   }
-  
+
   const check = checkSpecVersion(pack.specVersion);
-  
+
   if (!check.supported) {
     return {
       valid: false,
@@ -135,23 +137,23 @@ export function validatePackSpecVersion(pack) {
         message: check.message,
         details: {
           packSpecVersion: pack.specVersion,
-          currentSpecVersion: CURRENT_SPEC_VERSION
+          currentSpecVersion: CURRENT_SPEC_VERSION,
         },
-        recoverable: false
-      }
+        recoverable: false,
+      },
     };
   }
-  
+
   if (check.warning) {
     return {
       valid: true,
       warning: {
         code: check.warning,
-        message: check.message
-      }
+        message: check.message,
+      },
     };
   }
-  
+
   return { valid: true };
 }
 
@@ -165,15 +167,15 @@ export function validateRunSpecVersion(run) {
     return {
       valid: false,
       error: {
-        code: "RUN_MISSING_SPEC_VERSION",
-        message: "Run is missing required specVersion field",
-        recoverable: false
-      }
+        code: 'RUN_MISSING_SPEC_VERSION',
+        message: 'Run is missing required specVersion field',
+        recoverable: false,
+      },
     };
   }
-  
+
   const check = checkSpecVersion(run.specVersion);
-  
+
   if (!check.supported) {
     return {
       valid: false,
@@ -182,13 +184,13 @@ export function validateRunSpecVersion(run) {
         message: check.message,
         details: {
           runSpecVersion: run.specVersion,
-          currentSpecVersion: CURRENT_SPEC_VERSION
+          currentSpecVersion: CURRENT_SPEC_VERSION,
         },
-        recoverable: false
-      }
+        recoverable: false,
+      },
     };
   }
-  
+
   return { valid: true };
 }
 
@@ -201,7 +203,7 @@ export function getVersionMetadata() {
     specVersion: CURRENT_SPEC_VERSION,
     minSpecVersion: MIN_SPEC_VERSION,
     backwardCompatible: true,
-    deprecationNotices: []
+    deprecationNotices: [],
   };
 }
 

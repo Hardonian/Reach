@@ -5,8 +5,8 @@
  * Parses eval command arguments and runs evaluation suites.
  */
 
-import { resolve } from "node:path";
-import { runEvalSuite, runDeterminismCheck, type EvalCommand } from "@zeo/eval";
+import { resolve } from 'node:path';
+import { runEvalSuite, runDeterminismCheck, type EvalCommand } from '@zeo/eval';
 
 /**
  * Eval CLI arguments
@@ -35,20 +35,20 @@ export function parseEvalArgs(argv: string[]): EvalCliArgs {
     const arg = argv[i];
     const next = argv[i + 1];
 
-    if ((arg === "--suite" || arg === "-s") && next) {
+    if ((arg === '--suite' || arg === '-s') && next) {
       result.suite = next;
       i++;
-    } else if ((arg === "--output" || arg === "-o") && next) {
+    } else if ((arg === '--output' || arg === '-o') && next) {
       result.output = next;
       i++;
-    } else if (arg === "--determinism" || arg === "-d") {
+    } else if (arg === '--determinism' || arg === '-d') {
       result.determinism = true;
-    } else if (arg === "--command" && next) {
+    } else if (arg === '--command' && next) {
       result.command = next;
       i++;
-    } else if (arg === "--verbose" || arg === "-v") {
+    } else if (arg === '--verbose' || arg === '-v') {
       result.verbose = true;
-    } else if (arg === "--help" || arg === "-h") {
+    } else if (arg === '--help' || arg === '-h') {
       printEvalHelp();
       process.exit(0);
     }
@@ -98,13 +98,15 @@ For more info, see docs/EVAL.md
  */
 export async function runEvalCommand(args: EvalCliArgs): Promise<number> {
   if (!args.suite) {
-    console.error("[EVAL_ERROR] No evaluation suite specified. Use --suite <path>");
+    console.error(
+      '[EVAL_ERROR] No evaluation suite specified. Use --suite <path>',
+    );
     console.error("Run 'zeo eval --help' for usage information.");
     return 1;
   }
 
   const suitePath = resolve(process.cwd(), args.suite);
-  const outputDir = args.output || "./eval-results";
+  const outputDir = args.output || './eval-results';
 
   try {
     if (args.determinism && args.command) {
@@ -118,7 +120,7 @@ export async function runEvalCommand(args: EvalCliArgs): Promise<number> {
 
       console.log(`\nFirst run:  ${result.firstHash.slice(0, 16)}...`);
       console.log(`Second run: ${result.secondHash.slice(0, 16)}...`);
-      console.log(`Identical:  ${result.identical ? "YES" : "NO"}`);
+      console.log(`Identical:  ${result.identical ? 'YES' : 'NO'}`);
 
       return result.identical ? 0 : 1;
     }
@@ -133,7 +135,7 @@ export async function runEvalCommand(args: EvalCliArgs): Promise<number> {
     console.log(`\n--- Evaluation Results ---`);
     console.log(`Suite: ${result.suiteId}`);
     console.log(`Duration: ${result.totalDurationMs}ms`);
-    console.log(`Overall: ${result.overallSuccess ? "PASSED" : "FAILED"}`);
+    console.log(`Overall: ${result.overallSuccess ? 'PASSED' : 'FAILED'}`);
 
     console.log(`\nInvariant Summary:`);
     console.log(`  Total: ${result.invariantSummary.total}`);
@@ -154,4 +156,3 @@ export async function runEvalCommand(args: EvalCliArgs): Promise<number> {
     return 1;
   }
 }
-

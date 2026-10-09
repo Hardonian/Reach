@@ -14,12 +14,14 @@ This document explains why Reach has moved from the Rust engine to Requiem (C++)
 **Claim:** Identical inputs produce identical fingerprints across platforms.
 
 **Evidence:**
+
 - Fixed-point math only (Q32.32, BPS, PPM, Duration, Throughput)
 - Canonical CBOR encoding with sorted map keys
 - No floating-point in fingerprint-contributing paths
 - BLAKE3 hashing (not SHA-256)
 
 **Verification:**
+
 ```bash
 reach verify:determinism --runs=10
 ```
@@ -33,6 +35,7 @@ This passes in CI and locally with the same inputs.
 **Claim:** BLAKE3 is used for all fingerprint and integrity hashing.
 
 **Evidence:**
+
 - BLAKE3 used for run fingerprints
 - BLAKE3 used for CAS content addressing
 - BLAKE3 used for plugin result verification
@@ -46,6 +49,7 @@ This passes in CI and locally with the same inputs.
 **Claim:** Streaming binary protocol with version negotiation.
 
 **Evidence:**
+
 - Protocol v1.0 implemented with CBOR encoding
 - Version negotiation via Hello/HelloAck handshake
 - CRC32C integrity on all frames
@@ -62,6 +66,7 @@ This passes in CI and locally with the same inputs.
 **Claim:** Reach is NOT a strong sandbox.
 
 **Evidence:**
+
 - Packs with file capability can access filesystem (within workspace)
 - Packs with network capability can make outbound connections
 - No process isolation beyond OS-level limits
@@ -76,6 +81,7 @@ This passes in CI and locally with the same inputs.
 **Claim:** Capability declarations are not enforced as sandbox rules.
 
 **Evidence:**
+
 - Packs declare capabilities (file, network, exec)
 - These are used for policy decisions, not engine enforcement
 - Engine does not block file access if policy allows
@@ -89,6 +95,7 @@ This passes in CI and locally with the same inputs.
 **Claim:** CAS and transcripts are not encrypted at rest.
 
 **Evidence:**
+
 - CAS stores raw blobs (addressed by BLAKE3)
 - Transcripts stored as CBOR files
 - No default encryption enabled
@@ -149,23 +156,23 @@ FORCE_RUST=1 reach run my-pack
 
 These claims can be tested:
 
-| Claim | Test |
-|-------|------|
-| Identical inputs → Identical fingerprints | Run same pack 10x, compare fingerprints |
-| Fixed-point math | Check source for floating-point in fingerprint paths |
-| BLAKE3 hashing | Inspect hashing calls, verify BLAKE3 usage |
-| No sandbox | Run pack with file access, observe filesystem access |
-| No encryption | Inspect CAS storage, verify plaintext blobs |
+| Claim                                     | Test                                                 |
+| ----------------------------------------- | ---------------------------------------------------- |
+| Identical inputs → Identical fingerprints | Run same pack 10x, compare fingerprints              |
+| Fixed-point math                          | Check source for floating-point in fingerprint paths |
+| BLAKE3 hashing                            | Inspect hashing calls, verify BLAKE3 usage           |
+| No sandbox                                | Run pack with file access, observe filesystem access |
+| No encryption                             | Inspect CAS storage, verify plaintext blobs          |
 
 ---
 
 ## Summary
 
-| Guaranteed | NOT Guaranteed |
-|------------|----------------|
-| Determinism (fixed-point + BLAKE3) | Sandbox isolation |
-| Protocol v1.0 | Capability enforcement |
-| Replay verification | Encryption at rest |
-| CAS integrity | Performance characteristics |
+| Guaranteed                         | NOT Guaranteed              |
+| ---------------------------------- | --------------------------- |
+| Determinism (fixed-point + BLAKE3) | Sandbox isolation           |
+| Protocol v1.0                      | Capability enforcement      |
+| Replay verification                | Encryption at rest          |
+| CAS integrity                      | Performance characteristics |
 
 This is the current state. These guarantees may change in future versions with explicit notice.

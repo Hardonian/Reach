@@ -1,4 +1,5 @@
-export type LlmProviderName = "openai" | "anthropic" | "openrouter" | "ollama" | "custom";
+export type LlmProviderName =
+  'openai' | 'anthropic' | 'openrouter' | 'ollama' | 'custom';
 
 export interface LlmConfig {
   provider: LlmProviderName;

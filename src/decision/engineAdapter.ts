@@ -1,6 +1,6 @@
-import { DecisionInput, DecisionOutput } from "../lib/fallback";
-import { getRequiemEngine } from "../engine/adapters/requiem";
-import { ExecRequest } from "../engine/contract";
+import { DecisionInput, DecisionOutput } from '../lib/fallback';
+import { getRequiemEngine } from '../engine/adapters/requiem';
+import { ExecRequest } from '../engine/contract';
 
 export interface DecisionEngine {
   evaluate(input: DecisionInput): Promise<DecisionOutput>;
@@ -13,7 +13,7 @@ export interface DecisionEngine {
 export class TsReferenceEngine implements DecisionEngine {
   async evaluate(input: DecisionInput): Promise<DecisionOutput> {
     // Import dynamically to allow tree-shaking
-    const { evaluateDecisionFallback } = await import("../lib/fallback");
+    const { evaluateDecisionFallback } = await import('../lib/fallback');
     return evaluateDecisionFallback(input);
   }
 }
@@ -25,7 +25,7 @@ export class TsReferenceEngine implements DecisionEngine {
 export class RequiemEngine implements DecisionEngine {
   async evaluate(input: DecisionInput): Promise<DecisionOutput> {
     const engine = getRequiemEngine();
-    
+
     // Convert DecisionInput to canonical ExecRequest
     const request: ExecRequest = {
       requestId: `req_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
@@ -42,20 +42,22 @@ export class RequiemEngine implements DecisionEngine {
         confidence: input.confidence,
         iterations: input.iterations,
         epsilon: input.epsilon,
-        seed: input.seed
-      }
+        seed: input.seed,
+      },
     };
 
     const result = await engine.evaluate(request);
-    
+
     if (result.status === 'error') {
-      throw new Error(`Requiem Evaluation Failed: ${result.error || 'Unknown Error'}`);
+      throw new Error(
+        `Requiem Evaluation Failed: ${result.error || 'Unknown Error'}`,
+      );
     }
 
     return {
       recommended_action: result.recommendedAction,
       ranking: result.ranking,
-      trace: result.trace as any
+      trace: result.trace as any,
     };
   }
 }
@@ -67,14 +69,14 @@ export class RequiemEngine implements DecisionEngine {
 export class WasmEngine implements DecisionEngine {
   async evaluate(input: DecisionInput): Promise<DecisionOutput> {
     // TODO: Replace with actual WASM engine integration when available
-    throw new Error("WASM engine not available yet");
+    throw new Error('WASM engine not available yet');
   }
 }
 
 /**
  * Decision Engine Factory
  * Returns the appropriate engine based on environment configuration.
- * 
+ *
  * SECURITY: Prioritizes REACH_ENGINE_FORCE_RUST for immediate emergency rollback.
  */
 export function createDecisionEngine(): DecisionEngine {
@@ -82,14 +84,14 @@ export function createDecisionEngine(): DecisionEngine {
     return new TsReferenceEngine();
   }
 
-  const engineType = process.env.DECISION_ENGINE || "ts";
+  const engineType = process.env.DECISION_ENGINE || 'ts';
 
   switch (engineType.toLowerCase()) {
-    case "requiem":
+    case 'requiem':
       return new RequiemEngine();
-    case "wasm":
+    case 'wasm':
       return new WasmEngine();
-    case "ts":
+    case 'ts':
     default:
       return new TsReferenceEngine();
   }
@@ -103,13 +105,15 @@ let activeEngineType: string | undefined;
 
 /**
  * Gets the singleton decision engine instance
- * 
+ *
  * NOTE: Detects environment changes and invalidates the singleton
  * to ensure FORCE_RUST and engine switches are respected immediately.
  */
 export function getDecisionEngine(): DecisionEngine {
   const forceRust = process.env.REACH_ENGINE_FORCE_RUST === 'true';
-  const targetType = forceRust ? "ts" : (process.env.DECISION_ENGINE || "ts").toLowerCase();
+  const targetType = forceRust
+    ? 'ts'
+    : (process.env.DECISION_ENGINE || 'ts').toLowerCase();
 
   // Invalidate cache if environment flags changed
   if (engineInstance && activeEngineType !== targetType) {

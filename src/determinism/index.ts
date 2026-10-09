@@ -14,7 +14,7 @@ export {
   type JsonValue,
   type JsonObject,
   type JsonArray,
-} from "./canonicalJson.js";
+} from './canonicalJson.js';
 
 export {
   sortStrings,
@@ -24,14 +24,11 @@ export {
   sortWith,
   sortedEntries,
   sortedKeys,
-} from "./deterministicSort.js";
+} from './deterministicSort.js';
 
-export { DeterministicMap } from "./deterministicMap.js";
+export { DeterministicMap } from './deterministicMap.js';
 
-export {
-  seededRandom,
-  type SeededRng,
-} from "./seededRandom.js";
+export { seededRandom, type SeededRng } from './seededRandom.js';
 
 export {
   HashStream,
@@ -39,4 +36,4 @@ export {
   hashBuffer,
   hashReadableStream,
   combineHashes,
-} from "./hashStream.js";
+} from './hashStream.js';

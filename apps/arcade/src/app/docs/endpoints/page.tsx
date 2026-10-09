@@ -3,7 +3,10 @@ export default function Endpoints() {
     <div className="section-container py-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <a href="/docs" className="text-gray-400 hover:text-white transition-colors">
+          <a
+            href="/docs"
+            className="text-gray-400 hover:text-white transition-colors"
+          >
             ← Back to Documentation
           </a>
         </div>
@@ -27,7 +30,9 @@ export default function Endpoints() {
             <div className="space-y-6">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">GET</span>
+                  <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">
+                    GET
+                  </span>
                   <code className="text-accent">/agents</code>
                 </div>
                 <p className="text-gray-400 text-sm mb-2">List all agents</p>
@@ -39,7 +44,9 @@ export default function Endpoints() {
 
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded">POST</span>
+                  <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                    POST
+                  </span>
                   <code className="text-accent">/agents</code>
                 </div>
                 <p className="text-gray-400 text-sm mb-2">Create a new agent</p>
@@ -53,7 +60,9 @@ export default function Endpoints() {
 
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">GET</span>
+                  <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">
+                    GET
+                  </span>
                   <code className="text-accent">/agents/&#123;id&#125;</code>
                 </div>
                 <p className="text-gray-400 text-sm mb-2">Get agent details</p>
@@ -61,7 +70,9 @@ export default function Endpoints() {
 
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-yellow-600 text-white text-xs px-2 py-1 rounded">PUT</span>
+                  <span className="bg-yellow-600 text-white text-xs px-2 py-1 rounded">
+                    PUT
+                  </span>
                   <code className="text-accent">/agents/&#123;id&#125;</code>
                 </div>
                 <p className="text-gray-400 text-sm mb-2">Update an agent</p>
@@ -69,7 +80,9 @@ export default function Endpoints() {
 
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-red-600 text-white text-xs px-2 py-1 rounded">DELETE</span>
+                  <span className="bg-red-600 text-white text-xs px-2 py-1 rounded">
+                    DELETE
+                  </span>
                   <code className="text-accent">/agents/&#123;id&#125;</code>
                 </div>
                 <p className="text-gray-400 text-sm mb-2">Delete an agent</p>
@@ -77,8 +90,12 @@ export default function Endpoints() {
 
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded">POST</span>
-                  <code className="text-accent">/agents/&#123;id&#125;/execute</code>
+                  <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                    POST
+                  </span>
+                  <code className="text-accent">
+                    /agents/&#123;id&#125;/execute
+                  </code>
                 </div>
                 <p className="text-gray-400 text-sm mb-2">Execute an agent</p>
               </div>
@@ -91,7 +108,9 @@ export default function Endpoints() {
             <div className="space-y-4">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">GET</span>
+                  <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">
+                    GET
+                  </span>
                   <code className="text-accent">/pipelines</code>
                 </div>
                 <p className="text-gray-400 text-sm">List all pipelines</p>
@@ -99,7 +118,9 @@ export default function Endpoints() {
 
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded">POST</span>
+                  <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                    POST
+                  </span>
                   <code className="text-accent">/pipelines</code>
                 </div>
                 <p className="text-gray-400 text-sm">Create a pipeline</p>
@@ -107,8 +128,12 @@ export default function Endpoints() {
 
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded">POST</span>
-                  <code className="text-accent">/pipelines/&#123;id&#125;/run</code>
+                  <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                    POST
+                  </span>
+                  <code className="text-accent">
+                    /pipelines/&#123;id&#125;/run
+                  </code>
                 </div>
                 <p className="text-gray-400 text-sm">Execute a pipeline</p>
               </div>
@@ -121,7 +146,9 @@ export default function Endpoints() {
             <div className="space-y-4">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">GET</span>
+                  <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">
+                    GET
+                  </span>
                   <code className="text-accent">/executions</code>
                 </div>
                 <p className="text-gray-400 text-sm">List executions</p>
@@ -129,16 +156,24 @@ export default function Endpoints() {
 
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">GET</span>
-                  <code className="text-accent">/executions/&#123;id&#125;</code>
+                  <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">
+                    GET
+                  </span>
+                  <code className="text-accent">
+                    /executions/&#123;id&#125;
+                  </code>
                 </div>
                 <p className="text-gray-400 text-sm">Get execution details</p>
               </div>
 
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">GET</span>
-                  <code className="text-accent">/executions/&#123;id&#125;/logs</code>
+                  <span className="bg-green-600 text-white text-xs px-2 py-1 rounded">
+                    GET
+                  </span>
+                  <code className="text-accent">
+                    /executions/&#123;id&#125;/logs
+                  </code>
                 </div>
                 <p className="text-gray-400 text-sm">Get execution logs</p>
               </div>

@@ -8,16 +8,18 @@
  *   zeo verify-report <f>  Verify a signed report's SHA-256 integrity
  */
 
-import { writeFileSync, readFileSync, existsSync, mkdirSync } from "node:fs";
-import { join } from "node:path";
-import { createHash } from "node:crypto";
-import { execSync, spawn, type ChildProcess } from "node:child_process";
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { createHash } from 'node:crypto';
+import { execSync, spawn, type ChildProcess } from 'node:child_process';
 
 // ─── Studio Launch ───────────────────────────────────────────────────────────
 
 export async function runStudioCommand(argv: string[]): Promise<number> {
-  const port = argv.includes("--port") ? argv[argv.indexOf("--port") + 1] : "3000";
-  const noBrowser = argv.includes("--no-browser");
+  const port = argv.includes('--port')
+    ? argv[argv.indexOf('--port') + 1]
+    : '3000';
+  const noBrowser = argv.includes('--no-browser');
 
   console.log(`
 ╔══════════════════════════════════════════════════╗
@@ -33,13 +35,17 @@ export async function runStudioCommand(argv: string[]): Promise<number> {
   console.log(`Starting Studio on http://localhost:${port}/studio ...`);
 
   // Check if apps/web exists
-  const webDir = join(process.cwd(), "apps", "web");
-  const hasWeb = existsSync(join(webDir, "package.json"));
+  const webDir = join(process.cwd(), 'apps', 'web');
+  const hasWeb = existsSync(join(webDir, 'package.json'));
 
   if (!hasWeb) {
-    console.log("\n⚠ apps/web not found. Ensure you're in the Zeo project root.\n");
-    console.log("  You can still access Studio by running 'pnpm --filter web dev' manually,");
-    console.log("  then navigating to http://localhost:3000/studio");
+    console.log(
+      "\n⚠ apps/web not found. Ensure you're in the Zeo project root.\n",
+    );
+    console.log(
+      "  You can still access Studio by running 'pnpm --filter web dev' manually,",
+    );
+    console.log('  then navigating to http://localhost:3000/studio');
     return 1;
   }
 
@@ -48,21 +54,29 @@ export async function runStudioCommand(argv: string[]): Promise<number> {
     const env = { ...process.env, PORT: port };
     let child: ChildProcess;
 
-    const isWindows = process.platform === "win32";
+    const isWindows = process.platform === 'win32';
     if (isWindows) {
-      child = spawn("npx.cmd", ["next", "dev", "--port", port], { cwd: webDir, env, stdio: "pipe" });
+      child = spawn('npx.cmd', ['next', 'dev', '--port', port], {
+        cwd: webDir,
+        env,
+        stdio: 'pipe',
+      });
     } else {
-      child = spawn("npx", ["next", "dev", "--port", port], { cwd: webDir, env, stdio: "pipe" });
+      child = spawn('npx', ['next', 'dev', '--port', port], {
+        cwd: webDir,
+        env,
+        stdio: 'pipe',
+      });
     }
 
-    child.stdout?.on("data", (data: Buffer) => {
+    child.stdout?.on('data', (data: Buffer) => {
       const line = data.toString().trim();
       if (line) console.log(`  [studio] ${line}`);
     });
 
-    child.stderr?.on("data", (data: Buffer) => {
+    child.stderr?.on('data', (data: Buffer) => {
       const line = data.toString().trim();
-      if (line && !line.includes("ExperimentalWarning")) {
+      if (line && !line.includes('ExperimentalWarning')) {
         console.log(`  [studio] ${line}`);
       }
     });
@@ -72,9 +86,10 @@ export async function runStudioCommand(argv: string[]): Promise<number> {
       setTimeout(() => {
         const url = `http://localhost:${port}/studio`;
         try {
-          if (isWindows) execSync(`start ${url}`, { stdio: "ignore" });
-          else if (process.platform === "darwin") execSync(`open ${url}`, { stdio: "ignore" });
-          else execSync(`xdg-open ${url}`, { stdio: "ignore" });
+          if (isWindows) execSync(`start ${url}`, { stdio: 'ignore' });
+          else if (process.platform === 'darwin')
+            execSync(`open ${url}`, { stdio: 'ignore' });
+          else execSync(`xdg-open ${url}`, { stdio: 'ignore' });
         } catch {
           console.log(`\n  Open in browser: ${url}\n`);
         }
@@ -83,13 +98,16 @@ export async function runStudioCommand(argv: string[]): Promise<number> {
 
     // Wait for process
     return new Promise<number>((resolve) => {
-      child.on("exit", (code) => resolve(code ?? 0));
-      process.on("SIGINT", () => { child.kill(); resolve(0); });
+      child.on('exit', (code) => resolve(code ?? 0));
+      process.on('SIGINT', () => {
+        child.kill();
+        resolve(0);
+      });
     });
   } catch (e) {
     console.error(`Failed to start Studio: ${(e as Error).message}`);
-    console.log("\nManual start:");
-    console.log("  cd apps/web && pnpm dev");
+    console.log('\nManual start:');
+    console.log('  cd apps/web && pnpm dev');
     console.log(`  Then open: http://localhost:${port}/studio\n`);
     return 1;
   }
@@ -100,22 +118,24 @@ export async function runStudioCommand(argv: string[]): Promise<number> {
 export async function runExportReportCommand(argv: string[]): Promise<number> {
   const runId = argv[0];
   if (!runId) {
-    console.error("Usage: zeo export-report <run_id> [--out <dir>]");
-    console.error("\nGenerates a signed run report containing:");
-    console.error("  • Run metadata, spec, evaluations, explanation");
-    console.error("  • Replay verification (if possible)");
-    console.error("  • Evidence graph summary");
-    console.error("  • Tool registry state");
-    console.error("  • Compliance report");
-    console.error("  • SHA-256 signature for integrity verification\n");
-    console.error("Output: <run_id>-report.json and <run_id>-report.html");
+    console.error('Usage: zeo export-report <run_id> [--out <dir>]');
+    console.error('\nGenerates a signed run report containing:');
+    console.error('  • Run metadata, spec, evaluations, explanation');
+    console.error('  • Replay verification (if possible)');
+    console.error('  • Evidence graph summary');
+    console.error('  • Tool registry state');
+    console.error('  • Compliance report');
+    console.error('  • SHA-256 signature for integrity verification\n');
+    console.error('Output: <run_id>-report.json and <run_id>-report.html');
     return 1;
   }
 
-  const outDir = argv.includes("--out") ? argv[argv.indexOf("--out") + 1] : process.cwd();
+  const outDir = argv.includes('--out')
+    ? argv[argv.indexOf('--out') + 1]
+    : process.cwd();
 
   try {
-    const core = await import("@zeo/core");
+    const core = await import('@zeo/core');
     const snapshot = core.loadSnapshot(runId);
     if (!snapshot) {
       console.error(`❌ Snapshot not found: ${runId}`);
@@ -140,14 +160,24 @@ export async function runExportReportCommand(argv: string[]): Promise<number> {
       seed: snapshot.seed,
       spec: snapshot.input.spec,
       evaluations: snapshot.output?.evaluations ?? [],
-      explanation: snapshot.output?.explanation ?? { why: [], whatWouldChange: [] },
+      explanation: snapshot.output?.explanation ?? {
+        why: [],
+        whatWouldChange: [],
+      },
       nextBestEvidence: snapshot.output?.nextBestEvidence ?? [],
     };
 
     // Replay
-    let replayData: { verdict: string; originalOutputHash: string; replayOutputHash: string; durationMs: number } | undefined;
+    let replayData:
+      | {
+          verdict: string;
+          originalOutputHash: string;
+          replayOutputHash: string;
+          durationMs: number;
+        }
+      | undefined;
     try {
-      console.log("  🔁 Running replay verification...");
+      console.log('  🔁 Running replay verification...');
       const replayResult = core.replayRun(runId);
       replayData = {
         verdict: replayResult.verdict,
@@ -174,32 +204,32 @@ export async function runExportReportCommand(argv: string[]): Promise<number> {
 
     // Build report
     const report: Record<string, unknown> = {
-      version: "1.0.0",
+      version: '1.0.0',
       generatedAt: new Date().toISOString(),
       run: runData,
       replay: replayData,
       evidence: evidenceNodes,
       tools: toolRegistry.tools,
-      signature: "", // Placeholder
+      signature: '', // Placeholder
     };
 
     // Compute signature
     const toSign = { ...report };
     delete toSign.signature;
     const normalized = JSON.stringify(toSign, Object.keys(toSign).sort(), 0);
-    const signature = createHash("sha256").update(normalized).digest("hex");
+    const signature = createHash('sha256').update(normalized).digest('hex');
     report.signature = signature;
 
     // Write JSON
     if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
     const jsonPath = join(outDir, `${runId}-report.json`);
-    writeFileSync(jsonPath, JSON.stringify(report, null, 2), "utf8");
+    writeFileSync(jsonPath, JSON.stringify(report, null, 2), 'utf8');
     console.log(`  ✅ JSON report: ${jsonPath}`);
 
     // Write HTML
     const htmlPath = join(outDir, `${runId}-report.html`);
     const htmlContent = generateCliHtmlReport(report);
-    writeFileSync(htmlPath, htmlContent, "utf8");
+    writeFileSync(htmlPath, htmlContent, 'utf8');
     console.log(`  ✅ HTML report: ${htmlPath}`);
 
     console.log(`\n  Signature: ${signature}`);
@@ -217,8 +247,8 @@ export async function runExportReportCommand(argv: string[]): Promise<number> {
 export async function runVerifyReportCommand(argv: string[]): Promise<number> {
   const filePath = argv[0];
   if (!filePath) {
-    console.error("Usage: zeo verify-report <report.json>");
-    console.error("\nVerifies the SHA-256 signature of a signed run report.");
+    console.error('Usage: zeo verify-report <report.json>');
+    console.error('\nVerifies the SHA-256 signature of a signed run report.');
     return 1;
   }
 
@@ -228,37 +258,43 @@ export async function runVerifyReportCommand(argv: string[]): Promise<number> {
       return 1;
     }
 
-    const content = readFileSync(filePath, "utf8");
+    const content = readFileSync(filePath, 'utf8');
     const parsed = JSON.parse(content);
     const reportedSignature = parsed.signature;
 
     if (!reportedSignature) {
-      console.error("❌ No signature found in report.");
+      console.error('❌ No signature found in report.');
       return 1;
     }
 
     // Recompute
     const toVerify = { ...parsed };
     delete toVerify.signature;
-    const normalized = JSON.stringify(toVerify, Object.keys(toVerify).sort(), 0);
-    const computedSignature = createHash("sha256").update(normalized).digest("hex");
+    const normalized = JSON.stringify(
+      toVerify,
+      Object.keys(toVerify).sort(),
+      0,
+    );
+    const computedSignature = createHash('sha256')
+      .update(normalized)
+      .digest('hex');
 
     const valid = computedSignature === reportedSignature;
 
     console.log(`\n📋 Report Verification: ${filePath}\n`);
-    console.log(`  Run ID:    ${parsed.run?.runId ?? "unknown"}`);
-    console.log(`  Generated: ${parsed.generatedAt ?? "unknown"}`);
-    console.log(`  Version:   ${parsed.version ?? "unknown"}`);
+    console.log(`  Run ID:    ${parsed.run?.runId ?? 'unknown'}`);
+    console.log(`  Generated: ${parsed.generatedAt ?? 'unknown'}`);
+    console.log(`  Version:   ${parsed.version ?? 'unknown'}`);
     console.log();
     console.log(`  Reported:  ${reportedSignature}`);
     console.log(`  Computed:  ${computedSignature}`);
     console.log();
 
     if (valid) {
-      console.log("  ✅ VALID — Report integrity verified.\n");
+      console.log('  ✅ VALID — Report integrity verified.\n');
       return 0;
     } else {
-      console.log("  ❌ INVALID — Report has been modified since signing.\n");
+      console.log('  ❌ INVALID — Report has been modified since signing.\n');
       return 1;
     }
   } catch (e) {
@@ -274,7 +310,7 @@ function generateCliHtmlReport(report: Record<string, unknown>): string {
   const replay = report.replay as Record<string, unknown> | undefined;
   const evidence = (report.evidence as Array<Record<string, unknown>>) ?? [];
   const tools = (report.tools as Array<Record<string, unknown>>) ?? [];
-  const sig = String(report.signature ?? "");
+  const sig = String(report.signature ?? '');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -320,25 +356,39 @@ function generateCliHtmlReport(report: Record<string, unknown>): string {
   <div class="meta-item"><div class="label">Chain Hash</div><div class="val"><code>${String(run.chainHash).slice(0, 24)}…</code></div></div>
 </div>
 
-${replay ? `
+${
+  replay
+    ? `
 <h2>Replay Verification</h2>
 <div class="section">
   <span class="badge ${String(replay.verdict) === 'PASS' ? 'badge-pass' : 'badge-drift'}">${replay.verdict}</span>
   <p style="margin-top:.5rem;font-size:.85rem">Original: <code>${replay.originalOutputHash}</code></p>
   <p style="font-size:.85rem">Replay: <code>${replay.replayOutputHash}</code></p>
   <p style="font-size:.85rem;color:#94a3b8">Duration: ${replay.durationMs}ms</p>
-</div>` : '<h2>Replay</h2><p style="color:#64748b;font-size:.85rem">Not replayed.</p>'}
+</div>`
+    : '<h2>Replay</h2><p style="color:#64748b;font-size:.85rem">Not replayed.</p>'
+}
 
 <h2>Evidence (${evidence.length} nodes)</h2>
-${evidence.length > 0 ? `<table>
+${
+  evidence.length > 0
+    ? `<table>
   <tr><th>ID</th><th>Claim</th><th>Confidence</th><th>Source</th></tr>
-  ${evidence.slice(0, 20).map(e => `<tr><td><code>${e.id}</code></td><td>${e.claim}</td><td>${(((e.confidenceScore as number) ?? 0) * 100).toFixed(0)}%</td><td>${e.source}</td></tr>`).join('')}
-</table>` : '<p style="color:#64748b;font-size:.85rem">No evidence nodes.</p>'}
+  ${evidence
+    .slice(0, 20)
+    .map(
+      (e) =>
+        `<tr><td><code>${e.id}</code></td><td>${e.claim}</td><td>${(((e.confidenceScore as number) ?? 0) * 100).toFixed(0)}%</td><td>${e.source}</td></tr>`,
+    )
+    .join('')}
+</table>`
+    : '<p style="color:#64748b;font-size:.85rem">No evidence nodes.</p>'
+}
 
 <h2>Tools (${tools.length})</h2>
 <table>
   <tr><th>Tool</th><th>Version</th><th>Status</th></tr>
-  ${tools.map(t => `<tr><td>${t.name}</td><td>${t.version}</td><td>${t.status}</td></tr>`).join('')}
+  ${tools.map((t) => `<tr><td>${t.name}</td><td>${t.version}</td><td>${t.status}</td></tr>`).join('')}
 </table>
 
 <div class="sig">
@@ -348,4 +398,3 @@ ${evidence.length > 0 ? `<table>
 </body>
 </html>`;
 }
-

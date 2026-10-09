@@ -1,7 +1,7 @@
 # Reach Go-Live Guide
 
-> **Version:** 1.2  
-> **Status:** Production  
+> **Version:** 1.2
+> **Status:** Production
 > **Last Updated:** 2026-02-27
 
 This guide covers installation, smoke testing, rollback procedures, debug bundle generation, and expected outputs for Reach with the Requiem C++ engine.
@@ -11,13 +11,13 @@ This guide covers installation, smoke testing, rollback procedures, debug bundle
 ## 1. Prerequisites
 
 | Component | Minimum | Recommended |
-|-----------|---------|-------------|
-| Node.js | 18.x | 20.x LTS |
-| pnpm | 8.x | 8.15+ |
-| Rust | 1.75 | 1.78+ |
-| Git | 2.40 | 2.45+ |
-| RAM | 4 GB | 8 GB |
-| Disk | 2 GB | 10 GB |
+| --------- | ------- | ----------- |
+| Node.js   | 18.x    | 20.x LTS    |
+| pnpm      | 8.x     | 8.15+       |
+| Rust      | 1.75    | 1.78+       |
+| Git       | 2.40    | 2.45+       |
+| RAM       | 4 GB    | 8 GB        |
+| Disk      | 2 GB    | 10 GB       |
 
 ### Platform Support
 
@@ -89,13 +89,13 @@ pnpm verify:smoke
 
 ### Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | All checks passed |
-| 1 | One or more checks failed |
-| 2 | Engine binary not found |
-| 3 | Determinism mismatch |
-| 4 | Protocol version mismatch |
+| Code | Meaning                   |
+| ---- | ------------------------- |
+| 0    | All checks passed         |
+| 1    | One or more checks failed |
+| 2    | Engine binary not found   |
+| 3    | Determinism mismatch      |
+| 4    | Protocol version mismatch |
 
 ---
 
@@ -159,11 +159,11 @@ pnpm -r --filter requiem build
 
 ### Environment Variables for Rollback
 
-| Variable | Purpose | Default |
-|----------|---------|---------|
-| `FORCE_RUST` | Use Rust engine instead of Requiem | unset (use Requiem) |
-| `FORCE_REQUIEM` | Force Requiem engine | unset |
-| `REACH_PROTOCOL_VERSION` | Pin protocol version | auto-negotiate |
+| Variable                 | Purpose                            | Default             |
+| ------------------------ | ---------------------------------- | ------------------- |
+| `FORCE_RUST`             | Use Rust engine instead of Requiem | unset (use Requiem) |
+| `FORCE_REQUIEM`          | Force Requiem engine               | unset               |
+| `REACH_PROTOCOL_VERSION` | Pin protocol version               | auto-negotiate      |
 
 ### Protocol Pinning
 
@@ -227,13 +227,13 @@ $ reach verify:determinism --runs=10
 
 ## 7. Troubleshooting Quick Links
 
-| Issue | See |
-|-------|-----|
-| Engine not found | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
+| Issue                | See                                      |
+| -------------------- | ---------------------------------------- |
+| Engine not found     | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
 | Determinism mismatch | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
-| Protocol errors | [PROTOCOL.md](PROTOCOL.md) |
-| Error codes | [ERRORS.md](ERRORS.md) |
-| Security concerns | [SECURITY.md](SECURITY.md) |
+| Protocol errors      | [PROTOCOL.md](PROTOCOL.md)               |
+| Error codes          | [ERRORS.md](ERRORS.md)                   |
+| Security concerns    | [SECURITY.md](SECURITY.md)               |
 
 ---
 

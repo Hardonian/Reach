@@ -7,13 +7,15 @@
 - **trust_threshold**: Minimum trust score for delegate nodes (0.0-1.0)
 
 ## Structure ```
+
 .
-├── pack.json          # Pack manifest with federation metadata
-├── policy.rego        # Policy contract
-├── README.md          # This file
+├── pack.json # Pack manifest with federation metadata
+├── policy.rego # Policy contract
+├── README.md # This file
 └── tests/
-    └── conformance_test.sh
-```
+└── conformance_test.sh
+
+````
 
 ## Usage ```bash
 # Check federation configuration reach pack lint .
@@ -21,7 +23,7 @@
 # Run conformance tests reach pack test .
 
 # Full health check reach pack doctor .
-```
+````
 
 ## Federation Behavior When this pack is executed in a federated environment:
 

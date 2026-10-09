@@ -3,7 +3,7 @@ name: marketplace-publish
 on:
   push:
     tags:
-      - "pack-*"
+      - 'pack-*'
 
 jobs:
   publish-pack:
@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.22"
+          go-version: '1.22'
       - name: Parse tag
         id: meta
         run: |

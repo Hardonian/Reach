@@ -32,6 +32,7 @@ reach doctor --engine-version
 ### Resolution
 
 **If engine not found:**
+
 ```bash
 pnpm install
 pnpm -r --filter requiem build
@@ -41,6 +42,7 @@ reach doctor --engine
 ```
 
 **If daemon already running:**
+
 ```bash
 # Kill existing daemon
 reach daemon kill
@@ -51,6 +53,7 @@ kill <pid>
 ```
 
 **If port in use:**
+
 ```bash
 # Check what's using the port
 netstat -tlnp | grep 7734
@@ -62,6 +65,7 @@ REACH_DAEMON_PORT=7735 reach daemon start
 ```
 
 **If permissions issue:**
+
 ```bash
 # Check daemon directory permissions
 ls -la ~/.reach/
@@ -102,21 +106,25 @@ netstat -ano | findstr :7734
 ### Resolution
 
 **Option 1: Kill existing daemon**
+
 ```bash
 reach daemon kill
 ```
 
 **Option 2: Kill specific process**
+
 ```bash
 kill -9 <PID>
 ```
 
 **Option 3: Use different port**
+
 ```bash
 REACH_DAEMON_PORT=7735 reach daemon start
 ```
 
 **Option 4: Wait for socket cleanup**
+
 ```bash
 # Sometimes port takes time to release
 sleep 5
@@ -157,6 +165,7 @@ reach doctor --stuck
 ### Resolution
 
 **Immediate (wait for drain):**
+
 ```bash
 # Wait for queue to drain
 # Monitor progress
@@ -164,6 +173,7 @@ reach doctor --queue
 ```
 
 **If stuck executions:**
+
 ```bash
 # Find stuck process
 reach ps
@@ -176,12 +186,14 @@ reach daemon restart
 ```
 
 **Increase capacity:**
+
 ```bash
 # Temporarily increase queue size
 REACH_QUEUE_SIZE=200 reach daemon start
 ```
 
 **Reduce concurrency:**
+
 ```bash
 # If client-side, reduce parallel requests
 # Check for runaway clients
@@ -230,15 +242,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      REACH_DETERMINISM_SEED: "your-seed-here"
+      REACH_DETERMINISM_SEED: 'your-seed-here'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20.x'  # Pin version
+          node-version: '20.x' # Pin version
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: '1.78'  # Pin Rust version
+          toolchain: '1.78' # Pin Rust version
 ```
 
 **Step 2: Check for non-deterministic code**
@@ -310,6 +322,7 @@ reach doctor --storage
 ### Resolution
 
 **If blob was evicted (LRU):**
+
 ```bash
 # Try to re-fetch if source available
 reach cas fetch <cid>
@@ -319,6 +332,7 @@ reach run <pack> --regenerate
 ```
 
 **If blob corrupted:**
+
 ```bash
 # Check if you have a backup
 reach cas restore <cid> --from-backup
@@ -328,6 +342,7 @@ reach run <pack> --regenerate
 ```
 
 **If storage failing:**
+
 ```bash
 # Check disk space
 df -h
@@ -340,6 +355,7 @@ chmod -R 755 ~/.reach/cas/
 ```
 
 **If persistent failure:**
+
 ```bash
 # Rebuild CAS index
 reach cas rebuild

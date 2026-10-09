@@ -231,4 +231,3 @@ export const ROUTES = {
 } as const;
 
 export type RoutePath = string;
-

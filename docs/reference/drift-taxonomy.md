@@ -1,6 +1,7 @@
 # Drift Taxonomy
 
 Reach classifies semantic drift into deterministic categories:
+
 - `ModelDrift`
 - `PromptDrift`
 - `ContextDrift`

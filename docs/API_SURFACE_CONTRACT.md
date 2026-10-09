@@ -1,19 +1,19 @@
 # API Surface Contract
 
-**Version:** 1.0.0  
-**Status:** FROZEN  
+**Version:** 1.0.0
+**Status:** FROZEN
 **Scope:** Public API Stability Guarantees
 
 ---
 
 ## 1. Stability Levels
 
-| Level | Icon | Guarantee | Breaking Change Policy |
-|-------|------|-----------|----------------------|
-| **Frozen** | 🔒 | Never changes | N/A |
-| **Stable** | ✅ | Backward compatible | Deprecation + 2 minor versions |
-| **Experimental** | 🧪 | May change | Removal with 1 minor version notice |
-| **Internal** | ⚠️ | No guarantees | May change anytime |
+| Level            | Icon | Guarantee           | Breaking Change Policy              |
+| ---------------- | ---- | ------------------- | ----------------------------------- |
+| **Frozen**       | 🔒   | Never changes       | N/A                                 |
+| **Stable**       | ✅   | Backward compatible | Deprecation + 2 minor versions      |
+| **Experimental** | 🧪   | May change          | Removal with 1 minor version notice |
+| **Internal**     | ⚠️   | No guarantees       | May change anytime                  |
 
 ---
 
@@ -32,7 +32,7 @@ func CanonicalJSON(v any) string
 func VerifyReplay(eventLog []map[string]any, runID string, expectedFingerprint string) bool
 ```
 
-**Stability:** Frozen v1.0.0  
+**Stability:** Frozen v1.0.0
 **Rationale:** Core of the deterministic guarantee. Changes would invalidate all historical fingerprints.
 
 ### 2.2 Pack Integrity Package (`services/runner/internal/pack`)
@@ -48,18 +48,18 @@ func VerifyProof(proof *MerkleProof, rootHash []byte) bool
 func (mt *MerkleTree) RootHash() []byte
 ```
 
-**Stability:** Frozen v1.0.0  
+**Stability:** Frozen v1.0.0
 **Rationale:** Content-addressing foundation. Changes would break pack verification.
 
 ### 2.3 Protocol Schemas (`protocol/schemas/`)
 
-| Schema | Status | Key Fields |
-|--------|--------|------------|
-| `events.schema.json` | 🔒 | All event types frozen |
-| `artifact.schema.json` | 🔒 | Patch format frozen |
-| `toolcall.schema.json` | 🔒 | Call/Result format frozen |
+| Schema                 | Status | Key Fields                |
+| ---------------------- | ------ | ------------------------- |
+| `events.schema.json`   | 🔒     | All event types frozen    |
+| `artifact.schema.json` | 🔒     | Patch format frozen       |
+| `toolcall.schema.json` | 🔒     | Call/Result format frozen |
 
-**Stability:** Frozen v1.0.0  
+**Stability:** Frozen v1.0.0
 **Rationale:** Wire format compatibility across versions.
 
 ---
@@ -76,7 +76,7 @@ type Client interface {
 }
 ```
 
-**Stability:** Stable  
+**Stability:** Stable
 **Deprecation:** 2 minor versions notice required
 
 ### 3.2 Storage Driver Interface (`services/runner/internal/storage`)
@@ -90,7 +90,7 @@ type StorageDriver interface {
 }
 ```
 
-**Stability:** Stable  
+**Stability:** Stable
 **Note:** Interface may be extended (new methods) but not modified
 
 ### 3.3 Policy Gate Interface (`services/runner/internal/policy`)
@@ -102,7 +102,7 @@ type Gate interface {
 }
 ```
 
-**Stability:** Stable  
+**Stability:** Stable
 **Rationale:** Plugin ecosystem depends on this
 
 ---
@@ -119,7 +119,7 @@ type StrategySelector interface {
 }
 ```
 
-**Stability:** Experimental  
+**Stability:** Experimental
 **Expected Stabilization:** v0.5.0
 
 ### 4.2 Federation (`services/runner/internal/federation`)
@@ -132,7 +132,7 @@ type DelegationClient interface {
 }
 ```
 
-**Stability:** Experimental  
+**Stability:** Experimental
 **Expected Stabilization:** v0.6.0
 
 ---
@@ -152,11 +152,11 @@ These packages are **not** part of the public API:
 
 ## 6. Version Compatibility Matrix
 
-| Reach Version | Frozen APIs | Stable APIs | Experimental APIs |
-|---------------|-------------|-------------|-------------------|
-| v0.3.x | ✅ Compatible | ✅ Compatible | 🧪 May change |
-| v0.4.x | ✅ Compatible | ✅ Compatible | 🧪 May change |
-| v1.0.x | ✅ Frozen | ✅ Compatible | ✅ Stabilized |
+| Reach Version | Frozen APIs   | Stable APIs   | Experimental APIs |
+| ------------- | ------------- | ------------- | ----------------- |
+| v0.3.x        | ✅ Compatible | ✅ Compatible | 🧪 May change     |
+| v0.4.x        | ✅ Compatible | ✅ Compatible | 🧪 May change     |
+| v1.0.x        | ✅ Frozen     | ✅ Compatible | ✅ Stabilized     |
 
 ---
 
@@ -164,22 +164,22 @@ These packages are **not** part of the public API:
 
 The following changes are **always** breaking:
 
-| Change Type | Severity | Example |
-|-------------|----------|---------|
-| Remove exported function | Breaking | `Delete Hash()` |
+| Change Type               | Severity | Example                          |
+| ------------------------- | -------- | -------------------------------- |
+| Remove exported function  | Breaking | `Delete Hash()`                  |
 | Change function signature | Breaking | `Hash(v any)` → `Hash(v []byte)` |
-| Change return type | Breaking | `string` → `[]byte` |
-| Modify frozen schema | Breaking | Add required field to event |
-| Change hash algorithm | Breaking | SHA-256 → BLAKE3 |
+| Change return type        | Breaking | `string` → `[]byte`              |
+| Modify frozen schema      | Breaking | Add required field to event      |
+| Change hash algorithm     | Breaking | SHA-256 → BLAKE3                 |
 
 The following changes are **backward compatible**:
 
-| Change Type | Severity | Example |
-|-------------|----------|---------|
-| Add new function | Compatible | New `HashBatch()` |
-| Extend interface | Compatible | Add optional method with default |
-| Add optional schema field | Compatible | New optional event property |
-| Performance improvement | Compatible | Faster `Hash()` implementation |
+| Change Type               | Severity   | Example                          |
+| ------------------------- | ---------- | -------------------------------- |
+| Add new function          | Compatible | New `HashBatch()`                |
+| Extend interface          | Compatible | Add optional method with default |
+| Add optional schema field | Compatible | New optional event property      |
+| Performance improvement   | Compatible | Faster `Hash()` implementation   |
 
 ---
 
@@ -232,15 +232,15 @@ API contracts are enforced by:
 
 ## 10. Reference
 
-| Document | Purpose |
-|----------|---------|
-| `DETERMINISM_SPEC.md` | Detailed determinism requirements |
-| `DETERMINISM_MANIFEST.md` | Versioned manifest |
-| `BOUNDARIES.md` | System layering |
-| `IMPORT_RULES.md` | Import restrictions |
+| Document                  | Purpose                           |
+| ------------------------- | --------------------------------- |
+| `DETERMINISM_SPEC.md`     | Detailed determinism requirements |
+| `DETERMINISM_MANIFEST.md` | Versioned manifest                |
+| `BOUNDARIES.md`           | System layering                   |
+| `IMPORT_RULES.md`         | Import restrictions               |
 
 ---
 
-**Last Updated:** 2026-02-26  
-**Contract Version:** 1.0.0  
+**Last Updated:** 2026-02-26
+**Contract Version:** 1.0.0
 **Status:** FROZEN

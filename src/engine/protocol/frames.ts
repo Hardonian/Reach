@@ -9,8 +9,8 @@
  * - Strict version negotiation (fail closed on downgrade)
  */
 
-import { EventEmitter } from "node:events";
-import { createHash } from "node:crypto";
+import { EventEmitter } from 'node:events';
+import { createHash } from 'node:crypto';
 
 // ============================================================================
 // Protocol Constants
@@ -20,10 +20,10 @@ import { createHash } from "node:crypto";
 export const MAX_FRAME_BYTES = 16 * 1024 * 1024;
 
 /** Protocol version - major.minor.patch */
-export const PROTOCOL_VERSION = "1.0.0";
+export const PROTOCOL_VERSION = '1.0.0';
 
 /** Minimum supported protocol version */
-export const MIN_PROTOCOL_VERSION = "1.0.0";
+export const MIN_PROTOCOL_VERSION = '1.0.0';
 
 /** Frame header size (4 bytes for length prefix) */
 export const FRAME_HEADER_SIZE = 4;
@@ -42,15 +42,15 @@ export const PROTOCOL_MAGIC = Buffer.from([0x52, 0x45, 0x41, 0x43]); // "REAC"
 // ============================================================================
 
 export const ProtocolErrorCode = {
-  FRAME_OVERSIZE: "FRAME_OVERSIZE",
-  FRAME_TIMEOUT: "FRAME_TIMEOUT",
-  INVALID_FRAME: "INVALID_FRAME",
-  INVALID_MAGIC: "INVALID_MAGIC",
-  VERSION_MISMATCH: "VERSION_MISMATCH",
-  CHECKSUM_FAILED: "CHECKSUM_FAILED",
-  CONNECTION_CLOSED: "CONNECTION_CLOSED",
-  BACKPRESSURE: "BACKPRESSURE",
-  PROTOCOL_ERROR: "PROTOCOL_ERROR",
+  FRAME_OVERSIZE: 'FRAME_OVERSIZE',
+  FRAME_TIMEOUT: 'FRAME_TIMEOUT',
+  INVALID_FRAME: 'INVALID_FRAME',
+  INVALID_MAGIC: 'INVALID_MAGIC',
+  VERSION_MISMATCH: 'VERSION_MISMATCH',
+  CHECKSUM_FAILED: 'CHECKSUM_FAILED',
+  CONNECTION_CLOSED: 'CONNECTION_CLOSED',
+  BACKPRESSURE: 'BACKPRESSURE',
+  PROTOCOL_ERROR: 'PROTOCOL_ERROR',
 } as const;
 
 export type ProtocolErrorCode =
@@ -130,10 +130,10 @@ export class ProtocolError extends Error {
     public readonly code: ProtocolErrorCode,
     message: string,
     public readonly retryable: boolean,
-    public readonly suggestedBackoffMs?: number
+    public readonly suggestedBackoffMs?: number,
   ) {
     super(message);
-    this.name = "ProtocolError";
+    this.name = 'ProtocolError';
   }
 
   toJSON() {
@@ -171,29 +171,29 @@ export class VersionNegotiator extends EventEmitter {
 
     // Check if client meets minimum version requirement
     if (this.compareVersions(client, minimum) < 0) {
-      this.emit("version_rejected", {
-        reason: "client_below_minimum",
+      this.emit('version_rejected', {
+        reason: 'client_below_minimum',
         client: clientVersion,
         minimum: this.config.minProtocolVersion,
       });
       throw new ProtocolError(
         ProtocolErrorCode.VERSION_MISMATCH,
         `Client version ${clientVersion} is below minimum ${this.config.minProtocolVersion}`,
-        false
+        false,
       );
     }
 
     // Check if server meets minimum version requirement
     if (this.compareVersions(server, minimum) < 0) {
-      this.emit("version_rejected", {
-        reason: "server_below_minimum",
+      this.emit('version_rejected', {
+        reason: 'server_below_minimum',
         server: serverVersion,
         minimum: this.config.minProtocolVersion,
       });
       throw new ProtocolError(
         ProtocolErrorCode.VERSION_MISMATCH,
         `Server version ${serverVersion} is below minimum ${this.config.minProtocolVersion}`,
-        false
+        false,
       );
     }
 
@@ -206,11 +206,11 @@ export class VersionNegotiator extends EventEmitter {
       throw new ProtocolError(
         ProtocolErrorCode.VERSION_MISMATCH,
         `Negotiated version ${agreed} is below minimum ${this.config.minProtocolVersion}`,
-        false
+        false,
       );
     }
 
-    this.emit("version_agreed", {
+    this.emit('version_agreed', {
       client: clientVersion,
       server: serverVersion,
       agreed,
@@ -234,7 +234,7 @@ export class VersionNegotiator extends EventEmitter {
   }
 
   private parseVersion(version: string): number[] {
-    return version.split(".").map((n) => parseInt(n, 10));
+    return version.split('.').map((n) => parseInt(n, 10));
   }
 
   private compareVersions(a: number[], b: number[]): number {
@@ -269,7 +269,7 @@ export class FrameCodec extends EventEmitter {
    */
   encode(type: FrameType, version: string, payload: Buffer): Buffer {
     // Validate payload size
-    const versionBytes = Buffer.from(version, "utf-8");
+    const versionBytes = Buffer.from(version, 'utf-8');
     // Total size includes: type(1) + versionLen(1) + version(N) + payload(N) + checksum(32)
     // Note: FRAME_HEADER_SIZE is already included in the buffer allocation for the length field itself
     const totalSize =
@@ -283,13 +283,13 @@ export class FrameCodec extends EventEmitter {
       throw new ProtocolError(
         ProtocolErrorCode.FRAME_OVERSIZE,
         `Frame size ${totalSize} exceeds maximum ${this.config.maxFrameBytes}`,
-        false
+        false,
       );
     }
 
     // Calculate checksum
     const checksum = this.config.enableChecksums
-      ? createHash("sha256")
+      ? createHash('sha256')
           .update(Buffer.concat([Buffer.from([type]), versionBytes, payload]))
           .digest()
       : Buffer.alloc(32);
@@ -342,8 +342,8 @@ export class FrameCodec extends EventEmitter {
     if (!magic.equals(PROTOCOL_MAGIC)) {
       throw new ProtocolError(
         ProtocolErrorCode.INVALID_MAGIC,
-        "Invalid protocol magic bytes",
-        false
+        'Invalid protocol magic bytes',
+        false,
       );
     }
     offset += 4;
@@ -358,7 +358,7 @@ export class FrameCodec extends EventEmitter {
       throw new ProtocolError(
         ProtocolErrorCode.FRAME_OVERSIZE,
         `Frame length ${frameLength} exceeds maximum ${this.config.maxFrameBytes}`,
-        false
+        false,
       );
     }
 
@@ -377,7 +377,7 @@ export class FrameCodec extends EventEmitter {
 
     // Parse version
     if (data.length < offset + versionLen) return null;
-    const version = data.slice(offset, offset + versionLen).toString("utf-8");
+    const version = data.slice(offset, offset + versionLen).toString('utf-8');
     offset += versionLen;
 
     // Validate version
@@ -385,7 +385,7 @@ export class FrameCodec extends EventEmitter {
       throw new ProtocolError(
         ProtocolErrorCode.VERSION_MISMATCH,
         `Invalid or unsupported version: ${version}`,
-        false
+        false,
       );
     }
 
@@ -396,8 +396,8 @@ export class FrameCodec extends EventEmitter {
     if (payloadLength < 0) {
       throw new ProtocolError(
         ProtocolErrorCode.INVALID_FRAME,
-        "Invalid frame: payload length negative",
-        false
+        'Invalid frame: payload length negative',
+        false,
       );
     }
     if (data.length < offset + payloadLength) return null;
@@ -409,16 +409,18 @@ export class FrameCodec extends EventEmitter {
     const checksum = data.slice(offset, offset + 32);
 
     if (this.config.enableChecksums) {
-      const expectedChecksum = createHash("sha256")
-        .update(Buffer.concat([Buffer.from([type]), Buffer.from(version), payload]))
+      const expectedChecksum = createHash('sha256')
+        .update(
+          Buffer.concat([Buffer.from([type]), Buffer.from(version), payload]),
+        )
         .digest();
 
       if (!checksum.equals(expectedChecksum)) {
         throw new ProtocolError(
           ProtocolErrorCode.CHECKSUM_FAILED,
-          "Frame checksum verification failed",
+          'Frame checksum verification failed',
           true,
-          100
+          100,
         );
       }
     }
@@ -427,7 +429,7 @@ export class FrameCodec extends EventEmitter {
       type,
       version,
       payload,
-      checksum: checksum.toString("hex"),
+      checksum: checksum.toString('hex'),
       timestamp: Date.now(),
     };
   }
@@ -435,7 +437,7 @@ export class FrameCodec extends EventEmitter {
   /**
    * Feed data into the decoder for streaming frame parsing.
    * Returns array of complete frames, leaves partial data in buffer.
-   * 
+   *
    * SECURITY: Bounded buffer prevents memory exhaustion attacks.
    */
   feed(data: Buffer): Frame[] {
@@ -455,7 +457,7 @@ export class FrameCodec extends EventEmitter {
       throw new ProtocolError(
         ProtocolErrorCode.PROTOCOL_ERROR,
         `Partial frame buffer overflow: ${overflow} bytes over limit`,
-        false
+        false,
       );
     }
 
@@ -525,7 +527,7 @@ export class FrameTimeoutHandler extends EventEmitter {
 
     const timeout = setTimeout(() => {
       this.timeouts.delete(operationId);
-      this.emit("timeout", { operationId, timeoutMs: ms });
+      this.emit('timeout', { operationId, timeoutMs: ms });
     }, ms);
 
     this.timeouts.set(operationId, timeout);
@@ -582,7 +584,7 @@ export class BackpressureController extends EventEmitter {
    */
   beginWrite(): boolean {
     if (!this.canWrite()) {
-      this.emit("backpressure", {
+      this.emit('backpressure', {
         pending: this.pendingWrites,
         highWaterMark: this.highWaterMark,
       });
@@ -593,7 +595,7 @@ export class BackpressureController extends EventEmitter {
 
     if (this.pendingWrites >= this.highWaterMark && !this.isPaused) {
       this.isPaused = true;
-      this.emit("pause");
+      this.emit('pause');
     }
 
     return true;
@@ -609,7 +611,7 @@ export class BackpressureController extends EventEmitter {
 
     if (this.pendingWrites <= this.lowWaterMark && this.isPaused) {
       this.isPaused = false;
-      this.emit("resume");
+      this.emit('resume');
     }
   }
 
@@ -652,7 +654,7 @@ export class ProtocolHandler extends EventEmitter {
   performHandshake(peerVersion: string): string {
     const agreed = this.versionNegotiator.negotiate(
       peerVersion,
-      this.config.protocolVersion
+      this.config.protocolVersion,
     );
     this.negotiatedVersion = agreed;
     return agreed;
@@ -664,10 +666,10 @@ export class ProtocolHandler extends EventEmitter {
   sendFrame(
     type: FrameType,
     payload: Buffer,
-    transport: { write: (data: Buffer) => boolean }
+    transport: { write: (data: Buffer) => boolean },
   ): boolean {
     if (!this.backpressure.beginWrite()) {
-      this.emit("backpressure_rejected", { type });
+      this.emit('backpressure_rejected', { type });
       return false;
     }
 
@@ -682,7 +684,7 @@ export class ProtocolHandler extends EventEmitter {
         return false;
       }
 
-      this.emit("frame_sent", { type, size: frame.length });
+      this.emit('frame_sent', { type, size: frame.length });
       return true;
     } finally {
       this.backpressure.endWrite();
@@ -696,12 +698,12 @@ export class ProtocolHandler extends EventEmitter {
     try {
       const frames = this.codec.feed(data);
       for (const frame of frames) {
-        this.emit("frame_received", frame);
+        this.emit('frame_received', frame);
       }
       return frames;
     } catch (err) {
       if (err instanceof ProtocolError) {
-        this.emit("protocol_error", err);
+        this.emit('protocol_error', err);
       }
       throw err;
     }
@@ -711,11 +713,11 @@ export class ProtocolHandler extends EventEmitter {
    * Create an error frame.
    */
   createErrorFrame(error: ProtocolError): Buffer {
-    const payload = Buffer.from(JSON.stringify(error.toJSON()), "utf-8");
+    const payload = Buffer.from(JSON.stringify(error.toJSON()), 'utf-8');
     return this.codec.encode(
       FrameType.ERROR,
       this.negotiatedVersion ?? this.config.protocolVersion,
-      payload
+      payload,
     );
   }
 
@@ -724,12 +726,12 @@ export class ProtocolHandler extends EventEmitter {
    */
   close(): void {
     this.timeoutHandler.clearAll();
-    this.emit("closed");
+    this.emit('closed');
   }
 
   private setupHandlers(): void {
-    this.backpressure.on("backpressure", (status) => {
-      this.emit("backpressure", status);
+    this.backpressure.on('backpressure', (status) => {
+      this.emit('backpressure', status);
     });
   }
 }
@@ -738,7 +740,9 @@ export class ProtocolHandler extends EventEmitter {
 // Export factory functions
 // ============================================================================
 
-export function createProtocolHandler(config?: Partial<ProtocolConfig>): ProtocolHandler {
+export function createProtocolHandler(
+  config?: Partial<ProtocolConfig>,
+): ProtocolHandler {
   return new ProtocolHandler({ ...getDefaultProtocolConfig(), ...config });
 }
 
@@ -747,7 +751,7 @@ export function createFrameCodec(config?: Partial<ProtocolConfig>): FrameCodec {
 }
 
 export function createVersionNegotiator(
-  config?: Partial<ProtocolConfig>
+  config?: Partial<ProtocolConfig>,
 ): VersionNegotiator {
   return new VersionNegotiator({ ...getDefaultProtocolConfig(), ...config });
 }

@@ -1,6 +1,6 @@
 /**
  * Protocol Client (TypeScript)
- * 
+ *
  * Client implementation for the binary protocol.
  * Supports TCP sockets (and could support named pipes on Windows).
  */
@@ -9,9 +9,16 @@ import * as net from 'net';
 import { EventEmitter } from 'events';
 import { Frame, FrameParser, MessageType, encodeFrame } from './frame';
 import {
-  HelloAckPayload, ExecRequestPayload, ExecResultPayload,
-  HealthRequestPayload, HealthResultPayload, ErrorPayload, createHello,
-  serializeCbor, deserializeCbor, CapabilityFlags,
+  HelloAckPayload,
+  ExecRequestPayload,
+  ExecResultPayload,
+  HealthRequestPayload,
+  HealthResultPayload,
+  ErrorPayload,
+  createHello,
+  serializeCbor,
+  deserializeCbor,
+  CapabilityFlags,
 } from './messages';
 
 /** Client configuration */
@@ -48,18 +55,21 @@ export class ProtocolClient extends EventEmitter {
   private state: ConnectionState = ConnectionState.Disconnected;
   private frameParser: FrameParser;
   private _sessionId: string | null = null;
-  private pendingRequests: Map<number, {
-    resolve: (value: Frame) => void;
-    reject: (error: Error) => void;
-    timeout: NodeJS.Timeout;
-    expectedType: MessageType;
-    createdAt: number;
-  }> = new Map();
+  private pendingRequests: Map<
+    number,
+    {
+      resolve: (value: Frame) => void;
+      reject: (error: Error) => void;
+      timeout: NodeJS.Timeout;
+      expectedType: MessageType;
+      createdAt: number;
+    }
+  > = new Map();
   private nextCorrelationId = 1;
-  
+
   private heartbeatTimer: NodeJS.Timeout | null = null;
   private cleanupTimer: NodeJS.Timeout | null = null;
-  
+
   constructor(config: ProtocolClientConfig) {
     super();
     this.config = {
@@ -77,49 +87,53 @@ export class ProtocolClient extends EventEmitter {
     this.cleanupTimer = setInterval(() => {
       const now = Date.now();
       const maxAgeMs = this.config.requestTimeoutMs * 2; // Fail-safe limit
-      
+
       for (const [correlationId, pending] of this.pendingRequests) {
         if (now - pending.createdAt > maxAgeMs) {
           this.pendingRequests.delete(correlationId);
           clearTimeout(pending.timeout);
-          pending.reject(new Error(`Correlation ID ${correlationId} leaked (stale for ${now - pending.createdAt}ms)`));
+          pending.reject(
+            new Error(
+              `Correlation ID ${correlationId} leaked (stale for ${now - pending.createdAt}ms)`,
+            ),
+          );
         }
       }
     }, 10000);
   }
-  
+
   /** Get current connection state */
   get connectionState(): ConnectionState {
     return this.state;
   }
-  
+
   /** Get session ID (null if not connected) */
   get sessionId(): string | null {
     return this._sessionId;
   }
-  
+
   /** Check if connected and ready */
   get isReady(): boolean {
     return this.state === ConnectionState.Ready;
   }
-  
+
   /** Connect to server */
   async connect(): Promise<void> {
     if (this.state !== ConnectionState.Disconnected) {
       throw new Error(`Cannot connect in state: ${this.state}`);
     }
-    
+
     this.setState(ConnectionState.Connecting);
-    
+
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.socket?.destroy();
         this.setState(ConnectionState.Error);
         reject(new Error('Connection timeout'));
       }, this.config.connectTimeoutMs);
-      
+
       this.socket = new net.Socket();
-      
+
       this.socket.on('connect', async () => {
         clearTimeout(timeout);
         try {
@@ -134,22 +148,22 @@ export class ProtocolClient extends EventEmitter {
           reject(error);
         }
       });
-      
+
       this.socket.on('error', (error) => {
         clearTimeout(timeout);
         this.setState(ConnectionState.Error);
         this.emit('error', error);
         reject(error);
       });
-      
+
       this.socket.on('close', () => {
         this.handleDisconnect();
       });
-      
+
       this.socket.on('data', (data) => {
         this.handleData(data);
       });
-      
+
       if (this.config.path) {
         this.socket.connect(this.config.path);
       } else {
@@ -161,7 +175,6 @@ export class ProtocolClient extends EventEmitter {
     });
   }
 
-  
   /** Disconnect from server */
   async disconnect(): Promise<void> {
     this.stopHeartbeat();
@@ -172,14 +185,14 @@ export class ProtocolClient extends EventEmitter {
     if (!this.socket) {
       return;
     }
-    
+
     this.socket.end();
-    
+
     return new Promise((resolve) => {
       this.socket?.on('close', () => {
         resolve();
       });
-      
+
       // Force close after timeout
       setTimeout(() => {
         this.socket?.destroy();
@@ -187,34 +200,34 @@ export class ProtocolClient extends EventEmitter {
       }, 1000);
     });
   }
-  
+
   /** Execute a workflow */
   async execute(request: ExecRequestPayload): Promise<ExecResultPayload> {
     this.ensureReady();
-    
+
     const frame = await this.sendRequest(
       MessageType.ExecRequest,
       request,
-      MessageType.ExecResult
+      MessageType.ExecResult,
     );
-    
+
     return deserializeCbor<ExecResultPayload>(frame.payload);
   }
-  
+
   /** Check health */
   async health(detailed: boolean = false): Promise<HealthResultPayload> {
     this.ensureReady();
-    
+
     const request: HealthRequestPayload = { detailed };
     const frame = await this.sendRequest(
       MessageType.HealthRequest,
       request,
-      MessageType.HealthResult
+      MessageType.HealthResult,
     );
-    
+
     return deserializeCbor<HealthResultPayload>(frame.payload);
   }
-  
+
   /** Get protocol statistics */
   getStats(): {
     bufferSize: number;
@@ -225,23 +238,23 @@ export class ProtocolClient extends EventEmitter {
       pendingRequests: this.pendingRequests.size,
     };
   }
-  
+
   private setState(state: ConnectionState): void {
     if (this.state !== state) {
       this.state = state;
       this.emit('stateChange', state);
     }
   }
-  
+
   private ensureReady(): void {
     if (this.state !== ConnectionState.Ready) {
       throw new Error(`Client not ready (state: ${this.state})`);
     }
   }
-  
+
   private async performHandshake(): Promise<void> {
     this.setState(ConnectionState.Negotiating);
-    
+
     // Send Hello
     const hello = createHello('reach-cli', '1.0.0');
     await this.sendFrame({
@@ -252,36 +265,36 @@ export class ProtocolClient extends EventEmitter {
       correlationId: 0, // Handshake doesn't need correlation
       payload: serializeCbor(hello),
     });
-    
+
     // Wait for HelloAck
     const response = await this.waitForFrame(
       MessageType.HelloAck,
-      this.config.connectTimeoutMs
+      this.config.connectTimeoutMs,
     );
-    
+
     const ack = deserializeCbor<HelloAckPayload>(response.payload);
     this._sessionId = ack.session_id;
-    
+
     // Verify capabilities
     if (!(ack.capabilities & CapabilityFlags.BINARY_PROTOCOL)) {
       throw new Error('Server does not support binary protocol');
     }
-    
+
     // Verify protocol version
     const [major, minor] = ack.selected_version;
     if (major !== 1 || minor !== 0) {
       throw new Error(`Unsupported protocol version: ${major}.${minor}`);
     }
-    
+
     // Verify hash primitive is blake3 (fail closed on mismatch)
     if (ack.hash_version !== 'blake3') {
       throw new Error(
         `Hash primitive mismatch: expected 'blake3', got '${ack.hash_version}'. ` +
-        'Client requires blake3 for deterministic hashing.'
+          'Client requires blake3 for deterministic hashing.',
       );
     }
   }
-  
+
   private startHeartbeat(): void {
     this.stopHeartbeat();
     this.heartbeatTimer = setInterval(() => {
@@ -310,28 +323,28 @@ export class ProtocolClient extends EventEmitter {
 
   private getNextCorrelationId(): number {
     let id = this.nextCorrelationId++;
-    if (this.nextCorrelationId > 0x7FFFFFFF) {
+    if (this.nextCorrelationId > 0x7fffffff) {
       this.nextCorrelationId = 1;
     }
-    
+
     // ADVERSARIAL: Skip IDs that are currently pending to prevent collisions on wrap-around
     while (this.pendingRequests.has(id)) {
       id = this.nextCorrelationId++;
-      if (this.nextCorrelationId > 0x7FFFFFFF) {
+      if (this.nextCorrelationId > 0x7fffffff) {
         this.nextCorrelationId = 1;
       }
     }
-    
+
     return id;
   }
-  
+
   private async sendFrame(frame: Frame): Promise<void> {
     if (!this.socket) {
       throw new Error('Not connected');
     }
-    
+
     const encoded = encodeFrame(frame);
-    
+
     // BACKPRESSURE: Respect drain event to prevent unbounded buffering
     if (!this.socket.write(encoded)) {
       return new Promise((resolve, reject) => {
@@ -339,25 +352,29 @@ export class ProtocolClient extends EventEmitter {
         this.socket!.once('error', (err) => reject(err));
       });
     }
-    
+
     return Promise.resolve();
   }
-  
+
   private correlationCounter = 0;
-  
+
   private async sendRequest<T>(
     requestType: MessageType,
     payload: T,
-    expectedResponseType: MessageType
+    expectedResponseType: MessageType,
   ): Promise<Frame> {
     const correlationId = this.getNextCorrelationId();
-    
+
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.pendingRequests.delete(correlationId);
-        reject(new Error(`Request timeout (type: ${requestType}, id: ${correlationId})`));
+        reject(
+          new Error(
+            `Request timeout (type: ${requestType}, id: ${correlationId})`,
+          ),
+        );
       }, this.config.requestTimeoutMs);
-      
+
       this.pendingRequests.set(correlationId, {
         resolve,
         reject,
@@ -365,7 +382,7 @@ export class ProtocolClient extends EventEmitter {
         expectedType: expectedResponseType,
         createdAt: Date.now(),
       });
-      
+
       this.sendFrame({
         versionMajor: 1,
         versionMinor: 0,
@@ -380,17 +397,17 @@ export class ProtocolClient extends EventEmitter {
       });
     });
   }
-  
+
   private async waitForFrame(
     expectedType: MessageType,
-    timeoutMs: number
+    timeoutMs: number,
   ): Promise<Frame> {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         cleanup();
         reject(new Error(`Timeout waiting for ${expectedType}`));
       }, timeoutMs);
-      
+
       const onFrame = (frame: Frame) => {
         if (frame.msgType === expectedType) {
           cleanup();
@@ -417,7 +434,7 @@ export class ProtocolClient extends EventEmitter {
       this.on('error', onError);
     });
   }
-  
+
   private handleData(data: Buffer | string): void {
     // Ensure we only process Buffer data, not strings
     if (typeof data === 'string') {
@@ -425,13 +442,13 @@ export class ProtocolClient extends EventEmitter {
       return;
     }
     this.frameParser.append(new Uint8Array(data));
-    
+
     // Process all available frames
     while (true) {
       try {
         const frame = this.frameParser.parse();
         if (!frame) break;
-        
+
         this.emit('frame', frame);
         this.handleFrame(frame);
       } catch (error) {
@@ -440,7 +457,7 @@ export class ProtocolClient extends EventEmitter {
       }
     }
   }
-  
+
   private handleFrame(frame: Frame): void {
     // Check if this frame matches a pending request
     if (frame.correlationId !== 0) {
@@ -451,9 +468,15 @@ export class ProtocolClient extends EventEmitter {
 
         if (frame.msgType === MessageType.Error) {
           const error = deserializeCbor<ErrorPayload>(frame.payload);
-          pending.reject(new Error(`Server error: ${error.message} (${error.code})`));
+          pending.reject(
+            new Error(`Server error: ${error.message} (${error.code})`),
+          );
         } else if (frame.msgType !== pending.expectedType) {
-          pending.reject(new Error(`Response type mismatch: expected ${pending.expectedType}, got ${frame.msgType}`));
+          pending.reject(
+            new Error(
+              `Response type mismatch: expected ${pending.expectedType}, got ${frame.msgType}`,
+            ),
+          );
         } else {
           pending.resolve(frame);
         }
@@ -464,25 +487,30 @@ export class ProtocolClient extends EventEmitter {
     // Handle unsolicited frames
     if (frame.msgType === MessageType.Error) {
       const error = deserializeCbor<ErrorPayload>(frame.payload);
-      this.emit('error', new Error(`Unsolicited server error: ${error.message}`));
+      this.emit(
+        'error',
+        new Error(`Unsolicited server error: ${error.message}`),
+      );
     }
   }
-  
+
   private handleDisconnect(): void {
     this.socket = null;
     this._sessionId = null;
     this.frameParser.clear();
-    
+
     // Reject all pending requests
     for (const [correlationId, pending] of this.pendingRequests) {
       clearTimeout(pending.timeout);
-      pending.reject(new Error(`Connection closed (matching request id: ${correlationId})`));
+      pending.reject(
+        new Error(`Connection closed (matching request id: ${correlationId})`),
+      );
     }
     this.pendingRequests.clear();
-    
+
     this.setState(ConnectionState.Disconnected);
     this.emit('disconnect');
-    
+
     // Auto-reconnect if enabled
     if (this.config.autoReconnect) {
       setTimeout(() => {
@@ -495,7 +523,9 @@ export class ProtocolClient extends EventEmitter {
 }
 
 /** Create a client with default configuration */
-export function createClient(config: Partial<ProtocolClientConfig> = {}): ProtocolClient {
+export function createClient(
+  config: Partial<ProtocolClientConfig> = {},
+): ProtocolClient {
   return new ProtocolClient({
     host: process.env.REACH_ENGINE_HOST?.split(':')[0] ?? '127.0.0.1',
     port: parseInt(process.env.REACH_ENGINE_HOST?.split(':')[1] ?? '9000', 10),

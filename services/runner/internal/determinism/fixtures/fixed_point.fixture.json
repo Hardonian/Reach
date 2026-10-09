@@ -9,19 +9,19 @@
   "test_cases": [
     {
       "name": "integer_as_integer",
-      "input": {"value": 100},
+      "input": { "value": 100 },
       "expected_hash_behavior": "stable"
     },
     {
       "name": "integer_as_float_string",
-      "input": {"value": "100.0"},
+      "input": { "value": "100.0" },
       "expected_hash_behavior": "stable",
       "note": "String representation is different from integer, but stable"
     },
     {
       "name": "integer_same_semantic",
-      "input_a": {"value": 100},
-      "input_b": {"value": 100.0},
+      "input_a": { "value": 100 },
+      "input_b": { "value": 100.0 },
       "expected_equal": false,
       "rationale": "JSON type differs: number vs string, so hashes differ. This is intentional."
     },

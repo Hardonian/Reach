@@ -43,14 +43,20 @@ const COMMAND_BUILDERS: Record<string, (runId?: string) => string[]> = {
 
 export async function listRunInventory(repoRoot: string): Promise<string[]> {
   const runsDir = path.join(repoRoot, 'services', 'runner', 'data', 'runs');
-  const entries = await fs.readdir(runsDir, { withFileTypes: true }).catch(() => []);
+  const entries = await fs
+    .readdir(runsDir, { withFileTypes: true })
+    .catch(() => []);
   return entries
     .filter((entry) => entry.isFile() && entry.name.endsWith('.json'))
     .map((entry) => entry.name.replace(/\.json$/u, ''))
     .sort((a, b) => a.localeCompare(b));
 }
 
-export async function executeStudioCommand(command: string, repoRoot: string, runId?: string): Promise<StudioCommandResult> {
+export async function executeStudioCommand(
+  command: string,
+  repoRoot: string,
+  runId?: string,
+): Promise<StudioCommandResult> {
   const runnerDir = path.join(repoRoot, 'services', 'runner');
   const args = COMMAND_BUILDERS[command](runId).filter(Boolean);
 
@@ -75,7 +81,10 @@ export async function executeStudioCommand(command: string, repoRoot: string, ru
 }
 
 export async function POST(request: Request) {
-  const payload = (await request.json().catch(() => ({}))) as { command?: string; runId?: string };
+  const payload = (await request.json().catch(() => ({}))) as {
+    command?: string;
+    runId?: string;
+  };
   const command = payload.command || '';
 
   if (!COMMAND_BUILDERS[command]) {
@@ -90,14 +99,17 @@ export async function POST(request: Request) {
   }
 
   const requestedRunId = payload.runId?.trim();
-  const resolvedRunId = RUN_SCOPED_COMMANDS.has(command) ? requestedRunId || inventory[0] : undefined;
+  const resolvedRunId = RUN_SCOPED_COMMANDS.has(command)
+    ? requestedRunId || inventory[0]
+    : undefined;
 
   if (RUN_SCOPED_COMMANDS.has(command) && !resolvedRunId) {
     return NextResponse.json({
       command,
       ok: false,
       code: 1,
-      stderr: 'No run records available. Create a run before calling run-scoped commands.',
+      stderr:
+        'No run records available. Create a run before calling run-scoped commands.',
       stdout: '',
       runId: '',
     });

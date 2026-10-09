@@ -4,23 +4,34 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getReportShareBySlug, getGateRun, getScenarioRun } from '@/lib/cloud-db';
+import {
+  getReportShareBySlug,
+  getGateRun,
+  getScenarioRun,
+} from '@/lib/cloud-db';
 
 export const runtime = 'nodejs';
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }): Promise<NextResponse> {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ slug: string }> },
+): Promise<NextResponse> {
   const { slug } = await params;
 
   const share = getReportShareBySlug(slug);
   if (!share) {
-    return NextResponse.json({ error: 'Share link not found or expired' }, { status: 404 });
+    return NextResponse.json(
+      { error: 'Share link not found or expired' },
+      { status: 404 },
+    );
   }
 
   const { resource_type, resource_id, tenant_id } = share;
 
   if (resource_type === 'gate_run') {
     const gateRun = getGateRun(resource_id, tenant_id);
-    if (!gateRun) return NextResponse.json({ error: 'Report not found' }, { status: 404 });
+    if (!gateRun)
+      return NextResponse.json({ error: 'Report not found' }, { status: 404 });
     return NextResponse.json({
       type: 'gate_run',
       id: gateRun.id,
@@ -34,7 +45,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
 
   if (resource_type === 'scenario_run') {
     const scenarioRun = getScenarioRun(resource_id, tenant_id);
-    if (!scenarioRun) return NextResponse.json({ error: 'Report not found' }, { status: 404 });
+    if (!scenarioRun)
+      return NextResponse.json({ error: 'Report not found' }, { status: 404 });
     return NextResponse.json({
       type: 'scenario_run',
       id: scenarioRun.id,

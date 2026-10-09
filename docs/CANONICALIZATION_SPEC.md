@@ -21,6 +21,7 @@ All object keys MUST be sorted lexicographically at every nesting level.
 **Rule**: Use `BTreeMap` in Rust, sorted map traversal in TypeScript.
 
 **Example**:
+
 ```json
 // Input (any order)
 {"zebra": 1, "apple": 2, "mango": 3}
@@ -34,6 +35,7 @@ All object keys MUST be sorted lexicographically at every nesting level.
 Sorting applies recursively to all nested objects.
 
 **Example**:
+
 ```json
 // Input
 {"outer": {"z": 1, "a": 2}}
@@ -47,6 +49,7 @@ Sorting applies recursively to all nested objects.
 Arrays are NOT reordered. Array order is semantically significant.
 
 **Example**:
+
 ```json
 // These produce DIFFERENT fingerprints
 {"arr": [1, 2, 3]}  // fingerprint A
@@ -62,11 +65,13 @@ Arrays are NOT reordered. Array order is semantically significant.
 All floating-point numbers MUST be normalized to **1e-9 precision** (9 decimal places).
 
 **Algorithm**:
+
 ```
 normalized = round(value / 1e-9) * 1e-9
 ```
 
 **Rust Implementation** (`crates/decision-engine/src/determinism.rs`):
+
 ```rust
 pub const FLOAT_PRECISION: f64 = 1e-9;
 
@@ -87,10 +92,10 @@ pub fn float_normalize(value: f64) -> f64 {
 
 ### 2.2 Special Values
 
-| Input | Canonical Output |
-|-------|------------------|
-| `NaN` | `0.0` |
-| `+Infinity` | `f64::MAX` (~1.7976931348623157e308) |
+| Input       | Canonical Output                      |
+| ----------- | ------------------------------------- |
+| `NaN`       | `0.0`                                 |
+| `+Infinity` | `f64::MAX` (~1.7976931348623157e308)  |
 | `-Infinity` | `f64::MIN` (~-1.7976931348623157e308) |
 
 ### 2.3 Integer Representation
@@ -98,6 +103,7 @@ pub fn float_normalize(value: f64) -> f64 {
 Integers (values with no fractional part) SHOULD be serialized without decimal places when possible.
 
 **Example**:
+
 ```json
 // Value 100.0 (after normalization)
 // Canonical: 100 (not 100.0)
@@ -108,12 +114,13 @@ Integers (values with no fractional part) SHOULD be serialized without decimal p
 IEEE 754 floating-point arithmetic can produce "noise" (e.g., `0.1 + 0.2 ≠ 0.3` exactly). Normalization eliminates this.
 
 **Example**:
+
 ```javascript
 // JavaScript
-0.1 + 0.2  // = 0.30000000000000004
+0.1 + 0.2; // = 0.30000000000000004
 
 // After normalization
-float_normalize(0.1 + 0.2)  // = 0.3
+float_normalize(0.1 + 0.2); // = 0.3
 ```
 
 ---
@@ -124,19 +131,20 @@ float_normalize(0.1 + 0.2)  // = 0.3
 
 Strings MUST be JSON-escaped with the following rules:
 
-| Character | Escape Sequence |
-|-----------|-----------------|
-| `\` | `\\` |
-| `"` | `\"` |
-| newline | `\n` |
-| carriage return | `\r` |
-| tab | `\t` |
+| Character       | Escape Sequence |
+| --------------- | --------------- |
+| `\`             | `\\`            |
+| `"`             | `\"`            |
+| newline         | `\n`            |
+| carriage return | `\r`            |
+| tab             | `\t`            |
 
 ### 3.2 Unicode
 
 Unicode characters SHOULD NOT be escaped unless required by the serialization format.
 
 **Example**:
+
 ```json
 // Preferred
 {"text": "héllo"}
@@ -154,6 +162,7 @@ Unicode characters SHOULD NOT be escaped unless required by the serialization fo
 `null` values are serialized as `null` (not omitted).
 
 **Example**:
+
 ```json
 {"value": null}  // Correct
 {}               // Incorrect (different meaning)
@@ -175,6 +184,7 @@ Optional fields with `None`/`undefined` values:
 Fields with default values SHOULD NOT be serialized if they equal the default.
 
 **Example** (`adversarial` field on `Scenario`):
+
 ```json
 // If adversarial = false (default)
 {"id": "s1", "probability": 0.5}  // Correct (adversarial omitted)
@@ -194,6 +204,7 @@ Actions and scenarios are semantically sets (identified by unique IDs). For fing
 **Rule**: Sort by `id` field lexicographically before hashing.
 
 **Example**:
+
 ```json
 // Input (any order)
 {"actions": [{"id": "buy", ...}, {"id": "sell", ...}]}
@@ -210,6 +221,7 @@ Outcomes are `(action_id, scenario_id, utility)` tuples. For fingerprint computa
 2. Then by `scenario_id` within each action
 
 **Example**:
+
 ```json
 // Canonical ordering
 {
@@ -233,13 +245,16 @@ When actions have identical composite scores, tie-break using **lexicographic or
 **Rule**: `a.id < b.id` ranks higher (appears first).
 
 **Example**:
+
 ```json
 // Both actions have composite_score = 50
 // Tie-break: "alpha" < "beta"
-{"ranked_actions": [
-  {"action_id": "alpha", "composite_score": 50, "rank": 1},
-  {"action_id": "beta", "composite_score": 50, "rank": 2}
-]}
+{
+  "ranked_actions": [
+    { "action_id": "alpha", "composite_score": 50, "rank": 1 },
+    { "action_id": "beta", "composite_score": 50, "rank": 2 }
+  ]
+}
 ```
 
 ### 6.2 Flip Distance Ordering
@@ -272,6 +287,7 @@ For `DecisionInput`, the fingerprint is computed from the **canonical JSON repre
 - `evidence` (if present)
 
 **NOT included in fingerprint**:
+
 - `meta` field (explicitly excluded from scoring)
 
 ### 7.3 Output Fingerprint
@@ -286,12 +302,12 @@ The `DecisionOutput.determinism_fingerprint` is the fingerprint of the **input**
 
 All errors MUST return structured JSON with:
 
-| Code | Meaning |
-|------|---------|
-| `E_SCHEMA` | Invalid JSON schema |
+| Code              | Meaning                                           |
+| ----------------- | ------------------------------------------------- |
+| `E_SCHEMA`        | Invalid JSON schema                               |
 | `E_INVALID_INPUT` | Invalid input values (e.g., negative probability) |
-| `E_NOT_FOUND` | Referenced entity not found |
-| `E_INTERNAL` | Internal error (should not happen) |
+| `E_NOT_FOUND`     | Referenced entity not found                       |
+| `E_INTERNAL`      | Internal error (should not happen)                |
 
 ### 8.2 Error Format
 
@@ -339,12 +355,12 @@ For any new implementation (TypeScript, Python, etc.), verify:
 {
   "id": "test_001",
   "actions": [
-    {"id": "a", "label": "Action A"},
-    {"id": "b", "label": "Action B"}
+    { "id": "a", "label": "Action A" },
+    { "id": "b", "label": "Action B" }
   ],
   "scenarios": [
-    {"id": "s1", "probability": 0.6, "adversarial": false},
-    {"id": "s2", "probability": 0.4, "adversarial": true}
+    { "id": "s1", "probability": 0.6, "adversarial": false },
+    { "id": "s2", "probability": 0.4, "adversarial": true }
   ],
   "outcomes": [
     ["a", "s1", 100],
@@ -361,17 +377,18 @@ For any new implementation (TypeScript, Python, etc.), verify:
 
 ```json
 {
-  "actions": [{"id": "x", "label": "X"}],
-  "scenarios": [{"id": "s", "probability": 1.0}],
+  "actions": [{ "id": "x", "label": "X" }],
+  "scenarios": [{ "id": "s", "probability": 1.0 }],
   "outcomes": [["x", "s", 0.30000000000000004]]
 }
 ```
 
 **Expected**: `0.30000000000000004` normalizes to `0.3`, producing the same fingerprint as:
+
 ```json
 {
-  "actions": [{"id": "x", "label": "X"}],
-  "scenarios": [{"id": "s", "probability": 1.0}],
+  "actions": [{ "id": "x", "label": "X" }],
+  "scenarios": [{ "id": "s", "probability": 1.0 }],
   "outcomes": [["x", "s", 0.3]]
 }
 ```

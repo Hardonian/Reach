@@ -1,12 +1,12 @@
 /**
  * ReadyLayer CI Auto-Bootstrapper
- * 
+ *
  * CLI command to generate CI workflow:
  * - Repo analyzer (detect language)
  * - Inject correct workflow template
  * - Validate GitHub App wiring
  * - Validate Gate binding
- * 
+ *
  * @module ci-autobootstrapper
  */
 
@@ -19,7 +19,7 @@ import { join, extname } from 'path';
 /**
  * Supported programming languages.
  */
-export type SupportedLanguage = 
+export type SupportedLanguage =
   | 'javascript'
   | 'typescript'
   | 'python'
@@ -42,7 +42,7 @@ export function detectLanguage(repoPath: string): {
   files: string[];
 } {
   const extensions = new Map<string, number>();
-  
+
   // Count file extensions
   const scanDir = (dir: string): string[] => {
     const files: string[] = [];
@@ -51,9 +51,13 @@ export function detectLanguage(repoPath: string): {
       for (const entry of entries) {
         const fullPath = join(dir, entry);
         const stat = require('fs').statSync(fullPath);
-        
+
         if (stat.isDirectory()) {
-          if (!entry.startsWith('.') && entry !== 'node_modules' && entry !== 'dist') {
+          if (
+            !entry.startsWith('.') &&
+            entry !== 'node_modules' &&
+            entry !== 'dist'
+          ) {
             files.push(...scanDir(fullPath));
           }
         } else {
@@ -69,9 +73,9 @@ export function detectLanguage(repoPath: string): {
     }
     return files;
   };
-  
+
   const files = scanDir(repoPath);
-  
+
   // Map extensions to languages
   const langMap: Record<string, SupportedLanguage> = {
     '.js': 'javascript',
@@ -86,7 +90,7 @@ export function detectLanguage(repoPath: string): {
     '.rb': 'ruby',
     '.php': 'php',
   };
-  
+
   const langCounts: Record<SupportedLanguage, number> = {
     javascript: 0,
     typescript: 0,
@@ -99,28 +103,28 @@ export function detectLanguage(repoPath: string): {
     php: 0,
     unknown: 0,
   };
-  
+
   for (const ext of files) {
     const lang = langMap[ext];
     if (lang) {
       langCounts[lang]++;
     }
   }
-  
+
   // Find dominant language
   let maxCount = 0;
   let dominantLang: SupportedLanguage = 'unknown';
-  
+
   for (const [lang, count] of Object.entries(langCounts)) {
     if (count > maxCount) {
       maxCount = count;
       dominantLang = lang as SupportedLanguage;
     }
   }
-  
+
   const total = files.length;
   const confidence = total > 0 ? maxCount / total : 0;
-  
+
   return {
     language: dominantLang,
     confidence,
@@ -442,7 +446,7 @@ export function bootstrapCI(
   repoPath: string,
   gateId?: string,
   apiKey?: string,
-  options?: { force?: boolean }
+  options?: { force?: boolean },
 ): BootstrapResult {
   const result: BootstrapResult = {
     success: false,
@@ -452,29 +456,36 @@ export function bootstrapCI(
     errors: [],
     warnings: [],
   };
-  
+
   // Detect language
   const detection = detectLanguage(repoPath);
   result.language = detection.language;
   result.confidence = detection.confidence;
-  
+
   if (detection.confidence < 0.5) {
     result.warnings.push(
-      `Low confidence (${(detection.confidence * 100).toFixed(0)}%) in language detection`
+      `Low confidence (${(detection.confidence * 100).toFixed(0)}%) in language detection`,
     );
   }
-  
+
   // Check if workflow already exists
-  const workflowPath = join(repoPath, '.github', 'workflows', 'readylayer-gate.yml');
-  
+  const workflowPath = join(
+    repoPath,
+    '.github',
+    'workflows',
+    'readylayer-gate.yml',
+  );
+
   if (existsSync(workflowPath) && !options?.force) {
-    result.errors.push('Workflow file already exists. Use --force to overwrite.');
+    result.errors.push(
+      'Workflow file already exists. Use --force to overwrite.',
+    );
     return result;
   }
-  
+
   // Generate workflow
   const template = WORKFLOW_TEMPLATES[detection.language];
-  
+
   // Ensure directory exists
   const workflowDir = join(repoPath, '.github', 'workflows');
   try {
@@ -483,11 +494,11 @@ export function bootstrapCI(
     result.errors.push(`Failed to create workflow directory: ${err}`);
     return result;
   }
-  
+
   // Write workflow file
   try {
     let content = template;
-    
+
     // Replace placeholder values if provided
     if (gateId) {
       content = content.replace(/READILAYER_GATE_ID/g, gateId);
@@ -495,28 +506,28 @@ export function bootstrapCI(
     if (apiKey) {
       content = content.replace(/READILAYER_API_KEY/g, apiKey);
     }
-    
+
     writeFileSync(workflowPath, content);
     result.workflow_created = true;
   } catch (err) {
     result.errors.push(`Failed to write workflow file: ${err}`);
     return result;
   }
-  
+
   // Validate GitHub App wiring (placeholder - would need actual GitHub API)
   if (!gateId) {
     result.warnings.push(
-      'Gate ID not provided. Add gate-id to workflow or configure via GitHub secrets.'
+      'Gate ID not provided. Add gate-id to workflow or configure via GitHub secrets.',
     );
   }
-  
+
   // Validate Gate binding (placeholder - would need actual API call)
   if (!apiKey) {
     result.warnings.push(
-      'API key not provided. Add api-key to workflow or configure via GitHub secrets.'
+      'API key not provided. Add api-key to workflow or configure via GitHub secrets.',
     );
   }
-  
+
   result.success = result.workflow_created;
   return result;
 }
@@ -541,7 +552,18 @@ export const BootstrapOptionsSchema = z.object({
 
 export const BootstrapResultSchema = z.object({
   success: z.boolean(),
-  language: z.enum(['javascript', 'typescript', 'python', 'go', 'rust', 'java', 'csharp', 'ruby', 'php', 'unknown']),
+  language: z.enum([
+    'javascript',
+    'typescript',
+    'python',
+    'go',
+    'rust',
+    'java',
+    'csharp',
+    'ruby',
+    'php',
+    'unknown',
+  ]),
   confidence: z.number().min(0).max(1),
   workflow_created: z.boolean(),
   errors: z.array(z.string()),
@@ -560,28 +582,30 @@ export async function runBootstrapCLI(args: string[]): Promise<void> {
     api_key: args[2],
     force: args.includes('--force'),
   });
-  
+
   console.log('ReadyLayer CI Auto-Bootstrapper');
   console.log('================================\n');
-  
+
   console.log(`Analyzing repository: ${options.repo_path}`);
-  
+
   const result = bootstrapCI(
     options.repo_path,
     options.gate_id,
     options.api_key,
-    { force: options.force }
+    { force: options.force },
   );
-  
-  console.log(`\nDetected language: ${result.language} (${(result.confidence * 100).toFixed(0)}% confidence)`);
-  
+
+  console.log(
+    `\nDetected language: ${result.language} (${(result.confidence * 100).toFixed(0)}% confidence)`,
+  );
+
   if (result.warnings.length > 0) {
     console.log('\nWarnings:');
     for (const warning of result.warnings) {
       console.log(`  - ${warning}`);
     }
   }
-  
+
   if (result.errors.length > 0) {
     console.log('\nErrors:');
     for (const error of result.errors) {
@@ -589,12 +613,16 @@ export async function runBootstrapCLI(args: string[]): Promise<void> {
     }
     process.exit(1);
   }
-  
+
   if (result.success) {
     console.log('\n✓ Workflow file created successfully!');
-    console.log(`  Location: ${options.repo_path}/.github/workflows/readylayer-gate.yml`);
+    console.log(
+      `  Location: ${options.repo_path}/.github/workflows/readylayer-gate.yml`,
+    );
     console.log('\nNext steps:');
-    console.log('  1. Add READILAYER_GATE_ID and READILAYER_API_KEY to GitHub secrets');
+    console.log(
+      '  1. Add READILAYER_GATE_ID and READILAYER_API_KEY to GitHub secrets',
+    );
     console.log('  2. Commit and push the workflow file');
     console.log('  3. Configure your Gate in the ReadyLayer dashboard');
   }

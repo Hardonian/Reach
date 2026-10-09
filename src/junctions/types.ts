@@ -4,7 +4,8 @@
 
 import { hash } from '../lib/hash';
 
-export type JunctionType = 'diff_critical' | 'drift_alert' | 'trust_drop' | 'policy_violation';
+export type JunctionType =
+  'diff_critical' | 'drift_alert' | 'trust_drop' | 'policy_violation';
 export type SourceType = 'diff' | 'drift' | 'policy' | 'trust';
 
 export interface JunctionTrigger {
@@ -50,7 +51,7 @@ export function generateJunctionFingerprint(trigger: JunctionTrigger): string {
     // Sort keys for deterministic output
     triggerData: sortObjectKeys(trigger.triggerData),
   });
-  
+
   return hash(canonical).substring(0, 16);
 }
 
@@ -69,11 +70,11 @@ function sortObjectKeys(obj: any): any {
   if (obj === null || obj === undefined) {
     return obj;
   }
-  
+
   if (Array.isArray(obj)) {
-    return obj.map(item => sortObjectKeys(item));
+    return obj.map((item) => sortObjectKeys(item));
   }
-  
+
   if (typeof obj === 'object') {
     const sorted: any = {};
     const keys = Object.keys(obj).sort();
@@ -82,14 +83,16 @@ function sortObjectKeys(obj: any): any {
     }
     return sorted;
   }
-  
+
   return obj;
 }
 
 /**
  * Maps severity score to severity level
  */
-export function getSeverityLevel(score: number): 'critical' | 'high' | 'medium' | 'low' {
+export function getSeverityLevel(
+  score: number,
+): 'critical' | 'high' | 'medium' | 'low' {
   if (score >= 0.9) return 'critical';
   if (score >= 0.7) return 'high';
   if (score >= 0.4) return 'medium';
@@ -99,15 +102,19 @@ export function getSeverityLevel(score: number): 'critical' | 'high' | 'medium' 
 /**
  * Junction type metadata
  */
-export const JUNCTION_TYPE_META: Record<JunctionType, {
-  label: string;
-  description: string;
-  icon: string;
-  color: string;
-}> = {
+export const JUNCTION_TYPE_META: Record<
+  JunctionType,
+  {
+    label: string;
+    description: string;
+    icon: string;
+    color: string;
+  }
+> = {
   diff_critical: {
     label: 'Critical Diff',
-    description: 'A significant change detected in a run diff that requires review',
+    description:
+      'A significant change detected in a run diff that requires review',
     icon: '⚡',
     color: '#dc2626',
   },

@@ -4,7 +4,9 @@ import { spawn, spawnSync } from 'node:child_process';
 
 const baseUrl = process.env.ROUTE_VERIFY_BASE_URL ?? 'http://127.0.0.1:3100';
 const shouldStartServer = process.env.ROUTE_VERIFY_START === '1';
-const serverStartupTimeoutMs = Number(process.env.ROUTE_VERIFY_TIMEOUT_MS ?? 60_000);
+const serverStartupTimeoutMs = Number(
+  process.env.ROUTE_VERIFY_TIMEOUT_MS ?? 60_000,
+);
 
 async function sleep(ms) {
   await new Promise((resolve) => setTimeout(resolve, ms));
@@ -26,7 +28,9 @@ async function waitForServer(url, timeoutMs) {
 
 function assertStatus(name, actual, expected) {
   if (!expected.includes(actual)) {
-    throw new Error(`${name}: expected [${expected.join(', ')}], received ${actual}`);
+    throw new Error(
+      `${name}: expected [${expected.join(', ')}], received ${actual}`,
+    );
   }
 }
 
@@ -44,7 +48,9 @@ async function checkStructuredError(name, path) {
   }
   const contentType = response.headers.get('content-type') ?? '';
   if (!contentType.includes('application/json')) {
-    throw new Error(`${name}: expected JSON content-type, received "${contentType || 'none'}"`);
+    throw new Error(
+      `${name}: expected JSON content-type, received "${contentType || 'none'}"`,
+    );
   }
   const payload = await response.json();
   if (typeof payload !== 'object' || payload === null) {
@@ -60,25 +66,61 @@ let server;
 
 try {
   if (shouldStartServer) {
-    const build = spawnSync('npm', ['--prefix', 'apps/arcade', 'run', 'build'], { stdio: 'inherit', env: process.env });
+    const build = spawnSync(
+      'npm',
+      ['--prefix', 'apps/arcade', 'run', 'build'],
+      { stdio: 'inherit', env: process.env },
+    );
     if ((build.status ?? 1) !== 0) {
-      throw new Error('Route verification failed: unable to build apps/arcade before start');
+      throw new Error(
+        'Route verification failed: unable to build apps/arcade before start',
+      );
     }
 
-    server = spawn('npm', ['--prefix', 'apps/arcade', 'run', 'start', '--', '--hostname', '127.0.0.1', '--port', '3100'], {
-      stdio: 'inherit',
-      env: process.env,
-    });
+    server = spawn(
+      'npm',
+      [
+        '--prefix',
+        'apps/arcade',
+        'run',
+        'start',
+        '--',
+        '--hostname',
+        '127.0.0.1',
+        '--port',
+        '3100',
+      ],
+      {
+        stdio: 'inherit',
+        env: process.env,
+      },
+    );
     await waitForServer(baseUrl, serverStartupTimeoutMs);
   }
 
   await checkRoute('Homepage', '/', [200]);
   await checkRoute('Marketing roadmap', '/roadmap', [200, 308]);
-  await checkRoute('Main app entry', '/dashboard', [200, 302, 307, 308, 401, 403]);
+  await checkRoute(
+    'Main app entry',
+    '/dashboard',
+    [200, 302, 307, 308, 401, 403],
+  );
 
-  await checkRoute('Governance DGL', '/governance/dgl', [200, 302, 307, 308, 401, 403]);
-  await checkRoute('Governance CPX', '/governance/cpx', [200, 302, 307, 308, 401, 403]);
-  await checkRoute('Governance SCCL', '/governance/sccl', [200, 302, 307, 308, 401, 403]);
+  await checkRoute(
+    'Governance DGL',
+    '/governance/dgl',
+    [200, 302, 307, 308, 401, 403],
+  );
+  await checkRoute(
+    'Governance CPX',
+    '/governance/cpx',
+    [200, 302, 307, 308, 401, 403],
+  );
+  await checkRoute(
+    'Governance SCCL',
+    '/governance/sccl',
+    [200, 302, 307, 308, 401, 403],
+  );
 
   await checkStructuredError('API projects auth gate', '/api/v1/projects');
   await checkStructuredError('API gates auth gate', '/api/v1/gates');

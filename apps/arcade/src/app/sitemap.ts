@@ -7,7 +7,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const routes =
     site.mode === 'enterprise'
       ? ['/', '/enterprise', '/contact']
-      : ['/', '/docs', '/gallery', '/download', '/security', '/whitepaper', '/roadmap'];
+      : [
+          '/',
+          '/docs',
+          '/gallery',
+          '/download',
+          '/security',
+          '/whitepaper',
+          '/roadmap',
+        ];
 
   return routes.map((route) => ({
     url: `${baseUrl}${route === '/' ? '' : route}`,

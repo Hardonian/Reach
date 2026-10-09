@@ -3,14 +3,25 @@
   "displayName": "Reach SCCL",
   "version": "0.0.1",
   "publisher": "reach",
-  "engines": { "vscode": "^1.85.0" },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
-      { "command": "reach.syncStatus", "title": "Reach: Sync Status" },
-      { "command": "reach.createBranch", "title": "Reach: Create Branch" },
-      { "command": "reach.packPatch", "title": "Reach: Pack Patch" }
+      {
+        "command": "reach.syncStatus",
+        "title": "Reach: Sync Status"
+      },
+      {
+        "command": "reach.createBranch",
+        "title": "Reach: Create Branch"
+      },
+      {
+        "command": "reach.packPatch",
+        "title": "Reach: Pack Patch"
+      }
     ],
     "configuration": {
       "title": "Reach SCCL",

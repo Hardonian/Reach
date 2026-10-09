@@ -17,6 +17,7 @@ This document formalizes the cryptographic proof that Reach run replay is integr
 ### Definitions
 
 Let:
+
 - `I` = canonical-JSON serialization of all run inputs (sorted keys)
 - `P` = SHA-256 of the policy bundle
 - `A` = sorted array of SHA-256 hashes of all artifacts
@@ -41,6 +42,7 @@ fingerprint     := SHA-256(R || V || event_log_hash)
 
 > **If** `fingerprint_original == fingerprint_replay`
 > **Then** with SHA-256 collision resistance, the following hold:
+>
 > 1. `R_replay == R_original` (same run_id → same inputs and policy)
 > 2. `V_replay == V_original` (same engine version)
 > 3. `event_log_hash_replay == event_log_hash_original` (same event log)
@@ -82,14 +84,14 @@ Each stage's hash depends on the previous stage's outputs, forming a cryptograph
 
 The proof model detects the following tampering vectors:
 
-| Attack Vector | Detection Method |
-| :--- | :--- |
-| Modified input data | `input_hash` mismatch → `run_id` mismatch → fingerprint mismatch |
-| Modified policy | `policy_version` mismatch → `run_id` mismatch → fingerprint mismatch |
-| Injected/deleted events in log | `event_log_hash` mismatch → fingerprint mismatch |
-| Modified outputs | `output_hash` mismatch (independently verifiable) |
-| Engine version substitution | `engine_version` mismatch → fingerprint mismatch |
-| Artifact tampering | `artifact_hashes` array mismatch |
+| Attack Vector                  | Detection Method                                                     |
+| :----------------------------- | :------------------------------------------------------------------- |
+| Modified input data            | `input_hash` mismatch → `run_id` mismatch → fingerprint mismatch     |
+| Modified policy                | `policy_version` mismatch → `run_id` mismatch → fingerprint mismatch |
+| Injected/deleted events in log | `event_log_hash` mismatch → fingerprint mismatch                     |
+| Modified outputs               | `output_hash` mismatch (independently verifiable)                    |
+| Engine version substitution    | `engine_version` mismatch → fingerprint mismatch                     |
+| Artifact tampering             | `artifact_hashes` array mismatch                                     |
 
 ---
 

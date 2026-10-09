@@ -13,7 +13,10 @@ export interface WorkspaceManifest {
   gates: { required: string[] };
   risk_zones: { high_risk_paths: string[] };
   acknowledgements: { intent_ack_path: string; openapi_ack_path: string };
-  identity: { git_host: 'github' | 'gitlab' | 'other'; auth_mode: 'device_code' | 'pat' | 'oidc' };
+  identity: {
+    git_host: 'github' | 'gitlab' | 'other';
+    auth_mode: 'device_code' | 'pat' | 'oidc';
+  };
 }
 
 export interface RepoState {
@@ -36,7 +39,12 @@ export interface SyncPlan {
   stale_commits: number;
 }
 
-export type ConflictClass = 'TEXT_OVERLAP' | 'STRUCTURAL_API' | 'TRUST_BOUNDARY' | 'OPENAPI_CONTRACT' | 'SEMANTIC_INTENT';
+export type ConflictClass =
+  | 'TEXT_OVERLAP'
+  | 'STRUCTURAL_API'
+  | 'TRUST_BOUNDARY'
+  | 'OPENAPI_CONTRACT'
+  | 'SEMANTIC_INTENT';
 
 export interface PatchApplyResult {
   ok: boolean;

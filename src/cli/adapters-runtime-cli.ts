@@ -5,43 +5,45 @@
  * zeo ingest --range <start:end> --out <dataset.json>
  */
 
-import { mkdir, writeFile } from "fs/promises";
-import { existsSync } from "fs";
-import { resolve, join } from "path";
+import { mkdir, writeFile } from 'fs/promises';
+import { existsSync } from 'fs';
+import { resolve, join } from 'path';
 import {
   createAdapterRuntime,
   runAdapter,
   ingestData,
   createQuarantineStore,
-} from "@zeo/adapters-runtime";
-import { createRealityAdapterRegistry } from "@zeo/adapters";
+} from '@zeo/adapters-runtime';
+import { createRealityAdapterRegistry } from '@zeo/adapters';
 
 export interface AdaptersRuntimeCliArgs {
-  command: "run" | "ingest" | "quarantine" | null;
+  command: 'run' | 'ingest' | 'quarantine' | null;
   adapterId?: string;
   range?: { start: string; end: string };
   out?: string;
-  format: "json" | "csv";
+  format: 'json' | 'csv';
   quarantineDir?: string;
   approvedOnly: boolean;
 }
 
-export function parseAdaptersRuntimeArgs(argv: string[]): AdaptersRuntimeCliArgs {
+export function parseAdaptersRuntimeArgs(
+  argv: string[],
+): AdaptersRuntimeCliArgs {
   const result: AdaptersRuntimeCliArgs = {
     command: null,
-    format: "json",
+    format: 'json',
     approvedOnly: false,
   };
 
   // Check for subcommand
-  if (argv[0] === "run") {
-    result.command = "run";
+  if (argv[0] === 'run') {
+    result.command = 'run';
     argv = argv.slice(1);
-  } else if (argv[0] === "ingest") {
-    result.command = "ingest";
+  } else if (argv[0] === 'ingest') {
+    result.command = 'ingest';
     argv = argv.slice(1);
-  } else if (argv[0] === "quarantine") {
-    result.command = "quarantine";
+  } else if (argv[0] === 'quarantine') {
+    result.command = 'quarantine';
     argv = argv.slice(1);
   }
 
@@ -49,29 +51,29 @@ export function parseAdaptersRuntimeArgs(argv: string[]): AdaptersRuntimeCliArgs
     const arg = argv[i];
     const next = argv[i + 1];
 
-    if (arg === "--adapter" && next) {
+    if (arg === '--adapter' && next) {
       result.adapterId = next;
       i++;
-    } else if (arg === "--range" && next) {
-      const [start, end] = next.split(":");
+    } else if (arg === '--range' && next) {
+      const [start, end] = next.split(':');
       if (start && end) {
         result.range = { start, end };
       }
       i++;
-    } else if (arg === "--out" && next) {
+    } else if (arg === '--out' && next) {
       result.out = next;
       i++;
-    } else if (arg === "--format" && next) {
-      if (next === "csv" || next === "json") {
+    } else if (arg === '--format' && next) {
+      if (next === 'csv' || next === 'json') {
         result.format = next;
       }
       i++;
-    } else if (arg === "--quarantine-dir" && next) {
+    } else if (arg === '--quarantine-dir' && next) {
       result.quarantineDir = next;
       i++;
-    } else if (arg === "--approved-only") {
+    } else if (arg === '--approved-only') {
       result.approvedOnly = true;
-    } else if (arg === "--help" || arg === "-h") {
+    } else if (arg === '--help' || arg === '-h') {
       printAdaptersRuntimeHelp();
       process.exit(0);
     }
@@ -106,39 +108,43 @@ Examples:
 `);
 }
 
-export async function runAdaptersRuntimeCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
+export async function runAdaptersRuntimeCommand(
+  args: AdaptersRuntimeCliArgs,
+): Promise<number> {
   if (!args.command) {
-    console.error("Error: No command specified");
+    console.error('Error: No command specified');
     printAdaptersRuntimeHelp();
     return 1;
   }
 
   try {
     switch (args.command) {
-      case "run":
+      case 'run':
         return await runAdapterCommand(args);
-      case "ingest":
+      case 'ingest':
         return await runIngestCommand(args);
-      case "quarantine":
+      case 'quarantine':
         return await runQuarantineCommand(args);
       default:
         console.error(`Error: Unknown command: ${args.command}`);
         return 1;
     }
   } catch (error) {
-    console.error("Error:", error instanceof Error ? error.message : error);
+    console.error('Error:', error instanceof Error ? error.message : error);
     return 1;
   }
 }
 
-async function runAdapterCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
+async function runAdapterCommand(
+  args: AdaptersRuntimeCliArgs,
+): Promise<number> {
   if (!args.adapterId) {
-    console.error("Error: --adapter is required for run command");
+    console.error('Error: --adapter is required for run command');
     return 1;
   }
 
   if (!args.range) {
-    console.error("Error: --range is required (format: start:end)");
+    console.error('Error: --range is required (format: start:end)');
     return 1;
   }
 
@@ -151,7 +157,7 @@ async function runAdapterCommand(args: AdaptersRuntimeCliArgs): Promise<number> 
 
   if (!adapter) {
     console.error(`Error: Adapter not found: ${args.adapterId}`);
-    console.log("Available adapters:");
+    console.log('Available adapters:');
     const adapters = registry.list();
     for (const info of adapters) {
       console.log(`  - ${info.id}: ${info.name}`);
@@ -162,7 +168,7 @@ async function runAdapterCommand(args: AdaptersRuntimeCliArgs): Promise<number> 
   // Create runtime
   const runtime = createAdapterRuntime(
     undefined,
-    args.quarantineDir ? { quarantineDir: args.quarantineDir } : undefined
+    args.quarantineDir ? { quarantineDir: args.quarantineDir } : undefined,
   );
 
   // Run adapter
@@ -179,30 +185,35 @@ async function runAdapterCommand(args: AdaptersRuntimeCliArgs): Promise<number> 
   console.log(`Latency: ${result.metrics.fetchLatencyMs}ms`);
 
   if (result.quarantined.length > 0) {
-    console.log("\nQuarantined observations:");
+    console.log('\nQuarantined observations:');
     for (const q of result.quarantined) {
-      console.log(`  - ${q.observation.observationId}: ${q.reason} (${q.severity})`);
+      console.log(
+        `  - ${q.observation.observationId}: ${q.reason} (${q.severity})`,
+      );
     }
   }
 
   // Write output
   if (args.out) {
     const outPath = resolve(process.cwd(), args.out);
-    
-    if (args.format === "json") {
+
+    if (args.format === 'json') {
       const output = {
         adapterId: result.adapterId,
         metrics: result.metrics,
         observations: args.approvedOnly
           ? result.observations
-          : [...result.observations, ...result.quarantined.map(q => q.observation)],
+          : [
+              ...result.observations,
+              ...result.quarantined.map((q) => q.observation),
+            ],
         quarantined: result.quarantined,
         batch: result.batch,
       };
-      
+
       await writeFile(outPath, JSON.stringify(output, null, 2));
     }
-    
+
     console.log(`\nOutput written to: ${outPath}`);
   }
 
@@ -211,7 +222,7 @@ async function runAdapterCommand(args: AdaptersRuntimeCliArgs): Promise<number> 
 
 async function runIngestCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
   if (!args.range) {
-    console.error("Error: --range is required (format: start:end)");
+    console.error('Error: --range is required (format: start:end)');
     return 1;
   }
 
@@ -223,7 +234,7 @@ async function runIngestCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
   const adapters = registry.getEnabled();
 
   if (adapters.length === 0) {
-    console.error("Error: No enabled adapters found");
+    console.error('Error: No enabled adapters found');
     return 1;
   }
 
@@ -232,7 +243,7 @@ async function runIngestCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
   // Create runtime
   const runtime = createAdapterRuntime(
     undefined,
-    args.quarantineDir ? { quarantineDir: args.quarantineDir } : undefined
+    args.quarantineDir ? { quarantineDir: args.quarantineDir } : undefined,
   );
 
   // Run ingest
@@ -248,7 +259,7 @@ async function runIngestCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
   console.log(`Adapters: ${result.summary.adapterCount}`);
 
   if (result.quarantined.length > 0) {
-    console.log("\nQuarantined observations by severity:");
+    console.log('\nQuarantined observations by severity:');
     const bySeverity = new Map<string, number>();
     for (const q of result.quarantined) {
       bySeverity.set(q.severity, (bySeverity.get(q.severity) ?? 0) + 1);
@@ -265,25 +276,27 @@ async function runIngestCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
   return 0;
 }
 
-async function runQuarantineCommand(args: AdaptersRuntimeCliArgs): Promise<number> {
+async function runQuarantineCommand(
+  args: AdaptersRuntimeCliArgs,
+): Promise<number> {
   const store = createQuarantineStore({ retentionHours: 168 });
 
-  console.log("=== Quarantine Status ===\n");
+  console.log('=== Quarantine Status ===\n');
 
   // List pending
-  const pending = await store.list({ status: "pending" });
+  const pending = await store.list({ status: 'pending' });
   console.log(`Pending: ${pending.length}`);
 
   // List approved
-  const approved = await store.list({ status: "approved" });
+  const approved = await store.list({ status: 'approved' });
   console.log(`Approved: ${approved.length}`);
 
   // List rejected
-  const rejected = await store.list({ status: "rejected" });
+  const rejected = await store.list({ status: 'rejected' });
   console.log(`Rejected: ${rejected.length}`);
 
   if (pending.length > 0) {
-    console.log("\nPending quarantine entries:");
+    console.log('\nPending quarantine entries:');
     for (const entry of pending.slice(0, 10)) {
       console.log(`  ${entry.id}: ${entry.reason} (${entry.severity})`);
       console.log(`    Adapter: ${entry.metadata.adapterId}`);
@@ -302,4 +315,3 @@ async function runQuarantineCommand(args: AdaptersRuntimeCliArgs): Promise<numbe
 
   return 0;
 }
-

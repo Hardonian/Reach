@@ -12,9 +12,9 @@
  *   --ci     Fail with exit code 1 if any CRITICAL findings in proof-hash paths
  */
 
-import * as fs from "fs";
-import * as path from "path";
-import * as crypto from "crypto";
+import * as fs from 'fs';
+import * as path from 'path';
+import * as crypto from 'crypto';
 
 // ---------------------------------------------------------------------------
 // Pattern definitions
@@ -23,109 +23,114 @@ import * as crypto from "crypto";
 interface Pattern {
   id: string;
   regex: RegExp;
-  risk: "CRITICAL" | "MEDIUM" | "LOW";
+  risk: 'CRITICAL' | 'MEDIUM' | 'LOW';
   description: string;
   remedy: string;
 }
 
 const TS_PATTERNS: Pattern[] = [
   {
-    id: "DATE_NOW",
+    id: 'DATE_NOW',
     regex: /\bDate\.now\(\)/g,
-    risk: "CRITICAL",
-    description: "Date.now() produces nondeterministic timestamps",
+    risk: 'CRITICAL',
+    description: 'Date.now() produces nondeterministic timestamps',
     remedy:
-      "Accept timestamp as a parameter or use src/determinism/seededRandom.ts",
+      'Accept timestamp as a parameter or use src/determinism/seededRandom.ts',
   },
   {
-    id: "MATH_RANDOM",
+    id: 'MATH_RANDOM',
     regex: /\bMath\.random\(\)/g,
-    risk: "CRITICAL",
-    description: "Math.random() is nondeterministic",
-    remedy: "Use seededRandom() from src/determinism/seededRandom.ts",
+    risk: 'CRITICAL',
+    description: 'Math.random() is nondeterministic',
+    remedy: 'Use seededRandom() from src/determinism/seededRandom.ts',
   },
   {
-    id: "OBJECT_KEYS_UNSORTED",
+    id: 'OBJECT_KEYS_UNSORTED',
     regex: /Object\.keys\s*\([^)]+\)(?!\s*\.sort\s*\()/g,
-    risk: "MEDIUM",
+    risk: 'MEDIUM',
     description:
-      "Object.keys() without .sort() has undefined iteration order in hashing paths",
+      'Object.keys() without .sort() has undefined iteration order in hashing paths',
     remedy:
-      "Use Object.keys(x).sort() or canonicalJson() from src/determinism/canonicalJson.ts",
+      'Use Object.keys(x).sort() or canonicalJson() from src/determinism/canonicalJson.ts',
   },
   {
-    id: "JSON_STRINGIFY_NON_CANONICAL",
+    id: 'JSON_STRINGIFY_NON_CANONICAL',
     regex:
       /JSON\.stringify\s*\([^)]+\)(?!\s*(?:\/\/\s*canonical|;\s*\/\/\s*canonical|toCanonicalJson))/g,
-    risk: "CRITICAL",
+    risk: 'CRITICAL',
     description:
-      "JSON.stringify without canonicalization produces unstable key ordering - CRITICAL in fingerprint paths",
-    remedy: "Use toCanonicalJson() from src/engine/translate for all fingerprint-contributing serialization",
-    paths: ["src/engine", "src/determinism", "services/runner/internal/determinism", "services/runner/internal/poee"],
+      'JSON.stringify without canonicalization produces unstable key ordering - CRITICAL in fingerprint paths',
+    remedy:
+      'Use toCanonicalJson() from src/engine/translate for all fingerprint-contributing serialization',
+    paths: [
+      'src/engine',
+      'src/determinism',
+      'services/runner/internal/determinism',
+      'services/runner/internal/poee',
+    ],
   },
   {
-    id: "LOCALE_FORMAT",
+    id: 'LOCALE_FORMAT',
     regex:
       /\.toLocaleDateString\s*\(|\.toLocaleTimeString\s*\(|\.toLocaleString\s*\(/g,
-    risk: "MEDIUM",
+    risk: 'MEDIUM',
     description:
-      "Locale-sensitive formatting varies across environments and platforms",
-    remedy: "Use .toISOString() or fixed-locale Intl.DateTimeFormat",
+      'Locale-sensitive formatting varies across environments and platforms',
+    remedy: 'Use .toISOString() or fixed-locale Intl.DateTimeFormat',
   },
   {
-    id: "PROCESS_ENV_IMPLICIT",
+    id: 'PROCESS_ENV_IMPLICIT',
     regex:
       /process\.env(?:\[["'`][^"'`]+["'`]\]|\.[A-Z_]+)(?!\s*(?:\?\?|!==|===|==|&&|\|\|)\s*["'`])/g,
-    risk: "LOW",
+    risk: 'LOW',
     description:
-      "Implicit environment reads may vary across machines without validation",
+      'Implicit environment reads may vary across machines without validation',
     remedy:
-      "Validate env vars at startup; document required vars in .env.example",
+      'Validate env vars at startup; document required vars in .env.example',
   },
 ];
 
 const GO_PATTERNS: Pattern[] = [
   {
-    id: "TIME_NOW",
+    id: 'TIME_NOW',
     regex: /\btime\.Now\s*\(\)/g,
-    risk: "CRITICAL",
+    risk: 'CRITICAL',
     description:
-      "time.Now() in fingerprint-contributing paths breaks determinism",
-    remedy: "Pass time as a parameter or use a fixed epoch anchor",
+      'time.Now() in fingerprint-contributing paths breaks determinism',
+    remedy: 'Pass time as a parameter or use a fixed epoch anchor',
   },
   {
-    id: "RAND_UNSEED",
+    id: 'RAND_UNSEED',
     regex: /\brand\s*\.\s*(?:Int|Float|Intn|Int63|Read|Shuffle)\s*\(/g,
-    risk: "CRITICAL",
-    description: "math/rand without explicit seeding is nondeterministic",
+    risk: 'CRITICAL',
+    description: 'math/rand without explicit seeding is nondeterministic',
     remedy:
-      "Remove from proof-contributing paths or use a deterministic seed derived from inputs",
+      'Remove from proof-contributing paths or use a deterministic seed derived from inputs',
   },
   {
-    id: "UUID_V4",
-    regex:
-      /uuid\s*\.\s*(?:New|NewString|NewRandom|MustParse)\s*\(\s*\)/g,
-    risk: "CRITICAL",
-    description: "UUID v4 generation is nondeterministic",
-    remedy: "Derive IDs deterministically from content hash",
+    id: 'UUID_V4',
+    regex: /uuid\s*\.\s*(?:New|NewString|NewRandom|MustParse)\s*\(\s*\)/g,
+    risk: 'CRITICAL',
+    description: 'UUID v4 generation is nondeterministic',
+    remedy: 'Derive IDs deterministically from content hash',
   },
   {
-    id: "MAP_ITERATION_UNSORTED",
+    id: 'MAP_ITERATION_UNSORTED',
     regex: /for\s+\w+(?:\s*,\s*\w+)?\s*:=\s*range\s+(\w+)\s*\{/g,
-    risk: "MEDIUM",
+    risk: 'MEDIUM',
     description:
-      "Go map iteration order is randomized by the runtime — sort keys first",
+      'Go map iteration order is randomized by the runtime — sort keys first',
     remedy:
-      "Extract keys, sort.Strings(keys), then iterate. See determinism.CanonicalJSON",
+      'Extract keys, sort.Strings(keys), then iterate. See determinism.CanonicalJSON',
   },
   {
-    id: "JSON_MARSHAL_MAP",
+    id: 'JSON_MARSHAL_MAP',
     regex: /json\.Marshal\s*\(\s*(?:map\[|&?[a-z]\w*)\s*/g,
-    risk: "LOW",
+    risk: 'LOW',
     description:
-      "json.Marshal on maps may produce unstable ordering across Go versions",
+      'json.Marshal on maps may produce unstable ordering across Go versions',
     remedy:
-      "Use determinism.CanonicalJSON() for proof-contributing serialization",
+      'Use determinism.CanonicalJSON() for proof-contributing serialization',
   },
 ];
 
@@ -139,7 +144,7 @@ interface Finding {
   line: number;
   column: number;
   snippet: string;
-  risk: "CRITICAL" | "MEDIUM" | "LOW";
+  risk: 'CRITICAL' | 'MEDIUM' | 'LOW';
   description: string;
   remedy: string;
   affectsProofHash: boolean;
@@ -165,30 +170,47 @@ interface AuditReport {
 // ---------------------------------------------------------------------------
 
 const PROOF_HASH_PATHS = [
-  "services/runner/internal/determinism",
-  "services/runner/internal/poee",
-  "services/runner/cmd/reachctl",
-  "core/evaluation",
-  "src/determinism",
+  'services/runner/internal/determinism',
+  'services/runner/internal/poee',
+  'services/runner/cmd/reachctl',
+  'core/evaluation',
+  'src/determinism',
 ];
 
 // Directories and extensions to skip
 const SKIP_DIRS = new Set([
-  "node_modules",
-  ".git",
-  "dist",
-  "build",
-  ".next",
-  "coverage",
-  ".turbo",
-  "vendor",
-  "third_party",
+  'node_modules',
+  '.git',
+  'dist',
+  'build',
+  '.next',
+  'coverage',
+  '.turbo',
+  'vendor',
+  'third_party',
 ]);
 
 const SKIP_EXTENSIONS = new Set([
-  ".exe", ".zip", ".png", ".mp4", ".ico", ".woff", ".woff2",
-  ".ttf", ".otf", ".eot", ".svg", ".jpg", ".jpeg", ".gif",
-  ".webp", ".avif", ".pdf", ".bin", ".db", ".sqlite",
+  '.exe',
+  '.zip',
+  '.png',
+  '.mp4',
+  '.ico',
+  '.woff',
+  '.woff2',
+  '.ttf',
+  '.otf',
+  '.eot',
+  '.svg',
+  '.jpg',
+  '.jpeg',
+  '.gif',
+  '.webp',
+  '.avif',
+  '.pdf',
+  '.bin',
+  '.db',
+  '.sqlite',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -196,12 +218,12 @@ const SKIP_EXTENSIONS = new Set([
 // ---------------------------------------------------------------------------
 
 function isProofHashPath(filePath: string): boolean {
-  const normalized = filePath.replace(/\\/g, "/");
+  const normalized = filePath.replace(/\\/g, '/');
   return PROOF_HASH_PATHS.some((p) => normalized.includes(p));
 }
 
 function shouldSkipDir(name: string): boolean {
-  return SKIP_DIRS.has(name) || name.startsWith(".");
+  return SKIP_DIRS.has(name) || name.startsWith('.');
 }
 
 function shouldSkipFile(filePath: string): boolean {
@@ -236,12 +258,12 @@ function walkDir(dir: string, extensions: string[]): string[] {
 function scanFile(filePath: string, patterns: Pattern[]): Finding[] {
   let content: string;
   try {
-    content = fs.readFileSync(filePath, "utf-8");
+    content = fs.readFileSync(filePath, 'utf-8');
   } catch {
     return [];
   }
 
-  const lines = content.split("\n");
+  const lines = content.split('\n');
   const findings: Finding[] = [];
   const isProof = isProofHashPath(filePath);
 
@@ -252,26 +274,29 @@ function scanFile(filePath: string, patterns: Pattern[]): Finding[] {
 
       // Skip pure comment lines
       if (
-        trimmed.startsWith("//") ||
-        trimmed.startsWith("#") ||
-        trimmed.startsWith("*") ||
-        trimmed.startsWith("/*")
+        trimmed.startsWith('//') ||
+        trimmed.startsWith('#') ||
+        trimmed.startsWith('*') ||
+        trimmed.startsWith('/*')
       ) {
         continue;
       }
 
       // Inline-comment check: skip if line contains suppression marker
-      if (line.includes("// determinism:ok") || line.includes("// nondeterministic:ok")) {
+      if (
+        line.includes('// determinism:ok') ||
+        line.includes('// nondeterministic:ok')
+      ) {
         continue;
       }
 
-      const lineRegex = new RegExp(pattern.regex.source, "g");
+      const lineRegex = new RegExp(pattern.regex.source, 'g');
       let match: RegExpExecArray | null;
 
       while ((match = lineRegex.exec(line)) !== null) {
         findings.push({
           id: pattern.id,
-          file: filePath.replace(/\\/g, "/"),
+          file: filePath.replace(/\\/g, '/'),
           line: lineIdx + 1,
           column: match.index + 1,
           snippet: trimmed.substring(0, 120),
@@ -296,14 +321,14 @@ function generateReport(repoRoot: string): AuditReport {
   let totalFiles = 0;
 
   // Scan TypeScript / JavaScript
-  const tsFiles = walkDir(repoRoot, [".ts", ".tsx", ".js", ".mjs"]);
+  const tsFiles = walkDir(repoRoot, ['.ts', '.tsx', '.js', '.mjs']);
   for (const file of tsFiles) {
     findings.push(...scanFile(file, TS_PATTERNS));
     totalFiles++;
   }
 
   // Scan Go
-  const goFiles = walkDir(repoRoot, [".go"]);
+  const goFiles = walkDir(repoRoot, ['.go']);
   for (const file of goFiles) {
     findings.push(...scanFile(file, GO_PATTERNS));
     totalFiles++;
@@ -317,26 +342,24 @@ function generateReport(repoRoot: string): AuditReport {
     return a.file.localeCompare(b.file);
   });
 
-  const critical = findings.filter((f) => f.risk === "CRITICAL").length;
-  const medium = findings.filter((f) => f.risk === "MEDIUM").length;
-  const low = findings.filter((f) => f.risk === "LOW").length;
+  const critical = findings.filter((f) => f.risk === 'CRITICAL').length;
+  const medium = findings.filter((f) => f.risk === 'MEDIUM').length;
+  const low = findings.filter((f) => f.risk === 'LOW').length;
   const proofHashRisks = findings.filter(
-    (f) => f.affectsProofHash && f.risk === "CRITICAL"
+    (f) => f.affectsProofHash && f.risk === 'CRITICAL',
   ).length;
 
   // Stable scan ID derived from findings (deterministic)
   const scanId = crypto
-    .createHash("sha256")
+    .createHash('sha256')
     .update(
-      JSON.stringify(
-        findings.map((f) => `${f.file}:${f.line}:${f.id}`).sort()
-      )
+      JSON.stringify(findings.map((f) => `${f.file}:${f.line}:${f.id}`).sort()),
     )
-    .digest("hex")
+    .digest('hex')
     .substring(0, 16);
 
   return {
-    generated_at: "0000-00-00T00:00:00Z", // Epoch anchor — deterministic placeholder
+    generated_at: '0000-00-00T00:00:00Z', // Epoch anchor — deterministic placeholder
     repo_root: repoRoot,
     scan_id: scanId,
     summary: {
@@ -353,96 +376,98 @@ function generateReport(repoRoot: string): AuditReport {
 
 function generateMarkdown(report: AuditReport): string {
   const lines: string[] = [
-    "# Determinism Audit Report",
-    "",
+    '# Determinism Audit Report',
+    '',
     `**Scan ID:** \`${report.scan_id}\``,
-    "",
-    "## Summary",
-    "",
-    "| Severity | Count |",
-    "|----------|-------|",
+    '',
+    '## Summary',
+    '',
+    '| Severity | Count |',
+    '|----------|-------|',
     `| 🔴 CRITICAL | ${report.summary.critical} |`,
     `| 🟡 MEDIUM | ${report.summary.medium} |`,
     `| 🟢 LOW | ${report.summary.low} |`,
     `| **Total** | **${report.summary.total_findings}** |`,
-    "",
+    '',
     `**Files Scanned:** ${report.summary.total_files_scanned}`,
     `**Proof Hash Risks (CRITICAL in engine paths):** ${report.summary.proof_hash_risks}`,
-    "",
+    '',
   ];
 
   if (report.summary.critical > 0) {
-    lines.push("## 🔴 Critical Findings");
-    lines.push("");
+    lines.push('## 🔴 Critical Findings');
+    lines.push('');
     lines.push(
-      "These findings may directly compromise proof hash stability. Fix before merging."
+      'These findings may directly compromise proof hash stability. Fix before merging.',
     );
-    lines.push("");
-    const critical = report.findings.filter((f) => f.risk === "CRITICAL");
+    lines.push('');
+    const critical = report.findings.filter((f) => f.risk === 'CRITICAL');
     for (const f of critical) {
       lines.push(`### \`${f.id}\` — \`${f.file}:${f.line}\``);
-      lines.push("");
+      lines.push('');
       lines.push(`**Description:** ${f.description}`);
-      lines.push("");
+      lines.push('');
       lines.push(`**Snippet:**`);
-      lines.push("```");
+      lines.push('```');
       lines.push(f.snippet);
-      lines.push("```");
+      lines.push('```');
       lines.push(`**Remedy:** ${f.remedy}`);
-      lines.push(`**Affects Proof Hash:** ${f.affectsProofHash ? "⚠️ Yes" : "No"}`);
-      lines.push("");
+      lines.push(
+        `**Affects Proof Hash:** ${f.affectsProofHash ? '⚠️ Yes' : 'No'}`,
+      );
+      lines.push('');
     }
   }
 
   if (report.summary.medium > 0) {
-    lines.push("## 🟡 Medium Findings");
-    lines.push("");
-    const medium = report.findings.filter((f) => f.risk === "MEDIUM");
+    lines.push('## 🟡 Medium Findings');
+    lines.push('');
+    const medium = report.findings.filter((f) => f.risk === 'MEDIUM');
     for (const f of medium) {
       lines.push(`### \`${f.id}\` — \`${f.file}:${f.line}\``);
       lines.push(`**Description:** ${f.description}`);
       lines.push(`**Remedy:** ${f.remedy}`);
-      lines.push("");
+      lines.push('');
     }
   }
 
   if (report.summary.low > 0) {
-    lines.push("## 🟢 Low Findings");
-    lines.push("");
-    const low = report.findings.filter((f) => f.risk === "LOW");
+    lines.push('## 🟢 Low Findings');
+    lines.push('');
+    const low = report.findings.filter((f) => f.risk === 'LOW');
     for (const f of low) {
-      lines.push(
-        `- \`${f.id}\` at \`${f.file}:${f.line}\`: ${f.description}`
-      );
+      lines.push(`- \`${f.id}\` at \`${f.file}:${f.line}\`: ${f.description}`);
     }
-    lines.push("");
+    lines.push('');
   }
 
-  lines.push("## Remediation Priority");
-  lines.push("");
+  lines.push('## Remediation Priority');
+  lines.push('');
   lines.push(
-    "1. **CRITICAL in engine paths** — Fix `DATE_NOW`, `MATH_RANDOM`, `TIME_NOW`, `UUID_V4` in `services/runner/internal/` and `core/`"
+    '1. **CRITICAL in engine paths** — Fix `DATE_NOW`, `MATH_RANDOM`, `TIME_NOW`, `UUID_V4` in `services/runner/internal/` and `core/`',
   );
   lines.push(
-    "2. **Unsorted iteration** — Replace `Object.keys()` without `.sort()` in any serialization path"
+    '2. **Unsorted iteration** — Replace `Object.keys()` without `.sort()` in any serialization path',
   );
   lines.push(
-    "3. **MEDIUM in metadata paths** — Audit `JSON_STRINGIFY_NON_CANONICAL` in report/audit code"
+    '3. **MEDIUM in metadata paths** — Audit `JSON_STRINGIFY_NON_CANONICAL` in report/audit code',
   );
   lines.push(
-    "4. **LOW** — Document acceptable environment reads with `// determinism:ok` suppression"
+    '4. **LOW** — Document acceptable environment reads with `// determinism:ok` suppression',
   );
-  lines.push("");
-  lines.push("## Suppression");
-  lines.push("");
+  lines.push('');
+  lines.push('## Suppression');
+  lines.push('');
   lines.push(
-    "To suppress a known-acceptable finding, add `// determinism:ok` on the same line:"
+    'To suppress a known-acceptable finding, add `// determinism:ok` on the same line:',
   );
-  lines.push("```typescript");
-  lines.push("const ts = Date.now(); // determinism:ok — used only for logging");
-  lines.push("```");
+  lines.push('```typescript');
+  lines.push(
+    'const ts = Date.now(); // determinism:ok — used only for logging',
+  );
+  lines.push('```');
 
-  return lines.join("\n");
+  return lines.join('\n');
 }
 
 // ---------------------------------------------------------------------------
@@ -450,29 +475,27 @@ function generateMarkdown(report: AuditReport): string {
 // ---------------------------------------------------------------------------
 
 const args = process.argv.slice(2);
-const repoRoot = path.resolve(
-  args.find((a) => !a.startsWith("--")) ?? "."
-);
-const jsonOutput = args.includes("--json");
-const ciMode = args.includes("--ci");
+const repoRoot = path.resolve(args.find((a) => !a.startsWith('--')) ?? '.');
+const jsonOutput = args.includes('--json');
+const ciMode = args.includes('--ci');
 // Second positional arg is output dir
-const positional = args.filter((a) => !a.startsWith("--"));
+const positional = args.filter((a) => !a.startsWith('--'));
 const outputDir = positional[1] ? path.resolve(positional[1]) : repoRoot;
 
 const report = generateReport(repoRoot);
 
-const jsonPath = path.join(outputDir, "determinism-report.json");
-const mdPath = path.join(outputDir, "determinism-report.md");
+const jsonPath = path.join(outputDir, 'determinism-report.json');
+const mdPath = path.join(outputDir, 'determinism-report.md');
 
 fs.mkdirSync(outputDir, { recursive: true });
-fs.writeFileSync(jsonPath, JSON.stringify(report, null, 2) + "\n");
+fs.writeFileSync(jsonPath, JSON.stringify(report, null, 2) + '\n');
 fs.writeFileSync(mdPath, generateMarkdown(report));
 
 if (jsonOutput) {
-  process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+  process.stdout.write(JSON.stringify(report, null, 2) + '\n');
 } else {
-  console.log("Determinism Audit Scan");
-  console.log("======================");
+  console.log('Determinism Audit Scan');
+  console.log('======================');
   console.log(`Scan ID:           ${report.scan_id}`);
   console.log(`Files scanned:     ${report.summary.total_files_scanned}`);
   console.log(`Critical:          ${report.summary.critical}`);
@@ -485,7 +508,7 @@ if (jsonOutput) {
 
 if (ciMode && report.summary.proof_hash_risks > 0) {
   process.stderr.write(
-    `\n❌ CI FAILED: ${report.summary.proof_hash_risks} CRITICAL nondeterminism issue(s) in proof-hash paths. Fix before merging.\n`
+    `\n❌ CI FAILED: ${report.summary.proof_hash_risks} CRITICAL nondeterminism issue(s) in proof-hash paths. Fix before merging.\n`,
   );
   process.exit(1);
 }

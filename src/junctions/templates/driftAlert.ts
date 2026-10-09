@@ -39,30 +39,29 @@ export function evaluateDriftAlert(data: DriftAlertData): {
     semantic: 0.3,
     mixed: 0.35,
   };
-  
+
   const threshold = thresholds[data.driftCategory] || 0.5;
-  
+
   // Calculate composite drift score
-  const compositeDrift = (
+  const compositeDrift =
     data.driftMetrics.outputDrift * 0.3 +
     data.driftMetrics.behaviorDrift * 0.4 +
-    data.driftMetrics.semanticDrift * 0.3
-  );
-  
+    data.driftMetrics.semanticDrift * 0.3;
+
   let severityScore = compositeDrift;
-  
+
   // Increase severity for increasing trend
   if (data.trend === 'increasing') {
     severityScore = Math.min(1.0, severityScore + 0.15);
   }
-  
+
   // Increase severity for mixed drift
   if (data.driftCategory === 'mixed') {
     severityScore = Math.min(1.0, severityScore + 0.1);
   }
-  
+
   const shouldTrigger = severityScore >= threshold;
-  
+
   const triggerTrace = {
     algorithm: 'drift_alert_evaluation',
     thresholds: {
@@ -79,7 +78,7 @@ export function evaluateDriftAlert(data: DriftAlertData): {
     computedSeverity: severityScore,
     shouldTrigger,
   };
-  
+
   return { shouldTrigger, severityScore, triggerTrace };
 }
 
@@ -88,10 +87,11 @@ export function evaluateDriftAlert(data: DriftAlertData): {
  */
 export function createDriftAlertTrigger(
   data: DriftAlertData,
-  scopeKeys?: Record<string, string>
+  scopeKeys?: Record<string, string>,
 ): DriftAlertTrigger {
-  const { shouldTrigger, severityScore, triggerTrace } = evaluateDriftAlert(data);
-  
+  const { shouldTrigger, severityScore, triggerTrace } =
+    evaluateDriftAlert(data);
+
   return {
     type: 'drift_alert',
     sourceType: 'drift',

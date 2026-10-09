@@ -10,10 +10,22 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     const qp = Object.fromEntries(req.nextUrl.searchParams.entries());
     const parsed = parseBody(BrowsePacksSchema, qp);
-    if ('errors' in parsed) return cloudErrorResponse(parsed.errors.issues[0]?.message ?? 'Invalid query', 400);
+    if ('errors' in parsed)
+      return cloudErrorResponse(
+        parsed.errors.issues[0]?.message ?? 'Invalid query',
+        400,
+      );
 
     const { search, category, sort, verifiedOnly, page, limit } = parsed.data;
-    const result = browsePacks({ search, category, sort, verifiedOnly, page, limit, visibility: 'public' });
+    const result = browsePacks({
+      search,
+      category,
+      sort,
+      verifiedOnly,
+      page,
+      limit,
+      visibility: 'public',
+    });
 
     return NextResponse.json({
       packs: result.packs.map(formatPack),

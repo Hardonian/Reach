@@ -8,7 +8,7 @@ The canonical guide for Founder-led maintenance and strategic acceleration.
 
 1. **AUDIT THE FUNNEL (0-5m)**:
    - Check `MTTFS` (Median Time to First Success). Target: < 15 minutes.
-   - If MTTFS > 20m, the next sprint must focus *exclusively* on simplify/onboarding.
+   - If MTTFS > 20m, the next sprint must focus _exclusively_ on simplify/onboarding.
 2. **ENTROPY SCAN (5-10m)**:
    - Review "Red Flag" Dashboard.
    - Identify "Orphan Routes" (zero traffic in 30 days). **Kill them.**
@@ -28,6 +28,7 @@ The canonical guide for Founder-led maintenance and strategic acceleration.
 ## DRIFT RECOVERY PROTOCOL
 
 If the Anti-Sprawl CI check starts failing consistently:
+
 1. **FREEZE**: No new features for 7 days.
 2. **PURGE**: Delete 1 route for every 1 illegal route proposed.
 3. **UNIFY**: Force-merge any divergent component patterns (e.g., merging 3 different "Button" styles into a single primitive).

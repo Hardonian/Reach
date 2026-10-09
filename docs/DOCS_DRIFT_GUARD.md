@@ -14,14 +14,16 @@ npm run docs:doctor
 ```
 
 ### Run with Autofix (Safe) ```bash
+
 npm run docs:doctor:fix
-```
+
+````
 
 *Supports safe fixes like link casing and command reference updates.*
 
 ### Run Smoke Tests ```bash
 # Requires a running server at http://localhost:3000 npx tsx tools/docs/drift/smoke.ts
-```
+````
 
 ## Configuration ### Claim Allowlist
 
@@ -31,4 +33,5 @@ Verified high-risk claims can be added to:
 ## CI Integration The system is integrated into GitHub Actions via `.github/workflows/docs-drift.yml`. It runs on every pull request to `main` and fails if drift is detected.
 
 ## Reports Audit reports are generated in JSON format at:
+
 `.artifacts/docs-drift/*.report.json`

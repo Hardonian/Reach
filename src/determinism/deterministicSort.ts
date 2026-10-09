@@ -28,7 +28,7 @@ export function sortNumbers(arr: readonly number[]): number[] {
 /**
  * Sorts an array of objects by a string key.
  * Returns a new array; does not mutate the input.
- * 
+ *
  * STABILITY: Preserves input order for equal keys (stable sort).
  *
  * @example
@@ -36,36 +36,42 @@ export function sortNumbers(arr: readonly number[]): number[] {
  */
 export function sortByKey<T extends Record<string, unknown>>(
   arr: readonly T[],
-  key: keyof T
+  key: keyof T,
 ): T[] {
   // Use stable sort with index as tiebreaker
-  return [...arr].map((item, index) => ({ item, index })).sort((a, b) => {
-    const av = String(a.item[key]);
-    const bv = String(b.item[key]);
-    if (av < bv) return -1;
-    if (av > bv) return 1;
-    // Stable sort: preserve original order for equal keys
-    return a.index - b.index;
-  }).map(({ item }) => item);
+  return [...arr]
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => {
+      const av = String(a.item[key]);
+      const bv = String(b.item[key]);
+      if (av < bv) return -1;
+      if (av > bv) return 1;
+      // Stable sort: preserve original order for equal keys
+      return a.index - b.index;
+    })
+    .map(({ item }) => item);
 }
 
 /**
  * Sorts an array of objects by a numeric key in ascending order.
  * Returns a new array; does not mutate the input.
- * 
+ *
  * STABILITY: Preserves input order for equal keys (stable sort).
  */
 export function sortByNumericKey<T extends Record<string, unknown>>(
   arr: readonly T[],
-  key: keyof T
+  key: keyof T,
 ): T[] {
   // Use stable sort with index as tiebreaker
-  return [...arr].map((item, index) => ({ item, index })).sort((a, b) => {
-    const diff = Number(a.item[key]) - Number(b.item[key]);
-    if (diff !== 0) return diff;
-    // Stable sort: preserve original order for equal keys
-    return a.index - b.index;
-  }).map(({ item }) => item);
+  return [...arr]
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => {
+      const diff = Number(a.item[key]) - Number(b.item[key]);
+      if (diff !== 0) return diff;
+      // Stable sort: preserve original order for equal keys
+      return a.index - b.index;
+    })
+    .map(({ item }) => item);
 }
 
 /**
@@ -74,7 +80,7 @@ export function sortByNumericKey<T extends Record<string, unknown>>(
  */
 export function sortWith<T>(
   arr: readonly T[],
-  comparator: (a: T, b: T) => number
+  comparator: (a: T, b: T) => number,
 ): T[] {
   return [...arr].sort(comparator);
 }
@@ -86,9 +92,7 @@ export function sortWith<T>(
  * @example
  * sortedEntries({ b: 2, a: 1 }) // [["a", 1], ["b", 2]]
  */
-export function sortedEntries<T>(
-  obj: Record<string, T>
-): Array<[string, T]> {
+export function sortedEntries<T>(obj: Record<string, T>): Array<[string, T]> {
   return Object.keys(obj)
     .sort()
     .map((k) => [k, obj[k]]);

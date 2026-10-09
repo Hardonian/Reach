@@ -34,31 +34,33 @@ export function evaluateTrustDrop(data: TrustDropData): {
 } {
   const dropThreshold = 0.15; // 15% drop triggers alert
   const criticalThreshold = 0.5; // Below 0.5 is critical
-  
+
   // Calculate the drop amount
   const dropAmount = data.previousTrustScore - data.currentTrustScore;
   const dropPercentage = dropAmount / data.previousTrustScore;
-  
+
   // Calculate severity based on drop and absolute level
   let severityScore = dropPercentage;
-  
+
   // If trust is critically low, increase severity
   if (data.currentTrustScore < criticalThreshold) {
     severityScore = Math.min(1.0, severityScore + 0.3);
   }
-  
+
   // Factor in reliability component (most important)
   if (data.trustComponents.reliability < 0.6) {
     severityScore = Math.min(1.0, severityScore + 0.15);
   }
-  
+
   // Factor in safety component
   if (data.trustComponents.safety < 0.5) {
     severityScore = Math.min(1.0, severityScore + 0.2);
   }
-  
-  const shouldTrigger = dropPercentage >= dropThreshold || data.currentTrustScore < criticalThreshold;
-  
+
+  const shouldTrigger =
+    dropPercentage >= dropThreshold ||
+    data.currentTrustScore < criticalThreshold;
+
   const triggerTrace = {
     algorithm: 'trust_drop_evaluation',
     thresholds: {
@@ -78,7 +80,7 @@ export function evaluateTrustDrop(data: TrustDropData): {
     computedSeverity: severityScore,
     shouldTrigger,
   };
-  
+
   return { shouldTrigger, severityScore, triggerTrace };
 }
 
@@ -87,10 +89,11 @@ export function evaluateTrustDrop(data: TrustDropData): {
  */
 export function createTrustDropTrigger(
   data: TrustDropData,
-  scopeKeys?: Record<string, string>
+  scopeKeys?: Record<string, string>,
 ): TrustDropTrigger {
-  const { shouldTrigger, severityScore, triggerTrace } = evaluateTrustDrop(data);
-  
+  const { shouldTrigger, severityScore, triggerTrace } =
+    evaluateTrustDrop(data);
+
   return {
     type: 'trust_drop',
     sourceType: 'trust',

@@ -1,29 +1,29 @@
 /**
  * Protocol Engine Adapter
- * 
+ *
  * Provides integration with the Requiem engine via the binary protocol.
  * This is the default adapter that uses binary framed communication.
- * 
+ *
  * MERGE GATE COMPLIANT:
  * - Uses binary framed daemon by default
  * - HELLO negotiation enforces engine_version + protocol_version + hash_primitive=blake3
  * - Client fails closed on fallback hash backend
  * - Frame-normalized results (no stdout parsing)
- * 
+ *
  * FALLBACK: Only uses temp-file CLI in --protocol=json debug mode
- * 
+ *
  * @module engine/adapters/protocol
  */
 
 import { ExecRequest, ExecResult } from '../contract';
 import { BaseEngineAdapter, deriveSeed } from './base';
 import { hasFloatingPointValues } from '../utils/validation';
-import { 
-  ProtocolClient, 
+import {
+  ProtocolClient,
   ConnectionState,
-  type ProtocolClientConfig 
+  type ProtocolClientConfig,
 } from '../../protocol/client';
-import { 
+import {
   createHello,
   type ExecRequestPayload,
   type ExecResultPayload,
@@ -45,18 +45,18 @@ export interface ProtocolAdapterConfig {
    * Protocol client configuration
    */
   client?: Partial<ProtocolClientConfig>;
-  
+
   /**
    * Use JSON temp-file CLI instead of binary protocol
    * DEBUG ONLY: Not for production use
    */
   useJsonFallback?: boolean;
-  
+
   /**
    * Requiem CLI path (only used if useJsonFallback=true)
    */
   cliPath?: string;
-  
+
   /**
    * Expected engine version (semver)
    */
@@ -70,10 +70,10 @@ export interface ProtocolAdapterConfig {
 
 /**
  * Protocol Engine Adapter (Binary Framed)
- * 
+ *
  * This is the primary adapter that communicates with the Requiem engine
  * using the binary protocol over TCP sockets.
- * 
+ *
  * MERGE GATE: This adapter is the default and uses:
  * - Binary framed protocol (not temp files)
  * - CBOR encoding
@@ -85,7 +85,7 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
   private config: ProtocolAdapterConfig;
   private isConnected = false;
   private fallbackAdapter: RequiemEngineAdapter | null = null;
-  
+
   constructor(config: ProtocolAdapterConfig = {}) {
     super();
     this.config = {
@@ -93,7 +93,7 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
       ...config,
     };
   }
-  
+
   /**
    * Check if the engine is ready
    */
@@ -103,41 +103,46 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
     }
     return this.isConnected && this.client?.isReady === true;
   }
-  
+
   /**
    * Configure and connect to the engine
    */
   async configure(): Promise<boolean> {
     // DEBUG MODE: Use JSON temp-file fallback if explicitly requested
     if (this.config.useJsonFallback) {
-      console.warn('[ProtocolAdapter] DEBUG MODE: Using JSON temp-file fallback');
+      console.warn(
+        '[ProtocolAdapter] DEBUG MODE: Using JSON temp-file fallback',
+      );
       this.fallbackAdapter = new RequiemEngineAdapter({
         cliPath: this.config.cliPath,
         expectedVersion: this.config.expectedVersion,
       });
       return this.fallbackAdapter.configure();
     }
-    
+
     // NORMAL MODE: Use binary protocol
     try {
       const clientConfig: ProtocolClientConfig = {
         host: process.env.REACH_ENGINE_HOST?.split(':')[0] ?? '127.0.0.1',
-        port: parseInt(process.env.REACH_ENGINE_HOST?.split(':')[1] ?? '9000', 10),
+        port: parseInt(
+          process.env.REACH_ENGINE_HOST?.split(':')[1] ?? '9000',
+          10,
+        ),
         connectTimeoutMs: 5000,
         requestTimeoutMs: 30000,
         autoReconnect: true,
         ...this.config.client,
       };
-      
+
       this.client = new ProtocolClient(clientConfig);
-      
+
       // Connect (performs HELLO negotiation)
       // This will fail if:
       // - Server doesn't support binary protocol
       // - Protocol version mismatch
       // - hash_version is not 'blake3'
       await this.client.connect();
-      
+
       this.isConnected = true;
       return true;
     } catch (error) {
@@ -146,10 +151,10 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
       return false;
     }
   }
-  
+
   /**
    * Evaluate a decision request
-   * 
+   *
    * Uses binary protocol by default. Only falls back to temp-file CLI
    * if useJsonFallback was explicitly set to true.
    */
@@ -178,24 +183,29 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
         error: validation.errors?.join(', '),
       };
     }
-    
+
     // Use semaphore protection and binary protocol
     return this.executeWithSemaphore(request, async (req) => {
       return this.doEvaluate(req);
     });
   }
-  
+
   /**
    * Validate that input is compatible with Protocol Engine
    */
   validateInput(request: ExecRequest): { valid: boolean; errors?: string[] } {
     const errors: string[] = [];
-    
+
     // Check for floating point values
-    if (request.params.outcomes && hasFloatingPointValues(request.params.outcomes)) {
-      errors.push('floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic');
+    if (
+      request.params.outcomes &&
+      hasFloatingPointValues(request.params.outcomes)
+    ) {
+      errors.push(
+        'floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic',
+      );
     }
-    
+
     return {
       valid: errors.length === 0,
       errors: errors.length > 0 ? errors : undefined,
@@ -209,38 +219,43 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
     if (!this.client?.isReady) {
       throw new Error('Protocol client not connected. Call configure() first.');
     }
-    
+
     // Convert ExecRequest to protocol format
     const protocolRequest = this.toProtocolRequest(request);
-    
+
     // Log request payload for debugging serialization issues
     if (this.config.logger) {
-      this.config.logger('[ProtocolAdapter] Sending execution request', { run_id: protocolRequest.run_id, payload_size: JSON.stringify(protocolRequest, (_key, value) => typeof value === 'bigint' ? value.toString() : value).length });
+      this.config.logger('[ProtocolAdapter] Sending execution request', {
+        run_id: protocolRequest.run_id,
+        payload_size: JSON.stringify(protocolRequest, (_key, value) =>
+          typeof value === 'bigint' ? value.toString() : value,
+        ).length,
+      });
     }
 
     // Execute via binary protocol
     const result = await this.client.execute(protocolRequest);
-    
+
     // Convert result back to ExecResult
     return this.fromProtocolResult(result, request.requestId);
   }
-  
+
   /**
    * Convert internal ExecRequest to protocol format
    */
   private toProtocolRequest(request: ExecRequest): ExecRequestPayload {
     // Derive seed for determinism
     const seed = request.params.seed ?? deriveSeed(request.requestId);
-    
+
     // Convert steps to workflow format
     const steps: WorkflowStep[] = [];
-    
+
     // Default policy: allow
     const policy: Policy = {
       rules: [],
       default_decision: { type: 'allow' } as Decision,
     };
-    
+
     // Build execution controls
     const controls: ExecutionControls = {
       max_steps: undefined,
@@ -249,13 +264,13 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
       budget_limit_usd: BigInt(0),
       min_step_interval_us: Duration.fromMillis(10),
     };
-    
+
     const workflow: Workflow = {
       name: request.params.algorithm ?? 'default',
       version: '1.0.0',
       steps,
     };
-    
+
     return {
       run_id: request.requestId,
       workflow,
@@ -269,15 +284,18 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
       },
     };
   }
-  
+
   /**
    * Convert protocol result to internal ExecResult
    */
-  private fromProtocolResult(result: ExecResultPayload, requestId: string): ExecResult {
+  private fromProtocolResult(
+    result: ExecResultPayload,
+    requestId: string,
+  ): ExecResult {
     // Map protocol status to internal status
     let status: 'success' | 'error' | 'timeout' = 'success';
     let error: string | undefined;
-    
+
     if (result.status.type === 'failed') {
       status = 'error';
       error = result.status.reason;
@@ -287,15 +305,17 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
     }
     // Note: 'paused' is not mapped to 'pending' - pending is not a terminal status
     // Paused executions will report as success but with special handling needed
-    
+
     // Extract metadata safely (may not exist in all protocol versions)
-    const metadata = (result as unknown as Record<string, Record<string, string>>).metadata || {};
-    
+    const metadata =
+      (result as unknown as Record<string, Record<string, string>>).metadata ||
+      {};
+
     return {
       requestId,
       status,
       recommendedAction: this.extractRecommendedAction(result),
-      ranking: this.extractRanking(result).map(r => r.actionId), // Convert to string[]
+      ranking: this.extractRanking(result).map((r) => r.actionId), // Convert to string[]
       trace: {
         algorithm: metadata['algorithm'] ?? 'unknown',
         // Note: seed is not part of ExecutionTrace in contract
@@ -310,7 +330,7 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
       error,
     };
   }
-  
+
   /**
    * Extract recommended action from result
    */
@@ -320,7 +340,7 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
     }
     return '';
   }
-  
+
   /**
    * Extract ranking from result
    */
@@ -335,7 +355,7 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
       expectedUtility: number;
       rank: number;
     }> = [];
-    
+
     let rank = 1;
     for (const event of result.events) {
       if (event.event_type === 'action_selected' && event.payload?.action_id) {
@@ -346,10 +366,10 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
         });
       }
     }
-    
+
     return rankings;
   }
-  
+
   /**
    * Health check via protocol
    */
@@ -365,11 +385,11 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
         version: 'fallback',
       };
     }
-    
+
     if (!this.client?.isReady) {
       return { healthy: false, message: 'Not connected' };
     }
-    
+
     try {
       const health = await this.client.health(detailed);
       return {
@@ -383,7 +403,7 @@ export class ProtocolEngineAdapter extends BaseEngineAdapter {
       };
     }
   }
-  
+
   /**
    * Disconnect from the engine
    */
@@ -404,18 +424,20 @@ let protocolAdapterInstance: ProtocolEngineAdapter | undefined;
 
 /**
  * Get or create the singleton Protocol engine adapter
- * 
+ *
  * By default, uses binary framed protocol.
  * Set REACH_PROTOCOL=json env var to use temp-file CLI (debug only).
  */
-export function getProtocolEngine(config?: ProtocolAdapterConfig): ProtocolEngineAdapter {
+export function getProtocolEngine(
+  config?: ProtocolAdapterConfig,
+): ProtocolEngineAdapter {
   if (!protocolAdapterInstance) {
     // Check for debug mode from environment
     const useJsonFallback = process.env.REACH_PROTOCOL === 'json';
     if (useJsonFallback) {
       console.warn('[ProtocolEngine] DEBUG: Using JSON temp-file fallback');
     }
-    
+
     protocolAdapterInstance = new ProtocolEngineAdapter({
       useJsonFallback,
       ...config,
@@ -427,7 +449,9 @@ export function getProtocolEngine(config?: ProtocolAdapterConfig): ProtocolEngin
 /**
  * Initialize the Protocol engine with configuration
  */
-export async function initProtocolEngine(config?: ProtocolAdapterConfig): Promise<ProtocolEngineAdapter> {
+export async function initProtocolEngine(
+  config?: ProtocolAdapterConfig,
+): Promise<ProtocolEngineAdapter> {
   const engine = getProtocolEngine(config);
   await engine.configure();
   return engine;
@@ -443,14 +467,14 @@ export async function evaluateWithProtocol(
 ): Promise<ExecResult | null> {
   try {
     const engine = getProtocolEngine(config);
-    
+
     if (!engine.isReady()) {
       const configured = await engine.configure();
       if (!configured) {
         return null;
       }
     }
-    
+
     return await engine.evaluate(request);
   } catch (error) {
     console.error('Protocol engine evaluation failed:', error);
@@ -471,7 +495,9 @@ export async function isProtocolAvailable(): Promise<boolean> {
  * Use for debugging or when daemon is not available
  */
 export function useJsonFallbackMode(cliPath?: string): ProtocolEngineAdapter {
-  console.warn('[ProtocolEngine] WARNING: Using JSON fallback mode (not for production)');
+  console.warn(
+    '[ProtocolEngine] WARNING: Using JSON fallback mode (not for production)',
+  );
   protocolAdapterInstance = new ProtocolEngineAdapter({
     useJsonFallback: true,
     cliPath,

@@ -8,9 +8,9 @@
  * - verify:rollback (FORCE_RUST actually uses rust; FORCE_REQUIEM uses requiem)
  */
 
-import { performance } from "node:perf_hooks";
-import { EventEmitter } from "node:events";
-import { strict as assert } from "node:assert";
+import { performance } from 'node:perf_hooks';
+import { EventEmitter } from 'node:events';
+import { strict as assert } from 'node:assert';
 import {
   DaemonLifecycleManager,
   BoundedQueue,
@@ -18,7 +18,7 @@ import {
   LockfileManager,
   CrashSafeRestart,
   getDefaultConfig,
-} from "../daemon/lifecycle.js";
+} from '../daemon/lifecycle.js';
 import {
   ProtocolHandler,
   FrameCodec,
@@ -27,7 +27,7 @@ import {
   ProtocolError,
   ProtocolErrorCode,
   MAX_FRAME_BYTES,
-} from "../protocol/frames.js";
+} from '../protocol/frames.js';
 import {
   EngineSelector,
   RollbackManager,
@@ -37,7 +37,7 @@ import {
   EngineSelectionMode,
   ENV_FORCE_RUST,
   ENV_FORCE_REQUIEM,
-} from "../safety/rollback.js";
+} from '../safety/rollback.js';
 
 // ============================================================================
 // Test Framework
@@ -56,7 +56,7 @@ class TestRunner extends EventEmitter {
 
   async runTest(
     name: string,
-    fn: () => Promise<void> | void
+    fn: () => Promise<void> | void,
   ): Promise<TestResult> {
     const start = performance.now();
     try {
@@ -64,7 +64,7 @@ class TestRunner extends EventEmitter {
       const duration = performance.now() - start;
       const result: TestResult = { name, passed: true, duration };
       this.results.push(result);
-      this.emit("test_pass", result);
+      this.emit('test_pass', result);
       return result;
     } catch (err) {
       const duration = performance.now() - start;
@@ -76,7 +76,7 @@ class TestRunner extends EventEmitter {
         details: err instanceof Error ? { stack: err.stack } : undefined,
       };
       this.results.push(result);
-      this.emit("test_fail", result);
+      this.emit('test_fail', result);
       return result;
     }
   }
@@ -102,7 +102,7 @@ export async function verifyDaemon(runtimeDir: string): Promise<TestResult[]> {
   const runner = new TestRunner();
   const config = getDefaultConfig(runtimeDir);
 
-  await runner.runTest("daemon:bounded_queue_enforces_limit", () => {
+  await runner.runTest('daemon:bounded_queue_enforces_limit', () => {
     const queue = new BoundedQueue<number>(5);
 
     // Fill to capacity
@@ -111,31 +111,39 @@ export async function verifyDaemon(runtimeDir: string): Promise<TestResult[]> {
     }
 
     // Next enqueue should fail deterministically
-    assert.strictEqual(queue.isFull(), true, "Queue should be full");
-    assert.strictEqual(queue.enqueue(999), false, "Should reject when full");
-    assert.strictEqual(queue.size(), 5, "Queue size should remain 5");
+    assert.strictEqual(queue.isFull(), true, 'Queue should be full');
+    assert.strictEqual(queue.enqueue(999), false, 'Should reject when full');
+    assert.strictEqual(queue.size(), 5, 'Queue size should remain 5');
   });
 
-  await runner.runTest("daemon:queue_maintains_fifo_order", () => {
+  await runner.runTest('daemon:queue_maintains_fifo_order', () => {
     const queue = new BoundedQueue<string>(10);
-    const items = ["a", "b", "c", "d", "e"];
+    const items = ['a', 'b', 'c', 'd', 'e'];
 
     for (const item of items) {
       queue.enqueue(item);
     }
 
     for (const expected of items) {
-      assert.strictEqual(queue.dequeue(), expected, "Should dequeue in FIFO order");
+      assert.strictEqual(
+        queue.dequeue(),
+        expected,
+        'Should dequeue in FIFO order',
+      );
     }
 
-    assert.strictEqual(queue.dequeue(), undefined, "Should return undefined when empty");
+    assert.strictEqual(
+      queue.dequeue(),
+      undefined,
+      'Should return undefined when empty',
+    );
   });
 
-  await runner.runTest("daemon:heartbeat_emits_regularly", async () => {
+  await runner.runTest('daemon:heartbeat_emits_regularly', async () => {
     const heartbeat = new HeartbeatManager(50, 1000); // 50ms interval for testing
     let beatCount = 0;
 
-    heartbeat.on("heartbeat", () => {
+    heartbeat.on('heartbeat', () => {
       beatCount++;
     });
 
@@ -145,14 +153,18 @@ export async function verifyDaemon(runtimeDir: string): Promise<TestResult[]> {
 
     heartbeat.stop();
 
-    assert.strictEqual(beatCount >= 3, true, `Expected at least 3 beats, got ${beatCount}`);
+    assert.strictEqual(
+      beatCount >= 3,
+      true,
+      `Expected at least 3 beats, got ${beatCount}`,
+    );
   });
 
-  await runner.runTest("daemon:challenge_emits_at_interval", async () => {
+  await runner.runTest('daemon:challenge_emits_at_interval', async () => {
     const heartbeat = new HeartbeatManager(50, 2); // Challenge every 2 requests
     let challengeCount = 0;
 
-    heartbeat.on("challenge", () => {
+    heartbeat.on('challenge', () => {
       challengeCount++;
     });
 
@@ -169,66 +181,93 @@ export async function verifyDaemon(runtimeDir: string): Promise<TestResult[]> {
     heartbeat.stop();
 
     // Should have at least one challenge after 10 requests (every 2)
-    assert.strictEqual(challengeCount >= 1, true, `Expected at least 1 challenge, got ${challengeCount}`);
+    assert.strictEqual(
+      challengeCount >= 1,
+      true,
+      `Expected at least 1 challenge, got ${challengeCount}`,
+    );
   });
 
-  await runner.runTest("daemon:lockfile_prevents_double_start", async () => {
+  await runner.runTest('daemon:lockfile_prevents_double_start', async () => {
     const lockfile = new LockfileManager(
       `${runtimeDir}/test1.lock`,
-      `${runtimeDir}/test1.pid`
+      `${runtimeDir}/test1.pid`,
     );
 
     // First acquire should succeed
-    assert.strictEqual(lockfile.acquireLock(), true, "First acquire should succeed");
+    assert.strictEqual(
+      lockfile.acquireLock(),
+      true,
+      'First acquire should succeed',
+    );
 
     // Second acquire should fail
     const lockfile2 = new LockfileManager(
       `${runtimeDir}/test1.lock`,
-      `${runtimeDir}/test1.pid`
+      `${runtimeDir}/test1.pid`,
     );
-    assert.strictEqual(lockfile2.acquireLock(), false, "Second acquire should fail");
+    assert.strictEqual(
+      lockfile2.acquireLock(),
+      false,
+      'Second acquire should fail',
+    );
 
     // Cleanup
     lockfile.releaseLock();
   });
 
-  await runner.runTest("daemon:lockfile_detects_stale_lock", async () => {
-    const fs = await import("node:fs");
+  await runner.runTest('daemon:lockfile_detects_stale_lock', async () => {
+    const fs = await import('node:fs');
     const staleLock = `${runtimeDir}/stale.lock`;
     const stalePid = `${runtimeDir}/stale.pid`;
 
-    fs.writeFileSync(staleLock, JSON.stringify({ pid: 99999, startedAt: new Date().toISOString() }));
-    fs.writeFileSync(stalePid, "99999");
+    fs.writeFileSync(
+      staleLock,
+      JSON.stringify({ pid: 99999, startedAt: new Date().toISOString() }),
+    );
+    fs.writeFileSync(stalePid, '99999');
 
     const lockfile = new LockfileManager(staleLock, stalePid);
 
     // Should be able to acquire since PID 99999 doesn't exist
-    assert.strictEqual(lockfile.acquireLock(), true, "Should acquire stale lock");
+    assert.strictEqual(
+      lockfile.acquireLock(),
+      true,
+      'Should acquire stale lock',
+    );
 
     lockfile.releaseLock();
   });
 
-  await runner.runTest("daemon:crash_restart_implements_backoff", () => {
+  await runner.runTest('daemon:crash_restart_implements_backoff', () => {
     const restarter = new CrashSafeRestart(5, 60000);
     const attempts: number[] = [];
 
-    restarter.on("restart_scheduled", (data: { attempt: number }) => {
+    restarter.on('restart_scheduled', (data: { attempt: number }) => {
       attempts.push(data.attempt);
     });
 
     // Simulate 3 crashes
     for (let i = 0; i < 3; i++) {
-      assert.strictEqual(restarter.attemptRestart(), true, `Attempt ${i + 1} should be allowed`);
+      assert.strictEqual(
+        restarter.attemptRestart(),
+        true,
+        `Attempt ${i + 1} should be allowed`,
+      );
     }
 
-    assert.deepStrictEqual(attempts, [1, 2, 3], "Should track all attempts");
-    assert.strictEqual(restarter.getCrashCount(), 3, "Crash count should be 3");
+    assert.deepStrictEqual(attempts, [1, 2, 3], 'Should track all attempts');
+    assert.strictEqual(restarter.getCrashCount(), 3, 'Crash count should be 3');
 
     restarter.recordSuccess();
-    assert.strictEqual(restarter.getCrashCount(), 0, "Crash count should reset after success");
+    assert.strictEqual(
+      restarter.getCrashCount(),
+      0,
+      'Crash count should reset after success',
+    );
   });
 
-  await runner.runTest("daemon:crash_restart_limits_attempts", () => {
+  await runner.runTest('daemon:crash_restart_limits_attempts', () => {
     const restarter = new CrashSafeRestart(3, 60000);
 
     // Simulate max crashes
@@ -237,16 +276,24 @@ export async function verifyDaemon(runtimeDir: string): Promise<TestResult[]> {
     }
 
     // 4th attempt should fail
-    assert.strictEqual(restarter.attemptRestart(), false, "Should exceed max restarts");
+    assert.strictEqual(
+      restarter.attemptRestart(),
+      false,
+      'Should exceed max restarts',
+    );
   });
 
-  await runner.runTest("daemon:lifecycle_manager_initializes", () => {
+  await runner.runTest('daemon:lifecycle_manager_initializes', () => {
     const manager = new DaemonLifecycleManager(config);
     const status = manager.getStatus();
 
-    assert.strictEqual(status.pid, process.pid, "PID should match");
-    assert.strictEqual(status.queueSize, 0, "Queue should start empty");
-    assert.strictEqual(status.version, config.protocolVersion, "Version should match config");
+    assert.strictEqual(status.pid, process.pid, 'PID should match');
+    assert.strictEqual(status.queueSize, 0, 'Queue should start empty');
+    assert.strictEqual(
+      status.version,
+      config.protocolVersion,
+      'Version should match config',
+    );
   });
 
   return runner.getResults();
@@ -259,12 +306,12 @@ export async function verifyDaemon(runtimeDir: string): Promise<TestResult[]> {
 export async function verifyProtocol(): Promise<TestResult[]> {
   const runner = new TestRunner();
 
-  await runner.runTest("protocol:max_frame_bytes_enforced", () => {
+  await runner.runTest('protocol:max_frame_bytes_enforced', () => {
     const codec = new FrameCodec({
       maxFrameBytes: 1024,
       frameTimeoutMs: 5000,
-      protocolVersion: "1.0.0",
-      minProtocolVersion: "1.0.0",
+      protocolVersion: '1.0.0',
+      minProtocolVersion: '1.0.0',
       enforceVersionCheck: true,
       enableChecksums: true,
     });
@@ -272,162 +319,201 @@ export async function verifyProtocol(): Promise<TestResult[]> {
     const largePayload = Buffer.alloc(2000);
 
     assert.throws(
-      () => codec.encode(FrameType.REQUEST, "1.0.0", largePayload),
+      () => codec.encode(FrameType.REQUEST, '1.0.0', largePayload),
       ProtocolError,
-      "Should throw ProtocolError for oversized payload"
+      'Should throw ProtocolError for oversized payload',
     );
   });
 
-  await runner.runTest("protocol:invalid_magic_rejected", () => {
+  await runner.runTest('protocol:invalid_magic_rejected', () => {
     const codec = new FrameCodec({
       maxFrameBytes: MAX_FRAME_BYTES,
       frameTimeoutMs: 5000,
-      protocolVersion: "1.0.0",
-      minProtocolVersion: "1.0.0",
+      protocolVersion: '1.0.0',
+      minProtocolVersion: '1.0.0',
       enforceVersionCheck: true,
       enableChecksums: true,
     });
 
-    const invalidFrame = Buffer.concat([Buffer.from([0x00, 0x00, 0x00, 0x00]), Buffer.alloc(100)]);
+    const invalidFrame = Buffer.concat([
+      Buffer.from([0x00, 0x00, 0x00, 0x00]),
+      Buffer.alloc(100),
+    ]);
 
     assert.throws(
       () => codec.decode(invalidFrame),
-      (err: unknown) => err instanceof ProtocolError && err.code === ProtocolErrorCode.INVALID_MAGIC,
-      "Should reject invalid magic bytes"
+      (err: unknown) =>
+        err instanceof ProtocolError &&
+        err.code === ProtocolErrorCode.INVALID_MAGIC,
+      'Should reject invalid magic bytes',
     );
   });
 
-  await runner.runTest("protocol:version_negotiation_agrees", () => {
+  await runner.runTest('protocol:version_negotiation_agrees', () => {
     const negotiator = new VersionNegotiator({
       maxFrameBytes: MAX_FRAME_BYTES,
       frameTimeoutMs: 5000,
-      protocolVersion: "1.2.0",
-      minProtocolVersion: "1.0.0",
+      protocolVersion: '1.2.0',
+      minProtocolVersion: '1.0.0',
       enforceVersionCheck: true,
       enableChecksums: true,
     });
 
-    const agreed = negotiator.negotiate("1.0.0", "1.2.0");
-    assert.strictEqual(agreed, "1.0.0", "Should agree on lower version");
+    const agreed = negotiator.negotiate('1.0.0', '1.2.0');
+    assert.strictEqual(agreed, '1.0.0', 'Should agree on lower version');
   });
 
-  await runner.runTest("protocol:version_below_minimum_rejected", () => {
+  await runner.runTest('protocol:version_below_minimum_rejected', () => {
     const negotiator = new VersionNegotiator({
       maxFrameBytes: MAX_FRAME_BYTES,
       frameTimeoutMs: 5000,
-      protocolVersion: "1.2.0",
-      minProtocolVersion: "1.0.0",
+      protocolVersion: '1.2.0',
+      minProtocolVersion: '1.0.0',
       enforceVersionCheck: true,
       enableChecksums: true,
     });
 
     assert.throws(
-      () => negotiator.negotiate("0.5.0", "1.2.0"),
-      (err: unknown) => err instanceof ProtocolError && err.code === ProtocolErrorCode.VERSION_MISMATCH,
-      "Should reject version below minimum"
+      () => negotiator.negotiate('0.5.0', '1.2.0'),
+      (err: unknown) =>
+        err instanceof ProtocolError &&
+        err.code === ProtocolErrorCode.VERSION_MISMATCH,
+      'Should reject version below minimum',
     );
   });
 
-  await runner.runTest("protocol:frame_encoding_roundtrip", () => {
+  await runner.runTest('protocol:frame_encoding_roundtrip', () => {
     const codec = new FrameCodec({
       maxFrameBytes: MAX_FRAME_BYTES,
       frameTimeoutMs: 5000,
-      protocolVersion: "1.0.0",
-      minProtocolVersion: "1.0.0",
+      protocolVersion: '1.0.0',
+      minProtocolVersion: '1.0.0',
       enforceVersionCheck: true,
       enableChecksums: false, // Disable checksums for this test
     });
 
-    const payload = Buffer.from(JSON.stringify({ test: "data", number: 42 }), "utf-8");
-    const encoded = codec.encode(FrameType.REQUEST, "1.0.0", payload);
+    const payload = Buffer.from(
+      JSON.stringify({ test: 'data', number: 42 }),
+      'utf-8',
+    );
+    const encoded = codec.encode(FrameType.REQUEST, '1.0.0', payload);
 
-    assert.strictEqual(encoded.length > payload.length, true, "Encoded frame should be larger than payload");
+    assert.strictEqual(
+      encoded.length > payload.length,
+      true,
+      'Encoded frame should be larger than payload',
+    );
 
     const decoded = codec.decode(encoded);
-    assert.notStrictEqual(decoded, null, "Should decode successfully");
-    assert.strictEqual(decoded?.type, FrameType.REQUEST, "Type should match");
-    assert.strictEqual(decoded?.version, "1.0.0", "Version should match");
-    assert.deepStrictEqual(decoded?.payload, payload, "Payload should match");
+    assert.notStrictEqual(decoded, null, 'Should decode successfully');
+    assert.strictEqual(decoded?.type, FrameType.REQUEST, 'Type should match');
+    assert.strictEqual(decoded?.version, '1.0.0', 'Version should match');
+    assert.deepStrictEqual(decoded?.payload, payload, 'Payload should match');
   });
 
-  await runner.runTest("protocol:truncated_frame_returns_null", () => {
+  await runner.runTest('protocol:truncated_frame_returns_null', () => {
     const codec = new FrameCodec({
       maxFrameBytes: MAX_FRAME_BYTES,
       frameTimeoutMs: 5000,
-      protocolVersion: "1.0.0",
-      minProtocolVersion: "1.0.0",
+      protocolVersion: '1.0.0',
+      minProtocolVersion: '1.0.0',
       enforceVersionCheck: true,
       enableChecksums: true,
     });
 
-    const payload = Buffer.from("test data");
-    const encoded = codec.encode(FrameType.RESPONSE, "1.0.0", payload);
+    const payload = Buffer.from('test data');
+    const encoded = codec.encode(FrameType.RESPONSE, '1.0.0', payload);
 
     // Try to decode truncated frame
     const truncated = encoded.slice(0, Math.floor(encoded.length / 2));
     const decoded = codec.decode(truncated);
 
-    assert.strictEqual(decoded, null, "Should return null for truncated frame");
+    assert.strictEqual(decoded, null, 'Should return null for truncated frame');
   });
 
-  await runner.runTest("protocol:garbage_frame_handled", () => {
+  await runner.runTest('protocol:garbage_frame_handled', () => {
     const codec = new FrameCodec({
       maxFrameBytes: MAX_FRAME_BYTES,
       frameTimeoutMs: 5000,
-      protocolVersion: "1.0.0",
-      minProtocolVersion: "1.0.0",
+      protocolVersion: '1.0.0',
+      minProtocolVersion: '1.0.0',
       enforceVersionCheck: true,
       enableChecksums: true,
     });
 
-    const garbage = Buffer.from("this is not a valid frame at all!!!");
+    const garbage = Buffer.from('this is not a valid frame at all!!!');
 
     assert.throws(
       () => codec.decode(garbage),
       ProtocolError,
-      "Should throw for garbage input"
+      'Should throw for garbage input',
     );
   });
 
-  await runner.runTest("protocol:streaming_feed_handles_multiple_frames", () => {
-    const codec = new FrameCodec({
-      maxFrameBytes: MAX_FRAME_BYTES,
-      frameTimeoutMs: 5000,
-      protocolVersion: "1.0.0",
-      minProtocolVersion: "1.0.0",
-      enforceVersionCheck: true,
-      enableChecksums: false, // Disable checksums for this test
-    });
+  await runner.runTest(
+    'protocol:streaming_feed_handles_multiple_frames',
+    () => {
+      const codec = new FrameCodec({
+        maxFrameBytes: MAX_FRAME_BYTES,
+        frameTimeoutMs: 5000,
+        protocolVersion: '1.0.0',
+        minProtocolVersion: '1.0.0',
+        enforceVersionCheck: true,
+        enableChecksums: false, // Disable checksums for this test
+      });
 
-    const frames: Buffer[] = [];
-    for (let i = 0; i < 3; i++) {
-      frames.push(codec.encode(FrameType.REQUEST, "1.0.0", Buffer.from(`frame ${i}`)));
-    }
+      const frames: Buffer[] = [];
+      for (let i = 0; i < 3; i++) {
+        frames.push(
+          codec.encode(FrameType.REQUEST, '1.0.0', Buffer.from(`frame ${i}`)),
+        );
+      }
 
-    const combined = Buffer.concat(frames);
-    const decoded = codec.feed(combined);
+      const combined = Buffer.concat(frames);
+      const decoded = codec.feed(combined);
 
-    assert.strictEqual(decoded.length, 3, "Should decode all 3 frames");
-    for (let i = 0; i < 3; i++) {
-      assert.strictEqual(decoded[i].payload.toString(), `frame ${i}`, `Frame ${i} payload should match`);
-    }
-  });
+      assert.strictEqual(decoded.length, 3, 'Should decode all 3 frames');
+      for (let i = 0; i < 3; i++) {
+        assert.strictEqual(
+          decoded[i].payload.toString(),
+          `frame ${i}`,
+          `Frame ${i} payload should match`,
+        );
+      }
+    },
+  );
 
-  await runner.runTest("protocol:backpressure_rejects_when_full", async () => {
-    const { BackpressureController } = await import("../protocol/frames.js");
+  await runner.runTest('protocol:backpressure_rejects_when_full', async () => {
+    const { BackpressureController } = await import('../protocol/frames.js');
     const controller = new BackpressureController(2, 1);
 
-    assert.strictEqual(controller.canWrite(), true, "Should allow writes initially");
+    assert.strictEqual(
+      controller.canWrite(),
+      true,
+      'Should allow writes initially',
+    );
 
     controller.beginWrite();
-    assert.strictEqual(controller.canWrite(), true, "Should allow 2nd write");
+    assert.strictEqual(controller.canWrite(), true, 'Should allow 2nd write');
 
     controller.beginWrite();
-    assert.strictEqual(controller.canWrite(), false, "Should reject 3rd write (at high water mark)");
-    assert.strictEqual(controller.beginWrite(), false, "beginWrite should return false when full");
+    assert.strictEqual(
+      controller.canWrite(),
+      false,
+      'Should reject 3rd write (at high water mark)',
+    );
+    assert.strictEqual(
+      controller.beginWrite(),
+      false,
+      'beginWrite should return false when full',
+    );
 
     controller.endWrite();
-    assert.strictEqual(controller.canWrite(), true, "Should allow writes after endWrite");
+    assert.strictEqual(
+      controller.canWrite(),
+      true,
+      'Should allow writes after endWrite',
+    );
   });
 
   return runner.getResults();
@@ -439,43 +525,54 @@ export async function verifyProtocol(): Promise<TestResult[]> {
 
 export async function verifyLoadLite(
   concurrency = 200,
-  durationMs = 5000
+  durationMs = 5000,
 ): Promise<TestResult[]> {
   const runner = new TestRunner();
 
-  await runner.runTest(`load:handles_${concurrency}_concurrent_requests`, async () => {
-    const queue = new BoundedQueue<number>(concurrency * 2);
-    const completed: number[] = [];
-    const errors: Error[] = [];
+  await runner.runTest(
+    `load:handles_${concurrency}_concurrent_requests`,
+    async () => {
+      const queue = new BoundedQueue<number>(concurrency * 2);
+      const completed: number[] = [];
+      const errors: Error[] = [];
 
-    const promises: Promise<void>[] = [];
+      const promises: Promise<void>[] = [];
 
-    for (let i = 0; i < concurrency; i++) {
-      promises.push(
-        (async () => {
-          try {
-            const success = queue.enqueue(i);
-            if (success) {
-              await delay(Math.random() * 10);
-              const item = queue.dequeue();
-              if (item !== undefined) {
-                completed.push(item);
+      for (let i = 0; i < concurrency; i++) {
+        promises.push(
+          (async () => {
+            try {
+              const success = queue.enqueue(i);
+              if (success) {
+                await delay(Math.random() * 10);
+                const item = queue.dequeue();
+                if (item !== undefined) {
+                  completed.push(item);
+                }
               }
+            } catch (err) {
+              errors.push(err instanceof Error ? err : new Error(String(err)));
             }
-          } catch (err) {
-            errors.push(err instanceof Error ? err : new Error(String(err)));
-          }
-        })()
+          })(),
+        );
+      }
+
+      await Promise.all(promises);
+
+      assert.strictEqual(
+        errors.length,
+        0,
+        `Should have no errors, got: ${errors.map((e) => e.message).join(', ')}`,
       );
-    }
+      assert.strictEqual(
+        completed.length <= concurrency,
+        true,
+        'Completed count should not exceed concurrency',
+      );
+    },
+  );
 
-    await Promise.all(promises);
-
-    assert.strictEqual(errors.length, 0, `Should have no errors, got: ${errors.map((e) => e.message).join(", ")}`);
-    assert.strictEqual(completed.length <= concurrency, true, "Completed count should not exceed concurrency");
-  });
-
-  await runner.runTest("load:no_memory_leak_under_pressure", async () => {
+  await runner.runTest('load:no_memory_leak_under_pressure', async () => {
     const initialMemory = process.memoryUsage().heapUsed;
 
     // Simulate high load
@@ -488,7 +585,7 @@ export async function verifyLoadLite(
             await delay(1);
             // data is used and then discarded
             void data;
-          })()
+          })(),
         );
       }
       await Promise.all(promises);
@@ -503,23 +600,29 @@ export async function verifyLoadLite(
     const growth = finalMemory - initialMemory;
 
     // Allow up to 50MB growth (generous for Node.js)
-    assert.strictEqual(growth < 50 * 1024 * 1024, true, `Memory growth ${growth} bytes exceeds 50MB limit`);
+    assert.strictEqual(
+      growth < 50 * 1024 * 1024,
+      true,
+      `Memory growth ${growth} bytes exceeds 50MB limit`,
+    );
   });
 
-  await runner.runTest("load:protocol_handler_under_load", async () => {
-    const { ProtocolHandler } = await import("../protocol/frames.js");
+  await runner.runTest('load:protocol_handler_under_load', async () => {
+    const { ProtocolHandler } = await import('../protocol/frames.js');
     const handler = new ProtocolHandler({
       maxFrameBytes: 1024 * 1024, // 1MB for test
       frameTimeoutMs: 5000,
-      protocolVersion: "1.0.0",
-      minProtocolVersion: "1.0.0",
+      protocolVersion: '1.0.0',
+      minProtocolVersion: '1.0.0',
       enforceVersionCheck: true,
       enableChecksums: true,
     });
 
     const payloads: Buffer[] = [];
     for (let i = 0; i < 100; i++) {
-      payloads.push(Buffer.from(JSON.stringify({ id: i, data: "x".repeat(100) })));
+      payloads.push(
+        Buffer.from(JSON.stringify({ id: i, data: 'x'.repeat(100) })),
+      );
     }
 
     const writeBuffer: Buffer[] = [];
@@ -534,7 +637,7 @@ export async function verifyLoadLite(
       handler.sendFrame(FrameType.REQUEST, payloads[i], transport);
     }
 
-    assert.strictEqual(writeBuffer.length, 100, "Should write 100 frames");
+    assert.strictEqual(writeBuffer.length, 100, 'Should write 100 frames');
 
     handler.close();
   });
@@ -557,9 +660,9 @@ export async function verifyRollback(): Promise<TestResult[]> {
     Object.assign(process.env, originalEnv);
   };
 
-  await runner.runTest("rollback:force_rust_selects_rust_engine", () => {
+  await runner.runTest('rollback:force_rust_selects_rust_engine', () => {
     cleanup();
-    process.env[ENV_FORCE_RUST] = "1";
+    process.env[ENV_FORCE_RUST] = '1';
 
     const selector = new EngineSelector();
 
@@ -567,27 +670,31 @@ export async function verifyRollback(): Promise<TestResult[]> {
       const selection = selector.selectEngine();
 
       if (selection.mode === EngineSelectionMode.FORCE_RUST) {
-        assert.strictEqual(selection.primary, EngineType.RUST, "FORCE_RUST should select Rust engine");
+        assert.strictEqual(
+          selection.primary,
+          EngineType.RUST,
+          'FORCE_RUST should select Rust engine',
+        );
         assert.strictEqual(
           selection.reason.includes(ENV_FORCE_RUST),
           true,
-          "Reason should mention FORCE_RUST"
+          'Reason should mention FORCE_RUST',
         );
       }
     } catch (err) {
       // Expected if Rust engine not available - this is correct behavior
       assert.ok(
-        err instanceof Error && err.message.includes("FORCE_RUST"),
-        "Should throw with FORCE_RUST message when Rust unavailable"
+        err instanceof Error && err.message.includes('FORCE_RUST'),
+        'Should throw with FORCE_RUST message when Rust unavailable',
       );
     } finally {
       cleanup();
     }
   });
 
-  await runner.runTest("rollback:force_requiem_selects_requiem_engine", () => {
+  await runner.runTest('rollback:force_requiem_selects_requiem_engine', () => {
     cleanup();
-    process.env[ENV_FORCE_REQUIEM] = "1";
+    process.env[ENV_FORCE_REQUIEM] = '1';
 
     const selector = new EngineSelector();
 
@@ -598,23 +705,23 @@ export async function verifyRollback(): Promise<TestResult[]> {
         assert.strictEqual(
           selection.primary,
           EngineType.REQUIEM,
-          "FORCE_REQUIEM should select Requiem engine"
+          'FORCE_REQUIEM should select Requiem engine',
         );
       }
     } catch (err) {
       // Expected if Requiem engine not available - this is correct behavior
       assert.ok(
-        err instanceof Error && err.message.includes("FORCE_REQUIEM"),
-        "Should throw with FORCE_REQUIEM message when Requiem unavailable"
+        err instanceof Error && err.message.includes('FORCE_REQUIEM'),
+        'Should throw with FORCE_REQUIEM message when Requiem unavailable',
       );
     } finally {
       cleanup();
     }
   });
 
-  await runner.runTest("rollback:verify_detects_engine_mismatch", () => {
+  await runner.runTest('rollback:verify_detects_engine_mismatch', () => {
     cleanup();
-    process.env[ENV_FORCE_RUST] = "1";
+    process.env[ENV_FORCE_RUST] = '1';
 
     const selector = new EngineSelector();
 
@@ -626,42 +733,47 @@ export async function verifyRollback(): Promise<TestResult[]> {
       assert.throws(
         () => selector.verifyForcedEngine(EngineType.TYPESCRIPT),
         /rollback safety violation/,
-        "Should detect engine mismatch"
+        'Should detect engine mismatch',
       );
     } catch (err) {
       // If selectEngine threw, that's also acceptable (Rust unavailable)
       assert.ok(
-        err instanceof Error && (err.message.includes("FORCE_RUST") || err.message.includes("rollback safety")),
-        "Should throw appropriate error"
+        err instanceof Error &&
+          (err.message.includes('FORCE_RUST') ||
+            err.message.includes('rollback safety')),
+        'Should throw appropriate error',
       );
     } finally {
       cleanup();
     }
   });
 
-  await runner.runTest("rollback:rollback_info_provided", () => {
+  await runner.runTest('rollback:rollback_info_provided', () => {
     cleanup();
 
     const manager = new RollbackManager();
     const info = manager.getRollbackInfo();
 
-    assert.ok(info.currentEngine, "Should have current engine");
-    assert.ok(Array.isArray(info.verifiedEngines), "Should have verified engines array");
-    assert.ok(info.rollbackCommand, "Should have rollback command");
+    assert.ok(info.currentEngine, 'Should have current engine');
+    assert.ok(
+      Array.isArray(info.verifiedEngines),
+      'Should have verified engines array',
+    );
+    assert.ok(info.rollbackCommand, 'Should have rollback command');
   });
 
-  await runner.runTest("rollback:doctor_report_generated", () => {
+  await runner.runTest('rollback:doctor_report_generated', () => {
     const reporter = new DoctorTruthReporter();
     const report = reporter.generateReport();
 
-    assert.ok(report.timestamp, "Report should have timestamp");
-    assert.ok(report.selection, "Report should have selection info");
-    assert.ok(report.engines, "Report should have engine status");
-    assert.ok(report.rollback, "Report should have rollback info");
-    assert.ok(report.hash.algorithm, "Report should specify hash algorithm");
+    assert.ok(report.timestamp, 'Report should have timestamp');
+    assert.ok(report.selection, 'Report should have selection info');
+    assert.ok(report.engines, 'Report should have engine status');
+    assert.ok(report.rollback, 'Report should have rollback info');
+    assert.ok(report.hash.algorithm, 'Report should specify hash algorithm');
   });
 
-  await runner.runTest("rollback:safety_guards_log_engine_changes", () => {
+  await runner.runTest('rollback:safety_guards_log_engine_changes', () => {
     const guards = new SafetyGuards();
 
     // First call establishes baseline
@@ -672,22 +784,26 @@ export async function verifyRollback(): Promise<TestResult[]> {
     guards.guardEntrypoint(EngineType.TYPESCRIPT);
 
     // This test mainly verifies no exception is thrown
-    assert.ok(true, "Guard should handle engine changes without throwing");
+    assert.ok(true, 'Guard should handle engine changes without throwing');
   });
 
-  await runner.runTest("rollback:env_vars_captured_in_selection", () => {
+  await runner.runTest('rollback:env_vars_captured_in_selection', () => {
     cleanup();
-    process.env[ENV_FORCE_REQUIEM] = "0";
+    process.env[ENV_FORCE_REQUIEM] = '0';
 
     try {
       const selector = new EngineSelector();
       const selection = selector.selectEngine();
 
       // Should capture environment variables
-      assert.strictEqual(selection.envVars[ENV_FORCE_REQUIEM], "0", "Should capture FORCE_REQUIEM");
+      assert.strictEqual(
+        selection.envVars[ENV_FORCE_REQUIEM],
+        '0',
+        'Should capture FORCE_REQUIEM',
+      );
     } catch (err) {
       // May throw if forced engine unavailable, but env vars should still be captured
-      assert.ok(true, "Env var capture is tested in selection flow");
+      assert.ok(true, 'Env var capture is tested in selection flow');
     } finally {
       cleanup();
     }
@@ -723,7 +839,7 @@ export async function runAllVerifications(runtimeDir: string): Promise<{
 
 export function printResults(results: TestResult[]): void {
   for (const result of results) {
-    const status = result.passed ? "✓ PASS" : "✗ FAIL";
+    const status = result.passed ? '✓ PASS' : '✗ FAIL';
     const duration = result.duration.toFixed(2);
     console.log(`${status} ${result.name} (${duration}ms)`);
     if (!result.passed && result.error) {
@@ -750,48 +866,54 @@ export function printSummary(results: TestResult[]): void {
 
 function isMainModule(): boolean {
   // Handle Windows and Unix paths
-  const importPath = import.meta.url.replace(/^file:\/\//, "").replace(/^\//, "");
-  const argPath = process.argv[1]?.replace(/\\/g, "/") || "";
-  return importPath === argPath || importPath.endsWith(argPath) || argPath.endsWith(importPath);
+  const importPath = import.meta.url
+    .replace(/^file:\/\//, '')
+    .replace(/^\//, '');
+  const argPath = process.argv[1]?.replace(/\\/g, '/') || '';
+  return (
+    importPath === argPath ||
+    importPath.endsWith(argPath) ||
+    argPath.endsWith(importPath)
+  );
 }
 
 if (isMainModule()) {
-  const runtimeDir = process.argv[2] || ".reach/runtime";
-  const testType = process.argv[3] || "all";
+  const runtimeDir = process.argv[2] || '.reach/runtime';
+  const testType = process.argv[3] || 'all';
 
   (async () => {
     console.log(`Running ops verification tests (runtime: ${runtimeDir})\n`);
 
-    const fs = await import("node:fs");
+    const fs = await import('node:fs');
 
     // Ensure runtime directory exists
     fs.mkdirSync(runtimeDir, { recursive: true });
 
     let allResults: TestResult[] = [];
 
-    if (testType === "all" || testType === "daemon") {
-      console.log("=== Daemon Tests ===");
+    if (testType === 'all' || testType === 'daemon') {
+      console.log('=== Daemon Tests ===');
       const daemonResults = await verifyDaemon(runtimeDir);
       printResults(daemonResults);
       allResults = allResults.concat(daemonResults);
     }
 
-    if (testType === "all" || testType === "protocol") {
-      console.log("\n=== Protocol Tests ===");
+    if (testType === 'all' || testType === 'protocol') {
+      console.log('\n=== Protocol Tests ===');
       const protocolResults = await verifyProtocol();
       printResults(protocolResults);
       allResults = allResults.concat(protocolResults);
     }
 
-    if (testType === "all" || testType === "load") {
-      console.log("\n=== Load Tests ===");
+    if (testType === 'all' || testType === 'load') {
+      console.log('\n=== Load Tests ===');
       const loadResults = await verifyLoadLite();
       printResults(loadResults);
       allResults = allResults.concat(loadResults);
     }
 
-    if (testType === "all" || testType === "rollback") {
-      console.log("\n=== Rollback Tests ===");
+    if (testType === 'all' || testType === 'rollback') {
+      console.log('\n=== Rollback Tests ===');
       const rollbackResults = await verifyRollback();
       printResults(rollbackResults);
       allResults = allResults.concat(rollbackResults);

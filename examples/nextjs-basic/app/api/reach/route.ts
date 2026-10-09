@@ -1,6 +1,6 @@
 /**
  * Next.js App Router API Route for Reach
- * 
+ *
  * This route handler proxies requests to the Reach server.
  */
 
@@ -26,16 +26,10 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(federation);
 
       default:
-        return NextResponse.json(
-          { error: 'Unknown action' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
     }
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Reach server error' },
-      { status: 503 }
-    );
+    return NextResponse.json({ error: 'Reach server error' }, { status: 503 });
   }
 }
 
@@ -56,15 +50,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(capsule, { status: 201 });
 
       default:
-        return NextResponse.json(
-          { error: 'Unknown action' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
     }
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Reach server error' },
-      { status: 503 }
-    );
+    return NextResponse.json({ error: 'Reach server error' }, { status: 503 });
   }
 }

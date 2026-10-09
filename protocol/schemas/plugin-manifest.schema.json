@@ -4,16 +4,16 @@
   "type": "object",
   "required": ["id", "version", "entrypoint", "signature"],
   "properties": {
-    "id": {"type": "string"},
-    "version": {"type": "string"},
-    "entrypoint": {"type": "string"},
+    "id": { "type": "string" },
+    "version": { "type": "string" },
+    "entrypoint": { "type": "string" },
     "signature": {
       "type": "object",
       "required": ["key_id", "algorithm", "signature"],
       "properties": {
-        "key_id": {"type": "string"},
-        "algorithm": {"type": "string", "enum": ["rsa-sha256"]},
-        "signature": {"type": "string"}
+        "key_id": { "type": "string" },
+        "algorithm": { "type": "string", "enum": ["rsa-sha256"] },
+        "signature": { "type": "string" }
       },
       "additionalProperties": false
     }

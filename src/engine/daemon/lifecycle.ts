@@ -9,11 +9,11 @@
  * - Crash-safe restart path
  */
 
-import { EventEmitter } from "node:events";
-import { existsSync, readFileSync, writeFileSync, unlinkSync } from "node:fs";
-import { join, resolve } from "node:path";
-import { createHash } from "node:crypto";
-import { setTimeout } from "node:timers";
+import { EventEmitter } from 'node:events';
+import { existsSync, readFileSync, writeFileSync, unlinkSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { createHash } from 'node:crypto';
+import { setTimeout } from 'node:timers';
 
 // ============================================================================
 // Configuration Constants
@@ -35,27 +35,27 @@ export const FRAME_TIMEOUT_MS = 5000;
 export const MAX_FRAME_BYTES = 16 * 1024 * 1024; // 16MB
 
 /** Protocol version - must match between client and server */
-export const PROTOCOL_VERSION = "1.0.0";
+export const PROTOCOL_VERSION = '1.0.0';
 
 /** Maximum supported protocol version (for downgrade protection) */
-export const MIN_PROTOCOL_VERSION = "1.0.0";
+export const MIN_PROTOCOL_VERSION = '1.0.0';
 
 // ============================================================================
 // Error Codes
 // ============================================================================
 
 export const DaemonErrorCode = {
-  QUEUE_FULL: "QUEUE_FULL",
-  HEARTBEAT_FAILED: "HEARTBEAT_FAILED",
-  CHALLENGE_FAILED: "CHALLENGE_FAILED",
-  PARENT_DEAD: "PARENT_DEAD",
-  PROTOCOL_MISMATCH: "PROTOCOL_MISMATCH",
-  FRAME_OVERSIZE: "FRAME_OVERSIZE",
-  FRAME_TIMEOUT: "FRAME_TIMEOUT",
-  INVALID_FRAME: "INVALID_FRAME",
-  STALE_CONNECTION: "STALE_CONNECTION",
-  LOCKFILE_EXISTS: "LOCKFILE_EXISTS",
-  DAEMON_CRASHED: "DAEMON_CRASHED",
+  QUEUE_FULL: 'QUEUE_FULL',
+  HEARTBEAT_FAILED: 'HEARTBEAT_FAILED',
+  CHALLENGE_FAILED: 'CHALLENGE_FAILED',
+  PARENT_DEAD: 'PARENT_DEAD',
+  PROTOCOL_MISMATCH: 'PROTOCOL_MISMATCH',
+  FRAME_OVERSIZE: 'FRAME_OVERSIZE',
+  FRAME_TIMEOUT: 'FRAME_TIMEOUT',
+  INVALID_FRAME: 'INVALID_FRAME',
+  STALE_CONNECTION: 'STALE_CONNECTION',
+  LOCKFILE_EXISTS: 'LOCKFILE_EXISTS',
+  DAEMON_CRASHED: 'DAEMON_CRASHED',
 } as const;
 
 export type DaemonErrorCode =
@@ -112,9 +112,9 @@ export function getDefaultConfig(runtimeDir: string): DaemonConfig {
     maxFrameBytes: MAX_FRAME_BYTES,
     protocolVersion: PROTOCOL_VERSION,
     minProtocolVersion: MIN_PROTOCOL_VERSION,
-    lockfilePath: join(runtimeDir, "daemon.lock"),
-    pidfilePath: join(runtimeDir, "daemon.pid"),
-    socketPath: join(runtimeDir, "daemon.sock"),
+    lockfilePath: join(runtimeDir, 'daemon.lock'),
+    pidfilePath: join(runtimeDir, 'daemon.pid'),
+    socketPath: join(runtimeDir, 'daemon.sock'),
     enableParentDeath: true,
     parentCheckIntervalMs: 5000,
   };
@@ -139,11 +139,11 @@ export class BoundedQueue<T> extends EventEmitter {
    */
   enqueue(item: T): boolean {
     if (this.items.length >= this.maxSize) {
-      this.emit("queue_full", this.items.length);
+      this.emit('queue_full', this.items.length);
       return false;
     }
     this.items.push(item);
-    this.emit("enqueued", item, this.items.length);
+    this.emit('enqueued', item, this.items.length);
     return true;
   }
 
@@ -153,7 +153,7 @@ export class BoundedQueue<T> extends EventEmitter {
   dequeue(): T | undefined {
     const item = this.items.shift();
     if (item !== undefined) {
-      this.emit("dequeued", item, this.items.length);
+      this.emit('dequeued', item, this.items.length);
     }
     return item;
   }
@@ -191,7 +191,7 @@ export class BoundedQueue<T> extends EventEmitter {
    */
   clear(): void {
     this.items = [];
-    this.emit("cleared");
+    this.emit('cleared');
   }
 
   /**
@@ -214,7 +214,7 @@ export class HeartbeatManager extends EventEmitter {
 
   constructor(
     private readonly intervalMs: number,
-    private readonly challengeInterval: number
+    private readonly challengeInterval: number,
   ) {
     super();
   }
@@ -226,14 +226,14 @@ export class HeartbeatManager extends EventEmitter {
       const now = Date.now();
 
       // Emit heartbeat event for health checks
-      this.emit("heartbeat", {
+      this.emit('heartbeat', {
         timestamp: now,
         requestCount: requestCounter.count,
       });
 
       // Re-challenge every N requests with unique nonce
       if (requestCounter.count % this.challengeInterval === 0) {
-        this.emit("challenge", {
+        this.emit('challenge', {
           timestamp: now,
           requestCount: requestCounter.count,
           challenge: this.generateChallenge(),
@@ -260,7 +260,7 @@ export class HeartbeatManager extends EventEmitter {
     if (valid) {
       this.lastChallengeResponse = Date.now();
     } else {
-      this.emit("challenge_failed", { expected, received: response });
+      this.emit('challenge_failed', { expected, received: response });
     }
 
     return valid;
@@ -283,18 +283,18 @@ export class HeartbeatManager extends EventEmitter {
   generateChallenge(): string {
     // Include random component for uniqueness
     const timeBucket = Math.floor(Date.now() / this.intervalMs);
-    const randomComponent = createHash("sha256")
+    const randomComponent = createHash('sha256')
       .update(`challenge:${timeBucket}:${process.hrtime.bigint()}`)
-      .digest("hex")
+      .digest('hex')
       .slice(0, 16);
     const challenge = `${timeBucket}:${randomComponent}`;
-    
+
     // Challenge expires in 30 seconds
     this.challengeExpiry.set(challenge, Date.now() + 30000);
-    
+
     // Clean up old challenges
     this.cleanupExpiredChallenges();
-    
+
     return challenge;
   }
 
@@ -318,7 +318,7 @@ export class ParentDeathDetector extends EventEmitter {
 
   constructor(
     private readonly checkIntervalMs: number,
-    private readonly onParentDeath: () => void
+    private readonly onParentDeath: () => void,
   ) {
     super();
     this.parentPid = process.ppid;
@@ -329,7 +329,7 @@ export class ParentDeathDetector extends EventEmitter {
 
     this.intervalId = setInterval(() => {
       if (!this.isParentAlive()) {
-        this.emit("parent_death", { parentPid: this.parentPid });
+        this.emit('parent_death', { parentPid: this.parentPid });
         this.onParentDeath();
         this.stop();
       }
@@ -347,7 +347,7 @@ export class ParentDeathDetector extends EventEmitter {
     try {
       // On Unix, signal 0 checks if process exists without delivering a signal
       // On Windows, we use a different approach
-      if (process.platform === "win32") {
+      if (process.platform === 'win32') {
         try {
           process.kill(this.parentPid, 0);
           return true;
@@ -370,7 +370,7 @@ export class ParentDeathDetector extends EventEmitter {
 export class LockfileManager extends EventEmitter {
   constructor(
     private readonly lockfilePath: string,
-    private readonly pidfilePath: string
+    private readonly pidfilePath: string,
   ) {
     super();
   }
@@ -378,7 +378,7 @@ export class LockfileManager extends EventEmitter {
   /**
    * Attempt to acquire the daemon lock.
    * Returns true if lock acquired, false if another daemon is running.
-   * 
+   *
    * SECURITY: Verifies PID + start time to prevent PID reuse attacks.
    */
   acquireLock(): boolean {
@@ -386,7 +386,7 @@ export class LockfileManager extends EventEmitter {
       // Check if the owning process is still alive
       const lockData = this.readLockfile();
       if (lockData && this.isSameProcess(lockData.pid, lockData.startedAt)) {
-        this.emit("lock_exists", { pid: lockData.pid });
+        this.emit('lock_exists', { pid: lockData.pid });
         return false;
       }
       // Stale lockfile - remove it
@@ -406,16 +406,20 @@ export class LockfileManager extends EventEmitter {
 
     writeFileSync(this.pidfilePath, String(process.pid), { mode: 0o600 });
 
-    this.emit("lock_acquired", { pid: process.pid });
+    this.emit('lock_acquired', { pid: process.pid });
     return true;
   }
 
   /**
    * Read and parse the lockfile.
    */
-  private readLockfile(): { pid: number; startedAt: string; version: string } | null {
+  private readLockfile(): {
+    pid: number;
+    startedAt: string;
+    version: string;
+  } | null {
     try {
-      const data = readFileSync(this.lockfilePath, "utf-8");
+      const data = readFileSync(this.lockfilePath, 'utf-8');
       const parsed = JSON.parse(data);
       return {
         pid: parseInt(parsed.pid, 10),
@@ -449,15 +453,15 @@ export class LockfileManager extends EventEmitter {
     }
 
     // On Linux/macOS, verify start time matches via /proc
-    if (process.platform !== "win32") {
+    if (process.platform !== 'win32') {
       try {
-        const procStat = readFileSync(`/proc/${pid}/stat`, "utf-8");
+        const procStat = readFileSync(`/proc/${pid}/stat`, 'utf-8');
         // Extract start time from stat (field 22, in clock ticks since boot)
         const match = procStat.match(/\) .* (\d+) /);
         if (match) {
           const actualStartTime = match[1];
           // Compare with our stored start time fingerprint
-          const storedUptime = startedAt.split("-")[1];
+          const storedUptime = startedAt.split('-')[1];
           if (storedUptime) {
             // Use rough comparison - if PID alive but started much later, it's different
             return true; // Simplified for now
@@ -484,9 +488,9 @@ export class LockfileManager extends EventEmitter {
       if (existsSync(this.pidfilePath)) {
         unlinkSync(this.pidfilePath);
       }
-      this.emit("lock_released", { pid: process.pid });
+      this.emit('lock_released', { pid: process.pid });
     } catch (err) {
-      this.emit("lock_release_error", { error: err });
+      this.emit('lock_release_error', { error: err });
     }
   }
 
@@ -515,7 +519,7 @@ export class LockfileManager extends EventEmitter {
 
   private readPidfile(): number | null {
     try {
-      const data = readFileSync(this.pidfilePath, "utf-8");
+      const data = readFileSync(this.pidfilePath, 'utf-8');
       const pid = parseInt(data.trim(), 10);
       return isNaN(pid) ? null : pid;
     } catch {
@@ -525,7 +529,7 @@ export class LockfileManager extends EventEmitter {
 
   private isProcessAlive(pid: number): boolean {
     try {
-      if (process.platform === "win32") {
+      if (process.platform === 'win32') {
         try {
           process.kill(pid, 0);
           return true;
@@ -570,7 +574,7 @@ export class StaleConnectionCleaner extends EventEmitter {
       }
 
       for (const id of stale) {
-        this.cleanupConnection(id, "stale");
+        this.cleanupConnection(id, 'stale');
       }
     }, this.staleThresholdMs / 2);
   }
@@ -583,13 +587,13 @@ export class StaleConnectionCleaner extends EventEmitter {
 
     // Cleanup all remaining connections
     for (const id of this.connections.keys()) {
-      this.cleanupConnection(id, "shutdown");
+      this.cleanupConnection(id, 'shutdown');
     }
   }
 
   registerConnection(id: string, socket: unknown): void {
     this.connections.set(id, { lastActivity: Date.now(), socket });
-    this.emit("connection_registered", { id });
+    this.emit('connection_registered', { id });
   }
 
   updateActivity(id: string): void {
@@ -601,13 +605,13 @@ export class StaleConnectionCleaner extends EventEmitter {
 
   removeConnection(id: string): void {
     this.connections.delete(id);
-    this.emit("connection_removed", { id });
+    this.emit('connection_removed', { id });
   }
 
   private cleanupConnection(id: string, reason: string): void {
     const conn = this.connections.get(id);
     if (conn) {
-      this.emit("stale_connection", { id, reason });
+      this.emit('stale_connection', { id, reason });
       this.connections.delete(id);
     }
   }
@@ -636,14 +640,14 @@ export class DaemonLifecycleManager extends EventEmitter {
     this.queue = new BoundedQueue<QueuedRequest>(config.maxQueueSize);
     this.heartbeat = new HeartbeatManager(
       config.heartbeatIntervalMs,
-      config.challengeInterval
+      config.challengeInterval,
     );
     this.lockfile = new LockfileManager(
       config.lockfilePath,
-      config.pidfilePath
+      config.pidfilePath,
     );
     this.connectionCleaner = new StaleConnectionCleaner(
-      config.frameTimeoutMs * 2
+      config.frameTimeoutMs * 2,
     );
 
     this.setupEventHandlers();
@@ -659,9 +663,9 @@ export class DaemonLifecycleManager extends EventEmitter {
 
     // Acquire lock
     if (!this.lockfile.acquireLock()) {
-      this.emit("error", {
+      this.emit('error', {
         code: DaemonErrorCode.LOCKFILE_EXISTS,
-        message: "Another daemon is already running",
+        message: 'Another daemon is already running',
       });
       return false;
     }
@@ -671,9 +675,9 @@ export class DaemonLifecycleManager extends EventEmitter {
       this.parentDetector = new ParentDeathDetector(
         this.config.parentCheckIntervalMs,
         () => {
-          this.emit("parent_death", { code: DaemonErrorCode.PARENT_DEAD });
+          this.emit('parent_death', { code: DaemonErrorCode.PARENT_DEAD });
           this.shutdown();
-        }
+        },
       );
       this.parentDetector.start();
     }
@@ -685,7 +689,7 @@ export class DaemonLifecycleManager extends EventEmitter {
     this.connectionCleaner.start();
 
     this.isRunning = true;
-    this.emit("started", { pid: process.pid, config: this.config });
+    this.emit('started', { pid: process.pid, config: this.config });
 
     return true;
   }
@@ -708,7 +712,7 @@ export class DaemonLifecycleManager extends EventEmitter {
     // Release lock
     this.lockfile.releaseLock();
 
-    this.emit("shutdown", { pid: process.pid });
+    this.emit('shutdown', { pid: process.pid });
   }
 
   /**
@@ -717,9 +721,9 @@ export class DaemonLifecycleManager extends EventEmitter {
    */
   async enqueueRequest<T, R>(payload: T): Promise<R> {
     return new Promise((resolve, reject) => {
-      const id = createHash("sha256")
+      const id = createHash('sha256')
         .update(`req:${Date.now()}:${Math.random()}`)
-        .digest("hex")
+        .digest('hex')
         .slice(0, 16);
 
       const request: QueuedRequest = {
@@ -738,8 +742,8 @@ export class DaemonLifecycleManager extends EventEmitter {
               message: `Queue is full (max ${this.config.maxQueueSize}). Retry after backoff.`,
               retryable: true,
               suggestedBackoffMs: 100,
-            })
-          )
+            }),
+          ),
         );
         return;
       }
@@ -774,22 +778,22 @@ export class DaemonLifecycleManager extends EventEmitter {
 
   private setupEventHandlers(): void {
     // Queue events
-    this.queue.on("queue_full", (size) => {
-      this.emit("backpressure", { queueSize: size });
+    this.queue.on('queue_full', (size) => {
+      this.emit('backpressure', { queueSize: size });
     });
 
     // Heartbeat events
-    this.heartbeat.on("challenge_failed", (data) => {
-      this.emit("error", {
+    this.heartbeat.on('challenge_failed', (data) => {
+      this.emit('error', {
         code: DaemonErrorCode.CHALLENGE_FAILED,
-        message: "Challenge response verification failed",
+        message: 'Challenge response verification failed',
         details: data,
       });
     });
 
     // Lockfile events
-    this.lockfile.on("lock_exists", (data) => {
-      this.emit("warning", { message: "Lockfile exists", pid: data.pid });
+    this.lockfile.on('lock_exists', (data) => {
+      this.emit('warning', { message: 'Lockfile exists', pid: data.pid });
     });
   }
 
@@ -798,7 +802,7 @@ export class DaemonLifecycleManager extends EventEmitter {
     // For now, emit event for handlers to pick up
     const item = this.queue.dequeue();
     if (item) {
-      this.emit("process_request", item);
+      this.emit('process_request', item);
     }
   }
 }
@@ -835,19 +839,16 @@ export class CrashSafeRestart extends EventEmitter {
     this.lastCrashTime = now;
 
     if (this.crashCount > this.maxRestarts) {
-      this.emit("restart_exceeded", {
+      this.emit('restart_exceeded', {
         crashCount: this.crashCount,
         windowMs: this.restartWindowMs,
       });
       return false;
     }
 
-    const backoffMs = Math.min(
-      1000 * Math.pow(2, this.crashCount - 1),
-      30000
-    );
+    const backoffMs = Math.min(1000 * Math.pow(2, this.crashCount - 1), 30000);
 
-    this.emit("restart_scheduled", {
+    this.emit('restart_scheduled', {
       attempt: this.crashCount,
       backoffMs,
     });
@@ -860,7 +861,7 @@ export class CrashSafeRestart extends EventEmitter {
    */
   recordSuccess(): void {
     if (this.crashCount > 0) {
-      this.emit("restart_success", { previousCrashes: this.crashCount });
+      this.emit('restart_success', { previousCrashes: this.crashCount });
       this.crashCount = 0;
     }
   }
@@ -875,7 +876,7 @@ export class CrashSafeRestart extends EventEmitter {
 // ============================================================================
 
 export function createDaemonLifecycleManager(
-  runtimeDir: string
+  runtimeDir: string,
 ): DaemonLifecycleManager {
   const config = getDefaultConfig(runtimeDir);
   return new DaemonLifecycleManager(config);

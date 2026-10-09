@@ -1,7 +1,7 @@
 # Reach CLI + Requiem Cutover Guide
 
-**Version:** 1.0.0  
-**Last Updated:** 2026-02-26  
+**Version:** 1.0.0
+**Last Updated:** 2026-02-26
 **Status:** PRODUCTION READY
 
 ---
@@ -31,11 +31,11 @@ npm run reach:doctor:cutover
 
 ### Default Behavior
 
-| Scenario | Default Engine | Fallback Chain |
-|----------|---------------|----------------|
-| Clean environment | **Requiem** | Rust → TypeScript |
-| Requiem unavailable | **Rust** | TypeScript |
-| Both unavailable | **TypeScript** | None |
+| Scenario            | Default Engine | Fallback Chain    |
+| ------------------- | -------------- | ----------------- |
+| Clean environment   | **Requiem**    | Rust → TypeScript |
+| Requiem unavailable | **Rust**       | TypeScript        |
+| Both unavailable    | **TypeScript** | None              |
 
 ### Force Flags
 
@@ -119,13 +119,13 @@ REACH_DUAL_RUN: 1
 
 ### Adaptive Sampling Algorithm
 
-| Condition | Sampling Rate | Duration |
-|-----------|--------------|----------|
-| New tenant | **100%** | Until 100 stable runs |
-| New engine version | **100%** | Until 100 stable runs |
-| New algorithm | **100%** | Until 100 stable runs |
-| Stable workload | **1%** (configurable) | Ongoing |
-| Post-mismatch | **100%** | Until 100 consecutive matches |
+| Condition          | Sampling Rate         | Duration                      |
+| ------------------ | --------------------- | ----------------------------- |
+| New tenant         | **100%**              | Until 100 stable runs         |
+| New engine version | **100%**              | Until 100 stable runs         |
+| New algorithm      | **100%**              | Until 100 stable runs         |
+| Stable workload    | **1%** (configurable) | Ongoing                       |
+| Post-mismatch      | **100%**              | Until 100 consecutive matches |
 
 ### Taper Schedule
 
@@ -136,6 +136,7 @@ Rate = max(base_rate, 1.0 - (consecutive_matches / stability_threshold))
 ```
 
 Example with base_rate=1% and threshold=100:
+
 - Matches 0-50: 100% → 50% sampling
 - Matches 50-99: 50% → 1% sampling
 - Matches 100+: 1% sampling
@@ -189,16 +190,16 @@ Diff reports are stored in `.reach/engine-diffs/`:
 
 Clear, actionable error codes for operator visibility:
 
-| Code | Severity | Retryable | Description |
-|------|----------|-----------|-------------|
-| `mismatch` | CRITICAL | No | Engine results don't match |
-| `queue_full` | WARNING | Yes | Request queue at capacity |
-| `policy_violation` | ERROR | No | Policy rule blocked execution |
-| `cas_integrity` | CRITICAL | No | Content-addressed storage hash mismatch |
-| `sandbox_escape` | CRITICAL | No | Security boundary violation |
-| `engine_unavailable` | ERROR | Yes | Primary engine not available |
-| `request_too_large` | ERROR | No | Request exceeds size limits |
-| `matrix_too_large` | ERROR | No | Decision matrix too large |
+| Code                 | Severity | Retryable | Description                             |
+| -------------------- | -------- | --------- | --------------------------------------- |
+| `mismatch`           | CRITICAL | No        | Engine results don't match              |
+| `queue_full`         | WARNING  | Yes       | Request queue at capacity               |
+| `policy_violation`   | ERROR    | No        | Policy rule blocked execution           |
+| `cas_integrity`      | CRITICAL | No        | Content-addressed storage hash mismatch |
+| `sandbox_escape`     | CRITICAL | No        | Security boundary violation             |
+| `engine_unavailable` | ERROR    | Yes       | Primary engine not available            |
+| `request_too_large`  | ERROR    | No        | Request exceeds size limits             |
+| `matrix_too_large`   | ERROR    | No        | Decision matrix too large               |
 
 ---
 
@@ -287,6 +288,7 @@ npx tsx scripts/verify-cutover.ts
 ```
 
 Checks:
+
 - Requiem is available
 - Requiem is default in auto mode
 - Safety guards are active
@@ -307,6 +309,7 @@ npx tsx scripts/verify-dual-run.ts
 ```
 
 Checks:
+
 - Adaptive sampling (100% → taper → base)
 - Diff report storage
 - Canonical comparison (not presentation)
@@ -319,24 +322,24 @@ Checks:
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `FORCE_REQUIEM` | `<unset>` | Force Requiem engine |
-| `FORCE_RUST` | `<unset>` | Force Rust/WASM engine |
-| `REACH_DUAL_RUN` | `0` | Enable dual-run sampling |
-| `REACH_DUAL_RUN_RATE` | `0.01` | Base sampling rate |
-| `REACH_NO_FALLBACK` | `0` | Disable fallback (fail fast) |
-| `REQUIEM_BIN` | `<auto>` | Path to Requiem binary |
+| Variable              | Default   | Description                  |
+| --------------------- | --------- | ---------------------------- |
+| `FORCE_REQUIEM`       | `<unset>` | Force Requiem engine         |
+| `FORCE_RUST`          | `<unset>` | Force Rust/WASM engine       |
+| `REACH_DUAL_RUN`      | `0`       | Enable dual-run sampling     |
+| `REACH_DUAL_RUN_RATE` | `0.01`    | Base sampling rate           |
+| `REACH_NO_FALLBACK`   | `0`       | Disable fallback (fail fast) |
+| `REQUIEM_BIN`         | `<auto>`  | Path to Requiem binary       |
 
 ### Sampling Configuration
 
 ```typescript
 const config = {
-  baseRate: 0.01,           // 1% for stable workloads
-  newTenantRate: 1.0,       // 100% for new tenants
-  newVersionRate: 1.0,      // 100% for new versions
-  newAlgorithmRate: 1.0,    // 100% for new algorithms
-  stabilityThreshold: 100,  // Runs before tapering
+  baseRate: 0.01, // 1% for stable workloads
+  newTenantRate: 1.0, // 100% for new tenants
+  newVersionRate: 1.0, // 100% for new versions
+  newAlgorithmRate: 1.0, // 100% for new algorithms
+  stabilityThreshold: 100, // Runs before tapering
   diffStoragePath: '.reach/engine-diffs',
 };
 ```

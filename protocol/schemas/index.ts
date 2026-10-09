@@ -1,6 +1,6 @@
 /**
  * Reach Protocol Schemas Index
- * 
+ *
  * This file aggregates all JSON schemas used in the Reach system.
  * Each schema defines the structure for different types of data
  * used across CLI, API, and engine components.
@@ -36,7 +36,11 @@ export function createSuccessResponse<T>(data: T) {
 /**
  * Creates a standard CLI error response
  */
-export function createErrorResponse(code: string, message: string, details?: Record<string, unknown>) {
+export function createErrorResponse(
+  code: string,
+  message: string,
+  details?: Record<string, unknown>,
+) {
   return {
     ok: false,
     error: {

@@ -1,14 +1,21 @@
 /**
  * Adversarial E2E Tests
- * 
+ *
  * Tests specifically targeting the vulnerabilities identified in the
  * M1/M2 adversarial review.
- * 
+ *
  * @module determinism/adversarial.e2e.test
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync, rmdirSync } from 'node:fs';
+import {
+  existsSync,
+  readFileSync,
+  writeFileSync,
+  unlinkSync,
+  mkdirSync,
+  rmdirSync,
+} from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
@@ -20,7 +27,11 @@ import {
   getDefaultConfig,
 } from '../engine/daemon/lifecycle';
 
-import { FrameCodec, ProtocolError, ProtocolErrorCode } from '../engine/protocol/frames';
+import {
+  FrameCodec,
+  ProtocolError,
+  ProtocolErrorCode,
+} from '../engine/protocol/frames';
 import { EngineDetector, EngineSelector } from '../engine/safety/rollback';
 
 describe('Adversarial M1 Tests', () => {
@@ -81,12 +92,12 @@ describe('Adversarial M1 Tests', () => {
     it('throws on buffer overflow', () => {
       // The FrameCodec has MAX_PARTIAL_FRAME_BYTES = 2 * maxFrameBytes
       // This prevents memory exhaustion from incomplete frames
-      
+
       // We verify the limit is set correctly by checking the code
       // The actual overflow protection is tested via code inspection:
       // - MAX_PARTIAL_FRAME_BYTES is set to config.maxFrameBytes * 2
       // - feed() throws ProtocolError when partialFrameBytes exceeds this
-      
+
       // Create a small codec to verify the math
       const codec = new FrameCodec({
         maxFrameBytes: 100,
@@ -101,8 +112,8 @@ describe('Adversarial M1 Tests', () => {
       expect(() => {
         codec.encode(0x01, '1.0.0', Buffer.alloc(200)); // Exceeds 100 byte limit
       }).toThrow(ProtocolError);
-      
-      // The partial frame buffer limit (200 bytes for 100 byte max) 
+
+      // The partial frame buffer limit (200 bytes for 100 byte max)
       // prevents accumulation attacks
     });
   });
@@ -184,16 +195,16 @@ describe('Adversarial M2 Tests', () => {
       // JSON.stringify does NOT normalize Unicode
       const jsonNfc = JSON.stringify(nfc);
       const jsonNfd = JSON.stringify(nfd);
-      
+
       // Both represent the same character visually
       // But they have different byte sequences!
       const bufNfc = Buffer.from(jsonNfc);
       const bufNfd = Buffer.from(jsonNfd);
-      
+
       // Verify they're different byte sequences
       expect(bufNfc.length).not.toBe(bufNfd.length);
       expect(bufNfc.equals(bufNfd)).toBe(false);
-      
+
       // For determinism: normalize input to NFC before JSON.stringify
       // jsonNfc === JSON.stringify(nfd.normalize('NFC'))
     });

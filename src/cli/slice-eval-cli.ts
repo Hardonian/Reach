@@ -5,8 +5,8 @@
  * CLI interface for slice-based evaluation with gating rules.
  */
 
-import { resolve, join } from "node:path";
-import { readFileSync, existsSync } from "node:fs";
+import { resolve, join } from 'node:path';
+import { readFileSync, existsSync } from 'node:fs';
 import {
   runSliceEvaluation,
   printSliceSummary,
@@ -14,8 +14,12 @@ import {
   type SliceEvalOptions,
   type SliceDimension,
   getGatingThresholds,
-} from "@zeo/eval";
-import type { ReplayDataset, ReplayResult, CalibrationBucket } from "@zeo/contracts";
+} from '@zeo/eval';
+import type {
+  ReplayDataset,
+  ReplayResult,
+  CalibrationBucket,
+} from '@zeo/contracts';
 
 /**
  * Slice eval CLI arguments
@@ -58,9 +62,9 @@ export interface SliceEvalCliArgs {
 export function parseSliceEvalArgs(argv: string[]): SliceEvalCliArgs {
   const result: SliceEvalCliArgs = {
     dataset: undefined,
-    output: "./eval/slices",
+    output: './eval/slices',
     dimensions: undefined,
-    preset: "standard",
+    preset: 'standard',
     seed: undefined,
     noCsv: false,
     noJson: false,
@@ -73,30 +77,30 @@ export function parseSliceEvalArgs(argv: string[]): SliceEvalCliArgs {
     const arg = argv[i];
     const next = argv[i + 1];
 
-    if ((arg === "--dataset" || arg === "-d") && next) {
+    if ((arg === '--dataset' || arg === '-d') && next) {
       result.dataset = next;
       i++;
-    } else if ((arg === "--output" || arg === "-o") && next) {
+    } else if ((arg === '--output' || arg === '-o') && next) {
       result.output = next;
       i++;
-    } else if ((arg === "--dimensions" || arg === "-D") && next) {
+    } else if ((arg === '--dimensions' || arg === '-D') && next) {
       result.dimensions = next;
       i++;
-    } else if ((arg === "--preset" || arg === "-p") && next) {
+    } else if ((arg === '--preset' || arg === '-p') && next) {
       result.preset = next;
       i++;
-    } else if ((arg === "--seed" || arg === "-s") && next) {
+    } else if ((arg === '--seed' || arg === '-s') && next) {
       result.seed = next;
       i++;
-    } else if (arg === "--no-csv") {
+    } else if (arg === '--no-csv') {
       result.noCsv = true;
-    } else if (arg === "--no-json") {
+    } else if (arg === '--no-json') {
       result.noJson = true;
-    } else if (arg === "--strict") {
+    } else if (arg === '--strict') {
       result.strict = true;
-    } else if (arg === "--verbose" || arg === "-v") {
+    } else if (arg === '--verbose' || arg === '-v') {
       result.verbose = true;
-    } else if (arg === "--help" || arg === "-h") {
+    } else if (arg === '--help' || arg === '-h') {
       result.help = true;
     }
   }
@@ -154,25 +158,29 @@ Output Files:
  */
 function parseDimensions(dimensionsStr: string | undefined): SliceDimension[] {
   if (!dimensionsStr) {
-    return ["domain", "metricKind", "confidenceLevel"];
+    return ['domain', 'metricKind', 'confidenceLevel'];
   }
 
   const validDimensions: SliceDimension[] = [
-    "domain",
-    "metricKind",
-    "confidenceLevel",
-    "outcomeStatus",
-    "decisionType",
-    "timePeriod",
+    'domain',
+    'metricKind',
+    'confidenceLevel',
+    'outcomeStatus',
+    'decisionType',
+    'timePeriod',
   ];
 
   const parsed = dimensionsStr
-    .split(",")
+    .split(',')
     .map((d) => d.trim())
-    .filter((d): d is SliceDimension => validDimensions.includes(d as SliceDimension));
+    .filter((d): d is SliceDimension =>
+      validDimensions.includes(d as SliceDimension),
+    );
 
   if (parsed.length === 0) {
-    throw new Error(`No valid dimensions provided. Valid: ${validDimensions.join(", ")}`);
+    throw new Error(
+      `No valid dimensions provided. Valid: ${validDimensions.join(', ')}`,
+    );
   }
 
   return parsed;
@@ -181,24 +189,30 @@ function parseDimensions(dimensionsStr: string | undefined): SliceDimension[] {
 /**
  * Validate preset name
  */
-function validatePreset(preset: string): "strict" | "standard" | "lenient" {
-  if (preset === "strict" || preset === "standard" || preset === "lenient") {
+function validatePreset(preset: string): 'strict' | 'standard' | 'lenient' {
+  if (preset === 'strict' || preset === 'standard' || preset === 'lenient') {
     return preset;
   }
-  throw new Error(`Invalid preset: ${preset}. Use: strict, standard, or lenient`);
+  throw new Error(
+    `Invalid preset: ${preset}. Use: strict, standard, or lenient`,
+  );
 }
 
 /**
  * Run slice evaluation from CLI
  */
-export async function runSliceEvalCommand(args: SliceEvalCliArgs): Promise<number> {
+export async function runSliceEvalCommand(
+  args: SliceEvalCliArgs,
+): Promise<number> {
   if (args.help) {
     printSliceEvalHelp();
     return 0;
   }
 
   if (!args.dataset) {
-    console.error("[SLICE_EVAL_ERROR] No dataset specified. Use --dataset <path>");
+    console.error(
+      '[SLICE_EVAL_ERROR] No dataset specified. Use --dataset <path>',
+    );
     console.error("Run 'zeo eval:slices --help' for usage information.");
     return 1;
   }
@@ -216,23 +230,25 @@ export async function runSliceEvalCommand(args: SliceEvalCliArgs): Promise<numbe
       console.log(`Loading dataset from ${datasetPath}...`);
     }
 
-    const datasetContent = readFileSync(datasetPath, "utf8");
+    const datasetContent = readFileSync(datasetPath, 'utf8');
     const dataset: ReplayDataset = JSON.parse(datasetContent);
 
     // Parse dimensions
     const dimensions = parseDimensions(args.dimensions);
     if (args.verbose) {
-      console.log(`Computing slices for dimensions: ${dimensions.join(", ")}`);
+      console.log(`Computing slices for dimensions: ${dimensions.join(', ')}`);
     }
 
     // Validate preset and get thresholds
-    const preset = validatePreset(args.preset || "standard");
+    const preset = validatePreset(args.preset || 'standard');
     const thresholds = getGatingThresholds(preset);
 
     if (args.verbose) {
       console.log(`Using ${preset} gating preset:`);
       console.log(`  Min sample size: ${thresholds.minSampleSize}`);
-      console.log(`  Min coverage: ${(thresholds.minCoverage * 100).toFixed(0)}%`);
+      console.log(
+        `  Min coverage: ${(thresholds.minCoverage * 100).toFixed(0)}%`,
+      );
       console.log(`  Max Brier: ${thresholds.maxBrierScore}`);
     }
 
@@ -242,10 +258,10 @@ export async function runSliceEvalCommand(args: SliceEvalCliArgs): Promise<numbe
     const replayResults: ReplayResult[] = dataset.cases.map((c) => ({
       caseId: c.caseId,
       runMeta: {
-        seed: args.seed || "test-seed",
-        engineVersion: "0.5.1",
-        decisionHash: "mock-hash",
-        observationsHash: "mock-obs-hash",
+        seed: args.seed || 'test-seed',
+        engineVersion: '0.5.1',
+        decisionHash: 'mock-hash',
+        observationsHash: 'mock-obs-hash',
         startedAt: new Date().toISOString(),
         completedAt: new Date().toISOString(),
       },
@@ -256,7 +272,7 @@ export async function runSliceEvalCommand(args: SliceEvalCliArgs): Promise<numbe
             variableCount: c.decisionSpec.assumptions?.length || 0,
             observationCount: c.observationBatches.reduce(
               (sum, b) => sum + b.observations.length,
-              0
+              0,
             ),
             modelStrength: 0.7,
           },
@@ -270,10 +286,10 @@ export async function runSliceEvalCommand(args: SliceEvalCliArgs): Promise<numbe
               band: { low: 0.3, high: 0.7 },
               provenanceRefs: [] as string[],
               basis: {
-                decisionHash: "mock",
-                observationHash: "mock",
-                seed: args.seed || "test",
-                engineVersion: "0.5.1",
+                decisionHash: 'mock',
+                observationHash: 'mock',
+                seed: args.seed || 'test',
+                engineVersion: '0.5.1',
               },
             })),
           },
@@ -286,17 +302,17 @@ export async function runSliceEvalCommand(args: SliceEvalCliArgs): Promise<numbe
         recommendedAdjustment: {
           widenFactorByDomain: {},
           widenFactorOverall: 1.0,
-          rationale: "Mock scoring",
+          rationale: 'Mock scoring',
         },
       },
     }));
 
     // Build options
     const options: SliceEvalOptions = {
-      outputDir: resolve(process.cwd(), args.output || "./eval/slices"),
+      outputDir: resolve(process.cwd(), args.output || './eval/slices'),
       dimensions,
       seed: args.seed,
-      engineVersion: "0.5.1",
+      engineVersion: '0.5.1',
       includeCsv: !args.noCsv,
       includeJson: !args.noJson,
     };
@@ -305,7 +321,7 @@ export async function runSliceEvalCommand(args: SliceEvalCliArgs): Promise<numbe
     console.log(`\n=== Slice Evaluation ===`);
     console.log(`Dataset: ${dataset.datasetId}`);
     console.log(`Cases: ${dataset.cases.length}`);
-    console.log(`Dimensions: ${dimensions.join(", ")}`);
+    console.log(`Dimensions: ${dimensions.join(', ')}`);
     console.log(`Preset: ${preset}`);
     console.log(`Output: ${options.outputDir}`);
 
@@ -317,16 +333,16 @@ export async function runSliceEvalCommand(args: SliceEvalCliArgs): Promise<numbe
     // Check gates
     const gateResult = checkSliceGates(report);
 
-    console.log("\n--- Gate Results ---");
-    console.log(`Status: ${gateResult.passed ? "PASSED" : "FAILED"}`);
+    console.log('\n--- Gate Results ---');
+    console.log(`Status: ${gateResult.passed ? 'PASSED' : 'FAILED'}`);
 
     if (gateResult.errors.length > 0) {
-      console.log("\nErrors:");
+      console.log('\nErrors:');
       gateResult.errors.forEach((e) => console.log(`  ✗ ${e}`));
     }
 
     if (gateResult.warnings.length > 0) {
-      console.log("\nWarnings:");
+      console.log('\nWarnings:');
       gateResult.warnings.forEach((w) => console.log(`  ⚠ ${w}`));
     }
 
@@ -336,17 +352,18 @@ export async function runSliceEvalCommand(args: SliceEvalCliArgs): Promise<numbe
     }
 
     if (args.strict && gateResult.warnings.length > 0) {
-      console.log("\n[STRICT MODE] Warnings treated as errors.");
+      console.log('\n[STRICT MODE] Warnings treated as errors.');
       return 1;
     }
 
     return 0;
   } catch (err) {
-    console.error(`[SLICE_EVAL_ERROR] ${err instanceof Error ? err.message : err}`);
+    console.error(
+      `[SLICE_EVAL_ERROR] ${err instanceof Error ? err.message : err}`,
+    );
     if (args.verbose) {
       console.error(err);
     }
     return 1;
   }
 }
-

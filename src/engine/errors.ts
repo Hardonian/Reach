@@ -1,9 +1,9 @@
 /**
  * Reach Engine Error Types
- * 
+ *
  * Standardized error codes for clear operator communication and
  * programmatic error handling across the engine boundary.
- * 
+ *
  * @module engine/errors
  */
 
@@ -15,37 +15,37 @@ export enum ReachErrorCode {
   ENGINE_MISMATCH = 'mismatch',
   ENGINE_UNAVAILABLE = 'engine_unavailable',
   ENGINE_TIMEOUT = 'engine_timeout',
-  
+
   // Queue/resource exhaustion
   QUEUE_FULL = 'queue_full',
   RATE_LIMITED = 'rate_limited',
   RESOURCE_EXHAUSTED = 'resource_exhausted',
-  
+
   // Policy violations
   POLICY_VIOLATION = 'policy_violation',
   POLICY_DENY = 'policy_deny',
   UNAUTHORIZED = 'unauthorized',
-  
+
   // Integrity errors
   CAS_INTEGRITY = 'cas_integrity',
   HASH_MISMATCH = 'hash_mismatch',
   FINGERPRINT_MISMATCH = 'fingerprint_mismatch',
-  
+
   // Sandbox/security errors
   SANDBOX_ESCAPE = 'sandbox_escape',
   SECRET_EXFILTRATION = 'secret_exfiltration',
   BINARY_UNTRUSTED = 'binary_untrusted',
-  
+
   // Input validation
   INVALID_INPUT = 'invalid_input',
   REQUEST_TOO_LARGE = 'request_too_large',
   MATRIX_TOO_LARGE = 'matrix_too_large',
-  
+
   // Protocol errors
   PROTOCOL_ERROR = 'protocol_error',
   SERIALIZATION_ERROR = 'serialization_error',
   DESERIALIZATION_ERROR = 'deserialization_error',
-  
+
   // Internal errors
   INTERNAL_ERROR = 'internal_error',
   UNKNOWN_ERROR = 'unknown_error',
@@ -96,7 +96,7 @@ export class ReachError extends Error {
       context?: Partial<ErrorContext>;
       isRetryable?: boolean;
       cause?: Error;
-    } = {}
+    } = {},
   ) {
     super(message, { cause: options.cause });
     this.name = 'ReachError';
@@ -115,7 +115,7 @@ export class ReachError extends Error {
   formatForCli(): string {
     const lines: string[] = [];
     lines.push(`Error [${this.code}]: ${this.message}`);
-    
+
     if (this.context.requestId) {
       lines.push(`  Request ID: ${this.context.requestId}`);
     }
@@ -128,7 +128,7 @@ export class ReachError extends Error {
     if (this.context.remediation) {
       lines.push(`  Remediation: ${this.context.remediation}`);
     }
-    
+
     return lines.join('\n');
   }
 
@@ -172,7 +172,7 @@ export class ReachError extends Error {
 export function createMismatchError(
   expected: string,
   actual: string,
-  context?: Partial<ErrorContext>
+  context?: Partial<ErrorContext>,
 ): ReachError {
   return new ReachError(
     ReachErrorCode.ENGINE_MISMATCH,
@@ -188,14 +188,14 @@ export function createMismatchError(
         },
       },
       isRetryable: false,
-    }
+    },
   );
 }
 
 export function createQueueFullError(
   queueSize: number,
   maxSize: number,
-  context?: Partial<ErrorContext>
+  context?: Partial<ErrorContext>,
 ): ReachError {
   return new ReachError(
     ReachErrorCode.QUEUE_FULL,
@@ -211,14 +211,14 @@ export function createQueueFullError(
         },
       },
       isRetryable: true,
-    }
+    },
   );
 }
 
 export function createPolicyViolationError(
   rule: string,
   details?: string,
-  context?: Partial<ErrorContext>
+  context?: Partial<ErrorContext>,
 ): ReachError {
   return new ReachError(
     ReachErrorCode.POLICY_VIOLATION,
@@ -234,14 +234,14 @@ export function createPolicyViolationError(
         },
       },
       isRetryable: false,
-    }
+    },
   );
 }
 
 export function createCasIntegrityError(
   expectedHash: string,
   actualHash: string,
-  context?: Partial<ErrorContext>
+  context?: Partial<ErrorContext>,
 ): ReachError {
   return new ReachError(
     ReachErrorCode.CAS_INTEGRITY,
@@ -257,13 +257,13 @@ export function createCasIntegrityError(
         },
       },
       isRetryable: false,
-    }
+    },
   );
 }
 
 export function createSandboxEscapeError(
   attempt: string,
-  context?: Partial<ErrorContext>
+  context?: Partial<ErrorContext>,
 ): ReachError {
   return new ReachError(
     ReachErrorCode.SANDBOX_ESCAPE,
@@ -278,7 +278,7 @@ export function createSandboxEscapeError(
         },
       },
       isRetryable: false,
-    }
+    },
   );
 }
 
@@ -311,23 +311,15 @@ export function toReachError(error: unknown): ReachError {
   if (isReachError(error)) {
     return error;
   }
-  
+
   if (error instanceof Error) {
-    return new ReachError(
-      ReachErrorCode.UNKNOWN_ERROR,
-      error.message,
-      {
-        severity: ErrorSeverity.ERROR,
-        cause: error,
-      }
-    );
-  }
-  
-  return new ReachError(
-    ReachErrorCode.UNKNOWN_ERROR,
-    String(error),
-    {
+    return new ReachError(ReachErrorCode.UNKNOWN_ERROR, error.message, {
       severity: ErrorSeverity.ERROR,
-    }
-  );
+      cause: error,
+    });
+  }
+
+  return new ReachError(ReachErrorCode.UNKNOWN_ERROR, String(error), {
+    severity: ErrorSeverity.ERROR,
+  });
 }

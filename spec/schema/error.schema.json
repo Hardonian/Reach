@@ -38,7 +38,14 @@
         },
         "category": {
           "type": "string",
-          "enum": ["PROTOCOL", "POLICY", "EXECUTION", "FEDERATION", "PACK", "SYSTEM"],
+          "enum": [
+            "PROTOCOL",
+            "POLICY",
+            "EXECUTION",
+            "FEDERATION",
+            "PACK",
+            "SYSTEM"
+          ],
           "description": "Error category"
         },
         "severity": {

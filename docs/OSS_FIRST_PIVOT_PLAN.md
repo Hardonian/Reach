@@ -125,12 +125,12 @@ If any phase introduces regressions:
 
 ## Verified Baseline (2026-02-22) — Kilo CI Governance Run
 
-| Check | Command | Result |
-| :--- | :--- | :--- |
-| Canonical Language | `npm run validate:language` | ✅ PASSED (0 violations) |
-| Import Boundaries | `npm run validate:boundaries` | ✅ PASSED |
-| OSS Purity | `npm run validate:oss-purity` | ✅ PASSED (zero-cloud lock verified) |
-| OSS Gate | `npm run verify:oss` | ✅ PASSED (exit 0) |
+| Check              | Command                       | Result                               |
+| :----------------- | :---------------------------- | :----------------------------------- |
+| Canonical Language | `npm run validate:language`   | ✅ PASSED (0 violations)             |
+| Import Boundaries  | `npm run validate:boundaries` | ✅ PASSED                            |
+| OSS Purity         | `npm run validate:oss-purity` | ✅ PASSED (zero-cloud lock verified) |
+| OSS Gate           | `npm run verify:oss`          | ✅ PASSED (exit 0)                   |
 
 **Known Pre-existing Issues Documented:**
 
@@ -138,4 +138,5 @@ If any phase introduces regressions:
 2. `apps/arcade` `next lint` has a Windows path issue (works in Linux CI).
 
 **Action Required for Branch Protection:**
+
 - Add `verify:oss` as a required status check in GitHub Settings → Branches.

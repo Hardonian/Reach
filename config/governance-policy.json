@@ -31,16 +31,7 @@
     "requiresNoHighSeverityFindings": true
   },
   "escalation": {
-    "ladder": [
-      "maintainer",
-      "security-reviewer",
-      "release-manager"
-    ]
+    "ladder": ["maintainer", "security-reviewer", "release-manager"]
   },
-  "highRiskZones": [
-    "auth/",
-    "billing/",
-    "webhook",
-    "services/policy-engine"
-  ]
+  "highRiskZones": ["auth/", "billing/", "webhook", "services/policy-engine"]
 }

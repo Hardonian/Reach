@@ -4,10 +4,17 @@
  * Uses canonical JSON for deterministic comparisons.
  */
 
-import { expect } from "vitest";
-import { canonicalJson, canonicalEqual } from "../../src/determinism/canonicalJson.js";
+import { expect } from 'vitest';
+import {
+  canonicalJson,
+  canonicalEqual,
+} from '../../src/determinism/canonicalJson.js';
 
-export function assertCanonicalEqual(actual: unknown, expected: unknown, message?: string): void {
+export function assertCanonicalEqual(
+  actual: unknown,
+  expected: unknown,
+  message?: string,
+): void {
   const result = canonicalEqual(actual, expected);
   if (!result) {
     const actualCanonical = canonicalJson(actual);
@@ -19,15 +26,27 @@ export function assertCanonicalEqual(actual: unknown, expected: unknown, message
   }
 }
 
-export function assertFingerprint(expected: string, actual: string, label = "fingerprint"): void {
+export function assertFingerprint(
+  expected: string,
+  actual: string,
+  label = 'fingerprint',
+): void {
   expect(actual, `${label} mismatch`).toBe(expected);
 }
 
-export function assertFingerprintStable(fp1: string, fp2: string, label = "fingerprint"): void {
+export function assertFingerprintStable(
+  fp1: string,
+  fp2: string,
+  label = 'fingerprint',
+): void {
   expect(fp1, `${label} must be stable across runs`).toBe(fp2);
 }
 
-export function assertFingerprintChanged(fp1: string, fp2: string, label = "fingerprint"): void {
+export function assertFingerprintChanged(
+  fp1: string,
+  fp2: string,
+  label = 'fingerprint',
+): void {
   expect(fp1, `${label} must differ for different inputs`).not.toBe(fp2);
 }
 
@@ -52,27 +71,42 @@ export function assertMetrics(
   }
 }
 
-export function assertEntityCount(expected: number, actual: number, label = "entity count"): void {
+export function assertEntityCount(
+  expected: number,
+  actual: number,
+  label = 'entity count',
+): void {
   expect(actual, label).toBe(expected);
 }
 
 export function assertEventTypes(expected: string[], actual: string[]): void {
-  expect([...actual].sort(), "event types").toEqual([...expected].sort());
+  expect([...actual].sort(), 'event types').toEqual([...expected].sort());
 }
 
-export function assertOkResponse(result: { ok: boolean; data: unknown; stderr: string }, label = "CLI response"): void {
+export function assertOkResponse(
+  result: { ok: boolean; data: unknown; stderr: string },
+  label = 'CLI response',
+): void {
   if (!result.ok) {
-    throw new Error(`${label} failed.\nstderr: ${result.stderr}\ndata: ${JSON.stringify(result.data)}`);
+    throw new Error(
+      `${label} failed.\nstderr: ${result.stderr}\ndata: ${JSON.stringify(result.data)}`,
+    );
   }
   expect(result.ok, `${label} ok`).toBe(true);
 }
 
-export function assertSchemaVersion(data: unknown, expectedVersion: string): void {
+export function assertSchemaVersion(
+  data: unknown,
+  expectedVersion: string,
+): void {
   const obj = data as Record<string, unknown>;
-  expect(obj.schemaVersion ?? obj.schema_version, `schemaVersion must be '${expectedVersion}'`).toBe(expectedVersion);
+  expect(
+    obj.schemaVersion ?? obj.schema_version,
+    `schemaVersion must be '${expectedVersion}'`,
+  ).toBe(expectedVersion);
 }
 
 export function assertNoTimestampDrift(ts1: string, ts2: string): void {
   // Both timestamps must be identical (deterministic) or both be the fixed epoch
-  expect(ts1, "timestamps must be deterministic").toBe(ts2);
+  expect(ts1, 'timestamps must be deterministic').toBe(ts2);
 }

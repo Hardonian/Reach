@@ -1,16 +1,16 @@
 /**
  * Determinism E2E Tests
- * 
+ *
  * Comprehensive tests to prove "boring ops" - operations that must produce
  * identical output across platforms, runs, and time.
- * 
+ *
  * These tests verify:
  * - Cross-platform consistency (Windows, macOS, Linux)
  * - Timestamp independence (no Date.now() in output)
  * - Numeric stability (edge cases, large integers)
  * - Sort stability (tie-breaking)
  * - Unicode normalization
- * 
+ *
  * @module determinism/determinism.e2e.test
  */
 
@@ -25,34 +25,34 @@ describe('E2E Determinism', () => {
   describe('Unicode Normalization', () => {
     it('documents that JSON.stringify does NOT normalize Unicode', () => {
       // NFC: é as single codepoint (U+00E9)
-      const nfc = { key: "café" };
+      const nfc = { key: 'café' };
       // NFD: é as e + combining acute accent (U+0065 U+0301)
-      const nfd = { key: "caf\u0065\u0301" };
-      
+      const nfd = { key: 'caf\u0065\u0301' };
+
       // JSON.stringify does NOT normalize Unicode - this is documented behavior
       const jsonNfc = canonicalJson(nfc);
       const jsonNfd = canonicalJson(nfd);
-      
+
       // They ARE actually the same when displayed (terminal renders both as "café")
       // But let's verify with raw bytes
       const bufNfc = Buffer.from(jsonNfc);
       const bufNfd = Buffer.from(jsonNfd);
-      
+
       // The bytes are DIFFERENT (NFC vs NFD):
       // NFC: caf + 0xC3 0xA9 (single UTF-8 for é = U+00E9)
       // NFD: caf + 0x65 0xCC 0x81 (e + combining acute U+0301)
       // Terminal renders both as "café" but bytes differ!
-      
+
       // Verify byte difference (NFC is shorter: 2 bytes vs 3 for the é)
       expect(bufNfc.length).not.toBe(bufNfd.length);
       expect(bufNfc.equals(bufNfd)).toBe(false);
-      
+
       // For determinism: normalize to NFC before canonicalJson
       // const normalized = { key: nfd.key.normalize('NFC') };
     });
 
     it('handles emoji and supplementary characters consistently', () => {
-      const data = { emoji: "🎉", math: "∑", chinese: "中" };
+      const data = { emoji: '🎉', math: '∑', chinese: '中' };
       const json = canonicalJson(data);
       expect(json).toBe('{"chinese":"中","emoji":"🎉","math":"∑"}');
     });
@@ -62,7 +62,7 @@ describe('E2E Determinism', () => {
     it('normalizes -0 to 0', () => {
       const a = { value: -0 };
       const b = { value: 0 };
-      
+
       expect(canonicalJson(a)).toBe(canonicalJson(b));
       expect(canonicalJson(a)).toBe('{"value":0}');
     });
@@ -85,7 +85,7 @@ describe('E2E Determinism', () => {
       const bigInt = 9007199254740993;
       const data = { id: bigInt };
       const json = canonicalJson(data);
-      
+
       // JavaScript rounds to nearest representable number
       expect(bigInt).toBe(9007199254740992); // Precision loss in JS!
       // canonicalJson converts to string to preserve precision
@@ -95,10 +95,10 @@ describe('E2E Determinism', () => {
     it('handles MAX_SAFE_INTEGER boundary correctly', () => {
       const safe = Number.MAX_SAFE_INTEGER; // 9007199254740991
       const unsafe = Number.MAX_SAFE_INTEGER + 1;
-      
+
       const safeData = { id: safe };
       const unsafeData = { id: unsafe };
-      
+
       expect(canonicalJson(safeData)).toBe('{"id":9007199254740991}');
       expect(canonicalJson(unsafeData)).toBe('{"id":"9007199254740992"}');
     });
@@ -118,9 +118,9 @@ describe('E2E Determinism', () => {
         { id: 'b', seq: 2 },
         { id: 'a', seq: 3 }, // Same id as first
       ];
-      
+
       const sorted = sortByKey(items, 'id');
-      
+
       // First 'a' should come before second 'a'
       expect(sorted[0].seq).toBe(1);
       expect(sorted[1].seq).toBe(3);
@@ -133,9 +133,9 @@ describe('E2E Determinism', () => {
         { priority: 2, name: 'second' },
         { priority: 1, name: 'third' }, // Same priority as first
       ];
-      
+
       const sorted = sortByNumericKey(items, 'priority');
-      
+
       // First priority=1 should come before second priority=1
       expect(sorted[0].name).toBe('first');
       expect(sorted[1].name).toBe('third');
@@ -145,7 +145,7 @@ describe('E2E Determinism', () => {
     it('sorts strings by code-point order (not locale)', () => {
       const strings = ['b', 'A', 'a', 'B', '1', '2'];
       const sorted = sortStrings(strings);
-      
+
       // Code-point order: numbers < uppercase < lowercase
       expect(sorted).toEqual(['1', '2', 'A', 'B', 'a', 'b']);
     });
@@ -155,20 +155,20 @@ describe('E2E Determinism', () => {
     it('produces identical sequences for same seed', () => {
       const rng1 = seededRandom('test-seed-123');
       const rng2 = seededRandom('test-seed-123');
-      
+
       const seq1 = Array.from({ length: 10 }, () => rng1.next());
       const seq2 = Array.from({ length: 10 }, () => rng2.next());
-      
+
       expect(seq1).toEqual(seq2);
     });
 
     it('produces different sequences for different seeds', () => {
       const rng1 = seededRandom('seed-a');
       const rng2 = seededRandom('seed-b');
-      
+
       const seq1 = Array.from({ length: 10 }, () => rng1.next());
       const seq2 = Array.from({ length: 10 }, () => rng2.next());
-      
+
       expect(seq1).not.toEqual(seq2);
     });
 
@@ -176,11 +176,11 @@ describe('E2E Determinism', () => {
       const arr = [1, 2, 3, 4, 5];
       const rng1 = seededRandom('shuffle-test');
       const rng2 = seededRandom('shuffle-test');
-      
+
       // Same seed produces same shuffle sequence
       const shuffled1 = rng1.shuffle([...arr]);
       const shuffled2 = rng2.shuffle([...arr]);
-      
+
       expect(shuffled1).toEqual(shuffled2);
       expect(shuffled1).not.toEqual(arr);
     });
@@ -190,7 +190,7 @@ describe('E2E Determinism', () => {
     it('generates deterministic IDs from seed', () => {
       const id1 = generateDeterministicRequestId('seed-abc');
       const id2 = generateDeterministicRequestId('seed-abc');
-      
+
       expect(id1).toBe(id2);
       expect(id1).toMatch(/^req_det_/);
     });
@@ -198,7 +198,7 @@ describe('E2E Determinism', () => {
     it('generates different IDs for different seeds', () => {
       const id1 = generateDeterministicRequestId('seed-a');
       const id2 = generateDeterministicRequestId('seed-b');
-      
+
       expect(id1).not.toBe(id2);
     });
   });
@@ -207,7 +207,7 @@ describe('E2E Determinism', () => {
     it('produces identical output regardless of key insertion order', () => {
       const obj1 = { z: 1, a: 2, m: 3 };
       const obj2 = { a: 2, m: 3, z: 1 };
-      
+
       expect(canonicalJson(obj1)).toBe(canonicalJson(obj2));
     });
 
@@ -220,7 +220,7 @@ describe('E2E Determinism', () => {
           },
         },
       };
-      
+
       const json = canonicalJson(nested);
       expect(json).toBe('{"outer":{"inner":{"a":"first","z":"last"}}}');
     });
@@ -238,7 +238,7 @@ describe('E2E Determinism', () => {
         null: null,
         undef: undefined, // Should be stripped by JSON.stringify
       };
-      
+
       const json = canonicalJson(data);
       expect(json).toBe('{"arr":[],"empty":{},"null":null}');
     });
@@ -248,20 +248,28 @@ describe('E2E Determinism', () => {
     it('produces identical hashes for identical canonical data', () => {
       const data1 = { b: 2, a: 1 };
       const data2 = { a: 1, b: 2 };
-      
-      const hash1 = createHash('sha256').update(canonicalJson(data1)).digest('hex');
-      const hash2 = createHash('sha256').update(canonicalJson(data2)).digest('hex');
-      
+
+      const hash1 = createHash('sha256')
+        .update(canonicalJson(data1))
+        .digest('hex');
+      const hash2 = createHash('sha256')
+        .update(canonicalJson(data2))
+        .digest('hex');
+
       expect(hash1).toBe(hash2);
     });
 
     it('produces different hashes for different data', () => {
       const data1 = { value: 1 };
       const data2 = { value: 2 };
-      
-      const hash1 = createHash('sha256').update(canonicalJson(data1)).digest('hex');
-      const hash2 = createHash('sha256').update(canonicalJson(data2)).digest('hex');
-      
+
+      const hash1 = createHash('sha256')
+        .update(canonicalJson(data1))
+        .digest('hex');
+      const hash2 = createHash('sha256')
+        .update(canonicalJson(data2))
+        .digest('hex');
+
       expect(hash1).not.toBe(hash2);
     });
   });
@@ -277,9 +285,9 @@ describe('E2E Determinism', () => {
           c: { s1: 0.0, s2: 1.0 },
         },
       };
-      
+
       const runs = Array.from({ length: 5 }, () => canonicalJson(complex));
-      
+
       // All runs should be identical
       for (let i = 1; i < runs.length; i++) {
         expect(runs[i]).toBe(runs[0]);

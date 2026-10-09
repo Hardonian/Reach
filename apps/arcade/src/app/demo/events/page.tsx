@@ -12,7 +12,9 @@ export const metadata = {
 };
 
 export default async function EventsPage() {
-  let events: Awaited<ReturnType<ReturnType<typeof getDemoEngine>['getEvents']>> = [];
+  let events: Awaited<
+    ReturnType<ReturnType<typeof getDemoEngine>['getEvents']>
+  > = [];
   let error: string | null = null;
 
   try {
@@ -41,7 +43,10 @@ export default async function EventsPage() {
                 Event tail with filters and replay controls
               </p>
             </div>
-            <a href="/demo" className="text-sm text-gray-600 hover:text-gray-900">
+            <a
+              href="/demo"
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
               ← Back to Demo
             </a>
           </div>
@@ -57,23 +62,31 @@ export default async function EventsPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-          {['junction', 'decision', 'action', 'system', 'artifact'].map((type) => {
-            const count = events.filter(e => e.type === type).length;
-            return (
-              <div key={type} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                <p className="text-2xl font-bold text-gray-900">{count}</p>
-                <p className="text-sm text-gray-500 capitalize">{type}</p>
-              </div>
-            );
-          })}
+          {['junction', 'decision', 'action', 'system', 'artifact'].map(
+            (type) => {
+              const count = events.filter((e) => e.type === type).length;
+              return (
+                <div
+                  key={type}
+                  className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+                >
+                  <p className="text-2xl font-bold text-gray-900">{count}</p>
+                  <p className="text-sm text-gray-500 capitalize">{type}</p>
+                </div>
+              );
+            },
+          )}
         </div>
 
         {events.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="text-4xl mb-4">📡</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Events Yet</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No Events Yet
+            </h3>
             <p className="text-gray-500 mb-6">
-              Events are generated as junctions, decisions, and actions are processed
+              Events are generated as junctions, decisions, and actions are
+              processed
             </p>
             <a
               href="/demo"
@@ -91,14 +104,21 @@ export default async function EventsPage() {
             </div>
             <div className="divide-y divide-gray-100">
               {[...events].reverse().map((event) => (
-                <div key={event.id} className="px-6 py-4 flex items-start gap-4">
-                  <span className={`flex-shrink-0 px-2 py-1 text-xs rounded-full font-medium ${
-                    eventTypeColors[event.type] || 'bg-gray-100 text-gray-700'
-                  }`}>
+                <div
+                  key={event.id}
+                  className="px-6 py-4 flex items-start gap-4"
+                >
+                  <span
+                    className={`flex-shrink-0 px-2 py-1 text-xs rounded-full font-medium ${
+                      eventTypeColors[event.type] || 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
                     {event.type}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-mono text-gray-900 truncate">{event.id}</p>
+                    <p className="text-sm font-mono text-gray-900 truncate">
+                      {event.id}
+                    </p>
                     <p className="text-xs text-gray-500 mt-1">
                       Source: {event.source_id}
                     </p>

@@ -33,22 +33,25 @@ export function evaluateDiffCritical(data: DiffCriticalData): {
   triggerTrace: Record<string, any>;
 } {
   const threshold = 0.7; // 70% significance triggers critical
-  
+
   // Calculate base severity from significance score
   let severityScore = data.significanceScore;
-  
+
   // Increase severity for breaking changes
   if (data.diffSummary.breakingChanges.length > 0) {
-    severityScore = Math.min(1.0, severityScore + 0.2 * data.diffSummary.breakingChanges.length);
+    severityScore = Math.min(
+      1.0,
+      severityScore + 0.2 * data.diffSummary.breakingChanges.length,
+    );
   }
-  
+
   // Increase severity for high file change count
   if (data.diffSummary.filesChanged > 10) {
     severityScore = Math.min(1.0, severityScore + 0.1);
   }
-  
+
   const shouldTrigger = severityScore >= threshold;
-  
+
   const triggerTrace = {
     algorithm: 'diff_critical_evaluation',
     thresholds: {
@@ -62,7 +65,7 @@ export function evaluateDiffCritical(data: DiffCriticalData): {
     computedSeverity: severityScore,
     shouldTrigger,
   };
-  
+
   return { shouldTrigger, severityScore, triggerTrace };
 }
 
@@ -71,10 +74,11 @@ export function evaluateDiffCritical(data: DiffCriticalData): {
  */
 export function createDiffCriticalTrigger(
   data: DiffCriticalData,
-  scopeKeys?: Record<string, string>
+  scopeKeys?: Record<string, string>,
 ): DiffCriticalTrigger {
-  const { shouldTrigger, severityScore, triggerTrace } = evaluateDiffCritical(data);
-  
+  const { shouldTrigger, severityScore, triggerTrace } =
+    evaluateDiffCritical(data);
+
   return {
     type: 'diff_critical',
     sourceType: 'diff',

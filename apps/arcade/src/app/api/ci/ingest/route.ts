@@ -23,7 +23,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(CiIngestSchema, body);
   if ('errors' in parsed) {
-    return NextResponse.json({ error: parsed.errors.issues[0]?.message ?? 'Invalid input' }, { status: 400 });
+    return NextResponse.json(
+      { error: parsed.errors.issues[0]?.message ?? 'Invalid input' },
+      { status: 400 },
+    );
   }
 
   const data = parsed.data;
@@ -44,7 +47,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (data.gate_id) {
     try {
       const gates = listGates(ctx.tenantId);
-      const targetGate = gates.find((g) => g.id === data.gate_id && g.status === 'enabled');
+      const targetGate = gates.find(
+        (g) => g.id === data.gate_id && g.status === 'enabled',
+      );
       if (targetGate) {
         const gateRun = createGateRun(ctx.tenantId, targetGate.id, {
           trigger_type: 'push',
@@ -55,19 +60,27 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         gateRunId = gateRun.id;
 
         void runGate(ctx.tenantId, gateRun.id).catch((err) => {
-          logger.warn('CI-triggered gate run failed', { gate_run_id: gateRun.id, err: String(err) });
+          logger.warn('CI-triggered gate run failed', {
+            gate_run_id: gateRun.id,
+            err: String(err),
+          });
         });
       }
     } catch (err) {
-      logger.warn('Failed to trigger gate from CI ingest', { err: String(err) });
+      logger.warn('Failed to trigger gate from CI ingest', {
+        err: String(err),
+      });
     }
   }
 
-  return NextResponse.json({
-    ingest_run_id: ingestRun.id,
-    gate_run_id: gateRunId ?? null,
-    status: 'accepted',
-    report_url: gateRunId ? `/reports/${gateRunId}` : null,
-    created_at: ingestRun.created_at,
-  }, { status: 202 });
+  return NextResponse.json(
+    {
+      ingest_run_id: ingestRun.id,
+      gate_run_id: gateRunId ?? null,
+      status: 'accepted',
+      report_url: gateRunId ? `/reports/${gateRunId}` : null,
+      created_at: ingestRun.created_at,
+    },
+    { status: 202 },
+  );
 }

@@ -24,8 +24,5 @@
     "protocol/",
     "internal/"
   ],
-  "forbidden_paths": [
-    "apps/arcade/src/app",
-    "apps/arcade/src/components"
-  ]
+  "forbidden_paths": ["apps/arcade/src/app", "apps/arcade/src/components"]
 }

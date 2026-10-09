@@ -4,13 +4,26 @@ import { getCpxConflicts } from '@/lib/cpx-api';
 
 export const runtime = 'nodejs';
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+): Promise<NextResponse> {
   const auth = await requireAuth(req);
-  if (auth instanceof NextResponse) return NextResponse.json({ ok: false, error: { message: 'Unauthorized' } }, { status: 401 });
+  if (auth instanceof NextResponse)
+    return NextResponse.json(
+      { ok: false, error: { message: 'Unauthorized' } },
+      { status: 401 },
+    );
   try {
     const { id } = await params;
-    return NextResponse.json({ ok: true, data: getCpxConflicts(process.cwd(), id) });
+    return NextResponse.json({
+      ok: true,
+      data: getCpxConflicts(process.cwd(), id),
+    });
   } catch {
-    return NextResponse.json({ ok: false, error: { message: 'Unable to load CPX conflicts.' } }, { status: 200 });
+    return NextResponse.json(
+      { ok: false, error: { message: 'Unable to load CPX conflicts.' } },
+      { status: 200 },
+    );
   }
 }

@@ -55,30 +55,30 @@ Violations are blocked by `npm run validate:boundaries`. See [`docs/IMPORT_RULES
 
 ### Must-Never Imports
 
-| Source Path | Forbidden Import | Reason |
-| :--- | :--- | :--- |
-| `core/` | `cloud/`, `services/billing`, `stripe`, `auth0` | Core must be cloud-free |
-| `services/runner/cmd/reachctl` | `apps/arcade`, `next`, `react` | CLI must not depend on web |
-| Any `OSS Core` component | Cloud SDK packages | OSS purity guarantee |
-| `protocol/` | Any runtime dependency | Protocol is schema-only |
+| Source Path                    | Forbidden Import                                | Reason                     |
+| :----------------------------- | :---------------------------------------------- | :------------------------- |
+| `core/`                        | `cloud/`, `services/billing`, `stripe`, `auth0` | Core must be cloud-free    |
+| `services/runner/cmd/reachctl` | `apps/arcade`, `next`, `react`                  | CLI must not depend on web |
+| Any `OSS Core` component       | Cloud SDK packages                              | OSS purity guarantee       |
+| `protocol/`                    | Any runtime dependency                          | Protocol is schema-only    |
 
 ### Required Patterns
 
-| Component | Must Access Via | Reason |
-| :--- | :--- | :--- |
-| Storage | `StorageDriver` interface | Backend-agnostic |
-| Auth (if needed) | `AuthProvider` interface | OSS stub by default |
-| Billing | `BillingProvider` interface (stub) | Returns 402 in OSS mode |
-| Artifact sync | `ArtifactStore` interface | Local FS in OSS mode |
+| Component        | Must Access Via                    | Reason                  |
+| :--------------- | :--------------------------------- | :---------------------- |
+| Storage          | `StorageDriver` interface          | Backend-agnostic        |
+| Auth (if needed) | `AuthProvider` interface           | OSS stub by default     |
+| Billing          | `BillingProvider` interface (stub) | Returns 402 in OSS mode |
+| Artifact sync    | `ArtifactStore` interface          | Local FS in OSS mode    |
 
 ---
 
 ## Feature Flag Rules
 
-| Flag | Behavior | Used For |
-| :--- | :--- | :--- |
-| `REACH_CLOUD` unset or `=0` | OSS mode (default) | Local execution, SQLite storage |
-| `REACH_CLOUD=1` | Cloud mode | Enables enterprise adapter implementations |
+| Flag                        | Behavior           | Used For                                   |
+| :-------------------------- | :----------------- | :----------------------------------------- |
+| `REACH_CLOUD` unset or `=0` | OSS mode (default) | Local execution, SQLite storage            |
+| `REACH_CLOUD=1`             | Cloud mode         | Enables enterprise adapter implementations |
 
 **Critical rule**: Any code reading `REACH_CLOUD=1` must be in a `Cloud Only` component (per [`OSS_FIRST_COMPONENT_MAP.md`](OSS_FIRST_COMPONENT_MAP.md)). OSS Core components must never check this flag.
 

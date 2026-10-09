@@ -23,11 +23,11 @@ Every new feature or architectural change must be scored using this framework be
 
 **Net Score = (Positive Leverage Sum) - (Negative Drag Sum)**
 
-| Net Score | Verdict |
-| :--- | :--- |
-| **> 25** | **GO**: High-compounding priority. |
+| Net Score | Verdict                                              |
+| :-------- | :--------------------------------------------------- |
+| **> 25**  | **GO**: High-compounding priority.                   |
 | **15–24** | **DEFER**: Re-evaluate if complexity can be reduced. |
-| **< 15** | **KILL**: Strategic drift detected. |
+| **< 15**  | **KILL**: Strategic drift detected.                  |
 
 ## 3. AUTO-KILL CONDITIONS (Non-Negotiable)
 
@@ -51,4 +51,4 @@ Every new feature or architectural change must be scored using this framework be
 - UI Expansion: 1
 - Engineering: 2
 - **Neg Subtotal: 4**
-- **Net Score: 13** -> *Result: DEFER. Needs consolidation into existing Studio Shell.*
+- **Net Score: 13** -> _Result: DEFER. Needs consolidation into existing Studio Shell._

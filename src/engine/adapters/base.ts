@@ -1,17 +1,17 @@
 /**
  * Engine Base Adapter
- * 
+ *
  * Provides shared functionality for all engine adapters including:
  * - Process semaphore for limiting concurrent executions
  * - Deterministic seed derivation from requestId
  * - Resource limits enforcement (memory, CPU, file descriptors)
- * 
+ *
  * SECURITY HARDENING (v1.2):
  * - Concurrency limits to prevent resource exhaustion
  * - Request size validation
  * - Streaming parsing for large payloads
  * - Deterministic sort enforcement
- * 
+ *
  * @module engine/adapters/base
  */
 
@@ -55,11 +55,11 @@ export const DEFAULT_RESOURCE_LIMITS = {
 
 /**
  * Process Semaphore for limiting concurrent engine executions
- * 
+ *
  * This ensures deterministic execution by limiting how many engine
  * processes can run simultaneously, preventing resource exhaustion
  * while maintaining predictable behavior.
- * 
+ *
  * SECURITY: Prevents EMFILE/ENOSPC cascades from too many concurrent processes
  */
 export class ProcessSemaphore {
@@ -126,7 +126,12 @@ export class ProcessSemaphore {
   /**
    * Get current semaphore status (for debugging/monitoring)
    */
-  getStatus(): { available: number; waiting: number; max: number; active: number } {
+  getStatus(): {
+    available: number;
+    waiting: number;
+    max: number;
+    active: number;
+  } {
     return {
       available: this.available,
       waiting: this.waitQueue.length,
@@ -162,10 +167,10 @@ export function resetSemaphore(): void {
 
 /**
  * Derive a deterministic seed from a requestId
- * 
+ *
  * Uses SHA-256 hash to derive a seed from the requestId.
  * This ensures identical RNG/Adaptive outcomes for the same request.
- * 
+ *
  * @param requestId - The unique request identifier
  * @returns A deterministic 32-bit seed value
  */
@@ -175,17 +180,17 @@ export function deriveSeed(requestId: string): number {
   const hash = createHash('sha256');
   hash.update(requestId);
   const digest = hash.digest('hex');
-  
+
   // Take first 8 hex characters (32 bits) and convert to number
   // This ensures we get a consistent integer seed
   const seed = parseInt(digest.substring(0, 8), 16);
-  
+
   return seed;
 }
 
 /**
  * Derive a seed as a hex string for engines that expect string seeds
- * 
+ *
  * @param requestId - The unique request identifier
  * @returns A deterministic 64-character hex string seed
  */
@@ -198,7 +203,7 @@ export function deriveSeedHex(requestId: string): string {
 /**
  * Convert a numeric seed to a deterministic float in [0, 1)
  * Useful for normalized random values
- * 
+ *
  * @param seed - The numeric seed
  * @returns A deterministic float in [0, 1)
  */
@@ -207,8 +212,8 @@ export function seedToNormalizedFloat(seed: number): number {
   // This maintains determinism - same seed always produces same sequence
   const a = 1664525;
   const c = 1013904223;
-  const m = 0xFFFFFFFF;
-  
+  const m = 0xffffffff;
+
   const next = (a * seed + c) % m;
   return next / m;
 }
@@ -231,9 +236,9 @@ export interface ResourceValidationResult {
 
 /**
  * Validate request against resource limits
- * 
+ *
  * SECURITY: Prevents OOM DoS from huge decision matrices
- * 
+ *
  * @param request - The execution request
  * @param limits - Optional custom limits
  * @returns Validation result
@@ -243,12 +248,12 @@ export function validateResourceLimits(
   limits?: Partial<typeof DEFAULT_RESOURCE_LIMITS>,
 ): ResourceValidationResult {
   const effectiveLimits = { ...DEFAULT_RESOURCE_LIMITS, ...limits };
-  
+
   // Check matrix size
   const numActions = request.params.actions?.length || 0;
   const numStates = request.params.states?.length || 0;
   const matrixCells = numActions * numStates;
-  
+
   if (matrixCells > effectiveLimits.maxMatrixCells) {
     return {
       valid: false,
@@ -259,7 +264,7 @@ export function validateResourceLimits(
       },
     };
   }
-  
+
   // Check request size
   const requestJson = JSON.stringify(request);
   if (requestJson.length > effectiveLimits.maxRequestBytes) {
@@ -272,7 +277,7 @@ export function validateResourceLimits(
       },
     };
   }
-  
+
   return {
     valid: true,
     limits: {
@@ -307,13 +312,13 @@ export function sortObjectKeys(obj: unknown, depth = 0): unknown {
   if (depth > 20) {
     throw new Error('Maximum recursion depth exceeded in sortObjectKeys');
   }
-  
+
   if (obj === null || typeof obj !== 'object') {
     return obj;
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(item => sortObjectKeys(item, depth + 1));
+    return obj.map((item) => sortObjectKeys(item, depth + 1));
   }
 
   const typedObj = obj as Record<string, unknown>;
@@ -338,7 +343,7 @@ export function sortObjectKeys(obj: unknown, depth = 0): unknown {
 export abstract class BaseEngineAdapter {
   protected semaphore: ProcessSemaphore;
   protected resourceLimits: typeof DEFAULT_RESOURCE_LIMITS;
-  
+
   constructor(limits?: Partial<typeof DEFAULT_RESOURCE_LIMITS>) {
     this.semaphore = getSemaphore();
     this.resourceLimits = { ...DEFAULT_RESOURCE_LIMITS, ...limits };
@@ -351,7 +356,7 @@ export abstract class BaseEngineAdapter {
   protected ensureSeed(request: ExecRequest): ExecRequest {
     // If seed already exists in params, use it; otherwise derive from requestId
     const seed = request.params.seed ?? deriveSeed(request.requestId);
-    
+
     return {
       ...request,
       params: {
@@ -367,18 +372,22 @@ export abstract class BaseEngineAdapter {
    */
   validateInput(request: ExecRequest): { valid: boolean; errors?: string[] } {
     const errors: string[] = [];
-    
+
     // 1. Basic ID and structure validation
     if (!request.requestId) {
       errors.push('requestId is required');
     } else {
       // Path traversal protection
-      const sanitized = request.requestId.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 64);
+      const sanitized = request.requestId
+        .replace(/[^a-zA-Z0-9._-]/g, '_')
+        .substring(0, 64);
       if (sanitized !== request.requestId) {
-        errors.push('requestId contains invalid characters or path traversal attempt detected');
+        errors.push(
+          'requestId contains invalid characters or path traversal attempt detected',
+        );
       }
     }
-    
+
     if (!request.params) {
       errors.push('params is required');
       return { valid: false, errors };
@@ -405,10 +414,15 @@ export abstract class BaseEngineAdapter {
 
     // 3. Numeric Integrity (Fixed-point enforcement)
     // Trace: Verify ONLY integers participate in outcomes
-    if (request.params.outcomes && this.hasFloatingPointValues(request.params.outcomes)) {
-      errors.push('floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic');
+    if (
+      request.params.outcomes &&
+      this.hasFloatingPointValues(request.params.outcomes)
+    ) {
+      errors.push(
+        'floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic',
+      );
     }
-    
+
     return {
       valid: errors.length === 0,
       errors: errors.length > 0 ? errors : undefined,
@@ -439,19 +453,25 @@ export abstract class BaseEngineAdapter {
     // Validate all invariants before execution
     const validation = this.validateInput(request);
     if (!validation.valid) {
-      throw new Error(`Execution blocked by invariant failure: ${validation.errors?.join(', ')}`);
+      throw new Error(
+        `Execution blocked by invariant failure: ${validation.errors?.join(', ')}`,
+      );
     }
-    
+
     // Ensure seed is derived before execution
     const requestWithSeed = this.ensureSeed(request);
-    
+
     const result = await this.semaphore.run(() => executor(requestWithSeed));
-    
+
     // Determinism Guard: Verify result integrity
-    if (result && typeof result === 'object' && ('fingerprint' in (result as Record<string, unknown>))) {
+    if (
+      result &&
+      typeof result === 'object' &&
+      'fingerprint' in (result as Record<string, unknown>)
+    ) {
       this.verifyResult(result as unknown as ExecResult);
     }
-    
+
     return result;
   }
 
@@ -460,7 +480,9 @@ export abstract class BaseEngineAdapter {
    */
   protected verifyResult(result: ExecResult): void {
     if (result.status === 'success' && !result.fingerprint) {
-      throw new Error(`Determinism Guard: engine ${result.meta.engine} failed to provide a fingerprint for successful result`);
+      throw new Error(
+        `Determinism Guard: engine ${result.meta.engine} failed to provide a fingerprint for successful result`,
+      );
     }
   }
 
@@ -490,14 +512,14 @@ export const FuzzGenerator = {
     const actions = ['a1', 'a2', 'a3'];
     const states = ['s1', 's2'];
     const outcomes: Record<string, Record<string, number>> = {};
-    
+
     for (const action of actions) {
       outcomes[action] = {};
       for (const state of states) {
         outcomes[action][state] = Math.floor(Math.random() * 100);
       }
     }
-    
+
     return {
       requestId: id,
       timestamp: new Date().toISOString(),
@@ -524,18 +546,21 @@ export const FuzzGenerator = {
   /**
    * Generate a request with massive payload (stress test)
    */
-  generateMassiveRequest(id: string = 'fuzz-massive', size: number = 1000): ExecRequest {
+  generateMassiveRequest(
+    id: string = 'fuzz-massive',
+    size: number = 1000,
+  ): ExecRequest {
     const actions = Array.from({ length: size }, (_, i) => `a${i}`);
     const states = ['s1', 's2'];
     const outcomes: Record<string, Record<string, number>> = {};
-    
+
     for (const action of actions) {
       outcomes[action] = {};
       for (const state of states) {
         outcomes[action][state] = Math.floor(Math.random() * 100);
       }
     }
-    
+
     return {
       requestId: id,
       timestamp: new Date().toISOString(),
@@ -546,5 +571,5 @@ export const FuzzGenerator = {
         outcomes,
       },
     };
-  }
+  },
 };

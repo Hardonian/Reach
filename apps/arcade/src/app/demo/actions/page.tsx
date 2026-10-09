@@ -12,7 +12,9 @@ export const metadata = {
 };
 
 export default async function ActionsPage() {
-  let actions: Awaited<ReturnType<ReturnType<typeof getDemoEngine>['getActions']>> = [];
+  let actions: Awaited<
+    ReturnType<ReturnType<typeof getDemoEngine>['getActions']>
+  > = [];
   let error: string | null = null;
 
   try {
@@ -33,7 +35,10 @@ export default async function ActionsPage() {
                 Action plans, approvals, and execution journals
               </p>
             </div>
-            <a href="/demo" className="text-sm text-gray-600 hover:text-gray-900">
+            <a
+              href="/demo"
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
               ← Back to Demo
             </a>
           </div>
@@ -50,7 +55,9 @@ export default async function ActionsPage() {
         {actions.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="text-4xl mb-4">🎯</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Actions Yet</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No Actions Yet
+            </h3>
             <p className="text-gray-500 mb-6">
               Actions are planned from decisions and executed in safe mode
             </p>
@@ -78,20 +85,30 @@ export default async function ActionsPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`px-3 py-1 text-sm rounded-full font-medium ${
-                      action.status === 'completed' ? 'bg-green-100 text-green-700' :
-                      action.status === 'executing' ? 'bg-blue-100 text-blue-700' :
-                      action.status === 'planned' ? 'bg-yellow-100 text-yellow-700' :
-                      action.status === 'failed' ? 'bg-red-100 text-red-700' :
-                      'bg-gray-100 text-gray-700'
-                    }`}>
+                    <span
+                      className={`px-3 py-1 text-sm rounded-full font-medium ${
+                        action.status === 'completed'
+                          ? 'bg-green-100 text-green-700'
+                          : action.status === 'executing'
+                            ? 'bg-blue-100 text-blue-700'
+                            : action.status === 'planned'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : action.status === 'failed'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-gray-100 text-gray-700'
+                      }`}
+                    >
                       {action.status}
                     </span>
-                    <span className={`px-3 py-1 text-sm rounded-full font-medium ${
-                      action.risk_summary === 'high' ? 'bg-red-100 text-red-700' :
-                      action.risk_summary === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-green-100 text-green-700'
-                    }`}>
+                    <span
+                      className={`px-3 py-1 text-sm rounded-full font-medium ${
+                        action.risk_summary === 'high'
+                          ? 'bg-red-100 text-red-700'
+                          : action.risk_summary === 'medium'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-green-100 text-green-700'
+                      }`}
+                    >
                       Risk: {action.risk_summary}
                     </span>
                   </div>
@@ -101,15 +118,23 @@ export default async function ActionsPage() {
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium text-gray-700">Steps</h4>
                   {action.steps.map((step) => (
-                    <div key={step.order} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div
+                      key={step.order}
+                      className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg"
+                    >
                       <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600">
                         {step.order}
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{step.description}</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {step.description}
+                        </p>
                         {step.tool && (
                           <p className="text-xs text-gray-500 mt-1">
-                            Tool: <code className="bg-gray-100 px-1 rounded">{step.tool}</code>
+                            Tool:{' '}
+                            <code className="bg-gray-100 px-1 rounded">
+                              {step.tool}
+                            </code>
                           </p>
                         )}
                         {step.estimated_duration && (

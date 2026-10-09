@@ -1,7 +1,7 @@
 # Security Hardening Implementation Report v1.2
 
-**Date:** 2026-02-26  
-**Scope:** Reach CLI + Requiem Engine Security Hardening  
+**Date:** 2026-02-26
+**Scope:** Reach CLI + Requiem Engine Security Hardening
 **Status:** ✅ COMPLETE
 
 ---
@@ -19,11 +19,12 @@ Implemented comprehensive security mitigations for the Reach decision engine and
 **Threat:** File replaced with symlink mid-execution enabling read of `/etc/passwd`
 
 **Mitigation:**
+
 - **Requiem (C++):** TOCTOU-safe path normalization in `runtime.cpp`
   - Resolves symlinks and verifies resolved path stays within workspace
   - Double-checks for symlinks after resolution
   - Rejects paths with traversal sequences (`../`, `..\`)
-  
+
 - **Reach (TypeScript):** Security utilities in `src/lib/security.ts`
   - `resolveSafePath()`: Async path resolution with symlink detection
   - `resolveSafePathSync()`: Synchronous version for compatibility
@@ -38,6 +39,7 @@ Implemented comprehensive security mitigations for the Reach decision engine and
 **Threat:** `REQUIEM_BIN` env points to malicious script that reads `REACH_ENCRYPTION_KEY`
 
 **Mitigation:**
+
 - **Environment Sanitization:**
   - Secret filtering for child processes in `requiem.ts`
   - Patterns: `*_TOKEN`, `*_SECRET`, `*_KEY`, `AUTH*`, `COOKIE*`, `SESSION*`, `REACH_ENCRYPTION_KEY`
@@ -50,6 +52,7 @@ Implemented comprehensive security mitigations for the Reach decision engine and
   - Embedded binary preference: Uses shipped/embedded binary first
 
 **Config:**
+
 ```typescript
 {
   expectedVersion: "1.0",        // Enforce version match
@@ -66,10 +69,11 @@ Implemented comprehensive security mitigations for the Reach decision engine and
 **Threat:** Huge decision matrix (1e6 actions/states) crashes host node
 
 **Mitigation:**
+
 - **Request Size Limits:**
   - Max JSON request bytes: 10MB (configurable)
   - Max matrix dimensions: 1M cells (actions × states)
-  
+
 - **Resource Limits:**
   - Concurrency semaphore: caps subprocess/daemon requests
   - Memory limits: `max_memory_bytes` via `setrlimit` (POSIX) / Job Objects (Windows)
@@ -89,11 +93,12 @@ Implemented comprehensive security mitigations for the Reach decision engine and
 **Threat:** Crafted `requestId` writes diff report into `C:\Windows\System32` or `/etc`
 
 **Mitigation:**
+
 - **Request ID Sanitization:**
   - Regex: `[^a-zA-Z0-9._-]` → replaced with `_`
   - Max length: 64 characters
   - Leading dots/dashes removed
-  
+
 - **Path Validation:**
   - Diff reports MUST be under `.reach/engine-diffs/`
   - `resolveSafePath()` verifies resolved path stays under base dir
@@ -113,16 +118,18 @@ Implemented comprehensive security mitigations for the Reach decision engine and
 **Threat:** Plugin mutates `ExecutionResult` after engine returns but before hashing
 
 **Mitigation:**
+
 - **Hash-After-Freeze Invariant:**
   - Engine result bytes are hashed immediately upon receipt
   - Result treated as immutable after fingerprint computation
   - Plugins receive copies/const views, not mutable references
-  
+
 - **Policy Disclosure:**
   - Any plugin modifications recorded in `policy_applied.plugin_applied`
   - Hash must reflect modifications if enabled
 
 **Implementation:**
+
 - `requiem.ts`: `fromRequiemFormat()` parses to immutable structure
 - `runtime.cpp`: `canonicalize_result()` produces deterministic output
 
@@ -133,11 +140,12 @@ Implemented comprehensive security mitigations for the Reach decision engine and
 **Threat:** "Frozen" output altered locally without CID changing
 
 **Mitigation:**
+
 - **CAS Integrity Checks:**
   - CAS key = BLAKE3(original bytes)
   - On read: verify `stored_blob_hash` matches stored bytes
   - On read: verify `BLAKE3(decompressed)` equals CAS key
-  
+
 - **New Method:** `verify_llm_freeze_integrity(cid)`
   - Re-computes CID from content
   - Returns false if content has been tampered with
@@ -155,6 +163,7 @@ Implemented comprehensive security mitigations for the Reach decision engine and
 **Threat:** Non-deterministic behavior affecting reproducibility
 
 **Mitigation:**
+
 - **Precision Control:**
   - `clampPrecision()`: 10 decimal places
   - Fixed-point integers for sensitive numbers
@@ -177,45 +186,48 @@ Implemented comprehensive security mitigations for the Reach decision engine and
 
 ## Risk Table (Implemented)
 
-| Risk | Severity | Implemented | Test File | Test Name |
-|------|----------|-------------|-----------|-----------|
-| Symlink Race (TOCTOU) | Critical | ✅ | `security.test.ts` | "detects symlink attacks" |
-| Binary Hijacking | Critical | ✅ | `requiem.test.ts` | "filters secrets from child environment" |
-| OOM DoS (Matrix) | High | ✅ | `requiem.test.ts` | "rejects requests exceeding matrix size limit" |
-| Path Traversal (requestId) | Critical | ✅ | `security.test.ts` | "sanitizes malicious request IDs" |
-| Plugin ABI Mutation | High | ✅ | Contract enforced | Immutable result handling |
-| LLM Freeze Bypass | Critical | ✅ | `cas.cpp` | `verify_llm_freeze_integrity()` |
-| Precision Drift | Medium | ✅ | `translate.ts` | `clampPrecision()` |
-| Phantom Success | Medium | ✅ | `requiem.ts` | Empty result validation |
-| I/O Exhaustion | Medium | ✅ | `base.ts` | Concurrency semaphore |
-| Named Pipe Leak | Low | ✅ | `sandbox_*.cpp` | UUID-suffixed pipes |
-| Encoding Corruption | Low | ✅ | `security.test.ts` | Unicode path tests |
-| CAS CID Collision | Critical | ✅ | `cas.cpp` | Multi-hash verification |
+| Risk                       | Severity | Implemented | Test File          | Test Name                                      |
+| -------------------------- | -------- | ----------- | ------------------ | ---------------------------------------------- |
+| Symlink Race (TOCTOU)      | Critical | ✅          | `security.test.ts` | "detects symlink attacks"                      |
+| Binary Hijacking           | Critical | ✅          | `requiem.test.ts`  | "filters secrets from child environment"       |
+| OOM DoS (Matrix)           | High     | ✅          | `requiem.test.ts`  | "rejects requests exceeding matrix size limit" |
+| Path Traversal (requestId) | Critical | ✅          | `security.test.ts` | "sanitizes malicious request IDs"              |
+| Plugin ABI Mutation        | High     | ✅          | Contract enforced  | Immutable result handling                      |
+| LLM Freeze Bypass          | Critical | ✅          | `cas.cpp`          | `verify_llm_freeze_integrity()`                |
+| Precision Drift            | Medium   | ✅          | `translate.ts`     | `clampPrecision()`                             |
+| Phantom Success            | Medium   | ✅          | `requiem.ts`       | Empty result validation                        |
+| I/O Exhaustion             | Medium   | ✅          | `base.ts`          | Concurrency semaphore                          |
+| Named Pipe Leak            | Low      | ✅          | `sandbox_*.cpp`    | UUID-suffixed pipes                            |
+| Encoding Corruption        | Low      | ✅          | `security.test.ts` | Unicode path tests                             |
+| CAS CID Collision          | Critical | ✅          | `cas.cpp`          | Multi-hash verification                        |
 
 ---
 
 ## Files Changed
 
 ### Reach (TypeScript)
-| File | Changes |
-|------|---------|
-| `src/engine/adapters/requiem.ts` | Binary trust, env sanitization, resource limits |
-| `src/engine/adapters/base.ts` | Semaphore, resource limits, deterministic sort |
-| `src/lib/security.ts` | Path traversal protection, TOCTOU-safe file ops (NEW) |
-| `src/lib/security.test.ts` | Security utilities tests (NEW) |
-| `src/engine/adapters/requiem.test.ts` | Security tests for adapter (NEW) |
-| `src/engine/translate.ts` | Precision clamping (unchanged, already present) |
+
+| File                                  | Changes                                               |
+| ------------------------------------- | ----------------------------------------------------- |
+| `src/engine/adapters/requiem.ts`      | Binary trust, env sanitization, resource limits       |
+| `src/engine/adapters/base.ts`         | Semaphore, resource limits, deterministic sort        |
+| `src/lib/security.ts`                 | Path traversal protection, TOCTOU-safe file ops (NEW) |
+| `src/lib/security.test.ts`            | Security utilities tests (NEW)                        |
+| `src/engine/adapters/requiem.test.ts` | Security tests for adapter (NEW)                      |
+| `src/engine/translate.ts`             | Precision clamping (unchanged, already present)       |
 
 ### Requiem (C++)
-| File | Changes |
-|------|---------|
-| `src/runtime.cpp` | TOCTOU-safe path normalization, symlink detection |
-| `src/cas.cpp` | Integrity verification, `verify_llm_freeze_integrity()` |
-| `include/requiem/cas.hpp` | Added integrity method declaration |
+
+| File                      | Changes                                                 |
+| ------------------------- | ------------------------------------------------------- |
+| `src/runtime.cpp`         | TOCTOU-safe path normalization, symlink detection       |
+| `src/cas.cpp`             | Integrity verification, `verify_llm_freeze_integrity()` |
+| `include/requiem/cas.hpp` | Added integrity method declaration                      |
 
 ### Go (Historical)
-| File | Changes |
-|------|---------|
+
+| File                                                   | Changes                                           |
+| ------------------------------------------------------ | ------------------------------------------------- |
 | `services/runner/internal/historical/evidence_diff.go` | `SanitizeRequestID()`, `ValidateDiffReportPath()` |
 
 ---
@@ -238,6 +250,7 @@ npm run lint
 ```
 
 **Test Results:**
+
 ```
 Test Files: 26 passed, 1 skipped
 Tests: 166 passed, 3 skipped
@@ -263,11 +276,11 @@ Before release, verify:
 
 ## Compliance
 
-✅ No breaking contract changes (additive only)  
-✅ No secret leakage in logs/traces/errors  
-✅ Cross-platform (Linux + Windows)  
-✅ All mitigations backed by automated tests  
-✅ CI gates: `verify:oss`, `validate:boundaries`, `validate:language`  
+✅ No breaking contract changes (additive only)
+✅ No secret leakage in logs/traces/errors
+✅ Cross-platform (Linux + Windows)
+✅ All mitigations backed by automated tests
+✅ CI gates: `verify:oss`, `validate:boundaries`, `validate:language`
 
 ---
 

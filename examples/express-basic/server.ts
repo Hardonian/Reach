@@ -1,17 +1,17 @@
 /**
  * Reach Express Integration Example
- * 
+ *
  * This example shows how to integrate Reach with an Express application.
- * 
+ *
  * Prerequisites:
  * 1. Reach server running on http://127.0.0.1:8787
  *    Start with: reach serve
  * 2. Dependencies installed
  *    Run: npm install
- * 
+ *
  * Usage:
  *   npm run dev
- * 
+ *
  * Then visit:
  *   http://localhost:3000/health
  *   http://localhost:3000/api/runs (POST)
@@ -69,7 +69,9 @@ app.get('/api/runs/:id', async (req, res) => {
 // Get run events
 app.get('/api/runs/:id/events', async (req, res) => {
   try {
-    const after = req.query.after ? parseInt(req.query.after as string) : undefined;
+    const after = req.query.after
+      ? parseInt(req.query.after as string)
+      : undefined;
     const events = await reach.getRunEvents(req.params.id, after);
     res.json(events);
   } catch (error) {

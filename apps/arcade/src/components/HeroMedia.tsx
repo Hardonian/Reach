@@ -9,7 +9,11 @@ interface HeroMediaProps {
   className?: string;
 }
 
-export function HeroMedia({ videoSrc, fallbackSrc, className = '' }: HeroMediaProps) {
+export function HeroMedia({
+  videoSrc,
+  fallbackSrc,
+  className = '',
+}: HeroMediaProps) {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [videoError, setVideoError] = useState(false);
 

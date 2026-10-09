@@ -11,7 +11,7 @@ describe('diff parser and applier', () => {
       ' one',
       '-two',
       '+TWO',
-      ' three'
+      ' three',
     ].join('\n');
 
     const [patch] = parseUnifiedDiff(diff);

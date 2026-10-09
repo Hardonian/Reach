@@ -1,18 +1,18 @@
 export type DglViolationType =
-  | "terminology"
-  | "intent"
-  | "semantic"
-  | "trust_boundary"
-  | "api_contract"
-  | "dependency_graph"
-  | "memory_context"
-  | "openapi"
-  | "performance"
-  | "agent_contract";
+  | 'terminology'
+  | 'intent'
+  | 'semantic'
+  | 'trust_boundary'
+  | 'api_contract'
+  | 'dependency_graph'
+  | 'memory_context'
+  | 'openapi'
+  | 'performance'
+  | 'agent_contract';
 
 export interface DglViolation {
   type: DglViolationType;
-  severity: "info" | "warn" | "error";
+  severity: 'info' | 'warn' | 'error';
   paths: string[];
   evidence: string;
   suggested_fix: string;
@@ -23,7 +23,8 @@ export interface AgentContract {
   provider: string;
   model: string;
   agent_id: string;
-  task_class: "refactor" | "bugfix" | "docs" | "security" | "perf" | "ui" | "infra";
+  task_class:
+    'refactor' | 'bugfix' | 'docs' | 'security' | 'perf' | 'ui' | 'infra';
   changed_paths: string[];
   risk_summary: string;
   confidence: number;
@@ -33,13 +34,18 @@ export interface AgentContract {
 }
 
 export interface DglReport {
-  schema_version: "1.1.0";
+  schema_version: '1.1.0';
   run_id: string;
   timestamp: string;
   repo: string;
   base_sha: string;
   head_sha: string;
-  provider?: { provider?: string; model?: string; agent_id?: string; context_hash?: string };
+  provider?: {
+    provider?: string;
+    model?: string;
+    agent_id?: string;
+    context_hash?: string;
+  };
   context_hash?: string;
   blast_radius?: {
     score: number;
@@ -79,6 +85,12 @@ export interface DglReport {
     warnings: number;
   };
   violations: DglViolation[];
-  provider_matrix?: Array<{ provider: string; model: string; pass_rate: number; revert_ratio: number; calibration_score: number }>;
+  provider_matrix?: Array<{
+    provider: string;
+    model: string;
+    pass_rate: number;
+    revert_ratio: number;
+    calibration_score: number;
+  }>;
   turbulence_hotspots: Array<{ path: string; reason: string; count: number }>;
 }

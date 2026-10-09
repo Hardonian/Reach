@@ -22,7 +22,8 @@ const MOCK_PACKS: MarketplacePack[] = [
   {
     id: 'web-research-agent',
     name: 'Web Research Agent',
-    description: 'Automated web research with intelligent citations and source verification. Extracts key insights from multiple sources and synthesizes comprehensive reports.',
+    description:
+      'Automated web research with intelligent citations and source verification. Extracts key insights from multiple sources and synthesizes comprehensive reports.',
     shortDescription: 'Automated web research with citations',
     author: {
       id: 'reach-team',
@@ -56,7 +57,8 @@ const MOCK_PACKS: MarketplacePack[] = [
   {
     id: 'data-analysis-pack',
     name: 'Data Analysis Pack',
-    description: 'Comprehensive CSV/Excel analysis with automated chart generation and statistical insights. Perfect for business intelligence and data exploration.',
+    description:
+      'Comprehensive CSV/Excel analysis with automated chart generation and statistical insights. Perfect for business intelligence and data exploration.',
     shortDescription: 'CSV/Excel analysis with charts',
     author: {
       id: 'dataflow-inc',
@@ -90,7 +92,8 @@ const MOCK_PACKS: MarketplacePack[] = [
   {
     id: 'code-review-agent',
     name: 'Code Review Agent',
-    description: 'Automated PR review with security scanning, best practice recommendations, and performance analysis. Supports 20+ programming languages.',
+    description:
+      'Automated PR review with security scanning, best practice recommendations, and performance analysis. Supports 20+ programming languages.',
     shortDescription: 'Automated PR review and security scanning',
     author: {
       id: 'devtools-co',
@@ -124,7 +127,8 @@ const MOCK_PACKS: MarketplacePack[] = [
   {
     id: 'document-parser',
     name: 'Document Parser',
-    description: 'Extract structured data from PDF, Word, and scanned documents with OCR and entity recognition. Handles tables, forms, and handwritten text.',
+    description:
+      'Extract structured data from PDF, Word, and scanned documents with OCR and entity recognition. Handles tables, forms, and handwritten text.',
     shortDescription: 'PDF/Word extraction with OCR',
     author: {
       id: 'documind-ai',
@@ -158,7 +162,8 @@ const MOCK_PACKS: MarketplacePack[] = [
   {
     id: 'email-assistant',
     name: 'Email Assistant',
-    description: 'Draft professional emails and summarize long threads with context-aware suggestions. Integrates with Gmail, Outlook, and other providers.',
+    description:
+      'Draft professional emails and summarize long threads with context-aware suggestions. Integrates with Gmail, Outlook, and other providers.',
     shortDescription: 'Draft and summarize emails',
     author: {
       id: 'productivity-plus',
@@ -192,7 +197,8 @@ const MOCK_PACKS: MarketplacePack[] = [
   {
     id: 'social-media-manager',
     name: 'Social Media Manager',
-    description: 'Schedule posts, analyze engagement, and generate content for multiple platforms. Supports Twitter, LinkedIn, Instagram, and more.',
+    description:
+      'Schedule posts, analyze engagement, and generate content for multiple platforms. Supports Twitter, LinkedIn, Instagram, and more.',
     shortDescription: 'Social media scheduling and analytics',
     author: {
       id: 'social-pro',
@@ -276,7 +282,9 @@ const MOCK_VERSIONS: Record<string, PackVersion[]> = {
 
 // API Functions
 
-export async function browsePacks(filters: BrowseFilters = {}): Promise<PaginatedPacks> {
+export async function browsePacks(
+  filters: BrowseFilters = {},
+): Promise<PaginatedPacks> {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -289,7 +297,7 @@ export async function browsePacks(filters: BrowseFilters = {}): Promise<Paginate
       (pack) =>
         pack.name.toLowerCase().includes(search) ||
         pack.description.toLowerCase().includes(search) ||
-        pack.tags.some((tag: string) => tag.toLowerCase().includes(search))
+        pack.tags.some((tag: string) => tag.toLowerCase().includes(search)),
     );
   }
 
@@ -301,7 +309,7 @@ export async function browsePacks(filters: BrowseFilters = {}): Promise<Paginate
   // Apply tools filter
   if (filters.tools && filters.tools.length > 0) {
     filtered = filtered.filter((pack) =>
-      filters.tools!.some((tool: string) => pack.tools.includes(tool))
+      filters.tools!.some((tool: string) => pack.tools.includes(tool)),
     );
   }
 
@@ -320,7 +328,9 @@ export async function browsePacks(filters: BrowseFilters = {}): Promise<Paginate
   filtered.sort((a, b) => {
     switch (sort) {
       case 'newest':
-        return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+        return (
+          new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
+        );
       case 'trending':
         return b.downloads - a.downloads;
       case 'rating':
@@ -354,18 +364,23 @@ export async function getPack(id: string): Promise<MarketplacePack | null> {
 
 export async function getPackVersions(id: string): Promise<PackVersion[]> {
   await new Promise((resolve) => setTimeout(resolve, 150));
-  return MOCK_VERSIONS[id] || [
-    {
-      version: '1.0.0',
-      changelog: 'Initial release',
-      releasedAt: '2026-01-01',
-      downloads: 100,
-      reputationScore: 80,
-    },
-  ];
+  return (
+    MOCK_VERSIONS[id] || [
+      {
+        version: '1.0.0',
+        changelog: 'Initial release',
+        releasedAt: '2026-01-01',
+        downloads: 100,
+        reputationScore: 80,
+      },
+    ]
+  );
 }
 
-export async function installPack(id: string, version?: string): Promise<PackInstallResult> {
+export async function installPack(
+  id: string,
+  version?: string,
+): Promise<PackInstallResult> {
   await new Promise((resolve) => setTimeout(resolve, 800));
 
   const pack = await getPack(id);
@@ -382,7 +397,9 @@ export async function installPack(id: string, version?: string): Promise<PackIns
   };
 }
 
-export async function publishPack(metadata: PackPublishInput): Promise<{ id: string }> {
+export async function publishPack(
+  metadata: PackPublishInput,
+): Promise<{ id: string }> {
   await new Promise((resolve) => setTimeout(resolve, 1200));
 
   return {
@@ -390,7 +407,10 @@ export async function publishPack(metadata: PackPublishInput): Promise<{ id: str
   };
 }
 
-export async function reportPack(id: string, input: PackReportInput): Promise<void> {
+export async function reportPack(
+  id: string,
+  input: PackReportInput,
+): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 300));
 
   // In production, this would send the report to the backend
@@ -413,7 +433,8 @@ export async function validateManifest(manifest: string): Promise<{
     if (!parsed.name) errors.push('Missing required field: name');
     if (!parsed.version) errors.push('Missing required field: version');
     if (!parsed.description) warnings.push('Missing description');
-    if (!parsed.tools || parsed.tools.length === 0) warnings.push('No tools declared');
+    if (!parsed.tools || parsed.tools.length === 0)
+      warnings.push('No tools declared');
 
     return { valid: errors.length === 0, errors, warnings };
   } catch {

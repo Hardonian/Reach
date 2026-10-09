@@ -9,8 +9,8 @@ describe('createContextPayload', () => {
       activeFile: '/repo/a.ts',
       selectionRange: {
         start: { line: 1, character: 2 },
-        end: { line: 3, character: 4 }
-      }
+        end: { line: 3, character: 4 },
+      },
     });
 
     expect(payload).toEqual({
@@ -19,8 +19,8 @@ describe('createContextPayload', () => {
       active_file: '/repo/a.ts',
       selection_range: {
         start: { line: 1, character: 2 },
-        end: { line: 3, character: 4 }
-      }
+        end: { line: 3, character: 4 },
+      },
     });
   });
 });

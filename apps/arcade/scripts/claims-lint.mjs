@@ -13,7 +13,11 @@ const walk = (dir) => {
 };
 walk(root);
 
-const banned = [/guaranteed\s+100%\s+secure/i, /unbreakable/i, /impossible\s+to\s+attack/i];
+const banned = [
+  /guaranteed\s+100%\s+secure/i,
+  /unbreakable/i,
+  /impossible\s+to\s+attack/i,
+];
 let violations = 0;
 for (const file of files) {
   const text = fs.readFileSync(file, 'utf8');

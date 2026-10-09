@@ -10,7 +10,7 @@ export default [
       parser: tsParser,
       parserOptions: {
         ecmaVersion: 2022,
-        sourceType: 'module'
+        sourceType: 'module',
       },
       globals: {
         console: 'readonly',
@@ -22,17 +22,17 @@ export default [
         clearInterval: 'readonly',
         fetch: 'readonly',
         __dirname: 'readonly',
-        NodeJS: 'readonly'
-      }
+        NodeJS: 'readonly',
+      },
     },
     plugins: {
-      '@typescript-eslint': tsPlugin
+      '@typescript-eslint': tsPlugin,
     },
     rules: {
-      ...tsPlugin.configs.recommended.rules
-    }
+      ...tsPlugin.configs.recommended.rules,
+    },
   },
   {
-    ignores: ['dist/**', 'node_modules/**']
-  }
+    ignores: ['dist/**', 'node_modules/**'],
+  },
 ];

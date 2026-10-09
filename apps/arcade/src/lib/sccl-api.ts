@@ -16,31 +16,64 @@ export function authFailurePayload() {
   };
 }
 
-export function paginate<T>(rows: T[], input: PaginationInput): { items: T[]; total: number; page: number; pageSize: number; totalPages: number } {
+export function paginate<T>(
+  rows: T[],
+  input: PaginationInput,
+): {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+} {
   const page = Math.max(1, input.page);
   const pageSize = Math.max(1, Math.min(100, input.pageSize));
   const total = rows.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const start = (page - 1) * pageSize;
-  return { items: rows.slice(start, start + pageSize), total, page, pageSize, totalPages };
+  return {
+    items: rows.slice(start, start + pageSize),
+    total,
+    page,
+    pageSize,
+    totalPages,
+  };
 }
 
-export function readScclRuns(root = process.cwd()): Array<Record<string, unknown>> {
+export function readScclRuns(
+  root = process.cwd(),
+): Array<Record<string, unknown>> {
   const dir = path.join(root, 'dgl', 'sccl', 'run-records');
   if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir)
+  return fs
+    .readdirSync(dir)
     .filter((f) => f.endsWith('.json'))
     .sort()
-    .map((f) => JSON.parse(fs.readFileSync(path.join(dir, f), 'utf-8')) as Record<string, unknown>);
+    .map(
+      (f) =>
+        JSON.parse(fs.readFileSync(path.join(dir, f), 'utf-8')) as Record<
+          string,
+          unknown
+        >,
+    );
 }
 
-export function readConflictReports(root = process.cwd()): Array<Record<string, unknown>> {
+export function readConflictReports(
+  root = process.cwd(),
+): Array<Record<string, unknown>> {
   const dir = path.join(root, 'dgl', 'sccl', 'reports');
   if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir)
+  return fs
+    .readdirSync(dir)
     .filter((f) => f.endsWith('.json'))
     .sort()
-    .map((f) => JSON.parse(fs.readFileSync(path.join(dir, f), 'utf-8')) as Record<string, unknown>);
+    .map(
+      (f) =>
+        JSON.parse(fs.readFileSync(path.join(dir, f), 'utf-8')) as Record<
+          string,
+          unknown
+        >,
+    );
 }
 
 export interface LeasePayload {
@@ -55,17 +88,32 @@ export interface LeasePayload {
   ttl_seconds: number;
 }
 
-const leaseFile = (root = process.cwd()) => path.join(root, 'dgl', 'sccl', 'leases.json');
+const leaseFile = (root = process.cwd()) =>
+  path.join(root, 'dgl', 'sccl', 'leases.json');
 
 export function listLeases(root = process.cwd()): LeasePayload[] {
   const file = leaseFile(root);
   if (!fs.existsSync(file)) return [];
-  const payload = JSON.parse(fs.readFileSync(file, 'utf-8')) as { leases?: LeasePayload[] };
-  return (payload.leases ?? []).sort((a, b) => a.branch.localeCompare(b.branch));
+  const payload = JSON.parse(fs.readFileSync(file, 'utf-8')) as {
+    leases?: LeasePayload[];
+  };
+  return (payload.leases ?? []).sort((a, b) =>
+    a.branch.localeCompare(b.branch),
+  );
 }
 
-export function writeLeases(leases: LeasePayload[], root = process.cwd()): void {
+export function writeLeases(
+  leases: LeasePayload[],
+  root = process.cwd(),
+): void {
   const file = leaseFile(root);
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, JSON.stringify({ schema_version: '1.0', updated_at: new Date().toISOString(), leases }, null, 2));
+  fs.writeFileSync(
+    file,
+    JSON.stringify(
+      { schema_version: '1.0', updated_at: new Date().toISOString(), leases },
+      null,
+      2,
+    ),
+  );
 }

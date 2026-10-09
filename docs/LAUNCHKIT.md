@@ -3,6 +3,7 @@
 ## Install
 
 ### macOS/Linux
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/reach/reach/main/scripts/install.sh | bash
 export PATH="$HOME/.reach/bin:$PATH"
@@ -11,6 +12,7 @@ reach doctor
 ```
 
 ### Windows PowerShell
+
 ```powershell
 iwr https://raw.githubusercontent.com/reach/reach/main/scripts/install.ps1 -UseBasicParsing | iex
 $env:Path = "$HOME/.reach/bin;" + $env:Path

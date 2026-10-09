@@ -4,10 +4,7 @@
   "title": "Apply Patch Command",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "file_path",
-    "unified_diff"
-  ],
+  "required": ["file_path", "unified_diff"],
   "properties": {
     "file_path": {
       "type": "string",

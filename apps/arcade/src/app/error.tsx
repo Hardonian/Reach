@@ -22,10 +22,7 @@ export default function Error({
           We apologize for the inconvenience. Our team has been notified.
         </p>
         <div className="flex gap-4 justify-center">
-          <button
-            onClick={reset}
-            className="btn-primary"
-          >
+          <button onClick={reset} className="btn-primary">
             Try Again
           </button>
           <a href="/" className="btn-secondary">

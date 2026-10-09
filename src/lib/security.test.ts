@@ -1,9 +1,9 @@
 /**
  * Security Utilities Tests
- * 
+ *
  * Tests for path traversal protection, symlink race detection,
  * and other security hardening measures.
- * 
+ *
  * @module lib/security.test
  */
 
@@ -31,7 +31,9 @@ describe('sanitizeRequestId', () => {
     expect(sanitizeRequestId('request-123')).toBe('request-123');
     expect(sanitizeRequestId('request_123')).toBe('request_123');
     expect(sanitizeRequestId('request.123')).toBe('request.123');
-    expect(sanitizeRequestId('mixed-Case_123.test')).toBe('mixed-Case_123.test');
+    expect(sanitizeRequestId('mixed-Case_123.test')).toBe(
+      'mixed-Case_123.test',
+    );
   });
 
   it('replaces invalid characters with underscore', () => {
@@ -46,7 +48,9 @@ describe('sanitizeRequestId', () => {
     // Note: Leading dots/dashes are removed by sanitizeRequestId
     // But leading underscores are preserved
     expect(sanitizeRequestId('../etc/passwd')).toBe('_etc_passwd');
-    expect(sanitizeRequestId('..\\Windows\\System32')).toBe('_Windows_System32');
+    expect(sanitizeRequestId('..\\Windows\\System32')).toBe(
+      '_Windows_System32',
+    );
     expect(sanitizeRequestId('/etc/passwd')).toBe('_etc_passwd');
   });
 
@@ -88,7 +92,10 @@ describe('containsPathTraversal', () => {
 });
 
 describe('resolveSafePathSync', () => {
-  const testBaseDir = path.join(os.tmpdir(), 'reach-security-test-' + Date.now());
+  const testBaseDir = path.join(
+    os.tmpdir(),
+    'reach-security-test-' + Date.now(),
+  );
 
   beforeEach(() => {
     fs.mkdirSync(testBaseDir, { recursive: true });
@@ -134,9 +141,9 @@ describe('resolveSafePathSync', () => {
 
   it('allows absolute paths when allowOutside is true', () => {
     // Even with allowOutside, path should still be validated
-    const result = resolveSafePathSync('/etc/passwd', { 
-      baseDir: testBaseDir, 
-      allowOutside: true 
+    const result = resolveSafePathSync('/etc/passwd', {
+      baseDir: testBaseDir,
+      allowOutside: true,
     });
     expect(path.isAbsolute(result)).toBe(true);
   });
@@ -161,14 +168,19 @@ describe('resolveSafePathSync', () => {
     } catch {
       canCreateSymlinks = false;
     }
-    
+
     if (!canCreateSymlinks) {
-      console.log('Skipping symlink attack test - cannot create symlinks on this system');
+      console.log(
+        'Skipping symlink attack test - cannot create symlinks on this system',
+      );
       return;
     }
-    
+
     // Create a file outside the workspace
-    const outsideFile = path.join(os.tmpdir(), 'reach-test-outside-' + Date.now() + '.txt');
+    const outsideFile = path.join(
+      os.tmpdir(),
+      'reach-test-outside-' + Date.now() + '.txt',
+    );
     fs.writeFileSync(outsideFile, 'sensitive data');
 
     // Create a symlink inside workspace pointing outside
@@ -178,7 +190,10 @@ describe('resolveSafePathSync', () => {
     try {
       // Attempting to resolve the symlink should detect the escape
       expect(() => {
-        resolveSafePathSync('malicious_link', { baseDir: testBaseDir, followSymlinks: true });
+        resolveSafePathSync('malicious_link', {
+          baseDir: testBaseDir,
+          followSymlinks: true,
+        });
       }).toThrow(SecurityError);
     } finally {
       fs.unlinkSync(outsideFile);
@@ -188,7 +203,10 @@ describe('resolveSafePathSync', () => {
 });
 
 describe('resolveSafePath', () => {
-  const testBaseDir = path.join(os.tmpdir(), 'reach-security-test-async-' + Date.now());
+  const testBaseDir = path.join(
+    os.tmpdir(),
+    'reach-security-test-async-' + Date.now(),
+  );
 
   beforeEach(async () => {
     await fs.promises.mkdir(testBaseDir, { recursive: true });
@@ -203,13 +221,15 @@ describe('resolveSafePath', () => {
   });
 
   it('resolves paths within base directory', async () => {
-    const result = await resolveSafePath('foo/bar.txt', { baseDir: testBaseDir });
+    const result = await resolveSafePath('foo/bar.txt', {
+      baseDir: testBaseDir,
+    });
     expect(result.startsWith(testBaseDir)).toBe(true);
   });
 
   it('rejects path traversal attempts', async () => {
     await expect(
-      resolveSafePath('../outside.txt', { baseDir: testBaseDir })
+      resolveSafePath('../outside.txt', { baseDir: testBaseDir }),
     ).rejects.toThrow(SecurityError);
   });
 });
@@ -227,7 +247,9 @@ describe('buildDiffReportPath', () => {
   });
 
   it('sanitizes malicious request IDs', () => {
-    const result = buildDiffReportPath('../../Windows/System32/pwn', { baseDir });
+    const result = buildDiffReportPath('../../Windows/System32/pwn', {
+      baseDir,
+    });
     // The result should not contain path traversal
     expect(containsPathTraversal(result)).toBe(false);
     // The malicious path should be sanitized (slashes replaced with underscores)
@@ -239,7 +261,9 @@ describe('buildDiffReportPath', () => {
   });
 
   it('handles Windows-style paths', () => {
-    const result = buildDiffReportPath('C:\\Windows\\System32\\pwn', { baseDir });
+    const result = buildDiffReportPath('C:\\Windows\\System32\\pwn', {
+      baseDir,
+    });
     // Should not contain path traversal
     expect(containsPathTraversal(result)).toBe(false);
     // Colons and backslashes should be sanitized
@@ -257,7 +281,10 @@ describe('buildDiffReportPath', () => {
 });
 
 describe('safeReadFile / safeWriteFile', () => {
-  const testWorkspace = path.join(os.tmpdir(), 'reach-safe-io-test-' + Date.now());
+  const testWorkspace = path.join(
+    os.tmpdir(),
+    'reach-safe-io-test-' + Date.now(),
+  );
 
   beforeEach(async () => {
     await fs.promises.mkdir(testWorkspace, { recursive: true });
@@ -274,20 +301,20 @@ describe('safeReadFile / safeWriteFile', () => {
   it('writes and reads files safely', async () => {
     const content = 'Hello, secure world!';
     await safeWriteFile('test.txt', content, testWorkspace);
-    
+
     const read = await safeReadFile('test.txt', testWorkspace);
     expect(read).toBe(content);
   });
 
   it('rejects reading files outside workspace', async () => {
-    await expect(
-      safeReadFile('../outside.txt', testWorkspace)
-    ).rejects.toThrow(SecurityError);
+    await expect(safeReadFile('../outside.txt', testWorkspace)).rejects.toThrow(
+      SecurityError,
+    );
   });
 
   it('rejects writing files outside workspace', async () => {
     await expect(
-      safeWriteFile('../outside.txt', 'data', testWorkspace)
+      safeWriteFile('../outside.txt', 'data', testWorkspace),
     ).rejects.toThrow(SecurityError);
   });
 
@@ -304,14 +331,19 @@ describe('safeReadFile / safeWriteFile', () => {
     } catch {
       canCreateSymlinks = false;
     }
-    
+
     if (!canCreateSymlinks) {
-      console.log('Skipping symlink race test - cannot create symlinks on this system');
+      console.log(
+        'Skipping symlink race test - cannot create symlinks on this system',
+      );
       return;
     }
-    
+
     // Create a file outside workspace
-    const outsideFile = path.join(os.tmpdir(), 'reach-test-outside-read-' + Date.now() + '.txt');
+    const outsideFile = path.join(
+      os.tmpdir(),
+      'reach-test-outside-read-' + Date.now() + '.txt',
+    );
     await fs.promises.writeFile(outsideFile, 'sensitive');
 
     // Create a symlink inside workspace pointing outside
@@ -320,7 +352,7 @@ describe('safeReadFile / safeWriteFile', () => {
 
     try {
       await expect(
-        safeReadFile('malicious_link', testWorkspace)
+        safeReadFile('malicious_link', testWorkspace),
       ).rejects.toThrow(SecurityError);
     } finally {
       await fs.promises.unlink(outsideFile);
@@ -334,7 +366,7 @@ describe('isSymlink / isSymlinkSync', () => {
 
   beforeEach(async () => {
     await fs.promises.mkdir(testDir, { recursive: true });
-    
+
     // Test if we can create symlinks (Windows requires special permissions)
     try {
       const testLink = path.join(testDir, 'test-link-' + Date.now());
@@ -358,13 +390,15 @@ describe('isSymlink / isSymlinkSync', () => {
 
   it('detects symlinks (async)', async () => {
     if (!canCreateSymlinks) {
-      console.log('Skipping symlink test - cannot create symlinks on this system');
+      console.log(
+        'Skipping symlink test - cannot create symlinks on this system',
+      );
       return;
     }
-    
+
     const targetFile = path.join(testDir, 'target.txt');
     const linkFile = path.join(testDir, 'link.txt');
-    
+
     await fs.promises.writeFile(targetFile, 'target');
     await fs.promises.symlink(targetFile, linkFile);
 
@@ -375,13 +409,15 @@ describe('isSymlink / isSymlinkSync', () => {
 
   it('detects symlinks (sync)', async () => {
     if (!canCreateSymlinks) {
-      console.log('Skipping symlink test - cannot create symlinks on this system');
+      console.log(
+        'Skipping symlink test - cannot create symlinks on this system',
+      );
       return;
     }
-    
+
     const targetFile = path.join(testDir, 'target.txt');
     const linkFile = path.join(testDir, 'link.txt');
-    
+
     await fs.promises.writeFile(targetFile, 'target');
     await fs.promises.symlink(targetFile, linkFile);
 
@@ -393,7 +429,11 @@ describe('isSymlink / isSymlinkSync', () => {
 
 describe('SecurityError', () => {
   it('creates error with code', () => {
-    const error = new SecurityError('Test error', SecurityErrorCode.PATH_ESCAPE, '/test/path');
+    const error = new SecurityError(
+      'Test error',
+      SecurityErrorCode.PATH_ESCAPE,
+      '/test/path',
+    );
     expect(error.message).toBe('Test error');
     expect(error.code).toBe(SecurityErrorCode.PATH_ESCAPE);
     expect(error.path).toBe('/test/path');

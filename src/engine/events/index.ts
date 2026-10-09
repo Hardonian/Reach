@@ -1,6 +1,6 @@
 /**
  * Event Export Module
- * 
+ *
  * @module engine/events
  */
 

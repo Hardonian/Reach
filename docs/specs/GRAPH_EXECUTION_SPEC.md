@@ -3,17 +3,20 @@
 The `ExecutionGraph` replaces the linear list of steps.
 
 ### Nodes - **Action**: Executes a tool (e.g. LLM call, API request).
+
 - **Condition**: Evaluates a boolean expression to branch.
 - **Parallel**: Executes multiple branches concurrently.
 - **SubGraph**: Encapsulates another graph (modular execution).
 
 ### Edges - **Default**: Standard flow.
+
 - **Conditional**: Taken if `Condition` evaluates to true.
 - **Fallback**: Taken if the source node fails.
 
 ## 2. Strategies Each node can declare a `Strategy` to control its behavior:
 
 ### Retry Policy - **MaxAttempts**: Limit on retries.
+
 - **StrategyType**:
   - `retry_same_model`: Simple retry.
   - `retry_alternative_model`: Try a different model (routing re-evaluates).
@@ -21,9 +24,11 @@ The `ExecutionGraph` replaces the linear list of steps.
   - `fallback_node`: Proceed to fallback edge immediately.
 
 ### Model Options - **Capabilities**: Specific requirements (e.g. `ReqReasoningDepth: high`).
+
 - **OptimizationMode**: Node-level override for optimization handling.
 
 ## 3. Execution Flow 1. **Start**: Begin at `StartNodeID`.
+
 2. **Execute**: Run the node's tool/logic.
 3. **Handle Result**:
    - **Success**: traverse `Default` or `Conditional` edges.

@@ -1,9 +1,9 @@
 # Determinism Manifest V1
 
-**Version:** 1.0.0  
-**Effective Date:** 2026-02-26  
-**Status:** FROZEN  
-**Authority:** Reach Core Engineering  
+**Version:** 1.0.0
+**Effective Date:** 2026-02-26
+**Status:** FROZEN
+**Authority:** Reach Core Engineering
 
 ---
 
@@ -17,9 +17,9 @@ This document is the **single source of truth** for deterministic execution guar
 
 ## 2. Version History
 
-| Version | Date | Change | Migration Required |
-|---------|------|--------|-------------------|
-| 1.0.0 | 2026-02-26 | Initial frozen manifest | None |
+| Version | Date       | Change                  | Migration Required |
+| ------- | ---------- | ----------------------- | ------------------ |
+| 1.0.0   | 2026-02-26 | Initial frozen manifest | None               |
 
 ---
 
@@ -31,15 +31,15 @@ The fingerprint is derived from this canonical model (fields in strict order):
 
 ```json
 {
-  "run_id":          "<sha256-derived-from-pack-hash + input-hash + sequence>",
-  "engine_version":  "<semver, pinned>",
-  "policy_version":  "<sha256 of policy bundle>",
-  "input_hash":      "<sha256 of canonical-JSON of inputs>",
+  "run_id": "<sha256-derived-from-pack-hash + input-hash + sequence>",
+  "engine_version": "<semver, pinned>",
+  "policy_version": "<sha256 of policy bundle>",
+  "input_hash": "<sha256 of canonical-JSON of inputs>",
   "artifact_hashes": ["<sha256 sorted by artifact ID>"],
-  "output_hash":     "<sha256 of canonical-JSON of outputs>",
-  "event_log_hash":  "<sha256 of NDJSON event log, insertion order>",
+  "output_hash": "<sha256 of canonical-JSON of outputs>",
+  "event_log_hash": "<sha256 of NDJSON event log, insertion order>",
   "timestamp_epoch": 0,
-  "fingerprint":     "<sha256(run_id + engine_version + event_log_hash)>"
+  "fingerprint": "<sha256(run_id + engine_version + event_log_hash)>"
 }
 ```
 
@@ -87,16 +87,16 @@ The fingerprint is derived from this canonical model (fields in strict order):
 
 The following MUST NOT affect the fingerprint:
 
-| Category | Examples | Enforcement |
-|----------|----------|-------------|
-| **Timing** | `time.Now()`, wall-clock timestamps, durations | CI Gate `verify:determinism` |
-| **Randomness** | `rand()`, `uuid.New()`, crypto/rand | Static analysis + runtime check |
-| **Environment** | `os.Getenv()`, hostname, PID (except seeded) | Import boundary validation |
-| **Platform** | Pointer values, memory addresses, file paths | Canonicalization layer |
-| **Ordering** | Map iteration order, goroutine scheduling | Sort all keys before hash |
-| **Transport** | Network latency, retry counts, timeouts | Isolation layer |
-| **Logging** | Log levels, verbosity, output format | Side-channel only |
-| **Metrics** | Counters, gauges, timers | Side-channel only |
+| Category        | Examples                                       | Enforcement                     |
+| --------------- | ---------------------------------------------- | ------------------------------- |
+| **Timing**      | `time.Now()`, wall-clock timestamps, durations | CI Gate `verify:determinism`    |
+| **Randomness**  | `rand()`, `uuid.New()`, crypto/rand            | Static analysis + runtime check |
+| **Environment** | `os.Getenv()`, hostname, PID (except seeded)   | Import boundary validation      |
+| **Platform**    | Pointer values, memory addresses, file paths   | Canonicalization layer          |
+| **Ordering**    | Map iteration order, goroutine scheduling      | Sort all keys before hash       |
+| **Transport**   | Network latency, retry counts, timeouts        | Isolation layer                 |
+| **Logging**     | Log levels, verbosity, output format           | Side-channel only               |
+| **Metrics**     | Counters, gauges, timers                       | Side-channel only               |
 
 ---
 
@@ -106,7 +106,7 @@ The following MUST NOT affect the fingerprint:
 
 1. **Key Ordering:** Lexicographic (UTF-8 byte order)
 2. **Whitespace:** None (compact encoding)
-3. **Numbers:** 
+3. **Numbers:**
    - Integers: Standard decimal
    - Floats: **FORBIDDEN** in fingerprint paths (use fixed-point integers)
 4. **Null:** Explicit `null` for absent fields
@@ -138,12 +138,12 @@ func Hash(v any) string {
 
 ### 6.1 Deterministic Heap Layout
 
-| Component | Guarantee | Verification |
-|-----------|-----------|------------|
-| String interning | Content-addressed | `string_intern_test.go` |
-| Map ordering | Keys sorted before iteration | Static analysis |
-| Slice capacity | Not included in hash | Canonicalization |
-| Pointer values | Never hashed | Lint rule |
+| Component        | Guarantee                    | Verification            |
+| ---------------- | ---------------------------- | ----------------------- |
+| String interning | Content-addressed            | `string_intern_test.go` |
+| Map ordering     | Keys sorted before iteration | Static analysis         |
+| Slice capacity   | Not included in hash         | Canonicalization        |
+| Pointer values   | Never hashed                 | Lint rule               |
 
 ### 6.2 Zero-Copy Boundary
 
@@ -157,12 +157,12 @@ pub fn compute_fingerprint(
     let mut hasher = Sha256::new();
     hasher.update(run_id);
     hasher.update(engine_version.as_bytes());
-    
+
     // Events streamed directly to hasher (no intermediate buffer)
     for event in event_log {
         event.canonicalize_to(&mut hasher);
     }
-    
+
     hasher.finalize().into()
 }
 ```
@@ -204,7 +204,7 @@ Log entries are **side-channel only**:
 
 ```go
 // Log output (non-deterministic, human-readable)
-log.Info("tool executed", 
+log.Info("tool executed",
     "tool", toolName,           // OK: metadata
     "duration", time.Since(t),  // OK: wall-clock only
     "step_id", stepID)          // OK: deterministic ID
@@ -235,17 +235,18 @@ func (m *Metrics) Counter(name string) {
 
 ### 8.1 Frozen Interfaces
 
-| Interface | Status | Stability |
-|-----------|--------|-----------|
-| `determinism.Hash()` | FROZEN | v1.0.0+ |
-| `determinism.CanonicalJSON()` | FROZEN | v1.0.0+ |
-| `determinism.VerifyReplay()` | FROZEN | v1.0.0+ |
-| `pack.ComputeIntegrity()` | FROZEN | v1.0.0+ |
-| `pack.VerifyProof()` | FROZEN | v1.0.0+ |
+| Interface                     | Status | Stability |
+| ----------------------------- | ------ | --------- |
+| `determinism.Hash()`          | FROZEN | v1.0.0+   |
+| `determinism.CanonicalJSON()` | FROZEN | v1.0.0+   |
+| `determinism.VerifyReplay()`  | FROZEN | v1.0.0+   |
+| `pack.ComputeIntegrity()`     | FROZEN | v1.0.0+   |
+| `pack.VerifyProof()`          | FROZEN | v1.0.0+   |
 
 ### 8.2 Breaking Change Policy
 
 Any change to the fingerprint algorithm requires:
+
 1. New manifest version (e.g., v2.0.0)
 2. Migration period (minimum 2 minor versions)
 3. Replay compatibility shim
@@ -286,6 +287,6 @@ Non-compliance is a **critical bug** with immediate rollback priority.
 
 ---
 
-**Manifest Signature:** `sha256(DETERMINISM_MANIFEST.md v1.0.0)` = `TBD`  
-**Last Updated:** 2026-02-26  
+**Manifest Signature:** `sha256(DETERMINISM_MANIFEST.md v1.0.0)` = `TBD`
+**Last Updated:** 2026-02-26
 **Next Review:** On breaking change proposal only

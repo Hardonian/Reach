@@ -4,13 +4,13 @@
   "input": {
     "id": "tie_break_001",
     "actions": [
-      {"id": "zebra", "label": "Zebra"},
-      {"id": "alpha", "label": "Alpha"},
-      {"id": "mango", "label": "Mango"}
+      { "id": "zebra", "label": "Zebra" },
+      { "id": "alpha", "label": "Alpha" },
+      { "id": "mango", "label": "Mango" }
     ],
     "scenarios": [
-      {"id": "s1", "probability": 0.5, "adversarial": false},
-      {"id": "s2", "probability": 0.5, "adversarial": false}
+      { "id": "s1", "probability": 0.5, "adversarial": false },
+      { "id": "s2", "probability": 0.5, "adversarial": false }
     ],
     "outcomes": [
       ["zebra", "s1", 50],

@@ -3,6 +3,7 @@
 Integrity score is a governance confidence indicator (0-100), not model quality.
 
 ## Signals and weights
+
 - parityVerified: 30
 - policyBound: 20
 - contextCaptured: 15

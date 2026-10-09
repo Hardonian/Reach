@@ -1,7 +1,7 @@
 # Protocol Migration Guide
 
-**From:** JSON over stdin/stdout  
-**To:** Binary protocol (Requiem)  
+**From:** JSON over stdin/stdout
+**To:** Binary protocol (Requiem)
 **Status:** Rollout in progress
 
 ## Executive Summary
@@ -16,11 +16,13 @@ This document describes the migration from the legacy JSON protocol to the new b
 ## Current State
 
 ### Legacy JSON Protocol (Stable)
+
 - Transport: stdin/stdout
 - Encoding: JSON
 - Trigger: Always when binary unavailable
 
 ### New Binary Protocol (Default)
+
 - Transport: Unix sockets / Named pipes / TCP
 - Encoding: CBOR with fixed-point types
 - Trigger: Default for new connections
@@ -29,10 +31,10 @@ This document describes the migration from the legacy JSON protocol to the new b
 
 ### Environment Variables
 
-| Variable | Values | Default | Description |
-|----------|--------|---------|-------------|
-| `REACH_ENGINE_PROTOCOL` | `binary` / `json` / `auto` | `auto` | Protocol selection |
-| `REACH_ENGINE_HOST` | `<host>:<port>` | `127.0.0.1:9000` | Binary server address |
+| Variable                | Values                     | Default          | Description           |
+| ----------------------- | -------------------------- | ---------------- | --------------------- |
+| `REACH_ENGINE_PROTOCOL` | `binary` / `json` / `auto` | `auto`           | Protocol selection    |
+| `REACH_ENGINE_HOST`     | `<host>:<port>`            | `127.0.0.1:9000` | Binary server address |
 
 ### CLI Flags
 
@@ -125,12 +127,14 @@ echo 'export REACH_ENGINE_PROTOCOL=json' >> ~/.bashrc
 ### Binary Connection Failed
 
 **Symptoms:**
+
 ```
 WARN: Binary protocol connection failed, falling back to JSON
 Error: Connection refused (os error 111)
 ```
 
 **Resolution:**
+
 ```bash
 # 1. Check if server is running
 requiem health --address 127.0.0.1:9000
@@ -145,11 +149,13 @@ REACH_ENGINE_PROTOCOL=json reach run -- ./my-pack
 ### CRC Errors
 
 **Symptoms:**
+
 ```
 ERROR: CRC32C mismatch: expected 0xA1B2C3D4, calculated 0xE5F6A7B8
 ```
 
 **Resolution:**
+
 ```bash
 # 1. Check for network issues
 # 2. Verify server version matches client
@@ -162,11 +168,13 @@ REACH_ENGINE_PROTOCOL=json reach run -- ./my-pack
 ### Version Mismatch
 
 **Symptoms:**
+
 ```
 ERROR: Version negotiation failed: client supports 1.0-1.0, server supports 2.0-2.0
 ```
 
 **Resolution:**
+
 ```bash
 # Update client to match server
 npm update -g @reach/cli
@@ -229,13 +237,13 @@ Binary protocol adds these fields to diff reports:
 
 Server exposes these metrics:
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `requiem_connections_active` | Gauge | Active connections |
-| `requiem_frames_total` | Counter | Total frames processed |
-| `requiem_bytes_total` | Counter | Total bytes transferred |
-| `requiem_crc_errors_total` | Counter | CRC mismatch count |
-| `requiem_resync_events_total` | Counter | Resync events |
+| Metric                        | Type    | Description             |
+| ----------------------------- | ------- | ----------------------- |
+| `requiem_connections_active`  | Gauge   | Active connections      |
+| `requiem_frames_total`        | Counter | Total frames processed  |
+| `requiem_bytes_total`         | Counter | Total bytes transferred |
+| `requiem_crc_errors_total`    | Counter | CRC mismatch count      |
+| `requiem_resync_events_total` | Counter | Resync events           |
 
 ### Health Check
 
@@ -247,7 +255,7 @@ requiem health --address 127.0.0.1:9000
 # Connected to 127.0.0.1:9000
 # Server version: 0.1.0
 # Session ID: sess-xyz789
-# 
+#
 # Health Status: Healthy
 # Server Version: 0.1.0
 # Uptime: 3600000000 µs
@@ -255,12 +263,12 @@ requiem health --address 127.0.0.1:9000
 
 ## Compatibility Matrix
 
-| Reach CLI | Requiem Server | Protocol Used | Notes |
-|-----------|----------------|---------------|-------|
-| < 2.0 | Any | JSON only | No binary support |
-| >= 2.0 | Not running | JSON (fallback) | Auto-fallback |
-| >= 2.0 | >= 1.0 | Binary | Full features |
-| >= 2.0 | >= 2.0 | Binary v2 | Need client update |
+| Reach CLI | Requiem Server | Protocol Used   | Notes              |
+| --------- | -------------- | --------------- | ------------------ |
+| < 2.0     | Any            | JSON only       | No binary support  |
+| >= 2.0    | Not running    | JSON (fallback) | Auto-fallback      |
+| >= 2.0    | >= 1.0         | Binary          | Full features      |
+| >= 2.0    | >= 2.0         | Binary v2       | Need client update |
 
 ## Known Limitations
 
@@ -277,6 +285,7 @@ A: No. JSON will remain as a debugging and fallback option indefinitely.
 ### Q: Can I use binary protocol with remote engines?
 
 A: Yes, use TCP transport with TLS termination:
+
 ```bash
 requiem serve --bind 0.0.0.0:9000
 # With TLS proxy (nginx, envoy, etc.)
@@ -285,6 +294,7 @@ requiem serve --bind 0.0.0.0:9000
 ### Q: How do I verify determinism?
 
 A: Run the same command multiple times and compare result digests:
+
 ```bash
 for i in {1..10}; do
   REACH_ENGINE_PROTOCOL=binary reach run -- ./my-pack | jq '.result_digest'
@@ -303,6 +313,6 @@ A: This is expected during transition. The digest is calculated from the canonic
 
 ## Changelog
 
-| Date | Change |
-|------|--------|
+| Date       | Change                  |
+| ---------- | ----------------------- |
 | 2026-02-26 | Initial migration guide |

@@ -2,7 +2,8 @@
 
 import React from 'react';
 
-export type StatusVariant = 'online' | 'warning' | 'error' | 'offline' | 'pending' | 'running' | 'idle';
+export type StatusVariant =
+  'online' | 'warning' | 'error' | 'offline' | 'pending' | 'running' | 'idle';
 
 interface StatusIndicatorProps {
   status: StatusVariant;
@@ -13,7 +14,10 @@ interface StatusIndicatorProps {
   className?: string;
 }
 
-const statusConfig: Record<StatusVariant, { bg: string; text: string; label: string; dot: string }> = {
+const statusConfig: Record<
+  StatusVariant,
+  { bg: string; text: string; label: string; dot: string }
+> = {
   online: {
     bg: 'bg-emerald-500/20',
     text: 'text-emerald-400',
@@ -81,7 +85,9 @@ export function StatusIndicator({
       <span
         className={`inline-flex items-center gap-1.5 rounded-full font-medium ${config.bg} ${config.text} ${sizes.pill} ${className}`}
       >
-        <span className={`${sizes.dot} rounded-full ${config.dot} ${pulse ? 'animate-pulse' : ''}`} />
+        <span
+          className={`${sizes.dot} rounded-full ${config.dot} ${pulse ? 'animate-pulse' : ''}`}
+        />
         {displayLabel}
       </span>
     );

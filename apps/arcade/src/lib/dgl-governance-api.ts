@@ -25,7 +25,9 @@ export function buildDglPayload(
     return providerFilter ? provider.includes(providerFilter) : true;
   });
 
-  const branch = String((report as { branch?: string } | null)?.branch ?? 'unknown').toLowerCase();
+  const branch = String(
+    (report as { branch?: string } | null)?.branch ?? 'unknown',
+  ).toLowerCase();
   if (branchFilter && !branch.includes(branchFilter)) {
     return {
       report: null,
@@ -35,7 +37,10 @@ export function buildDglPayload(
     };
   }
 
-  const violations = ((report as { violations?: Array<Record<string, unknown>> } | null)?.violations ?? []).filter((v) => {
+  const violations = (
+    (report as { violations?: Array<Record<string, unknown>> } | null)
+      ?.violations ?? []
+  ).filter((v) => {
     if (!subsystemFilter) return true;
     return JSON.stringify(v).toLowerCase().includes(subsystemFilter);
   });
@@ -44,7 +49,12 @@ export function buildDglPayload(
     report,
     provider_matrix,
     violations,
-    turbulence_hotspots: ((report as { turbulence_hotspots?: Array<Record<string, unknown>> } | null)?.turbulence_hotspots ?? []),
+    turbulence_hotspots:
+      (
+        report as {
+          turbulence_hotspots?: Array<Record<string, unknown>>;
+        } | null
+      )?.turbulence_hotspots ?? [],
   };
 }
 

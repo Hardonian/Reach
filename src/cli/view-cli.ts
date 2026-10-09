@@ -1,9 +1,12 @@
 // @ts-nocheck
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { resolve, join } from "node:path";
-import { execSync } from "node:child_process";
-import { loadOrGenerateDashboardViewModel, stableStringify } from "../lib/generateViewModel.js";
-import type { DashboardPersona } from "@zeo/contracts";
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { resolve, join } from 'node:path';
+import { execSync } from 'node:child_process';
+import {
+  loadOrGenerateDashboardViewModel,
+  stableStringify,
+} from '../lib/generateViewModel.js';
+import type { DashboardPersona } from '@zeo/contracts';
 
 export interface ViewCliArgs {
   id: string | null;
@@ -12,23 +15,25 @@ export interface ViewCliArgs {
   json: boolean;
 }
 
-const PERSONAS: DashboardPersona[] = ["exec", "tech", "security"];
+const PERSONAS: DashboardPersona[] = ['exec', 'tech', 'security'];
 
 export function parseViewArgs(argv: string[]): ViewCliArgs {
-  const id = argv[0] && !argv[0].startsWith("--") ? argv[0] : null;
-  const personaIdx = argv.indexOf("--persona");
+  const id = argv[0] && !argv[0].startsWith('--') ? argv[0] : null;
+  const personaIdx = argv.indexOf('--persona');
   const personaRaw = personaIdx >= 0 ? argv[personaIdx + 1] : undefined;
-  const persona = PERSONAS.includes(personaRaw as DashboardPersona) ? (personaRaw as DashboardPersona) : undefined;
+  const persona = PERSONAS.includes(personaRaw as DashboardPersona)
+    ? (personaRaw as DashboardPersona)
+    : undefined;
   return {
     id,
     persona,
-    open: argv.includes("--open"),
-    json: argv.includes("--json"),
+    open: argv.includes('--open'),
+    json: argv.includes('--json'),
   };
 }
 
 function writeStaticViewer(id: string, persona: DashboardPersona): string {
-  const outDir = resolve(process.cwd(), ".zeo", "view", id);
+  const outDir = resolve(process.cwd(), '.zeo', 'view', id);
   if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
   const html = `<!doctype html>
 <html lang="en">
@@ -42,15 +47,16 @@ function writeStaticViewer(id: string, persona: DashboardPersona): string {
   <p>View model location: ../../viewmodels/${id}.json</p>
 </body>
 </html>`;
-  const path = join(outDir, "index.html");
-  writeFileSync(path, `${html}\n`, "utf8");
+  const path = join(outDir, 'index.html');
+  writeFileSync(path, `${html}\n`, 'utf8');
   return path;
 }
 
 function openPath(pathValue: string): void {
   try {
-    if (process.platform === "darwin") execSync(`open "${pathValue}"`);
-    else if (process.platform === "win32") execSync(`start "" "${pathValue}"`, { shell: "cmd.exe" });
+    if (process.platform === 'darwin') execSync(`open "${pathValue}"`);
+    else if (process.platform === 'win32')
+      execSync(`start "" "${pathValue}"`, { shell: 'cmd.exe' });
     else execSync(`xdg-open "${pathValue}"`);
   } catch {
     // no hard-500s: open is best-effort.
@@ -59,13 +65,18 @@ function openPath(pathValue: string): void {
 
 export async function runViewCommand(args: ViewCliArgs): Promise<number> {
   if (!args.id) {
-    console.error("Usage: zeo view <decisionId|runId> [--persona exec|tech|security] [--open] [--json]");
+    console.error(
+      'Usage: zeo view <decisionId|runId> [--persona exec|tech|security] [--open] [--json]',
+    );
     return 1;
   }
 
-  const persona = args.persona ?? "exec";
+  const persona = args.persona ?? 'exec';
   // Hook: deterministic view model is generated from run artifacts and persisted for replay.
-  const { path: modelPath, model } = loadOrGenerateDashboardViewModel({ id: args.id, persona });
+  const { path: modelPath, model } = loadOrGenerateDashboardViewModel({
+    id: args.id,
+    persona,
+  });
   // Hook: static viewer points to the same view model consumed by web route /view/[id].
   const staticPath = writeStaticViewer(args.id, persona);
 
@@ -76,9 +87,10 @@ export async function runViewCommand(args: ViewCliArgs): Promise<number> {
 
   console.log(`Dashboard ViewModel: ${modelPath}`);
   console.log(`Dashboard Viewer: ${staticPath}`);
-  console.log(`Dashboard Route: http://localhost:3000/view/${args.id}?persona=${persona}`);
+  console.log(
+    `Dashboard Route: http://localhost:3000/view/${args.id}?persona=${persona}`,
+  );
 
   if (args.open) openPath(staticPath);
   return 0;
 }
-

@@ -12,11 +12,19 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     const tenants = listTenantsForUser(ctx.userId);
     const keys = listApiKeys(ctx.tenantId).map((k) => ({
-      id: k.id, name: k.name, key_prefix: k.key_prefix,
-      scopes: k.scopes, created_at: k.created_at, last_used_at: k.last_used_at,
+      id: k.id,
+      name: k.name,
+      key_prefix: k.key_prefix,
+      scopes: k.scopes,
+      created_at: k.created_at,
+      last_used_at: k.last_used_at,
     }));
     return NextResponse.json({
-      user: { id: ctx.user.id, email: ctx.user.email, display_name: ctx.user.display_name },
+      user: {
+        id: ctx.user.id,
+        email: ctx.user.email,
+        display_name: ctx.user.display_name,
+      },
       tenant: ctx.tenant,
       tenants,
       role: ctx.role,

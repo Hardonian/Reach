@@ -20,7 +20,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   // Validate webhook signature
   if (!verifyGithubWebhookSignature(rawBody, signature)) {
-    logger.warn('GitHub webhook signature mismatch', { delivery_id: deliveryId });
+    logger.warn('GitHub webhook signature mismatch', {
+      delivery_id: deliveryId,
+    });
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
@@ -28,33 +30,47 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     payload = JSON.parse(rawBody) as Record<string, unknown>;
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid JSON payload' },
+      { status: 400 },
+    );
   }
 
   // Only handle pull_request and push events
   if (!['pull_request', 'push'].includes(eventType)) {
-    return NextResponse.json({ skipped: true, reason: 'Unsupported event type' });
+    return NextResponse.json({
+      skipped: true,
+      reason: 'Unsupported event type',
+    });
   }
 
   const repo = payload.repository as Record<string, unknown> | undefined;
-  const repoOwner = (repo?.owner as Record<string, unknown> | undefined)?.login as string | undefined;
+  const repoOwner = (repo?.owner as Record<string, unknown> | undefined)
+    ?.login as string | undefined;
   const repoName = repo?.name as string | undefined;
 
   if (!repoOwner || !repoName) {
-    return NextResponse.json({ error: 'Missing repository information' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Missing repository information' },
+      { status: 400 },
+    );
   }
 
   // Extract commit SHA and PR number
   let commitSha: string | undefined;
   let prNumber: number | undefined;
   let branch: string | undefined;
-  const triggerType: 'pr' | 'push' = eventType === 'pull_request' ? 'pr' : 'push';
+  const triggerType: 'pr' | 'push' =
+    eventType === 'pull_request' ? 'pr' : 'push';
 
   if (eventType === 'pull_request') {
     const pr = payload.pull_request as Record<string, unknown> | undefined;
     const action = payload.action as string;
     if (!['opened', 'synchronize', 'reopened'].includes(action)) {
-      return NextResponse.json({ skipped: true, reason: `PR action "${action}" not gated` });
+      return NextResponse.json({
+        skipped: true,
+        reason: `PR action "${action}" not gated`,
+      });
     }
     const head = pr?.head as Record<string, unknown> | undefined;
     commitSha = head?.sha as string | undefined;
@@ -68,7 +84,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   // Find all gates that match this repo (across all tenants — signed webhook is trusted)
   const matchingGates = findGatesByRepo(repoOwner, repoName);
-  const triggeredRuns: Array<{ gate_id: string; gate_run_id: string; tenant_id: string }> = [];
+  const triggeredRuns: Array<{
+    gate_id: string;
+    gate_run_id: string;
+    tenant_id: string;
+  }> = [];
 
   for (const { gateId, tenantId } of matchingGates) {
     try {
@@ -79,11 +99,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         branch,
       });
 
-      triggeredRuns.push({ gate_id: gateId, gate_run_id: gateRun.id, tenant_id: tenantId });
+      triggeredRuns.push({
+        gate_id: gateId,
+        gate_run_id: gateRun.id,
+        tenant_id: tenantId,
+      });
 
       // Execute gate asynchronously
       void runGate(tenantId, gateRun.id).catch((err) => {
-        logger.warn('Async gate run failed', { gate_run_id: gateRun.id, err: String(err) });
+        logger.warn('Async gate run failed', {
+          gate_run_id: gateRun.id,
+          err: String(err),
+        });
       });
     } catch (err) {
       logger.warn('Gate dispatch error', { gate_id: gateId, err: String(err) });

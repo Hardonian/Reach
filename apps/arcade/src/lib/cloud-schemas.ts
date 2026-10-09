@@ -14,13 +14,21 @@ export const RegisterSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
   displayName: z.string().min(1).max(100),
   tenantName: z.string().min(1).max(100),
-  tenantSlug: z.string().min(2).max(50).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with dashes'),
+  tenantSlug: z
+    .string()
+    .min(2)
+    .max(50)
+    .regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with dashes'),
 });
 
 // ── Tenants ───────────────────────────────────────────────────────────────
 export const CreateTenantSchema = z.object({
   name: z.string().min(1).max(100),
-  slug: z.string().min(2).max(50).regex(/^[a-z0-9-]+$/),
+  slug: z
+    .string()
+    .min(2)
+    .max(50)
+    .regex(/^[a-z0-9-]+$/),
 });
 
 // ── Projects ──────────────────────────────────────────────────────────────
@@ -32,7 +40,16 @@ export const CreateProjectSchema = z.object({
 // ── Workflows ─────────────────────────────────────────────────────────────
 const NodeSchema = z.object({
   id: z.string().min(1),
-  type: z.enum(['trigger', 'agent', 'rag_query', 'tool_call', 'validation', 'branch', 'planner', 'output']),
+  type: z.enum([
+    'trigger',
+    'agent',
+    'rag_query',
+    'tool_call',
+    'validation',
+    'branch',
+    'planner',
+    'output',
+  ]),
   name: z.string().min(1),
   inputs: z.record(z.string(), z.unknown()).default({}),
   config: z.record(z.string(), z.unknown()).default({}),
@@ -87,16 +104,33 @@ export const CreateApiKeySchema = z.object({
 // ── Packs / Marketplace ───────────────────────────────────────────────────
 export const PackManifestSchema = z.object({
   name: z.string().min(1).max(100),
-  slug: z.string().min(2).max(100).regex(/^[a-z0-9-]+$/),
+  slug: z
+    .string()
+    .min(2)
+    .max(100)
+    .regex(/^[a-z0-9-]+$/),
   description: z.string().min(10).max(2000),
   shortDescription: z.string().max(200).default(''),
-  version: z.string().regex(/^\d+\.\d+\.\d+$/, 'Version must be semver (x.y.z)'),
-  category: z.enum(['research', 'data', 'development', 'productivity', 'marketing', 'security', 'automation', 'general']),
+  version: z
+    .string()
+    .regex(/^\d+\.\d+\.\d+$/, 'Version must be semver (x.y.z)'),
+  category: z.enum([
+    'research',
+    'data',
+    'development',
+    'productivity',
+    'marketing',
+    'security',
+    'automation',
+    'general',
+  ]),
   visibility: z.enum(['public', 'org-private', 'unlisted']).default('public'),
   tools: z.array(z.string()).default([]),
   tags: z.array(z.string()).max(10).default([]),
   permissions: z.array(z.string()).default([]),
-  dataHandling: z.enum(['minimal', 'processed', 'significant']).default('minimal'),
+  dataHandling: z
+    .enum(['minimal', 'processed', 'significant'])
+    .default('minimal'),
   changelog: z.string().max(2000).default(''),
   readme: z.string().max(50000).default(''),
   authorName: z.string().min(1).max(100),
@@ -105,7 +139,9 @@ export const PackManifestSchema = z.object({
 export const BrowsePacksSchema = z.object({
   search: z.string().optional(),
   category: z.string().optional(),
-  sort: z.enum(['relevance', 'newest', 'trending', 'rating', 'reputation']).optional(),
+  sort: z
+    .enum(['relevance', 'newest', 'trending', 'rating', 'reputation'])
+    .optional(),
   verifiedOnly: z.coerce.boolean().optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(12),
@@ -117,7 +153,13 @@ export const ReviewSchema = z.object({
 });
 
 export const ReportSchema = z.object({
-  reason: z.enum(['security', 'spam', 'policy_violation', 'malicious', 'other']),
+  reason: z.enum([
+    'security',
+    'spam',
+    'policy_violation',
+    'malicious',
+    'other',
+  ]),
   details: z.string().max(2000).default(''),
 });
 
@@ -145,9 +187,14 @@ export const CreateGateSchema = z.object({
   repo_owner: z.string().min(1).max(100),
   repo_name: z.string().min(1).max(100),
   default_branch: z.string().min(1).max(100).default('main'),
-  trigger_types: z.array(z.enum(['pr', 'push', 'schedule'])).default(['pr', 'push']),
+  trigger_types: z
+    .array(z.enum(['pr', 'push', 'schedule']))
+    .default(['pr', 'push']),
   required_checks: z.array(GateCheckSchema).default([]),
-  thresholds: GateThresholdsSchema.default({ pass_rate: 1.0, max_violations: 0 }),
+  thresholds: GateThresholdsSchema.default({
+    pass_rate: 1.0,
+    max_violations: 0,
+  }),
 });
 
 export const UpdateGateSchema = z.object({
@@ -173,14 +220,18 @@ export const CiIngestSchema = z.object({
   branch: z.string().optional(),
   pr_number: z.number().int().optional(),
   actor: z.string().optional(),
-  ci_provider: z.enum(['github', 'gitlab', 'circleci', 'jenkins', 'other']).default('github'),
-  artifacts: z.object({
-    prompt_diffs: z.array(z.record(z.string(), z.unknown())).optional(),
-    eval_outputs: z.array(z.record(z.string(), z.unknown())).optional(),
-    traces: z.array(z.record(z.string(), z.unknown())).optional(),
-    policy_violations: z.array(z.record(z.string(), z.unknown())).optional(),
-    tool_call_logs: z.array(z.record(z.string(), z.unknown())).optional(),
-  }).default({}),
+  ci_provider: z
+    .enum(['github', 'gitlab', 'circleci', 'jenkins', 'other'])
+    .default('github'),
+  artifacts: z
+    .object({
+      prompt_diffs: z.array(z.record(z.string(), z.unknown())).optional(),
+      eval_outputs: z.array(z.record(z.string(), z.unknown())).optional(),
+      traces: z.array(z.record(z.string(), z.unknown())).optional(),
+      policy_violations: z.array(z.record(z.string(), z.unknown())).optional(),
+      tool_call_logs: z.array(z.record(z.string(), z.unknown())).optional(),
+    })
+    .default({}),
   run_metadata: z.record(z.string(), z.unknown()).default({}),
   gate_id: z.string().optional(),
 });
@@ -188,7 +239,13 @@ export const CiIngestSchema = z.object({
 // ── Signals ───────────────────────────────────────────────────────────────
 export const CreateSignalSchema = z.object({
   name: z.string().min(1).max(200),
-  type: z.enum(['drift', 'latency', 'policy_violation', 'tool_failure', 'regression_rate']),
+  type: z.enum([
+    'drift',
+    'latency',
+    'policy_violation',
+    'tool_failure',
+    'regression_rate',
+  ]),
   source: z.enum(['webhook', 'poller']).default('webhook'),
   threshold: z.record(z.string(), z.unknown()).default({}),
 });
@@ -237,7 +294,9 @@ export const CreateScenarioSchema = z.object({
   name: z.string().min(1).max(200),
   base_run_id: z.string().optional(),
   variants: z.array(ScenarioVariantSchema).min(1).max(10),
-  compare_metrics: z.array(z.enum(['pass_rate', 'latency', 'cost', 'drift'])).default(['pass_rate', 'latency', 'cost']),
+  compare_metrics: z
+    .array(z.enum(['pass_rate', 'latency', 'cost', 'drift']))
+    .default(['pass_rate', 'latency', 'cost']),
 });
 
 export const UpdateScenarioSchema = z.object({
@@ -254,7 +313,10 @@ export const CreateReportShareSchema = z.object({
 });
 
 // ── Response helpers ──────────────────────────────────────────────────────
-export function parseBody<T>(schema: z.ZodSchema<T>, data: unknown): { data: T } | { errors: z.ZodError } {
+export function parseBody<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown,
+): { data: T } | { errors: z.ZodError } {
   const result = schema.safeParse(data);
   if (!result.success) return { errors: result.error };
   return { data: result.data };

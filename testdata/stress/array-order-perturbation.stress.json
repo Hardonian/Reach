@@ -9,11 +9,11 @@
       "name": "order_sensitive_array",
       "description": "Ordered steps — reordering MUST change fingerprint",
       "trial_1": {
-        "inputs": {"steps": ["validate", "transform", "output"]},
+        "inputs": { "steps": ["validate", "transform", "output"] },
         "expected_fingerprint": "sha256:aaaa1111a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
       },
       "trial_2": {
-        "inputs": {"steps": ["output", "validate", "transform"]},
+        "inputs": { "steps": ["output", "validate", "transform"] },
         "expected_fingerprint": "sha256:bbbb2222b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
       },
       "assertion": "Different orderings must produce DIFFERENT fingerprints",
@@ -24,11 +24,11 @@
       "name": "order_agnostic_set",
       "description": "Capability set — order must NOT affect fingerprint (sorted before hash)",
       "trial_1": {
-        "inputs": {"capabilities": ["read", "write", "exec"]},
+        "inputs": { "capabilities": ["read", "write", "exec"] },
         "expected_fingerprint": "sha256:cccc3333c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
       },
       "trial_2": {
-        "inputs": {"capabilities": ["exec", "read", "write"]},
+        "inputs": { "capabilities": ["exec", "read", "write"] },
         "expected_fingerprint": "sha256:cccc3333c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
       },
       "assertion": "Capability sets must be sorted before hashing — different orderings produce SAME fingerprint",

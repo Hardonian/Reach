@@ -1,9 +1,9 @@
 // @ts-nocheck
-import { performance } from "node:perf_hooks";
-import { spawnSync } from "node:child_process";
+import { performance } from 'node:perf_hooks';
+import { spawnSync } from 'node:child_process';
 
 export async function runBenchmarkCommand(): Promise<number> {
-  console.log("\n=== Zeo Performance Benchmark ===");
+  console.log('\n=== Zeo Performance Benchmark ===');
 
   // Cold start
   const coldStart = performance.now();
@@ -24,7 +24,7 @@ export async function runBenchmarkCommand(): Promise<number> {
   console.log(`Warm Start: ${warmDuration.toFixed(2)}ms`);
 
   // Inference Latency
-  const core = await import("@zeo/core");
+  const core = await import('@zeo/core');
   const spec = core.makeNegotiationExample();
   const infStart = performance.now();
   core.runDecision(spec);
@@ -33,4 +33,3 @@ export async function runBenchmarkCommand(): Promise<number> {
 
   return 0;
 }
-

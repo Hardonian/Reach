@@ -1,23 +1,23 @@
 /**
  * Engine Contract Translation
- * 
+ *
  * Normalizes request/response formats between Reach and different engines.
  * All hashing is delegated to the Rust/WASM deterministic engine core.
- * 
+ *
  * NOTE: This module does NOT implement hashing locally.
  * The single source of truth for hashing is:
  *   Go: services/runner/internal/determinism/determinism.go
  *   Rust: crates/engine-core/src/digest.rs
- * 
+ *
  * @module engine/translate
  */
 
+import { ExecRequest, ExecResult, ExecutionParams } from './contract';
 import {
-  ExecRequest,
-  ExecResult,
-  ExecutionParams,
-} from './contract';
-import { WorkflowStep, ExecResultPayload, Duration } from '../protocol/messages';
+  WorkflowStep,
+  ExecResultPayload,
+  Duration,
+} from '../protocol/messages';
 
 // ============================================================================
 // Precision Clamping for Determinism
@@ -26,10 +26,10 @@ import { WorkflowStep, ExecResultPayload, Duration } from '../protocol/messages'
 /**
  * Clamp a floating-point value to exactly 10 decimal places
  * for deterministic fingerprinting and JSON serialization.
- * 
+ *
  * This ensures that floating-point numbers are consistently rounded
  * to prevent floating-point precision issues from affecting hashes.
- * 
+ *
  * @param value - The floating-point value to clamp
  * @returns The value rounded to exactly 10 decimal places
  */
@@ -40,7 +40,7 @@ export function clampPrecision(value: number): number {
 /**
  * Recursively clamp all number values in an object to 10 decimal places
  * for deterministic serialization.
- * 
+ *
  * @param obj - The object to process
  * @returns A new object with all numbers clamped
  */
@@ -48,15 +48,15 @@ export function clampObjectPrecision<T>(obj: T): T {
   if (obj === null || obj === undefined) {
     return obj;
   }
-  
+
   if (typeof obj === 'number') {
     return clampPrecision(obj) as T;
   }
-  
+
   if (Array.isArray(obj)) {
-    return obj.map(item => clampObjectPrecision(item)) as T;
+    return obj.map((item) => clampObjectPrecision(item)) as T;
   }
-  
+
   if (typeof obj === 'object') {
     const result: Record<string, unknown> = {};
     for (const key of Object.keys(obj as Record<string, unknown>).sort()) {
@@ -64,7 +64,7 @@ export function clampObjectPrecision<T>(obj: T): T {
     }
     return result as T;
   }
-  
+
   return obj;
 }
 
@@ -117,9 +117,11 @@ export function decisionInputToExecRequest(
     requestId: options?.requestId || generateRequestId(),
     timestamp: new Date().toISOString(),
     params: {
-      algorithm: normalizeAlgorithm(options?.algorithm || input.algorithm || 'minimax_regret'),
+      algorithm: normalizeAlgorithm(
+        options?.algorithm || input.algorithm || 'minimax_regret',
+      ),
       actions: [...input.actions].sort(), // Deterministic ordering
-      states: [...input.states].sort(),   // Deterministic ordering
+      states: [...input.states].sort(), // Deterministic ordering
       outcomes: normalizeOutcomes(input.outcomes),
       weights: input.weights ? normalizeWeights(input.weights) : undefined,
       strict: input.strict,
@@ -135,7 +137,9 @@ export function decisionInputToExecRequest(
 /**
  * Clamp precision for optional number values
  */
-export function clampPrecisionOpt(value: number | undefined): number | undefined {
+export function clampPrecisionOpt(
+  value: number | undefined,
+): number | undefined {
   if (value === undefined) {
     return undefined;
   }
@@ -147,7 +151,7 @@ export function clampPrecisionOpt(value: number | undefined): number | undefined
  */
 function normalizeAlgorithm(alg: string): ExecutionParams['algorithm'] {
   const normalized = alg.toLowerCase().replace(/[-_]/g, '_');
-  
+
   switch (normalized) {
     case 'minimax_regret':
     case 'minimax':
@@ -175,7 +179,9 @@ function normalizeAlgorithm(alg: string): ExecutionParams['algorithm'] {
 /**
  * Normalize weights to ensure deterministic ordering
  */
-function normalizeWeights(weights: Record<string, number>): Record<string, number> {
+function normalizeWeights(
+  weights: Record<string, number>,
+): Record<string, number> {
   const sorted: Record<string, number> = {};
   for (const key of Object.keys(weights).sort()) {
     sorted[key] = clampPrecision(weights[key]);
@@ -190,27 +196,27 @@ function normalizeOutcomes(
   outcomes: Record<string, Record<string, number>>,
 ): Record<string, Record<string, number>> {
   const normalized: Record<string, Record<string, number>> = {};
-  
+
   // Sort actions for determinism
   const sortedActions = Object.keys(outcomes).sort();
-  
+
   for (const action of sortedActions) {
     const stateMap = outcomes[action];
     const normalizedStates: Record<string, number> = {};
-    
+
     // Sort states for determinism
     const sortedStates = Object.keys(stateMap).sort();
-    
+
     for (const state of sortedStates) {
       // Normalize NaN/Infinity to 0 and clamp precision
       const value = stateMap[state];
       const clampedValue = Number.isFinite(value) ? clampPrecision(value) : 0;
       normalizedStates[state] = clampedValue;
     }
-    
+
     normalized[action] = normalizedStates;
   }
-  
+
   return normalized;
 }
 
@@ -221,16 +227,26 @@ function normalizeOutcomes(
 /**
  * Convert ExecResult to Reach-style DecisionOutput
  */
-export function execResultToDecisionOutput(result: ExecResult): DecisionOutputLegacy {
+export function execResultToDecisionOutput(
+  result: ExecResult,
+): DecisionOutputLegacy {
   return {
     recommended_action: result.recommendedAction,
     ranking: result.ranking,
     trace: {
       algorithm: result.trace.algorithm,
-      regret_table: result.trace.regretTable ? clampObjectPrecision(result.trace.regretTable) : undefined,
-      max_regret: result.trace.maxRegret ? clampObjectPrecision(result.trace.maxRegret) : undefined,
-      min_utility: result.trace.minUtility ? clampObjectPrecision(result.trace.minUtility) : undefined,
-      weighted_scores: result.trace.weightedScores ? clampObjectPrecision(result.trace.weightedScores) : undefined,
+      regret_table: result.trace.regretTable
+        ? clampObjectPrecision(result.trace.regretTable)
+        : undefined,
+      max_regret: result.trace.maxRegret
+        ? clampObjectPrecision(result.trace.maxRegret)
+        : undefined,
+      min_utility: result.trace.minUtility
+        ? clampObjectPrecision(result.trace.minUtility)
+        : undefined,
+      weighted_scores: result.trace.weightedScores
+        ? clampObjectPrecision(result.trace.weightedScores)
+        : undefined,
       fingerprint: result.fingerprint,
     },
   };
@@ -242,7 +258,7 @@ export function execResultToDecisionOutput(result: ExecResult): DecisionOutputLe
 
 /**
  * Convert ExecRequest to Rust/WASM format
- * 
+ *
  * NOTE: Hashing is performed by the Rust engine, not here.
  */
 export function toRustFormat(request: ExecRequest): string {
@@ -252,7 +268,9 @@ export function toRustFormat(request: ExecRequest): string {
     states: request.params.states,
     outcomes: clampObjectPrecision(request.params.outcomes),
     algorithm: request.params.algorithm,
-    weights: request.params.weights ? clampObjectPrecision(request.params.weights) : undefined,
+    weights: request.params.weights
+      ? clampObjectPrecision(request.params.weights)
+      : undefined,
     strict: request.params.strict,
     temperature: clampPrecisionOpt(request.params.temperature),
     optimism: clampPrecisionOpt(request.params.optimism),
@@ -261,18 +279,22 @@ export function toRustFormat(request: ExecRequest): string {
     epsilon: clampPrecisionOpt(request.params.epsilon),
     seed: request.params.seed,
   };
-  
+
   return JSON.stringify(rustRequest);
 }
 
 /**
  * Parse Rust/WASM output to ExecResult
- * 
+ *
  * The fingerprint is computed by the Rust engine and returned in the result.
  */
-export function fromRustFormat(jsonString: string, requestId: string, durationMs: number): ExecResult {
+export function fromRustFormat(
+  jsonString: string,
+  requestId: string,
+  durationMs: number,
+): ExecResult {
   const parsed = JSON.parse(jsonString);
-  
+
   return {
     requestId,
     status: 'success',
@@ -280,10 +302,18 @@ export function fromRustFormat(jsonString: string, requestId: string, durationMs
     ranking: parsed.ranking,
     trace: {
       algorithm: parsed.trace?.algorithm || 'unknown',
-      regretTable: parsed.trace?.regret_table ? clampObjectPrecision(parsed.trace.regret_table) : undefined,
-      maxRegret: parsed.trace?.max_regret ? clampObjectPrecision(parsed.trace.max_regret) : undefined,
-      minUtility: parsed.trace?.min_utility ? clampObjectPrecision(parsed.trace.min_utility) : undefined,
-      weightedScores: parsed.trace?.weighted_scores ? clampObjectPrecision(parsed.trace?.weighted_scores) : undefined,
+      regretTable: parsed.trace?.regret_table
+        ? clampObjectPrecision(parsed.trace.regret_table)
+        : undefined,
+      maxRegret: parsed.trace?.max_regret
+        ? clampObjectPrecision(parsed.trace.max_regret)
+        : undefined,
+      minUtility: parsed.trace?.min_utility
+        ? clampObjectPrecision(parsed.trace.min_utility)
+        : undefined,
+      weightedScores: parsed.trace?.weighted_scores
+        ? clampObjectPrecision(parsed.trace?.weighted_scores)
+        : undefined,
     },
     // Fingerprint comes from the Rust engine - single source of truth
     fingerprint: parsed.trace?.fingerprint || '',
@@ -312,7 +342,9 @@ export function decisionToWorkflowStep(request: ExecRequest): WorkflowStep {
       actions: request.params.actions,
       states: request.params.states,
       outcomes: clampObjectPrecision(request.params.outcomes),
-      weights: request.params.weights ? clampObjectPrecision(request.params.weights) : undefined,
+      weights: request.params.weights
+        ? clampObjectPrecision(request.params.weights)
+        : undefined,
       strict: request.params.strict,
       temperature: clampPrecisionOpt(request.params.temperature),
       optimism: clampPrecisionOpt(request.params.optimism),
@@ -328,28 +360,33 @@ export function decisionToWorkflowStep(request: ExecRequest): WorkflowStep {
 /**
  * Convert Protocol ExecResultPayload to ExecResult contract
  */
-export function resultFromProtocol(result: ExecResultPayload, requestId: string): ExecResult {
+export function resultFromProtocol(
+  result: ExecResultPayload,
+  requestId: string,
+): ExecResult {
   const status = result.status.type === 'failed' ? 'error' : 'success';
-  const error = result.status.type === 'failed' ? result.status.reason : undefined;
+  const error =
+    result.status.type === 'failed' ? result.status.reason : undefined;
 
   let recommendedAction = '';
   let ranking: string[] = [];
   let trace: ExecResult['trace'] = { algorithm: 'unknown' };
 
   // DETERMINISM: Extract first decision event (most engines produce exactly one)
-  const events = (result as any).events as any[] || [];
-  const decisionEvent = events.find(e => e.event_type === 'DecisionMade');
-  
+  const events = ((result as any).events as any[]) || [];
+  const decisionEvent = events.find((e) => e.event_type === 'DecisionMade');
+
   if (decisionEvent) {
     const p = decisionEvent.payload;
     recommendedAction = String(p.action || '');
     ranking = Array.isArray(p.ranking) ? p.ranking.map(String) : [];
-    
+
     if (p.trace && typeof p.trace === 'object') {
       const t = p.trace as Record<string, unknown>;
       trace = {
         algorithm: String(t.algorithm || 'unknown'),
-        regretTable: t.regret_table as Record<string, Record<string, number>> | undefined,
+        regretTable: t.regret_table as
+          Record<string, Record<string, number>> | undefined,
         maxRegret: t.max_regret as Record<string, number> | undefined,
         minUtility: t.min_utility as Record<string, number> | undefined,
         weightedScores: t.weighted_scores as Record<string, number> | undefined,
@@ -382,7 +419,7 @@ let requestCounter = 0;
 
 /**
  * Generate a unique request ID.
- * 
+ *
  * NOTE: This is NOT used for fingerprinting. It's for request correlation
  * in logs and metrics only. The fingerprint is computed from content only.
  */
@@ -406,27 +443,34 @@ export function generateDeterministicRequestId(seed: string): string {
 /**
  * Compare two ExecResults for equality (for dual-run mode)
  */
-export function compareExecResults(a: ExecResult, b: ExecResult): {
+export function compareExecResults(
+  a: ExecResult,
+  b: ExecResult,
+): {
   match: boolean;
   differences: string[];
 } {
   const differences: string[] = [];
-  
+
   if (a.status !== b.status) {
     differences.push(`status: ${a.status} vs ${b.status}`);
   }
-  
+
   if (a.recommendedAction !== b.recommendedAction) {
-    differences.push(`recommendedAction: ${a.recommendedAction} vs ${b.recommendedAction}`);
+    differences.push(
+      `recommendedAction: ${a.recommendedAction} vs ${b.recommendedAction}`,
+    );
   }
-  
+
   if (a.fingerprint !== b.fingerprint) {
     differences.push(`fingerprint: ${a.fingerprint} vs ${b.fingerprint}`);
   }
-  
+
   // Check ranking order
   if (a.ranking.length !== b.ranking.length) {
-    differences.push(`ranking.length: ${a.ranking.length} vs ${b.ranking.length}`);
+    differences.push(
+      `ranking.length: ${a.ranking.length} vs ${b.ranking.length}`,
+    );
   } else {
     for (let i = 0; i < a.ranking.length; i++) {
       if (a.ranking[i] !== b.ranking[i]) {
@@ -435,7 +479,7 @@ export function compareExecResults(a: ExecResult, b: ExecResult): {
       }
     }
   }
-  
+
   return {
     match: differences.length === 0,
     differences,

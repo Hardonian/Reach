@@ -1,4 +1,4 @@
-import type { DashboardPersona, DashboardViewModel } from "@zeo/contracts";
+import type { DashboardPersona, DashboardViewModel } from '@zeo/contracts';
 
 export interface CtaContext {
   includeVerify?: boolean;
@@ -6,18 +6,23 @@ export interface CtaContext {
 }
 
 function missingEvidenceCount(model: DashboardViewModel): number {
-  return model.lists.findings.filter((finding: any) => finding.severity >= 4).length;
+  return model.lists.findings.filter((finding: any) => finding.severity >= 4)
+    .length;
 }
 
-export function generateCtas(model: DashboardViewModel, persona: DashboardPersona, context: CtaContext = {}): DashboardViewModel["ctas"] {
-  const items: DashboardViewModel["ctas"] = [];
+export function generateCtas(
+  model: DashboardViewModel,
+  persona: DashboardPersona,
+  context: CtaContext = {},
+): DashboardViewModel['ctas'] {
+  const items: DashboardViewModel['ctas'] = [];
   const highRisk = model.summary.riskScore >= 60;
   const missingEvidence = missingEvidenceCount(model);
 
   if (missingEvidence > 0 || highRisk) {
     items.push({
       id: 'add-missing-evidence',
-      label: "Add missing evidence",
+      label: 'Add missing evidence',
       action: `zeo add-note --decision ${model.id} --text "add provenance-backed evidence for top risks"`,
       target: 'evidence',
       priority: 'high',
@@ -26,7 +31,7 @@ export function generateCtas(model: DashboardViewModel, persona: DashboardPerson
 
   items.push({
     id: 'set-review-horizon',
-    label: "Set review horizon",
+    label: 'Set review horizon',
     action: `zeo review weekly --decision ${model.id}`,
     target: 'review',
     priority: 'medium',
@@ -34,7 +39,7 @@ export function generateCtas(model: DashboardViewModel, persona: DashboardPerson
 
   items.push({
     id: 'export-verification-bundle',
-    label: "Export verification bundle",
+    label: 'Export verification bundle',
     action: `zeo export bundle --decision ${model.id}`,
     target: 'export',
     priority: 'medium',
@@ -43,7 +48,7 @@ export function generateCtas(model: DashboardViewModel, persona: DashboardPerson
   if (context.includeVerify ?? true) {
     items.push({
       id: 'verify-exported-bundle',
-      label: "Verify exported bundle",
+      label: 'Verify exported bundle',
       action: `zeo verify decision ${model.id}`,
       target: 'verify',
       priority: 'medium',
@@ -53,7 +58,7 @@ export function generateCtas(model: DashboardViewModel, persona: DashboardPerson
   if (context.includeOpen ?? true) {
     items.push({
       id: 'open-dashboard',
-      label: "Open dashboard",
+      label: 'Open dashboard',
       action: `zeo view ${model.id} --persona ${persona} --open`,
       target: 'dashboard',
       priority: 'low',

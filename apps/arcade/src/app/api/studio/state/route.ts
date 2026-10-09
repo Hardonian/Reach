@@ -61,7 +61,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json().catch(() => ({}))) as { state?: StudioState };
+  const body = (await request.json().catch(() => ({}))) as {
+    state?: StudioState;
+  };
   if (!body.state) {
     return NextResponse.json({ error: 'state required' }, { status: 400 });
   }

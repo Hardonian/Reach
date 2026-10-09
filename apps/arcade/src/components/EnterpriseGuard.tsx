@@ -4,7 +4,7 @@ import { isEnterpriseEnabled, type EnterpriseFeature } from '@/lib/enterprise';
 
 /**
  * EnterpriseGuard Component
- * 
+ *
  * A wrapper component that conditionally renders content based on Enterprise feature flags.
  * Shows a placeholder message when the feature is not enabled (OSS mode).
  */
@@ -45,10 +45,6 @@ export function EnterpriseGuard({
 /**
  * Enterprise only component - renders nothing in OSS mode
  */
-export function EnterpriseOnly({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function EnterpriseOnly({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

@@ -31,12 +31,19 @@ export function shouldAlert(signal: Signal, value: number): boolean {
 
 // ── Email dispatch via HTTP relay (avoids SMTP dep) ───────────────────────
 
-async function sendEmailViaRelay(to: string, subject: string, body: string): Promise<void> {
+async function sendEmailViaRelay(
+  to: string,
+  subject: string,
+  body: string,
+): Promise<void> {
   // Supports any transactional email relay with a simple POST API (Resend, Postmark, custom).
   // Set READYLAYER_ALERT_EMAIL_ENDPOINT to your HTTP relay URL.
   const endpoint = process.env.READYLAYER_ALERT_EMAIL_ENDPOINT;
   if (!endpoint) {
-    logger.warn('READYLAYER_ALERT_EMAIL_ENDPOINT not set — email alert skipped', { to });
+    logger.warn(
+      'READYLAYER_ALERT_EMAIL_ENDPOINT not set — email alert skipped',
+      { to },
+    );
     return;
   }
   try {
@@ -66,7 +73,10 @@ async function sendEmailViaRelay(to: string, subject: string, body: string): Pro
 
 // ── Webhook dispatch ──────────────────────────────────────────────────────
 
-async function sendWebhook(url: string, payload: Record<string, unknown>): Promise<void> {
+async function sendWebhook(
+  url: string,
+  payload: Record<string, unknown>,
+): Promise<void> {
   try {
     const res = await fetch(url, {
       method: 'POST',
@@ -74,7 +84,10 @@ async function sendWebhook(url: string, payload: Record<string, unknown>): Promi
       body: JSON.stringify(payload),
     });
     if (!res.ok) {
-      logger.warn('Webhook alert returned non-200', { status: res.status, url });
+      logger.warn('Webhook alert returned non-200', {
+        status: res.status,
+        url,
+      });
     } else {
       logger.info('Webhook alert sent', { url });
     }
@@ -88,10 +101,12 @@ async function sendWebhook(url: string, payload: Record<string, unknown>): Promi
 export async function dispatchAlerts(
   tenantId: string,
   signal: Signal,
-  monitorRun: MonitorRun
+  monitorRun: MonitorRun,
 ): Promise<void> {
   const rules = listAlertRules(tenantId).filter(
-    (r) => r.status === 'enabled' && (r.signal_id === null || r.signal_id === signal.id)
+    (r) =>
+      r.status === 'enabled' &&
+      (r.signal_id === null || r.signal_id === signal.id),
   );
 
   const baseUrl = env.READYLAYER_BASE_URL ?? 'https://app.readylayer.com';
@@ -111,7 +126,11 @@ export async function dispatchAlerts(
       await sendWebhook(rule.destination, {
         alert: subject,
         signal: { id: signal.id, name: signal.name, type: signal.type },
-        monitor_run: { id: monitorRun.id, value: monitorRun.value, created_at: monitorRun.created_at },
+        monitor_run: {
+          id: monitorRun.id,
+          value: monitorRun.value,
+          created_at: monitorRun.created_at,
+        },
         details_url: `${baseUrl}/monitoring`,
       });
     }

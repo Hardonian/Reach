@@ -27,7 +27,8 @@ const legacyNav = [
 export function NavBar({ site }: NavBarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const primaryNav = site.mode === 'oss' || site.mode === 'enterprise' ? site.nav : legacyNav;
+  const primaryNav =
+    site.mode === 'oss' || site.mode === 'enterprise' ? site.nav : legacyNav;
 
   return (
     <header className="sticky top-0 z-50 glass-panel border-b border-border">
@@ -37,7 +38,9 @@ export function NavBar({ site }: NavBarProps) {
             <div className="w-8 h-8 rounded-lg flex items-center justify-center logo-gradient">
               <span className="text-white font-bold text-lg">R</span>
             </div>
-            <span className="font-bold text-xl text-gradient">{site.brand}</span>
+            <span className="font-bold text-xl text-gradient">
+              {site.brand}
+            </span>
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
@@ -46,7 +49,8 @@ export function NavBar({ site }: NavBarProps) {
                 key={item.href}
                 href={item.href}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  pathname === item.href || pathname?.startsWith(item.href + '/')
+                  pathname === item.href ||
+                  pathname?.startsWith(item.href + '/')
                     ? 'text-white bg-accent/20'
                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
@@ -57,15 +61,26 @@ export function NavBar({ site }: NavBarProps) {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/contact" className="text-gray-400 hover:text-white transition-colors text-sm font-medium">
+            <Link
+              href="/contact"
+              className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
+            >
               Contact
             </Link>
             <Link
-              href={site.mode === 'enterprise' ? '/enterprise/request-demo?source=navbar' : '/download'}
+              href={
+                site.mode === 'enterprise'
+                  ? '/enterprise/request-demo?source=navbar'
+                  : '/download'
+              }
               className="btn-primary text-sm py-2 px-4"
-              onClick={() => track('cta_clicked', { source: 'navbar', cta: site.mode })}
+              onClick={() =>
+                track('cta_clicked', { source: 'navbar', cta: site.mode })
+              }
             >
-              {site.mode === 'enterprise' ? 'Request enterprise demo' : 'Install Reach CLI'}
+              {site.mode === 'enterprise'
+                ? 'Request enterprise demo'
+                : 'Install Reach CLI'}
             </Link>
           </div>
 
@@ -74,11 +89,26 @@ export function NavBar({ site }: NavBarProps) {
             className="md:hidden p-2 rounded-lg hover:bg-white/5"
             aria-label="Toggle menu"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               {isOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               )}
             </svg>
           </button>
@@ -93,7 +123,8 @@ export function NavBar({ site }: NavBarProps) {
                   href={item.href}
                   onClick={() => setIsOpen(false)}
                   className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                    pathname === item.href || pathname?.startsWith(item.href + '/')
+                    pathname === item.href ||
+                    pathname?.startsWith(item.href + '/')
                       ? 'text-white bg-accent/20'
                       : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}

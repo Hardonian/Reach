@@ -9,12 +9,8 @@
     "author": "your-name",
     "created": "2024-01-01T00:00:00Z"
   },
-  "declared_tools": [
-    "tool.summarize"
-  ],
-  "declared_permissions": [
-    "fs:read"
-  ],
+  "declared_tools": ["tool.summarize"],
+  "declared_permissions": ["fs:read"],
   "execution_graph": {
     "steps": [
       {

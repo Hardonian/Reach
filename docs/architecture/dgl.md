@@ -39,17 +39,16 @@ DGL extends deterministic replay with semantic governance. Replay proves mechani
 - CI: `.github/workflows/verify.yml` and package scripts (`validate:intent`, `validate:semantic`, `validate:dgl`)
 - ReadyLayer: `npm run readylayer:gates:dgl` preset command
 
-
 ## API
 
 - `GET /api/governance/dgl` (auth required) returns live report, provider matrix, violations, and turbulence hotspots with filter params `branch`, `provider`, `subsystem`.
-
 
 ## OpenAPI compatibility
 
 Use `reach dgl openapi` to compare base/head OpenAPI contracts (YAML or JSON) and emit compatibility violations. Breaking changes (removed endpoints, new required params, schema breaks, removed content/status) are `error`; additive changes are `warn`.
 
 Configuration lives in `config/dgl-openapi.json`:
+
 - `allowlisted_endpoints`
 - `allowlisted_status_shifts`
 - `path_prefixes`
@@ -61,6 +60,7 @@ Intentional breaks must include an acknowledgement file in `dgl/intent-acknowled
 `reach dgl scan` defaults to changed-only via `git diff`; pass `--full` for full-repo scan fallback behavior.
 
 DGL scan results are cached under `.cache/dgl/` using key material:
+
 - diff file content hash
 - config hash
 - schema/tool versions
@@ -73,6 +73,7 @@ Cache is pruned deterministically to a bounded entry count.
 Each scan writes `/dgl/run-records/<run_id>.json`.
 
 CLI:
+
 - `reach run list`
 - `reach run show <id>`
 - `reach run export --zip <path>`
@@ -80,6 +81,7 @@ CLI:
 ## Governance API pagination
 
 New auth-gated endpoints:
+
 - `GET /api/dgl/runs?page&limit&branch&provider`
 - `GET /api/dgl/runs/:id`
 - `GET /api/dgl/runs/:id/violations?page&limit&severity&type&subsystem&pathQuery`

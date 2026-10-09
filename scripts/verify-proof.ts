@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
  * Proof Verification Script
- * 
+ *
  * Validates proof bundle functionality:
  * - Bundle creation
  * - Bundle verification (consistency)
  * - Signing plugin interface
  * - Remote validation stub (if enabled)
- * 
+ *
  * Usage: npx tsx scripts/verify-proof.ts [--json]
  */
 
@@ -40,8 +40,13 @@ interface VerificationResult {
 }
 
 async function runVerification(): Promise<VerificationResult> {
-  const checks: Array<{ name: string; passed: boolean; message: string; critical: boolean }> = [];
-  
+  const checks: Array<{
+    name: string;
+    passed: boolean;
+    message: string;
+    critical: boolean;
+  }> = [];
+
   // 1. Test bundle creation
   let bundle: ReturnType<typeof createProofBundle>;
   try {
@@ -69,7 +74,7 @@ async function runVerification(): Promise<VerificationResult> {
         tenantHash: 'tenant123',
       },
     });
-    
+
     checks.push({
       name: 'bundle_creation',
       passed: true,
@@ -89,16 +94,18 @@ async function runVerification(): Promise<VerificationResult> {
       summary: { total: 1, passed: 0, failed: 1, critical: 1 },
     };
   }
-  
+
   // 2. Test bundle structure validation
   const isValid = isProofBundle(bundle);
   checks.push({
     name: 'bundle_structure',
     passed: isValid,
-    message: isValid ? 'Bundle structure is valid' : 'Bundle structure is invalid',
+    message: isValid
+      ? 'Bundle structure is valid'
+      : 'Bundle structure is invalid',
     critical: true,
   });
-  
+
   // 3. Test bundle version
   checks.push({
     name: 'bundle_version',
@@ -106,7 +113,7 @@ async function runVerification(): Promise<VerificationResult> {
     message: `Bundle version: ${bundle.version}`,
     critical: true,
   });
-  
+
   // 4. Test consistency verification
   const consistency = verifyBundleConsistency(bundle);
   checks.push({
@@ -117,17 +124,19 @@ async function runVerification(): Promise<VerificationResult> {
       : `Consistency errors: ${consistency.errors.join(', ')}`,
     critical: true,
   });
-  
+
   // 5. Test serialization/deserialization
   try {
     const serialized = serializeBundle(bundle);
     const deserialized = deserializeBundle(serialized);
     const roundtrip = deserialized.bundleId === bundle.bundleId;
-    
+
     checks.push({
       name: 'bundle_serialization',
       passed: roundtrip,
-      message: roundtrip ? 'Serialization roundtrip successful' : 'Serialization roundtrip failed',
+      message: roundtrip
+        ? 'Serialization roundtrip successful'
+        : 'Serialization roundtrip failed',
       critical: true,
     });
   } catch (error) {
@@ -138,7 +147,7 @@ async function runVerification(): Promise<VerificationResult> {
       critical: true,
     });
   }
-  
+
   // 6. Test CID computation
   try {
     const cid = computeBundleCID(bundle);
@@ -155,8 +164,8 @@ async function runVerification(): Promise<VerificationResult> {
       message: `CID computation failed: ${error}`,
       critical: false,
     });
-  };
-  
+  }
+
   // 7. Test signer plugin registry
   const registry = getSignerRegistry();
   const hasSigners = registry.list().length > 0;
@@ -168,7 +177,7 @@ async function runVerification(): Promise<VerificationResult> {
       : 'No signer plugins registered',
     critical: false,
   });
-  
+
   // 8. Test stub signer
   const stubSigner = registry.get('stub');
   if (stubSigner) {
@@ -177,25 +186,27 @@ async function runVerification(): Promise<VerificationResult> {
         keyId: 'test-key',
         algorithm: 'stub-ed25519',
       });
-      
+
       checks.push({
         name: 'stub_signer',
         passed: !!signResult.metadata,
         message: `Stub signer working: ${signResult.signatureRef}`,
         critical: false,
       });
-      
+
       // Test verification
       const verifyResult = await stubSigner.verify(
         'test-data',
         signResult.signature || '',
-        'test-key'
+        'test-key',
       );
-      
+
       checks.push({
         name: 'stub_verification',
         passed: verifyResult,
-        message: verifyResult ? 'Stub verification working' : 'Stub verification failed',
+        message: verifyResult
+          ? 'Stub verification working'
+          : 'Stub verification failed',
         critical: false,
       });
     } catch (error) {
@@ -207,11 +218,11 @@ async function runVerification(): Promise<VerificationResult> {
       });
     }
   }
-  
+
   // 9. Test remote validation client
   const client = getRemoteReplayClient();
   const config = client.getConfig();
-  
+
   checks.push({
     name: 'remote_client_config',
     passed: !config.enabled,
@@ -220,16 +231,17 @@ async function runVerification(): Promise<VerificationResult> {
       : 'Remote validation is disabled (default)',
     critical: false,
   });
-  
+
   // Test with disabled client (should return success without attempting)
   const validationResult = await client.validate(bundle);
   checks.push({
     name: 'remote_disabled_validation',
-    passed: validationResult.attempted === false && validationResult.success === true,
+    passed:
+      validationResult.attempted === false && validationResult.success === true,
     message: 'Disabled client returns success without attempting',
     critical: false,
   });
-  
+
   // 10. Test Merkle root
   checks.push({
     name: 'merkle_root',
@@ -237,11 +249,11 @@ async function runVerification(): Promise<VerificationResult> {
     message: `Merkle root: ${bundle.merkleRoot.slice(0, 32)}...`,
     critical: true,
   });
-  
+
   // Calculate summary
-  const criticalFailed = checks.filter(c => c.critical && !c.passed).length;
-  const totalFailed = checks.filter(c => !c.passed).length;
-  
+  const criticalFailed = checks.filter((c) => c.critical && !c.passed).length;
+  const totalFailed = checks.filter((c) => !c.passed).length;
+
   return {
     passed: criticalFailed === 0,
     checks,
@@ -257,27 +269,29 @@ async function runVerification(): Promise<VerificationResult> {
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const json = args.includes('--json');
-  
+
   console.log('🔍 Running proof verification...\n');
-  
+
   const result = await runVerification();
-  
+
   if (json) {
     console.log(JSON.stringify(result, null, 2));
   } else {
     console.log('Verification Results:');
     console.log('─'.repeat(50));
-    
+
     for (const check of result.checks) {
       const icon = check.passed ? '✅' : '❌';
       const critical = check.critical ? ' [CRITICAL]' : '';
       console.log(`${icon} ${check.name}${critical}`);
       console.log(`   ${check.message}`);
     }
-    
+
     console.log('─'.repeat(50));
-    console.log(`\nSummary: ${result.summary.passed}/${result.summary.total} passed`);
-    
+    console.log(
+      `\nSummary: ${result.summary.passed}/${result.summary.total} passed`,
+    );
+
     if (result.summary.critical > 0) {
       console.log(`❌ ${result.summary.critical} critical check(s) failed`);
       process.exit(1);
@@ -291,7 +305,7 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch(error => {
+main().catch((error) => {
   console.error('Verification failed:', error);
   process.exit(1);
 });

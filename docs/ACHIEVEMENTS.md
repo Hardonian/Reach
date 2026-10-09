@@ -9,31 +9,36 @@
 
 ## Achievement List ### Beginner
 
-| Icon | Name | Description | Rarity |
-|------|------|-------------|--------|
-| 🚀 | First Run | Execute your first Reach pack | Common |
-| ✓ | Replay Verified | Successfully verify a deterministic replay | Common |
+| Icon | Name            | Description                                | Rarity |
+| ---- | --------------- | ------------------------------------------ | ------ |
+| 🚀   | First Run       | Execute your first Reach pack              | Common |
+| ✓    | Replay Verified | Successfully verify a deterministic replay | Common |
 
 ### Creation | Icon | Name | Description | Rarity |
+
 |------|------|-------------|--------|
 | 💊 | Capsule Created | Create your first execution capsule | Common |
 | 📦 | Pack Published | Publish a pack to the registry | Uncommon |
 
 ### Trust & Determinism | Icon | Name | Description | Rarity |
+
 |------|------|-------------|--------|
 | 🎯 | 100% Determinism | 10 consecutive verified runs | Rare |
 | 🔮 | Determinism Sage | 100 consecutive verified runs | Legendary |
 
 ### Federation | Icon | Name | Description | Rarity |
+
 |------|------|-------------|--------|
 | 🤝 | Federation Node Trusted | Establish trust with a federation node | Uncommon |
 
 ### Edge Mode | Icon | Name | Description | Rarity |
+
 |------|------|-------------|--------|
 | 📱 | Edge Mode Master | Complete 25 runs in Edge Mode | Uncommon |
 | 🏕️ | Offline Warrior | Complete 10 runs offline | Rare |
 
 ### Milestones | Icon | Name | Description | Rarity |
+
 |------|------|-------------|--------|
 | 🏆 | Veteran Runner | Execute 100 total runs | Epic |
 
@@ -44,6 +49,7 @@
 ```
 
 Example:
+
 ```json
 {
   "unlocked": {
@@ -74,6 +80,7 @@ reach profile
 ```
 
 Output:
+
 ```
 === Reach Profile ===
 
@@ -93,14 +100,16 @@ Recent: 1 new achievement today
 ```
 
 ### List All Achievements ```bash
+
 reach achievements
-```
+
+````
 
 Output shows locked and unlocked achievements with progress.
 
 ### Achievement Details ```bash
 reach achievements show determinism_sage
-```
+````
 
 ## Programmatic Access ### Go API
 
@@ -122,6 +131,7 @@ fmt.Printf("Runs: %d\n", progress.Stats.TotalRuns)
 ```
 
 ### JavaScript SDK ```typescript
+
 import { Achievements } from '@reach/sdk';
 
 const achievements = new Achievements();
@@ -130,7 +140,8 @@ await achievements.load();
 // Get profile
 const profile = await achievements.getProfile();
 console.log(`Unlocked: ${profile.unlockedCount}/${profile.totalAchievements}`);
-```
+
+````
 
 ## Web Surface If running a web UI, achievements can be displayed:
 
@@ -144,9 +155,10 @@ console.log(`Unlocked: ${profile.unlockedCount}/${profile.totalAchievements}`);
   </div>
   <!-- ... -->
 </div>
-```
+````
 
 ## Privacy - Achievements are stored **locally only**
+
 - No cloud sync or telemetry
 - No personally identifiable information
 - Safe to backup or delete
@@ -168,19 +180,20 @@ engine.Save()
 
 The engine listens to execution events:
 
-| Event | Achievement Progress |
-|-------|---------------------|
-| `run.completed` | totalRuns++ |
-| `run.verified` | verifiedRuns++, consecutiveMatches++ |
-| `run.mismatch` | consecutiveMatches = 0 |
-| `capsule.created` | capsulesCreated++ |
-| `pack.published` | packsPublished++ |
-| `node.trusted` | trustedNodes++ |
-| `run.edge_mode` | edgeModeRuns++ |
-| `run.offline` | offlineRuns++ |
+| Event             | Achievement Progress                 |
+| ----------------- | ------------------------------------ |
+| `run.completed`   | totalRuns++                          |
+| `run.verified`    | verifiedRuns++, consecutiveMatches++ |
+| `run.mismatch`    | consecutiveMatches = 0               |
+| `capsule.created` | capsulesCreated++                    |
+| `pack.published`  | packsPublished++                     |
+| `node.trusted`    | trustedNodes++                       |
+| `run.edge_mode`   | edgeModeRuns++                       |
+| `run.offline`     | offlineRuns++                        |
 
 ### Thread Safety The achievement engine is thread-safe. Events can be recorded from multiple goroutines safely.
 
 ### Performance - Minimal overhead: events are counted, not stored
+
 - Lazy loading: achievements loaded on first access
 - Efficient storage: JSON file only written on save

@@ -1,6 +1,7 @@
 # Reach Quick Start Guide (Non-Technical) ## What is Reach?
 
 Reach is a tool that helps you run AI systems in a way that is:
+
 - **Deterministic**: The same inputs always produce the same outputs
 - **Auditable**: Every action is logged and can be reviewed
 - **Reproducible**: You can replay any execution to verify what happened
@@ -30,20 +31,24 @@ npx @reach/cli doctor
 ```
 
 ### Step 2: Check Everything is Working ```bash
+
 reach doctor
-```
+
+````
 
 You should see a message saying everything is OK.
 
 ### Step 3: Run a Demo Workflow ```bash
 # Create a new run reach run --pack arcadeSafe.demo
-```
+````
 
 This runs a safe demo workflow that demonstrates Reach's capabilities.
 
 ### Step 4: View the Results ```bash
+
 # Get the run ID from the previous command reach explain <run-id>
-```
+
+````
 
 This shows you what happened during the run.
 
@@ -53,7 +58,7 @@ This shows you what happened during the run.
 # Create a capsule from your run reach capsule create <run-id>
 
 # Verify the capsule later reach capsule verify <path-to-capsule>
-```
+````
 
 ## Replaying a Run You can replay any run to verify it produces the same results:
 
@@ -97,6 +102,7 @@ reach serve
 ```
 
 ## Next Steps - **Browse available packs**: `reach packs search`
+
 - **Install a pack**: `reach packs install <pack-name>`
 - **Check federation status**: `reach federation status`
 
@@ -108,6 +114,7 @@ reach serve
 4. Ask for help with `reach support ask "your question"`
 
 ## Safety First Reach is designed with safety in mind:
+
 - All runs are sandboxed
 - Policies control what actions are allowed
 - Everything is logged for audit

@@ -84,10 +84,5 @@
     "WASM",
     "zombification"
   ],
-  "ignorePaths": [
-    "node_modules",
-    "dist",
-    ".cache",
-    "package-lock.json"
-  ]
+  "ignorePaths": ["node_modules", "dist", ".cache", "package-lock.json"]
 }

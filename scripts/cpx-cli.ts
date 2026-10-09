@@ -1,7 +1,15 @@
 #!/usr/bin/env npx tsx
 import fs from 'fs';
 import path from 'path';
-import { cpxToMarkdown, cpxToSarif, createPackFromGit, runCpx, validatePatchPack, type PatchPack, type TaskClass } from '../src/dgl/cpx.js';
+import {
+  cpxToMarkdown,
+  cpxToSarif,
+  createPackFromGit,
+  runCpx,
+  validatePatchPack,
+  type PatchPack,
+  type TaskClass,
+} from '../src/dgl/cpx.js';
 import { buildMergePlan, writeMergePlanFile } from '../src/dgl/cpx-resolve.js';
 
 const args = process.argv.slice(2);
@@ -12,7 +20,9 @@ const flag = (name: string, fallback = '') => {
 };
 
 function readPack(p: string): PatchPack {
-  return JSON.parse(fs.readFileSync(path.resolve(process.cwd(), p), 'utf-8')) as PatchPack;
+  return JSON.parse(
+    fs.readFileSync(path.resolve(process.cwd(), p), 'utf-8'),
+  ) as PatchPack;
 }
 
 if (cmd === 'pack') {
@@ -22,7 +32,7 @@ if (cmd === 'pack') {
   const provider = flag('--provider', 'local');
   const model = flag('--model', 'default');
   const agentId = flag('--agent-id', 'reach-cpx');
-  const taskClass = (flag('--task-class', 'bugfix') as TaskClass);
+  const taskClass = flag('--task-class', 'bugfix') as TaskClass;
   const pack = createPackFromGit(from, to, provider, model, agentId, taskClass);
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, JSON.stringify(pack, null, 2));
@@ -51,29 +61,65 @@ if (cmd === 'run') {
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
   fs.writeFileSync(mdPath, cpxToMarkdown(report));
   fs.writeFileSync(sarifPath, JSON.stringify(cpxToSarif(report), null, 2));
-  console.log(JSON.stringify({ ok: true, report: reportPath, markdown: mdPath, sarif: sarifPath, decision: report.arbitration.decision_type }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        ok: true,
+        report: reportPath,
+        markdown: mdPath,
+        sarif: sarifPath,
+        decision: report.arbitration.decision_type,
+      },
+      null,
+      2,
+    ),
+  );
   process.exit(0);
 }
 
 if (cmd === 'report') {
   const id = flag('--id', '');
-  const reportPath = id ? path.join('dgl', 'cpx', 'reports', `${id}.json`) : flag('--path', '');
-  if (!reportPath || !fs.existsSync(reportPath)) throw new Error('Report file not found.');
-  const report = JSON.parse(fs.readFileSync(reportPath, 'utf-8')) as ReturnType<typeof runCpx>;
+  const reportPath = id
+    ? path.join('dgl', 'cpx', 'reports', `${id}.json`)
+    : flag('--path', '');
+  if (!reportPath || !fs.existsSync(reportPath))
+    throw new Error('Report file not found.');
+  const report = JSON.parse(fs.readFileSync(reportPath, 'utf-8')) as ReturnType<
+    typeof runCpx
+  >;
   console.log(cpxToMarkdown(report));
   process.exit(0);
 }
 
-
 if (cmd === 'resolve') {
   const id = flag('--id', '');
-  const reportPath = id ? path.join('dgl', 'cpx', 'reports', `${id}.json`) : flag('--path', '');
-  if (!reportPath || !fs.existsSync(reportPath)) throw new Error('Report file not found.');
-  const report = JSON.parse(fs.readFileSync(reportPath, 'utf-8')) as ReturnType<typeof runCpx>;
-  const outPath = flag('--out', path.join('dgl', 'cpx', 'merge-plans', `${report.run_id}.merge-plan.json`));
+  const reportPath = id
+    ? path.join('dgl', 'cpx', 'reports', `${id}.json`)
+    : flag('--path', '');
+  if (!reportPath || !fs.existsSync(reportPath))
+    throw new Error('Report file not found.');
+  const report = JSON.parse(fs.readFileSync(reportPath, 'utf-8')) as ReturnType<
+    typeof runCpx
+  >;
+  const outPath = flag(
+    '--out',
+    path.join('dgl', 'cpx', 'merge-plans', `${report.run_id}.merge-plan.json`),
+  );
   const plan = buildMergePlan(report);
   writeMergePlanFile(plan, outPath);
-  console.log(JSON.stringify({ ok: true, run_id: report.run_id, merge_plan: outPath, conflict_packets: plan.packets.length, requires_human_ack: plan.packets.some((p) => p.severity === 'high') }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        ok: true,
+        run_id: report.run_id,
+        merge_plan: outPath,
+        conflict_packets: plan.packets.length,
+        requires_human_ack: plan.packets.some((p) => p.severity === 'high'),
+      },
+      null,
+      2,
+    ),
+  );
   process.exit(0);
 }
 

@@ -5,6 +5,7 @@
 Reach provides a reproducible run → transcript → verify → replay lifecycle with cryptographically linked evidence artifacts and stable fingerprints. The Requiem C++ engine guarantees identical outputs for identical inputs.
 
 <!-- BEGIN: REPO HERO -->
+
 ![Repository hero generated locally on the EPYC GPU stack](assets/repo-hero.png)
 <!-- END: REPO HERO -->
 
@@ -74,12 +75,12 @@ $ pnpm verify:smoke
 
 ## Troubleshooting
 
-| Symptom | Fix |
-|---------|-----|
-| `ERR_ENGINE_NOT_FOUND` | Run `pnpm install` to build Requiem |
-| `ERR_DETERMINISM_MISMATCH` | See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) |
-| `ERR_PROTOCOL_VERSION_MISMATCH` | Check `--protocol-version` flag |
-| `ERR_CAS_INTEGRITY_FAILURE` | Run `reach doctor --fix-cas` |
+| Symptom                         | Fix                                                    |
+| ------------------------------- | ------------------------------------------------------ |
+| `ERR_ENGINE_NOT_FOUND`          | Run `pnpm install` to build Requiem                    |
+| `ERR_DETERMINISM_MISMATCH`      | See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) |
+| `ERR_PROTOCOL_VERSION_MISMATCH` | Check `--protocol-version` flag                        |
+| `ERR_CAS_INTEGRITY_FAILURE`     | Run `reach doctor --fix-cas`                           |
 
 ## Documentation
 
@@ -92,12 +93,12 @@ $ pnpm verify:smoke
 
 ## Verification Commands
 
-| Command | Purpose | Time |
-|---------|---------|------|
-| `pnpm verify:fast` | Lint + typecheck + unit tests | ~30s |
-| `pnpm verify:smoke` | Engine + determinism + protocol | ~2m |
-| `pnpm verify:oss` | OSS purity + boundaries | ~1m |
-| `pnpm verify:determinism` | 200-run stress test | ~5m |
+| Command                   | Purpose                         | Time |
+| ------------------------- | ------------------------------- | ---- |
+| `pnpm verify:fast`        | Lint + typecheck + unit tests   | ~30s |
+| `pnpm verify:smoke`       | Engine + determinism + protocol | ~2m  |
+| `pnpm verify:oss`         | OSS purity + boundaries         | ~1m  |
+| `pnpm verify:determinism` | 200-run stress test             | ~5m  |
 
 ---
 

@@ -19,7 +19,7 @@ Dependencies:
     expect(report.checks[0]).toEqual({
       category: 'System',
       status: 'OK',
-      label: 'OS: darwin/arm64'
+      label: 'OS: darwin/arm64',
     });
   });
 
@@ -57,7 +57,7 @@ Configuration:
     expect(report.checks[0]).toEqual({
       category: 'Configuration',
       status: 'OK',
-      label: '.env file found'
+      label: '.env file found',
     });
   });
 
@@ -71,7 +71,7 @@ Configuration:
     expect(report.checks[0]).toEqual({
       category: 'Configuration',
       status: 'FAIL',
-      label: '.env file missing'
+      label: '.env file missing',
     });
   });
 });

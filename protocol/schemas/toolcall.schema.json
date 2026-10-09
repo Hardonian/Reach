@@ -18,16 +18,11 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "name"
-              ],
+              "required": ["name"],
               "additionalProperties": false
             }
           },
-          "required": [
-            "capability",
-            "value"
-          ],
+          "required": ["capability", "value"],
           "additionalProperties": false
         },
         {
@@ -39,10 +34,7 @@
               "type": "null"
             }
           },
-          "required": [
-            "capability",
-            "value"
-          ],
+          "required": ["capability", "value"],
           "additionalProperties": false
         }
       ]
@@ -64,12 +56,7 @@
         },
         "input": {}
       },
-      "required": [
-        "step_id",
-        "tool_name",
-        "required_capabilities",
-        "input"
-      ],
+      "required": ["step_id", "tool_name", "required_capabilities", "input"],
       "additionalProperties": false
     },
     "ToolResult": {
@@ -86,19 +73,10 @@
           "type": "boolean"
         },
         "error": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       },
-      "required": [
-        "step_id",
-        "tool_name",
-        "output",
-        "success",
-        "error"
-      ],
+      "required": ["step_id", "tool_name", "output", "success", "error"],
       "additionalProperties": false
     }
   },

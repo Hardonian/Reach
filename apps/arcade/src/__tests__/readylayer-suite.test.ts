@@ -16,19 +16,29 @@ describe('GitHub webhook signature validation', () => {
     return `sha256=${crypto.createHmac('sha256', secret).update(payload).digest('hex')}`;
   }
 
-  function verify(payload: string, signature: string, secret?: string): boolean {
+  function verify(
+    payload: string,
+    signature: string,
+    secret?: string,
+  ): boolean {
     const s = secret ?? SECRET;
     if (!s) return false;
     const expected = `sha256=${crypto.createHmac('sha256', s).update(payload).digest('hex')}`;
     try {
-      return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+      return crypto.timingSafeEqual(
+        Buffer.from(expected),
+        Buffer.from(signature),
+      );
     } catch {
       return false;
     }
   }
 
   it('accepts valid HMAC-SHA256 signature', () => {
-    const payload = JSON.stringify({ action: 'opened', pull_request: { number: 42 } });
+    const payload = JSON.stringify({
+      action: 'opened',
+      pull_request: { number: 42 },
+    });
     const sig = sign(payload, SECRET);
     expect(verify(payload, sig)).toBe(true);
   });
@@ -60,9 +70,15 @@ describe('CI ingest schema', () => {
 describe('Alert threshold evaluation', () => {
   it('triggers latency alert above 5000ms default', async () => {
     const signal = {
-      id: 'sig_1', tenant_id: 'ten_1', name: 'Latency', type: 'latency' as const,
-      source: 'webhook' as const, threshold: {}, status: 'enabled' as const,
-      created_at: '', updated_at: '',
+      id: 'sig_1',
+      tenant_id: 'ten_1',
+      name: 'Latency',
+      type: 'latency' as const,
+      source: 'webhook' as const,
+      threshold: {},
+      status: 'enabled' as const,
+      created_at: '',
+      updated_at: '',
     };
     const { shouldAlert } = await import('../lib/alert-service');
     expect(shouldAlert(signal, 6000)).toBe(true);
@@ -91,9 +107,12 @@ describe('Gate report structure', () => {
 describe('Simulation variant result structure', () => {
   it('variant result has all comparison fields', () => {
     const result = {
-      variant_id: 'v1', variant_label: 'GPT-4o',
+      variant_id: 'v1',
+      variant_label: 'GPT-4o',
       status: 'passed' as 'passed' | 'failed' | 'error',
-      latency_ms: 450, pass_rate: 1.0, cost_usd: 0.000012,
+      latency_ms: 450,
+      pass_rate: 1.0,
+      cost_usd: 0.000012,
     };
     expect(typeof result.latency_ms).toBe('number');
     expect(typeof result.pass_rate).toBe('number');

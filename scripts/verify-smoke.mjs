@@ -61,7 +61,9 @@ test('Project structure exists', () => {
 
 // Test 2: Package.json valid
 test('Package.json is valid', () => {
-  const pkg = JSON.parse(readFileSync(join(PROJECT_ROOT, 'package.json'), 'utf-8'));
+  const pkg = JSON.parse(
+    readFileSync(join(PROJECT_ROOT, 'package.json'), 'utf-8'),
+  );
   if (!pkg.name || !pkg.version) {
     throw new Error('Missing name or version');
   }

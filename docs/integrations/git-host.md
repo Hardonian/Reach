@@ -54,4 +54,3 @@ Provide a least-privilege integration layer that keeps governance signals (DGL, 
 - **Phase 1:** webhook + comments + checks (read-mostly with safe write paths).
 - **Phase 2:** policy-aware labels/reviewer automation.
 - **Phase 3:** SARIF upload + GitLab API parity adapter.
-

@@ -20,15 +20,19 @@ const descriptor: SemanticPreimageDescriptor = {
 
 describe('semantic governance', () => {
   it('classifies all drift categories deterministically', () => {
-    const result = classifyDrift(descriptor, {
-      ...descriptor,
-      modelVersion: '4.2',
-      promptTemplateVersion: 'v2',
-      contextSnapshotId: 'context_b',
-      policySnapshotId: 'policy_b',
-      evalSnapshotId: 'eval_b',
-      runtimeId: 'node22',
-    }, true);
+    const result = classifyDrift(
+      descriptor,
+      {
+        ...descriptor,
+        modelVersion: '4.2',
+        promptTemplateVersion: 'v2',
+        contextSnapshotId: 'context_b',
+        policySnapshotId: 'policy_b',
+        evalSnapshotId: 'eval_b',
+        runtimeId: 'node22',
+      },
+      true,
+    );
 
     expect(result.driftCategories).toEqual([
       'ModelDrift',
@@ -69,11 +73,17 @@ describe('semantic governance', () => {
   });
 
   it('enforces strict semantic state keys', () => {
-    expect(() => validateStrictSemanticState({ ...descriptor, bad: true })).toThrow('unknown semantic state fields');
+    expect(() =>
+      validateStrictSemanticState({ ...descriptor, bad: true }),
+    ).toThrow('unknown semantic state fields');
   });
 
   it('creates policy snapshot ids from fingerprint', () => {
-    const snapshot = buildPolicySnapshot('policies/main.rego', 'abcdef1234567890ffff', '2026-02-26T00:00:00Z');
+    const snapshot = buildPolicySnapshot(
+      'policies/main.rego',
+      'abcdef1234567890ffff',
+      '2026-02-26T00:00:00Z',
+    );
     expect(snapshot.id).toBe('policy_abcdef1234567890');
   });
 });

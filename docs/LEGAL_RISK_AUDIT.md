@@ -3,6 +3,7 @@
 Assess legal and compliance exposure in the current Reach OSS repository for investor and enterprise diligence readiness.
 
 ## Evidence reviewed - `LICENSE` (Apache-2.0 text)
+
 - `README.md` licensing statement
 - `SECURITY.md` disclosure policy
 - `CONTRIBUTING.md` contribution process
@@ -19,6 +20,7 @@ Assess legal and compliance exposure in the current Reach OSS repository for inv
 ### Risk **PARTIAL** — Potential license ambiguity between repository-level Apache-2.0 and Rust workspace metadata MIT declaration can create downstream compliance confusion.
 
 ### Recommendation - Align `Cargo.toml [workspace.package].license` with repository top-level license decision.
+
 - Add a short license policy note in `CONTRIBUTING.md` stating all contributions are accepted under repo LICENSE terms.
 
 ---
@@ -30,6 +32,7 @@ Assess legal and compliance exposure in the current Reach OSS repository for inv
 ### Risk **PARTIAL** — Absent CLA or explicit DCO sign-off, provenance assurances for contributor IP are weaker for financing and enterprise procurement.
 
 ### Recommendation - Adopt either DCO sign-off requirement or CLA workflow.
+
 - Add explicit statement that contributors represent right to submit code under repository license.
 
 ---
@@ -51,6 +54,7 @@ Assess legal and compliance exposure in the current Reach OSS repository for inv
 ### Risk **PARTIAL** — If commercial hosted offering exists, liability allocation, data processing roles, incident notification duties, and uptime commitments are not formalized here.
 
 ### Recommendation - Maintain separate hosted legal pack (ToS, DPA, SLA, subprocessors) for managed offerings.
+
 - Ensure open-source docs clearly state no warranty and user-operated risk where relevant.
 
 ---
@@ -62,6 +66,7 @@ Assess legal and compliance exposure in the current Reach OSS repository for inv
 ### Risk **PARTIAL** — For international distribution and enterprise procurement, explicit export classification guidance may be requested.
 
 ### Recommendation - Add an export/compliance note (e.g., “contains cryptography; users must comply with local laws”).
+
 - Maintain jurisdictional screening process for hosted services if applicable.
 
 ---
@@ -77,11 +82,13 @@ Assess legal and compliance exposure in the current Reach OSS repository for inv
 ---
 
 ## Required governance artifacts check - `LICENSE`: **Present**.
+
 - `SECURITY.md`: **Present**.
 - `NOTICE`: **Added** in this change set to support Apache-style attribution packaging discipline for downstream redistributors.
 
 ---
 
 ## Legal posture summary - **Strengths**: clear top-level license file, established security disclosure process.
+
 - **Primary gaps**: contributor IP provenance mechanism (CLA/DCO), license metadata alignment across manifests, and hosted/export legal overlays.
 - **Overall status**: **PARTIAL / investable with remediation plan**.

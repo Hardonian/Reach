@@ -172,13 +172,13 @@ Each hash is clickable and shows the raw artifact content for inspection.
 
 ## Demo Failure Modes
 
-| Failure | Resolution |
-| :--- | :--- |
-| `npm run dev` fails to start | Check Node version ≥18: `node -v` |
-| `reachctl not found` | Build CLI: `npm run verify:cli` |
-| Port 3000 in use | `REACH_PORT=3001 npm run dev -w arcade` |
-| SQLite error | Check writable tmp: `ls -la /tmp/` |
-| Demo pack not found | Seed data: `npm run seed` |
+| Failure                      | Resolution                              |
+| :--------------------------- | :-------------------------------------- |
+| `npm run dev` fails to start | Check Node version ≥18: `node -v`       |
+| `reachctl not found`         | Build CLI: `npm run verify:cli`         |
+| Port 3000 in use             | `REACH_PORT=3001 npm run dev -w arcade` |
+| SQLite error                 | Check writable tmp: `ls -la /tmp/`      |
+| Demo pack not found          | Seed data: `npm run seed`               |
 
 ---
 

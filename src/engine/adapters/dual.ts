@@ -1,11 +1,11 @@
 /**
  * Dual Engine Ghost Comparison
- * 
+ *
  * Executes dual-run comparisons asynchronously after returning results to the user.
  * This runs both Requiem and Rust engines in parallel, compares their outputs,
  * and logs the results for audit/verification purposes without adding latency
  * to the user's request.
- * 
+ *
  * @module engine/adapters/dual
  */
 
@@ -38,12 +38,12 @@ export interface GhostComparisonConfig {
    * Enable or disable ghost comparison (default: true in production)
    */
   enabled?: boolean;
-  
+
   /**
    * Store comparison results for later retrieval (default: true)
    */
   storeResults?: boolean;
-  
+
   /**
    * Log comparison results to console (default: false - use structured logging)
    */
@@ -55,10 +55,10 @@ const comparisonResultsStore = new Map<string, GhostComparisonResult>();
 
 /**
  * Execute ghost comparison asynchronously (fire-and-forget)
- * 
+ *
  * This runs after the user response has been sent to avoid P99 latency regressions.
  * Both engines run in parallel, then results are compared.
- * 
+ *
  * @param request - The original execution request
  * @param primaryResult - The result already returned to the user
  * @param config - Optional configuration
@@ -66,19 +66,23 @@ const comparisonResultsStore = new Map<string, GhostComparisonResult>();
 export function runGhostComparison(
   request: ExecRequest,
   primaryResult: ExecResult,
-  config: GhostComparisonConfig = {}
+  config: GhostComparisonConfig = {},
 ): void {
   const { enabled = true, storeResults = true, verbose = false } = config;
-  
+
   if (!enabled) {
     return;
   }
-  
+
   // Fire-and-forget - don't await, don't block user response
   (async () => {
     try {
-      const comparisonResult = await executeGhostComparison(request, primaryResult, verbose);
-      
+      const comparisonResult = await executeGhostComparison(
+        request,
+        primaryResult,
+        verbose,
+      );
+
       if (storeResults) {
         storeComparisonResult(comparisonResult);
       }
@@ -95,11 +99,11 @@ export function runGhostComparison(
 async function executeGhostComparison(
   request: ExecRequest,
   primaryResult: ExecResult,
-  verbose: boolean
+  verbose: boolean,
 ): Promise<GhostComparisonResult> {
   const startTime = Date.now();
   const timestamp = new Date().toISOString();
-  
+
   // Ensure seed is derived for deterministic execution
   const seed = request.params.seed ?? deriveSeed(request.requestId);
   const requestWithSeed: ExecRequest = {
@@ -109,21 +113,21 @@ async function executeGhostComparison(
       seed,
     },
   };
-  
+
   // Run both engines in parallel
   const [requiemResult, rustResult] = await Promise.all([
     executeWithRequiem(requestWithSeed),
     executeWithRust(requestWithSeed),
   ]);
-  
+
   const comparisonDurationMs = Date.now() - startTime;
-  
+
   // Determine which engine was the primary (user-facing)
   const primaryEngine = primaryResult.meta.engine;
-  
+
   // Compare results
   let comparison: { match: boolean; differences: string[] };
-  
+
   if (primaryEngine === 'requiem' && requiemResult) {
     comparison = compareExecResults(primaryResult, requiemResult);
   } else if (primaryEngine === 'rust' && rustResult) {
@@ -139,7 +143,7 @@ async function executeGhostComparison(
       };
     }
   }
-  
+
   const result: GhostComparisonResult = {
     requestId: request.requestId,
     timestamp,
@@ -149,29 +153,31 @@ async function executeGhostComparison(
     rustResult,
     comparisonDurationMs,
   };
-  
+
   // Log comparison results
   if (verbose || !comparison.match) {
     logComparisonResult(result);
   }
-  
+
   return result;
 }
 
 /**
  * Execute with Requiem engine
  */
-async function executeWithRequiem(request: ExecRequest): Promise<ExecResult | undefined> {
+async function executeWithRequiem(
+  request: ExecRequest,
+): Promise<ExecResult | undefined> {
   try {
     const engine = getRequiemEngine();
-    
+
     if (!engine.isReady()) {
       const configured = await engine.configure();
       if (!configured) {
         return undefined;
       }
     }
-    
+
     return await engine.evaluate(request);
   } catch (error) {
     console.warn('[GhostComparison] Requiem engine error:', error);
@@ -182,10 +188,12 @@ async function executeWithRequiem(request: ExecRequest): Promise<ExecResult | un
 /**
  * Execute with Rust engine
  */
-async function executeWithRust(request: ExecRequest): Promise<ExecResult | undefined> {
+async function executeWithRust(
+  request: ExecRequest,
+): Promise<ExecResult | undefined> {
   try {
     const engine = getRustEngine();
-    
+
     if (!engine.isReady()) {
       // Try to initialize - this might fail if WASM not available
       try {
@@ -194,7 +202,7 @@ async function executeWithRust(request: ExecRequest): Promise<ExecResult | undef
         return undefined;
       }
     }
-    
+
     return await engine.evaluate(request);
   } catch (error) {
     console.warn('[GhostComparison] Rust engine error:', error);
@@ -214,19 +222,23 @@ function logComparisonResult(result: GhostComparisonResult): void {
     differences: result.differences,
     durationMs: result.comparisonDurationMs,
     engines: {
-      requiem: result.requiemResult ? {
-        recommendedAction: result.requiemResult.recommendedAction,
-        fingerprint: result.requiemResult.fingerprint,
-        status: result.requiemResult.status,
-      } : null,
-      rust: result.rustResult ? {
-        recommendedAction: result.rustResult.recommendedAction,
-        fingerprint: result.rustResult.fingerprint,
-        status: result.rustResult.status,
-      } : null,
+      requiem: result.requiemResult
+        ? {
+            recommendedAction: result.requiemResult.recommendedAction,
+            fingerprint: result.requiemResult.fingerprint,
+            status: result.requiemResult.status,
+          }
+        : null,
+      rust: result.rustResult
+        ? {
+            recommendedAction: result.rustResult.recommendedAction,
+            fingerprint: result.rustResult.fingerprint,
+            status: result.rustResult.status,
+          }
+        : null,
     },
   };
-  
+
   if (result.match) {
     console.log('[GhostComparison] ✅ Match:', JSON.stringify(logEntry));
   } else {
@@ -240,7 +252,7 @@ function logComparisonResult(result: GhostComparisonResult): void {
 function storeComparisonResult(result: GhostComparisonResult): void {
   // Store by requestId for easy retrieval
   comparisonResultsStore.set(result.requestId, result);
-  
+
   // Prune old entries if store gets too large (keep last 1000)
   if (comparisonResultsStore.size > 1000) {
     const keys = Array.from(comparisonResultsStore.keys()).slice(0, 100);
@@ -253,7 +265,9 @@ function storeComparisonResult(result: GhostComparisonResult): void {
 /**
  * Get comparison result for a specific request
  */
-export function getComparisonResult(requestId: string): GhostComparisonResult | undefined {
+export function getComparisonResult(
+  requestId: string,
+): GhostComparisonResult | undefined {
   return comparisonResultsStore.get(requestId);
 }
 
@@ -282,7 +296,7 @@ export function getComparisonStats(): {
   averageDurationMs: number;
 } {
   const results = getAllComparisonResults();
-  
+
   if (results.length === 0) {
     return {
       total: 0,
@@ -292,11 +306,14 @@ export function getComparisonStats(): {
       averageDurationMs: 0,
     };
   }
-  
-  const matches = results.filter(r => r.match).length;
-  const mismatches = results.filter(r => !r.match).length;
-  const totalDuration = results.reduce((sum, r) => sum + r.comparisonDurationMs, 0);
-  
+
+  const matches = results.filter((r) => r.match).length;
+  const mismatches = results.filter((r) => !r.match).length;
+  const totalDuration = results.reduce(
+    (sum, r) => sum + r.comparisonDurationMs,
+    0,
+  );
+
   return {
     total: results.length,
     matches,
@@ -313,13 +330,11 @@ export function getComparisonStats(): {
 /**
  * Execute with both engines and return both results
  * Unlike ghost comparison, this is synchronous and waits for both results
- * 
+ *
  * @param request - The execution request
  * @returns Object containing results from both engines
  */
-export async function evaluateWithBothEngines(
-  request: ExecRequest
-): Promise<{
+export async function evaluateWithBothEngines(request: ExecRequest): Promise<{
   requiem: ExecResult | null;
   rust: ExecResult | null;
   comparison: { match: boolean; differences: string[] };
@@ -333,20 +348,23 @@ export async function evaluateWithBothEngines(
       seed,
     },
   };
-  
+
   // Execute both engines in parallel
   const [requiemResult, rustResult] = await Promise.all([
     executeWithRequiem(requestWithSeed),
     executeWithRust(requestWithSeed),
   ]);
-  
+
   // Compare results
-  let comparison = { match: false, differences: ['One or both results unavailable'] as string[] };
-  
+  let comparison = {
+    match: false,
+    differences: ['One or both results unavailable'] as string[],
+  };
+
   if (requiemResult && rustResult) {
     comparison = compareExecResults(requiemResult, rustResult);
   }
-  
+
   return {
     requiem: requiemResult ?? null,
     rust: rustResult ?? null,
@@ -364,12 +382,17 @@ export class DualEngineAdapter {
    */
   validateInput(request: ExecRequest): { valid: boolean; errors?: string[] } {
     const errors: string[] = [];
-    
+
     // Check for floating point values
-    if (request.params.outcomes && hasFloatingPointValues(request.params.outcomes)) {
-      errors.push('floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic');
+    if (
+      request.params.outcomes &&
+      hasFloatingPointValues(request.params.outcomes)
+    ) {
+      errors.push(
+        'floating_point_values_detected: outcomes must be integers for deterministic fixed-point arithmetic',
+      );
     }
-    
+
     return {
       valid: errors.length === 0,
       errors: errors.length > 0 ? errors : undefined,
@@ -402,41 +425,41 @@ export class DualEngineAdapter {
 
     // Execute with both engines
     const { requiem, rust } = await evaluateWithBothEngines(request);
-    
+
     // Use Requiem as primary if available, otherwise Rust
     const primary = requiem ?? rust;
-    
+
     if (!primary) {
       throw new Error('No engine available for execution');
     }
-    
+
     // Run ghost comparison asynchronously (fire-and-forget)
     runGhostComparison(request, primary, { enabled: true, storeResults: true });
-    
+
     return primary;
   }
-  
+
   /**
    * Check if engines are ready
    */
   async isReady(): Promise<boolean> {
     const requiem = getRequiemEngine();
     const rust = getRustEngine();
-    
+
     let requiemReady = false;
     try {
-      requiemReady = !!(requiem.isReady() || await requiem.configure());
+      requiemReady = !!(requiem.isReady() || (await requiem.configure()));
     } catch {
       // Already false
     }
-    
+
     let rustReady = false;
     try {
-      rustReady = !!(rust.isReady() || await rust.initialize());
+      rustReady = !!(rust.isReady() || (await rust.initialize()));
     } catch {
       // Already false
     }
-    
+
     return requiemReady || rustReady;
   }
 }

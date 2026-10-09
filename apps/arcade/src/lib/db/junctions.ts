@@ -9,7 +9,8 @@ export interface Junction {
   id: string;
   created_at: string;
   updated_at: string;
-  junction_type: 'diff_critical' | 'drift_alert' | 'trust_drop' | 'policy_violation';
+  junction_type:
+    'diff_critical' | 'drift_alert' | 'trust_drop' | 'policy_violation';
   severity_score: number;
   fingerprint: string;
   source_type: 'diff' | 'drift' | 'policy' | 'trust';
@@ -34,7 +35,8 @@ export interface ActionIntent {
 }
 
 export interface CreateJunctionInput {
-  junction_type: 'diff_critical' | 'drift_alert' | 'trust_drop' | 'policy_violation';
+  junction_type:
+    'diff_critical' | 'drift_alert' | 'trust_drop' | 'policy_violation';
   severity_score: number;
   fingerprint: string;
   source_type: 'diff' | 'drift' | 'policy' | 'trust';
@@ -61,7 +63,9 @@ export class JunctionRepository {
     const id = newId('junction');
 
     const cooldownUntil = input.cooldown_hours
-      ? new Date(Date.now() + input.cooldown_hours * 60 * 60 * 1000).toISOString()
+      ? new Date(
+          Date.now() + input.cooldown_hours * 60 * 60 * 1000,
+        ).toISOString()
       : null;
 
     const junction: Junction = {
@@ -102,7 +106,8 @@ export class JunctionRepository {
    */
   static findById(id: string): Junction | undefined {
     const db = getDB();
-    return db.prepare('SELECT * FROM junctions WHERE id = ?').get(id) as Junction | undefined;
+    return db.prepare('SELECT * FROM junctions WHERE id = ?').get(id) as
+      Junction | undefined;
   }
 
   /**
@@ -110,7 +115,9 @@ export class JunctionRepository {
    */
   static findByFingerprint(fingerprint: string): Junction[] {
     const db = getDB();
-    return db.prepare('SELECT * FROM junctions WHERE fingerprint = ?').all(fingerprint) as Junction[];
+    return db
+      .prepare('SELECT * FROM junctions WHERE fingerprint = ?')
+      .all(fingerprint) as Junction[];
   }
 
   /**
@@ -118,7 +125,11 @@ export class JunctionRepository {
    */
   static findByDeduplicationKey(key: string): Junction | undefined {
     const db = getDB();
-    return db.prepare('SELECT * FROM junctions WHERE deduplication_key = ? AND status = ?').get(key, 'active') as Junction | undefined;
+    return db
+      .prepare(
+        'SELECT * FROM junctions WHERE deduplication_key = ? AND status = ?',
+      )
+      .get(key, 'active') as Junction | undefined;
   }
 
   /**
@@ -127,13 +138,17 @@ export class JunctionRepository {
   static isInCooldown(deduplicationKey: string): boolean {
     const db = getDB();
     const now = new Date().toISOString();
-    const existing = db.prepare(`
+    const existing = db
+      .prepare(
+        `
       SELECT id FROM junctions 
       WHERE deduplication_key = ? 
         AND status = 'active' 
         AND cooldown_until IS NOT NULL 
         AND cooldown_until > ?
-    `).get(deduplicationKey, now);
+    `,
+      )
+      .get(deduplicationKey, now);
     return !!existing;
   }
 
@@ -162,7 +177,7 @@ export class JunctionRepository {
 
     // Build update query
     const setClause = Object.keys(updateData)
-      .map(key => `${key} = @${key}`)
+      .map((key) => `${key} = @${key}`)
       .join(', ');
     const query = `UPDATE junctions SET ${setClause} WHERE id = @id`;
 
@@ -173,7 +188,10 @@ export class JunctionRepository {
   /**
    * Links a junction to a decision report
    */
-  static linkToDecision(junctionId: string, decisionReportId: string): Junction | undefined {
+  static linkToDecision(
+    junctionId: string,
+    decisionReportId: string,
+  ): Junction | undefined {
     return this.update(junctionId, { decision_report_id: decisionReportId });
   }
 
@@ -284,22 +302,30 @@ export class ActionIntentRepository {
    */
   static findByDecisionReport(decisionReportId: string): ActionIntent[] {
     const db = getDB();
-    return db.prepare('SELECT * FROM action_intents WHERE decision_report_id = ?').all(decisionReportId) as ActionIntent[];
+    return db
+      .prepare('SELECT * FROM action_intents WHERE decision_report_id = ?')
+      .all(decisionReportId) as ActionIntent[];
   }
 
   /**
    * Marks an action intent as executed
    */
-  static markExecuted(id: string, result: Record<string, any>): ActionIntent | undefined {
+  static markExecuted(
+    id: string,
+    result: Record<string, any>,
+  ): ActionIntent | undefined {
     const db = getDB();
     const now = new Date().toISOString();
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE action_intents 
       SET status = 'executed', executed_at = ?, execution_result = ?
       WHERE id = ?
-    `).run(now, JSON.stringify(result), id);
-    
-    return db.prepare('SELECT * FROM action_intents WHERE id = ?').get(id) as ActionIntent | undefined;
+    `,
+    ).run(now, JSON.stringify(result), id);
+
+    return db.prepare('SELECT * FROM action_intents WHERE id = ?').get(id) as
+      ActionIntent | undefined;
   }
 
   /**
@@ -307,13 +333,16 @@ export class ActionIntentRepository {
    */
   static markFailed(id: string, error: string): ActionIntent | undefined {
     const db = getDB();
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE action_intents 
       SET status = 'failed', execution_result = ?
       WHERE id = ?
-    `).run(JSON.stringify({ error }), id);
-    
-    return db.prepare('SELECT * FROM action_intents WHERE id = ?').get(id) as ActionIntent | undefined;
+    `,
+    ).run(JSON.stringify({ error }), id);
+
+    return db.prepare('SELECT * FROM action_intents WHERE id = ?').get(id) as
+      ActionIntent | undefined;
   }
 
   /**
@@ -321,7 +350,10 @@ export class ActionIntentRepository {
    */
   static cancel(id: string): ActionIntent | undefined {
     const db = getDB();
-    db.prepare(`UPDATE action_intents SET status = 'cancelled' WHERE id = ?`).run(id);
-    return db.prepare('SELECT * FROM action_intents WHERE id = ?').get(id) as ActionIntent | undefined;
+    db.prepare(
+      `UPDATE action_intents SET status = 'cancelled' WHERE id = ?`,
+    ).run(id);
+    return db.prepare('SELECT * FROM action_intents WHERE id = ?').get(id) as
+      ActionIntent | undefined;
   }
 }

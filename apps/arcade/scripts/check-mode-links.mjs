@@ -1,4 +1,3 @@
-
 const mode = process.env.SITE_MODE || 'oss';
 const base = process.env.BASE_URL || 'http://localhost:3000';
 
@@ -9,7 +8,9 @@ const expectedByMode = {
 
 const expected = expectedByMode[mode];
 if (!expected) {
-  console.error(`Unknown SITE_MODE '${mode}'. Expected one of: ${Object.keys(expectedByMode).join(', ')}`);
+  console.error(
+    `Unknown SITE_MODE '${mode}'. Expected one of: ${Object.keys(expectedByMode).join(', ')}`,
+  );
   process.exit(1);
 }
 
@@ -24,11 +25,15 @@ async function checkRoute(route) {
 async function checkMetadata() {
   const robotsUrl = `${base}/robots.txt`;
   const sitemapUrl = `${base}/sitemap.xml`;
-  const [robotsRes, sitemapRes] = await Promise.all([fetch(robotsUrl), fetch(sitemapUrl)]);
+  const [robotsRes, sitemapRes] = await Promise.all([
+    fetch(robotsUrl),
+    fetch(sitemapUrl),
+  ]);
   const robotsText = await robotsRes.text();
   const sitemapText = await sitemapRes.text();
 
-  const expectedHost = mode === 'enterprise' ? 'ready-layer.com' : 'reach-cli.com';
+  const expectedHost =
+    mode === 'enterprise' ? 'ready-layer.com' : 'reach-cli.com';
   const otherHost = mode === 'enterprise' ? 'reach-cli.com' : 'ready-layer.com';
 
   if (!robotsText.includes(expectedHost) || robotsText.includes(otherHost)) {
@@ -44,5 +49,7 @@ async function checkMetadata() {
     await checkRoute(route);
   }
   await checkMetadata();
-  console.log(`check-mode-links: ${mode} mode routes + metadata OK (${expected.length} routes).`);
+  console.log(
+    `check-mode-links: ${mode} mode routes + metadata OK (${expected.length} routes).`,
+  );
 })();

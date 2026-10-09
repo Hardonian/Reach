@@ -18,7 +18,11 @@ All requests must include authenticated session context and actor metadata.
 {
   "pack_id": "pack_123",
   "base_sha": "<sha>",
-  "actor": { "user_id": "dev@acme", "device_id": "workstation", "agent_id": "vscode" },
+  "actor": {
+    "user_id": "dev@acme",
+    "device_id": "workstation",
+    "agent_id": "vscode"
+  },
   "files": [{ "path": "src/example.ts", "patch": "@@ -1 +1 @@" }]
 }
 ```

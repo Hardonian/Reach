@@ -1,6 +1,18 @@
-import { evaluateDecision, DecisionInput, DecisionOutput, getDecisionEngine } from './src/decision/engineAdapter';
+import {
+  evaluateDecision,
+  DecisionInput,
+  DecisionOutput,
+  getDecisionEngine,
+} from './src/decision/engineAdapter';
 import * as path from 'path';
-import { evaluateDecisionFallback, validateOutcomesFallback, validateStructureFallback, validateProbabilitiesFallback, DecisionInput, DecisionOutput } from './fallback';
+import {
+  evaluateDecisionFallback,
+  validateOutcomesFallback,
+  validateStructureFallback,
+  validateProbabilitiesFallback,
+  DecisionInput,
+  DecisionOutput,
+} from './fallback';
 
 let wasmModule: any = null;
 
@@ -9,7 +21,10 @@ try {
   // In a real build, this path is relative to dist/
   wasmModule = require('../pkg/decision_engine_rs');
 } catch (e) {
-  console.warn("WARN: Failed to load WASM decision engine. Falling back to TS implementation.", e);
+  console.warn(
+    'WARN: Failed to load WASM decision engine. Falling back to TS implementation.',
+    e,
+  );
 }
 
 /**
@@ -24,7 +39,7 @@ export function evaluateDecision(input: DecisionInput): DecisionOutput {
       const outputJson = wasmModule.evaluate_decision(inputJson);
       return JSON.parse(outputJson);
     } catch (e) {
-      console.error("ERROR: WASM execution failed. Using fallback.", e);
+      console.error('ERROR: WASM execution failed. Using fallback.', e);
       return evaluateDecisionFallback(input);
     }
   }
@@ -41,7 +56,7 @@ export function validateOutcomes(input: DecisionInput): boolean {
       const inputJson = JSON.stringify(input);
       return wasmModule.validate_outcomes(inputJson);
     } catch (e) {
-      console.error("ERROR: WASM validation failed.", e);
+      console.error('ERROR: WASM validation failed.', e);
       return validateOutcomesFallback(input);
     }
   }
@@ -58,7 +73,7 @@ export function validateStructure(input: DecisionInput): boolean {
       const inputJson = JSON.stringify(input);
       return wasmModule.validate_structure(inputJson);
     } catch (e) {
-      console.error("ERROR: WASM validation failed.", e);
+      console.error('ERROR: WASM validation failed.', e);
       return validateStructureFallback(input);
     }
   }
@@ -74,7 +89,7 @@ export function validateProbabilities(input: DecisionInput): boolean {
       const inputJson = JSON.stringify(input);
       return wasmModule.validate_probabilities(inputJson);
     } catch (e) {
-      console.error("ERROR: WASM validation failed.", e);
+      console.error('ERROR: WASM validation failed.', e);
       return validateProbabilitiesFallback(input);
     }
   }

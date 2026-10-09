@@ -15,7 +15,9 @@ interface TracePillProps {
 export function TracePill({ traceId, className }: TracePillProps) {
   if (!traceId) {
     return (
-      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-400 ${className ?? ''}`}>
+      <span
+        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-400 ${className ?? ''}`}
+      >
         <span className="material-symbols-outlined text-[12px]">link_off</span>
         no trace
       </span>

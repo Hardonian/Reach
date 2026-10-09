@@ -16,8 +16,9 @@ function validateDocsIndex() {
   }
 
   const indexContent = fs.readFileSync(DOCS_INDEX, 'utf-8');
-  const docFiles = fs.readdirSync(DOCS_DIR)
-    .filter(file => file.endsWith('.md') && file !== 'README.md');
+  const docFiles = fs
+    .readdirSync(DOCS_DIR)
+    .filter((file) => file.endsWith('.md') && file !== 'README.md');
 
   const missingEntries: string[] = [];
 
@@ -29,7 +30,7 @@ function validateDocsIndex() {
 
   if (missingEntries.length > 0) {
     console.error('❌ Missing documentation entries in docs/README.md:');
-    missingEntries.forEach(entry => console.error(`   - ${entry}`));
+    missingEntries.forEach((entry) => console.error(`   - ${entry}`));
     process.exit(1);
   }
 

@@ -5,23 +5,23 @@
  */
 
 // Algorithm type union - includes all supported algorithms
-export type DecisionAlgorithm = 
-  | "minimax_regret"
-  | "maximin"
-  | "weighted_sum"
-  | "adaptive"
-  | "softmax"
-  | "hurwicz"
-  | "laplace"
-  | "starr"
-  | "savage"
-  | "wald"
-  | "hodges_lehmann"
-  | "brown_robinson"
-  | "nash"
-  | "pareto"
-  | "epsilon_contamination"
-  | "topsis";
+export type DecisionAlgorithm =
+  | 'minimax_regret'
+  | 'maximin'
+  | 'weighted_sum'
+  | 'adaptive'
+  | 'softmax'
+  | 'hurwicz'
+  | 'laplace'
+  | 'starr'
+  | 'savage'
+  | 'wald'
+  | 'hodges_lehmann'
+  | 'brown_robinson'
+  | 'nash'
+  | 'pareto'
+  | 'epsilon_contamination'
+  | 'topsis';
 
 export interface DecisionInput {
   actions: string[];
@@ -55,7 +55,9 @@ function clampPrecision(value: number): number {
 /**
  * Clamp all numbers in a record to precision
  */
-function clampRecordValues(record: Record<string, number>): Record<string, number> {
+function clampRecordValues(
+  record: Record<string, number>,
+): Record<string, number> {
   const result: Record<string, number> = {};
   for (const key of Object.keys(record).sort()) {
     result[key] = clampPrecision(record[key]);
@@ -69,7 +71,7 @@ function clampRecordValues(record: Record<string, number>): Record<string, numbe
 function sortByScore(
   actions: string[],
   scores: Record<string, number>,
-  ascending = false
+  ascending = false,
 ): string[] {
   return [...actions].sort((a, b) => {
     const sA = scores[a] ?? -Infinity;
@@ -84,12 +86,14 @@ function sortByScore(
 /**
  * Normalize weights to sum to 1.0
  */
-function normalizeWeights(weights?: Record<string, number>): Record<string, number> {
+function normalizeWeights(
+  weights?: Record<string, number>,
+): Record<string, number> {
   if (!weights) return {};
-  
+
   const sum = Object.values(weights).reduce((a, b) => a + b, 0);
   if (sum === 0) return weights;
-  
+
   const normalized: Record<string, number> = {};
   for (const [key, val] of Object.entries(weights)) {
     normalized[key] = clampPrecision(val / sum);
@@ -103,7 +107,7 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
 
   if (input.weights) {
     const sum = Object.values(input.weights).reduce((a, b) => a + b, 0);
-    
+
     if (input.strict) {
       if (Math.abs(sum - 1.0) > 1e-9) {
         throw new Error(`Weights must sum to 1.0 (got ${sum})`);
@@ -113,41 +117,41 @@ export function evaluateDecisionFallback(input: DecisionInput): DecisionOutput {
       effectiveWeights = normalizeWeights(input.weights);
     }
   }
-  
+
   // Create effective input with potentially normalized weights
   const effectiveInput: DecisionInput = { ...input, weights: effectiveWeights };
 
   // Dispatch to appropriate algorithm
   switch (effectiveInput.algorithm) {
-    case "maximin":
-    case "wald":
+    case 'maximin':
+    case 'wald':
       return maximinFallback(effectiveInput);
-    case "weighted_sum":
+    case 'weighted_sum':
       return weightedSumFallback(effectiveInput);
-    case "softmax":
+    case 'softmax':
       return softmaxFallback(effectiveInput);
-    case "hurwicz":
+    case 'hurwicz':
       return hurwiczFallback(effectiveInput);
-    case "laplace":
+    case 'laplace':
       return laplaceFallback(effectiveInput);
-    case "starr":
+    case 'starr':
       return starrFallback(effectiveInput);
-    case "savage":
-    case "minimax_regret":
+    case 'savage':
+    case 'minimax_regret':
       return minimaxRegretFallback(effectiveInput);
-    case "hodges_lehmann":
+    case 'hodges_lehmann':
       return hodgesLehmannFallback(effectiveInput);
-    case "brown_robinson":
+    case 'brown_robinson':
       return brownRobinsonFallback(effectiveInput);
-    case "nash":
+    case 'nash':
       return nashFallback(effectiveInput);
-    case "pareto":
+    case 'pareto':
       return paretoFallback(effectiveInput);
-    case "epsilon_contamination":
+    case 'epsilon_contamination':
       return epsilonContaminationFallback(effectiveInput);
-    case "topsis":
+    case 'topsis':
       return topsisFallback(effectiveInput);
-    case "adaptive":
+    case 'adaptive':
     case undefined:
       // Default to minimax_regret for undefined
       return minimaxRegretFallback(effectiveInput);
@@ -196,10 +200,10 @@ function minimaxRegretFallback(input: DecisionInput): DecisionOutput {
     recommended_action: ranking[0],
     ranking,
     trace: {
-      algorithm: "minimax_regret",
+      algorithm: 'minimax_regret',
       regret_table: regretTable,
-      max_regret: clampRecordValues(maxRegret)
-    }
+      max_regret: clampRecordValues(maxRegret),
+    },
   };
 }
 
@@ -223,15 +227,15 @@ function maximinFallback(input: DecisionInput): DecisionOutput {
     recommended_action: ranking[0],
     ranking,
     trace: {
-      algorithm: "maximin",
-      min_utility: clampRecordValues(minUtility)
-    }
+      algorithm: 'maximin',
+      min_utility: clampRecordValues(minUtility),
+    },
   };
 }
 
 function weightedSumFallback(input: DecisionInput): DecisionOutput {
   const weights = input.weights || {};
-  
+
   // 1. Calculate Scores
   const scores: Record<string, number> = {};
 
@@ -252,9 +256,9 @@ function weightedSumFallback(input: DecisionInput): DecisionOutput {
     recommended_action: ranking[0],
     ranking,
     trace: {
-      algorithm: "weighted_sum",
-      weighted_scores: clampRecordValues(scores)
-    }
+      algorithm: 'weighted_sum',
+      weighted_scores: clampRecordValues(scores),
+    },
   };
 }
 
@@ -264,11 +268,13 @@ function weightedSumFallback(input: DecisionInput): DecisionOutput {
  */
 function softmaxFallback(input: DecisionInput): DecisionOutput {
   const temperature = input.temperature ?? 1.0;
-  
+
   // 1. Calculate expected values for each action (using uniform weights if not provided)
   const weights = input.weights || {};
-  const stateWeights = input.states.map(s => weights[s] ?? (1 / input.states.length));
-  
+  const stateWeights = input.states.map(
+    (s) => weights[s] ?? 1 / input.states.length,
+  );
+
   const expectedValues: Record<string, number> = {};
   for (const action of input.actions) {
     let sum = 0;
@@ -283,7 +289,7 @@ function softmaxFallback(input: DecisionInput): DecisionOutput {
   const maxVal = Math.max(...Object.values(expectedValues));
   const expValues: Record<string, number> = {};
   let expSum = 0;
-  
+
   for (const action of input.actions) {
     const expVal = Math.exp((expectedValues[action] - maxVal) / temperature);
     expValues[action] = clampPrecision(expVal);
@@ -302,11 +308,11 @@ function softmaxFallback(input: DecisionInput): DecisionOutput {
     recommended_action: ranking[0],
     ranking,
     trace: {
-      algorithm: "softmax",
+      algorithm: 'softmax',
       temperature,
       expected_values: clampRecordValues(expectedValues),
-      probabilities: clampRecordValues(probabilities)
-    }
+      probabilities: clampRecordValues(probabilities),
+    },
   };
 }
 
@@ -317,7 +323,7 @@ function softmaxFallback(input: DecisionInput): DecisionOutput {
  */
 function hurwiczFallback(input: DecisionInput): DecisionOutput {
   const alpha = clampPrecision(input.optimism ?? 0.5);
-  
+
   const hurwiczScores: Record<string, number> = {};
 
   for (const action of input.actions) {
@@ -340,10 +346,10 @@ function hurwiczFallback(input: DecisionInput): DecisionOutput {
     recommended_action: ranking[0],
     ranking,
     trace: {
-      algorithm: "hurwicz",
+      algorithm: 'hurwicz',
       optimism: alpha,
-      hurwicz_scores: clampRecordValues(hurwiczScores)
-    }
+      hurwicz_scores: clampRecordValues(hurwiczScores),
+    },
   };
 }
 
@@ -371,9 +377,9 @@ function laplaceFallback(input: DecisionInput): DecisionOutput {
     recommended_action: ranking[0],
     ranking,
     trace: {
-      algorithm: "laplace",
-      laplace_scores: clampRecordValues(laplaceScores)
-    }
+      algorithm: 'laplace',
+      laplace_scores: clampRecordValues(laplaceScores),
+    },
   };
 }
 
@@ -384,7 +390,7 @@ function laplaceFallback(input: DecisionInput): DecisionOutput {
  */
 function starrFallback(input: DecisionInput): DecisionOutput {
   const c = clampPrecision(input.confidence ?? 1.0);
-  
+
   // 1. Max Utility per State
   const maxStateUtil: Record<string, number> = {};
   for (const state of input.states) {
@@ -416,10 +422,10 @@ function starrFallback(input: DecisionInput): DecisionOutput {
     recommended_action: ranking[0],
     ranking,
     trace: {
-      algorithm: "starr",
+      algorithm: 'starr',
       confidence: c,
-      starr_regret: clampRecordValues(starrRegret)
-    }
+      starr_regret: clampRecordValues(starrRegret),
+    },
   };
 }
 
@@ -438,10 +444,10 @@ function hodgesLehmannFallback(input: DecisionInput): DecisionOutput {
       const val = input.outcomes[action]?.[state] ?? 0;
       outcomes.push(val);
     }
-    
+
     // Sort outcomes for median calculation
     outcomes.sort((a, b) => a - b);
-    
+
     let median: number;
     const mid = Math.floor(outcomes.length / 2);
     if (outcomes.length % 2 === 0) {
@@ -451,7 +457,7 @@ function hodgesLehmannFallback(input: DecisionInput): DecisionOutput {
       // Odd: middle value
       median = outcomes[mid];
     }
-    
+
     hlScores[action] = clampPrecision(median);
   }
 
@@ -462,9 +468,9 @@ function hodgesLehmannFallback(input: DecisionInput): DecisionOutput {
     recommended_action: ranking[0],
     ranking,
     trace: {
-      algorithm: "hodges_lehmann",
-      hl_scores: clampRecordValues(hlScores)
-    }
+      algorithm: 'hodges_lehmann',
+      hl_scores: clampRecordValues(hlScores),
+    },
   };
 }
 
@@ -475,10 +481,10 @@ function hodgesLehmannFallback(input: DecisionInput): DecisionOutput {
  */
 function brownRobinsonFallback(input: DecisionInput): DecisionOutput {
   const iterations = Math.min(input.iterations ?? 100, 1000);
-  
+
   // 1. Calculate average payoff for each action
   const avgPayoffs: Record<string, number> = {};
-  
+
   for (const action of input.actions) {
     let sum = 0;
     for (const state of input.states) {
@@ -490,7 +496,7 @@ function brownRobinsonFallback(input: DecisionInput): DecisionOutput {
   // 2. Simulate iterative process to find guaranteed level
   // Using deterministic iteration: sum of (iteration * avg_payoff) / iterations
   const guaranteedLevels: Record<string, number> = {};
-  
+
   for (const action of input.actions) {
     let cumulative = 0;
     for (let i = 1; i <= iterations; i++) {
@@ -511,11 +517,11 @@ function brownRobinsonFallback(input: DecisionInput): DecisionOutput {
     recommended_action: ranking[0],
     ranking,
     trace: {
-      algorithm: "brown_robinson",
+      algorithm: 'brown_robinson',
       iterations,
       avg_payoffs: clampRecordValues(avgPayoffs),
-      guaranteed_levels: clampRecordValues(guaranteedLevels)
-    }
+      guaranteed_levels: clampRecordValues(guaranteedLevels),
+    },
   };
 }
 
@@ -527,7 +533,7 @@ function brownRobinsonFallback(input: DecisionInput): DecisionOutput {
 function nashFallback(input: DecisionInput): DecisionOutput {
   // For zero-sum games, find Nash equilibrium via dominated strategies
   // and saddle points
-  
+
   // 1. Check for saddle point (pure strategy Nash)
   const minOfMax: Record<string, number> = {};
   const maxOfMin: Record<string, number> = {};
@@ -560,14 +566,14 @@ function nashFallback(input: DecisionInput): DecisionOutput {
   const hasSaddlePoint = Math.abs(maximinValue - minimaxValue) < 1e-9;
 
   // 2. Find best actions
-  const candidateActions = input.actions.filter(a => 
-    Math.abs(minOfMax[a] - maximinValue) < 1e-9
+  const candidateActions = input.actions.filter(
+    (a) => Math.abs(minOfMax[a] - maximinValue) < 1e-9,
   );
 
   // Use weighted sum to break ties
   const weights = input.weights || {};
   const scores: Record<string, number> = {};
-  
+
   for (const action of input.actions) {
     let sum = 0;
     for (const state of input.states) {
@@ -581,15 +587,16 @@ function nashFallback(input: DecisionInput): DecisionOutput {
   const ranking = sortByScore(input.actions, scores, false);
 
   return {
-    recommended_action: candidateActions.length > 0 ? candidateActions[0] : ranking[0],
+    recommended_action:
+      candidateActions.length > 0 ? candidateActions[0] : ranking[0],
     ranking,
     trace: {
-      algorithm: "nash",
+      algorithm: 'nash',
       maximin_value: clampPrecision(maximinValue),
       minimax_value: clampPrecision(minimaxValue),
       has_saddle_point: hasSaddlePoint,
-      nash_scores: clampRecordValues(scores)
-    }
+      nash_scores: clampRecordValues(scores),
+    },
   };
 }
 
@@ -602,20 +609,20 @@ function paretoFallback(input: DecisionInput): DecisionOutput {
   // 1. Find all Pareto-optimal actions
   // An action A dominates action B if A >= B for all states and A > B for at least one
   const isDominated: Record<string, boolean> = {};
-  
+
   for (const actionA of input.actions) {
     isDominated[actionA] = false;
     for (const actionB of input.actions) {
       if (actionA === actionB) continue;
-      
+
       // Check if actionB dominates actionA
       let atLeastAsGood = true;
       let strictlyBetter = false;
-      
+
       for (const state of input.states) {
         const valA = input.outcomes[actionA]?.[state] ?? -Infinity;
         const valB = input.outcomes[actionB]?.[state] ?? -Infinity;
-        
+
         if (valB < valA) {
           atLeastAsGood = false;
           break;
@@ -624,7 +631,7 @@ function paretoFallback(input: DecisionInput): DecisionOutput {
           strictlyBetter = true;
         }
       }
-      
+
       if (atLeastAsGood && strictlyBetter) {
         isDominated[actionA] = true;
         break;
@@ -633,11 +640,11 @@ function paretoFallback(input: DecisionInput): DecisionOutput {
   }
 
   // 2. Ranking: Pareto-optimal first, then by weighted sum
-  const paretoOptimal = input.actions.filter(a => !isDominated[a]);
-  
+  const paretoOptimal = input.actions.filter((a) => !isDominated[a]);
+
   const weights = input.weights || {};
   const scores: Record<string, number> = {};
-  
+
   for (const action of input.actions) {
     let sum = 0;
     for (const state of input.states) {
@@ -649,20 +656,20 @@ function paretoFallback(input: DecisionInput): DecisionOutput {
 
   // Sort Pareto-optimal by score, then non-Pareto
   const paretoRanking = sortByScore(paretoOptimal, scores, false);
-  const nonPareto = input.actions.filter(a => isDominated[a]);
+  const nonPareto = input.actions.filter((a) => isDominated[a]);
   const nonParetoRanking = sortByScore(nonPareto, scores, false);
-  
+
   const ranking = [...paretoRanking, ...nonParetoRanking];
 
   return {
     recommended_action: ranking[0],
     ranking,
     trace: {
-      algorithm: "pareto",
+      algorithm: 'pareto',
       is_pareto_optimal: isDominated,
       pareto_front: paretoOptimal,
-      scores: clampRecordValues(scores)
-    }
+      scores: clampRecordValues(scores),
+    },
   };
 }
 
@@ -672,25 +679,27 @@ function paretoFallback(input: DecisionInput): DecisionOutput {
  */
 function epsilonContaminationFallback(input: DecisionInput): DecisionOutput {
   const epsilon = clampPrecision(input.epsilon ?? 0.1);
-  
+
   // 1. Calculate worst-case under epsilon contamination
   // Robust score = (1 - epsilon) * expected + epsilon * worst_case
   const weights = input.weights || {};
-  const stateWeights = input.states.map(s => weights[s] ?? (1 / input.states.length));
-  
+  const stateWeights = input.states.map(
+    (s) => weights[s] ?? 1 / input.states.length,
+  );
+
   const robustScores: Record<string, number> = {};
 
   for (const action of input.actions) {
     // Expected value
     let expected = 0;
     let worstCase = Infinity;
-    
+
     for (let i = 0; i < input.states.length; i++) {
       const util = input.outcomes[action]?.[input.states[i]] ?? 0;
       expected += util * stateWeights[i];
       if (util < worstCase) worstCase = util;
     }
-    
+
     // Robust score
     const robustScore = (1 - epsilon) * expected + epsilon * worstCase;
     robustScores[action] = clampPrecision(robustScore);
@@ -703,10 +712,10 @@ function epsilonContaminationFallback(input: DecisionInput): DecisionOutput {
     recommended_action: ranking[0],
     ranking,
     trace: {
-      algorithm: "epsilon_contamination",
+      algorithm: 'epsilon_contamination',
       epsilon,
-      robust_scores: clampRecordValues(robustScores)
-    }
+      robust_scores: clampRecordValues(robustScores),
+    },
   };
 }
 
@@ -716,10 +725,10 @@ function epsilonContaminationFallback(input: DecisionInput): DecisionOutput {
  */
 function topsisFallback(input: DecisionInput): DecisionOutput {
   const weights = input.weights || {};
-  
+
   // 1. Normalize decision matrix
   const normalized: Record<string, Record<string, number>> = {};
-  
+
   // Calculate sum of squares for each state
   const stateSquares: Record<string, number> = {};
   for (const state of input.states) {
@@ -746,9 +755,9 @@ function topsisFallback(input: DecisionInput): DecisionOutput {
   for (const action of input.actions) {
     weighted[action] = {};
     for (const state of input.states) {
-      const weight = weights[state] ?? (1 / input.states.length);
+      const weight = weights[state] ?? 1 / input.states.length;
       weighted[action][state] = clampPrecision(
-        normalized[action][state] * weight
+        normalized[action][state] * weight,
       );
     }
   }
@@ -756,17 +765,17 @@ function topsisFallback(input: DecisionInput): DecisionOutput {
   // 3. Find ideal and negative-ideal solutions
   const ideal: Record<string, number> = {};
   const negativeIdeal: Record<string, number> = {};
-  
+
   for (const state of input.states) {
     let maxVal = -Infinity;
     let minVal = Infinity;
-    
+
     for (const action of input.actions) {
       const val = weighted[action][state];
       if (val > maxVal) maxVal = val;
       if (val < minVal) minVal = val;
     }
-    
+
     ideal[state] = maxVal;
     negativeIdeal[state] = minVal;
   }
@@ -778,14 +787,14 @@ function topsisFallback(input: DecisionInput): DecisionOutput {
   for (const action of input.actions) {
     let distIdeal = 0;
     let distNegative = 0;
-    
+
     for (const state of input.states) {
       const diffIdeal = weighted[action][state] - ideal[state];
       const diffNegative = weighted[action][state] - negativeIdeal[state];
       distIdeal += diffIdeal * diffIdeal;
       distNegative += diffNegative * diffNegative;
     }
-    
+
     distanceToIdeal[action] = clampPrecision(Math.sqrt(distIdeal));
     distanceToNegative[action] = clampPrecision(Math.sqrt(distNegative));
   }
@@ -793,12 +802,10 @@ function topsisFallback(input: DecisionInput): DecisionOutput {
   // 5. Calculate relative closeness (TOPSIS score)
   // Higher score = closer to ideal, farther from negative-ideal
   const topsisScores: Record<string, number> = {};
-  
+
   for (const action of input.actions) {
     const denom = distanceToIdeal[action] + distanceToNegative[action];
-    const score = denom > 0 
-      ? distanceToNegative[action] / denom 
-      : 0;
+    const score = denom > 0 ? distanceToNegative[action] / denom : 0;
     topsisScores[action] = clampPrecision(score);
   }
 
@@ -809,14 +816,14 @@ function topsisFallback(input: DecisionInput): DecisionOutput {
     recommended_action: ranking[0],
     ranking,
     trace: {
-      algorithm: "topsis",
+      algorithm: 'topsis',
       normalized_matrix: normalized,
       weighted_matrix: weighted,
       ideal_solution: clampRecordValues(ideal),
       negative_ideal_solution: clampRecordValues(negativeIdeal),
       distance_to_ideal: clampRecordValues(distanceToIdeal),
       distance_to_negative: clampRecordValues(distanceToNegative),
-      topsis_scores: clampRecordValues(topsisScores)
-    }
+      topsis_scores: clampRecordValues(topsisScores),
+    },
   };
 }

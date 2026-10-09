@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ["class"],
+  darkMode: ['class'],
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -28,7 +28,7 @@ module.exports = {
         },
         border: '#1E293B',
         'border-light': '#334155',
-        
+
         // Status Colors
         status: {
           online: '#10B981',
@@ -51,15 +51,15 @@ module.exports = {
           'text-tertiary': '#64748B',
           primary: '#7C3AED',
           secondary: '#A78BFA',
-        }
+        },
       },
       spacing: {
         '2xs': '4px',
-        'xs': '8px',
-        'sm': '12px',
-        'md': '16px',
-        'lg': '24px',
-        'xl': '40px',
+        xs: '8px',
+        sm: '12px',
+        md: '16px',
+        lg: '24px',
+        xl: '40px',
         '2xl': '64px',
       },
       borderRadius: {
@@ -70,8 +70,22 @@ module.exports = {
         full: '9999px',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
-        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+        sans: [
+          'Inter',
+          'system-ui',
+          '-apple-system',
+          'Segoe UI',
+          'Roboto',
+          'sans-serif',
+        ],
+        mono: [
+          'ui-monospace',
+          'SFMono-Regular',
+          'Menlo',
+          'Monaco',
+          'Consolas',
+          'monospace',
+        ],
       },
       boxShadow: {
         sm: '0 1px 2px rgba(0,0,0,0.08)',
@@ -97,8 +111,5 @@ module.exports = {
       },
     },
   },
-  plugins: [
-    require('@tailwindcss/typography'),
-    require('tailwindcss-animate'),
-  ],
-}
+  plugins: [require('@tailwindcss/typography'), require('tailwindcss-animate')],
+};

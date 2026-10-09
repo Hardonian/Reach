@@ -1,6 +1,6 @@
 /**
  * Protocol Message Types (TypeScript)
- * 
+ *
  * TypeScript equivalents of the Rust message payloads.
  * Uses CBOR for serialization with fixed-point numeric types.
  */
@@ -13,7 +13,7 @@ import * as cbor from 'cbor';
 
 /**
  * Fixed-point Q32.32 format (64-bit)
- * 
+ *
  * Represented as raw i64 in protocol.
  * Use conversion functions for f64 operations.
  */
@@ -67,27 +67,27 @@ export type FixedDuration = bigint;
 
 export const Duration = {
   ZERO: BigInt(0) as FixedDuration,
-  
+
   fromMicros(micros: number | bigint): FixedDuration {
     return BigInt(micros);
   },
-  
+
   fromMillis(millis: number | bigint): FixedDuration {
     return BigInt(millis) * BigInt(1000);
   },
-  
+
   fromSeconds(seconds: number | bigint): FixedDuration {
     return BigInt(seconds) * BigInt(1_000_000);
   },
-  
+
   toMicros(d: FixedDuration): bigint {
     return d;
   },
-  
+
   toMillis(d: FixedDuration): bigint {
     return d / BigInt(1000);
   },
-  
+
   toSeconds(d: FixedDuration): bigint {
     return d / BigInt(1_000_000);
   },
@@ -136,16 +136,17 @@ export interface HelloPayload {
 
 export function createHello(
   clientName: string,
-  clientVersion: string
+  clientVersion: string,
 ): HelloPayload {
   return {
     client_name: clientName,
     client_version: clientVersion,
     min_version: [1, 0],
     max_version: [1, 0],
-    capabilities: CapabilityFlags.BINARY_PROTOCOL |
-                  CapabilityFlags.CBOR_ENCODING |
-                  CapabilityFlags.FIXED_POINT,
+    capabilities:
+      CapabilityFlags.BINARY_PROTOCOL |
+      CapabilityFlags.CBOR_ENCODING |
+      CapabilityFlags.FIXED_POINT,
     preferred_encoding: 'cbor',
   };
 }
@@ -213,9 +214,7 @@ export type PolicyCondition =
   | { type: 'or'; conditions: PolicyCondition[] };
 
 export type Decision =
-  | { type: 'allow' }
-  | { type: 'deny'; reason: string }
-  | { type: 'prompt' };
+  { type: 'allow' } | { type: 'deny'; reason: string } | { type: 'prompt' };
 
 export interface ExecRequestPayload {
   run_id: string;
@@ -249,7 +248,12 @@ export interface RunEvent {
 }
 
 export type Action =
-  | { type: 'tool_call'; step_id: string; tool_name: string; input: Record<string, unknown> }
+  | {
+      type: 'tool_call';
+      step_id: string;
+      tool_name: string;
+      input: Record<string, unknown>;
+    }
   | { type: 'emit_artifact'; step_id: string; artifact_id: string }
   | { type: 'done' };
 
@@ -305,13 +309,13 @@ export enum ErrorCode {
   InvalidMessage = 100,
   UnsupportedVersion = 101,
   EncodingError = 102,
-  
+
   // Execution errors (2xx)
   ExecutionFailed = 200,
   BudgetExceeded = 201,
   Timeout = 202,
   PolicyDenied = 203,
-  
+
   // System errors (3xx)
   InternalError = 300,
   ResourceExhausted = 301,

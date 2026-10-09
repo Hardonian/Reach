@@ -24,7 +24,14 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: site.brand,
       title: site.title,
       description: site.description,
-      images: [{ url: '/og-image.png', width: 1200, height: 630, alt: `${site.brand} site` }],
+      images: [
+        {
+          url: '/og-image.png',
+          width: 1200,
+          height: 630,
+          alt: `${site.brand} site`,
+        },
+      ],
     },
     alternates: {
       canonical: '/',

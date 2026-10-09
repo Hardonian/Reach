@@ -1,6 +1,6 @@
 /**
  * Junctions CLI Module
- * 
+ *
  * Commands:
  * - reach junctions scan --since <time> --json
  * - reach junctions list
@@ -66,14 +66,16 @@ export function parseJunctionsArgs(argv: string[]): JunctionsCliArgs {
 function parseTimeString(timeStr: string): Date {
   const now = new Date();
   const match = timeStr.match(/^(\d+)([dhms])$/);
-  
+
   if (!match) {
-    throw new Error(`Invalid time format: ${timeStr}. Use format like "7d", "24h", "30m"`);
+    throw new Error(
+      `Invalid time format: ${timeStr}. Use format like "7d", "24h", "30m"`,
+    );
   }
-  
+
   const value = parseInt(match[1], 10);
   const unit = match[2];
-  
+
   switch (unit) {
     case 'd':
       return new Date(now.getTime() - value * 24 * 60 * 60 * 1000);
@@ -92,9 +94,12 @@ function parseTimeString(timeStr: string): Date {
  * Format a junction for output
  */
 function formatJunction(junction: Junction, verbose: boolean = false): any {
-  const meta = JUNCTION_TYPE_META[junction.junction_type as keyof typeof JUNCTION_TYPE_META];
+  const meta =
+    JUNCTION_TYPE_META[
+      junction.junction_type as keyof typeof JUNCTION_TYPE_META
+    ];
   const severityLevel = getSeverityLevel(junction.severity_score);
-  
+
   const output: any = {
     id: junction.id,
     type: junction.junction_type,
@@ -107,7 +112,7 @@ function formatJunction(junction: Junction, verbose: boolean = false): any {
     fingerprint: junction.fingerprint,
     createdAt: junction.created_at,
   };
-  
+
   if (verbose) {
     output.triggerData = JSON.parse(junction.trigger_data);
     output.triggerTrace = JSON.parse(junction.trigger_trace);
@@ -116,14 +121,16 @@ function formatJunction(junction: Junction, verbose: boolean = false): any {
     output.decisionReportId = junction.decision_report_id;
     output.updatedAt = junction.updated_at;
   }
-  
+
   return output;
 }
 
 /**
  * Run the junctions CLI command
  */
-export async function runJunctionsCommand(args: JunctionsCliArgs): Promise<number> {
+export async function runJunctionsCommand(
+  args: JunctionsCliArgs,
+): Promise<number> {
   try {
     switch (args.command) {
       case 'scan':
@@ -138,10 +145,12 @@ export async function runJunctionsCommand(args: JunctionsCliArgs): Promise<numbe
     }
   } catch (error) {
     if (args.json) {
-      console.error(JSON.stringify({
-        error: (error as Error).message,
-        code: 'E_INTERNAL',
-      }));
+      console.error(
+        JSON.stringify({
+          error: (error as Error).message,
+          code: 'E_INTERNAL',
+        }),
+      );
     } else {
       console.error(`Error: ${(error as Error).message}`);
     }
@@ -154,29 +163,37 @@ async function handleScan(args: JunctionsCliArgs): Promise<number> {
     console.error('Error: --since is required for scan command');
     return 1;
   }
-  
+
   const since = parseTimeString(args.since);
   const junctions = await junctionOrchestrator.scan(since, {
     junctionType: args.junctionType,
     minSeverity: args.minSeverity,
     limit: args.limit,
   });
-  
+
   if (args.json) {
-    console.log(JSON.stringify({
-      command: 'scan',
-      since: args.since,
-      count: junctions.length,
-      junctions: junctions.map(j => formatJunction(j)),
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          command: 'scan',
+          since: args.since,
+          count: junctions.length,
+          junctions: junctions.map((j) => formatJunction(j)),
+        },
+        null,
+        2,
+      ),
+    );
   } else {
     console.log(`\n=== Junctions Scan ===`);
     console.log(`Since: ${args.since}`);
     console.log(`Found: ${junctions.length} junction(s)\n`);
-    
+
     for (const junction of junctions) {
       const output = formatJunction(junction);
-      console.log(`[${output.severityLevel.toUpperCase()}] ${output.typeLabel}`);
+      console.log(
+        `[${output.severityLevel.toUpperCase()}] ${output.typeLabel}`,
+      );
       console.log(`  ID: ${output.id}`);
       console.log(`  Fingerprint: ${output.fingerprint}`);
       console.log(`  Source: ${output.sourceType}:${output.sourceRef}`);
@@ -185,7 +202,7 @@ async function handleScan(args: JunctionsCliArgs): Promise<number> {
       console.log('');
     }
   }
-  
+
   return 0;
 }
 
@@ -195,26 +212,36 @@ async function handleList(args: JunctionsCliArgs): Promise<number> {
     minSeverity: args.minSeverity,
     limit: args.limit || 50,
   });
-  
+
   if (args.json) {
-    console.log(JSON.stringify({
-      command: 'list',
-      count: junctions.length,
-      junctions: junctions.map(j => formatJunction(j)),
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          command: 'list',
+          count: junctions.length,
+          junctions: junctions.map((j) => formatJunction(j)),
+        },
+        null,
+        2,
+      ),
+    );
   } else {
     console.log(`\n=== Junctions List ===`);
     console.log(`Total: ${junctions.length} junction(s)\n`);
-    
+
     for (const junction of junctions) {
       const output = formatJunction(junction);
-      console.log(`[${output.severityLevel.toUpperCase()}] ${output.typeLabel} - ${output.id}`);
-      console.log(`  Status: ${output.status} | Source: ${output.sourceType}:${output.sourceRef}`);
+      console.log(
+        `[${output.severityLevel.toUpperCase()}] ${output.typeLabel} - ${output.id}`,
+      );
+      console.log(
+        `  Status: ${output.status} | Source: ${output.sourceType}:${output.sourceRef}`,
+      );
       console.log(`  Fingerprint: ${output.fingerprint}`);
       console.log('');
     }
   }
-  
+
   return 0;
 }
 
@@ -223,54 +250,64 @@ async function handleShow(args: JunctionsCliArgs): Promise<number> {
     console.error('Error: Junction ID is required');
     return 1;
   }
-  
+
   const junction = await junctionOrchestrator.getJunction(args.id);
-  
+
   if (!junction) {
     if (args.json) {
-      console.log(JSON.stringify({
-        error: 'Junction not found',
-        code: 'E_NOT_FOUND',
-        id: args.id,
-      }));
+      console.log(
+        JSON.stringify({
+          error: 'Junction not found',
+          code: 'E_NOT_FOUND',
+          id: args.id,
+        }),
+      );
     } else {
       console.log(`Junction not found: ${args.id}`);
     }
     return 1;
   }
-  
+
   const output = formatJunction(junction, true);
-  
+
   if (args.json) {
-    console.log(JSON.stringify({
-      command: 'show',
-      junction: output,
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          command: 'show',
+          junction: output,
+        },
+        null,
+        2,
+      ),
+    );
   } else {
     console.log(`\n=== Junction Details ===\n`);
     console.log(`ID: ${output.id}`);
     console.log(`Type: ${output.typeLabel} (${output.type})`);
-    console.log(`Severity: ${output.severityScore.toFixed(2)} (${output.severityLevel})`);
+    console.log(
+      `Severity: ${output.severityScore.toFixed(2)} (${output.severityLevel})`,
+    );
     console.log(`Status: ${output.status}`);
     console.log(`Source: ${output.sourceType}:${output.sourceRef}`);
     console.log(`Fingerprint: ${output.fingerprint}`);
     console.log(`Created: ${output.createdAt}`);
     console.log(`Updated: ${output.updatedAt}`);
-    
+
     if (output.cooldownUntil) {
       console.log(`Cooldown Until: ${output.cooldownUntil}`);
     }
-    
+
     console.log('\n--- Trigger Data ---');
     console.log(JSON.stringify(output.triggerData, null, 2));
-    
+
     console.log('\n--- Trigger Trace ---');
     console.log(JSON.stringify(output.triggerTrace, null, 2));
-    
+
     if (output.decisionReportId) {
       console.log(`\nLinked Decision Report: ${output.decisionReportId}`);
     }
   }
-  
+
   return 0;
 }

@@ -5,6 +5,7 @@
 - **GAP**: material deficiency likely to block enterprise adoption or scaling.
 
 ## Executive scorecard | Area | Score | Notes |
+
 |---|---|---|
 | Architecture scalability | PARTIAL | Multi-service split exists, but SQLite-centric runner storage and limited horizontal scaling evidence. |
 | Determinism guarantees | PARTIAL | Deterministic replay invariants and tests exist; cryptographic provenance and full-system determinism envelope still maturing. |
@@ -26,6 +27,7 @@
 ### Diligence interpretation The architecture is directionally scalable (modular boundaries, delegated execution, queueing), but database and operational assumptions in OSS runner path imply early-stage scale profile.
 
 ### Readiness actions - Define a production database strategy and migration path.
+
 - Publish target throughput/SLO envelopes and load-test artifacts.
 
 ---
@@ -39,6 +41,7 @@
 ### Diligence interpretation Core deterministic primitives are present, but strict proof chain from pack signature -> policy version -> runtime environment -> replay artifact is not yet cryptographically end-to-end.
 
 ### Readiness actions - Introduce signed attestations binding pack, policy version, registry hash, and run outputs.
+
 - Add deterministic seeding/time-source controls at every executor boundary.
 
 ---
@@ -51,6 +54,7 @@
 ### Diligence interpretation Verification discipline is good for repository quality. Missing in-repo evidence includes staged environment promotion gates, SLSA provenance, and policy-enforced release attestations.
 
 ### Readiness actions - Add build provenance generation and signature verification in CI.
+
 - Document promotion workflow dev -> staging -> production.
 
 ---
@@ -74,6 +78,7 @@
 ### Diligence interpretation Stack diversity improves flexibility but expands vuln/license operational burden. Automated SBOM + continuous vulnerability diffing should be formalized.
 
 ### Readiness actions - Publish SBOM for each release.
+
 - Add policy gate for critical CVEs in CI.
 
 ---
@@ -86,6 +91,7 @@
 ### Diligence interpretation Baseline telemetry exists, but enterprise-grade distributed tracing, SLO dashboards, and incident playbooks are not evidenced in repository docs.
 
 ### Readiness actions - Add tracing context propagation and retention policies.
+
 - Publish oncall runbooks and incident severity matrix.
 
 ---
@@ -98,6 +104,7 @@
 ### Diligence interpretation Quality signals are positive, but coverage appears component-centric. Cross-service end-to-end failure injection and long-horizon replay/federation drift tests are next maturity step.
 
 ### Readiness actions - Add nightly integration suites for federation + replay + policy lifecycle.
+
 - Track code coverage trend and enforce floors for critical paths.
 
 ---
@@ -110,11 +117,13 @@
 ### Diligence interpretation Governance baseline exists. Legal/compliance governance (CLA/DCO, licensing consistency) should be tightened before institutional procurement.
 
 ### Readiness actions - Formalize CLA/DCO and release governance checklist.
+
 - Align all package-level license metadata to top-level policy.
 
 ---
 
 ## Overall diligence readiness - **Composite readiness**: **PARTIAL (6/8 areas partial, 1 pass, 0 hard gaps)**
+
 - **Investor framing**: strong technical direction and security-aware architecture with clear path to enterprise hardening.
 - **Top three near-term priorities**:
   1. Cryptographic provenance and audit immutability enhancements.

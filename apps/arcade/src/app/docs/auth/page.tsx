@@ -3,7 +3,10 @@ export default function Authentication() {
     <div className="section-container py-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <a href="/docs" className="text-gray-400 hover:text-white transition-colors">
+          <a
+            href="/docs"
+            className="text-gray-400 hover:text-white transition-colors"
+          >
             ← Back to Documentation
           </a>
         </div>
@@ -17,7 +20,8 @@ export default function Authentication() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">API Keys</h2>
             <p className="text-gray-400 mb-4">
-              API keys are the simplest way to authenticate with ReadyLayer. Include your key in the Authorization header:
+              API keys are the simplest way to authenticate with ReadyLayer.
+              Include your key in the Authorization header:
             </p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>Authorization: Bearer YOUR_API_KEY</p>
@@ -44,7 +48,8 @@ export default function Authentication() {
           <section className="card">
             <h2 className="text-xl font-bold mb-4">OAuth2</h2>
             <p className="text-gray-400 mb-4">
-              For third-party applications, use OAuth2 to obtain access tokens on behalf of users:
+              For third-party applications, use OAuth2 to obtain access tokens
+              on behalf of users:
             </p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>{`# Authorization URL`}</p>
@@ -77,9 +82,7 @@ export default function Authentication() {
 
           <section className="card">
             <h2 className="text-xl font-bold mb-4">Scopes</h2>
-            <p className="text-gray-400 mb-4">
-              Available OAuth scopes:
-            </p>
+            <p className="text-gray-400 mb-4">Available OAuth scopes:</p>
             <div className="grid md:grid-cols-2 gap-4 text-gray-400">
               <div className="bg-black/30 p-3 rounded">
                 <code className="text-accent">agents:read</code>

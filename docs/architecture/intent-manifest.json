@@ -1,11 +1,5 @@
 {
-  "subsystems": [
-    "cli",
-    "governance",
-    "runner",
-    "api",
-    "ui"
-  ],
+  "subsystems": ["cli", "governance", "runner", "api", "ui"],
   "invariants": [
     "No hard-500 user routes; return structured errors.",
     "Tenant isolation for all user and run metadata.",

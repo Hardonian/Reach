@@ -1,9 +1,9 @@
 /**
  * Requiem Engine Adapter
- * 
+ *
  * Provides integration with the Requiem CLI decision engine.
  * Uses process spawning to execute Requiem commands with security hardening.
- * 
+ *
  *
  * SECURITY HARDENING (v1.2):
  * - Binary trust verification (version lock, path validation)
@@ -15,9 +15,7 @@
  */
 
 import { ExecRequest, ExecResult } from '../contract';
-import {
-  decisionToWorkflowStep, resultFromProtocol
-} from '../translate';
+import { decisionToWorkflowStep, resultFromProtocol } from '../translate';
 import { BaseEngineAdapter, DEFAULT_RESOURCE_LIMITS } from './base';
 import { spawn, execFile as execFileCb, ChildProcess } from 'child_process';
 import { ProtocolClient } from '../../protocol/client';
@@ -157,9 +155,13 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
     // Determine IPC path based on OS
     // ADVERSARIAL: Added random suffix to prevent collisions within same process
     const randomId = Math.random().toString(36).substring(2, 8);
-    this.pipePath = process.platform === 'win32'
-      ? `\\\\.\\pipe\\requiem-${process.pid}-${randomId}`
-      : path.join(process.env.TEMP || '/tmp', `requiem-${process.pid}-${randomId}.sock`);
+    this.pipePath =
+      process.platform === 'win32'
+        ? `\\\\.\\pipe\\requiem-${process.pid}-${randomId}`
+        : path.join(
+            process.env.TEMP || '/tmp',
+            `requiem-${process.pid}-${randomId}.sock`,
+          );
 
     // Clean up daemon on process exit
     process.on('exit', () => {
@@ -258,14 +260,18 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
         });
 
         const versionOutput = versionResult.stdout + versionResult.stderr;
-        const versionMatch = versionOutput.match(/requiem[\s/]+v?(\d+\.\d+\.?\d*)/i);
+        const versionMatch = versionOutput.match(
+          /requiem[\s/]+v?(\d+\.\d+\.?\d*)/i,
+        );
 
         if (versionMatch) {
           result.version = versionMatch[1];
 
           // Check against expected version if specified
           if (this.config.expectedVersion && result.version) {
-            if (!this.versionMatches(result.version, this.config.expectedVersion)) {
+            if (
+              !this.versionMatches(result.version, this.config.expectedVersion)
+            ) {
               result.reason = `version_mismatch: expected ${this.config.expectedVersion}, got ${result.version}`;
               return result;
             }
@@ -359,7 +365,9 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
 
       if (!trustResult.trusted) {
         if (this.config.allowUnknownEngine) {
-          console.warn(`Requiem binary trust warning: ${trustResult.reason}. Continuing due to allowUnknownEngine=true`);
+          console.warn(
+            `Requiem binary trust warning: ${trustResult.reason}. Continuing due to allowUnknownEngine=true`,
+          );
           this.binaryTrustVerified = true;
         } else {
           console.error(`Requiem binary trust failed: ${trustResult.reason}`);
@@ -408,8 +416,10 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
 
       const args = [
         'serve',
-        '--socket', this.pipePath,
-        '--parent-pid', process.pid.toString()
+        '--socket',
+        this.pipePath,
+        '--parent-pid',
+        process.pid.toString(),
       ];
 
       this.daemon = spawn(binaryPath, args, {
@@ -435,7 +445,10 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
         if (!initialized) {
           console.error('Requiem daemon startup error:', output);
         } else {
-          console.warn('Requiem daemon stderr:', this.sanitizeLogOutput(output));
+          console.warn(
+            'Requiem daemon stderr:',
+            this.sanitizeLogOutput(output),
+          );
         }
       });
 
@@ -450,7 +463,11 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
 
       this.daemon.on('exit', (code) => {
         if (!initialized) {
-          reject(new Error(`Requiem daemon exited with code ${code} before initialization`));
+          reject(
+            new Error(
+              `Requiem daemon exited with code ${code} before initialization`,
+            ),
+          );
         } else {
           this.handleDaemonExit();
         }
@@ -490,7 +507,9 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
     this.daemon = null;
     this.isConfigured = false;
     this.client = null;
-    console.error('Requiem daemon exited unexpectedly. Engine will reconfigure on next request.');
+    console.error(
+      'Requiem daemon exited unexpectedly. Engine will reconfigure on next request.',
+    );
   }
 
   /**
@@ -509,7 +528,6 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
 
     this.isConfigured = false;
   }
-
 
   /**
    * Evaluate a decision request using Requiem CLI
@@ -535,12 +553,13 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
         throw new Error('Requiem CLI not configured. Call configure() first.');
       }
     }
-    
+
     if (!this.binaryTrustVerified && !this.config.allowUnknownEngine) {
-      throw new Error('Requiem binary trust verification failed. Set allowUnknownEngine=true to override (not recommended for production).');
+      throw new Error(
+        'Requiem binary trust verification failed. Set allowUnknownEngine=true to override (not recommended for production).',
+      );
     }
-    
-    
+
     try {
       // Use the protocol client for communication
       if (!this.client) {
@@ -590,27 +609,25 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
       };
     }
   }
-  
-  
+
   /**
    * Sanitize log output to prevent secret leakage
    */
   private sanitizeLogOutput(output: string): string {
     // Simple secret redaction - replace potential secrets with [REDACTED]
     let sanitized = output;
-    
+
     // Redact patterns that look like keys/tokens
     const secretPatterns = [
       /[a-zA-Z0-9_-]{20,}/g, // Long alphanumeric strings (likely keys)
     ];
-    
+
     for (const pattern of secretPatterns) {
       sanitized = sanitized.replace(pattern, '[REDACTED]');
     }
-    
+
     return sanitized;
   }
-  
 
   /**
    * Derive a deterministic numeric seed from requestId
@@ -619,7 +636,10 @@ export class RequiemEngineAdapter extends BaseEngineAdapter {
     // Use SHA-256 to derive a deterministic 64-bit seed (first 16 hex chars)
     // This replaces the ad-hoc MurmurHash3 implementation with a standard primitive.
     // Note: Ideally this would be BLAKE3 to match the engine, but SHA-256 is standard in Node.
-    return createHash('sha256').update(requestId).digest('hex').substring(0, 16);
+    return createHash('sha256')
+      .update(requestId)
+      .digest('hex')
+      .substring(0, 16);
   }
 }
 
@@ -642,7 +662,9 @@ export function getRequiemEngine(config?: RequiemConfig): RequiemEngineAdapter {
 /**
  * Initialize the Requiem engine with configuration
  */
-export async function initRequiemEngine(config?: RequiemConfig): Promise<RequiemEngineAdapter> {
+export async function initRequiemEngine(
+  config?: RequiemConfig,
+): Promise<RequiemEngineAdapter> {
   const engine = getRequiemEngine(config);
   await engine.configure();
   return engine;
@@ -658,11 +680,11 @@ export async function evaluateWithRequiem(
 ): Promise<ExecResult | null> {
   try {
     const engine = getRequiemEngine(config);
-    
+
     if (!engine.isReady()) {
       await engine.configure();
     }
-    
+
     return await engine.evaluate(request);
   } catch (error) {
     console.error('Requiem engine evaluation failed:', error);

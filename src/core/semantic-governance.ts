@@ -56,7 +56,11 @@ export interface IntegritySignals {
 
 export interface IntegrityScore {
   score: number;
-  breakdown: Array<{ signal: keyof IntegritySignals; weight: number; passed: boolean }>;
+  breakdown: Array<{
+    signal: keyof IntegritySignals;
+    weight: number;
+    passed: boolean;
+  }>;
 }
 
 export interface SemanticTransition {
@@ -91,23 +95,55 @@ export function classifyDrift(
   const categories: DriftCategory[] = [];
   const vectors: string[] = [];
 
-  const detect = (condition: boolean, category: DriftCategory, vector: string) => {
+  const detect = (
+    condition: boolean,
+    category: DriftCategory,
+    vector: string,
+  ) => {
     if (condition) {
       categories.push(category);
       vectors.push(vector);
     }
   };
 
-  detect(before.modelId !== after.modelId || before.modelVersion !== after.modelVersion, 'ModelDrift', `model: ${before.modelId}@${before.modelVersion} -> ${after.modelId}@${after.modelVersion}`);
-  detect(before.promptTemplateId !== after.promptTemplateId || before.promptTemplateVersion !== after.promptTemplateVersion, 'PromptDrift', `prompt: ${before.promptTemplateId}@${before.promptTemplateVersion} -> ${after.promptTemplateId}@${after.promptTemplateVersion}`);
-  detect(before.contextSnapshotId !== after.contextSnapshotId, 'ContextDrift', `context: ${before.contextSnapshotId} -> ${after.contextSnapshotId}`);
-  detect(before.policySnapshotId !== after.policySnapshotId, 'PolicyDrift', `policy: ${before.policySnapshotId} -> ${after.policySnapshotId}`);
-  detect((before.evalSnapshotId ?? '') !== (after.evalSnapshotId ?? ''), 'EvalDrift', `eval: ${before.evalSnapshotId ?? 'none'} -> ${after.evalSnapshotId ?? 'none'}`);
-  detect(before.runtimeId !== after.runtimeId, 'RuntimeDrift', `runtime: ${before.runtimeId} -> ${after.runtimeId}`);
+  detect(
+    before.modelId !== after.modelId ||
+      before.modelVersion !== after.modelVersion,
+    'ModelDrift',
+    `model: ${before.modelId}@${before.modelVersion} -> ${after.modelId}@${after.modelVersion}`,
+  );
+  detect(
+    before.promptTemplateId !== after.promptTemplateId ||
+      before.promptTemplateVersion !== after.promptTemplateVersion,
+    'PromptDrift',
+    `prompt: ${before.promptTemplateId}@${before.promptTemplateVersion} -> ${after.promptTemplateId}@${after.promptTemplateVersion}`,
+  );
+  detect(
+    before.contextSnapshotId !== after.contextSnapshotId,
+    'ContextDrift',
+    `context: ${before.contextSnapshotId} -> ${after.contextSnapshotId}`,
+  );
+  detect(
+    before.policySnapshotId !== after.policySnapshotId,
+    'PolicyDrift',
+    `policy: ${before.policySnapshotId} -> ${after.policySnapshotId}`,
+  );
+  detect(
+    (before.evalSnapshotId ?? '') !== (after.evalSnapshotId ?? ''),
+    'EvalDrift',
+    `eval: ${before.evalSnapshotId ?? 'none'} -> ${after.evalSnapshotId ?? 'none'}`,
+  );
+  detect(
+    before.runtimeId !== after.runtimeId,
+    'RuntimeDrift',
+    `runtime: ${before.runtimeId} -> ${after.runtimeId}`,
+  );
 
   if (categories.length === 0 && mismatchObserved) {
     categories.push('UnknownDrift');
-    vectors.push('fingerprint mismatch observed with unchanged descriptor fields');
+    vectors.push(
+      'fingerprint mismatch observed with unchanged descriptor fields',
+    );
   }
 
   return {
@@ -116,13 +152,20 @@ export function classifyDrift(
   };
 }
 
-export function calculateIntegrityScore(signals: IntegritySignals): IntegrityScore {
-  const breakdown = (Object.keys(INTEGRITY_WEIGHTS) as Array<keyof IntegritySignals>).map((signal) => ({
+export function calculateIntegrityScore(
+  signals: IntegritySignals,
+): IntegrityScore {
+  const breakdown = (
+    Object.keys(INTEGRITY_WEIGHTS) as Array<keyof IntegritySignals>
+  ).map((signal) => ({
     signal,
     weight: INTEGRITY_WEIGHTS[signal],
     passed: signals[signal],
   }));
-  const score = breakdown.reduce((sum, item) => sum + (item.passed ? item.weight : 0), 0);
+  const score = breakdown.reduce(
+    (sum, item) => sum + (item.passed ? item.weight : 0),
+    0,
+  );
   return { score, breakdown };
 }
 
@@ -131,12 +174,28 @@ export function validateStrictSemanticState(input: unknown): SemanticState {
     throw new Error('semantic state must be an object');
   }
   const value = input as Record<string, unknown>;
-  const allowedKeys = ['id', 'createdAt', 'actor', 'source', 'labels', 'descriptor'];
-  const unknownKeys = Object.keys(value).filter((key) => !allowedKeys.includes(key));
+  const allowedKeys = [
+    'id',
+    'createdAt',
+    'actor',
+    'source',
+    'labels',
+    'descriptor',
+  ];
+  const unknownKeys = Object.keys(value).filter(
+    (key) => !allowedKeys.includes(key),
+  );
   if (unknownKeys.length > 0) {
     throw new Error(`unknown semantic state fields: ${unknownKeys.join(', ')}`);
   }
-  const requiredKeys = ['id', 'createdAt', 'actor', 'source', 'labels', 'descriptor'];
+  const requiredKeys = [
+    'id',
+    'createdAt',
+    'actor',
+    'source',
+    'labels',
+    'descriptor',
+  ];
   for (const key of requiredKeys) {
     if (!(key in value)) {
       throw new Error(`missing semantic state field: ${key}`);
@@ -145,7 +204,12 @@ export function validateStrictSemanticState(input: unknown): SemanticState {
   return value as unknown as SemanticState;
 }
 
-export function buildPolicySnapshot(sourceRef: string, fingerprint: string, effectiveFrom: string, effectiveTo?: string): PolicySnapshot {
+export function buildPolicySnapshot(
+  sourceRef: string,
+  fingerprint: string,
+  effectiveFrom: string,
+  effectiveTo?: string,
+): PolicySnapshot {
   return {
     id: `policy_${fingerprint.slice(0, 16)}`,
     sourceRef,

@@ -1,6 +1,7 @@
 # Ship Report: Cloud Launch + Series A Package
 
 ## 1. Artifacts Created
+
 - **Strategy:** `/docs/launch/GTM_PLAYBOOK.md`, `/docs/launch/SERIES_A_NARRATIVE.md`
 - **Economics:** `/docs/launch/UNIT_ECONOMICS_MODEL.md`, `/config/economics.json`
 - **Partners:** `/docs/partners/{huggingface,vercel,stripe}.md`
@@ -9,15 +10,20 @@
 ## 2. Verification
 
 ### Simulation
+
 Ran simulation to populate ledger:
+
 ```bash
 (cd tools/economics && npm install && npm start -- simulate)
 ```
-*Result:* Generated 50 simulated runs in `telemetry/ledger/`.
+
+_Result:_ Generated 50 simulated runs in `telemetry/ledger/`.
 
 ### Cost Report
+
 Command: `reach cost report --window 7`
 Output Excerpt:
+
 ```
 === Reach Cost Report (Last 7 days) ===
 
@@ -33,8 +39,10 @@ Top Expensive Workflows:
 ```
 
 ### Metrics
+
 Command: `reach metrics gtm`
 Output Excerpt:
+
 ```
 === GTM Metrics (Last 30 days) ===
 
@@ -45,9 +53,11 @@ Runs/Tenant:      25.0
 ```
 
 ## 3. Known Limitations
+
 - Telemetry is currently file-based (`.jsonl`). For high-scale production, this should pipe to ClickHouse or BigQuery.
 - Pricing config is static JSON.
 
 ## 4. Next Sprint
+
 - Implement `reach cost budget --set $50` to auto-stop runs.
 - Connect `tools/economics` to real Runner event stream via Webhook.

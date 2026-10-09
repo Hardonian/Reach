@@ -10,9 +10,9 @@
       "role": "optional string",
       "content": "optional string",
       "content_ref": "optional hash/ref",
-      "tool_call": {"optional": "structured object"},
+      "tool_call": { "optional": "structured object" },
       "attachments": ["optional attachment hash refs"],
-      "metadata": {"optional": "deterministic string map"}
+      "metadata": { "optional": "deterministic string map" }
     }
   ]
 }

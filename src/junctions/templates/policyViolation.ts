@@ -32,44 +32,44 @@ export function evaluatePolicyViolation(data: PolicyViolationData): {
 } {
   // Different thresholds based on severity
   const severityThresholds = {
-    error: 0.3,  // Any error triggers
+    error: 0.3, // Any error triggers
     warning: 0.6, // 60% of violations trigger
-    info: 0.9,   // 90% of violations trigger
+    info: 0.9, // 90% of violations trigger
   };
-  
+
   const threshold = severityThresholds[data.violationSeverity];
-  
+
   // Calculate base severity
   let severityScore = data.violationCount / 10; // Normalize to 0-1
-  
+
   // Adjust for severity level
   if (data.violationSeverity === 'error') {
     severityScore = Math.min(1.0, severityScore + 0.3);
   } else if (data.violationSeverity === 'warning') {
     severityScore = Math.min(1.0, severityScore + 0.15);
   }
-  
+
   // Increase for number of affected rules
   if (data.violationRules.length > 3) {
     severityScore = Math.min(1.0, severityScore + 0.1);
   }
-  
+
   // Increase for critical resources
   const criticalResources = ['security', 'auth', 'billing', 'data'];
-  const hasCriticalResources = data.affectedResources.some(r => 
-    criticalResources.includes(r.toLowerCase())
+  const hasCriticalResources = data.affectedResources.some((r) =>
+    criticalResources.includes(r.toLowerCase()),
   );
   if (hasCriticalResources) {
     severityScore = Math.min(1.0, severityScore + 0.25);
   }
-  
+
   // Decrease if remediation is available
   if (data.remediationAvailable) {
     severityScore = Math.max(0, severityScore - 0.1);
   }
-  
+
   const shouldTrigger = severityScore >= threshold;
-  
+
   const triggerTrace = {
     algorithm: 'policy_violation_evaluation',
     thresholds: {
@@ -87,7 +87,7 @@ export function evaluatePolicyViolation(data: PolicyViolationData): {
     computedSeverity: severityScore,
     shouldTrigger,
   };
-  
+
   return { shouldTrigger, severityScore, triggerTrace };
 }
 
@@ -96,10 +96,11 @@ export function evaluatePolicyViolation(data: PolicyViolationData): {
  */
 export function createPolicyViolationTrigger(
   data: PolicyViolationData,
-  scopeKeys?: Record<string, string>
+  scopeKeys?: Record<string, string>,
 ): PolicyViolationTrigger {
-  const { shouldTrigger, severityScore, triggerTrace } = evaluatePolicyViolation(data);
-  
+  const { shouldTrigger, severityScore, triggerTrace } =
+    evaluatePolicyViolation(data);
+
   return {
     type: 'policy_violation',
     sourceType: 'policy',

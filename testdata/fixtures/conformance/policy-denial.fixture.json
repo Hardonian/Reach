@@ -24,9 +24,24 @@
     "deterministic": true
   },
   "expected_events": [
-    {"seq": 0, "type": "run.started",   "run_id": "sha256:run-policy-denial-v1"},
-    {"seq": 1, "type": "gate.evaluated","gate": "capability-check", "verdict": "DENY", "rule": "tool-not-allowed"},
-    {"seq": 2, "type": "run.failed",    "run_id": "sha256:run-policy-denial-v1", "error_code": "RL-1001"}
+    {
+      "seq": 0,
+      "type": "run.started",
+      "run_id": "sha256:run-policy-denial-v1"
+    },
+    {
+      "seq": 1,
+      "type": "gate.evaluated",
+      "gate": "capability-check",
+      "verdict": "DENY",
+      "rule": "tool-not-allowed"
+    },
+    {
+      "seq": 2,
+      "type": "run.failed",
+      "run_id": "sha256:run-policy-denial-v1",
+      "error_code": "RL-1001"
+    }
   ],
   "conformance_rules": [
     "policy denial must produce RL-1001",

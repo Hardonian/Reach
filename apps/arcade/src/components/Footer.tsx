@@ -11,7 +11,9 @@ export function Footer({ site }: { site: SiteConfig }) {
               <div className="w-8 h-8 rounded-lg flex items-center justify-center logo-gradient">
                 <span className="text-white font-bold text-lg">R</span>
               </div>
-              <span className="font-bold text-xl text-gradient">{site.brand}</span>
+              <span className="font-bold text-xl text-gradient">
+                {site.brand}
+              </span>
             </div>
             <p className="text-gray-400 text-sm max-w-2xl">
               {site.mode === 'enterprise'
@@ -23,7 +25,14 @@ export function Footer({ site }: { site: SiteConfig }) {
             <h4 className="font-semibold mb-4">Links</h4>
             <ul className="space-y-2 text-sm text-gray-400">
               {site.footerLinks.map((link) => (
-                <li key={link.href}><Link href={link.href} className="hover:text-white transition-colors">{link.label}</Link></li>
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="hover:text-white transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
               ))}
             </ul>
           </div>

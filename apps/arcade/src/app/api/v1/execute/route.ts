@@ -15,7 +15,10 @@ interface ExecuteBody {
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown';
+  const ip =
+    req.headers.get('x-forwarded-for') ??
+    req.headers.get('x-real-ip') ??
+    'unknown';
 
   const { success } = await checkRateLimit(ip, 10, 60);
   if (!success) {
@@ -27,17 +30,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   let body: ExecuteBody;
   try {
-    body = await req.json() as ExecuteBody;
+    body = (await req.json()) as ExecuteBody;
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
   if (!body.skill_id) {
-    return NextResponse.json({ error: 'skill_id is required' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'skill_id is required' },
+      { status: 400 },
+    );
   }
 
   // Simulate processing delay
-  await new Promise((r) => setTimeout(r, 400 + Math.floor(Math.random() * 400)));
+  await new Promise((r) =>
+    setTimeout(r, 400 + Math.floor(Math.random() * 400)),
+  );
 
   const graph = executeRun({
     skillId: body.skill_id,
@@ -66,7 +74,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
 export async function GET(): Promise<NextResponse> {
   return NextResponse.json({
-    message: 'POST to execute a skill run. Returns execution graph and artifacts.',
+    message:
+      'POST to execute a skill run. Returns execution graph and artifacts.',
     example_body: {
       skill_id: 'readiness-check',
       inputs: { agent_trace: {} },

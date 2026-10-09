@@ -4,7 +4,8 @@ import { FuzzGenerator } from './base';
 
 // Mock the ProtocolClient to isolate adapter logic
 vi.mock('../../protocol/client', async () => {
-  const { MockProtocolClient, ConnectionState } = await import('../../../tests/mocks/protocol-client');
+  const { MockProtocolClient, ConnectionState } =
+    await import('../../../tests/mocks/protocol-client');
   return {
     ProtocolClient: MockProtocolClient,
     ConnectionState,
@@ -17,13 +18,13 @@ describe('ProtocolEngineAdapter', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     adapter = new ProtocolEngineAdapter({
-      client: { host: '127.0.0.1', port: 9000 }
+      client: { host: '127.0.0.1', port: 9000 },
     });
   });
 
   it('validateInput prevents execution of requests with floating point values', async () => {
     const request = FuzzGenerator.generateFloatRequest();
-    
+
     // Test validateInput directly
     const validation = adapter.validateInput(request);
     expect(validation.valid).toBe(false);
@@ -37,13 +38,13 @@ describe('ProtocolEngineAdapter', () => {
 
   it('allows valid integer requests', async () => {
     const request = FuzzGenerator.generateValidRequest();
-    
+
     const validation = adapter.validateInput(request);
     expect(validation.valid).toBe(true);
-    
+
     // Initialize adapter to set up client mock
     await adapter.configure();
-    
+
     const result = await adapter.evaluate(request);
     expect(result.status).not.toBe('error');
   });
@@ -52,15 +53,18 @@ describe('ProtocolEngineAdapter', () => {
     const logger = vi.fn();
     adapter = new ProtocolEngineAdapter({
       client: { host: '127.0.0.1', port: 9000 },
-      logger
+      logger,
     });
-    
+
     // Initialize adapter to set up client mock
     await adapter.configure();
-    
+
     const request = FuzzGenerator.generateValidRequest();
     await adapter.evaluate(request);
-    
-    expect(logger).toHaveBeenCalledWith(expect.stringContaining('[ProtocolAdapter]'), expect.objectContaining({ run_id: request.requestId }));
+
+    expect(logger).toHaveBeenCalledWith(
+      expect.stringContaining('[ProtocolAdapter]'),
+      expect.objectContaining({ run_id: request.requestId }),
+    );
   });
 });

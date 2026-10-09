@@ -54,16 +54,19 @@
 ## Files Changed
 
 ### Core Changes
+
 - `services/runner/cmd/reachctl/main.go` - Added version command, updated constants
 - `protocol/schemas/capsule-manifest.schema.json` - Added engine_version field
 
 ### New Files
+
 - `services/runner/tests/compatibility_test.go` - Compatibility test
 - `testdata/fixtures/conformance/capsule-manifest.fixture.json` - Capsule fixture
 - `testdata/fixtures/conformance/decision-output.fixture.json` - Decision fixture
 - `testdata/fixtures/conformance/version-output.fixture.json` - Version output fixture
 
 ### Updated Files
+
 - `testdata/fixtures/conformance/hello-deterministic.fixture.json` - Updated to v0.3.1
 - `examples/packs/minimal-safe/README.md` - Enhanced with step-by-step guide
 - `docs/INSTALL.md` - Added pnpm, checksums verification, version output example

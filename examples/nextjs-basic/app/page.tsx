@@ -53,7 +53,8 @@ export default async function HomePage() {
         </>
       ) : (
         <p style={{ color: 'red' }}>
-          Failed to connect to Reach server. Make sure it&apos;s running on http://127.0.0.1:8787
+          Failed to connect to Reach server. Make sure it&apos;s running on
+          http://127.0.0.1:8787
         </p>
       )}
 

@@ -1,12 +1,14 @@
 # Reach Deployment Guide ## Deployment Scenarios
 
 ### Local Development ```bash
+
 # Quick start reach serve
 
 # With custom port reach serve --port 8080
 
 # With custom data directory reach serve --data ./my-data
-```
+
+````
 
 ### Docker Deployment ```bash
 # Run with Docker docker run -d \
@@ -18,32 +20,30 @@
 # View logs docker logs -f reach
 
 # Stop docker stop reach
-```
+````
 
 ### Docker Compose ```yaml
+
 version: '3.8'
 
 services:
-  reach:
-    image: reach/reach:latest
-    container_name: reach
-    ports:
-      - "8787:8787"
-    volumes:
-      - reach-data:/data
-    environment:
-      - REACH_DATA_DIR=/data
-      - REACH_LOG_LEVEL=info
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8787/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+reach:
+image: reach/reach:latest
+container_name: reach
+ports: - "8787:8787"
+volumes: - reach-data:/data
+environment: - REACH_DATA_DIR=/data - REACH_LOG_LEVEL=info
+restart: unless-stopped
+healthcheck:
+test: ["CMD", "curl", "-f", "http://localhost:8787/health"]
+interval: 30s
+timeout: 10s
+retries: 3
 
 volumes:
-  reach-data:
-```
+reach-data:
+
+````
 
 ### Kubernetes ```yaml
 apiVersion: v1
@@ -119,7 +119,7 @@ spec:
   resources:
     requests:
       storage: 10Gi
-```
+````
 
 ## Reverse Proxy Setup ### Nginx
 
@@ -153,10 +153,12 @@ server {
 ```
 
 ### Caddy ```caddy
+
 reach.example.com {
-    reverse_proxy localhost:8787
+reverse_proxy localhost:8787
 }
-```
+
+````
 
 ### Traefik ```yaml
 labels:
@@ -165,9 +167,10 @@ labels:
   - "traefik.http.routers.reach.tls=true"
   - "traefik.http.routers.reach.tls.certresolver=letsencrypt"
   - "traefik.http.services.reach.loadbalancer.server.port=8787"
-```
+````
 
 ## Environment Variables | Variable | Description | Default |
+
 |----------|-------------|---------|
 | `REACH_DATA_DIR` | Data directory | `./data` |
 | `REACH_LOG_LEVEL` | Log level | `info` |
@@ -175,10 +178,12 @@ labels:
 | `REACH_PORT` | Server port | `8787` |
 
 ## Health Checks ```bash
+
 # Basic health check curl http://localhost:8787/health
 
 # Version check curl http://localhost:8787/version
-```
+
+````
 
 ## Monitoring ### Prometheus Metrics
 
@@ -187,7 +192,7 @@ Enable metrics endpoint:
 ```bash
 export RUNNER_METRICS_ENABLED=1
 reach serve
-```
+````
 
 Access metrics:
 
@@ -210,12 +215,14 @@ DATE=$(date +%Y%m%d_%H%M%S)
 ```
 
 ### Recovery ```bash
+
 # Stop server pkill reach
 
 # Restore from backup tar xzf reach_20240101_120000.tar.gz
 
 # Restart server reach serve
-```
+
+````
 
 ## Troubleshooting ### Server Won't Start
 
@@ -225,16 +232,18 @@ DATE=$(date +%Y%m%d_%H%M%S)
 # Check data directory permissions ls -la data/
 
 # Check logs reach serve 2>&1 | tee reach.log
-```
+````
 
 ### High Memory Usage ```bash
+
 # Limit memory with Docker docker run -m 512m reach/reach:latest
 
 # Monitor memory docker stats reach
-```
+
+````
 
 ### Database Issues ```bash
 # Verify database integrity sqlite3 data/reach.sqlite "PRAGMA integrity_check;"
 
 # Backup database cp data/reach.sqlite data/reach.sqlite.backup
-```
+````

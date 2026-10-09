@@ -1,14 +1,14 @@
 /**
  * Reach TypeScript SDK Basic Example
- * 
+ *
  * This example demonstrates basic usage of the Reach TypeScript SDK.
- * 
+ *
  * Prerequisites:
  * 1. Reach server running on http://127.0.0.1:8787
  *    Start with: reach serve
  * 2. Dependencies installed
  *    Run: npm install
- * 
+ *
  * Usage:
  *   npm start
  */

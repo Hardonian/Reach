@@ -69,12 +69,13 @@ export function seededRandom(seed: string): SeededRng {
     },
 
     nextInt(max: number): number {
-      if (max <= 0) throw new RangeError("max must be positive");
+      if (max <= 0) throw new RangeError('max must be positive');
       return Math.floor(advance() * max);
     },
 
     pick<T>(arr: readonly T[]): T {
-      if (arr.length === 0) throw new RangeError("Cannot pick from empty array");
+      if (arr.length === 0)
+        throw new RangeError('Cannot pick from empty array');
       return arr[Math.floor(advance() * arr.length)];
     },
 

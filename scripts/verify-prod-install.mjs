@@ -21,7 +21,7 @@ try {
   execSync('npm ci --omit=dev --ignore-scripts', {
     cwd: rootDir,
     stdio: 'inherit',
-    timeout: 120000
+    timeout: 120000,
   });
   console.log('✅ Production install completed\n');
 } catch (error) {
@@ -34,7 +34,7 @@ console.log('Step 2: Verifying dev dependencies are not present...');
 const devOnlyPaths = [
   'node_modules/eslint',
   'node_modules/vitest',
-  'node_modules/@typescript-eslint'
+  'node_modules/@typescript-eslint',
 ];
 
 let devDepsFound = false;
@@ -59,12 +59,16 @@ try {
   execSync('cd sdk/ts && npm run build', {
     cwd: rootDir,
     stdio: 'pipe',
-    timeout: 60000
+    timeout: 60000,
   });
   console.log('  ✅ SDK builds successfully\n');
 } catch (error) {
-  console.error('  ⚠️  SDK build failed (may require dev deps for TypeScript compilation)');
-  console.log('  ℹ️  This is expected if SDK uses TypeScript compiler from devDependencies\n');
+  console.error(
+    '  ⚠️  SDK build failed (may require dev deps for TypeScript compilation)',
+  );
+  console.log(
+    '  ℹ️  This is expected if SDK uses TypeScript compiler from devDependencies\n',
+  );
 }
 
 // Step 4: Verify Go services build (no npm deps needed)
@@ -73,7 +77,7 @@ try {
   execSync('cd services/runner && go build ./cmd/reach-serve ./cmd/reachctl', {
     cwd: rootDir,
     stdio: 'pipe',
-    timeout: 120000
+    timeout: 120000,
   });
   console.log('  ✅ Go services build successfully\n');
 } catch (error) {
@@ -82,4 +86,6 @@ try {
 }
 
 console.log('✅ Production install verification passed!');
-console.log('   The runtime has no toxic dependencies and is ready for deployment.\n');
+console.log(
+  '   The runtime has no toxic dependencies and is ready for deployment.\n',
+);

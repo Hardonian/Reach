@@ -1,6 +1,6 @@
 /**
  * Fuzz Testing Suite for Engine Adapters
- * 
+ *
  * Uses FuzzGenerator to validate robustness against:
  * - Random valid inputs
  * - Floating point injections (determinism violation)
@@ -25,29 +25,35 @@ describe('RequiemEngineAdapter Fuzzing', () => {
     const adapter = new RequiemEngineAdapter();
     const request = FuzzGenerator.generateFloatRequest();
     const validation = adapter.validateInput(request);
-    
+
     expect(validation.valid).toBe(false);
-    expect(validation.errors?.some(e => e.includes('floating_point_values_detected'))).toBe(true);
+    expect(
+      validation.errors?.some((e) =>
+        e.includes('floating_point_values_detected'),
+      ),
+    ).toBe(true);
   });
 
   it('handles massive fuzz requests (stress test)', () => {
     // Configure with high limit for stress test
     const adapter = new RequiemEngineAdapter({
-      maxMatrixCells: 1_000_000
+      maxMatrixCells: 1_000_000,
     });
-    
+
     // Generate request with 500 actions * 2 states = 1000 cells (well within 1M limit)
-    const request = FuzzGenerator.generateMassiveRequest('stress-test', 500); 
+    const request = FuzzGenerator.generateMassiveRequest('stress-test', 500);
     const validation = adapter.validateInput(request);
     expect(validation.valid).toBe(true);
   });
-  
+
   it('rejects massive requests exceeding configured limits', () => {
     const adapter = new RequiemEngineAdapter({ maxMatrixCells: 100 });
     const request = FuzzGenerator.generateMassiveRequest('stress-fail', 100); // 200 cells > 100 limit
     const validation = adapter.validateInput(request);
     expect(validation.valid).toBe(false);
-    expect(validation.errors?.some(e => e.includes('matrix_too_large'))).toBe(true);
+    expect(validation.errors?.some((e) => e.includes('matrix_too_large'))).toBe(
+      true,
+    );
   });
 });
 
@@ -56,35 +62,45 @@ describe('DualEngineAdapter Fuzzing', () => {
     const adapter = new DualEngineAdapter();
     const request = FuzzGenerator.generateFloatRequest();
     const validation = adapter.validateInput(request);
-    
+
     expect(validation.valid).toBe(false);
-    expect(validation.errors?.some(e => e.includes('floating_point_values_detected'))).toBe(true);
+    expect(
+      validation.errors?.some((e) =>
+        e.includes('floating_point_values_detected'),
+      ),
+    ).toBe(true);
   });
 });
 
 describe('RustEngineAdapter Fuzzing', () => {
   it('rejects float fuzz requests (determinism guard)', async () => {
     const adapter = new RustEngineAdapter();
-    
+
     // Mock the WASM module to simulate a loaded state
     // We need to bypass private access modifier for testing
     (adapter as any).wasmModule = {
       evaluate: () => '{}',
       version: () => '1.0.0',
       validate_input: () => 'true',
-      get_algorithms: () => '[]'
+      get_algorithms: () => '[]',
     };
     (adapter as any).isLoaded = true;
 
     const request = FuzzGenerator.generateFloatRequest();
-    
+
     // Test validateInput directly
     const validation = adapter.validateInput(request);
-    
+
     expect(validation.valid).toBe(false);
-    expect(validation.errors?.some(e => e.includes('floating_point_values_detected'))).toBe(true);
+    expect(
+      validation.errors?.some((e) =>
+        e.includes('floating_point_values_detected'),
+      ),
+    ).toBe(true);
 
     // Test evaluate flow
-    await expect(adapter.evaluate(request)).rejects.toThrow(/floating_point_values_detected/);
+    await expect(adapter.evaluate(request)).rejects.toThrow(
+      /floating_point_values_detected/,
+    );
   });
 });

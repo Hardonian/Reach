@@ -4,7 +4,8 @@ import { LiveJsonPanel } from '@/components/governance/LiveJsonPanel';
 
 export const metadata: Metadata = {
   title: 'Governance Artifact Registry',
-  description: 'Browse immutable artifacts and evidence-linked registry entries used for deterministic runs.',
+  description:
+    'Browse immutable artifacts and evidence-linked registry entries used for deterministic runs.',
 };
 
 export default function ArtifactsPage() {
@@ -12,7 +13,10 @@ export default function ArtifactsPage() {
     <div className="section-container py-8 space-y-6">
       <header>
         <h1 className="text-3xl font-bold">Artifact Registry Browser</h1>
-        <p className="text-gray-300">Track signed artifacts, provenance metadata, and immutable references used by governance workflows.</p>
+        <p className="text-gray-300">
+          Track signed artifacts, provenance metadata, and immutable references
+          used by governance workflows.
+        </p>
       </header>
       <LiveJsonPanel title="Registry feed" endpoint="/api/v1/marketplace" />
       <section className="grid gap-4 md:grid-cols-2">

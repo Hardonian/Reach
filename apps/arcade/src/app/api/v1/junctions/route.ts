@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     return NextResponse.json(
       { error: 'E_INTERNAL', message: (error as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

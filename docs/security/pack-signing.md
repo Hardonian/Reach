@@ -3,7 +3,9 @@
 Reach OSS supports local Ed25519 signing for packs.
 
 ## Manifest
+
 `pack.manifest.json` includes:
+
 - `name`, `version`, `author`
 - `reach_version_range`
 - `schema_version_range`
@@ -12,6 +14,7 @@ Reach OSS supports local Ed25519 signing for packs.
 - optional `signature`
 
 ## Commands
+
 - `reach pack sign <pack-path>`
 - `reach pack verify-signature <pack-path>`
 

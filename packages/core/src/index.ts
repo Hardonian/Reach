@@ -56,10 +56,10 @@ export interface ExecuteDecisionResult {
  */
 export async function executeDecision(
   spec: DecisionSpec,
-  evidence: EvidenceEvent[] = []
+  evidence: EvidenceEvent[] = [],
 ): Promise<ExecuteDecisionResult> {
   const id = spec.id || `decision-${Date.now()}`;
-  
+
   const transcript: DecisionTranscript = {
     id,
     spec,
@@ -84,13 +84,20 @@ export async function executeDecision(
  * Verify a decision transcript
  */
 export function verifyTranscript(transcript: DecisionTranscript): boolean {
-  return !!(transcript.id && transcript.spec && transcript.outcome && transcript.fingerprint);
+  return !!(
+    transcript.id &&
+    transcript.spec &&
+    transcript.outcome &&
+    transcript.fingerprint
+  );
 }
 
 /**
  * Finalize a decision transcript
  */
-export function finalizeTranscript(transcript: DecisionTranscript): FinalizedDecisionTranscript {
+export function finalizeTranscript(
+  transcript: DecisionTranscript,
+): FinalizedDecisionTranscript {
   return {
     ...transcript,
     finalizedAt: new Date().toISOString(),

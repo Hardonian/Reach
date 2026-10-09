@@ -69,4 +69,6 @@ export const sidebarItems: NavSection[] = [
   },
 ];
 
-export const allNavItemSlugs = sidebarItems.flatMap(section => section.items.map(item => item.href));
+export const allNavItemSlugs = sidebarItems.flatMap((section) =>
+  section.items.map((item) => item.href),
+);

@@ -47,7 +47,10 @@ const PRESENTATION_PATHS = [
  */
 const BANNED_JARGON: [RegExp, string][] = [
   [/\bdeterministic pipeline\b/i, 'Use: "Same input, same result"'],
-  [/\borchestration infrastructure\b/i, 'Use: "platform" or specific feature name'],
+  [
+    /\borchestration infrastructure\b/i,
+    'Use: "platform" or specific feature name',
+  ],
   [/\bglobal edge network\b/i, 'Use: "platform" or omit'],
   [/\brun artifacts\b/i, 'Use: "reports"'],
   [/\brun capsule\b/i, 'Use: "saved check"'],
@@ -74,7 +77,9 @@ function countSentences(text: string): number {
  * Extract JSX string literals from a TSX file (very approximate).
  * This catches most user-visible strings without a full AST parser.
  */
-function extractTextBlocks(content: string): { text: string; lineNum: number }[] {
+function extractTextBlocks(
+  content: string,
+): { text: string; lineNum: number }[] {
   const lines = content.split('\n');
   const blocks: { text: string; lineNum: number }[] = [];
 
@@ -89,11 +94,13 @@ function extractTextBlocks(content: string): { text: string; lineNum: number }[]
       line.trim().startsWith('const ') ||
       line.trim().startsWith('function ') ||
       /^\s*<\w/.test(line) // JSX opening tags
-    ) continue;
+    )
+      continue;
 
     // Look for string content in JSX text nodes and string literals
-    const textMatch = line.match(/>\s*([A-Z][^<{]{20,})\s*</) ??
-                      line.match(/["']([A-Z][^"']{20,})["']/);
+    const textMatch =
+      line.match(/>\s*([A-Z][^<{]{20,})\s*</) ??
+      line.match(/["']([A-Z][^"']{20,})["']/);
     if (textMatch) {
       blocks.push({ text: textMatch[1].trim(), lineNum: i + 1 });
     }
@@ -153,7 +160,9 @@ function checkHomepageCTA(filePath: string, content: string): void {
   if (!filePath.endsWith('apps/arcade/src/app/page.tsx')) return;
   const hasPrimaryCTA =
     content.includes('btn-primary') &&
-    (content.includes('PLAYGROUND') || content.includes('/playground') || content.includes('Run a demo'));
+    (content.includes('PLAYGROUND') ||
+      content.includes('/playground') ||
+      content.includes('Run a demo'));
   if (!hasPrimaryCTA) {
     violations.push({
       file: path.relative(REPO_ROOT, filePath),
@@ -182,7 +191,10 @@ function checkEmptyStates(filePath: string, content: string): void {
       if (pattern.test(lines[i])) {
         // Check if btn-primary or a href appears within 5 lines
         const surrounding = lines.slice(Math.max(0, i - 3), i + 5).join('\n');
-        if (!surrounding.includes('btn-primary') && !surrounding.includes('href=')) {
+        if (
+          !surrounding.includes('btn-primary') &&
+          !surrounding.includes('href=')
+        ) {
           violations.push({
             file: path.relative(REPO_ROOT, filePath),
             line: i + 1,
@@ -222,11 +234,15 @@ for (const p of PRESENTATION_PATHS) {
 }
 
 if (violations.length === 0) {
-  console.log(`✅ PASS: No simplicity violations found in ${PRESENTATION_PATHS.length} scanned files.\n`);
+  console.log(
+    `✅ PASS: No simplicity violations found in ${PRESENTATION_PATHS.length} scanned files.\n`,
+  );
   process.exit(0);
 } else {
   const sevCount = violations.length;
-  console.warn(`⚠ Found ${sevCount} simplicity violation${sevCount === 1 ? '' : 's'}:\n`);
+  console.warn(
+    `⚠ Found ${sevCount} simplicity violation${sevCount === 1 ? '' : 's'}:\n`,
+  );
   for (const v of violations) {
     console.warn(`  ${v.file}:${v.line}`);
     console.warn(`  Rule: ${v.rule}`);
@@ -238,7 +254,9 @@ if (violations.length === 0) {
     console.error('FAIL: Enforce mode active. Fix violations before merging.');
     process.exit(1);
   } else {
-    console.log('Advisory mode: violations reported but not blocking. Set AGENTS_ENFORCE=1 to block.\n');
+    console.log(
+      'Advisory mode: violations reported but not blocking. Set AGENTS_ENFORCE=1 to block.\n',
+    );
     process.exit(0);
   }
 }

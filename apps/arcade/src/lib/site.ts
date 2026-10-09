@@ -17,7 +17,8 @@ const OSS_SITE: SiteConfig = {
   domain: 'reach-cli.com',
   brand: 'Reach CLI',
   title: 'Reach CLI — Deterministic Event Orchestration (OSS)',
-  description: 'Open-source deterministic event orchestration: run, verify, and replay with evidence-first execution.',
+  description:
+    'Open-source deterministic event orchestration: run, verify, and replay with evidence-first execution.',
   nav: [
     { href: '/', label: 'Home' },
     { href: '/governance', label: 'Governance' },
@@ -41,7 +42,8 @@ const ENTERPRISE_SITE: SiteConfig = {
   domain: 'ready-layer.com',
   brand: 'ReadyLayer',
   title: 'ReadyLayer — Enterprise Governance for Deterministic Agent Systems',
-  description: 'Enterprise roadmap and beta information for governance controls built on the Reach OSS engine.',
+  description:
+    'Enterprise roadmap and beta information for governance controls built on the Reach OSS engine.',
   nav: [
     { href: '/', label: 'Home' },
     { href: '/enterprise', label: 'Enterprise' },
@@ -72,7 +74,9 @@ function resolveSiteByMode(mode: string | undefined): SiteConfig {
 export function getSiteConfigFromEnv(): SiteConfig {
   const mode = process.env.SITE_MODE ?? process.env.NEXT_PUBLIC_SITE_MODE;
   if (mode) return resolveSiteByMode(mode);
-  return resolveSiteByHost(process.env.SITE_HOST_OVERRIDE ?? process.env.NEXT_PUBLIC_BASE_URL ?? null);
+  return resolveSiteByHost(
+    process.env.SITE_HOST_OVERRIDE ?? process.env.NEXT_PUBLIC_BASE_URL ?? null,
+  );
 }
 
 export function getSiteBaseUrl(site: SiteConfig): string {
@@ -84,6 +88,9 @@ export async function getSiteConfig(): Promise<SiteConfig> {
   if (envMode) return resolveSiteByMode(envMode);
 
   const h = await headers();
-  const host = process.env.SITE_HOST_OVERRIDE ?? h.get('x-forwarded-host') ?? h.get('host');
+  const host =
+    process.env.SITE_HOST_OVERRIDE ??
+    h.get('x-forwarded-host') ??
+    h.get('host');
   return resolveSiteByHost(host);
 }

@@ -1,6 +1,6 @@
 # Remote Replay Validation
 
-**Status:** Optional / Disabled by Default  
+**Status:** Optional / Disabled by Default
 **Architecture:** Client Stub
 
 ---
@@ -10,6 +10,7 @@
 Remote replay validation allows submitting execution proofs to an independent validator for replay verification.
 
 **Important:** This feature is:
+
 - **Disabled by default**
 - **Optional** — execution proceeds regardless
 - **Best-effort** — failures don't block execution
@@ -108,6 +109,7 @@ interface ReplayRequestEnvelope {
 ```
 
 All fields are:
+
 - **Sorted alphabetically** — Deterministic JSON
 - **Content-only** — No metadata that changes
 - **Hashed identifiers** — No PII leakage
@@ -180,7 +182,7 @@ reach proof validate-remote <bundle-id> --json
 ```
 ❌ Remote validation FAILED
    Error: Connection timeout after 3 retries
-   
+
 ⚠️  Note: Execution was not blocked (failOnError: false)
 ```
 
@@ -239,15 +241,15 @@ You need to implement a validator service:
 // Validator service endpoint (pseudo-code)
 app.post('/v1/validate', async (req, res) => {
   const envelope: ReplayRequestEnvelope = req.body;
-  
+
   // 1. Verify envelope signature
   // 2. Load input from CAS by CID
   // 3. Re-execute with same engine version
   // 4. Compare output hash
   // 5. Return result
-  
+
   const result = await replayAndValidate(envelope);
-  
+
   res.json({
     valid: true,
     validatorId: 'validator-001',
@@ -261,6 +263,7 @@ app.post('/v1/validate', async (req, res) => {
 ### CAS Requirements
 
 Validator needs access to the same CAS:
+
 - Same CIDs must resolve to same content
 - Content must be immutable
 - Validator must trust the CAS
@@ -339,7 +342,7 @@ class RemoteReplayClient {
 ### Utility Functions
 
 ```typescript
-import { 
+import {
   enableRemoteValidation,
   disableRemoteValidation,
   getRemoteReplayClient,

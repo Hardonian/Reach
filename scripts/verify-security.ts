@@ -1,19 +1,19 @@
 #!/usr/bin/env tsx
 /**
  * Security Verification Script
- * 
+ *
  * M3 Security Boundary Hardening - Automated Security Proofs
- * 
+ *
  * This script runs comprehensive security tests that act as merge-blocking
  * automated security proofs for the Reach CLI + Requiem system.
- * 
+ *
  * Tests:
  * 1. Workspace escape (pack extraction, symlink/TOCTOU attacks)
  * 2. Environment hygiene (secret stripping, binary trust)
  * 3. Diff report path traversal
  * 4. Plugin mutation boundary
  * 5. LLM freeze integrity (CID verification)
- * 
+ *
  * @module scripts/verify-security
  */
 
@@ -77,7 +77,10 @@ interface TestResult {
 
 const results: TestResult[] = [];
 
-async function runTest(name: string, fn: () => Promise<void> | void): Promise<void> {
+async function runTest(
+  name: string,
+  fn: () => Promise<void> | void,
+): Promise<void> {
   const start = Date.now();
   try {
     await fn();
@@ -85,7 +88,12 @@ async function runTest(name: string, fn: () => Promise<void> | void): Promise<vo
     process.stdout.write(`✓ ${name}\n`);
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    results.push({ name, passed: false, error: errorMsg, duration: Date.now() - start });
+    results.push({
+      name,
+      passed: false,
+      error: errorMsg,
+      duration: Date.now() - start,
+    });
     process.stdout.write(`✗ ${name}\n  Error: ${errorMsg}\n`);
   }
 }
@@ -96,7 +104,7 @@ async function runTest(name: string, fn: () => Promise<void> | void): Promise<vo
 
 async function testWorkspaceEscape(): Promise<void> {
   const testDir = path.join(os.tmpdir(), `reach-security-verify-${Date.now()}`);
-  
+
   // Test 1: Pack extraction blocks traversal
   await runTest('pack-extraction: blocks ../ traversal', () => {
     expect(() => {
@@ -144,9 +152,12 @@ async function testWorkspaceEscape(): Promise<void> {
     }
 
     await fs.promises.mkdir(testDir, { recursive: true });
-    
+
     // Create a file outside the workspace
-    const outsideFile = path.join(os.tmpdir(), `reach-outside-${Date.now()}.txt`);
+    const outsideFile = path.join(
+      os.tmpdir(),
+      `reach-outside-${Date.now()}.txt`,
+    );
     await fs.promises.writeFile(outsideFile, 'sensitive data');
 
     // Create a symlink inside workspace pointing outside
@@ -156,7 +167,10 @@ async function testWorkspaceEscape(): Promise<void> {
     try {
       // Attempting to resolve the symlink should detect the escape
       expect(() => {
-        resolveSafePathSync('malicious_link', { baseDir: testDir, followSymlinks: true });
+        resolveSafePathSync('malicious_link', {
+          baseDir: testDir,
+          followSymlinks: true,
+        });
       }).toThrow(SecurityError);
     } finally {
       await fs.promises.unlink(outsideFile);
@@ -167,7 +181,7 @@ async function testWorkspaceEscape(): Promise<void> {
   // Test 3: Runtime open path blocks symlink swaps
   await runTest('runtime-open: blocks TOCTOU symlink swaps', async () => {
     await fs.promises.mkdir(testDir, { recursive: true });
-    
+
     const safeFile = path.join(testDir, 'safe.txt');
     await fs.promises.writeFile(safeFile, 'safe content');
 
@@ -208,9 +222,9 @@ async function testEnvHygiene(): Promise<void> {
       SAFE_VAR: 'this-is-ok',
       PATH: '/usr/bin',
     };
-    
+
     const cleanEnv = sanitizeEnvironment(dirtyEnv);
-    
+
     expect(cleanEnv.REACH_ENCRYPTION_KEY).toBeUndefined();
     expect(cleanEnv.SAFE_VAR).toBe('this-is-ok');
     expect(cleanEnv.PATH).toBe('/usr/bin');
@@ -223,9 +237,9 @@ async function testEnvHygiene(): Promise<void> {
       NPM_TOKEN: 'npm_xxxx',
       SAFE_TOKEN_VAR: 'this-is-ok', // Not a suffix match
     };
-    
+
     const cleanEnv = sanitizeEnvironment(dirtyEnv);
-    
+
     expect(cleanEnv.API_TOKEN).toBeUndefined();
     expect(cleanEnv.GITHUB_TOKEN).toBeUndefined();
     expect(cleanEnv.NPM_TOKEN).toBeUndefined();
@@ -238,9 +252,9 @@ async function testEnvHygiene(): Promise<void> {
       COOKIE_SECRET: 'cookie-signing-key',
       APP_SECRET: 'app-secret',
     };
-    
+
     const cleanEnv = sanitizeEnvironment(dirtyEnv);
-    
+
     expect(cleanEnv.AWS_SECRET).toBeUndefined();
     expect(cleanEnv.COOKIE_SECRET).toBeUndefined();
     expect(cleanEnv.APP_SECRET).toBeUndefined();
@@ -252,9 +266,9 @@ async function testEnvHygiene(): Promise<void> {
       API_KEY: 'api-key-content',
       ENCRYPTION_KEY: 'encryption-key',
     };
-    
+
     const cleanEnv = sanitizeEnvironment(dirtyEnv);
-    
+
     expect(cleanEnv.PRIVATE_KEY).toBeUndefined();
     expect(cleanEnv.API_KEY).toBeUndefined();
     expect(cleanEnv.ENCRYPTION_KEY).toBeUndefined();
@@ -266,9 +280,9 @@ async function testEnvHygiene(): Promise<void> {
       AUTH_SECRET: 'auth-secret',
       AUTHENTICATION_KEY: 'auth-key',
     };
-    
+
     const cleanEnv = sanitizeEnvironment(dirtyEnv);
-    
+
     expect(cleanEnv.AUTH_TOKEN).toBeUndefined();
     expect(cleanEnv.AUTH_SECRET).toBeUndefined();
     expect(cleanEnv.AUTHENTICATION_KEY).toBeUndefined();
@@ -279,9 +293,9 @@ async function testEnvHygiene(): Promise<void> {
       COOKIE_SECRET: 'cookie-secret',
       COOKIE_KEY: 'cookie-key',
     };
-    
+
     const cleanEnv = sanitizeEnvironment(dirtyEnv);
-    
+
     expect(cleanEnv.COOKIE_SECRET).toBeUndefined();
     expect(cleanEnv.COOKIE_KEY).toBeUndefined();
   });
@@ -310,17 +324,20 @@ async function testEnvHygiene(): Promise<void> {
   });
 
   // Test 3: Binary trust gate - path trust
-  await runTest('binary-trust: rejects paths outside allowed directories', () => {
-    expect(() => {
-      validateBinaryTrust({
-        binaryPath: '/tmp/malicious/requiem',
-        expectedVersion: '1.0.0',
-        currentVersion: '1.0.0',
-        allowedPaths: ['/usr/bin', '/usr/local/bin'],
-        requireExecutable: false,
-      });
-    }).toThrow(BinaryTrustError);
-  });
+  await runTest(
+    'binary-trust: rejects paths outside allowed directories',
+    () => {
+      expect(() => {
+        validateBinaryTrust({
+          binaryPath: '/tmp/malicious/requiem',
+          expectedVersion: '1.0.0',
+          currentVersion: '1.0.0',
+          allowedPaths: ['/usr/bin', '/usr/local/bin'],
+          requireExecutable: false,
+        });
+      }).toThrow(BinaryTrustError);
+    },
+  );
 
   await runTest('binary-trust: rejects relative paths by default', () => {
     expect(() => {
@@ -339,7 +356,7 @@ async function testEnvHygiene(): Promise<void> {
       CUSTOM_SAFE_VAR: 'custom-value',
       CUSTOM_SECRET: 'should-be-stripped',
     });
-    
+
     expect(env.CUSTOM_SAFE_VAR).toBe('custom-value');
     expect(env.CUSTOM_SECRET).toBeUndefined();
   });
@@ -353,8 +370,10 @@ async function testDiffReportPathTraversal(): Promise<void> {
   const baseDir = path.resolve('/workspace/.reach/engine-diffs');
 
   await runTest('diff-report: sanitizes malicious requestId', () => {
-    const result = buildDiffReportPath('../../Windows/System32/pwn', { baseDir });
-    
+    const result = buildDiffReportPath('../../Windows/System32/pwn', {
+      baseDir,
+    });
+
     // Should not contain path traversal
     expect(containsPathTraversal(result)).toBe(false);
     // Should have sanitized the malicious parts
@@ -362,8 +381,10 @@ async function testDiffReportPathTraversal(): Promise<void> {
   });
 
   await runTest('diff-report: sanitizes Windows-style paths', () => {
-    const result = buildDiffReportPath('C:\\Windows\\System32\\pwn', { baseDir });
-    
+    const result = buildDiffReportPath('C:\\Windows\\System32\\pwn', {
+      baseDir,
+    });
+
     // Should not contain path traversal
     expect(containsPathTraversal(result)).toBe(false);
     // Should be sanitized
@@ -372,7 +393,7 @@ async function testDiffReportPathTraversal(): Promise<void> {
 
   await runTest('diff-report: sanitizes absolute Unix paths', () => {
     const result = buildDiffReportPath('/etc/passwd', { baseDir });
-    
+
     // Should not contain path traversal
     expect(containsPathTraversal(result)).toBe(false);
     // Should have the path sanitized
@@ -382,7 +403,7 @@ async function testDiffReportPathTraversal(): Promise<void> {
   await runTest('diff-report: limits request ID length', () => {
     const longId = 'a'.repeat(200);
     const result = buildDiffReportPath(longId, { baseDir });
-    
+
     // Path should be safe
     expect(containsPathTraversal(result)).toBe(false);
     // Should have sanitized ID
@@ -391,7 +412,7 @@ async function testDiffReportPathTraversal(): Promise<void> {
 
   await runTest('diff-report: allows valid request IDs', () => {
     const result = buildDiffReportPath('request-123_test', { baseDir });
-    
+
     expect(result.includes('diff_request-123_test')).toBe(true);
     expect(result.endsWith('.json')).toBe(true);
   });
@@ -406,7 +427,7 @@ async function testPluginMutationBoundary(): Promise<void> {
   await runTest('plugin-freeze: computes fingerprint immediately', () => {
     const data = { score: 0.95, decision: 'approve' };
     const result = freezeResult(data);
-    
+
     expect(result.fingerprint).toMatch(/^[a-f0-9]{64}$/i);
     expect(result.frozenAt).toBeDefined();
     expect(result.wasMutated).toBe(false);
@@ -415,17 +436,17 @@ async function testPluginMutationBoundary(): Promise<void> {
   await runTest('plugin-freeze: creates deterministic fingerprint', () => {
     const data1 = { a: 1, b: 2 };
     const data2 = { b: 2, a: 1 }; // Different order
-    
+
     const result1 = freezeResult(data1);
     const result2 = freezeResult(data2);
-    
+
     expect(result1.fingerprint).toBe(result2.fingerprint);
   });
 
   await runTest('plugin-freeze: deeply freezes data', () => {
     const data = { nested: { value: 1 } };
     const result = freezeResult(data);
-    
+
     expect(Object.isFrozen(result.data)).toBe(true);
     expect(Object.isFrozen(result.data.nested)).toBe(true);
   });
@@ -434,13 +455,13 @@ async function testPluginMutationBoundary(): Promise<void> {
   await runTest('plugin-freeze: detects tampering', () => {
     const data = { value: 'original' };
     const result = freezeResult(data);
-    
+
     // Create tampered result
     const tamperedResult = {
       ...result,
       data: { value: 'tampered' },
     };
-    
+
     expect(() => {
       verifyFrozenResult(tamperedResult);
     }).toThrow(ResultMutationError);
@@ -452,29 +473,39 @@ async function testPluginMutationBoundary(): Promise<void> {
     const mutated = mutateResult(
       original,
       { value: 2 },
-      { reason: 'Update value', authorizedBy: 'test-user' }
+      { reason: 'Update value', authorizedBy: 'test-user' },
     );
-    
+
     expect(mutated.wasMutated).toBe(true);
     expect(mutated.mutationPolicy).toHaveLength(1);
     expect(mutated.mutationPolicy[0].reason).toBe('Update value');
     expect(mutated.mutationPolicy[0].authorizedBy).toBe('test-user');
-    expect(mutated.mutationPolicy[0].previousFingerprint).toBe(original.fingerprint);
+    expect(mutated.mutationPolicy[0].previousFingerprint).toBe(
+      original.fingerprint,
+    );
   });
 
   await runTest('plugin-freeze: preserves mutation history', () => {
     let result = freezeResult({ value: 1 });
-    
-    result = mutateResult(result, { value: 2 }, {
-      reason: 'First update',
-      authorizedBy: 'user1',
-    });
-    
-    result = mutateResult(result, { value: 3 }, {
-      reason: 'Second update',
-      authorizedBy: 'user2',
-    });
-    
+
+    result = mutateResult(
+      result,
+      { value: 2 },
+      {
+        reason: 'First update',
+        authorizedBy: 'user1',
+      },
+    );
+
+    result = mutateResult(
+      result,
+      { value: 3 },
+      {
+        reason: 'Second update',
+        authorizedBy: 'user2',
+      },
+    );
+
     expect(result.mutationPolicy).toHaveLength(2);
     expect(result.mutationPolicy[0].reason).toBe('First update');
     expect(result.mutationPolicy[1].reason).toBe('Second update');
@@ -493,7 +524,7 @@ async function testLLMFreezeIntegrity(): Promise<void> {
     const content = 'test content';
     const cid1 = computeCID(content);
     const cid2 = computeCID(content);
-    
+
     expect(cid1).toBe(cid2);
     expect(cid1).toMatch(/^[a-f0-9]{64}$/i);
   });
@@ -501,26 +532,29 @@ async function testLLMFreezeIntegrity(): Promise<void> {
   await runTest('cas-cid: different content produces different CID', () => {
     const cid1 = computeCID('content A');
     const cid2 = computeCID('content B');
-    
+
     expect(cid1).not.toBe(cid2);
   });
 
   // Test 2: Store and retrieve with verification
-  await runTest('cas-storage: stores and retrieves with CID verification', async () => {
-    const content = 'test content for CAS';
-    const cid = await cas.put(content);
-    
-    expect(cid).toBeDefined();
-    
-    const retrieved = await cas.get(cid);
-    expect(retrieved.content.toString()).toBe(content);
-  });
+  await runTest(
+    'cas-storage: stores and retrieves with CID verification',
+    async () => {
+      const content = 'test content for CAS';
+      const cid = await cas.put(content);
+
+      expect(cid).toBeDefined();
+
+      const retrieved = await cas.get(cid);
+      expect(retrieved.content.toString()).toBe(content);
+    },
+  );
 
   // Test 3: CID verification on read
   await runTest('cas-verify: verifies content on read', async () => {
     const content = 'content to verify';
     const cid = await cas.put(content);
-    
+
     const verification = verifyCID(content, cid);
     expect(verification.matches).toBe(true);
     expect(verification.valid).toBe(true);
@@ -531,7 +565,7 @@ async function testLLMFreezeIntegrity(): Promise<void> {
     const content = 'original content';
     const wrongContent = 'corrupted content';
     const cid = computeCID(content);
-    
+
     const verification = verifyCID(wrongContent, cid);
     expect(verification.matches).toBe(false);
     expect(verification.error).toBeDefined();
@@ -542,10 +576,13 @@ async function testLLMFreezeIntegrity(): Promise<void> {
     // Manually insert content with wrong CID (simulating poisoning)
     const content = Buffer.from('poisoned content');
     const wrongCid = computeCID('legitimate content');
-    
+
     // Store with wrong CID
-    (cas as unknown as { store: Map<string, { content: Buffer }> }).store.set(wrongCid, { content });
-    
+    (cas as unknown as { store: Map<string, { content: Buffer }> }).store.set(
+      wrongCid,
+      { content },
+    );
+
     // Reading should fail verification
     try {
       await cas.get(wrongCid);
@@ -561,7 +598,7 @@ async function testLLMFreezeIntegrity(): Promise<void> {
     const content = 'test content';
     const cid = await cas.put(content);
     const entry = await cas.get(cid);
-    
+
     // Content should be what we stored
     expect(entry.content.toString()).toBe(content);
   });
@@ -573,7 +610,7 @@ async function testLLMFreezeIntegrity(): Promise<void> {
 
 async function testCrossPlatformGolden(): Promise<void> {
   // These tests verify deterministic behavior across platforms
-  
+
   await runTest('golden: path traversal detection is consistent', () => {
     const testCases = [
       { path: '../etc/passwd', expected: true },
@@ -585,9 +622,11 @@ async function testCrossPlatformGolden(): Promise<void> {
       { path: 'file..name.txt', expected: false },
       { path: '...hidden', expected: false },
     ];
-    
+
     for (const testCase of testCases) {
-      const result = containsPathTraversal(testCase.path) || isTraversalAttempt(testCase.path);
+      const result =
+        containsPathTraversal(testCase.path) ||
+        isTraversalAttempt(testCase.path);
       expect(result).toBe(testCase.expected);
     }
   });
@@ -599,7 +638,7 @@ async function testCrossPlatformGolden(): Promise<void> {
       { input: 'file\\with\\backslash', expected: 'file_with_backslash' },
       { input: '..hidden', expected: 'hidden' },
     ];
-    
+
     for (const testCase of testCases) {
       const result = sanitizeRequestId(testCase.input);
       expect(result).toBe(testCase.expected);
@@ -608,11 +647,11 @@ async function testCrossPlatformGolden(): Promise<void> {
 
   await runTest('golden: fingerprint computation is deterministic', () => {
     const data = { score: 0.95, decision: 'approve', nested: { value: 42 } };
-    
+
     const fp1 = computeResultFingerprint(data);
     const fp2 = computeResultFingerprint(data);
     const fp3 = computeResultFingerprint({ ...data });
-    
+
     expect(fp1).toBe(fp2);
     expect(fp1).toBe(fp3);
     expect(fp1).toMatch(/^[a-f0-9]{64}$/i);
@@ -620,11 +659,11 @@ async function testCrossPlatformGolden(): Promise<void> {
 
   await runTest('golden: CID computation is deterministic', () => {
     const content = 'deterministic test content';
-    
+
     const cid1 = computeCID(content);
     const cid2 = computeCID(content);
     const cid3 = computeCID(Buffer.from(content, 'utf8'));
-    
+
     expect(cid1).toBe(cid2);
     expect(cid1).toBe(cid3);
   });
@@ -639,12 +678,16 @@ function expect<T>(value: T) {
   return {
     toBe(expected: T) {
       if (value !== expected) {
-        throw new Error(`Expected ${JSON.stringify(expected)}, got ${JSON.stringify(value)}`);
+        throw new Error(
+          `Expected ${JSON.stringify(expected)}, got ${JSON.stringify(value)}`,
+        );
       }
     },
     toEqual(expected: T) {
       if (JSON.stringify(value) !== JSON.stringify(expected)) {
-        throw new Error(`Expected ${JSON.stringify(expected)}, got ${JSON.stringify(value)}`);
+        throw new Error(
+          `Expected ${JSON.stringify(expected)}, got ${JSON.stringify(value)}`,
+        );
       }
     },
     toBeDefined() {
@@ -684,7 +727,9 @@ function expect<T>(value: T) {
     },
     toHaveLength(expected: number) {
       if (!Array.isArray(value) || value.length !== expected) {
-        throw new Error(`Expected array length ${expected}, got ${(value as unknown[]).length}`);
+        throw new Error(
+          `Expected array length ${expected}, got ${(value as unknown[]).length}`,
+        );
       }
     },
     toThrow(ErrorClass?: new (...args: unknown[]) => Error) {
@@ -696,7 +741,9 @@ function expect<T>(value: T) {
         throw new Error('Expected function to throw');
       } catch (error) {
         if (ErrorClass && !(error instanceof ErrorClass)) {
-          throw new Error(`Expected error to be instance of ${ErrorClass.name}`);
+          throw new Error(
+            `Expected error to be instance of ${ErrorClass.name}`,
+          );
         }
       }
     },
@@ -713,7 +760,9 @@ function expect<T>(value: T) {
       },
       toBe(expected: T) {
         if (value === expected) {
-          throw new Error(`Expected value not to be ${JSON.stringify(expected)}`);
+          throw new Error(
+            `Expected value not to be ${JSON.stringify(expected)}`,
+          );
         }
       },
     },
@@ -755,8 +804,8 @@ async function main(): Promise<void> {
 
   // Summary
   const totalTime = Date.now() - startTime;
-  const passed = results.filter(r => r.passed).length;
-  const failed = results.filter(r => !r.passed).length;
+  const passed = results.filter((r) => r.passed).length;
+  const failed = results.filter((r) => !r.passed).length;
 
   console.log('='.repeat(60));
   console.log('SUMMARY');
@@ -769,7 +818,7 @@ async function main(): Promise<void> {
 
   if (failed > 0) {
     console.log('FAILED TESTS:');
-    for (const result of results.filter(r => !r.passed)) {
+    for (const result of results.filter((r) => !r.passed)) {
       console.log(`  - ${result.name}`);
       if (result.error) {
         console.log(`    ${result.error}`);
@@ -786,7 +835,7 @@ async function main(): Promise<void> {
 
 // Run if executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch(error => {
+  main().catch((error) => {
     console.error('Fatal error:', error);
     process.exit(1);
   });

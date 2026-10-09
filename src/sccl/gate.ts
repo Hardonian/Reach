@@ -13,7 +13,9 @@ interface ScclGateResult {
 
 function hasRunRecords(root: string): boolean {
   const dir = path.join(root, 'dgl', 'sccl', 'run-records');
-  return fs.existsSync(dir) && fs.readdirSync(dir).some((f) => f.endsWith('.json'));
+  return (
+    fs.existsSync(dir) && fs.readdirSync(dir).some((f) => f.endsWith('.json'))
+  );
 }
 
 function hasDuplicateBranchLeases(leases: Lease[]): boolean {
@@ -26,15 +28,29 @@ function hasDuplicateBranchLeases(leases: Lease[]): boolean {
   return false;
 }
 
-export function validateScclGate(root = process.cwd(), opts: { fetch?: boolean } = {}): ScclGateResult {
+export function validateScclGate(
+  root = process.cwd(),
+  opts: { fetch?: boolean } = {},
+): ScclGateResult {
   const manifest = loadWorkspaceManifest(root);
   const state = getRepoState(manifest, root, opts);
   const leases = listLeases(root);
   const failures: string[] = [];
-  if (state.stale_base) failures.push(`stale base: local branch is ${state.stale_commits} commits behind ${manifest.git.remote}/${manifest.git.default_branch}`);
-  if (!hasRunRecords(root)) failures.push('missing run record linking base/head/patch hash');
-  if (hasDuplicateBranchLeases(leases)) failures.push('lease conflict: multiple active leases detected for the same branch');
-  if (manifest.git.required_pr_flow && state.local_branch === manifest.git.default_branch) failures.push('direct-to-main change detected; PR flow required');
+  if (state.stale_base)
+    failures.push(
+      `stale base: local branch is ${state.stale_commits} commits behind ${manifest.git.remote}/${manifest.git.default_branch}`,
+    );
+  if (!hasRunRecords(root))
+    failures.push('missing run record linking base/head/patch hash');
+  if (hasDuplicateBranchLeases(leases))
+    failures.push(
+      'lease conflict: multiple active leases detected for the same branch',
+    );
+  if (
+    manifest.git.required_pr_flow &&
+    state.local_branch === manifest.git.default_branch
+  )
+    failures.push('direct-to-main change detected; PR flow required');
 
   return {
     ok: failures.length === 0,

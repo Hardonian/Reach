@@ -5,20 +5,23 @@
  * - Runs common commands if they exist in package.json scripts.
  * - Exits non-zero if an existing script fails.
  */
-import fs from "node:fs";
-import { spawnSync } from "node:child_process";
+import fs from 'node:fs';
+import { spawnSync } from 'node:child_process';
 
 function readPkg() {
-  const p = "package.json";
+  const p = 'package.json';
   if (!fs.existsSync(p)) {
-    console.log("No package.json found. Nothing to check.");
+    console.log('No package.json found. Nothing to check.');
     process.exit(0);
   }
-  return JSON.parse(fs.readFileSync(p, "utf8"));
+  return JSON.parse(fs.readFileSync(p, 'utf8'));
 }
 
 function run(cmd, args) {
-  const res = spawnSync(cmd, args, { stdio: "inherit", shell: process.platform === "win32" });
+  const res = spawnSync(cmd, args, {
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+  });
   return res.status ?? 0;
 }
 
@@ -26,10 +29,10 @@ const pkg = readPkg();
 const scripts = pkg.scripts || {};
 
 const checks = [
-  ["lint", "pnpm", ["-s", "lint"]],
-  ["typecheck", "pnpm", ["-s", "typecheck"]],
-  ["test", "pnpm", ["-s", "test"]],
-  ["build", "pnpm", ["-s", "build"]],
+  ['lint', 'pnpm', ['-s', 'lint']],
+  ['typecheck', 'pnpm', ['-s', 'typecheck']],
+  ['test', 'pnpm', ['-s', 'test']],
+  ['build', 'pnpm', ['-s', 'build']],
 ];
 
 let failed = 0;

@@ -1,12 +1,12 @@
 /**
  * Requiem Engine Adapter Security Tests
- * 
+ *
  * Tests for security hardening measures:
  * - Binary trust verification
  * - Environment sanitization (secret filtering)
  * - Resource limit enforcement
  * - Path traversal protection
- * 
+ *
  * @module engine/adapters/requiem.test
  */
 
@@ -25,26 +25,33 @@ import { ProtocolClient } from '../../protocol/client';
 // Mock child_process for daemon spawning
 vi.mock('child_process', () => ({
   spawn: vi.fn().mockImplementation(() => ({
-    stdout: { on: vi.fn((event, cb) => { 
-      // Simulate daemon starting immediately
-      if (event === 'data') cb(Buffer.from('listening on socket')); 
-    }) },
+    stdout: {
+      on: vi.fn((event, cb) => {
+        // Simulate daemon starting immediately
+        if (event === 'data') cb(Buffer.from('listening on socket'));
+      }),
+    },
     stderr: { on: vi.fn() },
     on: vi.fn(),
     kill: vi.fn(),
     unref: vi.fn(),
-    pid: 12345
+    pid: 12345,
   })),
   execFile: vi.fn((cmd, args, opts, cb) => {
-    if (typeof opts === 'function') { cb = opts; }
+    if (typeof opts === 'function') {
+      cb = opts;
+    }
     cb(null, { stdout: 'requiem 1.0.0', stderr: '' });
   }),
 }));
 
 // Mock ProtocolClient with spy factory to allow per-test overrides
 vi.mock('../../protocol/client', async () => {
-  const { MockProtocolClient, ConnectionState } = await import('../../../tests/mocks/protocol-client');
-  const ProtocolClientSpy = vi.fn().mockImplementation((config) => new MockProtocolClient(config));
+  const { MockProtocolClient, ConnectionState } =
+    await import('../../../tests/mocks/protocol-client');
+  const ProtocolClientSpy = vi
+    .fn()
+    .mockImplementation((config) => new MockProtocolClient(config));
   return {
     ProtocolClient: ProtocolClientSpy,
     ConnectionState,
@@ -79,9 +86,13 @@ describe('RequiemEngineAdapter Security', () => {
       process.env.NORMAL_VAR = 'normal-value';
 
       const adapter = new RequiemEngineAdapter();
-      
+
       // Access private method via type assertion for testing
-      const sanitized = (adapter as unknown as { buildSanitizedEnv: () => Record<string, string> }).buildSanitizedEnv();
+      const sanitized = (
+        adapter as unknown as {
+          buildSanitizedEnv: () => Record<string, string>;
+        }
+      ).buildSanitizedEnv();
 
       // Secrets should be filtered
       expect(sanitized.REACH_ENCRYPTION_KEY).toBeUndefined();
@@ -90,7 +101,7 @@ describe('RequiemEngineAdapter Security', () => {
 
       // Normal variables should pass through
       expect(sanitized.NORMAL_VAR).toBe('normal-value');
-      
+
       // Safe allowlist should be present
       expect(sanitized.PATH).toBeDefined();
     });
@@ -98,9 +109,11 @@ describe('RequiemEngineAdapter Security', () => {
     it('always includes safe environment variables', () => {
       process.env.PATH = '/usr/bin:/bin';
       process.env.HOME = '/home/user';
-      
+
       const adapter = new RequiemEngineAdapter();
-      const internal = adapter as unknown as { buildSanitizedEnv: () => Record<string, string> };
+      const internal = adapter as unknown as {
+        buildSanitizedEnv: () => Record<string, string>;
+      };
       const sanitized = internal.buildSanitizedEnv();
 
       expect(sanitized.PATH).toBe('/usr/bin:/bin');
@@ -111,18 +124,20 @@ describe('RequiemEngineAdapter Security', () => {
 
     it('identifies secret patterns correctly', () => {
       const secretPatterns = __security__.SECRET_ENV_PATTERNS;
-      
+
       // Should match secrets
-      expect(secretPatterns.some(p => p.test('REACH_ENCRYPTION_KEY'))).toBe(true);
-      expect(secretPatterns.some(p => p.test('API_TOKEN'))).toBe(true);
-      expect(secretPatterns.some(p => p.test('MY_SECRET'))).toBe(true);
-      expect(secretPatterns.some(p => p.test('AUTH_HEADER'))).toBe(true);
-      expect(secretPatterns.some(p => p.test('COOKIE_SESSION'))).toBe(true);
-      
+      expect(secretPatterns.some((p) => p.test('REACH_ENCRYPTION_KEY'))).toBe(
+        true,
+      );
+      expect(secretPatterns.some((p) => p.test('API_TOKEN'))).toBe(true);
+      expect(secretPatterns.some((p) => p.test('MY_SECRET'))).toBe(true);
+      expect(secretPatterns.some((p) => p.test('AUTH_HEADER'))).toBe(true);
+      expect(secretPatterns.some((p) => p.test('COOKIE_SESSION'))).toBe(true);
+
       // Should not match normal vars
-      expect(secretPatterns.some(p => p.test('PATH'))).toBe(false);
-      expect(secretPatterns.some(p => p.test('HOME'))).toBe(false);
-      expect(secretPatterns.some(p => p.test('NODE_ENV'))).toBe(false);
+      expect(secretPatterns.some((p) => p.test('PATH'))).toBe(false);
+      expect(secretPatterns.some((p) => p.test('HOME'))).toBe(false);
+      expect(secretPatterns.some((p) => p.test('NODE_ENV'))).toBe(false);
     });
   });
 
@@ -139,7 +154,7 @@ describe('RequiemEngineAdapter Security', () => {
         params: {
           algorithm: 'minimax_regret',
           actions: Array(5).fill('action'), // 5 actions
-          states: Array(5).fill('state'),   // 5 states = 25 cells (should pass)
+          states: Array(5).fill('state'), // 5 states = 25 cells (should pass)
           outcomes: {},
         },
       };
@@ -155,7 +170,7 @@ describe('RequiemEngineAdapter Security', () => {
         params: {
           algorithm: 'minimax_regret',
           actions: Array(15).fill('action'), // 15 actions
-          states: Array(15).fill('state'),   // 15 states = 225 cells (should fail)
+          states: Array(15).fill('state'), // 15 states = 225 cells (should fail)
           outcomes: {},
         },
       };
@@ -187,11 +202,10 @@ describe('RequiemEngineAdapter Security', () => {
     });
   });
 
-
   describe('Input Validation', () => {
     it('detects path traversal in requestId', () => {
       const adapter = new RequiemEngineAdapter();
-      
+
       const maliciousRequest: ExecRequest = {
         requestId: '../../Windows/System32/pwn',
         timestamp: new Date().toISOString(),
@@ -206,12 +220,19 @@ describe('RequiemEngineAdapter Security', () => {
       const validation = adapter.validateInput(maliciousRequest);
       expect(validation.valid).toBe(false);
       // The validation should detect the path traversal attempt
-      expect(validation.errors?.some(e => e.includes('invalid') || e.includes('path') || e.includes('traversal'))).toBe(true);
+      expect(
+        validation.errors?.some(
+          (e) =>
+            e.includes('invalid') ||
+            e.includes('path') ||
+            e.includes('traversal'),
+        ),
+      ).toBe(true);
     });
 
     it('accepts valid requests', () => {
       const adapter = new RequiemEngineAdapter();
-      
+
       const validRequest: ExecRequest = {
         requestId: 'valid-request-123',
         timestamp: new Date().toISOString(),
@@ -229,7 +250,7 @@ describe('RequiemEngineAdapter Security', () => {
 
     it('rejects floating point values in outcomes', () => {
       const adapter = new RequiemEngineAdapter();
-      
+
       const floatRequest: ExecRequest = {
         requestId: 'float-test-1',
         timestamp: new Date().toISOString(),
@@ -243,14 +264,20 @@ describe('RequiemEngineAdapter Security', () => {
 
       const validation = adapter.validateInput(floatRequest);
       expect(validation.valid).toBe(false);
-      expect(validation.errors?.some(e => e.includes('floating_point_values_detected'))).toBe(true);
+      expect(
+        validation.errors?.some((e) =>
+          e.includes('floating_point_values_detected'),
+        ),
+      ).toBe(true);
     });
   });
 
   describe('Binary Trust Verification', () => {
     it('validates binary path is executable', () => {
       const adapter = new RequiemEngineAdapter();
-      const internal = adapter as unknown as { isExecutable: (path: string) => boolean };
+      const internal = adapter as unknown as {
+        isExecutable: (path: string) => boolean;
+      };
       // Test with a non-executable path
       const result = internal.isExecutable('/nonexistent/path');
       expect(result).toBe(false);
@@ -260,8 +287,10 @@ describe('RequiemEngineAdapter Security', () => {
       const adapter = new RequiemEngineAdapter({
         expectedVersion: '1.0',
       });
-      
-      const internal = adapter as unknown as { versionMatches: (v: string, expected: string) => boolean };
+
+      const internal = adapter as unknown as {
+        versionMatches: (v: string, expected: string) => boolean;
+      };
       expect(internal.versionMatches('1.0.0', '1.0')).toBe(true);
       expect(internal.versionMatches('1.0.5', '1.0')).toBe(true);
       expect(internal.versionMatches('2.0.0', '1.0')).toBe(false);
@@ -272,21 +301,24 @@ describe('RequiemEngineAdapter Security', () => {
 describe('RequiemEngineAdapter Configuration', () => {
   it('handles protocol client connection failure', async () => {
     const adapter = new RequiemEngineAdapter({ allowUnknownEngine: true });
-    
+
     // Override the mock to return a client that fails to connect
-    vi.mocked(ProtocolClient).mockImplementationOnce(() => ({
-      connect: vi.fn().mockRejectedValue(new Error('Connection refused')),
-      disconnect: vi.fn().mockResolvedValue(undefined),
-      execute: vi.fn(),
-      health: vi.fn(),
-      isReady: false,
-      connectionState: 'disconnected',
-      config: {},
-      getStats: vi.fn(),
-    } as any));
+    vi.mocked(ProtocolClient).mockImplementationOnce(
+      () =>
+        ({
+          connect: vi.fn().mockRejectedValue(new Error('Connection refused')),
+          disconnect: vi.fn().mockResolvedValue(undefined),
+          execute: vi.fn(),
+          health: vi.fn(),
+          isReady: false,
+          connectionState: 'disconnected',
+          config: {},
+          getStats: vi.fn(),
+        }) as any,
+    );
 
     const result = await adapter.configure();
-    
+
     expect(result).toBe(false);
     expect(ProtocolClient).toHaveBeenCalled();
   });
@@ -302,7 +334,7 @@ describe('RequiemEngineAdapter Integration', () => {
   it('singleton instance works correctly', () => {
     const instance1 = getRequiemEngine();
     const instance2 = getRequiemEngine();
-    
+
     expect(instance1).toBe(instance2);
   });
 });

@@ -12,30 +12,58 @@ describe('semantic adapters', () => {
   });
 
   it('detects API schema property removals with lines', () => {
-    const base = JSON.stringify({ properties: { a: { type: 'string' }, b: { type: 'number' } } }, null, 2);
-    const head = JSON.stringify({ properties: { a: { type: 'string' } } }, null, 2);
-    const violations = diffApiContract('protocol/schemas/events.schema.json', base, head);
+    const base = JSON.stringify(
+      { properties: { a: { type: 'string' }, b: { type: 'number' } } },
+      null,
+      2,
+    );
+    const head = JSON.stringify(
+      { properties: { a: { type: 'string' } } },
+      null,
+      2,
+    );
+    const violations = diffApiContract(
+      'protocol/schemas/events.schema.json',
+      base,
+      head,
+    );
     expect(violations.some((v) => v.severity === 'error')).toBe(true);
     expect(violations[0]?.line).toBeGreaterThan(0);
   });
 
   it('detects nested required and enum drift', () => {
-    const base = JSON.stringify({
-      properties: {
-        status: { enum: ['new', 'done'] },
+    const base = JSON.stringify(
+      {
+        properties: {
+          status: { enum: ['new', 'done'] },
+        },
+        required: ['status', 'id'],
       },
-      required: ['status', 'id'],
-    }, null, 2);
-    const head = JSON.stringify({
-      properties: {
-        status: { enum: ['new', 'in_progress'] },
+      null,
+      2,
+    );
+    const head = JSON.stringify(
+      {
+        properties: {
+          status: { enum: ['new', 'in_progress'] },
+        },
+        required: ['status'],
       },
-      required: ['status'],
-    }, null, 2);
+      null,
+      2,
+    );
 
-    const violations = diffApiContract('protocol/schemas/example.schema.json', base, head);
-    expect(violations.some((v) => v.evidence.includes('Required field removed'))).toBe(true);
-    expect(violations.some((v) => v.evidence.includes('Enum value removed'))).toBe(true);
+    const violations = diffApiContract(
+      'protocol/schemas/example.schema.json',
+      base,
+      head,
+    );
+    expect(
+      violations.some((v) => v.evidence.includes('Required field removed')),
+    ).toBe(true);
+    expect(
+      violations.some((v) => v.evidence.includes('Enum value removed')),
+    ).toBe(true);
   });
 
   it('detects OpenAPI path removal from yaml', () => {
@@ -54,8 +82,13 @@ paths:
     get:
       description: list runs
 `;
-    const violations = diffApiContract('openapi/reach.openapi.yaml', base, head);
-    expect(violations.some((v) => v.evidence.includes('OpenAPI path removed'))).toBe(true);
+    const violations = diffApiContract(
+      'openapi/reach.openapi.yaml',
+      base,
+      head,
+    );
+    expect(
+      violations.some((v) => v.evidence.includes('OpenAPI path removed')),
+    ).toBe(true);
   });
-
 });

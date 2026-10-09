@@ -1,5 +1,5 @@
-import { execFile } from "node:child_process";
-import { resolve } from "node:path";
+import { execFile } from 'node:child_process';
+import { resolve } from 'node:path';
 
 export interface CliResult {
   ok: boolean;
@@ -8,11 +8,11 @@ export interface CliResult {
   code: number | null;
 }
 
-const REACH_CLI = resolve(process.cwd(), "reach");
+const REACH_CLI = resolve(process.cwd(), 'reach');
 
 export async function runCli(
   args: string[],
-  options?: { cwd?: string; env?: Record<string, string> }
+  options?: { cwd?: string; env?: Record<string, string> },
 ): Promise<CliResult> {
   return new Promise((resolve) => {
     execFile(
@@ -23,7 +23,7 @@ export async function runCli(
         env: {
           ...process.env,
           ...options?.env,
-          NODE_ENV: "test",
+          NODE_ENV: 'test',
         },
       },
       (error, stdout, stderr) => {
@@ -31,16 +31,20 @@ export async function runCli(
           ok: !error,
           stdout,
           stderr,
-          code: error ? (typeof error.code === "number" ? error.code : null) : 0,
+          code: error
+            ? typeof error.code === 'number'
+              ? error.code
+              : null
+            : 0,
         });
-      }
+      },
     );
   });
 }
 
 export async function runCliJson(
   args: string[],
-  options?: { cwd?: string; env?: Record<string, string> }
+  options?: { cwd?: string; env?: Record<string, string> },
 ): Promise<{ ok: boolean; data: any; stderr: string }> {
   const result = await runCli([...args], options);
   if (!result.stdout) {
@@ -51,6 +55,10 @@ export async function runCliJson(
     const data = JSON.parse(result.stdout);
     return { ok: result.ok, data, stderr: result.stderr };
   } catch (parseError: any) {
-    return { ok: false, data: null, stderr: `JSON parse error: ${parseError.message}\n${result.stderr}` };
+    return {
+      ok: false,
+      data: null,
+      stderr: `JSON parse error: ${parseError.message}\n${result.stderr}`,
+    };
   }
 }

@@ -22,7 +22,9 @@ export const VARIANT_COOKIE = 'rl_variant';
  * Server-side: resolve variant from request params/cookie.
  * Pass `searchParams` from Next.js page props.
  */
-export function resolveVariant(searchParams?: Record<string, string | string[] | undefined>): Variant {
+export function resolveVariant(
+  searchParams?: Record<string, string | string[] | undefined>,
+): Variant {
   // 1. Query param override (dev + preview)
   const param = searchParams?.['variant'];
   const paramVal = Array.isArray(param) ? param[0] : param;
@@ -37,7 +39,9 @@ export function resolveVariant(searchParams?: Record<string, string | string[] |
  */
 export function getClientVariant(): Variant {
   if (typeof document === 'undefined') return 'A';
-  const match = document.cookie.match(new RegExp(`(?:^|; )${VARIANT_COOKIE}=([AB])`));
+  const match = document.cookie.match(
+    new RegExp(`(?:^|; )${VARIANT_COOKIE}=([AB])`),
+  );
   if (match) return match[1] as Variant;
 
   // Assign randomly (50/50) and persist for 30 days

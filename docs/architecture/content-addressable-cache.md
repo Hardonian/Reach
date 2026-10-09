@@ -1,6 +1,6 @@
 # Content-Addressable Storage (CAS)
 
-> **Status:** Implemented  
+> **Status:** Implemented
 > **Last Updated:** 2026-02-27
 
 ## Overview
@@ -9,12 +9,12 @@ The Reach Content-Addressable Storage (CAS) provides immutable, content-addresse
 
 ## Object Types
 
-| Type | Description | Use Case |
-|------|-------------|-----------|
-| `transcript` | Execution transcript data | Replay verification |
+| Type              | Description               | Use Case              |
+| ----------------- | ------------------------- | --------------------- |
+| `transcript`      | Execution transcript data | Replay verification   |
 | `canonical-bytes` | Canonical memory payloads | Deterministic hashing |
-| `bundle-manifest` | Pack/bundle manifests | Pack verification |
-| `step-proof` | Individual step proofs | Evidence chain |
+| `bundle-manifest` | Pack/bundle manifests     | Pack verification     |
+| `step-proof`      | Individual step proofs    | Evidence chain        |
 
 ## Implementation
 
@@ -42,12 +42,12 @@ type CASConfig struct {
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `REACH_CAS_MAX_SIZE_BYTES` | 10737418240 | Max CAS size (10GB) |
-| `REACH_CAS_EVICTION_POLICY` | none | Eviction: none/lru/size-cap |
-| `REACH_CAS_LRU_WINDOW` | 24h | LRU retention window |
-| `REACH_CAS_ATOMIC_WRITES` | true | Enable atomic writes |
+| Variable                    | Default     | Description                 |
+| --------------------------- | ----------- | --------------------------- |
+| `REACH_CAS_MAX_SIZE_BYTES`  | 10737418240 | Max CAS size (10GB)         |
+| `REACH_CAS_EVICTION_POLICY` | none        | Eviction: none/lru/size-cap |
+| `REACH_CAS_LRU_WINDOW`      | 24h         | LRU retention window        |
+| `REACH_CAS_ATOMIC_WRITES`   | true        | Enable atomic writes        |
 
 ## Eviction Policies
 
@@ -58,6 +58,7 @@ No automatic eviction. CAS grows until manually cleaned.
 ### LRU (Least Recently Used)
 
 Evicts objects outside the configured LRU window:
+
 - `LRUWindow` defines retention period (default: 24h)
 - Access time tracked on every read
 - Objects not accessed within window are candidates for eviction
@@ -65,6 +66,7 @@ Evicts objects outside the configured LRU window:
 ### Size-Cap
 
 Enforces maximum CAS size:
+
 - When total size exceeds `MaxCASSizeBytes`, evicts LRU objects
 - Continues evicting until under limit
 

@@ -14,9 +14,7 @@ const TOXIC_IMPORTS = [
 ];
 
 // Exceptions: Adapters explicitly designed for cloud injection
-const ALLOWED_PATHS = [
-  'services/runner/internal/adapters/cloud',
-];
+const ALLOWED_PATHS = ['services/runner/internal/adapters/cloud'];
 
 function walk(dir: string, callback: (file: string) => void) {
   if (!fs.existsSync(dir)) return;
@@ -36,9 +34,9 @@ let errors = 0;
 
 walk(RUNNER_ROOT, (file) => {
   const relPath = path.relative(ROOT, file).replace(/\\/g, '/');
-  
+
   // Skip allowed paths
-  if (ALLOWED_PATHS.some(allowed => relPath.includes(allowed))) return;
+  if (ALLOWED_PATHS.some((allowed) => relPath.includes(allowed))) return;
 
   const content = fs.readFileSync(file, 'utf-8');
 
@@ -46,7 +44,9 @@ walk(RUNNER_ROOT, (file) => {
     if (content.includes(`"${toxic}`)) {
       console.error(`[PURITY VIOLATION] ${relPath}`);
       console.error(`  Imported Cloud SDK: ${toxic}`);
-      console.error(`  Remediation: Use an interface in internal/adapters and inject implementation at runtime.`);
+      console.error(
+        `  Remediation: Use an interface in internal/adapters and inject implementation at runtime.`,
+      );
       errors++;
     }
   }

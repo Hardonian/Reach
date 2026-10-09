@@ -1,11 +1,11 @@
 export function executeDecision(input: any): any {
   return {
     transcript: {
-      transcript_id: "shim",
-      transcript_hash: "shim",
+      transcript_id: 'shim',
+      transcript_hash: 'shim',
       inputs: input,
-      timestamp: Date.now()
-    }
+      timestamp: Date.now(),
+    },
   };
 }
 

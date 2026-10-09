@@ -12,15 +12,15 @@ This document defines the machine-enforced import boundaries between Reach compo
 
 **Path**: `core/`
 
-| Forbidden | Allowed Alternative | Reason |
-| :--- | :--- | :--- |
-| `cloud/` | Interface stubs only | Core must be cloud-free |
-| `services/billing` | `BillingProvider` interface | Billing behind adapter |
-| `stripe` | OSS stub | No payment SDK in core |
-| `auth0` | `AuthProvider` interface | Auth behind adapter |
-| `@google-cloud` | Local FS adapter | No cloud storage in OSS |
-| `aws-sdk` | `ArtifactStore` interface | S3 behind adapter |
-| `azure*` | Local fallback | No Azure SDK in core |
+| Forbidden          | Allowed Alternative         | Reason                  |
+| :----------------- | :-------------------------- | :---------------------- |
+| `cloud/`           | Interface stubs only        | Core must be cloud-free |
+| `services/billing` | `BillingProvider` interface | Billing behind adapter  |
+| `stripe`           | OSS stub                    | No payment SDK in core  |
+| `auth0`            | `AuthProvider` interface    | Auth behind adapter     |
+| `@google-cloud`    | Local FS adapter            | No cloud storage in OSS |
+| `aws-sdk`          | `ArtifactStore` interface   | S3 behind adapter       |
+| `azure*`           | Local fallback              | No Azure SDK in core    |
 
 ---
 
@@ -28,12 +28,12 @@ This document defines the machine-enforced import boundaries between Reach compo
 
 **Path**: `services/runner/cmd/reachctl`
 
-| Forbidden | Allowed Alternative | Reason |
-| :--- | :--- | :--- |
-| `apps/arcade` | None (CLI is standalone) | CLI must not depend on web |
-| `next` | None | No Next.js in CLI |
-| `react` / `react-dom` | None | No frontend deps in CLI |
-| `stripe` | Error stub | No billing in CLI |
+| Forbidden             | Allowed Alternative      | Reason                     |
+| :-------------------- | :----------------------- | :------------------------- |
+| `apps/arcade`         | None (CLI is standalone) | CLI must not depend on web |
+| `next`                | None                     | No Next.js in CLI          |
+| `react` / `react-dom` | None                     | No frontend deps in CLI    |
+| `stripe`              | Error stub               | No billing in CLI          |
 
 ---
 
@@ -42,6 +42,7 @@ This document defines the machine-enforced import boundaries between Reach compo
 **Paths**: `core/`, `services/runner/`, `protocol/`
 
 No file in these paths may import:
+
 - `stripe` or `@stripe/*`
 - `auth0` or `@auth0/*`
 - `@google-cloud/*`
@@ -56,11 +57,11 @@ Verified by: `npm run validate:oss-purity`
 
 **Path**: `apps/*`
 
-| Rule | Reason |
-| :--- | :--- |
-| Must not directly mutate core execution state | Use protocol interfaces |
+| Rule                                                                        | Reason                            |
+| :-------------------------------------------------------------------------- | :-------------------------------- |
+| Must not directly mutate core execution state                               | Use protocol interfaces           |
 | Cloud SDK imports must be inside dynamic imports guarded by `REACH_CLOUD=1` | OSS mode must not load cloud SDKs |
-| Must handle `REACH_CLOUD` unset gracefully | Show OSS mode UI without crashing |
+| Must handle `REACH_CLOUD` unset gracefully                                  | Show OSS mode UI without crashing |
 
 ---
 

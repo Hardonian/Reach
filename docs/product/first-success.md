@@ -27,39 +27,39 @@ This definition is the source of truth for landing copy, app flows, docs, and OS
 
 These event names are the canonical identifiers for analytics, funnels, and A/B tests.
 
-| Event | When fired | Key properties |
-|---|---|---|
-| `first_success_demo_run_started` | User clicks "Run Demo Check" on `/playground` | `variant_id`, `source` |
-| `first_success_demo_run_completed` | Demo result card rendered | `variant_id`, `result_status`, `duration_ms` |
-| `first_success_saved_run_completed` | Post-signup run saved to workspace | `user_id`, `tenant_id`, `result_status` |
-| `signup_started` | User clicks any signup CTA | `source`, `method` (github/magic_link/email), `variant_id` |
-| `signup_completed` | Account created successfully | `user_id`, `method` |
-| `oauth_signup_completed` | GitHub OAuth flow finished | `user_id` |
-| `magic_link_signup_completed` | Magic link flow finished | `user_id` |
-| `onboarding_checklist_completed` | All 5 checklist steps done | `user_id`, `tenant_id`, `duration_ms` |
+| Event                               | When fired                                    | Key properties                                             |
+| ----------------------------------- | --------------------------------------------- | ---------------------------------------------------------- |
+| `first_success_demo_run_started`    | User clicks "Run Demo Check" on `/playground` | `variant_id`, `source`                                     |
+| `first_success_demo_run_completed`  | Demo result card rendered                     | `variant_id`, `result_status`, `duration_ms`               |
+| `first_success_saved_run_completed` | Post-signup run saved to workspace            | `user_id`, `tenant_id`, `result_status`                    |
+| `signup_started`                    | User clicks any signup CTA                    | `source`, `method` (github/magic_link/email), `variant_id` |
+| `signup_completed`                  | Account created successfully                  | `user_id`, `method`                                        |
+| `oauth_signup_completed`            | GitHub OAuth flow finished                    | `user_id`                                                  |
+| `magic_link_signup_completed`       | Magic link flow finished                      | `user_id`                                                  |
+| `onboarding_checklist_completed`    | All 5 checklist steps done                    | `user_id`, `tenant_id`, `duration_ms`                      |
 
 ---
 
 ## Time-to-Value Targets
 
-| Milestone | Target |
-|---|---|
-| Visitor understands problem + solution | < 10 seconds |
+| Milestone                               | Target       |
+| --------------------------------------- | ------------ |
+| Visitor understands problem + solution  | < 10 seconds |
 | Visitor runs meaningful demo (no login) | < 30 seconds |
-| User reaches first success post-signup | < 2 minutes |
-| Onboarding checklist complete | < 5 minutes |
+| User reaches first success post-signup  | < 2 minutes  |
+| Onboarding checklist complete           | < 5 minutes  |
 
 ---
 
 ## Consistent Framing Across Surfaces
 
-| Surface | First-success framing |
-|---|---|
-| Homepage hero | "Run a demo (free)" → `/playground` |
-| Playground | "Run Demo Check (30s)" button |
-| Post-signup | Onboarding checklist step 1: "Run demo check" |
-| Docs quickstart | "Run your first check" command |
-| OSS README | "60-second local demo" |
+| Surface         | First-success framing                         |
+| --------------- | --------------------------------------------- |
+| Homepage hero   | "Run a demo (free)" → `/playground`           |
+| Playground      | "Run Demo Check (30s)" button                 |
+| Post-signup     | Onboarding checklist step 1: "Run demo check" |
+| Docs quickstart | "Run your first check" command                |
+| OSS README      | "60-second local demo"                        |
 
 ---
 

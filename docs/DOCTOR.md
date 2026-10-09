@@ -1,7 +1,9 @@
 # reach doctor `reach doctor` is the single authoritative health command for trust + hardening checks.
 
 ## Run ```bash
+
 ./reach doctor
+
 ```
 
 ## What it validates - Registry source configuration wiring.
@@ -16,3 +18,4 @@
   - `[OK] <check>`
   - `[FAIL] <check>` with a short remediation line.
 - Non-zero exit when any check fails.
+```

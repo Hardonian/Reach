@@ -8,14 +8,14 @@ import * as path from 'node:path';
 async function main() {
   try {
     console.log('🏥 Running reach doctor (Go) with --json...');
-    
+
     let stdout = '';
     try {
       // Execute the Go module in the tools/doctor directory where main.go lives
       stdout = execSync('go run . --json', {
         cwd: path.join(__dirname, 'tools', 'doctor'),
         encoding: 'utf-8',
-        stdio: ['ignore', 'pipe', 'inherit'] // Capture stdout, let stderr flow
+        stdio: ['ignore', 'pipe', 'inherit'], // Capture stdout, let stderr flow
       });
     } catch (e: any) {
       // If exit code is 1 (failures found), stdout is still populated
@@ -35,12 +35,22 @@ async function main() {
 
     // Verify required checks exist
     const requiredChecks = [
-      'git installed', 'go installed', 'docker installed', 'node version',
-      'npm installed', 'make installed', 'python3 installed', 'cargo (rust) installed',
-      'protoc installed', 'jq installed', 'curl installed'
+      'git installed',
+      'go installed',
+      'docker installed',
+      'node version',
+      'npm installed',
+      'make installed',
+      'python3 installed',
+      'cargo (rust) installed',
+      'protoc installed',
+      'jq installed',
+      'curl installed',
     ];
     const foundCheckNames = report.checks.map((c: any) => c.name.toLowerCase());
-    const missingChecks = requiredChecks.filter(req => !foundCheckNames.some((name: string) => name.includes(req)));
+    const missingChecks = requiredChecks.filter(
+      (req) => !foundCheckNames.some((name: string) => name.includes(req)),
+    );
     if (missingChecks.length > 0) {
       console.error('❌ Missing expected checks:', missingChecks);
       process.exit(1);
@@ -49,7 +59,9 @@ async function main() {
     if (report.failures > 0) {
       console.error('❌ Doctor checks failed:');
       const failures = report.checks.filter((c: any) => c.status === 'FAIL');
-      failures.forEach((f: any) => console.error(`   [${f.name}] ${f.detail || ''}`));
+      failures.forEach((f: any) =>
+        console.error(`   [${f.name}] ${f.detail || ''}`),
+      );
       process.exit(1);
     }
 

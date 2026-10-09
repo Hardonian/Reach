@@ -1,6 +1,6 @@
 # Fixed-Point Arithmetic Contract
 
-> **Status:** Implemented  
+> **Status:** Implemented
 > **Last Updated:** 2026-02-27
 
 ## Overview
@@ -37,7 +37,7 @@ When precise decimal values are needed, use string representations:
 input := map[string]any{"price": "19.99"}
 Hash(input) // → consistent
 
-// ✓ ACCEPTABLE: Integer for whole numbers  
+// ✓ ACCEPTABLE: Integer for whole numbers
 input := map[string]any{"count": 100}
 Hash(input) // → consistent
 ```
@@ -78,7 +78,7 @@ func TestFixedPointNoFloatConversions(t *testing.T) {
     input := map[string]any{"value": 100}
     hash1 := Hash(input)
     hash2 := Hash(input)
-    
+
     if hash1 != hash2 {
         t.Error("Integer hashing must be deterministic")
     }

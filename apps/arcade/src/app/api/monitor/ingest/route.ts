@@ -20,7 +20,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(MonitorIngestSchema, body);
   if ('errors' in parsed) {
-    return NextResponse.json({ error: parsed.errors.issues[0]?.message ?? 'Invalid input' }, { status: 400 });
+    return NextResponse.json(
+      { error: parsed.errors.issues[0]?.message ?? 'Invalid input' },
+      { status: 400 },
+    );
   }
 
   const { signal_id, value, metadata } = parsed.data;
@@ -34,16 +37,25 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const alertTriggered = shouldAlert(signal, value);
-  const monitorRun = createMonitorRun(ctx.tenantId, signal_id, value, metadata, alertTriggered);
+  const monitorRun = createMonitorRun(
+    ctx.tenantId,
+    signal_id,
+    value,
+    metadata,
+    alertTriggered,
+  );
 
   // Dispatch alerts asynchronously
   if (alertTriggered) {
     void dispatchAlerts(ctx.tenantId, signal, monitorRun).catch(() => {});
   }
 
-  return NextResponse.json({
-    monitor_run_id: monitorRun.id,
-    alert_triggered: alertTriggered,
-    created_at: monitorRun.created_at,
-  }, { status: 201 });
+  return NextResponse.json(
+    {
+      monitor_run_id: monitorRun.id,
+      alert_triggered: alertTriggered,
+      created_at: monitorRun.created_at,
+    },
+    { status: 201 },
+  );
 }

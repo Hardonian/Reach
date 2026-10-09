@@ -1,6 +1,6 @@
 /**
  * Decide CLI Module
- * 
+ *
  * Commands:
  * - reach decide evaluate --junction <id>
  * - reach decide explain --junction <id>
@@ -87,10 +87,12 @@ export async function runDecideCommand(args: DecideCliArgs): Promise<number> {
     }
   } catch (error) {
     if (args.json) {
-      console.error(JSON.stringify({
-        error: (error as Error).message,
-        code: 'E_INTERNAL',
-      }));
+      console.error(
+        JSON.stringify({
+          error: (error as Error).message,
+          code: 'E_INTERNAL',
+        }),
+      );
     } else {
       console.error(`Error: ${(error as Error).message}`);
     }
@@ -107,11 +109,13 @@ async function handleEvaluate(args: DecideCliArgs): Promise<number> {
   const junction = JunctionRepository.findById(args.junctionId);
   if (!junction) {
     if (args.json) {
-      console.log(JSON.stringify({
-        error: 'Junction not found',
-        code: 'E_NOT_FOUND',
-        id: args.junctionId,
-      }));
+      console.log(
+        JSON.stringify({
+          error: 'Junction not found',
+          code: 'E_NOT_FOUND',
+          id: args.junctionId,
+        }),
+      );
     } else {
       console.log(`Junction not found: ${args.junctionId}`);
     }
@@ -120,7 +124,7 @@ async function handleEvaluate(args: DecideCliArgs): Promise<number> {
 
   // Parse trigger data to build decision input
   const triggerData = JSON.parse(junction.trigger_data);
-  
+
   // Build a simple decision input from the junction data
   const decisionInput: DecisionInput = {
     actions: ['accept', 'reject', 'defer', 'investigate'],
@@ -130,7 +134,7 @@ async function handleEvaluate(args: DecideCliArgs): Promise<number> {
   };
 
   const result = await evaluateDecision(decisionInput);
-  
+
   // Create decision report
   const decisionReport = DecisionRepository.create({
     source_type: junction.source_type as any,
@@ -147,11 +151,17 @@ async function handleEvaluate(args: DecideCliArgs): Promise<number> {
   JunctionRepository.linkToDecision(junction.id, decisionReport.id);
 
   if (args.json) {
-    console.log(JSON.stringify({
-      command: 'evaluate',
-      decisionReport: formatDecisionReport(decisionReport),
-      evaluation: result,
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          command: 'evaluate',
+          decisionReport: formatDecisionReport(decisionReport),
+          evaluation: result,
+        },
+        null,
+        2,
+      ),
+    );
   } else {
     console.log(`\n=== Decision Evaluation ===\n`);
     console.log(`Junction: ${junction.junction_type}`);
@@ -176,11 +186,13 @@ async function handleExplain(args: DecideCliArgs): Promise<number> {
   const junction = JunctionRepository.findById(args.junctionId);
   if (!junction) {
     if (args.json) {
-      console.log(JSON.stringify({
-        error: 'Junction not found',
-        code: 'E_NOT_FOUND',
-        id: args.junctionId,
-      }));
+      console.log(
+        JSON.stringify({
+          error: 'Junction not found',
+          code: 'E_NOT_FOUND',
+          id: args.junctionId,
+        }),
+      );
     } else {
       console.log(`Junction not found: ${args.junctionId}`);
     }
@@ -191,24 +203,34 @@ async function handleExplain(args: DecideCliArgs): Promise<number> {
   const triggerData = JSON.parse(junction.trigger_data);
 
   if (args.json) {
-    console.log(JSON.stringify({
-      command: 'explain',
-      junctionId: junction.id,
-      type: junction.junction_type,
-      sourceRef: junction.source_ref,
-      severityScore: junction.severity_score,
-      explanation: generateExplanation(junction, triggerTrace, triggerData),
-      trace: triggerTrace,
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          command: 'explain',
+          junctionId: junction.id,
+          type: junction.junction_type,
+          sourceRef: junction.source_ref,
+          severityScore: junction.severity_score,
+          explanation: generateExplanation(junction, triggerTrace, triggerData),
+          trace: triggerTrace,
+        },
+        null,
+        2,
+      ),
+    );
   } else {
     console.log(`\n=== Decision Explanation ===\n`);
     console.log(`Junction: ${junction.junction_type}`);
     console.log(`Severity Score: ${junction.severity_score.toFixed(2)}`);
     console.log(`\n--- Why This Action Won ---`);
-    
-    const explanation = generateExplanation(junction, triggerTrace, triggerData);
+
+    const explanation = generateExplanation(
+      junction,
+      triggerTrace,
+      triggerData,
+    );
     console.log(explanation.summary);
-    
+
     console.log(`\n--- Trigger Trace ---`);
     console.log(JSON.stringify(triggerTrace, null, 2));
   }
@@ -230,11 +252,13 @@ async function handleOutcome(args: DecideCliArgs): Promise<number> {
   const decision = DecisionRepository.findById(args.decisionId);
   if (!decision) {
     if (args.json) {
-      console.log(JSON.stringify({
-        error: 'Decision not found',
-        code: 'E_NOT_FOUND',
-        id: args.decisionId,
-      }));
+      console.log(
+        JSON.stringify({
+          error: 'Decision not found',
+          code: 'E_NOT_FOUND',
+          id: args.decisionId,
+        }),
+      );
     } else {
       console.log(`Decision not found: ${args.decisionId}`);
     }
@@ -246,7 +270,8 @@ async function handleOutcome(args: DecideCliArgs): Promise<number> {
   if (decision.decision_output) {
     const output = JSON.parse(decision.decision_output);
     const predictedScore = getPredictedScore(output);
-    const actualScore = args.status === 'success' ? 1.0 : args.status === 'failure' ? 0.0 : 0.5;
+    const actualScore =
+      args.status === 'success' ? 1.0 : args.status === 'failure' ? 0.0 : 0.5;
     calibrationDelta = actualScore - predictedScore;
   }
 
@@ -255,18 +280,29 @@ async function handleOutcome(args: DecideCliArgs): Promise<number> {
     outcome_status: args.status,
     outcome_notes: args.notes || null,
     calibration_delta: calibrationDelta,
-    status: args.status === 'success' ? 'accepted' : args.status === 'failure' ? 'rejected' : 'reviewed',
+    status:
+      args.status === 'success'
+        ? 'accepted'
+        : args.status === 'failure'
+          ? 'rejected'
+          : 'reviewed',
   });
 
   if (args.json) {
-    console.log(JSON.stringify({
-      command: 'outcome',
-      decisionId: args.decisionId,
-      status: args.status,
-      notes: args.notes,
-      calibrationDelta,
-      message: 'Outcome recorded successfully',
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          command: 'outcome',
+          decisionId: args.decisionId,
+          status: args.status,
+          notes: args.notes,
+          calibrationDelta,
+          message: 'Outcome recorded successfully',
+        },
+        null,
+        2,
+      ),
+    );
   } else {
     console.log(`\n=== Outcome Recorded ===\n`);
     console.log(`Decision ID: ${args.decisionId}`);
@@ -289,15 +325,21 @@ async function handleList(args: DecideCliArgs): Promise<number> {
   });
 
   if (args.json) {
-    console.log(JSON.stringify({
-      command: 'list',
-      count: decisions.length,
-      decisions: decisions.map(d => formatDecisionReport(d)),
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          command: 'list',
+          count: decisions.length,
+          decisions: decisions.map((d) => formatDecisionReport(d)),
+        },
+        null,
+        2,
+      ),
+    );
   } else {
     console.log(`\n=== Decision Reports ===\n`);
     console.log(`Total: ${decisions.length} decision(s)\n`);
-    
+
     for (const decision of decisions) {
       const output = formatDecisionReport(decision);
       console.log(`[${output.status.toUpperCase()}] ${output.id}`);
@@ -320,11 +362,13 @@ async function handleShow(args: DecideCliArgs): Promise<number> {
   const decision = DecisionRepository.findById(args.decisionId);
   if (!decision) {
     if (args.json) {
-      console.log(JSON.stringify({
-        error: 'Decision not found',
-        code: 'E_NOT_FOUND',
-        id: args.decisionId,
-      }));
+      console.log(
+        JSON.stringify({
+          error: 'Decision not found',
+          code: 'E_NOT_FOUND',
+          id: args.decisionId,
+        }),
+      );
     } else {
       console.log(`Decision not found: ${args.decisionId}`);
     }
@@ -332,10 +376,16 @@ async function handleShow(args: DecideCliArgs): Promise<number> {
   }
 
   if (args.json) {
-    console.log(JSON.stringify({
-      command: 'show',
-      decision: formatDecisionReport(decision, true),
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          command: 'show',
+          decision: formatDecisionReport(decision, true),
+        },
+        null,
+        2,
+      ),
+    );
   } else {
     const output = formatDecisionReport(decision, true);
     console.log(`\n=== Decision Details ===\n`);
@@ -348,23 +398,23 @@ async function handleShow(args: DecideCliArgs): Promise<number> {
     console.log(`Fingerprint: ${output.input_fingerprint}`);
     console.log(`Created: ${output.created_at}`);
     console.log(`Updated: ${output.updated_at}`);
-    
+
     if (output.outcome_notes) {
       console.log(`\nOutcome Notes: ${output.outcome_notes}`);
     }
-    
+
     if (output.calibration_delta !== null) {
       console.log(`Calibration Delta: ${output.calibration_delta}`);
     }
-    
+
     console.log('\n--- Decision Input ---');
     console.log(JSON.stringify(JSON.parse(output.decision_input), null, 2));
-    
+
     if (output.decision_output) {
       console.log('\n--- Decision Output ---');
       console.log(JSON.stringify(JSON.parse(output.decision_output), null, 2));
     }
-    
+
     // Show linked action intents
     const intents = ActionIntentRepository.findByDecisionReport(decision.id);
     if (intents.length > 0) {
@@ -378,7 +428,10 @@ async function handleShow(args: DecideCliArgs): Promise<number> {
 
 // Helper functions
 
-function buildOutcomeMatrix(triggerData: any, severity: number): Record<string, Record<string, number>> {
+function buildOutcomeMatrix(
+  triggerData: any,
+  severity: number,
+): Record<string, Record<string, number>> {
   // Build a simple outcome matrix based on trigger data
   return {
     accept: { critical: 1 - severity, high: 0.8, medium: 0.9, low: 1.0 },
@@ -391,31 +444,41 @@ function buildOutcomeMatrix(triggerData: any, severity: number): Record<string, 
 function getPredictedScore(output: DecisionOutput): number {
   // Simplified - in a real system this would be more sophisticated
   const rank = output.ranking.indexOf(output.recommended_action);
-  return 1.0 - (rank * 0.25);
+  return 1.0 - rank * 0.25;
 }
 
-function generateExplanation(junction: any, triggerTrace: any, triggerData: any): { summary: string; factors: string[] } {
+function generateExplanation(
+  junction: any,
+  triggerTrace: any,
+  triggerData: any,
+): { summary: string; factors: string[] } {
   const factors: string[] = [];
-  
+
   // Add severity factor
   factors.push(`Severity score: ${junction.severity_score.toFixed(2)}`);
-  
+
   // Add trigger-specific factors
   if (junction.junction_type === 'diff_critical') {
-    factors.push(`Files changed: ${triggerData.diffSummary?.filesChanged || 'N/A'}`);
-    factors.push(`Breaking changes: ${triggerData.diffSummary?.breakingChanges?.length || 0}`);
+    factors.push(
+      `Files changed: ${triggerData.diffSummary?.filesChanged || 'N/A'}`,
+    );
+    factors.push(
+      `Breaking changes: ${triggerData.diffSummary?.breakingChanges?.length || 0}`,
+    );
   } else if (junction.junction_type === 'drift_alert') {
     factors.push(`Drift category: ${triggerData.driftCategory || 'N/A'}`);
     factors.push(`Trend: ${triggerData.trend || 'N/A'}`);
   } else if (junction.junction_type === 'trust_drop') {
-    factors.push(`Trust drop: ${triggerData.previousTrustScore - triggerData.currentTrustScore}`);
+    factors.push(
+      `Trust drop: ${triggerData.previousTrustScore - triggerData.currentTrustScore}`,
+    );
   } else if (junction.junction_type === 'policy_violation') {
     factors.push(`Violation count: ${triggerData.violationCount || 0}`);
     factors.push(`Severity: ${triggerData.violationSeverity || 'N/A'}`);
   }
-  
+
   const summary = `This ${junction.junction_type} junction was triggered based on the computed severity score of ${junction.severity_score.toFixed(2)}. The decision engine recommends reviewing the evidence and taking appropriate action.`;
-  
+
   return { summary, factors };
 }
 
@@ -431,7 +494,7 @@ function formatDecisionReport(decision: any, verbose: boolean = false): any {
     created_at: decision.created_at,
     updated_at: decision.updated_at,
   };
-  
+
   if (verbose) {
     output.decision_input = decision.decision_input;
     output.decision_output = decision.decision_output;
@@ -439,6 +502,6 @@ function formatDecisionReport(decision: any, verbose: boolean = false): any {
     output.outcome_notes = decision.outcome_notes;
     output.calibration_delta = decision.calibration_delta;
   }
-  
+
   return output;
 }

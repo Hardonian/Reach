@@ -2,7 +2,8 @@ import { TransparencyGovernance } from '@/components/stitch/web/pages/Transparen
 
 export const metadata = {
   title: 'Transparency & Governance Posture | ReadyLayer',
-  description: 'Public verification for ReadyLayer Agentic Orchestration Control Plane governance and security measures.',
+  description:
+    'Public verification for ReadyLayer Agentic Orchestration Control Plane governance and security measures.',
 };
 
 export default function TransparencyPage() {

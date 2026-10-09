@@ -4,12 +4,12 @@
   "input": {
     "id": "simple_001",
     "actions": [
-      {"id": "buy", "label": "Buy"},
-      {"id": "sell", "label": "Sell"}
+      { "id": "buy", "label": "Buy" },
+      { "id": "sell", "label": "Sell" }
     ],
     "scenarios": [
-      {"id": "bull", "probability": 0.6, "adversarial": false},
-      {"id": "bear", "probability": 0.4, "adversarial": true}
+      { "id": "bull", "probability": 0.6, "adversarial": false },
+      { "id": "bear", "probability": 0.4, "adversarial": true }
     ],
     "outcomes": [
       ["buy", "bull", 100],

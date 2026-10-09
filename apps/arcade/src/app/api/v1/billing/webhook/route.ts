@@ -6,8 +6,17 @@
  * Idempotency: upsertWebhookEvent deduplicates by stripe_event_id.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { constructWebhookEvent, getPlanForPriceId, BillingDisabledError } from '@/lib/stripe';
-import { upsertWebhookEvent, markWebhookProcessed, upsertEntitlement, PLAN_LIMITS } from '@/lib/cloud-db';
+import {
+  constructWebhookEvent,
+  getPlanForPriceId,
+  BillingDisabledError,
+} from '@/lib/stripe';
+import {
+  upsertWebhookEvent,
+  markWebhookProcessed,
+  upsertEntitlement,
+  PLAN_LIMITS,
+} from '@/lib/cloud-db';
 // @ts-ignore
 import type Stripe from 'stripe';
 import { env } from '@/lib/env';
@@ -27,7 +36,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const rawBody = Buffer.from(await req.arrayBuffer());
   const sig = req.headers.get('stripe-signature');
   if (!sig) {
-    return NextResponse.json({ error: 'Missing stripe-signature header' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Missing stripe-signature header' },
+      { status: 400 },
+    );
   }
 
   // ── Verify signature ───────────────────────────────────────────────────
@@ -56,7 +68,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
     logger.error('Webhook handler error', err);
     // Return 200 to prevent Stripe from retrying (we've stored the event)
-    return NextResponse.json({ ok: false, error: 'Handler error, will retry' }, { status: 200 });
+    return NextResponse.json(
+      { ok: false, error: 'Handler error, will retry' },
+      { status: 200 },
+    );
   }
 }
 
@@ -68,7 +83,10 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     case 'customer.subscription.updated': {
       const sub = data as unknown as Stripe.Subscription;
       const tenantId = (sub.metadata?.['tenant_id'] as string) ?? '';
-      if (!tenantId) { logger.warn('no tenant_id in subscription metadata'); return; }
+      if (!tenantId) {
+        logger.warn('no tenant_id in subscription metadata');
+        return;
+      }
       const priceId = (sub.items?.data?.[0]?.price?.id as string) ?? '';
       const plan = getPlanForPriceId(priceId);
       const limits = PLAN_LIMITS[plan] ?? PLAN_LIMITS['pro'];
@@ -82,8 +100,12 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         runs_per_month: limits.runs_per_month,
         pack_limit: limits.pack_limit,
         retention_days: limits.retention_days,
-        period_start: firstItem?.current_period_start ? new Date(firstItem.current_period_start * 1000).toISOString() : undefined,
-        period_end: firstItem?.current_period_end ? new Date(firstItem.current_period_end * 1000).toISOString() : undefined,
+        period_start: firstItem?.current_period_start
+          ? new Date(firstItem.current_period_start * 1000).toISOString()
+          : undefined,
+        period_end: firstItem?.current_period_end
+          ? new Date(firstItem.current_period_end * 1000).toISOString()
+          : undefined,
       } as Parameters<typeof upsertEntitlement>[1]);
       logger.info(`Subscription ${event.type} processed`, { tenantId, plan });
       break;
@@ -108,7 +130,10 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
 
     case 'invoice.paid': {
       const invoice = data as unknown as Stripe.Invoice;
-      const tenantId = (invoice.parent?.subscription_details?.metadata?.['tenant_id'] as string) ?? '';
+      const tenantId =
+        (invoice.parent?.subscription_details?.metadata?.[
+          'tenant_id'
+        ] as string) ?? '';
       if (tenantId) {
         // Reset monthly usage on successful invoice payment (new billing period)
         const { resetMonthlyUsage } = await import('@/lib/cloud-db');
@@ -120,9 +145,14 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
 
     case 'invoice.payment_failed': {
       const invoice = data as unknown as Stripe.Invoice;
-      const tenantId = (invoice.parent?.subscription_details?.metadata?.['tenant_id'] as string) ?? '';
+      const tenantId =
+        (invoice.parent?.subscription_details?.metadata?.[
+          'tenant_id'
+        ] as string) ?? '';
       if (tenantId) {
-        upsertEntitlement(tenantId, { status: 'past_due' } as Parameters<typeof upsertEntitlement>[1]);
+        upsertEntitlement(tenantId, { status: 'past_due' } as Parameters<
+          typeof upsertEntitlement
+        >[1]);
         logger.warn('Invoice payment failed', { tenantId });
       }
       break;

@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { ExampleDeterministicAdapter, ProviderAdapterRegistry } from './index.js';
+import {
+  ExampleDeterministicAdapter,
+  ProviderAdapterRegistry,
+} from './index.js';
 
 describe('ProviderAdapterRegistry', () => {
   it('registers and resolves deterministic adapters', async () => {

@@ -5,6 +5,7 @@
 Stitch output must be limited to the scoped route wrappers and their mapped page components in `STITCH_SCOPE.json`, plus optional shared primitives only if missing:
 
 ### Scoped route wrappers
+
 - `apps/arcade/src/app/console/agents/page.tsx`
 - `apps/arcade/src/app/console/runners/page.tsx`
 - `apps/arcade/src/app/console/traces/page.tsx`
@@ -13,6 +14,7 @@ Stitch output must be limited to the scoped route wrappers and their mapped page
 - `apps/arcade/src/app/console/integrations/page.tsx`
 
 ### Scoped page implementations
+
 - `apps/arcade/src/components/stitch/console/pages/AgentRegistry.tsx`
 - `apps/arcade/src/components/stitch/console/pages/RunnerOrchestration.tsx`
 - `apps/arcade/src/components/stitch/console/pages/TraceExplorer.tsx`
@@ -21,6 +23,7 @@ Stitch output must be limited to the scoped route wrappers and their mapped page
 - `apps/arcade/src/components/stitch/console/pages/IntegrationsHub.tsx`
 
 ### Optional shared primitive additions (only if genuinely missing)
+
 - `apps/arcade/src/components/stitch/console/panels/*`
 - `apps/arcade/src/components/EmptyState.tsx` (extend only)
 
@@ -72,9 +75,11 @@ When app server is running, verify:
 - `GET /console/evaluation` (must not 500; redirect/gate acceptable)
 - `GET /console/datasets` (must not 500; redirect/gate acceptable)
 - `GET /console/integrations` (must not 500; redirect/gate acceptable)
+
 # POST_STITCH_INTEGRATION
 
 ## Expected touch paths
+
 - `apps/arcade/src/app/demo/evidence-viewer/page.tsx`
 - `apps/arcade/src/app/decisions/[id]/page.tsx`
 - `apps/arcade/src/app/console/governance/config-as-code/page.tsx`
@@ -92,6 +97,7 @@ When app server is running, verify:
   - `apps/arcade/src/components/stitch/console/ConsoleLayout.tsx`
 
 ## Import/export patterns to preserve
+
 - Keep App Router default exports in each `page.tsx` route file.
 - Preserve client/server boundaries (`'use client'` only where browser hooks are used).
 - Keep alias imports using `@/` (configured in `apps/arcade/tsconfig.json`).
@@ -99,12 +105,14 @@ When app server is running, verify:
 - Preserve route params signature in dynamic routes (`[id]`, `[slug]`).
 
 ## Required verification commands
+
 - `pnpm -r build`
 - `npm run validate:language`
 - `npm run validate:boundaries`
 - `npm run validate:oss-purity`
 
 ## Smoke routes (no hard-500)
+
 - `/demo/evidence-viewer`
 - `/decisions/seed-1` (or existing ID)
 - `/console/governance/config-as-code`

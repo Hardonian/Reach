@@ -79,14 +79,14 @@ Signed capsules include a detached signature in `meta.json.signature`.
 
 ## Cross-Platform Compatibility
 
-| Platform | Support |
-| :--- | :--- |
-| Linux x64 | Tier 1 — Full support |
-| macOS x64/ARM | Tier 1 — Full support |
-| Windows x64 | Tier 2 — Full support |
-| Linux ARM64 | Tier 2 — Full support |
-| Android (Termux) | Tier 2 — Core features |
-| iOS | Tier 3 — Via UniFFI binding |
+| Platform         | Support                     |
+| :--------------- | :-------------------------- |
+| Linux x64        | Tier 1 — Full support       |
+| macOS x64/ARM    | Tier 1 — Full support       |
+| Windows x64      | Tier 2 — Full support       |
+| Linux ARM64      | Tier 2 — Full support       |
+| Android (Termux) | Tier 2 — Core features      |
+| iOS              | Tier 3 — Via UniFFI binding |
 
 ### Path Normalization
 
@@ -137,11 +137,11 @@ All should report `REPLAY_VERIFIED`.
 
 ## Storage and Environment Variables
 
-| Variable | Default | Description |
-| :--- | :--- | :--- |
-| `REACH_DATA_DIR` | `~/.reach` | Override data directory |
-| `REACH_HOME` | `~/.reach` | Alias for `REACH_DATA_DIR` |
-| `REACH_LOG_LEVEL` | `info` | Log verbosity |
+| Variable          | Default    | Description                |
+| :---------------- | :--------- | :------------------------- |
+| `REACH_DATA_DIR`  | `~/.reach` | Override data directory    |
+| `REACH_HOME`      | `~/.reach` | Alias for `REACH_DATA_DIR` |
+| `REACH_LOG_LEVEL` | `info`     | Log verbosity              |
 
 ---
 

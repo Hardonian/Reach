@@ -51,7 +51,12 @@ export function validatePackManifest(manifest: PackManifest) {
 
 export function compareEventStreams(left: EventStep[], right: EventStep[]) {
   const maxLength = Math.max(left.length, right.length);
-  const diff: Array<{ index: number; left?: EventStep; right?: EventStep; mismatch: string }> = [];
+  const diff: Array<{
+    index: number;
+    left?: EventStep;
+    right?: EventStep;
+    mismatch: string;
+  }> = [];
 
   for (let i = 0; i < maxLength; i += 1) {
     const lhs = left[i];
@@ -63,7 +68,12 @@ export function compareEventStreams(left: EventStep[], right: EventStep[]) {
     }
 
     if (lhs.type !== rhs.type || lhs.payloadHash !== rhs.payloadHash) {
-      diff.push({ index: i, left: lhs, right: rhs, mismatch: 'event-mismatch' });
+      diff.push({
+        index: i,
+        left: lhs,
+        right: rhs,
+        mismatch: 'event-mismatch',
+      });
     }
   }
 
@@ -88,6 +98,9 @@ export function deterministicArenaScore(seed: string, weights: number[]) {
 export function federationReadModel(nodes: FederationNode[]) {
   const total = nodes.length;
   const quarantined = nodes.filter((n) => n.quarantined).length;
-  const avgTrust = total === 0 ? 0 : Math.round(nodes.reduce((sum, n) => sum + n.trustScore, 0) / total);
+  const avgTrust =
+    total === 0
+      ? 0
+      : Math.round(nodes.reduce((sum, n) => sum + n.trustScore, 0) / total);
   return { total, quarantined, avgTrust };
 }

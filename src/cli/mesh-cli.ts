@@ -10,10 +10,10 @@
  *   zeo verify-envelope <file>              Verify a job envelope file
  */
 
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { resolve } from "node:path";
-import { randomUUID } from "node:crypto";
-import { performance } from "node:perf_hooks";
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { performance } from 'node:perf_hooks';
 
 export interface MeshCliArgs {
   command: string;
@@ -28,30 +28,34 @@ export interface MeshCliArgs {
 }
 
 export function parseMeshArgs(argv: string[]): MeshCliArgs {
-  const args: MeshCliArgs = { command: argv[0] ?? "status" };
+  const args: MeshCliArgs = { command: argv[0] ?? 'status' };
 
-  if (argv[0] === "sign-envelope" || argv[0] === "verify-envelope") {
+  if (argv[0] === 'sign-envelope' || argv[0] === 'verify-envelope') {
     args.command = argv[0];
     args.file = argv[1];
-    args.json = argv.includes("--json");
+    args.json = argv.includes('--json');
     return args;
   }
 
   args.subcommand = argv[1];
 
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === "--port" && argv[i + 1]) args.port = Number(argv[i + 1]);
-    if (argv[i]?.startsWith("--port=")) args.port = Number(argv[i].split("=")[1]);
-    if (argv[i] === "--mode" && argv[i + 1]) args.mode = argv[i + 1];
-    if (argv[i]?.startsWith("--mode=")) args.mode = argv[i].split("=")[1];
-    if (argv[i] === "--count" && argv[i + 1]) args.count = Number(argv[i + 1]);
-    if (argv[i]?.startsWith("--count=")) args.count = Number(argv[i].split("=")[1]);
-    if (argv[i] === "--concurrency" && argv[i + 1]) args.concurrency = Number(argv[i + 1]);
-    if (argv[i]?.startsWith("--concurrency=")) args.concurrency = Number(argv[i].split("=")[1]);
-    if (argv[i] === "--json") args.json = true;
-    if (argv[i] === "--out" && argv[i + 1]) args.out = argv[i + 1];
-    if (argv[i]?.startsWith("--out=")) args.out = argv[i].split("=")[1];
-    if (i >= 2 && !argv[i].startsWith("--")) args.file = args.file ?? argv[i];
+    if (argv[i] === '--port' && argv[i + 1]) args.port = Number(argv[i + 1]);
+    if (argv[i]?.startsWith('--port='))
+      args.port = Number(argv[i].split('=')[1]);
+    if (argv[i] === '--mode' && argv[i + 1]) args.mode = argv[i + 1];
+    if (argv[i]?.startsWith('--mode=')) args.mode = argv[i].split('=')[1];
+    if (argv[i] === '--count' && argv[i + 1]) args.count = Number(argv[i + 1]);
+    if (argv[i]?.startsWith('--count='))
+      args.count = Number(argv[i].split('=')[1]);
+    if (argv[i] === '--concurrency' && argv[i + 1])
+      args.concurrency = Number(argv[i + 1]);
+    if (argv[i]?.startsWith('--concurrency='))
+      args.concurrency = Number(argv[i].split('=')[1]);
+    if (argv[i] === '--json') args.json = true;
+    if (argv[i] === '--out' && argv[i + 1]) args.out = argv[i + 1];
+    if (argv[i]?.startsWith('--out=')) args.out = argv[i].split('=')[1];
+    if (i >= 2 && !argv[i].startsWith('--')) args.file = args.file ?? argv[i];
   }
 
   return args;
@@ -60,11 +64,11 @@ export function parseMeshArgs(argv: string[]): MeshCliArgs {
 export async function runMeshCommand(args: MeshCliArgs): Promise<number> {
   try {
     switch (args.command) {
-      case "sign-envelope":
+      case 'sign-envelope':
         return await cmdSignEnvelope(args);
-      case "verify-envelope":
+      case 'verify-envelope':
         return await cmdVerifyEnvelope(args);
-      case "mesh":
+      case 'mesh':
         return await cmdMesh(args);
       default:
         console.error(`Unknown mesh command: ${args.command}`);
@@ -80,7 +84,7 @@ export async function runMeshCommand(args: MeshCliArgs): Promise<number> {
 
 async function cmdSignEnvelope(args: MeshCliArgs): Promise<number> {
   if (!args.file) {
-    console.error("Usage: zeo sign-envelope <file> [--out <path>]");
+    console.error('Usage: zeo sign-envelope <file> [--out <path>]');
     return 1;
   }
 
@@ -90,12 +94,12 @@ async function cmdSignEnvelope(args: MeshCliArgs): Promise<number> {
     return 1;
   }
 
-  const { createJobEnvelope, computeCanonicalHash } = await import("@zeo/mesh");
+  const { createJobEnvelope, computeCanonicalHash } = await import('@zeo/mesh');
 
-  const raw = JSON.parse(readFileSync(filePath, "utf8"));
+  const raw = JSON.parse(readFileSync(filePath, 'utf8'));
 
   // If it already has a signature, re-sign
-  const unsigned = { ...raw, signature: "" };
+  const unsigned = { ...raw, signature: '' };
   const body = {
     envelope_version: unsigned.envelope_version,
     job_id: unsigned.job_id,
@@ -113,7 +117,7 @@ async function cmdSignEnvelope(args: MeshCliArgs): Promise<number> {
   const signed = { ...unsigned, signature };
 
   const outPath = args.out ? resolve(args.out) : filePath;
-  writeFileSync(outPath, JSON.stringify(signed, null, 2) + "\n", "utf8");
+  writeFileSync(outPath, JSON.stringify(signed, null, 2) + '\n', 'utf8');
 
   if (args.json) {
     console.log(JSON.stringify({ ok: true, signature, path: outPath }));
@@ -130,7 +134,7 @@ async function cmdSignEnvelope(args: MeshCliArgs): Promise<number> {
 
 async function cmdVerifyEnvelope(args: MeshCliArgs): Promise<number> {
   if (!args.file) {
-    console.error("Usage: zeo verify-envelope <file>");
+    console.error('Usage: zeo verify-envelope <file>');
     return 1;
   }
 
@@ -140,9 +144,9 @@ async function cmdVerifyEnvelope(args: MeshCliArgs): Promise<number> {
     return 1;
   }
 
-  const { verifyJobEnvelope, verifyResultEnvelope } = await import("@zeo/mesh");
+  const { verifyJobEnvelope, verifyResultEnvelope } = await import('@zeo/mesh');
 
-  const raw = JSON.parse(readFileSync(filePath, "utf8"));
+  const raw = JSON.parse(readFileSync(filePath, 'utf8'));
 
   // Detect if it's a job envelope or result envelope
   if (raw.envelope_version) {
@@ -150,12 +154,12 @@ async function cmdVerifyEnvelope(args: MeshCliArgs): Promise<number> {
     if (args.json) {
       console.log(JSON.stringify(result));
     } else if (result.valid) {
-      console.log("✓ Job envelope signature VALID");
+      console.log('✓ Job envelope signature VALID');
       console.log(`  Job ID:    ${raw.job_id}`);
       console.log(`  Tenant:    ${raw.tenant_id}`);
       console.log(`  Signature: ${raw.signature?.slice(0, 16)}...`);
     } else {
-      console.error("✗ Job envelope signature INVALID");
+      console.error('✗ Job envelope signature INVALID');
       for (const err of result.errors) {
         console.error(`  Error: ${err}`);
       }
@@ -166,18 +170,20 @@ async function cmdVerifyEnvelope(args: MeshCliArgs): Promise<number> {
     if (args.json) {
       console.log(JSON.stringify(result));
     } else if (result.valid) {
-      console.log("✓ Result envelope signature VALID");
+      console.log('✓ Result envelope signature VALID');
       console.log(`  Job ID:      ${raw.job_id}`);
       console.log(`  Output Hash: ${raw.output_hash?.slice(0, 16)}...`);
     } else {
-      console.error("✗ Result envelope signature INVALID");
+      console.error('✗ Result envelope signature INVALID');
       for (const err of result.errors) {
         console.error(`  Error: ${err}`);
       }
       return 1;
     }
   } else {
-    console.error("Unknown envelope type. Expected envelope_version or result_version field.");
+    console.error(
+      'Unknown envelope type. Expected envelope_version or result_version field.',
+    );
     return 1;
   }
 
@@ -188,11 +194,11 @@ async function cmdVerifyEnvelope(args: MeshCliArgs): Promise<number> {
 
 async function cmdMesh(args: MeshCliArgs): Promise<number> {
   switch (args.subcommand) {
-    case "status":
+    case 'status':
       return await cmdMeshStatus(args);
-    case "batch":
+    case 'batch':
       return await cmdMeshBatch(args);
-    case "start-worker":
+    case 'start-worker':
       return await cmdMeshStartWorker(args);
     default:
       printMeshHelp();
@@ -201,24 +207,30 @@ async function cmdMesh(args: MeshCliArgs): Promise<number> {
 }
 
 async function cmdMeshStatus(args: MeshCliArgs): Promise<number> {
-  const { MeshOrchestrator } = await import("@zeo/mesh");
-  const mode = (args.mode ?? "off") as any;
+  const { MeshOrchestrator } = await import('@zeo/mesh');
+  const mode = (args.mode ?? 'off') as any;
   const orch = new MeshOrchestrator({ mode });
   const status = orch.getMeshStatus();
 
   if (args.json) {
     console.log(JSON.stringify(status, null, 2));
   } else {
-    console.log("=== Mesh Status ===");
+    console.log('=== Mesh Status ===');
     console.log(`Mode:            ${status.mode}`);
     console.log(`Total Workers:   ${status.totalWorkers}`);
     console.log(`Healthy Workers: ${status.healthyWorkers}`);
     console.log(`Completed Jobs:  ${status.completedJobs}`);
     if (status.workers.length > 0) {
-      console.log("\nWorkers:");
+      console.log('\nWorkers:');
       for (const w of status.workers) {
-        const state = w.circuitOpen ? "CIRCUIT_OPEN" : w.healthy ? "healthy" : "unhealthy";
-        console.log(`  ${w.id}: ${w.url} [${state}] jobs=${w.totalJobsHandled}`);
+        const state = w.circuitOpen
+          ? 'CIRCUIT_OPEN'
+          : w.healthy
+            ? 'healthy'
+            : 'unhealthy';
+        console.log(
+          `  ${w.id}: ${w.url} [${state}] jobs=${w.totalJobsHandled}`,
+        );
       }
     }
   }
@@ -227,14 +239,16 @@ async function cmdMeshStatus(args: MeshCliArgs): Promise<number> {
 }
 
 async function cmdMeshBatch(args: MeshCliArgs): Promise<number> {
-  const { MeshOrchestrator, ENVELOPE_VERSION } = await import("@zeo/mesh");
-  const { KERNEL_SCHEMA_VERSION } = await import("@zeo/kernel");
+  const { MeshOrchestrator, ENVELOPE_VERSION } = await import('@zeo/mesh');
+  const { KERNEL_SCHEMA_VERSION } = await import('@zeo/kernel');
 
-  const mode = (args.mode ?? "local") as any;
+  const mode = (args.mode ?? 'local') as any;
   const count = args.count ?? 5;
   const concurrency = args.concurrency ?? 4;
 
-  console.log(`Running ${count} jobs in ${mode} mode (concurrency: ${concurrency})...`);
+  console.log(
+    `Running ${count} jobs in ${mode} mode (concurrency: ${concurrency})...`,
+  );
 
   const orch = new MeshOrchestrator({
     mode,
@@ -246,46 +260,83 @@ async function cmdMeshBatch(args: MeshCliArgs): Promise<number> {
       spec: {
         id: `spec_batch_${i}`,
         title: `Batch Decision ${i}`,
-        context: "Mesh batch test",
-        horizon: "days" as const,
-        agents: [{ id: "agent_1", label: "Agent", perspective: "Analytical" }],
+        context: 'Mesh batch test',
+        horizon: 'days' as const,
+        agents: [{ id: 'agent_1', label: 'Agent', perspective: 'Analytical' }],
         actions: [
-          { id: "act_1", label: "Accept", actorId: "agent_1", kind: "accept" },
-          { id: "act_2", label: "Reject", actorId: "agent_1", kind: "reject" },
+          { id: 'act_1', label: 'Accept', actorId: 'agent_1', kind: 'accept' },
+          { id: 'act_2', label: 'Reject', actorId: 'agent_1', kind: 'reject' },
         ],
-        constraints: [{ id: "c1", name: "Budget", value: "$5000", status: "fact" as const, provenance: ["system"] }],
-        assumptions: [{ id: "a1", text: "Stable", status: "assumption" as const, confidence: "medium" as const }],
-        objectives: [{ metric: "ROI", weight: 1 }],
+        constraints: [
+          {
+            id: 'c1',
+            name: 'Budget',
+            value: '$5000',
+            status: 'fact' as const,
+            provenance: ['system'],
+          },
+        ],
+        assumptions: [
+          {
+            id: 'a1',
+            text: 'Stable',
+            status: 'assumption' as const,
+            confidence: 'medium' as const,
+          },
+        ],
+        objectives: [{ metric: 'ROI', weight: 1 }],
       },
-      evidenceSnapshot: { version: "1.0.0", nodes: [] as any[] },
-      policySnapshot: { policies: [] as any[], enforcementStrength: "basic" as const },
+      evidenceSnapshot: { version: '1.0.0', nodes: [] as any[] },
+      policySnapshot: {
+        policies: [] as any[],
+        enforcementStrength: 'basic' as const,
+      },
       toolResultsSnapshot: { tools: [] as any[] },
-      config: { seed: `batch-${i}`, floatPrecision: 10, maxDepth: 2 as const, maxBranchesPerAction: 4, useQuantEngine: false },
+      config: {
+        seed: `batch-${i}`,
+        floatPrecision: 10,
+        maxDepth: 2 as const,
+        maxBranchesPerAction: 4,
+        useQuantEngine: false,
+      },
       schemaVersion: KERNEL_SCHEMA_VERSION,
     },
-    tenant_id: "tenant_batch",
-    policy_snapshot: { policies: [] as any[], enforcementStrength: "basic" as const },
+    tenant_id: 'tenant_batch',
+    policy_snapshot: {
+      policies: [] as any[],
+      enforcementStrength: 'basic' as const,
+    },
   }));
 
   const start = performance.now();
-  const result = await orch.executeBatch(jobs, {
-    seed: "batch-test",
-    float_precision: 10,
-    max_depth: 2,
-  }, {
-    envelope: ENVELOPE_VERSION,
-    kernel: KERNEL_SCHEMA_VERSION,
-    ir: "1.0.0",
-    policy: "1.0.0",
-  });
+  const result = await orch.executeBatch(
+    jobs,
+    {
+      seed: 'batch-test',
+      float_precision: 10,
+      max_depth: 2,
+    },
+    {
+      envelope: ENVELOPE_VERSION,
+      kernel: KERNEL_SCHEMA_VERSION,
+      ir: '1.0.0',
+      policy: '1.0.0',
+    },
+  );
   const duration = performance.now() - start;
 
   if (args.json) {
-    console.log(JSON.stringify({
-      stats: result.stats,
-      duration_ms: Math.round(duration),
-      throughput: (count / (duration / 1000)).toFixed(1),
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          stats: result.stats,
+          duration_ms: Math.round(duration),
+          throughput: (count / (duration / 1000)).toFixed(1),
+        },
+        null,
+        2,
+      ),
+    );
   } else {
     console.log(`\n=== Batch Results ===`);
     console.log(`Jobs:          ${result.stats.total_jobs}`);
@@ -294,16 +345,20 @@ async function cmdMeshBatch(args: MeshCliArgs): Promise<number> {
     console.log(`Retried:       ${result.stats.retried}`);
     console.log(`Fallbacks:     ${result.stats.fallback_local}`);
     console.log(`Duration:      ${duration.toFixed(2)}ms`);
-    console.log(`Throughput:    ${(count / (duration / 1000)).toFixed(1)} jobs/sec`);
+    console.log(
+      `Throughput:    ${(count / (duration / 1000)).toFixed(1)} jobs/sec`,
+    );
     console.log(`Avg per job:   ${(duration / count).toFixed(2)}ms`);
-    console.log(`Memory:        ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1)}MB`);
+    console.log(
+      `Memory:        ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1)}MB`,
+    );
   }
 
   return result.stats.failed > 0 ? 1 : 0;
 }
 
 async function cmdMeshStartWorker(args: MeshCliArgs): Promise<number> {
-  const { startWorkerServer } = await import("@zeo/mesh");
+  const { startWorkerServer } = await import('@zeo/mesh');
 
   const port = args.port ?? 9876;
   console.log(`Starting mesh worker on port ${port}...`);
@@ -341,4 +396,3 @@ Options:
   --out <path>               Output file path
 `);
 }
-

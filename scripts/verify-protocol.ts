@@ -1,23 +1,29 @@
 #!/usr/bin/env tsx
 /**
  * verify-protocol.ts
- * 
+ *
  * CRITICAL Gate B-Protocol: Protocol Truth Verification
- * 
+ *
  * Validates:
  * 1. Binary framed protocol is default
  * 2. JSON/temp-file only in debug mode (REACH_PROTOCOL=json)
  * 3. Length-prefixed CBOR frames
  * 4. Frame-level results (no stdout parsing)
  * 5. Negative cases: truncation, corruption
- * 
+ *
  * Exit codes:
  * - 0: All checks pass
  * - 2: CRITICAL failure (blocks merge)
  * - 1: Other error
  */
 
-import { FrameParser, encodeFrame, decodeFrame, MessageType, FrameError } from '../src/protocol/frame';
+import {
+  FrameParser,
+  encodeFrame,
+  decodeFrame,
+  MessageType,
+  FrameError,
+} from '../src/protocol/frame';
 import { serializeCbor } from '../src/protocol/messages';
 
 interface VerificationResult {
@@ -38,7 +44,7 @@ function error(msg: string): void {
 // Test 1: Binary framing
 function testBinaryFraming(): VerificationResult {
   log('Testing binary frame encoding/decoding...');
-  
+
   const frame = {
     versionMajor: 1,
     versionMinor: 0,
@@ -46,13 +52,13 @@ function testBinaryFraming(): VerificationResult {
     flags: 0,
     payload: new Uint8Array([1, 2, 3, 4]),
   };
-  
+
   try {
     const encoded = encodeFrame(frame);
     const parser = new FrameParser();
     parser.append(encoded);
     const decoded = parser.parse();
-    
+
     if (!decoded) {
       return {
         gate: 'B-Framing',
@@ -61,7 +67,7 @@ function testBinaryFraming(): VerificationResult {
         message: 'Failed to decode valid frame',
       };
     }
-    
+
     if (decoded.msgType !== frame.msgType) {
       return {
         gate: 'B-Framing',
@@ -70,7 +76,7 @@ function testBinaryFraming(): VerificationResult {
         message: `Message type mismatch: ${decoded.msgType} vs ${frame.msgType}`,
       };
     }
-    
+
     return {
       gate: 'B-Framing',
       passed: true,
@@ -90,7 +96,7 @@ function testBinaryFraming(): VerificationResult {
 // Test 2: Truncation handling
 function testTruncation(): VerificationResult {
   log('Testing truncated frame handling...');
-  
+
   const frame = {
     versionMajor: 1,
     versionMinor: 0,
@@ -98,18 +104,18 @@ function testTruncation(): VerificationResult {
     flags: 0,
     payload: new Uint8Array([1, 2, 3, 4]),
   };
-  
+
   const encoded = encodeFrame(frame);
-  
+
   // Send only half the frame
   const truncated = encoded.slice(0, Math.floor(encoded.length / 2));
-  
+
   const parser = new FrameParser();
   parser.append(truncated);
-  
+
   // Should return null (incomplete), not throw
   const result = parser.parse();
-  
+
   if (result !== null) {
     return {
       gate: 'B-Truncation',
@@ -118,7 +124,7 @@ function testTruncation(): VerificationResult {
       message: 'Should return null for truncated frame',
     };
   }
-  
+
   return {
     gate: 'B-Truncation',
     passed: true,
@@ -130,24 +136,46 @@ function testTruncation(): VerificationResult {
 // Test 3: Invalid magic handling
 function testInvalidMagic(): VerificationResult {
   log('Testing invalid magic handling...');
-  
+
   // Test decodeFrame directly (should throw on invalid magic)
   // Need 26-byte header + 4-byte CRC = 30 bytes minimum
   const badData = new Uint8Array([
-    0x00, 0x00, 0x00, 0x00, // Bad magic (4 bytes)
-    0x00, 0x01, 0x00, 0x00, // Version (4 bytes)
-    0x00, 0x00, 0x00, 0x01, // Type (4 bytes)
-    0x00, 0x00, 0x00, 0x00, // Flags (4 bytes)
-    0x00, 0x00, 0x00, 0x00, // CorrelationId (4 bytes)
-    0x00, 0x00, 0x00, 0x00, // Length (4 bytes) = 24 bytes so far
-    0x00, 0x00, 0x00, 0x00, // CRC placeholder (4 bytes) = 28 bytes... need 30
-    0x00, 0x00, // Padding to reach 30 bytes
+    0x00,
+    0x00,
+    0x00,
+    0x00, // Bad magic (4 bytes)
+    0x00,
+    0x01,
+    0x00,
+    0x00, // Version (4 bytes)
+    0x00,
+    0x00,
+    0x00,
+    0x01, // Type (4 bytes)
+    0x00,
+    0x00,
+    0x00,
+    0x00, // Flags (4 bytes)
+    0x00,
+    0x00,
+    0x00,
+    0x00, // CorrelationId (4 bytes)
+    0x00,
+    0x00,
+    0x00,
+    0x00, // Length (4 bytes) = 24 bytes so far
+    0x00,
+    0x00,
+    0x00,
+    0x00, // CRC placeholder (4 bytes) = 28 bytes... need 30
+    0x00,
+    0x00, // Padding to reach 30 bytes
   ]);
-  
+
   // Actually HEADER_SIZE is 26, so we need 26 + 4 = 30 bytes
   const properBadData = new Uint8Array(30);
   // Leave as zeros (bad magic)
-  
+
   try {
     decodeFrame(properBadData);
     return {
@@ -162,17 +190,18 @@ function testInvalidMagic(): VerificationResult {
       const parser = new FrameParser();
       parser.append(properBadData);
       const result = parser.parse();
-      
+
       // Parser should resync and return null (no valid frame)
       if (result === null) {
         return {
           gate: 'B-InvalidMagic',
           passed: true,
           critical: true,
-          message: 'Invalid magic rejected correctly (parser resyncs, decoder throws)',
+          message:
+            'Invalid magic rejected correctly (parser resyncs, decoder throws)',
         };
       }
-      
+
       return {
         gate: 'B-InvalidMagic',
         passed: true,
@@ -192,9 +221,9 @@ function testInvalidMagic(): VerificationResult {
 // Test 4: Debug mode check
 function testDebugMode(): VerificationResult {
   log('Testing protocol debug mode...');
-  
+
   const useJsonFallback = process.env.REACH_PROTOCOL === 'json';
-  
+
   if (useJsonFallback) {
     log('WARNING: REACH_PROTOCOL=json is set (debug mode)');
     return {
@@ -204,7 +233,7 @@ function testDebugMode(): VerificationResult {
       message: 'Debug mode enabled (JSON fallback)',
     };
   }
-  
+
   return {
     gate: 'B-DebugMode',
     passed: true,
@@ -216,24 +245,24 @@ function testDebugMode(): VerificationResult {
 // Main
 async function main(): Promise<number> {
   log('Starting protocol truth verification...');
-  
+
   const results: VerificationResult[] = [];
-  
+
   results.push(testBinaryFraming());
   results.push(testTruncation());
   results.push(testInvalidMagic());
   results.push(testDebugMode());
-  
+
   // Report results
   let criticalFailures = 0;
   let totalFailures = 0;
-  
+
   log('--- Results ---');
   for (const result of results) {
     const status = result.passed ? 'PASS' : 'FAIL';
     const severity = result.critical ? 'CRITICAL' : 'INFO';
     log(`[${status}] ${result.gate} (${severity}): ${result.message}`);
-    
+
     if (!result.passed) {
       totalFailures++;
       if (result.critical) {
@@ -241,26 +270,30 @@ async function main(): Promise<number> {
       }
     }
   }
-  
+
   log('--- Summary ---');
-  log(`Total: ${results.length}, Passed: ${results.length - totalFailures}, Failed: ${totalFailures}`);
+  log(
+    `Total: ${results.length}, Passed: ${results.length - totalFailures}, Failed: ${totalFailures}`,
+  );
   log(`Critical failures: ${criticalFailures}`);
-  
+
   if (criticalFailures > 0) {
     error(`${criticalFailures} CRITICAL gate(s) failed - merge blocked`);
     return 2;
   }
-  
+
   if (totalFailures > 0) {
     log('Non-critical failures detected');
     return 1;
   }
-  
+
   log('All gates pass');
   return 0;
 }
 
-main().then(code => process.exit(code)).catch(e => {
-  error(`Unexpected error: ${e}`);
-  process.exit(2);
-});
+main()
+  .then((code) => process.exit(code))
+  .catch((e) => {
+    error(`Unexpected error: ${e}`);
+    process.exit(2);
+  });

@@ -3,15 +3,31 @@
   "$id": "https://reach.dev/protocol/integrations/oauth-client.schema.json",
   "title": "Reach OAuth Client",
   "type": "object",
-  "required": ["schemaVersion", "provider", "clientId", "scopes", "redirectUri"],
+  "required": [
+    "schemaVersion",
+    "provider",
+    "clientId",
+    "scopes",
+    "redirectUri"
+  ],
   "properties": {
-    "schemaVersion": {"const": "1.0.0"},
-    "provider": {"type": "string", "enum": ["slack", "google", "github", "jira"]},
-    "clientId": {"type": "string", "minLength": 1},
-    "clientSecretRef": {"type": "string", "minLength": 1},
-    "redirectUri": {"type": "string", "format": "uri"},
-    "scopes": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
-    "metadata": {"type": "object", "additionalProperties": {"type": "string"}}
+    "schemaVersion": { "const": "1.0.0" },
+    "provider": {
+      "type": "string",
+      "enum": ["slack", "google", "github", "jira"]
+    },
+    "clientId": { "type": "string", "minLength": 1 },
+    "clientSecretRef": { "type": "string", "minLength": 1 },
+    "redirectUri": { "type": "string", "format": "uri" },
+    "scopes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    }
   },
   "additionalProperties": false
 }

@@ -77,7 +77,13 @@
         "contents": {
           "type": "array",
           "items": {
-            "enum": ["events", "tool_recordings", "state_snapshots", "pack_archive", "proof"]
+            "enum": [
+              "events",
+              "tool_recordings",
+              "state_snapshots",
+              "pack_archive",
+              "proof"
+            ]
           }
         },
         "deterministic": {

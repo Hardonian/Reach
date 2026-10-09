@@ -1,4 +1,5 @@
 # Reach Support FAQ ## How do I check federation trust status?
+
 Run `reach federation status`.
 
 ## Why was delegation rejected? Common causes: spec mismatch, registry snapshot mismatch, policy mismatch, or quarantined node.

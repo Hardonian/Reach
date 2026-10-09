@@ -1,7 +1,7 @@
 # Reach Error Reference
 
-> **Version:** 1.2  
-> **Status:** Production  
+> **Version:** 1.2
+> **Status:** Production
 > **Last Updated:** 2026-02-27
 
 Error codes, meanings, and operator actions for Reach with Requiem engine.
@@ -15,6 +15,7 @@ Error codes, meanings, and operator actions for Reach with Requiem engine.
 **Meaning:** Requiem binary not found or not built.
 
 **Operator Action:**
+
 ```bash
 # Rebuild engine
 pnpm -r --filter requiem build
@@ -30,6 +31,7 @@ ls -la crates/requiem/target/release/requiem
 **Meaning:** Requiem engine exited unexpectedly.
 
 **Operator Action:**
+
 1. Check logs: `reach logs --engine`
 2. Run with debug: `reach run <pack> --debug`
 3. Report issue with debug bundle
@@ -41,6 +43,7 @@ ls -la crates/requiem/target/release/requiem
 **Meaning:** Engine did not respond within expected time.
 
 **Operator Action:**
+
 1. Check system load: `reach doctor --system`
 2. Increase timeout: `REACH_ENGINE_TIMEOUT=300s reach run <pack>`
 3. Check for stuck processes: `reach ps`
@@ -54,6 +57,7 @@ ls -la crates/requiem/target/release/requiem
 **Meaning:** Replay fingerprint does not match original. The same inputs produced different outputs.
 
 **Operator Action:**
+
 1. Run deterministic check: `reach verify:determinism --runs=10`
 2. Review execution for non-deterministic sources:
    - `Math.random()` or `rand.*`
@@ -71,6 +75,7 @@ ls -la crates/requiem/target/release/requiem
 **Meaning:** Could not verify deterministic behavior.
 
 **Operator Action:**
+
 ```bash
 # Run extended verification
 reach verify:determinism --runs=50 --verbose
@@ -88,6 +93,7 @@ reach doctor --engine-version
 **Meaning:** CAS blob hash mismatch. Data corrupted or modified.
 
 **Operator Action:**
+
 ```bash
 # Verify specific CID
 reach cas verify <cid>
@@ -109,6 +115,7 @@ reach run <pack> --regenerate
 **Meaning:** Requested content not in CAS.
 
 **Operator Action:**
+
 1. Check if content was evicted
 2. Re-fetch if source available
 3. Re-run to regenerate if needed
@@ -120,6 +127,7 @@ reach run <pack> --regenerate
 **Meaning:** CAS blob was evicted to free space.
 
 **Operator Action:**
+
 ```bash
 # Check CAS size limits
 reach doctor --cas-limits
@@ -140,6 +148,7 @@ reach cas restore <cid>
 **Meaning:** Client and server protocol versions incompatible.
 
 **Operator Action:**
+
 ```bash
 # Check versions
 reach doctor --protocol
@@ -158,6 +167,7 @@ pnpm -r --filter requiem build
 **Meaning:** Malformed protocol frame received.
 
 **Operator Action:**
+
 1. Check network stability
 2. Update to latest version (may be bug fix)
 3. Run with protocol debug: `reach run <pack> --protocol-debug`
@@ -169,6 +179,7 @@ pnpm -r --filter requiem build
 **Meaning:** Initial protocol handshake failed.
 
 **Operator Action:**
+
 ```bash
 # Verify engine and CLI versions match
 reach doctor --versions
@@ -186,6 +197,7 @@ pnpm clean && pnpm install
 **Meaning:** Execution queue at capacity. Too many concurrent requests.
 
 **Operator Action:**
+
 1. Wait for pending executions to complete
 2. Reduce client-side concurrency
 3. Increase queue size: `REACH_QUEUE_SIZE=200`
@@ -198,6 +210,7 @@ pnpm clean && pnpm install
 **Meaning:** Execution exceeded time limit.
 
 **Operator Action:**
+
 ```bash
 # Increase timeout
 REACH_EXECUTION_TIMEOUT=600s reach run <pack>
@@ -215,6 +228,7 @@ reach run <pack> --debug
 **Meaning:** Execution was cancelled by user or system.
 
 **Operator Action:**
+
 1. Check if user initiated cancellation
 2. Check for system shutdown during execution
 3. Re-run if needed
@@ -229,6 +243,7 @@ reach run <pack> --debug
 
 **Operator Action:**
 This is a security rejection. Review the path being accessed:
+
 - Copy file into workspace instead of using symlink
 - Use workspace-relative paths only
 
@@ -257,6 +272,7 @@ This is a security rejection. Review environment sanitization.
 **Meaning:** Engine binary modified or replaced.
 
 **Operator Action:**
+
 ```bash
 # Reinstall
 pnpm clean && pnpm install
@@ -274,6 +290,7 @@ reach doctor --binary-verify
 **Meaning:** Requested storage path does not exist.
 
 **Operator Action:**
+
 1. Check storage configuration
 2. Create directory if needed
 3. Verify permissions
@@ -285,6 +302,7 @@ reach doctor --binary-verify
 **Meaning:** Insufficient permissions to access storage.
 
 **Operator Action:**
+
 ```bash
 # Check permissions
 ls -la <storage-path>
@@ -300,6 +318,7 @@ chown -R $(whoami) <storage-path>
 **Meaning:** Pack registry index corrupted.
 
 **Operator Action:**
+
 ```bash
 # Rebuild registry
 reach registry rebuild
@@ -317,6 +336,7 @@ reach registry reset
 **Meaning:** Run transcript not found.
 
 **Operator Action:**
+
 ```bash
 # List available transcripts
 reach ls --transcripts
@@ -343,6 +363,7 @@ Same as ERR_DETERMINISM_MISMATCH - see that entry.
 **Meaning:** Configuration value invalid.
 
 **Operator Action:**
+
 ```bash
 # Validate config
 reach doctor --config-validate
@@ -358,6 +379,7 @@ reach doctor --config-show
 **Meaning:** Required configuration missing.
 
 **Operator Action:**
+
 1. Check required env vars are set
 2. Create config file: `reach init`
 3. See CONFIG.md for required fields
@@ -368,15 +390,15 @@ reach doctor --config-show
 
 Error codes follow: `ERR_SUBSYSTEM_REASON`
 
-| Prefix | Subsystem |
-|--------|-----------|
-| `ERR_ENGINE_*` | Execution engine |
-| `ERR_DETERMINISM_*` | Determinism verification |
-| `ERR_CAS_*` | Content-addressable storage |
-| `ERR_PROTOCOL_*` | Binary protocol |
-| `ERR_QUEUE_*` | Execution queue |
-| `ERR_EXECUTION_*` | Run execution |
-| `ERR_SECURITY_*` | Security checks |
-| `ERR_STORAGE_*` | Storage backend |
-| `ERR_REPLAY_*` | Replay verification |
-| `ERR_CONFIG_*` | Configuration |
+| Prefix              | Subsystem                   |
+| ------------------- | --------------------------- |
+| `ERR_ENGINE_*`      | Execution engine            |
+| `ERR_DETERMINISM_*` | Determinism verification    |
+| `ERR_CAS_*`         | Content-addressable storage |
+| `ERR_PROTOCOL_*`    | Binary protocol             |
+| `ERR_QUEUE_*`       | Execution queue             |
+| `ERR_EXECUTION_*`   | Run execution               |
+| `ERR_SECURITY_*`    | Security checks             |
+| `ERR_STORAGE_*`     | Storage backend             |
+| `ERR_REPLAY_*`      | Replay verification         |
+| `ERR_CONFIG_*`      | Configuration               |

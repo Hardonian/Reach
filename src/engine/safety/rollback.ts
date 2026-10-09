@@ -7,28 +7,28 @@
  * - `reach doctor` prints engine+protocol+hash truth and exact rollback instructions
  */
 
-import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 // ============================================================================
 // Configuration Environment Variables
 // ============================================================================
 
 /** Force use of Rust engine (bypass Requiem) */
-export const ENV_FORCE_RUST = "FORCE_RUST";
+export const ENV_FORCE_RUST = 'FORCE_RUST';
 
 /** Force use of Requiem C++ engine (bypass Rust) */
-export const ENV_FORCE_REQUIEM = "FORCE_REQUIEM";
+export const ENV_FORCE_REQUIEM = 'FORCE_REQUIEM';
 
 /** Enable dual-run mode for verification */
-export const ENV_DUAL_RUN = "REACH_DUAL_RUN";
+export const ENV_DUAL_RUN = 'REACH_DUAL_RUN';
 
 /** Path to Requiem binary override */
-export const ENV_REQUIEM_BIN = "REQUIEM_BIN";
+export const ENV_REQUIEM_BIN = 'REQUIEM_BIN';
 
 /** Disable fallback (fail fast) */
-export const ENV_NO_FALLBACK = "REACH_NO_FALLBACK";
+export const ENV_NO_FALLBACK = 'REACH_NO_FALLBACK';
 
 // ============================================================================
 // Engine Types
@@ -36,22 +36,22 @@ export const ENV_NO_FALLBACK = "REACH_NO_FALLBACK";
 
 export enum EngineType {
   /** Pure TypeScript fallback implementation */
-  TYPESCRIPT = "typescript",
+  TYPESCRIPT = 'typescript',
   /** Rust/WASM implementation */
-  RUST = "rust",
+  RUST = 'rust',
   /** Requiem C++ implementation */
-  REQUIEM = "requiem",
+  REQUIEM = 'requiem',
 }
 
 export enum EngineSelectionMode {
   /** Auto-detect best available engine */
-  AUTO = "auto",
+  AUTO = 'auto',
   /** Force Rust engine */
-  FORCE_RUST = "force_rust",
+  FORCE_RUST = 'force_rust',
   /** Force Requiem engine */
-  FORCE_REQUIEM = "force_requiem",
+  FORCE_REQUIEM = 'force_requiem',
   /** Force TypeScript fallback */
-  FORCE_TYPESCRIPT = "force_typescript",
+  FORCE_TYPESCRIPT = 'force_typescript',
 }
 
 // ============================================================================
@@ -72,7 +72,7 @@ export interface EngineStatus {
   version: string | null;
   path: string | null;
   hash: string | null;
-  health: "healthy" | "degraded" | "unavailable";
+  health: 'healthy' | 'degraded' | 'unavailable';
   lastError?: string;
 }
 
@@ -108,7 +108,10 @@ export interface DoctorTruthReport {
 // ============================================================================
 
 export class EngineDetector {
-  private cache = new Map<EngineType, { status: EngineStatus; cachedAt: number }>();
+  private cache = new Map<
+    EngineType,
+    { status: EngineStatus; cachedAt: number }
+  >();
   private readonly CACHE_TTL_MS = 5000; // 5 second TTL for cache freshness
 
   /**
@@ -136,7 +139,7 @@ export class EngineDetector {
       version: process.version, // Node.js version
       path: process.execPath,
       hash: null,
-      health: "healthy",
+      health: 'healthy',
     };
 
     this.setCached(EngineType.TYPESCRIPT, status);
@@ -176,25 +179,25 @@ export class EngineDetector {
       version: null,
       path: null,
       hash: null,
-      health: "unavailable",
+      health: 'unavailable',
     };
 
     try {
       // Check for WASM module
-      const wasmPath = join(process.cwd(), "pkg/decision_engine_rs.js");
+      const wasmPath = join(process.cwd(), 'pkg/decision_engine_rs.js');
       if (existsSync(wasmPath)) {
         status.available = true;
         status.path = wasmPath;
-        status.health = "healthy";
+        status.health = 'healthy';
         // Calculate hash of the WASM file
         const wasmContent = readFileSync(wasmPath);
-        status.hash = createHash("sha256").update(wasmContent).digest("hex");
+        status.hash = createHash('sha256').update(wasmContent).digest('hex');
       }
 
       // Try to get version from Cargo.toml if available
-      const cargoPath = join(process.cwd(), "Cargo.toml");
+      const cargoPath = join(process.cwd(), 'Cargo.toml');
       if (existsSync(cargoPath)) {
-        const cargoContent = readFileSync(cargoPath, "utf-8");
+        const cargoContent = readFileSync(cargoPath, 'utf-8');
         const versionMatch = cargoContent.match(/version\s*=\s*"([^"]+)"/);
         if (versionMatch) {
           status.version = versionMatch[1];
@@ -221,7 +224,7 @@ export class EngineDetector {
       version: null,
       path: null,
       hash: null,
-      health: "unavailable",
+      health: 'unavailable',
     };
 
     try {
@@ -230,22 +233,22 @@ export class EngineDetector {
       const paths = requiemBin
         ? [requiemBin]
         : [
-            join(process.cwd(), "requiem"),
-            join(process.cwd(), "requiem.exe"),
-            "/usr/local/bin/requiem",
-            "/usr/bin/requiem",
+            join(process.cwd(), 'requiem'),
+            join(process.cwd(), 'requiem.exe'),
+            '/usr/local/bin/requiem',
+            '/usr/bin/requiem',
           ];
 
       for (const path of paths) {
         if (existsSync(path)) {
           status.available = true;
           status.path = path;
-          status.health = "healthy";
+          status.health = 'healthy';
 
           // Calculate hash of binary
           try {
             const content = readFileSync(path);
-            status.hash = createHash("sha256").update(content).digest("hex");
+            status.hash = createHash('sha256').update(content).digest('hex');
           } catch {
             // Binary might be locked, skip hash
           }
@@ -257,7 +260,7 @@ export class EngineDetector {
       if (status.available && status.path) {
         // Version would be obtained by running requiem --version
         // For now, leave as null until runtime check
-        status.version = "unknown";
+        status.version = 'unknown';
       }
     } catch (err) {
       status.lastError = String(err);
@@ -319,7 +322,7 @@ export class EngineSelector {
    */
   private envVarsEqual(
     a: Record<string, string | undefined>,
-    b: Record<string, string | undefined>
+    b: Record<string, string | undefined>,
   ): boolean {
     const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
     for (const key of Array.from(keys)) {
@@ -337,7 +340,10 @@ export class EngineSelector {
     const engines = this.detector.detectAllEngines();
 
     // Check for force flags
-    if (envVars[ENV_FORCE_REQUIEM] === "1" || envVars[ENV_FORCE_REQUIEM] === "true") {
+    if (
+      envVars[ENV_FORCE_REQUIEM] === '1' ||
+      envVars[ENV_FORCE_REQUIEM] === 'true'
+    ) {
       if (engines[EngineType.REQUIEM].available) {
         return {
           primary: EngineType.REQUIEM,
@@ -349,11 +355,11 @@ export class EngineSelector {
       }
       throw new Error(
         `${ENV_FORCE_REQUIEM} is set but Requiem engine is not available. ` +
-          `Set ${ENV_FORCE_REQUIEM}=0 or install Requiem binary.`
+          `Set ${ENV_FORCE_REQUIEM}=0 or install Requiem binary.`,
       );
     }
 
-    if (envVars[ENV_FORCE_RUST] === "1" || envVars[ENV_FORCE_RUST] === "true") {
+    if (envVars[ENV_FORCE_RUST] === '1' || envVars[ENV_FORCE_RUST] === 'true') {
       if (engines[EngineType.RUST].available) {
         return {
           primary: EngineType.RUST,
@@ -365,7 +371,7 @@ export class EngineSelector {
       }
       throw new Error(
         `${ENV_FORCE_RUST} is set but Rust engine is not available. ` +
-          `Set ${ENV_FORCE_RUST}=0 or build the WASM module.`
+          `Set ${ENV_FORCE_RUST}=0 or build the WASM module.`,
       );
     }
 
@@ -381,17 +387,23 @@ export class EngineSelector {
   verifyForcedEngine(actualEngine: EngineType): void {
     const selection = this.selectEngine();
 
-    if (selection.mode === EngineSelectionMode.FORCE_REQUIEM && actualEngine !== EngineType.REQUIEM) {
+    if (
+      selection.mode === EngineSelectionMode.FORCE_REQUIEM &&
+      actualEngine !== EngineType.REQUIEM
+    ) {
       throw new Error(
         `CRITICAL: ${ENV_FORCE_REQUIEM} is set but actual engine is ${actualEngine}. ` +
-          `This is a rollback safety violation.`
+          `This is a rollback safety violation.`,
       );
     }
 
-    if (selection.mode === EngineSelectionMode.FORCE_RUST && actualEngine !== EngineType.RUST) {
+    if (
+      selection.mode === EngineSelectionMode.FORCE_RUST &&
+      actualEngine !== EngineType.RUST
+    ) {
       throw new Error(
         `CRITICAL: ${ENV_FORCE_RUST} is set but actual engine is ${actualEngine}. ` +
-          `This is a rollback safety violation.`
+          `This is a rollback safety violation.`,
       );
     }
   }
@@ -414,15 +426,17 @@ export class EngineSelector {
 
   private autoSelect(
     engines: Record<EngineType, EngineStatus>,
-    envVars: Record<string, string | undefined>
+    envVars: Record<string, string | undefined>,
   ): EngineSelection {
     // Priority: Requiem > Rust > TypeScript
     if (engines[EngineType.REQUIEM].available) {
       return {
         primary: EngineType.REQUIEM,
-        fallback: engines[EngineType.RUST].available ? EngineType.RUST : EngineType.TYPESCRIPT,
+        fallback: engines[EngineType.RUST].available
+          ? EngineType.RUST
+          : EngineType.TYPESCRIPT,
         mode: EngineSelectionMode.AUTO,
-        reason: "Requiem is available and is the preferred engine",
+        reason: 'Requiem is available and is the preferred engine',
         envVars,
       };
     }
@@ -432,7 +446,7 @@ export class EngineSelector {
         primary: EngineType.RUST,
         fallback: EngineType.TYPESCRIPT,
         mode: EngineSelectionMode.AUTO,
-        reason: "Requiem unavailable, Rust is the preferred fallback",
+        reason: 'Requiem unavailable, Rust is the preferred fallback',
         envVars,
       };
     }
@@ -442,7 +456,7 @@ export class EngineSelector {
       primary: EngineType.TYPESCRIPT,
       fallback: null,
       mode: EngineSelectionMode.AUTO,
-      reason: "No native engines available, using TypeScript fallback",
+      reason: 'No native engines available, using TypeScript fallback',
       envVars,
     };
   }
@@ -483,7 +497,11 @@ export class RollbackManager {
 
     // Determine rollback target (next available in priority order)
     let rollbackTarget: EngineType | null = null;
-    const priority = [EngineType.REQUIEM, EngineType.RUST, EngineType.TYPESCRIPT];
+    const priority = [
+      EngineType.REQUIEM,
+      EngineType.RUST,
+      EngineType.TYPESCRIPT,
+    ];
     const currentIndex = priority.indexOf(current);
 
     for (let i = currentIndex + 1; i < priority.length; i++) {
@@ -513,11 +531,13 @@ export class RollbackManager {
     if (
       selection.mode === EngineSelectionMode.AUTO &&
       selection.primary !== EngineType.REQUIEM &&
-      process.env["REACH_EXPECT_REQUIEM"] === "1"
+      process.env['REACH_EXPECT_REQUIEM'] === '1'
     ) {
       return {
         silent: true,
-        warning: `Expected Requiem but using ${selection.primary}. ` + `Fallback occurred silently.`,
+        warning:
+          `Expected Requiem but using ${selection.primary}. ` +
+          `Fallback occurred silently.`,
       };
     }
 
@@ -525,7 +545,7 @@ export class RollbackManager {
   }
 
   private generateRollbackCommand(target: EngineType | null): string {
-    if (!target) return "No rollback available";
+    if (!target) return 'No rollback available';
 
     switch (target) {
       case EngineType.RUST:
@@ -535,7 +555,7 @@ export class RollbackManager {
       case EngineType.REQUIEM:
         return `unset ${ENV_FORCE_RUST} && export ${ENV_FORCE_REQUIEM}=1`;
       default:
-        return "Unknown rollback target";
+        return 'Unknown rollback target';
     }
   }
 }
@@ -563,16 +583,16 @@ export class DoctorTruthReporter {
       engines,
       rollback: rollbackInfo,
       protocol: {
-        version: "1.0.0",
+        version: '1.0.0',
         negotiated: null,
       },
       hash: {
-        algorithm: "sha256",
+        algorithm: 'sha256',
         sample: this.generateSampleHash(),
       },
       determinism: {
         enabled: true,
-        mode: process.env[ENV_DUAL_RUN] === "1" ? "dual-run" : "single",
+        mode: process.env[ENV_DUAL_RUN] === '1' ? 'dual-run' : 'single',
       },
     };
   }
@@ -583,18 +603,18 @@ export class DoctorTruthReporter {
   formatReport(report: DoctorTruthReport): string {
     const lines: string[] = [];
 
-    lines.push("=== Engine Truth Report ===\n");
+    lines.push('=== Engine Truth Report ===\n');
 
     // Selection
     lines.push(`Primary Engine: ${report.selection.primary}`);
     lines.push(`Selection Mode: ${report.selection.mode}`);
     lines.push(`Selection Reason: ${report.selection.reason}`);
-    lines.push(`Fallback: ${report.selection.fallback ?? "none"}\n`);
+    lines.push(`Fallback: ${report.selection.fallback ?? 'none'}\n`);
 
     // Engine Status
-    lines.push("Engine Status:");
+    lines.push('Engine Status:');
     for (const [type, status] of Object.entries(report.engines)) {
-      const indicator = status.available ? "✓" : "✗";
+      const indicator = status.available ? '✓' : '✗';
       const health = status.health;
       lines.push(`  ${indicator} ${type}: ${health}`);
       if (status.version) {
@@ -607,35 +627,47 @@ export class DoctorTruthReporter {
         lines.push(`    Hash: ${status.hash.slice(0, 16)}...`);
       }
     }
-    lines.push("");
+    lines.push('');
 
     // Rollback Info
-    lines.push("Rollback Safety:");
+    lines.push('Rollback Safety:');
     lines.push(`  Current: ${report.rollback.currentEngine}`);
-    lines.push(`  Rollback Available: ${report.rollback.rollbackAvailable ? "yes" : "no"}`);
+    lines.push(
+      `  Rollback Available: ${report.rollback.rollbackAvailable ? 'yes' : 'no'}`,
+    );
     if (report.rollback.rollbackEngine) {
       lines.push(`  Rollback Engine: ${report.rollback.rollbackEngine}`);
     }
     lines.push(`  Command: ${report.rollback.rollbackCommand}`);
-    lines.push(`  Verified Engines: ${report.rollback.verifiedEngines.join(", ")}\n`);
+    lines.push(
+      `  Verified Engines: ${report.rollback.verifiedEngines.join(', ')}\n`,
+    );
 
     // Environment
-    lines.push("Environment Variables:");
-    lines.push(`  ${ENV_FORCE_RUST}=${report.selection.envVars[ENV_FORCE_RUST] ?? "<unset>"}`);
-    lines.push(`  ${ENV_FORCE_REQUIEM}=${report.selection.envVars[ENV_FORCE_REQUIEM] ?? "<unset>"}`);
-    lines.push(`  ${ENV_DUAL_RUN}=${report.selection.envVars[ENV_DUAL_RUN] ?? "<unset>"}\n`);
+    lines.push('Environment Variables:');
+    lines.push(
+      `  ${ENV_FORCE_RUST}=${report.selection.envVars[ENV_FORCE_RUST] ?? '<unset>'}`,
+    );
+    lines.push(
+      `  ${ENV_FORCE_REQUIEM}=${report.selection.envVars[ENV_FORCE_REQUIEM] ?? '<unset>'}`,
+    );
+    lines.push(
+      `  ${ENV_DUAL_RUN}=${report.selection.envVars[ENV_DUAL_RUN] ?? '<unset>'}\n`,
+    );
 
     // Protocol & Hash
-    lines.push("Protocol: " + report.protocol.version);
-    lines.push("Hash Algorithm: " + report.hash.algorithm);
-    lines.push("Determinism: " + (report.determinism.enabled ? "enabled" : "disabled"));
+    lines.push('Protocol: ' + report.protocol.version);
+    lines.push('Hash Algorithm: ' + report.hash.algorithm);
+    lines.push(
+      'Determinism: ' + (report.determinism.enabled ? 'enabled' : 'disabled'),
+    );
 
-    return lines.join("\n");
+    return lines.join('\n');
   }
 
   private generateSampleHash(): string | null {
     try {
-      return createHash("sha256").update("reach-doctor-test").digest("hex");
+      return createHash('sha256').update('reach-doctor-test').digest('hex');
     } catch {
       return null;
     }
@@ -659,9 +691,12 @@ export class SafetyGuards {
     this.selector.verifyForcedEngine(actualEngine);
 
     // Log engine changes (prevents silent fallback)
-    if (this.lastLoggedEngine !== null && this.lastLoggedEngine !== actualEngine) {
+    if (
+      this.lastLoggedEngine !== null &&
+      this.lastLoggedEngine !== actualEngine
+    ) {
       console.error(
-        `[SAFETY] Engine changed from ${this.lastLoggedEngine} to ${actualEngine} at ${new Date().toISOString()}`
+        `[SAFETY] Engine changed from ${this.lastLoggedEngine} to ${actualEngine} at ${new Date().toISOString()}`,
       );
     }
     this.lastLoggedEngine = actualEngine;
@@ -672,7 +707,7 @@ export class SafetyGuards {
    */
   allowFallback(): boolean {
     const noFallback = process.env[ENV_NO_FALLBACK];
-    if (noFallback === "1" || noFallback === "true") {
+    if (noFallback === '1' || noFallback === 'true') {
       return false;
     }
     return true;
@@ -683,7 +718,7 @@ export class SafetyGuards {
    */
   wrapExecutor<T extends (...args: unknown[]) => unknown>(
     engine: EngineType,
-    executor: T
+    executor: T,
   ): T {
     return ((...args: unknown[]) => {
       this.guardEntrypoint(engine);

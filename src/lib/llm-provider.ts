@@ -1,7 +1,7 @@
-import type { LlmConfig, LlmProviderName } from "../core/llm-types.ts";
+import type { LlmConfig, LlmProviderName } from '../core/llm-types.ts';
 
 export interface LlmMessage {
-  role: "system" | "user" | "assistant";
+  role: 'system' | 'user' | 'assistant';
   content: string;
 }
 
@@ -20,10 +20,10 @@ export interface LlmProvider {
 }
 
 export const SUPPORTED_PROVIDER_FIXTURE_NAMES = [
-  "openai",
-  "anthropic",
-  "openrouter",
-  "ollama",
+  'openai',
+  'anthropic',
+  'openrouter',
+  'ollama',
 ] as const;
 
 interface RequestShape {
@@ -39,17 +39,17 @@ interface ProviderResponse {
 
 function validateDeterminism(seed: number, temperature: number): void {
   if (!Number.isInteger(seed) || seed < 0)
-    throw new Error("seed must be a non-negative integer");
+    throw new Error('seed must be a non-negative integer');
   if (temperature !== 0)
-    throw new Error("temperature must be 0 for deterministic mode");
+    throw new Error('temperature must be 0 for deterministic mode');
 }
 
 function normalizeBaseUrl(provider: LlmProviderName, baseUrl?: string): string {
   if (baseUrl) return baseUrl;
-  if (provider === "openai") return "https://api.openai.com/v1";
-  if (provider === "anthropic") return "https://api.anthropic.com/v1";
-  if (provider === "openrouter") return "https://openrouter.ai/api/v1";
-  return "http://127.0.0.1:11434";
+  if (provider === 'openai') return 'https://api.openai.com/v1';
+  if (provider === 'anthropic') return 'https://api.anthropic.com/v1';
+  if (provider === 'openrouter') return 'https://openrouter.ai/api/v1';
+  return 'http://127.0.0.1:11434';
 }
 
 function asOpenAiMessages(
@@ -71,11 +71,11 @@ function buildRequest(
 ): RequestShape {
   const baseUrl = normalizeBaseUrl(provider, config.baseUrl);
 
-  if (provider === "openai") {
+  if (provider === 'openai') {
     return {
       url: `${baseUrl}/chat/completions`,
       headers: {
-        "content-type": "application/json",
+        'content-type': 'application/json',
         authorization: `Bearer ${config.apiKey}`,
       },
       body: {
@@ -86,9 +86,9 @@ function buildRequest(
         ...(jsonSchema
           ? {
               response_format: {
-                type: "json_schema",
+                type: 'json_schema',
                 json_schema: {
-                  name: "zeo_schema",
+                  name: 'zeo_schema',
                   strict: true,
                   schema: jsonSchema,
                 },
@@ -99,20 +99,20 @@ function buildRequest(
     };
   }
 
-  if (provider === "anthropic") {
+  if (provider === 'anthropic') {
     const system = messages
-      .filter((m) => m.role === "system")
+      .filter((m) => m.role === 'system')
       .map((m) => m.content)
-      .join("\n\n");
+      .join('\n\n');
     const conversation = messages
-      .filter((m) => m.role !== "system")
+      .filter((m) => m.role !== 'system')
       .map((m) => ({ role: m.role, content: m.content }));
     return {
       url: `${baseUrl}/messages`,
       headers: {
-        "content-type": "application/json",
-        "x-api-key": config.apiKey ?? "",
-        "anthropic-version": "2023-06-01",
+        'content-type': 'application/json',
+        'x-api-key': config.apiKey ?? '',
+        'anthropic-version': '2023-06-01',
       },
       body: {
         model: config.model,
@@ -124,11 +124,11 @@ function buildRequest(
     };
   }
 
-  if (provider === "openrouter") {
+  if (provider === 'openrouter') {
     return {
       url: `${baseUrl}/chat/completions`,
       headers: {
-        "content-type": "application/json",
+        'content-type': 'application/json',
         authorization: `Bearer ${config.apiKey}`,
       },
       body: {
@@ -136,7 +136,7 @@ function buildRequest(
         messages: asOpenAiMessages(messages),
         temperature,
         seed,
-        response_format: jsonSchema ? { type: "json_object" } : undefined,
+        response_format: jsonSchema ? { type: 'json_object' } : undefined,
       },
     };
   }
@@ -144,7 +144,7 @@ function buildRequest(
   return {
     url: `${baseUrl}/api/chat`,
     headers: {
-      "content-type": "application/json",
+      'content-type': 'application/json',
     },
     body: {
       model: config.model,
@@ -168,12 +168,12 @@ function parseProviderResponse(
   provider: LlmProviderName,
   payload: Record<string, unknown>,
 ): ProviderResponse {
-  if (provider === "openai" || provider === "openrouter") {
+  if (provider === 'openai' || provider === 'openrouter') {
     const choices = Array.isArray(payload.choices) ? payload.choices : [];
     const first = choices[0] as Record<string, unknown> | undefined;
     const message = (first?.message ?? {}) as Record<string, unknown>;
     const content = message.content;
-    if (typeof content !== "string" || content.trim().length === 0) {
+    if (typeof content !== 'string' || content.trim().length === 0) {
       throw new Error(
         `Malformed ${provider} response: missing choices[0].message.content`,
       );
@@ -183,36 +183,36 @@ function parseProviderResponse(
       usage: {
         inputTokens:
           typeof (payload.usage as Record<string, unknown> | undefined)
-            ?.prompt_tokens === "number"
+            ?.prompt_tokens === 'number'
             ? (payload.usage as Record<string, number>).prompt_tokens
             : undefined,
         outputTokens:
           typeof (payload.usage as Record<string, unknown> | undefined)
-            ?.completion_tokens === "number"
+            ?.completion_tokens === 'number'
             ? (payload.usage as Record<string, number>).completion_tokens
             : undefined,
       },
     };
   }
 
-  if (provider === "anthropic") {
+  if (provider === 'anthropic') {
     const content = Array.isArray(payload.content) ? payload.content : [];
     const first = content[0] as Record<string, unknown> | undefined;
-    const text = typeof first?.text === "string" ? first.text : "";
+    const text = typeof first?.text === 'string' ? first.text : '';
     if (!text.trim()) {
-      throw new Error("Malformed anthropic response: missing content[0].text");
+      throw new Error('Malformed anthropic response: missing content[0].text');
     }
     return {
       json: tryParseJsonObject(text, provider),
       usage: {
         inputTokens:
           typeof (payload.usage as Record<string, unknown> | undefined)
-            ?.input_tokens === "number"
+            ?.input_tokens === 'number'
             ? (payload.usage as Record<string, number>).input_tokens
             : undefined,
         outputTokens:
           typeof (payload.usage as Record<string, unknown> | undefined)
-            ?.output_tokens === "number"
+            ?.output_tokens === 'number'
             ? (payload.usage as Record<string, number>).output_tokens
             : undefined,
       },
@@ -221,18 +221,18 @@ function parseProviderResponse(
 
   const message = (payload.message ?? {}) as Record<string, unknown>;
   const content = message.content;
-  if (typeof content !== "string" || content.trim().length === 0) {
-    throw new Error("Malformed ollama response: missing message.content");
+  if (typeof content !== 'string' || content.trim().length === 0) {
+    throw new Error('Malformed ollama response: missing message.content');
   }
   return {
     json: tryParseJsonObject(content, provider),
     usage: {
       inputTokens:
-        typeof payload.prompt_eval_count === "number"
+        typeof payload.prompt_eval_count === 'number'
           ? (payload.prompt_eval_count as number)
           : undefined,
       outputTokens:
-        typeof payload.eval_count === "number"
+        typeof payload.eval_count === 'number'
           ? (payload.eval_count as number)
           : undefined,
     },
@@ -240,8 +240,8 @@ function parseProviderResponse(
 }
 
 function schemaType(value: unknown): string {
-  if (Array.isArray(value)) return "array";
-  if (value === null) return "null";
+  if (Array.isArray(value)) return 'array';
+  if (value === null) return 'null';
   return typeof value;
 }
 
@@ -251,9 +251,9 @@ function validateSchemaValue(
   path: string,
 ): void {
   const expected = schema.type;
-  if (typeof expected === "string") {
-    if (expected === "object") {
-      if (!value || typeof value !== "object" || Array.isArray(value)) {
+  if (typeof expected === 'string') {
+    if (expected === 'object') {
+      if (!value || typeof value !== 'object' || Array.isArray(value)) {
         throw new Error(
           `Schema validation failed at ${path}: expected object, received ${schemaType(value)}`,
         );
@@ -284,7 +284,7 @@ function validateSchemaValue(
       return;
     }
 
-    if (expected === "array") {
+    if (expected === 'array') {
       if (!Array.isArray(value))
         throw new Error(
           `Schema validation failed at ${path}: expected array, received ${schemaType(value)}`,
@@ -311,7 +311,7 @@ export function validateJsonSchema(
   schema?: Record<string, unknown>,
 ): void {
   if (!schema) return;
-  validateSchemaValue(value, schema, "$");
+  validateSchemaValue(value, schema, '$');
 }
 
 export function createProvider(config: LlmConfig): LlmProvider {
@@ -319,7 +319,7 @@ export function createProvider(config: LlmConfig): LlmProvider {
     async chat(messages, jsonSchema, seed = config.seed, temperature = 0) {
       validateDeterminism(seed, temperature);
       const provider =
-        config.provider === "custom" ? "ollama" : config.provider;
+        config.provider === 'custom' ? 'ollama' : config.provider;
       const req = buildRequest(
         provider,
         config,
@@ -329,7 +329,7 @@ export function createProvider(config: LlmConfig): LlmProvider {
         temperature,
       );
       const response = await fetch(req.url, {
-        method: "POST",
+        method: 'POST',
         headers: req.headers,
         body: JSON.stringify(req.body),
       });

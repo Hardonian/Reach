@@ -12,7 +12,9 @@ export const metadata = {
 };
 
 export default async function ExportsPage() {
-  let bundle: Awaited<ReturnType<ReturnType<typeof getDemoEngine>['exportBundle']>> | null = null;
+  let bundle: Awaited<
+    ReturnType<ReturnType<typeof getDemoEngine>['exportBundle']>
+  > | null = null;
   let verification: { valid: boolean; details: string } | null = null;
   let error: string | null = null;
 
@@ -38,7 +40,10 @@ export default async function ExportsPage() {
                 Export bundles with manifests and verification
               </p>
             </div>
-            <a href="/demo" className="text-sm text-gray-600 hover:text-gray-900">
+            <a
+              href="/demo"
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
               ← Back to Demo
             </a>
           </div>
@@ -55,7 +60,9 @@ export default async function ExportsPage() {
         {!bundle ? (
           <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="text-4xl mb-4">📦</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Export Bundle</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No Export Bundle
+            </h3>
             <p className="text-gray-500 mb-6">
               Export bundles are created from the demo workflow
             </p>
@@ -70,16 +77,27 @@ export default async function ExportsPage() {
           <div className="space-y-6">
             {/* Verification Status */}
             {verification && (
-              <div className={`p-4 rounded-xl border ${
-                verification.valid ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
-              }`}>
+              <div
+                className={`p-4 rounded-xl border ${
+                  verification.valid
+                    ? 'bg-green-50 border-green-200'
+                    : 'bg-red-50 border-red-200'
+                }`}
+              >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{verification.valid ? '✅' : '❌'}</span>
+                  <span className="text-2xl">
+                    {verification.valid ? '✅' : '❌'}
+                  </span>
                   <div>
-                    <p className={`font-medium ${verification.valid ? 'text-green-800' : 'text-red-800'}`}>
-                      Bundle {verification.valid ? 'Verified' : 'Verification Failed'}
+                    <p
+                      className={`font-medium ${verification.valid ? 'text-green-800' : 'text-red-800'}`}
+                    >
+                      Bundle{' '}
+                      {verification.valid ? 'Verified' : 'Verification Failed'}
                     </p>
-                    <p className="text-sm text-gray-600">{verification.details}</p>
+                    <p className="text-sm text-gray-600">
+                      {verification.details}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -87,54 +105,79 @@ export default async function ExportsPage() {
 
             {/* Bundle Details */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Bundle Details</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Bundle Details
+              </h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
                   <p className="text-xs text-gray-500">Bundle ID</p>
-                  <p className="text-sm font-mono text-gray-900 truncate">{bundle.id}</p>
+                  <p className="text-sm font-mono text-gray-900 truncate">
+                    {bundle.id}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Created</p>
-                  <p className="text-sm text-gray-900">{new Date(bundle.created_at).toLocaleString()}</p>
+                  <p className="text-sm text-gray-900">
+                    {new Date(bundle.created_at).toLocaleString()}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Fingerprint</p>
-                  <p className="text-sm font-mono text-gray-900 truncate">{bundle.fingerprint}</p>
+                  <p className="text-sm font-mono text-gray-900 truncate">
+                    {bundle.fingerprint}
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Manifest */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Manifest</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Manifest
+              </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                 <div>
                   <p className="text-xs text-gray-500">Version</p>
-                  <p className="text-sm text-gray-900">{bundle.manifest.version}</p>
+                  <p className="text-sm text-gray-900">
+                    {bundle.manifest.version}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Engine Version</p>
-                  <p className="text-sm text-gray-900">{bundle.manifest.engine_version}</p>
+                  <p className="text-sm text-gray-900">
+                    {bundle.manifest.engine_version}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Event Count</p>
-                  <p className="text-sm text-gray-900">{bundle.manifest.event_count}</p>
+                  <p className="text-sm text-gray-900">
+                    {bundle.manifest.event_count}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Tenant ID</p>
-                  <p className="text-sm font-mono text-gray-900">{bundle.manifest.tenant_id}</p>
+                  <p className="text-sm font-mono text-gray-900">
+                    {bundle.manifest.tenant_id}
+                  </p>
                 </div>
               </div>
 
               <div>
                 <p className="text-xs text-gray-500 mb-2">Checksums</p>
                 <div className="bg-gray-50 rounded-lg p-3 space-y-1">
-                  {Object.entries(bundle.manifest.checksums).map(([key, value]) => (
-                    <div key={key} className="flex items-center justify-between">
-                      <span className="text-xs text-gray-600">{key}</span>
-                      <span className="text-xs font-mono text-gray-900">{value}</span>
-                    </div>
-                  ))}
+                  {Object.entries(bundle.manifest.checksums).map(
+                    ([key, value]) => (
+                      <div
+                        key={key}
+                        className="flex items-center justify-between"
+                      >
+                        <span className="text-xs text-gray-600">{key}</span>
+                        <span className="text-xs font-mono text-gray-900">
+                          {value}
+                        </span>
+                      </div>
+                    ),
+                  )}
                 </div>
               </div>
             </div>
@@ -142,15 +185,25 @@ export default async function ExportsPage() {
             {/* Contents Summary */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <p className="text-3xl font-bold text-orange-600">{bundle.junctions.length}</p>
-                <p className="text-sm font-medium text-gray-900 mt-1">Junctions</p>
+                <p className="text-3xl font-bold text-orange-600">
+                  {bundle.junctions.length}
+                </p>
+                <p className="text-sm font-medium text-gray-900 mt-1">
+                  Junctions
+                </p>
               </div>
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <p className="text-3xl font-bold text-blue-600">{bundle.decisions.length}</p>
-                <p className="text-sm font-medium text-gray-900 mt-1">Decisions</p>
+                <p className="text-3xl font-bold text-blue-600">
+                  {bundle.decisions.length}
+                </p>
+                <p className="text-sm font-medium text-gray-900 mt-1">
+                  Decisions
+                </p>
               </div>
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <p className="text-3xl font-bold text-green-600">{bundle.events.length}</p>
+                <p className="text-3xl font-bold text-green-600">
+                  {bundle.events.length}
+                </p>
                 <p className="text-sm font-medium text-gray-900 mt-1">Events</p>
               </div>
             </div>

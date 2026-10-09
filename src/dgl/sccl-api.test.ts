@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { authFailurePayload, paginate } from '../../apps/arcade/src/lib/sccl-api';
+import {
+  authFailurePayload,
+  paginate,
+} from '../../apps/arcade/src/lib/sccl-api';
 
 describe('sccl api helpers', () => {
   it('returns auth failure payload', () => {

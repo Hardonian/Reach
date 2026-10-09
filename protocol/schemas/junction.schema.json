@@ -4,7 +4,14 @@
   "title": "Junction Schema",
   "description": "Schema for Junction events in the Reach system",
   "type": "object",
-  "required": ["id", "type", "timestamp", "severity", "triggerTrace", "policyRefs"],
+  "required": [
+    "id",
+    "type",
+    "timestamp",
+    "severity",
+    "triggerTrace",
+    "policyRefs"
+  ],
   "properties": {
     "id": {
       "type": "string",
@@ -12,7 +19,13 @@
     },
     "type": {
       "type": "string",
-      "enum": ["DRIFT", "POLICY_VIOLATION", "ANOMALY", "THRESHOLD_BREACH", "MANUAL_TRIGGER"],
+      "enum": [
+        "DRIFT",
+        "POLICY_VIOLATION",
+        "ANOMALY",
+        "THRESHOLD_BREACH",
+        "MANUAL_TRIGGER"
+      ],
       "description": "Type of junction detected"
     },
     "timestamp": {

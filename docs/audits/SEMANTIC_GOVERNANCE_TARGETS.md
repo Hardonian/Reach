@@ -1,6 +1,7 @@
 # Semantic Governance Targets
 
 ## Required product surfaces
+
 - Semantic State schema and registry abstraction
 - Drift taxonomy and deterministic classification
 - Integrity score and explanation payload
@@ -11,6 +12,7 @@
 - Policy snapshot binding in state metadata
 
 ## Verification surfaces
+
 - Unit tests for classifier and scoring
 - Route checks for new console pages
 - CLI smoke output for semantic commands

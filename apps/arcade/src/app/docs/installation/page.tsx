@@ -3,14 +3,18 @@ export default function Installation() {
     <div className="section-container py-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <a href="/docs" className="text-gray-400 hover:text-white transition-colors">
+          <a
+            href="/docs"
+            className="text-gray-400 hover:text-white transition-colors"
+          >
             ← Back to Documentation
           </a>
         </div>
 
         <h1 className="text-4xl font-bold mb-4">Installation</h1>
         <p className="text-gray-400 mb-8">
-          Install ReadyLayer on your local machine or deploy to your infrastructure.
+          Install ReadyLayer on your local machine or deploy to your
+          infrastructure.
         </p>
 
         <div className="space-y-8">
@@ -32,9 +36,7 @@ export default function Installation() {
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300 mb-4">
               <p>npm install -g @reach/cli</p>
             </div>
-            <p className="text-gray-400">
-              Verify the installation:
-            </p>
+            <p className="text-gray-400">Verify the installation:</p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
               <p>reach --version</p>
             </div>
@@ -52,7 +54,10 @@ export default function Installation() {
               Run ReadyLayer commands through Docker:
             </p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
-              <p>docker run -it -v $(pwd):/workspace reach/cli reach create my-agent</p>
+              <p>
+                docker run -it -v $(pwd):/workspace reach/cli reach create
+                my-agent
+              </p>
             </div>
           </section>
 
@@ -62,7 +67,9 @@ export default function Installation() {
               For development or to build from source:
             </p>
             <div className="bg-black/50 p-4 rounded-lg font-mono text-sm text-gray-300">
-              <p>git clone https://github.com/XHARDONIANXSLASHXReadyLayer.git</p>
+              <p>
+                git clone https://github.com/XHARDONIANXSLASHXReadyLayer.git
+              </p>
               <p>XCDXReadyLayer</p>
               <p>npm install</p>
               <p>npm run build</p>
@@ -74,15 +81,25 @@ export default function Installation() {
             <h2 className="text-xl font-bold mb-4">Troubleshooting</h2>
             <div className="space-y-4 text-gray-400">
               <div>
-                <h3 className="font-semibold text-white">Permission Errors (Linux/Mac)</h3>
-                <p>If you encounter permission errors, you may need to use sudo or fix npm permissions:</p>
+                <h3 className="font-semibold text-white">
+                  Permission Errors (Linux/Mac)
+                </h3>
+                <p>
+                  If you encounter permission errors, you may need to use sudo
+                  or fix npm permissions:
+                </p>
                 <div className="bg-black/50 p-3 rounded-lg font-mono text-sm mt-2">
                   <p>sudo npm install -g @reach/cli</p>
                 </div>
               </div>
               <div>
-                <h3 className="font-semibold text-white">Windows Installation</h3>
-                <p>On Windows, use PowerShell or Command Prompt as Administrator, or use WSL2 for the best experience.</p>
+                <h3 className="font-semibold text-white">
+                  Windows Installation
+                </h3>
+                <p>
+                  On Windows, use PowerShell or Command Prompt as Administrator,
+                  or use WSL2 for the best experience.
+                </p>
               </div>
             </div>
           </section>

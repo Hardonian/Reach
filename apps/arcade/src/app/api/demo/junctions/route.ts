@@ -9,19 +9,25 @@ export async function POST() {
     await engine.seed(); // Ensure seeded
     const junctions = engine.getJunctions();
     const vitals = engine.getVitalsSummary();
-    
+
     return NextResponse.json({
       ok: true,
       data: { junctions, vitals },
       schemaVersion: '1.0.0',
-      engineVersion: '0.3.1-oss'
+      engineVersion: '0.3.1-oss',
     });
   } catch (error) {
-    return NextResponse.json({
-      ok: false,
-      error: { code: 'JUNCTIONS_FAILED', message: error instanceof Error ? error.message : 'Unknown error' },
-      schemaVersion: '1.0.0',
-      engineVersion: '0.3.1-oss'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        ok: false,
+        error: {
+          code: 'JUNCTIONS_FAILED',
+          message: error instanceof Error ? error.message : 'Unknown error',
+        },
+        schemaVersion: '1.0.0',
+        engineVersion: '0.3.1-oss',
+      },
+      { status: 500 },
+    );
   }
 }

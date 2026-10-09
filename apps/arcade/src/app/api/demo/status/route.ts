@@ -10,7 +10,7 @@ export async function GET() {
     const decisions = engine.getDecisions();
     const actions = engine.getActions();
     const vitals = junctions.length > 0 ? engine.getVitalsSummary() : null;
-    
+
     return NextResponse.json({
       ok: true,
       data: {
@@ -18,17 +18,23 @@ export async function GET() {
         junctions,
         decisions,
         actions,
-        vitals
+        vitals,
       },
       schemaVersion: '1.0.0',
-      engineVersion: '0.3.1-oss'
+      engineVersion: '0.3.1-oss',
     });
   } catch (error) {
-    return NextResponse.json({
-      ok: false,
-      error: { code: 'STATUS_FAILED', message: error instanceof Error ? error.message : 'Unknown error' },
-      schemaVersion: '1.0.0',
-      engineVersion: '0.3.1-oss'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        ok: false,
+        error: {
+          code: 'STATUS_FAILED',
+          message: error instanceof Error ? error.message : 'Unknown error',
+        },
+        schemaVersion: '1.0.0',
+        engineVersion: '0.3.1-oss',
+      },
+      { status: 500 },
+    );
   }
 }

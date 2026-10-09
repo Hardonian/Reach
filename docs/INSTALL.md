@@ -3,6 +3,7 @@
 ## Quick Install
 
 ### Using npm (Recommended for TypeScript/Node.js)
+
 ```bash
 # Install the CLI globally
 npm install -g @reach/cli
@@ -12,6 +13,7 @@ npx @reach/cli doctor
 ```
 
 ### Using pnpm
+
 ```bash
 # Install the CLI globally
 pnpm add -g @reach/cli
@@ -21,6 +23,7 @@ pnpm dlx @reach/cli doctor
 ```
 
 ### Using pip (Python)
+
 ```bash
 # Install the Python SDK
 pip install reach-sdk
@@ -30,6 +33,7 @@ pip install reach-cli
 ```
 
 ### Using Docker
+
 ```bash
 # Pull the image
 docker pull reach/reach:latest
@@ -59,6 +63,7 @@ sha256sum -c SHA256SUMS
 ```
 
 Expected checksums for v0.3.1:
+
 ```
 reach-linux-amd64  a1b2c3d4e5f6...
 reach-darwin-amd64 f6e5d4c3b2a1...
@@ -143,6 +148,7 @@ curl http://127.0.0.1:8787/health
 ```
 
 Expected output from `reach version`:
+
 ```json
 {
   "engineVersion": "0.3.1",
@@ -157,11 +163,11 @@ Expected output from `reach version`:
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `REACH_DATA_DIR` | Data directory path | `./data` |
-| `REACH_BASE_URL` | API base URL | `http://127.0.0.1:8787` |
-| `REACH_LOG_LEVEL` | Logging level | `info` |
+| Variable          | Description         | Default                 |
+| ----------------- | ------------------- | ----------------------- |
+| `REACH_DATA_DIR`  | Data directory path | `./data`                |
+| `REACH_BASE_URL`  | API base URL        | `http://127.0.0.1:8787` |
+| `REACH_LOG_LEVEL` | Logging level       | `info`                  |
 
 ### Configuration File
 
@@ -212,6 +218,7 @@ reach serve
 ### Version Mismatch
 
 If you see version compatibility errors, ensure:
+
 - Your CLI version matches the expected engine version
 - Run `reach version` to check both engine and spec versions
 - See [API_VERSIONING.md](API_VERSIONING.md) for compatibility policy

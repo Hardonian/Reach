@@ -25,10 +25,21 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const url = new URL(req.url);
     const root = process.cwd();
     const reportPath = path.join(root, 'dgl', 'reports', 'dgl_report.json');
-    const matrixPath = path.join(root, 'dgl', 'reports', 'provider-matrix.json');
+    const matrixPath = path.join(
+      root,
+      'dgl',
+      'reports',
+      'provider-matrix.json',
+    );
 
-    const report = safeReadJson<Record<string, unknown> | null>(reportPath, null);
-    const matrixRaw = safeReadJson<Array<Record<string, unknown>>>(matrixPath, []);
+    const report = safeReadJson<Record<string, unknown> | null>(
+      reportPath,
+      null,
+    );
+    const matrixRaw = safeReadJson<Array<Record<string, unknown>>>(
+      matrixPath,
+      [],
+    );
 
     return NextResponse.json({
       ok: true,

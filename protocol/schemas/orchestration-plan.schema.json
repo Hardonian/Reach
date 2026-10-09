@@ -17,7 +17,12 @@
   "properties": {
     "orchestration_plan": {
       "type": "object",
-      "required": ["phases", "description", "estimated_complexity", "requires_install"],
+      "required": [
+        "phases",
+        "description",
+        "estimated_complexity",
+        "requires_install"
+      ],
       "properties": {
         "phases": {
           "type": "array",
@@ -42,9 +47,17 @@
     },
     "capability_plan": {
       "type": "object",
-      "required": ["required_capabilities", "side_effect_types", "tier_required", "risk_level"],
+      "required": [
+        "required_capabilities",
+        "side_effect_types",
+        "tier_required",
+        "risk_level"
+      ],
       "properties": {
-        "required_capabilities": { "type": "array", "items": { "type": "string" } },
+        "required_capabilities": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
         "side_effect_types": { "type": "array", "items": { "type": "string" } },
         "tier_required": { "type": "string" },
         "risk_level": { "type": "string" }
@@ -73,7 +86,12 @@
     },
     "budget": {
       "type": "object",
-      "required": ["max_spawn_depth", "max_children_per_node", "estimated_tool_calls", "retry_limit"],
+      "required": [
+        "max_spawn_depth",
+        "max_children_per_node",
+        "estimated_tool_calls",
+        "retry_limit"
+      ],
       "properties": {
         "max_spawn_depth": { "type": "integer" },
         "max_children_per_node": { "type": "integer" },
@@ -110,7 +128,10 @@
         "id": { "type": "string" },
         "parent_id": { "type": "string" },
         "agent_type": { "type": "string" },
-        "children": { "type": "array", "items": { "$ref": "#/definitions/spawnNode" } }
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/spawnNode" }
+        }
       }
     }
   }

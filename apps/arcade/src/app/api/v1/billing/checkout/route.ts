@@ -13,12 +13,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (ctx instanceof NextResponse) return ctx;
 
   if (env.BILLING_ENABLED !== true) {
-    return cloudErrorResponse('Billing is not enabled on this instance. Set BILLING_ENABLED=true and STRIPE_SECRET_KEY.', 503);
+    return cloudErrorResponse(
+      'Billing is not enabled on this instance. Set BILLING_ENABLED=true and STRIPE_SECRET_KEY.',
+      503,
+    );
   }
 
   const body = await req.json().catch(() => ({}));
   const parsed = parseBody(CheckoutSchema, body);
-  if ('errors' in parsed) return cloudErrorResponse(parsed.errors.issues[0]?.message ?? 'Invalid input', 400);
+  if ('errors' in parsed)
+    return cloudErrorResponse(
+      parsed.errors.issues[0]?.message ?? 'Invalid input',
+      400,
+    );
 
   try {
     const ent = getEntitlement(ctx.tenantId);
@@ -31,9 +38,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       cancelUrl: parsed.data.cancelUrl,
       existingCustomerId: ent?.stripe_customer_id ?? undefined,
     });
-    return NextResponse.json({ checkout_url: session.url, session_id: session.id });
+    return NextResponse.json({
+      checkout_url: session.url,
+      session_id: session.id,
+    });
   } catch (err) {
-    if (err instanceof BillingDisabledError) return cloudErrorResponse(err.message, 503);
+    if (err instanceof BillingDisabledError)
+      return cloudErrorResponse(err.message, 503);
     logger.error('Failed to create checkout session', err);
     return cloudErrorResponse('Failed to create checkout session', 500);
   }

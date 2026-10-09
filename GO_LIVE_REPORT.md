@@ -1,7 +1,7 @@
 # Reach Go-Live Readiness Report
 
-**Date:** 2026-02-26  
-**Version:** 0.3.1  
+**Date:** 2026-02-26
+**Version:** 0.3.1
 **Status:** Ready for Pre-Release
 
 ## Executive Summary
@@ -19,17 +19,20 @@ The Reach decision engine has been prepared for go-live with the following achie
 ### 1. Repository Cleanup (Phase 1)
 
 **Files Moved:**
+
 - Specs → `docs/specs/`: ADAPTIVE_ENGINE_SPEC.md, AUTOPACK_SPEC.md, EXECUTION_PACK_SPEC.md, etc.
 - Archive → `docs/archive/`: GAP_LIST.md, COMPONENT_GAPS.md, MOBILE_MILESTONE_SUMMARY.md, etc.
 - ADRs → `docs/adr/`: CUTOVER.md, READY_LAYER_STRATEGY.md, KIP.md
 
 **Root Files Removed:**
+
 - All ZIP files (moved to docs/archive/)
 - Legacy spec files (consolidated in docs/)
 
 ### 2. Missing Modules Fixed (Phase 1b)
 
 **Created:**
+
 - `src/lib/hash.ts` - Deterministic hashing utilities
 - `src/lib/canonical.ts` - Canonical JSON utilities
 - `fallback.js` / `fallback.d.ts` - Compatibility stubs for integration tests
@@ -37,10 +40,12 @@ The Reach decision engine has been prepared for go-live with the following achie
 ### 3. Install Scripts (Phase 2)
 
 **Updated:**
+
 - `scripts/install.sh` - Cross-platform install with Node.js + Rust support
 - `scripts/install.ps1` - Windows PowerShell install
 
 **Features:**
+
 - Detects prerequisites (node, pnpm, optional rust)
 - Installs Node.js dependencies
 - Builds Rust engine if available
@@ -50,9 +55,11 @@ The Reach decision engine has been prepared for go-live with the following achie
 ### 4. Smoke Test (Phase 3)
 
 **Created:**
+
 - `scripts/verify-smoke.mjs` - Fast smoke test (8 checks)
 
 **Verifies:**
+
 - Project structure
 - Package.json validity
 - Determinism primitives
@@ -65,10 +72,12 @@ The Reach decision engine has been prepared for go-live with the following achie
 ### 5. Documentation (Phase 8)
 
 **Created:**
+
 - `docs/GO_LIVE.md` - Complete go-live guide
 - `README.md` - Clean, professional overview
 
 **Updated:**
+
 - Root structure is now minimal and professional
 - Clear separation of concerns
 
@@ -76,22 +85,22 @@ The Reach decision engine has been prepared for go-live with the following achie
 
 ### What Works
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| TypeScript compilation | ✅ | Core modules pass typecheck |
-| Unit tests | ✅ | 318 tests passing |
-| Determinism primitives | ✅ | Hash, canonical JSON, sorting |
-| CLI commands | ✅ | All commands load correctly |
-| Smoke test | ✅ | 8/8 checks passing |
-| Install scripts | ✅ | Both .sh and .ps1 working |
+| Feature                | Status | Notes                         |
+| ---------------------- | ------ | ----------------------------- |
+| TypeScript compilation | ✅     | Core modules pass typecheck   |
+| Unit tests             | ✅     | 318 tests passing             |
+| Determinism primitives | ✅     | Hash, canonical JSON, sorting |
+| CLI commands           | ✅     | All commands load correctly   |
+| Smoke test             | ✅     | 8/8 checks passing            |
+| Install scripts        | ✅     | Both .sh and .ps1 working     |
 
 ### Known Limitations
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Protocol tests | ⚠️ WIP | Binary protocol alignment in progress |
-| Engine adapter | ⚠️ WIP | Protocol type compatibility being aligned |
-| Rust engine | ⚠️ Optional | Falls back to TypeScript if unavailable |
+| Feature        | Status      | Notes                                     |
+| -------------- | ----------- | ----------------------------------------- |
+| Protocol tests | ⚠️ WIP      | Binary protocol alignment in progress     |
+| Engine adapter | ⚠️ WIP      | Protocol type compatibility being aligned |
+| Rust engine    | ⚠️ Optional | Falls back to TypeScript if unavailable   |
 
 ### Workarounds
 
@@ -138,6 +147,7 @@ Passed: 8/8
 ```
 
 ### Unit Tests
+
 ```
 Test Files: 33 passed, 2 failed (protocol-related), 1 skipped
 Tests: 318 passed, 6 failed (protocol-related), 4 skipped
@@ -179,6 +189,7 @@ The 6 failing tests are related to the protocol layer alignment which is documen
 ## Files Changed
 
 ### New Files
+
 - `src/lib/hash.ts`
 - `src/lib/canonical.ts`
 - `fallback.js`
@@ -187,6 +198,7 @@ The 6 failing tests are related to the protocol layer alignment which is documen
 - `scripts/verify-smoke.mjs`
 
 ### Modified Files
+
 - `scripts/install.sh`
 - `scripts/install.ps1`
 - `README.md`
@@ -194,6 +206,7 @@ The 6 failing tests are related to the protocol layer alignment which is documen
 - `scripts/verify-root-cleanliness.mjs`
 
 ### Moved Files
+
 - 15+ spec files → `docs/specs/`
 - 8+ archive files → `docs/archive/`
 - 3+ ADR files → `docs/adr/`
@@ -203,6 +216,7 @@ The 6 failing tests are related to the protocol layer alignment which is documen
 The Reach decision engine is **ready for pre-release**. The core functionality is stable, tests pass, and the installation process is streamlined. The WIP protocol layer is explicitly documented with workarounds.
 
 **Recommended Actions:**
+
 1. Merge these changes
 2. Tag as v0.3.1-pre
 3. Announce to early adopters with protocol WIP notice
@@ -210,5 +224,5 @@ The Reach decision engine is **ready for pre-release**. The core functionality i
 
 ---
 
-**Report Generated:** 2026-02-26  
+**Report Generated:** 2026-02-26
 **Verification Status:** ✅ GREEN (with documented WIP items)

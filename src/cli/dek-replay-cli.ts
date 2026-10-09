@@ -1,15 +1,20 @@
 // @ts-nocheck
 /**
  * DEK Replay CLI - Deterministic Execution Kernel Replay
- * 
+ *
  * Provides zeo replay <run-id> functionality for verifying
  * deterministic execution and detecting drift.
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
-import { resolve, join } from "node:path";
-import type { ZeoReplayResult, ZeoJournalEntry } from "@zeo/contracts";
-import { replayExecution, getJournalEntry, getRegisteredAdapters, initializeDEK } from "@zeo/kernel";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { resolve, join } from 'node:path';
+import type { ZeoReplayResult, ZeoJournalEntry } from '@zeo/contracts';
+import {
+  replayExecution,
+  getJournalEntry,
+  getRegisteredAdapters,
+  initializeDEK,
+} from '@zeo/kernel';
 
 export interface DekReplayArgs {
   runId: string;
@@ -26,12 +31,12 @@ export function parseDekReplayArgs(argv: string[]): DekReplayArgs | null {
 
   const args: DekReplayArgs = {
     runId: argv[0],
-    json: argv.includes("--json"),
-    strict: !argv.includes("--no-strict"),
-    suggestModel: argv.includes("--suggest-model"),
+    json: argv.includes('--json'),
+    strict: !argv.includes('--no-strict'),
+    suggestModel: argv.includes('--suggest-model'),
   };
 
-  const reportIdx = argv.indexOf("--report-out");
+  const reportIdx = argv.indexOf('--report-out');
   if (reportIdx !== -1 && argv[reportIdx + 1]) {
     args.reportOut = argv[reportIdx + 1];
   }
@@ -39,14 +44,16 @@ export function parseDekReplayArgs(argv: string[]): DekReplayArgs | null {
   return args;
 }
 
-export async function runDekReplayCommand(args: DekReplayArgs): Promise<number> {
+export async function runDekReplayCommand(
+  args: DekReplayArgs,
+): Promise<number> {
   // Initialize DEK
   initializeDEK();
 
   if (!args.json) {
     console.log(`\n=== Zeo DEK Replay ===`);
     console.log(`Run ID: ${args.runId}`);
-    console.log(`Mode: ${args.strict ? "strict" : "permissive"}`);
+    console.log(`Mode: ${args.strict ? 'strict' : 'permissive'}`);
     console.log(`\nReconstructing execution context...`);
   }
 
@@ -59,10 +66,16 @@ export async function runDekReplayCommand(args: DekReplayArgs): Promise<number> 
 
   if (!originalEntry) {
     if (args.json) {
-      console.log(JSON.stringify({
-        status: "UNAVAILABLE",
-        error: `Run ID ${args.runId} not found in journal`,
-      }, null, 2));
+      console.log(
+        JSON.stringify(
+          {
+            status: 'UNAVAILABLE',
+            error: `Run ID ${args.runId} not found in journal`,
+          },
+          null,
+          2,
+        ),
+      );
     } else {
       console.error(`\nError: Run ID ${args.runId} not found in journal.`);
       console.log(`\nTo list available runs:`);
@@ -76,13 +89,18 @@ export async function runDekReplayCommand(args: DekReplayArgs): Promise<number> 
     const output = formatJsonOutput(replayResult);
     console.log(JSON.stringify(output, null, 2));
   } else {
-    printHumanOutput({
-      status: replayResult.status,
-      originalEntry: replayResult.originalEntry,
-      replayResult: replayResult.replayResult,
-      comparison: replayResult.comparison,
-      modelAvailability: replayResult.modelAvailability || { available: true },
-    }, args.suggestModel);
+    printHumanOutput(
+      {
+        status: replayResult.status,
+        originalEntry: replayResult.originalEntry,
+        replayResult: replayResult.replayResult,
+        comparison: replayResult.comparison,
+        modelAvailability: replayResult.modelAvailability || {
+          available: true,
+        },
+      },
+      args.suggestModel,
+    );
   }
 
   // Write report if requested
@@ -92,13 +110,13 @@ export async function runDekReplayCommand(args: DekReplayArgs): Promise<number> 
 
   // Exit code based on status
   switch (status) {
-    case "MATCH":
+    case 'MATCH':
       return 0;
-    case "MISMATCH":
+    case 'MISMATCH':
       return 2;
-    case "DEGRADED":
+    case 'DEGRADED':
       return 3;
-    case "UNAVAILABLE":
+    case 'UNAVAILABLE':
       return 1;
     default:
       return 1;
@@ -117,7 +135,7 @@ function formatJsonOutput(result: {
   if (!result.originalEntry) {
     return {
       status: result.status,
-      error: "Original entry not found",
+      error: 'Original entry not found',
     };
   }
 
@@ -155,7 +173,7 @@ function printHumanOutput(
       suggestedModel?: string;
     };
   },
-  showSuggestions: boolean
+  showSuggestions: boolean,
 ): void {
   if (!result.originalEntry) return;
 
@@ -165,36 +183,48 @@ function printHumanOutput(
   console.log(`  Run ID: ${envelope.runId}`);
   console.log(`  Workflow: ${envelope.workflowId}`);
   console.log(`  Timestamp: ${envelope.timestamp}`);
-  console.log(`  Model: ${envelope.modelSpec.provider}/${envelope.modelSpec.model}`);
+  console.log(
+    `  Model: ${envelope.modelSpec.provider}/${envelope.modelSpec.model}`,
+  );
   console.log(`  Duration: ${result.originalEntry.durationMs}ms`);
 
   console.log(`\nReplay Comparison:`);
-  console.log(`  Original Hash: ${result.comparison.originalHash.slice(0, 16)}...`);
-  console.log(`  Replay Hash: ${result.comparison.replayHash === 'reconstruction_required' 
-    ? 'N/A (reconstruction required)' 
-    : result.comparison.replayHash.slice(0, 16) + '...'}`);
+  console.log(
+    `  Original Hash: ${result.comparison.originalHash.slice(0, 16)}...`,
+  );
+  console.log(
+    `  Replay Hash: ${
+      result.comparison.replayHash === 'reconstruction_required'
+        ? 'N/A (reconstruction required)'
+        : result.comparison.replayHash.slice(0, 16) + '...'
+    }`,
+  );
 
   console.log(`\nStatus: ${result.status}`);
 
   switch (result.status) {
-    case "MATCH":
+    case 'MATCH':
       console.log(`  ✅ Execution is deterministic - outputs match exactly`);
       break;
-    case "MISMATCH":
+    case 'MISMATCH':
       console.log(`  ❌ Drift detected - outputs differ`);
       console.log(`  \nThis indicates:`);
       console.log(`  - Non-deterministic model behavior`);
       console.log(`  - External dependency changes`);
       console.log(`  - Policy or configuration drift`);
       break;
-    case "DEGRADED":
+    case 'DEGRADED':
       console.log(`  ⚠️  Replay degraded - input reconstruction required`);
-      console.log(`  \nThe original input snapshot needs to be restored for full replay.`);
+      console.log(
+        `  \nThe original input snapshot needs to be restored for full replay.`,
+      );
       break;
-    case "UNAVAILABLE":
+    case 'UNAVAILABLE':
       console.log(`  ❌ Model unavailable for replay`);
       if (showSuggestions && result.modelAvailability.suggestedModel) {
-        console.log(`  \nSuggested compatible model: ${result.modelAvailability.suggestedModel}`);
+        console.log(
+          `  \nSuggested compatible model: ${result.modelAvailability.suggestedModel}`,
+        );
       }
       break;
   }
@@ -206,15 +236,18 @@ function printHumanOutput(
   console.log(`  Seed: ${envelope.deterministicSeed.slice(0, 16)}...`);
 }
 
-function writeReport(outDir: string, result: {
-  status: 'MATCH' | 'MISMATCH' | 'DEGRADED' | 'UNAVAILABLE';
-  originalEntry: ZeoJournalEntry | undefined;
-  comparison: {
-    originalHash: string;
-    replayHash: string;
-    match: boolean;
-  };
-}): void {
+function writeReport(
+  outDir: string,
+  result: {
+    status: 'MATCH' | 'MISMATCH' | 'DEGRADED' | 'UNAVAILABLE';
+    originalEntry: ZeoJournalEntry | undefined;
+    comparison: {
+      originalHash: string;
+      replayHash: string;
+      match: boolean;
+    };
+  },
+): void {
   if (!existsSync(outDir)) {
     mkdirSync(outDir, { recursive: true });
   }
@@ -226,7 +259,7 @@ function writeReport(outDir: string, result: {
 
 /** List available runs in journal */
 export async function listJournalRuns(limit: number = 20): Promise<void> {
-  const { readJournalEntries } = await import("@zeo/kernel");
+  const { readJournalEntries } = await import('@zeo/kernel');
   const entries = readJournalEntries().slice(-limit);
 
   console.log(`\n=== Recent Journal Entries ===`);
@@ -234,7 +267,8 @@ export async function listJournalRuns(limit: number = 20): Promise<void> {
 
   for (const entry of entries.reverse()) {
     const e = entry.envelope;
-    const status = entry.status === 'success' ? '✓' : entry.status === 'error' ? '✗' : '◐';
+    const status =
+      entry.status === 'success' ? '✓' : entry.status === 'error' ? '✗' : '◐';
     console.log(`${status} ${e.runId}`);
     console.log(`   Workflow: ${e.workflowId}`);
     console.log(`   Time: ${e.timestamp}`);
@@ -246,4 +280,3 @@ export async function listJournalRuns(limit: number = 20): Promise<void> {
 
 /** Export for integration with main CLI */
 export { replayExecution, getJournalEntry };
-

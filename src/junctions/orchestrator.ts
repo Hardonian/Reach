@@ -3,8 +3,16 @@
  * Manages junction detection, deduplication, and persistence
  */
 
-import { JunctionTrigger, JunctionType, generateJunctionFingerprint, generateDeduplicationKey } from './types';
-import { JunctionRepository, Junction } from '../../apps/arcade/src/lib/db/junctions';
+import {
+  JunctionTrigger,
+  JunctionType,
+  generateJunctionFingerprint,
+  generateDeduplicationKey,
+} from './types';
+import {
+  JunctionRepository,
+  Junction,
+} from '../../apps/arcade/src/lib/db/junctions';
 
 // Default configuration
 const DEFAULT_CONFIG = {
@@ -44,19 +52,20 @@ export class JunctionOrchestrator {
   }> {
     // Generate deterministic fingerprint
     const fingerprint = generateJunctionFingerprint(trigger);
-    
+
     // Generate deduplication key
     const dedupeKey = generateDeduplicationKey(trigger);
-    
+
     // Check for existing active junction with same fingerprint
-    const existingByFingerprint = JunctionRepository.findByFingerprint(fingerprint);
+    const existingByFingerprint =
+      JunctionRepository.findByFingerprint(fingerprint);
     if (existingByFingerprint.length > 0) {
       return {
         created: false,
         reason: 'duplicate_fingerprint',
       };
     }
-    
+
     // Check for cooldown
     if (JunctionRepository.isInCooldown(dedupeKey)) {
       return {
@@ -64,16 +73,17 @@ export class JunctionOrchestrator {
         reason: 'in_cooldown',
       };
     }
-    
+
     // Check for existing active junction with same dedupe key
-    const existingByDedupe = JunctionRepository.findByDeduplicationKey(dedupeKey);
+    const existingByDedupe =
+      JunctionRepository.findByDeduplicationKey(dedupeKey);
     if (existingByDedupe) {
       return {
         created: false,
         reason: 'active_junction_exists',
       };
     }
-    
+
     // Create the junction
     const junction = JunctionRepository.create({
       junction_type: trigger.type as JunctionType,
@@ -86,7 +96,7 @@ export class JunctionOrchestrator {
       deduplication_key: dedupeKey,
       cooldown_hours: this.config.cooldownHours,
     });
-    
+
     return {
       created: true,
       junction,
@@ -96,19 +106,22 @@ export class JunctionOrchestrator {
   /**
    * Scan for junctions within a time range
    */
-  async scan(since: Date, options?: {
-    junctionType?: string;
-    minSeverity?: number;
-    limit?: number;
-  }): Promise<Junction[]> {
+  async scan(
+    since: Date,
+    options?: {
+      junctionType?: string;
+      minSeverity?: number;
+      limit?: number;
+    },
+  ): Promise<Junction[]> {
     const junctions = JunctionRepository.list({
       junctionType: options?.junctionType,
       minSeverity: options?.minSeverity,
       limit: options?.limit || 100,
     });
-    
+
     // Filter by date
-    return junctions.filter(j => new Date(j.created_at) >= since);
+    return junctions.filter((j) => new Date(j.created_at) >= since);
   }
 
   /**

@@ -7,16 +7,19 @@
  * Uses BLAKE3 for high performance and cross-platform fingerprint stability.
  */
 
-import { hash } from "blake3";
-import { createHash } from "crypto";
-import { Readable } from "stream";
+import { hash } from 'blake3';
+import { createHash } from 'crypto';
+import { Readable } from 'stream';
 
 // BLAKE3 hash implementation with fallback
 // Prefer native blake3 if available, otherwise use crypto.createHash with warning
 let hasherAvailable = true;
 let warned = false;
 
-function getHash(input: string | Buffer | Uint8Array, encoding?: 'hex'): string {
+function getHash(
+  input: string | Buffer | Uint8Array,
+  encoding?: 'hex',
+): string {
   try {
     // Try to use blake3 - hash function takes (input, options)
     const result = hash(input);
@@ -29,9 +32,13 @@ function getHash(input: string | Buffer | Uint8Array, encoding?: 'hex'): string 
     if (!warned) {
       warned = true;
       if (process.env.REACH_STRICT_HASH === '1') {
-        throw new Error('hash_unavailable_blake3: blake3 required in strict mode');
+        throw new Error(
+          'hash_unavailable_blake3: blake3 required in strict mode',
+        );
       }
-      console.warn('[hashStream] WARNING: Using SHA-256 fallback (not for production)');
+      console.warn(
+        '[hashStream] WARNING: Using SHA-256 fallback (not for production)',
+      );
     }
     // Fallback to SHA-256 (deterministic but different hash primitive)
     return createHash('sha256').update(input).digest('hex').substring(0, 64);
@@ -63,7 +70,7 @@ export class HashStream {
    */
   update(chunk: string | Buffer | Uint8Array): this {
     if (this.finalized) {
-      throw new Error("HashStream: cannot update after finalize()");
+      throw new Error('HashStream: cannot update after finalize()');
     }
     if (typeof chunk === 'string') {
       this.chunks.push(Buffer.from(chunk, 'utf8'));
@@ -81,7 +88,7 @@ export class HashStream {
    */
   finalize(): string {
     if (this.finalized) {
-      throw new Error("HashStream: already finalized");
+      throw new Error('HashStream: already finalized');
     }
     this.finalized = true;
     const combined = Buffer.concat(this.chunks);
@@ -116,16 +123,16 @@ export async function hashReadableStream(stream: Readable): Promise<string> {
     // Use HashStream instead of createHasher (which doesn't exist in this API)
     const hasher = new HashStream();
 
-    stream.on("data", (chunk: Buffer | string) => {
+    stream.on('data', (chunk: Buffer | string) => {
       hasher.update(chunk);
     });
 
-    stream.on("end", () => {
+    stream.on('end', () => {
       const digest = hasher.finalize();
       resolve(digest);
     });
 
-    stream.on("error", (err: Error) => {
+    stream.on('error', (err: Error) => {
       reject(err);
     });
   });
@@ -139,6 +146,5 @@ export async function hashReadableStream(stream: Readable): Promise<string> {
  * combineHashes(["abc123", "def456"]) // blake3 of "abc123:def456"
  */
 export function combineHashes(hashes: readonly string[]): string {
-  return hashString(hashes.join(":"));
+  return hashString(hashes.join(':'));
 }
-

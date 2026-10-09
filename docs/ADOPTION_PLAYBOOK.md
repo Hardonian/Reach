@@ -32,4 +32,4 @@ Winning strategies for transitioning users from Demo success to production Gates
 
 - **Zero-Config Discovery:** CLI detects existing `.github/workflows` and suggests exact YAML placement.
 - **One-Click Presets:** Default to `Integrity Shield` for new connections.
-- **Draft Reports:** Show what a gate report *would* look like during the setup wizard.
+- **Draft Reports:** Show what a gate report _would_ look like during the setup wizard.

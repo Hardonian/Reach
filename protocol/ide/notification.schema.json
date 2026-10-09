@@ -4,18 +4,11 @@
   "title": "IDE Notification",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "level",
-    "message"
-  ],
+  "required": ["level", "message"],
   "properties": {
     "level": {
       "type": "string",
-      "enum": [
-        "info",
-        "warn",
-        "error"
-      ]
+      "enum": ["info", "warn", "error"]
     },
     "message": {
       "type": "string",

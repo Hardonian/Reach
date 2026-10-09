@@ -13,10 +13,7 @@ export default async function ConsolePage() {
 
   return (
     <ConsoleLayout>
-      <MissionControlOverview 
-        health={healthRes.data} 
-        agents={agentsRes.data} 
-      />
+      <MissionControlOverview health={healthRes.data} agents={agentsRes.data} />
     </ConsoleLayout>
   );
 }

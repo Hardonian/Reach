@@ -1,0 +1,54 @@
+{
+  "run_id": "dgl_1791570714984",
+  "timestamp": "2026-10-09T18:31:54.984Z",
+  "repo": "Reach",
+  "base_sha": "cfbbabea1e66bae11cbf3da0e2b76d137fdd64d6",
+  "head_sha": "6ac23f8c23f076bc33120a2549a86d3160490508",
+  "dgl_report_paths": [
+    "/home/scott/repos/Reach/dgl/reports/dgl_report.json",
+    "/home/scott/repos/Reach/dgl/reports/dgl_report.md",
+    "/home/scott/repos/Reach/dgl/reports/dgl_report.sarif"
+  ],
+  "openapi_compat_summary": {
+    "scanned_specs": [
+      "/home/scott/repos/Reach/openapi/reach.openapi.yaml",
+      "/home/scott/repos/Reach/openapi/reach.openapi.yaml"
+    ],
+    "breaking": 0,
+    "warnings": 0
+  },
+  "provider": {},
+  "context_hash": "81dde94a75fef3ea943b74fcf47bf791ff4f73f77a6576826e6a542c75f62491",
+  "blast_radius": {
+    "score": 30,
+    "subsystems_touched": 1,
+    "dependency_depth_impacted": 3,
+    "public_api_surface_affected": 0,
+    "openapi_endpoints_touched": 0,
+    "bundle_sensitive_files_touched": 0
+  },
+  "economics": {
+    "tokens_consumed": 0,
+    "diff_size": 2,
+    "passes_to_converge": 1,
+    "repair_cycles": 0,
+    "cost_per_accepted_change": 0
+  },
+  "drift_forecast_score": 0.5763636363636364,
+  "summary_scores": {
+    "intent_alignment_score": 100,
+    "terminology_drift_score": 100,
+    "semantic_drift_score": 100,
+    "trust_boundary_change_score": 100,
+    "calibration_score": 50,
+    "blast_radius_score": 30
+  },
+  "violations": [],
+  "turbulence_hotspots": [
+    {
+      "path": ".github/workflows/security-audit.yml",
+      "reason": "recently changed",
+      "count": 1
+    }
+  ]
+}

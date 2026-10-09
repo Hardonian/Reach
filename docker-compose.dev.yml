@@ -10,7 +10,7 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "8787:8787"
+      - '8787:8787'
     environment:
       - REACH_DATA_DIR=/data
       - REACH_ENV=development
@@ -20,9 +20,20 @@ services:
       - ./services/runner:/app/services/runner
       - ./pack-devkit:/app/pack-devkit
     working_dir: /app/services/runner
-    command: ["go", "run", "./cmd/reach-serve", "--bind", "0.0.0.0", "--port", "8787", "--data", "/data"]
+    command:
+      [
+        'go',
+        'run',
+        './cmd/reach-serve',
+        '--bind',
+        '0.0.0.0',
+        '--port',
+        '8787',
+        '--data',
+        '/data',
+      ]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8787/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:8787/health']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -44,7 +55,7 @@ services:
       - ./pack-devkit:/app/pack-devkit
       - ./examples:/app/examples
     working_dir: /app
-    command: ["sleep", "infinity"]
+    command: ['sleep', 'infinity']
     networks:
       - reach-network
     depends_on:
@@ -54,7 +65,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     ports:
-      - "9090:9090"
+      - '9090:9090'
     volumes:
       - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
@@ -74,7 +85,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false

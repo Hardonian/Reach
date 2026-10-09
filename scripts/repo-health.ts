@@ -12,15 +12,10 @@ const REQUIRED_ROOT_FILES = [
   'CONTRIBUTING.md',
   'SECURITY.md',
   'LICENSE',
-  'CHANGELOG.md'
+  'CHANGELOG.md',
 ];
 
-const REQUIRED_SCRIPTS = [
-  'lint',
-  'typecheck',
-  'test',
-  'build'
-];
+const REQUIRED_SCRIPTS = ['lint', 'typecheck', 'test', 'build'];
 
 function checkRepoHealth() {
   let failed = false;
@@ -54,14 +49,20 @@ function checkRepoHealth() {
 
   console.log('\n--- Checking Config Consistency ---');
   const rootFiles = fs.readdirSync(REPO_ROOT);
-  const eslintConfigs = rootFiles.filter(f => f.startsWith('.eslintrc') || f.startsWith('eslint.config'));
+  const eslintConfigs = rootFiles.filter(
+    (f) => f.startsWith('.eslintrc') || f.startsWith('eslint.config'),
+  );
   if (eslintConfigs.length > 1) {
-    console.error(`❌ Multiple ESLint configs detected: ${eslintConfigs.join(', ')}`);
+    console.error(
+      `❌ Multiple ESLint configs detected: ${eslintConfigs.join(', ')}`,
+    );
     failed = true;
   } else if (eslintConfigs.length === 0) {
-    console.warn('⚠️ No ESLint config detected in root (ignoring if intentional)');
+    console.warn(
+      '⚠️ No ESLint config detected in root (ignoring if intentional)',
+    );
   } else {
-      console.log(`✅ Single ESLint config: ${eslintConfigs[0]}`);
+    console.log(`✅ Single ESLint config: ${eslintConfigs[0]}`);
   }
 
   if (failed) {

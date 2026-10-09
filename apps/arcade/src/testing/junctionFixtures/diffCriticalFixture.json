@@ -9,10 +9,7 @@
       "config/database.yaml",
       "src/admin/users.ts"
     ],
-    "criticalFiles": [
-      "src/payments/stripe.ts",
-      "src/admin/users.ts"
-    ],
+    "criticalFiles": ["src/payments/stripe.ts", "src/admin/users.ts"],
     "addedLines": 150,
     "removedLines": 20,
     "riskScore": 0.75

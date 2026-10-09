@@ -47,7 +47,11 @@ export default function DecisionDetailPage() {
 
   const handleRecordOutcome = (status: string) => {
     // In production, call API to record outcome
-    console.log('Recording outcome:', { decisionId, status, notes: outcomeNotes });
+    console.log('Recording outcome:', {
+      decisionId,
+      status,
+      notes: outcomeNotes,
+    });
   };
 
   if (loading) {
@@ -64,7 +68,9 @@ export default function DecisionDetailPage() {
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Decision not found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Decision not found
+            </h3>
             <p className="text-gray-500 mb-6">
               The decision with ID {decisionId} could not be found.
             </p>
@@ -80,9 +86,15 @@ export default function DecisionDetailPage() {
     );
   }
 
-  const parsedInput = decision.decision_input ? JSON.parse(decision.decision_input) : null;
-  const parsedOutput = decision.decision_output ? JSON.parse(decision.decision_output) : null;
-  const parsedTrace = decision.decision_trace ? JSON.parse(decision.decision_trace) : null;
+  const parsedInput = decision.decision_input
+    ? JSON.parse(decision.decision_input)
+    : null;
+  const parsedOutput = decision.decision_output
+    ? JSON.parse(decision.decision_output)
+    : null;
+  const parsedTrace = decision.decision_trace
+    ? JSON.parse(decision.decision_trace)
+    : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -98,10 +110,15 @@ export default function DecisionDetailPage() {
         <div className="mb-8">
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Decision Details</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Decision Details
+              </h1>
               <p className="mt-2 text-gray-600">ID: {decision.id}</p>
               <p className="text-sm text-gray-500">
-                Fingerprint: <code className="bg-gray-100 px-1 rounded">{decision.input_fingerprint}</code>
+                Fingerprint:{' '}
+                <code className="bg-gray-100 px-1 rounded">
+                  {decision.input_fingerprint}
+                </code>
               </p>
             </div>
             <div className="flex gap-2">
@@ -120,30 +137,40 @@ export default function DecisionDetailPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Evidence Context Panel */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Evidence Context</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Evidence Context
+              </h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <span className="text-sm text-gray-500">Source Type</span>
                   <p className="font-medium">{decision.source_type}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-500">Source Reference</span>
+                  <span className="text-sm text-gray-500">
+                    Source Reference
+                  </span>
                   <p className="font-medium">{decision.source_ref}</p>
                 </div>
                 <div>
                   <span className="text-sm text-gray-500">Created</span>
-                  <p className="font-medium">{new Date(decision.created_at).toLocaleString()}</p>
+                  <p className="font-medium">
+                    {new Date(decision.created_at).toLocaleString()}
+                  </p>
                 </div>
                 <div>
                   <span className="text-sm text-gray-500">Updated</span>
-                  <p className="font-medium">{new Date(decision.updated_at).toLocaleString()}</p>
+                  <p className="font-medium">
+                    {new Date(decision.updated_at).toLocaleString()}
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Recommendation Panel */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Recommendation</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Recommendation
+              </h2>
               {parsedOutput ? (
                 <div>
                   <div className="text-3xl font-bold text-blue-600 mb-4">
@@ -152,17 +179,19 @@ export default function DecisionDetailPage() {
                   <div>
                     <span className="text-sm text-gray-500">Ranking:</span>
                     <ul className="mt-2 space-y-1">
-                      {parsedOutput.ranking?.map((action: string, idx: number) => (
-                        <li key={action} className="flex items-center gap-2">
-                          <span className="text-gray-400">{idx + 1}.</span>
-                          <span>{action}</span>
-                          {action === parsedOutput.recommended_action && (
-                            <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
-                              Recommended
-                            </span>
-                          )}
-                        </li>
-                      ))}
+                      {parsedOutput.ranking?.map(
+                        (action: string, idx: number) => (
+                          <li key={action} className="flex items-center gap-2">
+                            <span className="text-gray-400">{idx + 1}.</span>
+                            <span>{action}</span>
+                            {action === parsedOutput.recommended_action && (
+                              <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
+                                Recommended
+                              </span>
+                            )}
+                          </li>
+                        ),
+                      )}
                     </ul>
                   </div>
                 </div>
@@ -174,7 +203,9 @@ export default function DecisionDetailPage() {
             {/* Trace Panel */}
             {parsedTrace && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Trace</h2>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  Trace
+                </h2>
                 <pre className="bg-gray-50 p-4 rounded-md overflow-x-auto text-sm">
                   {JSON.stringify(parsedTrace, null, 2)}
                 </pre>
@@ -184,17 +215,23 @@ export default function DecisionDetailPage() {
             {/* JSON Panel */}
             {showJson && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Raw JSON</h2>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  Raw JSON
+                </h2>
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">Decision Input</h3>
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">
+                      Decision Input
+                    </h3>
                     <pre className="bg-gray-50 p-4 rounded-md overflow-x-auto text-xs">
                       {JSON.stringify(parsedInput, null, 2)}
                     </pre>
                   </div>
                   {parsedOutput && (
                     <div>
-                      <h3 className="text-sm font-medium text-gray-700 mb-2">Decision Output</h3>
+                      <h3 className="text-sm font-medium text-gray-700 mb-2">
+                        Decision Output
+                      </h3>
                       <pre className="bg-gray-50 p-4 rounded-md overflow-x-auto text-xs">
                         {JSON.stringify(parsedOutput, null, 2)}
                       </pre>
@@ -209,20 +246,28 @@ export default function DecisionDetailPage() {
           <div className="space-y-6">
             {/* Status Panel */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Status</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Status
+              </h2>
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Decision Status</span>
-                  <span className="font-medium capitalize">{decision.status}</span>
+                  <span className="font-medium capitalize">
+                    {decision.status}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Outcome</span>
-                  <span className="font-medium capitalize">{decision.outcome_status}</span>
+                  <span className="font-medium capitalize">
+                    {decision.outcome_status}
+                  </span>
                 </div>
                 {decision.calibration_delta !== null && (
                   <div className="flex justify-between">
                     <span className="text-gray-500">Calibration Delta</span>
-                    <span className={`font-medium ${decision.calibration_delta > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span
+                      className={`font-medium ${decision.calibration_delta > 0 ? 'text-green-600' : 'text-red-600'}`}
+                    >
                       {decision.calibration_delta.toFixed(4)}
                     </span>
                   </div>
@@ -232,7 +277,9 @@ export default function DecisionDetailPage() {
 
             {/* Lifecycle Panel */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Lifecycle</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Lifecycle
+              </h2>
               <div className="space-y-3">
                 <button
                   onClick={handleAccept}
@@ -247,7 +294,7 @@ export default function DecisionDetailPage() {
                   Reject Decision
                 </button>
               </div>
-              
+
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Notes
@@ -263,9 +310,12 @@ export default function DecisionDetailPage() {
             </div>
 
             {/* Outcome Tracking Panel */}
-            {decision.status === 'accepted' || decision.status === 'rejected' ? (
+            {decision.status === 'accepted' ||
+            decision.status === 'rejected' ? (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Track Outcome</h2>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  Track Outcome
+                </h2>
                 <div className="space-y-3">
                   <button
                     onClick={() => handleRecordOutcome('success')}

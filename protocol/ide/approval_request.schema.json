@@ -4,12 +4,7 @@
   "title": "Approval Request",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "run_id",
-    "tool",
-    "capabilities",
-    "reason"
-  ],
+  "required": ["run_id", "tool", "capabilities", "reason"],
   "properties": {
     "run_id": {
       "type": "string",

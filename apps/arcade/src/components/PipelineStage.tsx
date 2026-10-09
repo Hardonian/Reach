@@ -16,7 +16,10 @@ interface PipelineStageProps {
   onClick?: () => void;
 }
 
-const typeConfig: Record<StageType, { color: string; icon: string; label: string }> = {
+const typeConfig: Record<
+  StageType,
+  { color: string; icon: string; label: string }
+> = {
   input: { color: '#10B981', icon: '📥', label: 'Input' },
   processor: { color: '#7C3AED', icon: '⚙️', label: 'Processor' },
   retrieval: { color: '#3B82F6', icon: '🔍', label: 'Retrieval' },
@@ -33,7 +36,8 @@ export function PipelineStage({
   onClick,
 }: PipelineStageProps) {
   const typeInfo = typeConfig[type];
-  const statusVariant = status === 'running' ? 'running' : status === 'error' ? 'error' : 'idle';
+  const statusVariant =
+    status === 'running' ? 'running' : status === 'error' ? 'error' : 'idle';
 
   return (
     <div
@@ -53,7 +57,10 @@ export function PipelineStage({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <h4 className="font-bold truncate">{name}</h4>
-          <StatusIndicator status={statusVariant} pulse={status === 'running'} />
+          <StatusIndicator
+            status={statusVariant}
+            pulse={status === 'running'}
+          />
         </div>
         <p className="text-sm text-gray-500 truncate">{description}</p>
       </div>
@@ -75,7 +82,8 @@ export function PipelineStageCompact({
   status: StageStatus;
 }) {
   const typeInfo = typeConfig[type];
-  const statusVariant = status === 'running' ? 'running' : status === 'error' ? 'error' : 'idle';
+  const statusVariant =
+    status === 'running' ? 'running' : status === 'error' ? 'error' : 'idle';
 
   return (
     <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-surface/50">
@@ -88,7 +96,11 @@ export function PipelineStageCompact({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="font-medium text-sm truncate">{name}</span>
-          <StatusIndicator status={statusVariant} size="sm" pulse={status === 'running'} />
+          <StatusIndicator
+            status={statusVariant}
+            size="sm"
+            pulse={status === 'running'}
+          />
         </div>
       </div>
     </div>

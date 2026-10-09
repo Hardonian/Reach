@@ -1,6 +1,6 @@
 /**
  * Binary Protocol Frame Codec (TypeScript)
- * 
+ *
  * Implements the streaming, length-prefixed frame format
  * for communication with the Requiem engine.
  */
@@ -35,7 +35,7 @@ export enum MessageType {
   ExecResult = 0x11,
   HealthRequest = 0x20,
   HealthResult = 0x21,
-  Error = 0xFF,
+  Error = 0xff,
 }
 
 /** Protocol frame structure */
@@ -52,9 +52,15 @@ export interface Frame {
 export class FrameError extends Error {
   constructor(
     message: string,
-    public readonly code: 'INVALID_MAGIC' | 'UNSUPPORTED_VERSION' | 'UNKNOWN_MSG_TYPE' | 
-                          'PAYLOAD_TOO_LARGE' | 'CRC_MISMATCH' | 'INCOMPLETE' | 'IO_ERROR',
-    public readonly details?: Record<string, unknown>
+    public readonly code:
+      | 'INVALID_MAGIC'
+      | 'UNSUPPORTED_VERSION'
+      | 'UNKNOWN_MSG_TYPE'
+      | 'PAYLOAD_TOO_LARGE'
+      | 'CRC_MISMATCH'
+      | 'INCOMPLETE'
+      | 'IO_ERROR',
+    public readonly details?: Record<string, unknown>,
   ) {
     super(`${code}: ${message}`);
     this.name = 'FrameError';
@@ -65,44 +71,55 @@ export class FrameError extends Error {
 function crc32c(data: Uint8Array): number {
   // CRC32C polynomial: 0x1EDC6F41
   const CRC32C_TABLE = new Uint32Array(256);
-  const POLYNOMIAL = 0x82F63B78; // Reversed polynomial
-  
+  const POLYNOMIAL = 0x82f63b78; // Reversed polynomial
+
   // Initialize table (only once would be better, but for simplicity...)
   for (let i = 0; i < 256; i++) {
     let crc = i;
     for (let j = 0; j < 8; j++) {
-      crc = (crc & 1) ? (crc >>> 1) ^ POLYNOMIAL : crc >>> 1;
+      crc = crc & 1 ? (crc >>> 1) ^ POLYNOMIAL : crc >>> 1;
     }
     CRC32C_TABLE[i] = crc >>> 0;
   }
-  
-  let crc = 0xFFFFFFFF;
+
+  let crc = 0xffffffff;
   for (const byte of data) {
-    crc = (crc >>> 8) ^ CRC32C_TABLE[(crc ^ byte) & 0xFF];
+    crc = (crc >>> 8) ^ CRC32C_TABLE[(crc ^ byte) & 0xff];
   }
-  return (crc ^ 0xFFFFFFFF) >>> 0;
+  return (crc ^ 0xffffffff) >>> 0;
 }
 
 /** Write little-endian uint32 to buffer */
-function writeUInt32LE(buffer: Uint8Array, offset: number, value: number): void {
-  buffer[offset] = value & 0xFF;
-  buffer[offset + 1] = (value >>> 8) & 0xFF;
-  buffer[offset + 2] = (value >>> 16) & 0xFF;
-  buffer[offset + 3] = (value >>> 24) & 0xFF;
+function writeUInt32LE(
+  buffer: Uint8Array,
+  offset: number,
+  value: number,
+): void {
+  buffer[offset] = value & 0xff;
+  buffer[offset + 1] = (value >>> 8) & 0xff;
+  buffer[offset + 2] = (value >>> 16) & 0xff;
+  buffer[offset + 3] = (value >>> 24) & 0xff;
 }
 
 /** Write little-endian uint16 to buffer */
-function writeUInt16LE(buffer: Uint8Array, offset: number, value: number): void {
-  buffer[offset] = value & 0xFF;
-  buffer[offset + 1] = (value >>> 8) & 0xFF;
+function writeUInt16LE(
+  buffer: Uint8Array,
+  offset: number,
+  value: number,
+): void {
+  buffer[offset] = value & 0xff;
+  buffer[offset + 1] = (value >>> 8) & 0xff;
 }
 
 /** Read little-endian uint32 from buffer */
 function readUInt32LE(buffer: Uint8Array, offset: number): number {
-  return (buffer[offset] | 
-          (buffer[offset + 1] << 8) | 
-          (buffer[offset + 2] << 16) | 
-          (buffer[offset + 3] << 24)) >>> 0;
+  return (
+    (buffer[offset] |
+      (buffer[offset + 1] << 8) |
+      (buffer[offset + 2] << 16) |
+      (buffer[offset + 3] << 24)) >>>
+    0
+  );
 }
 
 /** Read little-endian uint16 from buffer */
@@ -120,12 +137,12 @@ function calculateFrameCRC(frame: Frame): number {
   writeUInt32LE(header, 12, frame.flags);
   writeUInt32LE(header, 16, frame.correlationId);
   writeUInt32LE(header, 20, frame.payload.length);
-  
+
   // Calculate CRC over header (excluding CRC field) + payload
   const crcData = new Uint8Array(HEADER_SIZE + frame.payload.length);
   crcData.set(header);
   crcData.set(frame.payload, HEADER_SIZE);
-  
+
   return crc32c(crcData);
 }
 
@@ -134,7 +151,7 @@ export function encodeFrame(frame: Frame): Uint8Array {
   const payloadLen = frame.payload.length;
   const totalLen = FRAME_OVERHEAD + payloadLen;
   const buffer = new Uint8Array(totalLen);
-  
+
   // Write header
   writeUInt32LE(buffer, 0, MAGIC);
   writeUInt16LE(buffer, 4, frame.versionMajor);
@@ -143,34 +160,36 @@ export function encodeFrame(frame: Frame): Uint8Array {
   writeUInt32LE(buffer, 12, frame.flags);
   writeUInt32LE(buffer, 16, frame.correlationId);
   writeUInt32LE(buffer, 20, payloadLen);
-  
+
   // Write payload
   buffer.set(frame.payload, HEADER_SIZE);
-  
+
   // Calculate and write CRC
   const crc = calculateFrameCRC(frame);
   writeUInt32LE(buffer, HEADER_SIZE + payloadLen, crc);
-  
+
   return buffer;
 }
 
 /** Try to decode a frame from buffer */
-export function decodeFrame(buffer: Uint8Array): { frame: Frame; remaining: Uint8Array } | null {
+export function decodeFrame(
+  buffer: Uint8Array,
+): { frame: Frame; remaining: Uint8Array } | null {
   // Need at least header
   if (buffer.length < HEADER_SIZE) {
     return null;
   }
-  
+
   // Check magic
   const magic = readUInt32LE(buffer, 0);
   if (magic !== MAGIC) {
     throw new FrameError(
       `Invalid magic: expected 0x${MAGIC.toString(16).toUpperCase()}, got 0x${magic.toString(16).toUpperCase()}`,
       'INVALID_MAGIC',
-      { expected: MAGIC, got: magic }
+      { expected: MAGIC, got: magic },
     );
   }
-  
+
   // Parse header
   const versionMajor = readUInt16LE(buffer, 4);
   const versionMinor = readUInt16LE(buffer, 6);
@@ -178,13 +197,13 @@ export function decodeFrame(buffer: Uint8Array): { frame: Frame; remaining: Uint
   const flags = readUInt32LE(buffer, 12);
   const correlationId = readUInt32LE(buffer, 16);
   const payloadLen = readUInt32LE(buffer, 20);
-  
+
   // Validate message type
   if (!Object.values(MessageType).includes(msgTypeRaw)) {
     throw new FrameError(
       `Unknown message type: 0x${msgTypeRaw.toString(16).toUpperCase()}`,
       'UNKNOWN_MSG_TYPE',
-      { msgType: msgTypeRaw }
+      { msgType: msgTypeRaw },
     );
   }
 
@@ -193,7 +212,7 @@ export function decodeFrame(buffer: Uint8Array): { frame: Frame; remaining: Uint
     throw new FrameError(
       `Payload too large: ${payloadLen} bytes (max ${MAX_PAYLOAD_BYTES})`,
       'PAYLOAD_TOO_LARGE',
-      { size: payloadLen, max: MAX_PAYLOAD_BYTES }
+      { size: payloadLen, max: MAX_PAYLOAD_BYTES },
     );
   }
 
@@ -220,15 +239,15 @@ export function decodeFrame(buffer: Uint8Array): { frame: Frame; remaining: Uint
     payload,
   };
   const calculatedCRC = calculateFrameCRC(frame);
-  
+
   if (expectedCRC !== calculatedCRC) {
     throw new FrameError(
       `CRC mismatch: expected 0x${expectedCRC.toString(16).toUpperCase()}, calculated 0x${calculatedCRC.toString(16).toUpperCase()}`,
       'CRC_MISMATCH',
-      { expected: expectedCRC, calculated: calculatedCRC }
+      { expected: expectedCRC, calculated: calculatedCRC },
     );
   }
-  
+
   return {
     frame,
     remaining: buffer.slice(totalFrameLen),
@@ -240,38 +259,38 @@ export class FrameParser {
   private chunks: Uint8Array[] = [];
   private currentSize: number = 0;
   private maxBufferSize: number;
-  
+
   constructor(options: { maxBufferSize?: number } = {}) {
     this.maxBufferSize = options.maxBufferSize ?? 64 * 1024 * 1024;
   }
-  
-  /** 
+
+  /**
    * Add data to buffer
    * OPTIMIZED: Uses a chunk-based approach to avoid O(N^2) copies during assembly.
    */
   append(data: Uint8Array): void {
     if (data.length === 0) return;
-    
+
     if (this.currentSize + data.length > this.maxBufferSize) {
       throw new FrameError(
         `Buffer overflow: ${this.currentSize + data.length} bytes exceeds ${this.maxBufferSize}`,
-        'IO_ERROR'
+        'IO_ERROR',
       );
     }
 
     this.chunks.push(data);
     this.currentSize += data.length;
   }
-  
+
   /** Try to parse a frame from buffer */
   parse(): Frame | null {
     if (this.currentSize === 0) {
       return null;
     }
-    
+
     // Assemble buffer only when needed
     const buffer = this.assemble();
-    
+
     try {
       const result = decodeFrame(buffer);
       if (result) {
@@ -310,36 +329,38 @@ export class FrameParser {
     this.chunks = buffer.length > 0 ? [buffer] : [];
     this.currentSize = buffer.length;
   }
-  
+
   /** Find and skip to next valid magic bytes */
   private resync(buffer: Uint8Array): void {
     const magicBytes = new Uint8Array([
-      MAGIC & 0xFF,
-      (MAGIC >>> 8) & 0xFF,
-      (MAGIC >>> 16) & 0xFF,
-      (MAGIC >>> 24) & 0xFF,
+      MAGIC & 0xff,
+      (MAGIC >>> 8) & 0xff,
+      (MAGIC >>> 16) & 0xff,
+      (MAGIC >>> 24) & 0xff,
     ]);
-    
+
     for (let i = 1; i <= buffer.length - 4; i++) {
-      if (buffer[i] === magicBytes[0] &&
-          buffer[i + 1] === magicBytes[1] &&
-          buffer[i + 2] === magicBytes[2] &&
-          buffer[i + 3] === magicBytes[3]) {
+      if (
+        buffer[i] === magicBytes[0] &&
+        buffer[i + 1] === magicBytes[1] &&
+        buffer[i + 2] === magicBytes[2] &&
+        buffer[i + 3] === magicBytes[3]
+      ) {
         this.setBuffer(buffer.slice(i));
         return;
       }
     }
-    
+
     // No magic found, keep last 3 bytes (might be partial magic)
     this.setBuffer(buffer.slice(-3));
   }
-  
+
   /** Clear buffer */
   clear(): void {
     this.chunks = [];
     this.currentSize = 0;
   }
-  
+
   /** Get current buffer size */
   get bufferSize(): number {
     return this.currentSize;

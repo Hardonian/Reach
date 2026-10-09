@@ -1,20 +1,20 @@
 /**
  * Environment Security Module
- * 
+ *
  * Provides environment hygiene and binary hijack resistance:
  * - Secret stripping from child process environments
  * - Binary trust gate with version locking
  * - Path validation for trusted binaries
  * - Cross-platform binary integrity verification
- * 
+ *
  * SECURITY: This module ensures sensitive credentials never leak to child processes
  * and that only trusted binaries are executed.
- * 
+ *
  * M3 Hardening:
  * - Enhanced secret pattern detection
  * - Windows-specific env leakage prevention
  * - Deterministic binary trust verification
- * 
+ *
  * @module lib/env-security
  */
 
@@ -55,7 +55,7 @@ export const TRUSTED_ENV_VAR_PREFIXES = [
   'PWD',
   'OLDPWD',
   'SHLVL',
-  '_',  // Last command
+  '_', // Last command
 ];
 
 /**
@@ -141,37 +141,40 @@ export const SAFE_ENV_VARS = new Set([
 
 /**
  * Sanitize environment variables for child process spawning
- * 
+ *
  * SECURITY: Removes all secret/sensitive variables while preserving
  * necessary system variables for process execution.
- * 
+ *
  * @param env - The environment object to sanitize (defaults to process.env)
  * @returns Sanitized environment safe for child processes
  */
 export function sanitizeEnvironment(
-  env: Record<string, string | undefined> = process.env as Record<string, string | undefined>
+  env: Record<string, string | undefined> = process.env as Record<
+    string,
+    string | undefined
+  >,
 ): Record<string, string> {
   const sanitized: Record<string, string> = {};
-  
+
   for (const [key, value] of Object.entries(env)) {
     // Skip undefined values
     if (value === undefined) continue;
-    
+
     // Check if this is a sensitive variable
     if (isSensitiveEnvVar(key)) {
       continue; // Strip it
     }
-    
+
     // Preserve non-sensitive variables
     sanitized[key] = value;
   }
-  
+
   return sanitized;
 }
 
 /**
  * Check if an environment variable name indicates it contains sensitive data
- * 
+ *
  * @param name - The environment variable name
  * @returns True if the variable should be considered sensitive
  */
@@ -180,19 +183,19 @@ export function isSensitiveEnvVar(name: string): boolean {
   if (SAFE_ENV_VARS.has(name)) {
     return false;
   }
-  
+
   // Check against known sensitive variable names
   if (SENSITIVE_ENV_VARS.has(name)) {
     return true;
   }
-  
+
   // Check against sensitive patterns
   for (const pattern of SECRET_ENV_PATTERNS) {
     if (pattern.test(name)) {
       return true;
     }
   }
-  
+
   return false;
 }
 
@@ -216,12 +219,12 @@ export interface BinaryTrustOptions {
 
 /**
  * Validate binary trust gate
- * 
+ *
  * SECURITY: Ensures:
  * 1. Binary path is in an allowed location (not /tmp, user-writable, etc.)
  * 2. Version matches expected (prevents version downgrade attacks)
  * 3. Binary is actually executable
- * 
+ *
  * @param options - Validation options
  * @throws BinaryTrustError if validation fails
  */
@@ -234,76 +237,78 @@ export function validateBinaryTrust(options: BinaryTrustOptions): void {
     allowRelative = false,
     requireExecutable = true,
   } = options;
-  
+
   // Check version lock
   if (currentVersion !== expectedVersion) {
     throw new BinaryTrustError(
       `Version mismatch: expected ${expectedVersion}, got ${currentVersion}`,
       binaryPath,
-      'version_mismatch'
+      'version_mismatch',
     );
   }
-  
+
   // Resolve to absolute path
   const resolvedPath = path.resolve(binaryPath);
-  
+
   // Check if path is relative and not allowed
   if (!path.isAbsolute(binaryPath) && !allowRelative) {
     throw new BinaryTrustError(
       `Relative binary paths not allowed: ${binaryPath}`,
       binaryPath,
-      'relative_path'
+      'relative_path',
     );
   }
-  
+
   // Check if path is in allowed location
-  const isInAllowedPath = allowedPaths.some(allowed => {
+  const isInAllowedPath = allowedPaths.some((allowed) => {
     const resolvedAllowed = path.resolve(allowed);
-    return resolvedPath.startsWith(resolvedAllowed + path.sep) || 
-           resolvedPath === resolvedAllowed;
+    return (
+      resolvedPath.startsWith(resolvedAllowed + path.sep) ||
+      resolvedPath === resolvedAllowed
+    );
   });
-  
+
   if (!isInAllowedPath && path.isAbsolute(binaryPath)) {
     throw new BinaryTrustError(
       `Binary not in allowed path: ${binaryPath}. Allowed: ${allowedPaths.join(', ')}`,
       binaryPath,
-      'untrusted_path'
+      'untrusted_path',
     );
   }
-  
+
   // Verify file exists and is executable
   if (requireExecutable) {
     try {
       const stats = fs.statSync(resolvedPath);
-      
+
       if (!stats.isFile()) {
         throw new BinaryTrustError(
           `Binary is not a file: ${binaryPath}`,
           binaryPath,
-          'not_a_file'
+          'not_a_file',
         );
       }
-      
+
       // Check executable permission (Unix-like systems)
       if (process.platform !== 'win32') {
         const mode = stats.mode;
-        const isExecutable = (mode & 0o111) !== 0;  // Owner, group, or other execute bit
-        
+        const isExecutable = (mode & 0o111) !== 0; // Owner, group, or other execute bit
+
         if (!isExecutable) {
           throw new BinaryTrustError(
             `Binary is not executable: ${binaryPath}`,
             binaryPath,
-            'not_executable'
+            'not_executable',
           );
         }
       }
     } catch (error) {
       if (error instanceof BinaryTrustError) throw error;
-      
+
       throw new BinaryTrustError(
         `Cannot access binary: ${binaryPath} - ${error}`,
         binaryPath,
-        'access_error'
+        'access_error',
       );
     }
   }
@@ -311,7 +316,7 @@ export function validateBinaryTrust(options: BinaryTrustOptions): void {
 
 /**
  * Compute hash of a binary for integrity verification
- * 
+ *
  * @param binaryPath - Path to the binary
  * @returns SHA-256 hash of the binary
  */
@@ -322,45 +327,48 @@ export function computeBinaryHash(binaryPath: string): string {
 
 /**
  * Verify binary integrity against known hash
- * 
+ *
  * @param binaryPath - Path to the binary
  * @param expectedHash - Expected SHA-256 hash
  * @returns True if hash matches
  * @throws BinaryTrustError if hashes don't match
  */
-export function verifyBinaryHash(binaryPath: string, expectedHash: string): boolean {
+export function verifyBinaryHash(
+  binaryPath: string,
+  expectedHash: string,
+): boolean {
   const actualHash = computeBinaryHash(binaryPath);
-  
+
   if (actualHash !== expectedHash.toLowerCase()) {
     throw new BinaryTrustError(
       `Binary hash mismatch: expected ${expectedHash}, got ${actualHash}`,
       binaryPath,
-      'hash_mismatch'
+      'hash_mismatch',
     );
   }
-  
+
   return true;
 }
 
 /**
  * Create a sanitized environment for spawning REQUIEM_BIN
- * 
+ *
  * @param additionalVars - Additional safe variables to include
  * @returns Sanitized environment with REQUIEM_BIN trust validation
  */
 export function createRequiemEnv(
-  additionalVars: Record<string, string> = {}
+  additionalVars: Record<string, string> = {},
 ): Record<string, string> {
   // Start with sanitized environment
   const env = sanitizeEnvironment();
-  
+
   // Add additional safe variables
   for (const [key, value] of Object.entries(additionalVars)) {
     if (!isSensitiveEnvVar(key)) {
       env[key] = value;
     }
   }
-  
+
   return env;
 }
 
@@ -369,7 +377,7 @@ export function createRequiemEnv(
  * These are stripped on Windows platforms for defense in depth
  */
 const WINDOWS_SENSITIVE_PATTERNS = [
-  /^USERNAME$/i,  // May contain identifying info
+  /^USERNAME$/i, // May contain identifying info
   /^USERDOMAIN$/i,
   /^LOGONSERVER$/i,
   /^COMPUTERNAME$/i, // May be sensitive in some contexts
@@ -384,20 +392,23 @@ function isWindows(): boolean {
 
 /**
  * Enhanced environment sanitization with platform-specific protections
- * 
+ *
  * SECURITY: On Windows, additional environment variables are stripped
  * to prevent information leakage through child processes.
- * 
+ *
  * @param env - The environment to sanitize
  * @param platformSpecific - Whether to apply platform-specific rules
  * @returns Sanitized environment
  */
 export function sanitizeEnvironmentEnhanced(
-  env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
+  env: Record<string, string | undefined> = process.env as Record<
+    string,
+    string | undefined
+  >,
   platformSpecific = true,
 ): Record<string, string> {
   const sanitized = sanitizeEnvironment(env);
-  
+
   // Apply Windows-specific protections
   if (platformSpecific && isWindows()) {
     for (const key of Object.keys(sanitized)) {
@@ -409,16 +420,16 @@ export function sanitizeEnvironmentEnhanced(
       }
     }
   }
-  
+
   return sanitized;
 }
 
 /**
  * Validate REQUIEM_BIN trust with enhanced checks
- * 
+ *
  * SECURITY: Combines version lock, path trust, and optional hash verification
  * for comprehensive binary integrity validation.
- * 
+ *
  * @param binaryPath - Path to the binary
  * @param expectedVersion - Expected version
  * @param currentVersion - Current running version
@@ -436,10 +447,16 @@ export function validateRequiemBinTrust(
     binaryPath,
     expectedVersion,
     currentVersion,
-    allowedPaths: ['/usr/bin', '/usr/local/bin', '/bin', '/opt/reach/bin', 'C:\\Program Files\\Reach'],
+    allowedPaths: [
+      '/usr/bin',
+      '/usr/local/bin',
+      '/bin',
+      '/opt/reach/bin',
+      'C:\\Program Files\\Reach',
+    ],
     requireExecutable: true,
   });
-  
+
   // If hash provided, verify integrity
   if (expectedHash) {
     verifyBinaryHash(binaryPath, expectedHash);
@@ -448,19 +465,19 @@ export function validateRequiemBinTrust(
 
 /**
  * Create a completely sanitized environment for untrusted child processes
- * 
+ *
  * SECURITY: Creates a minimal environment with only essential variables,
  * stripping all potentially sensitive information.
- * 
+ *
  * @param additionalVars - Additional safe variables to include
  * @returns Minimal safe environment
  */
 export function createMinimalEnv(
-  additionalVars: Record<string, string> = {}
+  additionalVars: Record<string, string> = {},
 ): Record<string, string> {
   // Start with only essential system variables
   const minimal: Record<string, string> = {};
-  
+
   const essentialVars = [
     'PATH',
     'HOME',
@@ -468,24 +485,24 @@ export function createMinimalEnv(
     'TEMP',
     'TMP',
     'SystemRoot', // Windows
-    'windir',     // Windows
+    'windir', // Windows
     'PROGRAMDATA', // Windows
   ];
-  
+
   for (const key of essentialVars) {
     const value = process.env[key];
     if (value !== undefined) {
       minimal[key] = value;
     }
   }
-  
+
   // Add verified safe additional variables
   for (const [key, value] of Object.entries(additionalVars)) {
     if (!isSensitiveEnvVar(key)) {
       minimal[key] = value;
     }
   }
-  
+
   return minimal;
 }
 

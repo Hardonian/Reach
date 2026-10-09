@@ -26,7 +26,7 @@ export function parseUnifiedDiff(diffText: string): ParsedFilePatch[] {
       current = {
         oldPath: normalizePath(line.slice(4)),
         newPath: '',
-        hunks: []
+        hunks: [],
       };
       currentHunk = null;
       continue;
@@ -48,7 +48,7 @@ export function parseUnifiedDiff(diffText: string): ParsedFilePatch[] {
         oldCount: Number(hunkMatch[2] ?? '1'),
         newStart: Number(hunkMatch[3]),
         newCount: Number(hunkMatch[4] ?? '1'),
-        lines: []
+        lines: [],
       };
       current.hunks.push(currentHunk);
       continue;
@@ -66,7 +66,10 @@ export function parseUnifiedDiff(diffText: string): ParsedFilePatch[] {
   return patches.filter((patch) => patch.newPath && patch.hunks.length > 0);
 }
 
-export function applyPatchToText(originalText: string, patch: ParsedFilePatch): string {
+export function applyPatchToText(
+  originalText: string,
+  patch: ParsedFilePatch,
+): string {
   const originalLines = originalText.split('\n');
   const resultLines: string[] = [];
   let readIndex = 0;

@@ -42,4 +42,3 @@ Get a new workspace from zero to its first governed pull request without bypassi
 - If webhook signatures fail, rotate secret and retry via dry-run replay.
 - If SCCL lease cannot be renewed, pause auto-mutation and require manual acknowledgement.
 - If policy blocks merge, surface explicit rule IDs and remediation in PR comment.
-

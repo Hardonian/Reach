@@ -1,36 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-09-20T02:50:31.970Z",
-  "leases": [
-    {
-      "lease_id": "lease_a",
-      "repo_id": "reach",
-      "branch": "reach/sccl/demo",
-      "scope": "branch-level",
-      "paths": [],
-      "owner": {
-        "user_id": "alice",
-        "device_id": "mac",
-        "agent_id": "reach-cli"
-      },
-      "acquired_at": "2026-09-20T02:50:31.970Z",
-      "expires_at": "2026-09-20T03:00:31.970Z",
-      "ttl_seconds": 900
-    },
-    {
-      "lease_id": "lease_b",
-      "repo_id": "reach",
-      "branch": "reach/sccl/demo",
-      "scope": "branch-level",
-      "paths": [],
-      "owner": {
-        "user_id": "bob",
-        "device_id": "linux",
-        "agent_id": "web-agent"
-      },
-      "acquired_at": "2026-09-20T02:50:31.970Z",
-      "expires_at": "2026-09-20T03:00:31.970Z",
-      "ttl_seconds": 900
-    }
-  ]
+  "updated_at": "2026-10-09T18:42:02.929Z",
+  "leases": [],
+  "digest": "d53d18c23212ea7b6300594bb89bce60218f6eff2b9d628b8cc42d3e79bbd5ab"
 }

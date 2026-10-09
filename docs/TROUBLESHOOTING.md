@@ -1,7 +1,7 @@
 # Reach Troubleshooting Guide
 
-> **Version:** 1.2  
-> **Status:** Production  
+> **Version:** 1.2
+> **Status:** Production
 > **Last Updated:** 2026-02-27
 
 Common failure modes, exact diagnostic steps, and remediation procedures for Reach with Requiem engine.
@@ -13,6 +13,7 @@ Common failure modes, exact diagnostic steps, and remediation procedures for Rea
 ### Engine Binary Not Found
 
 **Symptom:**
+
 ```
 Error: ERR_ENGINE_NOT_FOUND: Requiem binary not found at /path/to/requiem
 ```
@@ -20,12 +21,14 @@ Error: ERR_ENGINE_NOT_FOUND: Requiem binary not found at /path/to/requiem
 **Cause:** Rust engine not compiled, or binary moved/deleted.
 
 **Diagnosis:**
+
 ```bash
 ls -la crates/requiem/target/release/requiem
 reach doctor --engine
 ```
 
 **Fix:**
+
 ```bash
 # Rebuild engine
 pnpm -r --filter requiem build
@@ -39,6 +42,7 @@ pnpm clean && pnpm install && pnpm -r build
 ### Node.js Version Mismatch
 
 **Symptom:**
+
 ```
 Error: ERR_INVALID_NODE_VERSION: Node.js 16.x detected, requires 18+
 ```
@@ -46,6 +50,7 @@ Error: ERR_INVALID_NODE_VERSION: Node.js 16.x detected, requires 18+
 **Cause:** Node.js version too old.
 
 **Fix:**
+
 ```bash
 # Check current version
 node --version
@@ -63,6 +68,7 @@ volta install node@20
 ### pnpm Workspace Error
 
 **Symptom:**
+
 ```
 Error: ERR_PNPM_WORKSPACE: pnpm-workspace.yaml not found
 ```
@@ -70,6 +76,7 @@ Error: ERR_PNPM_WORKSPACE: pnpm-workspace.yaml not found
 **Cause:** Not running from project root, or workspace config corrupted.
 
 **Fix:**
+
 ```bash
 # Ensure at project root
 cd /path/to/decision-engine
@@ -86,6 +93,7 @@ git checkout pnpm-workspace.yaml
 ### Determinism Mismatch
 
 **Symptom:**
+
 ```
 Error: ERR_DETERMINISM_MISMATCH: Fingerprint mismatch after replay
   Expected: a1b2c3d4e5f6...
@@ -95,6 +103,7 @@ Error: ERR_DETERMINISM_MISMATCH: Fingerprint mismatch after replay
 **Cause:** Non-deterministic operation in execution path, floating-point variation, or random values.
 
 **Diagnosis:**
+
 ```bash
 # Run deterministic check with verbose output
 reach verify:determinism --runs=10 --verbose
@@ -104,6 +113,7 @@ reach doctor --scan-determinism
 ```
 
 **Fix:**
+
 1. Check for `Math.random()`, `Date.now()`, or UUID generation in policy/code
 2. Verify fixed-point math is used (not floating-point)
 3. Ensure canonical serialization order
@@ -116,6 +126,7 @@ reach doctor --scan-determinism
 ### CAS Integrity Failure
 
 **Symptom:**
+
 ```
 Error: ERR_CAS_INTEGRITY: Stored hash does not match computed hash
   CID: bafybeic7rx...
@@ -126,6 +137,7 @@ Error: ERR_CAS_INTEGRITY: Stored hash does not match computed hash
 **Cause:** CAS blob corrupted, modified, or evicted.
 
 **Diagnosis:**
+
 ```bash
 # Check CAS health
 reach doctor --cas
@@ -138,6 +150,7 @@ reach cas verify bafybeic7rx...
 ```
 
 **Fix:**
+
 ```bash
 # If blob evicted, re-fetch if available
 reach cas fetch bafybeic7rx...
@@ -154,6 +167,7 @@ smartctl -a /dev/disk
 ### Protocol Version Mismatch
 
 **Symptom:**
+
 ```
 Error: ERR_PROTOCOL_VERSION: Client v1.1, Server v1.0 - cannot negotiate
 ```
@@ -161,11 +175,13 @@ Error: ERR_PROTOCOL_VERSION: Client v1.1, Server v1.0 - cannot negotiate
 **Cause:** CLI and engine have incompatible protocol versions.
 
 **Diagnosis:**
+
 ```bash
 reach doctor --protocol
 ```
 
 **Fix:**
+
 ```bash
 # Pin to compatible version
 REACH_PROTOCOL_VERSION=1.0 reach run <pack>
@@ -181,6 +197,7 @@ pnpm -r --filter requiem build
 ### Queue Full / Backpressure
 
 **Symptom:**
+
 ```
 Error: ERR_QUEUE_FULL: Execution queue at capacity (100/100)
   Queue depth: 100
@@ -190,6 +207,7 @@ Error: ERR_QUEUE_FULL: Execution queue at capacity (100/100)
 **Cause:** Too many concurrent executions, or slow execution blocking queue.
 
 **Diagnosis:**
+
 ```bash
 # Check queue status
 reach doctor --queue
@@ -199,6 +217,7 @@ reach ps
 ```
 
 **Fix:**
+
 1. Wait for pending executions to complete
 2. Reduce concurrent job limits
 3. Increase queue capacity: `REACH_QUEUE_SIZE=200`
@@ -209,6 +228,7 @@ reach ps
 ### Daemon Won't Start
 
 **Symptom:**
+
 ```
 Error: ERR_DAEMON_START: listen tcp 127.0.0.1:7734: bind: address already in use
 ```
@@ -216,6 +236,7 @@ Error: ERR_DAEMON_START: listen tcp 127.0.0.1:7734: bind: address already in use
 **Cause:** Port already bound, or previous daemon not cleaned up.
 
 **Diagnosis:**
+
 ```bash
 # Check what's using the port
 netstat -tlnp | grep 7734
@@ -227,6 +248,7 @@ reach doctor --processes
 ```
 
 **Fix:**
+
 ```bash
 # Kill existing daemon
 reach daemon kill
@@ -240,6 +262,7 @@ REACH_DAEMON_PORT=7735 reach daemon start
 ### Memory Exhaustion
 
 **Symptom:**
+
 ```
 Error: ERR_OOM: Allocation failed - requested 2GB, available 512MB
   Matrix dimensions: 50000 x 50000
@@ -248,6 +271,7 @@ Error: ERR_OOM: Allocation failed - requested 2GB, available 512MB
 **Cause:** Requested matrix exceeds limits, or system memory exhausted.
 
 **Diagnosis:**
+
 ```bash
 # Check available memory
 free -h
@@ -259,6 +283,7 @@ reach doctor --memory
 ```
 
 **Fix:**
+
 1. Reduce matrix dimensions in request (max 1M cells)
 2. Add memory limit: `REACH_MEMORY_LIMIT=4GB`
 3. Increase system swap
@@ -271,6 +296,7 @@ reach doctor --memory
 ### Symlink Escape Attempt
 
 **Symptom:**
+
 ```
 Error: ERR_SYMLINK_ESCAPE: Path escapes workspace via symlink
   Requested: /tmp/otherdir/../reach/secret
@@ -286,6 +312,7 @@ Error: ERR_SYMLINK_ESCAPE: Path escapes workspace via symlink
 ### Path Traversal Attempt
 
 **Symptom:**
+
 ```
 Error: ERR_PATH_TRAVERSAL: Invalid path characters in request
   Requested: ../../../etc/passwd
@@ -302,6 +329,7 @@ Error: ERR_PATH_TRAVERSAL: Invalid path characters in request
 ### Replay Not Found
 
 **Symptom:**
+
 ```
 Error: ERR_REPLAY_NOT_FOUND: Transcript for fingerprint a1b2c3... not found
 ```
@@ -309,6 +337,7 @@ Error: ERR_REPLAY_NOT_FOUND: Transcript for fingerprint a1b2c3... not found
 **Cause:** Run transcript was deleted or never saved.
 
 **Fix:**
+
 ```bash
 # Check available transcripts
 reach ls --transcripts
@@ -322,6 +351,7 @@ reach doctor --storage
 ### Registry Corruption
 
 **Symptom:**
+
 ```
 Error: ERR_REGISTRY_CORRUPT: Registry index checksum mismatch
 ```
@@ -329,6 +359,7 @@ Error: ERR_REGISTRY_CORRUPT: Registry index checksum mismatch
 **Cause:** Pack registry data corrupted.
 
 **Fix:**
+
 ```bash
 # Rebuild registry index
 reach registry rebuild
@@ -346,6 +377,7 @@ reach registry reset
 **Symptom:** Local runs produce different fingerprints than CI.
 
 **Diagnosis:**
+
 ```bash
 # Compare environment
 reach doctor --env-diff
@@ -356,6 +388,7 @@ echo $REACH_DETERMINISM_SEED
 ```
 
 **Fix:**
+
 1. Ensure `REACH_DETERMINISM_SEED` is set in CI
 2. Pin Node/Rust versions in CI
 3. Check for CI-specific environment differences
@@ -365,17 +398,17 @@ echo $REACH_DETERMINISM_SEED
 
 ## Diagnostic Commands Summary
 
-| Command | Purpose |
-|---------|---------|
-| `reach doctor` | Full system diagnostics |
-| `reach doctor --engine` | Engine-specific diagnostics |
-| `reach doctor --protocol` | Protocol version info |
-| `reach doctor --cas` | CAS integrity check |
-| `reach doctor --queue` | Queue status |
-| `reach doctor --bundle` | Generate debug bundle |
-| `reach verify:determinism` | Determinism stress test |
-| `reach ps` | List running processes |
-| `reach logs` | View daemon logs |
+| Command                    | Purpose                     |
+| -------------------------- | --------------------------- |
+| `reach doctor`             | Full system diagnostics     |
+| `reach doctor --engine`    | Engine-specific diagnostics |
+| `reach doctor --protocol`  | Protocol version info       |
+| `reach doctor --cas`       | CAS integrity check         |
+| `reach doctor --queue`     | Queue status                |
+| `reach doctor --bundle`    | Generate debug bundle       |
+| `reach verify:determinism` | Determinism stress test     |
+| `reach ps`                 | List running processes      |
+| `reach logs`               | View daemon logs            |
 
 ---
 

@@ -1,7 +1,7 @@
 # Reach Binary Protocol Specification
 
-**Version:** 1.0  
-**Status:** Implemented (Production)  
+**Version:** 1.0
+**Status:** Implemented (Production)
 **Last Updated:** 2026-02-27
 
 ## Overview
@@ -39,16 +39,16 @@ All frames use little-endian byte ordering unless otherwise specified.
 
 ### Header Fields
 
-| Field | Size | Description |
-|-------|------|-------------|
-| Magic | 4 bytes | Constant `0x52454348` ("RECH") |
-| Version Major | 2 bytes | Protocol major version |
-| Version Minor | 2 bytes | Protocol minor version |
-| Message Type | 4 bytes | Message type identifier |
-| Flags | 4 bytes | Frame flags (see below) |
+| Field          | Size    | Description                        |
+| -------------- | ------- | ---------------------------------- |
+| Magic          | 4 bytes | Constant `0x52454348` ("RECH")     |
+| Version Major  | 2 bytes | Protocol major version             |
+| Version Minor  | 2 bytes | Protocol minor version             |
+| Message Type   | 4 bytes | Message type identifier            |
+| Flags          | 4 bytes | Frame flags (see below)            |
 | Payload Length | 4 bytes | Payload size in bytes (max 64 MiB) |
-| Payload | N bytes | CBOR-encoded message |
-| CRC32C | 4 bytes | Checksum of all preceding bytes |
+| Payload        | N bytes | CBOR-encoded message               |
+| CRC32C         | 4 bytes | Checksum of all preceding bytes    |
 
 ### Total Overhead
 
@@ -58,23 +58,23 @@ All frames use little-endian byte ordering unless otherwise specified.
 
 ## Message Types
 
-| Code | Name | Direction | Description |
-|------|------|-----------|-------------|
-| 0x01 | Hello | C→S | Client initiation |
-| 0x02 | HelloAck | S→C | Server acknowledgment |
-| 0x10 | ExecRequest | C→S | Execute workflow |
-| 0x11 | ExecResult | S→C | Execution result |
-| 0x20 | HealthRequest | C→S | Health check |
-| 0x21 | HealthResult | S→C | Health status |
-| 0xFF | Error | Bidir | Error response |
+| Code | Name          | Direction | Description           |
+| ---- | ------------- | --------- | --------------------- |
+| 0x01 | Hello         | C→S       | Client initiation     |
+| 0x02 | HelloAck      | S→C       | Server acknowledgment |
+| 0x10 | ExecRequest   | C→S       | Execute workflow      |
+| 0x11 | ExecResult    | S→C       | Execution result      |
+| 0x20 | HealthRequest | C→S       | Health check          |
+| 0x21 | HealthResult  | S→C       | Health status         |
+| 0xFF | Error         | Bidir     | Error response        |
 
 ## Frame Flags
 
-| Bit | Flag | Description |
-|-----|------|-------------|
-| 0 | COMPRESSED | Payload is zlib-compressed |
-| 1 | EOS | End of stream indicator |
-| 2 | CORRELATION | Frame has correlation ID |
+| Bit | Flag        | Description                |
+| --- | ----------- | -------------------------- |
+| 0   | COMPRESSED  | Payload is zlib-compressed |
+| 1   | EOS         | End of stream indicator    |
+| 2   | CORRELATION | Frame has correlation ID   |
 
 ## Payload Encoding
 
@@ -175,26 +175,28 @@ Client                          Server
 ### Hello Negotiation
 
 The client sends a `Hello` message with:
+
 - Client name and version
 - Supported protocol version range
 - Capability flags
 
 The server responds with `HelloAck` containing:
+
 - Selected protocol version
 - Server capabilities
 - Session ID for correlation
 
 ### Capability Flags
 
-| Bit | Flag | Description |
-|-----|------|-------------|
-| 0 | BINARY_PROTOCOL | Binary protocol supported |
-| 1 | CBOR_ENCODING | CBOR encoding supported |
-| 2 | COMPRESSION | Compression supported |
-| 3 | SANDBOX | Sandbox mode available |
-| 4 | LLM | LLM integration available |
-| 5 | FIXED_POINT | Fixed-point math used |
-| 6 | STREAMING | Streaming responses supported |
+| Bit | Flag            | Description                   |
+| --- | --------------- | ----------------------------- |
+| 0   | BINARY_PROTOCOL | Binary protocol supported     |
+| 1   | CBOR_ENCODING   | CBOR encoding supported       |
+| 2   | COMPRESSION     | Compression supported         |
+| 3   | SANDBOX         | Sandbox mode available        |
+| 4   | LLM             | LLM integration available     |
+| 5   | FIXED_POINT     | Fixed-point math used         |
+| 6   | STREAMING       | Streaming responses supported |
 
 ## Error Handling
 
@@ -214,18 +216,18 @@ Errors are returned as `Error` frames with structured payloads:
 
 ### Error Codes
 
-| Code | Name | Description |
-|------|------|-------------|
-| 100 | InvalidMessage | Malformed message |
-| 101 | UnsupportedVersion | Version mismatch |
-| 102 | EncodingError | CBOR/JSON error |
-| 200 | ExecutionFailed | Runtime failure |
-| 201 | BudgetExceeded | Budget limit reached |
-| 202 | Timeout | Execution timed out |
-| 203 | PolicyDenied | Policy violation |
-| 300 | InternalError | Server error |
-| 301 | ResourceExhausted | Out of resources |
-| 302 | ServiceUnavailable | Service down |
+| Code | Name               | Description          |
+| ---- | ------------------ | -------------------- |
+| 100  | InvalidMessage     | Malformed message    |
+| 101  | UnsupportedVersion | Version mismatch     |
+| 102  | EncodingError      | CBOR/JSON error      |
+| 200  | ExecutionFailed    | Runtime failure      |
+| 201  | BudgetExceeded     | Budget limit reached |
+| 202  | Timeout            | Execution timed out  |
+| 203  | PolicyDenied       | Policy violation     |
+| 300  | InternalError      | Server error         |
+| 301  | ResourceExhausted  | Out of resources     |
+| 302  | ServiceUnavailable | Service down         |
 
 ## Resilience
 
@@ -262,23 +264,23 @@ Maximum resync attempts: 3 per connection
 
 ## Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0 | 2026-02-26 | Initial stable release |
+| Version | Date       | Changes                |
+| ------- | ---------- | ---------------------- |
+| 1.0     | 2026-02-26 | Initial stable release |
 
 ## Implementation Status
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| CBOR canonical encoding | ✅ Implemented | All payloads use canonical CBOR |
-| Fixed-point numeric types | ✅ Implemented | Q32.32, BPS, PPM, Duration, Throughput |
-| Streaming frame support | ✅ Implemented | Length-prefixed frames |
-| Automatic resynchronization | ✅ Implemented | Max 3 attempts per connection |
-| CRC32C integrity | ✅ Implemented | Required by default |
-| Version negotiation | ✅ Implemented | Hello/HelloAck handshake |
-| Compression (zlib) | ✅ Implemented | Flag-controlled |
-| TLS wrapper | ❌ Not implemented | Use external TLS proxy |
-| Authentication | ❌ Not implemented | Local IPC only |
+| Feature                     | Status             | Notes                                  |
+| --------------------------- | ------------------ | -------------------------------------- |
+| CBOR canonical encoding     | ✅ Implemented     | All payloads use canonical CBOR        |
+| Fixed-point numeric types   | ✅ Implemented     | Q32.32, BPS, PPM, Duration, Throughput |
+| Streaming frame support     | ✅ Implemented     | Length-prefixed frames                 |
+| Automatic resynchronization | ✅ Implemented     | Max 3 attempts per connection          |
+| CRC32C integrity            | ✅ Implemented     | Required by default                    |
+| Version negotiation         | ✅ Implemented     | Hello/HelloAck handshake               |
+| Compression (zlib)          | ✅ Implemented     | Flag-controlled                        |
+| TLS wrapper                 | ❌ Not implemented | Use external TLS proxy                 |
+| Authentication              | ❌ Not implemented | Local IPC only                         |
 
 ## References
 

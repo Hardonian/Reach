@@ -30,4 +30,3 @@
 - Governance and Enterprise links are now primary entries in OSS and enterprise navigation.
 - Governance dashboard links all core subsystem pages.
 - Footer links now expose Governance and Enterprise directly.
-

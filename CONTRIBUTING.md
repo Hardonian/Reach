@@ -13,11 +13,13 @@ npm run verify:oss
 ```
 
 This runs three required checks:
+
 1. `validate:language` — No internal terms in UI-facing text
 2. `validate:boundaries` — No cloud SDK imports in OSS Core paths
 3. `validate:oss-purity` — Zero-cloud lock verified
 
 Additionally, all PRs must pass the CI checks in [AGENTS.md](AGENTS.md). Specifically:
+
 - Never introduce `time.Now()` or `rand.Int()` in fingerprint paths (causes determinism violations)
 - Never iterate over Go maps without sorting keys first
 - Any new execution feature must include a golden fixture in `testdata/fixtures/conformance/`
@@ -28,6 +30,7 @@ See [AGENTS.md](AGENTS.md) for the complete governance contract.
 ---
 
 ## Table of Contents - [Code of Conduct](#code-of-conduct)
+
 - [Getting Started](#getting-started)
 - [Development Setup](#development-setup)
 - [Project Structure](#project-structure)
@@ -56,17 +59,22 @@ See [AGENTS.md](AGENTS.md) for the complete governance contract.
 - **Git** 2.30+
 
 ### Quick Setup ```bash
+
 # Clone the repository
+
 git clone https://github.com/yourorg/reach.git
 cd reach
 
 # Install dependencies
+
 npm install
 (cd extensions/vscode && npm install)
 
 # Verify setup
+
 ./reach doctor
-```
+
+````
 
 ## Development Setup ### Full Environment Setup
 
@@ -85,18 +93,23 @@ mkdir -p data
 
 # Run initial verification
 npm run verify:full
-```
+````
 
 ### Docker Development (Recommended) ```bash
+
 # Start development environment
+
 docker-compose up -d runner
 
 # View logs
+
 docker-compose logs -f runner
 
 # Run commands inside container
+
 docker-compose exec runner go test ./...
-```
+
+````
 
 ### IDE Setup **VS Code** (recommended):
 - Install recommended extensions (see `.vscode/extensions.json`)
@@ -138,7 +151,7 @@ Reach/
 ├── docs/                 # Documentation
 ├── tests/                # Integration tests
 └── docker/               # Docker configurations
-```
+````
 
 ## Development Workflow ### Branch Strategy
 
@@ -150,25 +163,32 @@ Reach/
 - `refactor/<scope>` - Code refactoring
 
 ### Creating a Branch ```bash
+
 # Sync with main
+
 git checkout main
 git pull origin main
 
 # Create feature branch
+
 git checkout -b feat/my-feature
 
 # Or create fix branch
+
 git checkout -b fix/bug-description
+
 ```
 
 ### Commit Messages Follow conventional commits:
 
 ```
+
 <type>(<scope>): <description>
 
 [optional body]
 
 [optional footer]
+
 ```
 
 Types:
@@ -182,6 +202,7 @@ Types:
 
 Examples:
 ```
+
 feat(api): add rate limiting middleware
 
 fix(storage): handle edge case in job leasing
@@ -189,7 +210,8 @@ fix(storage): handle edge case in job leasing
 docs(architecture): add module boundaries diagram
 
 test(adaptive): add strategy selection tests
-```
+
+````
 
 ## Code Style ### Go
 
@@ -203,9 +225,10 @@ cd services/runner
 go fmt ./...
 go vet ./...
 golangci-lint run
-```
+````
 
 Key conventions:
+
 - Package names are short and lowercase (`api`, `storage`)
 - Exported names are capitalized
 - Use meaningful variable names
@@ -213,6 +236,7 @@ Key conventions:
 - Document exported functions
 
 ### Rust - Follow Rust API guidelines
+
 - Run `cargo fmt` and `cargo clippy`
 - Use `cargo check` for quick validation
 
@@ -239,6 +263,7 @@ Reach supports an offline Rust gate for environments where crates.io is blocked.
 3. In CI, the vendored directory is cached by `Cargo.lock` hash and reused for offline execution.
 
 ### TypeScript/JavaScript - Use TypeScript strict mode
+
 - Follow ESLint configuration
 - Use Prettier for formatting
 
@@ -250,11 +275,13 @@ npm run typecheck
 ## Testing ### Running Tests
 
 **All tests:**
+
 ```bash
 npm run verify:full
 ```
 
 **Go backend:**
+
 ```bash
 cd services/runner
 go test ./...
@@ -262,6 +289,7 @@ go test -race ./...
 ```
 
 **Rust engine:**
+
 ```bash
 cd crates/engine
 cargo test
@@ -269,6 +297,7 @@ cargo test --release
 ```
 
 **Specific package:**
+
 ```bash
 cd services/runner
 go test ./internal/storage -v
@@ -276,6 +305,7 @@ go test ./internal/api -run TestCreateRun
 ```
 
 **With coverage:**
+
 ```bash
 cd services/runner
 go test -cover ./...
@@ -284,6 +314,7 @@ go tool cover -html=coverage.out
 ```
 
 ### Writing Tests **Go Tests:**
+
 ```go
 func TestFeature(t *testing.T) {
     // Setup
@@ -314,6 +345,7 @@ func BenchmarkFeature(b *testing.B) {
 ```
 
 **Test Utilities:**
+
 - Use `t.TempDir()` for temporary directories
 - Use `httptest` for HTTP testing
 - Mock external dependencies
@@ -331,9 +363,11 @@ go test -v -tags=integration ./...
 ```
 
 ### Load Tests ```bash
+
 cd tests/load
 k6 run scenario.js
-```
+
+````
 
 ## Documentation ### Code Documentation
 
@@ -349,79 +383,96 @@ package storage
 // CreateRun creates a new run record in the database.
 // Returns ErrNotFound if the run already exists with a different tenant.
 func (s *SQLiteStore) CreateRun(ctx context.Context, rec RunRecord) error
-```
+````
 
 ### User Documentation - Update `docs/` for user-facing features
+
 - Update `README.md` for setup/usage changes
 - Update `CHANGELOG.md` for release notes
 
 ### Architecture Documentation - Update `docs/architecture.md` for structural changes
+
 - Update relevant ADRs in `docs/architecture/`
 
 ## Submitting Changes ### Before Submitting
 
 1. **Run verification:**
+
 ```bash
 npm run verify:full
 ```
 
 2. **Check for lint errors:**
+
 ```bash
 npm run lint
 ```
 
 3. **Run tests:**
+
 ```bash
 cd services/runner && go test ./...
 ```
 
 4. **Update documentation:**
+
 - Code comments
 - User docs (if applicable)
 - Changelog (for user-facing changes)
 
 5. **Review your changes:**
+
 ```bash
 git diff main
 ```
 
 ### Pull Request Template ```markdown
+
 ## Summary
+
 Brief description of changes
 
 ## Problem
+
 What problem does this solve?
 
 ## Solution
+
 How does this solve the problem?
 
 ## Testing
+
 - [ ] Unit tests added/updated
 - [ ] Integration tests pass
 - [ ] Manual testing performed
 
 ## Risks
+
 What could go wrong?
 
 ## Checklist
+
 - [ ] Code follows style guidelines
 - [ ] Tests pass
 - [ ] Documentation updated
 - [ ] Changelog updated (if applicable)
-```
+
+````
 
 ### Creating a Pull Request 1. Push your branch:
 ```bash
 git push origin feat/my-feature
-```
+````
 
 2. Create PR on GitHub:
+
 - Use descriptive title
 - Fill out PR template
 - Link related issues
 - Add appropriate labels
 
 3. Request reviews from:
+
 - Code owners for affected areas
 - At least one senior maintainer
 
@@ -433,11 +484,13 @@ git push origin feat/my-feature
 - Request changes for issues
 
 ### As an Author - Respond to all comments
+
 - Make requested changes promptly
 - Resolve conversations when fixed
 - Re-request review when ready
 
 ### Review Criteria - **Correctness**: Does it work? Are edge cases handled?
+
 - **Testing**: Are there adequate tests?
 - **Documentation**: Is it documented?
 - **Security**: Any security concerns?
@@ -454,11 +507,13 @@ git push origin feat/my-feature
 - Follow OWASP guidelines
 
 ### Reporting Security Issues - Email security@reach.io
+
 - Do not open public issues for security bugs
 - Include reproduction steps
 - Allow 90 days before public disclosure
 
 ### Security Checklist - [ ] No hardcoded credentials
+
 - [ ] Input validation
 - [ ] Output encoding
 - [ ] SQL injection prevention
@@ -470,39 +525,48 @@ git push origin feat/my-feature
 ## Release Process ### Versioning
 
 We follow [Semantic Versioning](https://semver.org/):
+
 - MAJOR: Incompatible API changes
 - MINOR: Backward-compatible functionality
 - PATCH: Backward-compatible bug fixes
 
 ### Preparing a Release 1. Update version:
+
 ```bash
 # Update VERSION file
 echo "1.2.3" > VERSION
 ```
 
 2. Update changelog:
+
 ```bash
 # Add release notes to CHANGELOG.md
 ```
 
 3. Run release checks:
+
 ```bash
 ./reach release-check
 ```
 
 4. Create release PR:
+
 - Branch: `release/v1.2.3`
 - Include all changes since last release
 - Get approvals
 
 ### Creating a Release ```bash
+
 # Tag the release
+
 git tag -a v1.2.3 -m "Release version 1.2.3"
 git push origin v1.2.3
 
 # Or use GitHub releases
+
 # Go to Releases → Draft a new release
-```
+
+````
 
 ### Post-Release - Monitor error rates
 - Monitor performance metrics
@@ -544,7 +608,7 @@ go vet ./...
 go test ./...
 (cd apps/arcade && npm run build:oss && npm run build:enterprise && npm run check:links)
 reach demo
-```
+````
 
 ## Adding a pack
 

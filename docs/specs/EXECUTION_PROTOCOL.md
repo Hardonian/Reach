@@ -14,6 +14,7 @@ This document defines the **Execution Envelope** for Reach. It formally separate
   - Cannot modify session state directly.
 
 ### 2.2 Executor - **Responsibility**: Executes a single atomic task (Tool Call) within the envelope.
+
 - **Input**: `ExecutionEnvelope` (containing Tool Name, Arguments, Context).
 - **Output**: `ExecutionResult` (Success/Failure, Output Data, Artifacts).
 - **Constraints**:
@@ -23,6 +24,7 @@ This document defines the **Execution Envelope** for Reach. It formally separate
   - Must return explicit errors (no swallowed exceptions).
 
 ### 2.3 Coordinator (The Loop) - **Responsibility**: Manages the session lifecycle, state transitions, and orchestrates the Planner and Executor.
+
 - **Input**: `AutonomousSession`.
 - **State**: Maintains the `SessionState` (Iteration count, Budget, History).
 - **Constraints**:
@@ -49,18 +51,20 @@ The `ExecutionEnvelope` is the strict contract for any side-effecting operation.
 ```
 
 ### 3.2 Execution Result ```json
+
 {
-  "envelope_id": "env-uuid",
-  "status": "success" | "failure" | "error",
-  "output": { ... },
-  "error": {
-    "code": "ERR_CODE",
-    "message": "Human readable"
-  },
-  "metrics": {
-    "duration_ms": 120
-  }
+"envelope_id": "env-uuid",
+"status": "success" | "failure" | "error",
+"output": { ... },
+"error": {
+"code": "ERR_CODE",
+"message": "Human readable"
+},
+"metrics": {
+"duration_ms": 120
 }
+}
+
 ```
 
 ## 4. Execution Flow 1. **Coordinator** receives request -> Spawns Session.
@@ -80,3 +84,4 @@ The `ExecutionEnvelope` is the strict contract for any side-effecting operation.
 ## 6. Error Handling - **Soft Failures**: Tool errors (e.g., file not found). Planner can recover.
 - **Hard Failures**: Protocol violations, Budget exceeded. Session terminates.
 - **Panic Recovery**: Executor must catch panics and return a formatted Error result.
+```

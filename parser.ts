@@ -20,7 +20,12 @@ export interface DoctorReport {
 
 export const parseDoctorOutput = (stdout: string): DoctorReport => {
   const lines = stdout.split('\n');
-  const report: DoctorReport = { brand: 'Reach', version: 'unknown', checks: [], raw: stdout };
+  const report: DoctorReport = {
+    brand: 'Reach',
+    version: 'unknown',
+    checks: [],
+    raw: stdout,
+  };
   let currentCategory = 'General';
 
   for (const line of lines) {
@@ -47,7 +52,7 @@ export const parseDoctorOutput = (stdout: string): DoctorReport => {
       report.checks.push({
         category: currentCategory,
         status: statusMatch[1] as 'OK' | 'FAIL' | 'WARN',
-        label: statusMatch[2]
+        label: statusMatch[2],
       });
     }
   }

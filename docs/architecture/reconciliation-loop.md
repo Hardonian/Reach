@@ -55,4 +55,3 @@ Continuously reconcile control-plane state (webhooks, scheduler, leases, run rec
 - Queue depth, retry count, stale-task age, and drift-detection latency.
 - Alert ratios by tenant/repo to detect configuration anti-patterns.
 - Correlation IDs linking webhook event -> reconciliation task -> audit log entry.
-

@@ -1,4 +1,5 @@
 # Security Hardening Implementation Report **Date:** 2026-02-18
+
 **Scope:** Production Dependency Firewall
 **Status:** ✅ COMPLETE
 
@@ -11,9 +12,11 @@
 ---
 
 ## Changes Made ### 1. Root package.json
+
 **File:** `package.json`
 
 **Added:**
+
 - `engines` field: Node `>=18.0.0 <23.0.0`, npm `>=9.0.0`
 - `overrides` section blocking 8 toxic packages
 - 5 new security scripts:
@@ -24,6 +27,7 @@
   - `preinstall` - Node version enforcement hook
 
 **Overrides Applied:**
+
 ```json
 {
   "clawdbot": "npm:@reach/empty@1.0.0",
@@ -39,64 +43,79 @@
 ```
 
 ### 2. VS Code Extension package.json
+
 **File:** `extensions/vscode/package.json`
 
 **Added:**
+
 - `engines.node`: `>=18.0.0 <23.0.0`
 - `overrides` with same blocked packages + ajv/minimatch fixes
 - Upgraded `ws` from `^8.18.0` to `^8.18.1`
 
 ### 3. SDK package.json
+
 **File:** `sdk/ts/package.json`
 
 **Updated:**
+
 - `engines.node`: `>=18.0.0 <23.0.0` (was `>=18`)
 - Added `overrides` blocking toxic packages
 
 ### 4. Arcade App package.json
+
 **File:** `apps/arcade/package.json`
 
 **Added:**
+
 - `engines.node`: `>=18.0.0 <23.0.0`
 
 ### 5. Verification Scripts
+
 **New Files:**
 
 #### `scripts/verify-prod-install.mjs`
+
 - Installs with `--omit=dev`
 - Verifies no dev dependencies in production
 - Confirms SDK and Go services build
 - Exit code 0 on success, 1 on failure
 
 #### `scripts/verify-no-toxic-deps.mjs`
+
 - Scans all workspaces for toxic packages
 - Checks restricted packages (tar, ws) versions
 - Reports violations with context
 - Used in CI gates
 
 #### `scripts/check-node-version.mjs`
+
 - Reads package.json engines field
 - Validates Node.js version on install
 - Fails in CI, warns locally
 - Fixed JSON import for Node 20 compatibility
 
 ### 6. CI Security Workflow
+
 **New File:** `.github/workflows/security-audit.yml`
 
 **Three Jobs:**
+
 1. **security-check**: Runs audits on all workspaces
 2. **prod-install-check**: Verifies clean production install
 3. **dependency-firewall**: Scans for blocked packages via grep
 
 **Triggers:**
+
 - Push to main/master
 - Pull requests
 - Daily at 00:00 UTC (scheduled)
 
 ### 7. Documentation
+
 **New File:** `docs/INSTALL_MODES.md`
 
 Documents:
+
 - Core Mode (default, recommended)
 - Development Mode
 - Optional Local LLM support
@@ -105,9 +124,11 @@ Documents:
 - CI security gates
 
 ### 8. Security Policy Update
+
 **File:** `SECURITY.md`
 
 Added "Dependency Firewall" section explaining:
+
 - Blocked packages and reasons
 - Security check commands
 - Link to INSTALL_MODES.md
@@ -115,6 +136,7 @@ Added "Dependency Firewall" section explaining:
 ---
 
 ## Verification Results ### Toxic Dependency Check
+
 ```bash
 $ node scripts/verify-no-toxic-deps.mjs
 
@@ -140,6 +162,7 @@ Checking Arcade App...
 ```
 
 ### Node Version Check
+
 ```bash
 $ node scripts/check-node-version.mjs
 Node.js version check: v20.11.0 (required: >=18.0.0 <23.0.0)
@@ -147,12 +170,14 @@ Node.js version check: v20.11.0 (required: >=18.0.0 <23.0.0)
 ```
 
 ### Typecheck
+
 ```bash
 $ npm run typecheck
 # VS Code extension builds successfully
 ```
 
 ### Security Audit Summary | Workspace | Status | Notes |
+
 |-----------|--------|-------|
 | Root | ✅ Clean | No dependencies |
 | VS Code Ext | ⚠️ 15 vulns | All in dev tooling (eslint, vitest) |
@@ -160,6 +185,7 @@ $ npm run typecheck
 | Arcade | ✅ Clean | No vulnerabilities |
 
 **Dev Tooling Vulnerabilities (Non-Runtime):**
+
 - `minimatch <10.2.1` (9 high) - ReDoS in glob patterns
 - `ajv <8.18.0` (6 moderate) - ReDoS with $data option
 - `esbuild <=0.24.2` (4 moderate) - Dev server request vulnerability
@@ -183,6 +209,7 @@ These affect **build/test tools only**, not production runtime.
    - **Action:** Acceptable as test runner only
 
 **Verification:**
+
 - `npm ci --omit=dev` installs **zero** npm dependencies
 - Go services compile and run without npm
 - Production attack surface minimized
@@ -190,21 +217,25 @@ These affect **build/test tools only**, not production runtime.
 ---
 
 ## How to Use ### Verify Production Install
+
 ```bash
 npm run verify:prod-install
 ```
 
 ### Check for Toxic Dependencies
+
 ```bash
 npm run verify:no-toxic-deps
 ```
 
 ### Run All Security Checks
+
 ```bash
 npm run security:check
 ```
 
 ### Install for Production (No Dev Deps)
+
 ```bash
 npm ci --omit=dev
 ```
@@ -212,6 +243,7 @@ npm ci --omit=dev
 ---
 
 ## Files Changed | File | Change |
+
 |------|--------|
 | `package.json` | Added engines, overrides, security scripts |
 | `extensions/vscode/package.json` | Added engines, overrides, upgraded ws |
@@ -227,6 +259,7 @@ npm ci --omit=dev
 ---
 
 ## Compliance ✅ Production runtime does NOT include toxic packages
+
 ✅ Dev tooling isolated (won't be in prod installs)
 ✅ CI gates prevent regressions
 ✅ Safe overrides applied (ws, tar)
@@ -239,6 +272,7 @@ npm ci --omit=dev
 ---
 
 ## Next Steps (Optional) 1. **Monitor eslint v10**: When released, update to resolve minimatch/ajv vulnerabilities
+
 2. **Monitor vitest v4**: Major version update will resolve esbuild vulnerability
 3. **Create @reach/empty package**: Currently references placeholder - create actual empty package for cleaner overrides
 4. **Consider pnpm**: pnpm's stricter dependency resolution could provide additional safety

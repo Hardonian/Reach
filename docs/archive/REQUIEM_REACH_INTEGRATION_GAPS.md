@@ -14,26 +14,26 @@ This document identifies critical integration gaps between Reach and Requiem C++
 
 ## Gap Matrix
 
-| Area | Current State | Severity | Determinism Risk | Security Risk | Acceptance Criteria | Tests Present? | Action Required |
-| :--- | :--- | :---: | :---: | :---: | :--- | :---: | :--- |
-| **Hash Primitive Alignment** | Multiple hash algos: BLAKE3 (TS CAS), SHA-256 (decision-engine), FNV-1a (engine-core), BLAKE3 (Requiem) | **CRITICAL** | HIGH - Fingerprint instability | LOW | All fingerprint-contributing code MUST use single hash algo (BLAKE3) | No | **IMMEDIATE**: Unify all hashes to BLAKE3 across Reach/Requiem |
-| **Canonical JSON Boundary** | Different canonicalization in translate.ts vs C++ jsonlite.cpp | **CRITICAL** | HIGH - Different serialization | LOW | Single canonical JSON implementation shared across boundary | Partial | **IMMEDIATE**: Ensure canonical JSON matches between TS and C++ |
-| **Float Precision** | `$10^{-10}$` rounding in translate.ts not enforced in C++ | **CRITICAL** | HIGH - Floating point drift | LOW | Fixed-point or 10-decimal precision in both TS and C++ | No | **IMMEDIATE**: Enforce float precision in C++ or use fixed-point |
-| **Temp File I/O Path** | Default execution uses CLI temp-file mode | **HIGH** | MEDIUM - Non-deterministic temp handling | MEDIUM | Must use streaming protocol by default; temp-file only debug | Yes | Change default to streaming protocol |
-| **Env Allowlist** | Basic allowlist exists but incomplete | **HIGH** | MEDIUM - Entropy from env | HIGH | Explicit allowlist for all engine spawn env vars | Yes | Expand allowlist, add deny patterns |
-| **Path Traversal** | Basic sanitization in requestId | **HIGH** | LOW | HIGH | Full path traversal defense in all input paths | Yes | Verify complete coverage |
-| **CAS Atomic Writes** | Uses basic fs operations | **HIGH** | MEDIUM - Possible corruption | MEDIUM | Atomic write + rename for all CAS entries | No | **IMMEDIATE**: Implement atomic writes |
-| **LLM Freeze CID** | Basic computeCID exists | **MEDIUM** | MEDIUM - Poisoning risk | HIGH | Verify CID on read for all LLM freeze artifacts | Partial | Add full CID verification on read |
-| **Plugin Mutation** | No post-hash mutation guard | **MEDIUM** | HIGH - Result tampering | HIGH | Seal results after engine return, before hash | No | Add result sealing |
-| **Daemon Lifecycle** | Basic start/shutdown exists | **MEDIUM** | LOW | MEDIUM | Heartbeat + re-challenge every N requests | No | Add heartbeat mechanism |
-| **Tie-Break Determinism** | Not enforced in decision engine | **MEDIUM** | HIGH - Non-deterministic output | LOW | Alphabetical ActionID sort for equal scores | No | Enforce deterministic tie-break |
-| **Concurrency Semaphore** | Basic ProcessSemaphore in base adapter | **MEDIUM** | LOW | MEDIUM | Cap concurrent processes at min(CPU_COUNT, 32) | Yes | Tune for production load |
-| **MAX_FRAME_BYTES** | Not enforced in protocol client | **MEDIUM** | LOW | HIGH | Frame size limits enforced | No | Add frame size limits |
-| **UUID Named Pipes** | Uses PID-based naming | **LOW** | LOW | MEDIUM | UUID-named pipes for isolation | No | Consider for daemon mode |
-| **Binary Version Lock** | Basic version check exists | **MEDIUM** | LOW | MEDIUM | Strict semver enforcement | Partial | Strengthen version pinning |
-| **Cross-Platform Parity** | POSIX/Win32 split in sandbox | **MEDIUM** | MEDIUM | LOW | Same behavior on Linux + Windows | No | Add integration tests |
-| **Scale Bottlenecks** | Process-per-request model | **HIGH** | MEDIUM | MEDIUM | 200+ concurrent requests without EMFILE/OOM | No | Add stress tests |
-| **CI Determinism Watchdog** | No continuous drift detection | **HIGH** | HIGH | LOW | Run fixture 100x in CI | No | Add drift CI check |
+| Area                         | Current State                                                                                           |   Severity   |             Determinism Risk             | Security Risk | Acceptance Criteria                                                  | Tests Present? | Action Required                                                  |
+| :--------------------------- | :------------------------------------------------------------------------------------------------------ | :----------: | :--------------------------------------: | :-----------: | :------------------------------------------------------------------- | :------------: | :--------------------------------------------------------------- |
+| **Hash Primitive Alignment** | Multiple hash algos: BLAKE3 (TS CAS), SHA-256 (decision-engine), FNV-1a (engine-core), BLAKE3 (Requiem) | **CRITICAL** |      HIGH - Fingerprint instability      |      LOW      | All fingerprint-contributing code MUST use single hash algo (BLAKE3) |       No       | **IMMEDIATE**: Unify all hashes to BLAKE3 across Reach/Requiem   |
+| **Canonical JSON Boundary**  | Different canonicalization in translate.ts vs C++ jsonlite.cpp                                          | **CRITICAL** |      HIGH - Different serialization      |      LOW      | Single canonical JSON implementation shared across boundary          |    Partial     | **IMMEDIATE**: Ensure canonical JSON matches between TS and C++  |
+| **Float Precision**          | `$10^{-10}$` rounding in translate.ts not enforced in C++                                               | **CRITICAL** |       HIGH - Floating point drift        |      LOW      | Fixed-point or 10-decimal precision in both TS and C++               |       No       | **IMMEDIATE**: Enforce float precision in C++ or use fixed-point |
+| **Temp File I/O Path**       | Default execution uses CLI temp-file mode                                                               |   **HIGH**   | MEDIUM - Non-deterministic temp handling |    MEDIUM     | Must use streaming protocol by default; temp-file only debug         |      Yes       | Change default to streaming protocol                             |
+| **Env Allowlist**            | Basic allowlist exists but incomplete                                                                   |   **HIGH**   |        MEDIUM - Entropy from env         |     HIGH      | Explicit allowlist for all engine spawn env vars                     |      Yes       | Expand allowlist, add deny patterns                              |
+| **Path Traversal**           | Basic sanitization in requestId                                                                         |   **HIGH**   |                   LOW                    |     HIGH      | Full path traversal defense in all input paths                       |      Yes       | Verify complete coverage                                         |
+| **CAS Atomic Writes**        | Uses basic fs operations                                                                                |   **HIGH**   |       MEDIUM - Possible corruption       |    MEDIUM     | Atomic write + rename for all CAS entries                            |       No       | **IMMEDIATE**: Implement atomic writes                           |
+| **LLM Freeze CID**           | Basic computeCID exists                                                                                 |  **MEDIUM**  |         MEDIUM - Poisoning risk          |     HIGH      | Verify CID on read for all LLM freeze artifacts                      |    Partial     | Add full CID verification on read                                |
+| **Plugin Mutation**          | No post-hash mutation guard                                                                             |  **MEDIUM**  |         HIGH - Result tampering          |     HIGH      | Seal results after engine return, before hash                        |       No       | Add result sealing                                               |
+| **Daemon Lifecycle**         | Basic start/shutdown exists                                                                             |  **MEDIUM**  |                   LOW                    |    MEDIUM     | Heartbeat + re-challenge every N requests                            |       No       | Add heartbeat mechanism                                          |
+| **Tie-Break Determinism**    | Not enforced in decision engine                                                                         |  **MEDIUM**  |     HIGH - Non-deterministic output      |      LOW      | Alphabetical ActionID sort for equal scores                          |       No       | Enforce deterministic tie-break                                  |
+| **Concurrency Semaphore**    | Basic ProcessSemaphore in base adapter                                                                  |  **MEDIUM**  |                   LOW                    |    MEDIUM     | Cap concurrent processes at min(CPU_COUNT, 32)                       |      Yes       | Tune for production load                                         |
+| **MAX_FRAME_BYTES**          | Not enforced in protocol client                                                                         |  **MEDIUM**  |                   LOW                    |     HIGH      | Frame size limits enforced                                           |       No       | Add frame size limits                                            |
+| **UUID Named Pipes**         | Uses PID-based naming                                                                                   |   **LOW**    |                   LOW                    |    MEDIUM     | UUID-named pipes for isolation                                       |       No       | Consider for daemon mode                                         |
+| **Binary Version Lock**      | Basic version check exists                                                                              |  **MEDIUM**  |                   LOW                    |    MEDIUM     | Strict semver enforcement                                            |    Partial     | Strengthen version pinning                                       |
+| **Cross-Platform Parity**    | POSIX/Win32 split in sandbox                                                                            |  **MEDIUM**  |                  MEDIUM                  |      LOW      | Same behavior on Linux + Windows                                     |       No       | Add integration tests                                            |
+| **Scale Bottlenecks**        | Process-per-request model                                                                               |   **HIGH**   |                  MEDIUM                  |    MEDIUM     | 200+ concurrent requests without EMFILE/OOM                          |       No       | Add stress tests                                                 |
+| **CI Determinism Watchdog**  | No continuous drift detection                                                                           |   **HIGH**   |                   HIGH                   |      LOW      | Run fixture 100x in CI                                               |       No       | Add drift CI check                                               |
 
 ---
 
@@ -44,6 +44,7 @@ This document identifies critical integration gaps between Reach and Requiem C++
 **Location**: Multiple files across Reach and Requiem
 
 **Current State**:
+
 - TypeScript CAS (`src/engine/storage/cas.ts`): Uses BLAKE3
 - TypeScript HashStream (`src/determinism/hashStream.ts`): Uses BLAKE3
 - Decision Engine (`crates/decision-engine/src/determinism.rs`): Uses SHA-256
@@ -57,7 +58,8 @@ This document identifies critical integration gaps between Reach and Requiem C++
 
 ### 2. Canonical JSON Mismatch (CRITICAL)
 
-**Location**: 
+**Location**:
+
 - `src/engine/translate.ts` (TypeScript)
 - `../Requiem/src/jsonlite.cpp` (C++)
 
@@ -68,6 +70,7 @@ This document identifies critical integration gaps between Reach and Requiem C++
 ### 3. Float Precision Drift (CRITICAL)
 
 **Location**:
+
 - `src/engine/translate.ts`: Has `$10^{-10}$` rounding
 - `../Requiem/src/runtime.cpp`: No explicit precision control
 
@@ -88,18 +91,22 @@ This document identifies critical integration gaps between Reach and Requiem C++
 ## High Priority Items
 
 ### 5. Temp File Default Execution Path
+
 - Current default may use temp-file mode instead of streaming protocol
 - Need to verify and fix default behavior
 
 ### 6. Environment Allowlist Incomplete
+
 - Current allowlist is basic
 - Need deny patterns for sensitive vars
 
 ### 7. Path Traversal Coverage
+
 - Basic sanitization exists for requestId
 - Need comprehensive coverage for all user inputs
 
 ### 8. Daemon Heartbeat Missing
+
 - No periodic health check for long-running daemon
 - Need heartbeat mechanism
 
@@ -108,32 +115,36 @@ This document identifies critical integration gaps between Reach and Requiem C++
 ## Medium Priority Items
 
 ### 9. Plugin Result Mutation Risk
+
 - No guard against post-engine result tampering
 
 ### 10. Tie-Break Non-Determinism
+
 - Equal scores may produce different results
 
 ### 11. Cross-Platform Test Coverage
+
 - Need Linux + Windows verification
 
 ### 12. Scale Stress Testing
+
 - No 200+ concurrent request tests
 
 ---
 
 ## Verification Status
 
-| Check | Status |
-| :--- | :--- |
-| validate:language | ✅ PASSED |
-| validate:boundaries | ✅ PASSED |
-| validate:oss-purity | ✅ PASSED |
-| validate:site-claims | ✅ PASSED |
-| validate:site-boundaries | ✅ PASSED |
-| validate:engines | ✅ PASSED |
-| validate:packs | ⚠️ FAIL (WSL/bash issue) |
-| go vet ./... | ✅ PASSED |
-| cargo clippy | ⚠️ NOT AVAILABLE (env) |
+| Check                    | Status                   |
+| :----------------------- | :----------------------- |
+| validate:language        | ✅ PASSED                |
+| validate:boundaries      | ✅ PASSED                |
+| validate:oss-purity      | ✅ PASSED                |
+| validate:site-claims     | ✅ PASSED                |
+| validate:site-boundaries | ✅ PASSED                |
+| validate:engines         | ✅ PASSED                |
+| validate:packs           | ⚠️ FAIL (WSL/bash issue) |
+| go vet ./...             | ✅ PASSED                |
+| cargo clippy             | ⚠️ NOT AVAILABLE (env)   |
 
 ---
 
@@ -177,36 +188,36 @@ This document identifies critical integration gaps between Reach and Requiem C++
 
 ### Reach Repository
 
-| File | Change Type | Priority |
-| :--- | :--- | :--- |
-| `crates/decision-engine/src/determinism.rs` | Hash algo change | CRITICAL |
-| `crates/engine-core/src/invariants/mod.rs` | Hash algo change | CRITICAL |
-| `src/engine/storage/cas.ts` | Atomic writes | CRITICAL |
-| `src/engine/translate.ts` | Precision enforcement | CRITICAL |
-| `src/engine/adapters/protocol.ts` | Default mode change | HIGH |
-| `src/engine/adapters/requiem.ts` | Env allowlist expansion | HIGH |
+| File                                        | Change Type             | Priority |
+| :------------------------------------------ | :---------------------- | :------- |
+| `crates/decision-engine/src/determinism.rs` | Hash algo change        | CRITICAL |
+| `crates/engine-core/src/invariants/mod.rs`  | Hash algo change        | CRITICAL |
+| `src/engine/storage/cas.ts`                 | Atomic writes           | CRITICAL |
+| `src/engine/translate.ts`                   | Precision enforcement   | CRITICAL |
+| `src/engine/adapters/protocol.ts`           | Default mode change     | HIGH     |
+| `src/engine/adapters/requiem.ts`            | Env allowlist expansion | HIGH     |
 
 ### Requiem Repository
 
-| File | Change Type | Priority |
-| :--- | :--- | :--- |
+| File               | Change Type              | Priority |
+| :----------------- | :----------------------- | :------- |
 | `src/jsonlite.cpp` | Canonical JSON alignment | CRITICAL |
-| `src/runtime.cpp` | Float precision | CRITICAL |
-| `src/cas.cpp` | Atomic writes | CRITICAL |
-| `src/server.rs` | Hash verification | CRITICAL |
+| `src/runtime.cpp`  | Float precision          | CRITICAL |
+| `src/cas.cpp`      | Atomic writes            | CRITICAL |
+| `src/server.rs`    | Hash verification        | CRITICAL |
 
 ---
 
 ## Test Coverage Gaps
 
-| Test | Status | Location |
-| :--- | :--- | :--- |
-| Hash primitive consistency | ❌ MISSING | Need new test |
-| Canonical JSON parity | ⚠️ PARTIAL | `src/determinism/__tests__/` |
-| Float precision determinism | ❌ MISSING | Need new test |
-| CAS atomic writes | ❌ MISSING | Need new test |
-| 200 concurrent requests | ❌ MISSING | Need new test |
-| 100x repeat determinism | ❌ MISSING | Need new test |
+| Test                        | Status     | Location                     |
+| :-------------------------- | :--------- | :--------------------------- |
+| Hash primitive consistency  | ❌ MISSING | Need new test                |
+| Canonical JSON parity       | ⚠️ PARTIAL | `src/determinism/__tests__/` |
+| Float precision determinism | ❌ MISSING | Need new test                |
+| CAS atomic writes           | ❌ MISSING | Need new test                |
+| 200 concurrent requests     | ❌ MISSING | Need new test                |
+| 100x repeat determinism     | ❌ MISSING | Need new test                |
 
 ---
 
@@ -218,4 +229,4 @@ The system has a **critical determinism violation** that must be fixed before me
 
 ---
 
-*Document will be updated as gaps are closed.*
+_Document will be updated as gaps are closed._

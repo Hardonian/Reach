@@ -1,14 +1,33 @@
 // @ts-nocheck
-import { writeFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "node:fs";
-import { resolve, join } from "node:path";
-import { FilesystemWarehouseAdapter, FilesystemBlobStorage } from "@zeo/warehouse";
-import { buildDataset, datasetToCsv, runCorrelation, runRegression, generateReport } from "@zeo/analytics";
-import type { WarehouseKind, ExportOptions, WarehouseEnvelope } from "@zeo/contracts";
+import {
+  writeFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  unlinkSync,
+} from 'node:fs';
+import { resolve, join } from 'node:path';
+import {
+  FilesystemWarehouseAdapter,
+  FilesystemBlobStorage,
+} from '@zeo/warehouse';
+import {
+  buildDataset,
+  datasetToCsv,
+  runCorrelation,
+  runRegression,
+  generateReport,
+} from '@zeo/analytics';
+import type {
+  WarehouseKind,
+  ExportOptions,
+  WarehouseEnvelope,
+} from '@zeo/contracts';
 
-const WAREHOUSE_DIR = ".zeo/warehouse";
-const METADATA_DIR = ".zeo/metadata";
-const RETENTION_CONFIG_FILE = "retention.json";
-const PINNED_FILE = "pinned.json";
+const WAREHOUSE_DIR = '.zeo/warehouse';
+const METADATA_DIR = '.zeo/metadata';
+const RETENTION_CONFIG_FILE = 'retention.json';
+const PINNED_FILE = 'pinned.json';
 
 interface RetentionConfig {
   defaultRetentionDays: number;
@@ -22,7 +41,15 @@ interface PinnedRecords {
 }
 
 interface WarehouseCliArgs {
-  command: "export" | "import" | "list" | "prune" | "pin" | "unpin" | "retention" | null;
+  command:
+    | 'export'
+    | 'import'
+    | 'list'
+    | 'prune'
+    | 'pin'
+    | 'unpin'
+    | 'retention'
+    | null;
   out?: string;
   input?: string;
   kinds?: WarehouseKind[];
@@ -34,7 +61,7 @@ interface WarehouseCliArgs {
 }
 
 interface AnalyticsCliArgs {
-  command: "build-dataset" | "run" | null;
+  command: 'build-dataset' | 'run' | null;
   datasetPath?: string;
   outDir?: string;
   targetCol?: string;
@@ -44,9 +71,9 @@ interface AnalyticsCliArgs {
 // Retention policy helper functions
 async function getRetentionConfig(cwd: string): Promise<RetentionConfig> {
   const configPath = resolve(cwd, METADATA_DIR, RETENTION_CONFIG_FILE);
-  
+
   try {
-    const data = readFileSync(configPath, "utf8");
+    const data = readFileSync(configPath, 'utf8');
     return JSON.parse(data);
   } catch {
     // Default config
@@ -55,35 +82,38 @@ async function getRetentionConfig(cwd: string): Promise<RetentionConfig> {
       perKindRetention: {
         decision: 90,
         outcome: 180,
-        "decision-draft": 30,
-        "evidence-event": 180,
-        "signal-observation": 90,
-        "observation-batch": 90,
-        "run-result": 60,
-        "outcome-record": 180,
-        "calibration-report": 365,
+        'decision-draft': 30,
+        'evidence-event': 180,
+        'signal-observation': 90,
+        'observation-batch': 90,
+        'run-result': 60,
+        'outcome-record': 180,
+        'calibration-report': 365,
       },
       lastUpdated: new Date().toISOString(),
     };
   }
 }
 
-async function saveRetentionConfig(cwd: string, config: RetentionConfig): Promise<void> {
+async function saveRetentionConfig(
+  cwd: string,
+  config: RetentionConfig,
+): Promise<void> {
   const configPath = resolve(cwd, METADATA_DIR, RETENTION_CONFIG_FILE);
   const configDir = resolve(cwd, METADATA_DIR);
-  
+
   if (!existsSync(configDir)) {
     mkdirSync(configDir, { recursive: true });
   }
-  
-  writeFileSync(configPath, JSON.stringify(config, null, 2), "utf8");
+
+  writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8');
 }
 
 async function getPinnedRecords(cwd: string): Promise<PinnedRecords> {
   const pinnedPath = resolve(cwd, METADATA_DIR, PINNED_FILE);
-  
+
   try {
-    const data = readFileSync(pinnedPath, "utf8");
+    const data = readFileSync(pinnedPath, 'utf8');
     const parsed = JSON.parse(data);
     return {
       pinnedIds: parsed.pinnedIds || [],
@@ -97,33 +127,40 @@ async function getPinnedRecords(cwd: string): Promise<PinnedRecords> {
   }
 }
 
-async function savePinnedRecords(cwd: string, pinned: PinnedRecords): Promise<void> {
+async function savePinnedRecords(
+  cwd: string,
+  pinned: PinnedRecords,
+): Promise<void> {
   const pinnedPath = resolve(cwd, METADATA_DIR, PINNED_FILE);
   const metadataDir = resolve(cwd, METADATA_DIR);
-  
+
   if (!existsSync(metadataDir)) {
     mkdirSync(metadataDir, { recursive: true });
   }
-  
-  writeFileSync(pinnedPath, JSON.stringify(pinned, null, 2), "utf8");
+
+  writeFileSync(pinnedPath, JSON.stringify(pinned, null, 2), 'utf8');
 }
 
-function isExpired(envelope: WarehouseEnvelope<unknown>, retentionDays: number, pinnedIds: string[]): boolean {
+function isExpired(
+  envelope: WarehouseEnvelope<unknown>,
+  retentionDays: number,
+  pinnedIds: string[],
+): boolean {
   // Never expire pinned records
   if (pinnedIds.includes(envelope.id)) {
     return false;
   }
-  
+
   // Never expire if no retention days specified
   if (!retentionDays || retentionDays <= 0) {
     return false;
   }
-  
+
   const createdAt = new Date(envelope.createdAt);
   const now = new Date();
   const ageMs = now.getTime() - createdAt.getTime();
   const ageDays = ageMs / (1000 * 60 * 60 * 24);
-  
+
   return ageDays > retentionDays;
 }
 
@@ -137,40 +174,40 @@ export function parseWarehouseArgs(argv: string[]): WarehouseCliArgs {
     const arg = argv[i];
     const next = argv[i + 1];
 
-    if (arg === "export") {
-      result.command = "export";
-    } else if (arg === "import") {
-      result.command = "import";
-    } else if (arg === "list") {
-      result.command = "list";
-    } else if (arg === "prune") {
-      result.command = "prune";
-    } else if (arg === "pin") {
-      result.command = "pin";
-    } else if (arg === "unpin") {
-      result.command = "unpin";
-    } else if (arg === "retention") {
-      result.command = "retention";
-    } else if (arg === "--out" && next) {
+    if (arg === 'export') {
+      result.command = 'export';
+    } else if (arg === 'import') {
+      result.command = 'import';
+    } else if (arg === 'list') {
+      result.command = 'list';
+    } else if (arg === 'prune') {
+      result.command = 'prune';
+    } else if (arg === 'pin') {
+      result.command = 'pin';
+    } else if (arg === 'unpin') {
+      result.command = 'unpin';
+    } else if (arg === 'retention') {
+      result.command = 'retention';
+    } else if (arg === '--out' && next) {
       result.out = next;
       i++;
-    } else if (arg === "--in" && next) {
+    } else if (arg === '--in' && next) {
       result.input = next;
       i++;
-    } else if (arg === "--kinds" && next) {
-      result.kinds = next.split(",") as WarehouseKind[];
+    } else if (arg === '--kinds' && next) {
+      result.kinds = next.split(',') as WarehouseKind[];
       i++;
-    } else if (arg === "--tags" && next) {
-      result.tags = next.split(",");
+    } else if (arg === '--tags' && next) {
+      result.tags = next.split(',');
       i++;
-    } else if (arg === "--dry-run") {
+    } else if (arg === '--dry-run') {
       result.dryRun = true;
-    } else if (arg === "--retention-days" && next) {
+    } else if (arg === '--retention-days' && next) {
       result.retentionDays = parseInt(next, 10);
       i++;
-    } else if (arg === "--pin") {
+    } else if (arg === '--pin') {
       result.pin = true;
-    } else if (arg === "--id" && next) {
+    } else if (arg === '--id' && next) {
       result.id = next;
       i++;
     }
@@ -188,21 +225,21 @@ export function parseAnalyticsArgs(argv: string[]): AnalyticsCliArgs {
     const arg = argv[i];
     const next = argv[i + 1];
 
-    if (arg === "build-dataset") {
-      result.command = "build-dataset";
-    } else if (arg === "run") {
-      result.command = "run";
-    } else if (arg === "--out" && next) {
+    if (arg === 'build-dataset') {
+      result.command = 'build-dataset';
+    } else if (arg === 'run') {
+      result.command = 'run';
+    } else if (arg === '--out' && next) {
       result.outDir = next;
       i++;
-    } else if (arg === "--dataset" && next) {
+    } else if (arg === '--dataset' && next) {
       result.datasetPath = next;
       i++;
-    } else if (arg === "--target" && next) {
+    } else if (arg === '--target' && next) {
       result.targetCol = next;
       i++;
-    } else if (arg === "--features" && next) {
-      result.featureCols = next.split(",");
+    } else if (arg === '--features' && next) {
+      result.featureCols = next.split(',');
       i++;
     }
   }
@@ -210,7 +247,9 @@ export function parseAnalyticsArgs(argv: string[]): AnalyticsCliArgs {
   return result;
 }
 
-export async function runWarehouseCommand(args: WarehouseCliArgs): Promise<number> {
+export async function runWarehouseCommand(
+  args: WarehouseCliArgs,
+): Promise<number> {
   const warehouse = new FilesystemWarehouseAdapter();
 
   if (!args.command) {
@@ -251,9 +290,9 @@ export async function runWarehouseCommand(args: WarehouseCliArgs): Promise<numbe
   }
 
   switch (args.command) {
-    case "export": {
+    case 'export': {
       if (!args.out) {
-        console.error("Error: --out is required for export");
+        console.error('Error: --out is required for export');
         return 1;
       }
 
@@ -262,19 +301,19 @@ export async function runWarehouseCommand(args: WarehouseCliArgs): Promise<numbe
         tags: args.tags,
       };
 
-      console.log("Exporting warehouse records...");
+      console.log('Exporting warehouse records...');
       const bundle = await warehouse.exportBundle(options);
 
       const outPath = resolve(args.out);
-      writeFileSync(outPath, JSON.stringify(bundle, null, 2), "utf8");
+      writeFileSync(outPath, JSON.stringify(bundle, null, 2), 'utf8');
 
       console.log(`Exported ${bundle.recordCount} records to ${args.out}`);
       return 0;
     }
 
-    case "import": {
+    case 'import': {
       if (!args.input) {
-        console.error("Error: --in is required for import");
+        console.error('Error: --in is required for import');
         return 1;
       }
 
@@ -284,12 +323,12 @@ export async function runWarehouseCommand(args: WarehouseCliArgs): Promise<numbe
         return 1;
       }
 
-      console.log("Importing warehouse records...");
-      const bundle = JSON.parse(readFileSync(inputPath, "utf8"));
+      console.log('Importing warehouse records...');
+      const bundle = JSON.parse(readFileSync(inputPath, 'utf8'));
 
       const result = await warehouse.importBundle(bundle, {
-        type: "prefer-newer",
-        sameHashAction: "skip",
+        type: 'prefer-newer',
+        sameHashAction: 'skip',
       });
 
       console.log(`Import complete:`);
@@ -299,7 +338,7 @@ export async function runWarehouseCommand(args: WarehouseCliArgs): Promise<numbe
       return 0;
     }
 
-    case "list": {
+    case 'list': {
       const result = await warehouse.list({
         kinds: args.kinds,
         tags: args.tags,
@@ -312,35 +351,42 @@ export async function runWarehouseCommand(args: WarehouseCliArgs): Promise<numbe
         console.log(`    Created: ${item.createdAt}`);
         console.log(`    Hash: ${item.hashes.contentHash.slice(0, 16)}...`);
         if (item.tags && item.tags.length > 0) {
-          console.log(`    Tags: ${item.tags.join(", ")}`);
+          console.log(`    Tags: ${item.tags.join(', ')}`);
         }
         console.log();
       }
       return 0;
     }
 
-    case "prune": {
+    case 'prune': {
       const retentionConfig = await getRetentionConfig(process.cwd());
       const pinned = await getPinnedRecords(process.cwd());
       const now = new Date();
-      
+
       // Get all records
       const allRecords = await warehouse.list({
         kinds: args.kinds,
         tags: args.tags,
         includeDeleted: false,
       });
-      
-      const expiredRecords: Array<{ id: string; kind: WarehouseKind; ageDays: number; reason: string }> = [];
-      
+
+      const expiredRecords: Array<{
+        id: string;
+        kind: WarehouseKind;
+        ageDays: number;
+        reason: string;
+      }> = [];
+
       for (const record of allRecords.items) {
-        const retentionDays = retentionConfig.perKindRetention[record.kind] || retentionConfig.defaultRetentionDays;
-        
+        const retentionDays =
+          retentionConfig.perKindRetention[record.kind] ||
+          retentionConfig.defaultRetentionDays;
+
         if (isExpired(record, retentionDays, pinned.pinnedIds)) {
           const createdAt = new Date(record.createdAt);
           const ageMs = now.getTime() - createdAt.getTime();
           const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
-          
+
           expiredRecords.push({
             id: record.id,
             kind: record.kind,
@@ -349,28 +395,30 @@ export async function runWarehouseCommand(args: WarehouseCliArgs): Promise<numbe
           });
         }
       }
-      
+
       if (expiredRecords.length === 0) {
-        console.log("No expired records found matching criteria.");
+        console.log('No expired records found matching criteria.');
         console.log(`\nRetention settings used:`);
         console.log(`  Default: ${retentionConfig.defaultRetentionDays} days`);
         console.log(`  Pinned records: ${pinned.pinnedIds.length}`);
         return 0;
       }
-      
+
       console.log(`Found ${expiredRecords.length} expired record(s):\n`);
-      
+
       for (const record of expiredRecords) {
         console.log(`  ${record.id} [${record.kind}]`);
         console.log(`    Age: ${record.ageDays} days - ${record.reason}`);
       }
-      
+
       if (args.dryRun) {
-        console.log(`\n[Dry run] Would prune ${expiredRecords.length} record(s)`);
-        console.log("No changes made.");
+        console.log(
+          `\n[Dry run] Would prune ${expiredRecords.length} record(s)`,
+        );
+        console.log('No changes made.');
         return 0;
       }
-      
+
       let pruned = 0;
       for (const record of expiredRecords) {
         try {
@@ -378,101 +426,106 @@ export async function runWarehouseCommand(args: WarehouseCliArgs): Promise<numbe
           pruned++;
           console.log(`  Pruned: ${record.id}`);
         } catch (err) {
-          console.error(`  Failed to prune ${record.id}:`, err instanceof Error ? err.message : err);
+          console.error(
+            `  Failed to prune ${record.id}:`,
+            err instanceof Error ? err.message : err,
+          );
         }
       }
-      
+
       console.log(`\nPruned ${pruned}/${expiredRecords.length} records`);
       return 0;
     }
 
-    case "pin": {
+    case 'pin': {
       if (!args.id) {
-        console.error("Error: --id is required for pin command");
+        console.error('Error: --id is required for pin command');
         return 1;
       }
-      
+
       // Check if record exists
       const allRecords = await warehouse.list({ limit: 1000 });
-      const record = allRecords.items.find(r => r.id === args.id);
-      
+      const record = allRecords.items.find((r) => r.id === args.id);
+
       if (!record) {
         console.error(`Error: Record not found: ${args.id}`);
         return 1;
       }
-      
+
       const pinned = await getPinnedRecords(process.cwd());
-      
+
       if (pinned.pinnedIds.includes(args.id!)) {
         console.log(`Record ${args.id} is already pinned`);
         return 0;
       }
-      
+
       pinned.pinnedIds.push(args.id!);
       pinned.lastUpdated = new Date().toISOString();
       await savePinnedRecords(process.cwd(), pinned);
-      
+
       console.log(`Pinned record: ${args.id} [${record.kind}]`);
       console.log(`Total pinned: ${pinned.pinnedIds.length}`);
       return 0;
     }
 
-    case "unpin": {
+    case 'unpin': {
       if (!args.id) {
-        console.error("Error: --id is required for unpin command");
+        console.error('Error: --id is required for unpin command');
         return 1;
       }
-      
+
       const pinned = await getPinnedRecords(process.cwd());
-      
+
       if (!pinned.pinnedIds.includes(args.id!)) {
         console.log(`Record ${args.id} is not pinned`);
         return 0;
       }
-      
-      pinned.pinnedIds = pinned.pinnedIds.filter(id => id !== args.id);
+
+      pinned.pinnedIds = pinned.pinnedIds.filter((id) => id !== args.id);
       pinned.lastUpdated = new Date().toISOString();
       await savePinnedRecords(process.cwd(), pinned);
-      
+
       console.log(`Unpinned record: ${args.id}`);
       console.log(`Total pinned: ${pinned.pinnedIds.length}`);
       return 0;
     }
 
-    case "retention": {
+    case 'retention': {
       if (args.retentionDays !== undefined) {
         const retentionDays = Math.max(1, args.retentionDays);
         const config = await getRetentionConfig(process.cwd());
         config.defaultRetentionDays = retentionDays;
         config.lastUpdated = new Date().toISOString();
         await saveRetentionConfig(process.cwd(), config);
-        
+
         console.log(`Set default retention period to ${retentionDays} days`);
-        console.log("\nRetention by record kind:");
+        console.log('\nRetention by record kind:');
         for (const [kind, days] of Object.entries(config.perKindRetention)) {
           console.log(`  ${kind}: ${days} days`);
         }
         return 0;
       }
-      
+
       const config = await getRetentionConfig(process.cwd());
       const pinned = await getPinnedRecords(process.cwd());
-      
-      console.log("Retention Policy Settings:");
+
+      console.log('Retention Policy Settings:');
       console.log(`  Default retention: ${config.defaultRetentionDays} days`);
-      console.log(`  Pinned records: ${pinned.pinnedIds.length} (never expire)`);
-      console.log("\nRetention by record kind:");
+      console.log(
+        `  Pinned records: ${pinned.pinnedIds.length} (never expire)`,
+      );
+      console.log('\nRetention by record kind:');
       for (const [kind, days] of Object.entries(config.perKindRetention)) {
         console.log(`  ${kind}: ${days} days`);
       }
-      
+
       if (pinned.pinnedIds.length > 0) {
-        console.log("\nPinned records:");
+        console.log('\nPinned records:');
         for (const id of pinned.pinnedIds) {
           console.log(`  ${id}`);
         }
       }
-      
+
       return 0;
     }
 
@@ -482,7 +535,9 @@ export async function runWarehouseCommand(args: WarehouseCliArgs): Promise<numbe
   }
 }
 
-export async function runAnalyticsCommand(args: AnalyticsCliArgs): Promise<number> {
+export async function runAnalyticsCommand(
+  args: AnalyticsCliArgs,
+): Promise<number> {
   if (!args.command) {
     console.log(`
 Zeo Analytics CLI
@@ -507,14 +562,14 @@ Examples:
   }
 
   switch (args.command) {
-    case "build-dataset": {
+    case 'build-dataset': {
       if (!args.outDir) {
-        console.error("Error: --out is required");
+        console.error('Error: --out is required');
         return 1;
       }
 
       const warehouse = new FilesystemWarehouseAdapter();
-      console.log("Building dataset from warehouse...");
+      console.log('Building dataset from warehouse...');
 
       const dataset = await buildDataset(warehouse, {
         includeDecisions: true,
@@ -529,12 +584,16 @@ Examples:
 
       // Write CSV
       const csv = datasetToCsv(dataset);
-      const csvPath = join(outPath, "dataset.csv");
-      writeFileSync(csvPath, csv, "utf8");
+      const csvPath = join(outPath, 'dataset.csv');
+      writeFileSync(csvPath, csv, 'utf8');
 
       // Write schema
-      const schemaPath = join(outPath, "dataset_schema.json");
-      writeFileSync(schemaPath, JSON.stringify(dataset.schema, null, 2), "utf8");
+      const schemaPath = join(outPath, 'dataset_schema.json');
+      writeFileSync(
+        schemaPath,
+        JSON.stringify(dataset.schema, null, 2),
+        'utf8',
+      );
 
       console.log(`Dataset written to ${outPath}:`);
       console.log(`  - ${csvPath} (${dataset.rows.length} rows)`);
@@ -544,14 +603,14 @@ Examples:
       return 0;
     }
 
-    case "run": {
+    case 'run': {
       if (!args.datasetPath) {
-        console.error("Error: --dataset is required");
+        console.error('Error: --dataset is required');
         return 1;
       }
 
       if (!args.outDir) {
-        console.error("Error: --out is required");
+        console.error('Error: --out is required');
         return 1;
       }
 
@@ -566,67 +625,94 @@ Examples:
         mkdirSync(outPath, { recursive: true });
       }
 
-      console.log("Running analytics pipeline...");
-      console.log("Note: Python backend required (numpy, pandas, scipy, scikit-learn, statsmodels)");
+      console.log('Running analytics pipeline...');
+      console.log(
+        'Note: Python backend required (numpy, pandas, scipy, scikit-learn, statsmodels)',
+      );
       console.log();
 
       // Run correlation
-      console.log("Computing correlations...");
-      const correlationsPath = join(outPath, "correlations.json");
+      console.log('Computing correlations...');
+      const correlationsPath = join(outPath, 'correlations.json');
       try {
-        const correlations = await runCorrelation(datasetPath, correlationsPath, {
-          includeRobust: true,
-        });
+        const correlations = await runCorrelation(
+          datasetPath,
+          correlationsPath,
+          {
+            includeRobust: true,
+          },
+        );
         console.log(`  Correlations saved to ${correlationsPath}`);
-        console.log(`  Variables analyzed: ${correlations?.variables.join(", ")}`);
+        console.log(
+          `  Variables analyzed: ${correlations?.variables.join(', ')}`,
+        );
       } catch (err) {
-        console.error("  Correlation failed:", err instanceof Error ? err.message : err);
-        console.error("  Ensure Python dependencies are installed: pip install -r packages/analytics/python/requirements.txt");
+        console.error(
+          '  Correlation failed:',
+          err instanceof Error ? err.message : err,
+        );
+        console.error(
+          '  Ensure Python dependencies are installed: pip install -r packages/analytics/python/requirements.txt',
+        );
       }
 
       // Run regression if target specified
       if (args.targetCol && args.featureCols && args.featureCols.length > 0) {
-        console.log("\nRunning regression...");
-        const regressionsPath = join(outPath, "regressions.json");
+        console.log('\nRunning regression...');
+        const regressionsPath = join(outPath, 'regressions.json');
         try {
-          const regressions = await runRegression(datasetPath, regressionsPath, {
-            targetCol: args.targetCol,
-            featureCols: args.featureCols,
-          });
+          const regressions = await runRegression(
+            datasetPath,
+            regressionsPath,
+            {
+              targetCol: args.targetCol,
+              featureCols: args.featureCols,
+            },
+          );
           console.log(`  Regressions saved to ${regressionsPath}`);
           console.log(`  Target: ${regressions?.target}`);
-          console.log(`  Features: ${regressions?.features.join(", ")}`);
+          console.log(`  Features: ${regressions?.features.join(', ')}`);
 
           if (regressions?.epistemic_label) {
             console.log(`\n  Epistemic Label: ${regressions.epistemic_label}`);
             console.log(`  Note: ${regressions.epistemic_note}`);
           }
         } catch (err) {
-          console.error("  Regression failed:", err instanceof Error ? err.message : err);
+          console.error(
+            '  Regression failed:',
+            err instanceof Error ? err.message : err,
+          );
         }
       }
 
       // Generate report
-      console.log("\nGenerating report...");
+      console.log('\nGenerating report...');
       try {
         const correlationsData = existsSync(correlationsPath)
-          ? JSON.parse(readFileSync(correlationsPath, "utf8"))
+          ? JSON.parse(readFileSync(correlationsPath, 'utf8'))
           : undefined;
-        const regressionsData = existsSync(join(outPath, "regressions.json"))
-          ? JSON.parse(readFileSync(join(outPath, "regressions.json"), "utf8"))
+        const regressionsData = existsSync(join(outPath, 'regressions.json'))
+          ? JSON.parse(readFileSync(join(outPath, 'regressions.json'), 'utf8'))
           : undefined;
 
-        const datasetHash = "unknown";
-        const report = await generateReport(correlationsData, regressionsData, datasetHash);
+        const datasetHash = 'unknown';
+        const report = await generateReport(
+          correlationsData,
+          regressionsData,
+          datasetHash,
+        );
 
-        const reportPath = join(outPath, "analytics_report.md");
-        writeFileSync(reportPath, report, "utf8");
+        const reportPath = join(outPath, 'analytics_report.md');
+        writeFileSync(reportPath, report, 'utf8');
         console.log(`  Report saved to ${reportPath}`);
       } catch (err) {
-        console.error("  Report generation failed:", err instanceof Error ? err.message : err);
+        console.error(
+          '  Report generation failed:',
+          err instanceof Error ? err.message : err,
+        );
       }
 
-      console.log("\nAnalytics complete.");
+      console.log('\nAnalytics complete.');
       return 0;
     }
 
@@ -635,4 +721,3 @@ Examples:
       return 1;
   }
 }
-

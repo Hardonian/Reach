@@ -1,8 +1,8 @@
 /**
  * ReadyLayer Telemetry Engine
- * 
+ *
  * Provides production-grade instrumentation and observation.
- * 
+ *
  * @module telemetry-engine
  */
 

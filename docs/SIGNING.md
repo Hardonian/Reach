@@ -1,6 +1,6 @@
 # Signing Plugin Interface
 
-**Status:** Production Ready  
+**Status:** Production Ready
 **Architecture:** Plugin-First
 
 ---
@@ -10,6 +10,7 @@
 Core only records **signature metadata**. Actual cryptographic operations are delegated to external signer plugins.
 
 This design:
+
 - Keeps heavy crypto libraries out of core
 - Allows HSM/KMS integration
 - Supports multiple signature algorithms
@@ -24,11 +25,11 @@ Core records only metadata:
 
 ```typescript
 interface SignatureMetadata {
-  algorithm: string;      // 'ed25519', 'ecdsa', etc.
-  keyId: string;          // Public key identifier
-  timestamp: string;      // ISO 8601
-  signatureRef?: string;  // External storage location
-  signerPlugin: string;   // Which plugin signed
+  algorithm: string; // 'ed25519', 'ecdsa', etc.
+  keyId: string; // Public key identifier
+  timestamp: string; // ISO 8601
+  signatureRef?: string; // External storage location
+  signerPlugin: string; // Which plugin signed
 }
 ```
 
@@ -45,7 +46,7 @@ interface SignerPlugin {
   readonly id: string;
   readonly name: string;
   readonly supportedAlgorithms: string[];
-  
+
   isAvailable(): boolean;
   sign(data: string, options: SignOptions): Promise<SignResult>;
   verify(data: string, signature: string, keyId: string): Promise<boolean>;
@@ -79,22 +80,26 @@ reach proof sign --bundle proof.json --key-id my-key --signer stub
 ### 1. Implement the Interface
 
 ```typescript
-import { SignerPlugin, SignOptions, SignResult } from './src/plugins/signing/interface.js';
+import {
+  SignerPlugin,
+  SignOptions,
+  SignResult,
+} from './src/plugins/signing/interface.js';
 
 export class HsmSignerPlugin implements SignerPlugin {
   readonly id = 'hsm';
   readonly name = 'HSM Signer';
   readonly supportedAlgorithms = ['ed25519', 'ecdsa-p256'];
-  
+
   isAvailable(): boolean {
     // Check if HSM is connected
     return checkHsmConnection();
   }
-  
+
   async sign(data: string, options: SignOptions): Promise<SignResult> {
     // Call HSM to sign
     const signature = await hsmSign(data, options.keyId);
-    
+
     return {
       metadata: {
         algorithm: options.algorithm || 'ed25519',
@@ -108,12 +113,16 @@ export class HsmSignerPlugin implements SignerPlugin {
       keyId: options.keyId,
     };
   }
-  
-  async verify(data: string, signature: string, keyId: string): Promise<boolean> {
+
+  async verify(
+    data: string,
+    signature: string,
+    keyId: string,
+  ): Promise<boolean> {
     // Call HSM to verify
     return hsmVerify(data, signature, keyId);
   }
-  
+
   async getKeyMetadata(keyId: string): Promise<KeyMetadata> {
     return {
       id: keyId,
@@ -152,28 +161,28 @@ export class FileSignerPlugin implements SignerPlugin {
   readonly id = 'file';
   readonly name = 'File-based Signer';
   readonly supportedAlgorithms = ['rsa-sha256'];
-  
+
   private keyDir: string;
-  
+
   constructor(keyDir: string) {
     this.keyDir = keyDir;
   }
-  
+
   isAvailable(): boolean {
     return existsSync(this.keyDir);
   }
-  
+
   async sign(data: string, options: SignOptions): Promise<SignResult> {
     const privateKey = readFileSync(`${this.keyDir}/${options.keyId}.pem`);
-    
+
     const signer = createSign('RSA-SHA256');
     signer.update(data);
     const signature = signer.sign(privateKey, 'hex');
-    
+
     // Store signature in file
     const sigPath = `${this.keyDir}/${options.keyId}-${Date.now()}.sig`;
     writeFileSync(sigPath, signature);
-    
+
     return {
       metadata: {
         algorithm: 'rsa-sha256',
@@ -187,15 +196,19 @@ export class FileSignerPlugin implements SignerPlugin {
       keyId: options.keyId,
     };
   }
-  
-  async verify(data: string, signature: string, keyId: string): Promise<boolean> {
+
+  async verify(
+    data: string,
+    signature: string,
+    keyId: string,
+  ): Promise<boolean> {
     const publicKey = readFileSync(`${this.keyDir}/${keyId}.pub`);
-    
+
     const verifier = createVerify('RSA-SHA256');
     verifier.update(data);
     return verifier.verify(publicKey, signature, 'hex');
   }
-  
+
   async getKeyMetadata(keyId: string): Promise<KeyMetadata> {
     return {
       id: keyId,
@@ -232,9 +245,11 @@ import { getSignerRegistry } from './src/plugins/signing/interface.js';
 import { HsmSignerPlugin } from './my-signer.js';
 
 const registry = getSignerRegistry();
-registry.register(new HsmSignerPlugin({
-  endpoint: process.env.REACH_HSM_ENDPOINT,
-}));
+registry.register(
+  new HsmSignerPlugin({
+    endpoint: process.env.REACH_HSM_ENDPOINT,
+  }),
+);
 ```
 
 ---
@@ -290,13 +305,13 @@ console.assert(valid === true);
 
 ## Available Plugins
 
-| Plugin | ID | Status | Use Case |
-|--------|-----|--------|----------|
-| Stub | `stub` | Built-in | Development |
-| File | `file` | Example | Testing |
-| HSM | `hsm` | External | Production |
-| AWS KMS | `aws-kms` | External | Production (AWS) |
-| HashiCorp Vault | `vault` | External | Production (Enterprise) |
+| Plugin          | ID        | Status   | Use Case                |
+| --------------- | --------- | -------- | ----------------------- |
+| Stub            | `stub`    | Built-in | Development             |
+| File            | `file`    | Example  | Testing                 |
+| HSM             | `hsm`     | External | Production              |
+| AWS KMS         | `aws-kms` | External | Production (AWS)        |
+| HashiCorp Vault | `vault`   | External | Production (Enterprise) |
 
 ---
 

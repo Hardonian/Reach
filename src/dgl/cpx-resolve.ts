@@ -31,18 +31,43 @@ export interface MergePlan {
 interface CpxReportLike {
   run_id: string;
   per_patch: Array<{ pack_id: string; score_total: number }>;
-  conflict_matrix: Record<string, Record<string, { reasons: string[]; text_conflict: number; semantic_conflict: number; boundary_conflict: number }>>;
+  conflict_matrix: Record<
+    string,
+    Record<
+      string,
+      {
+        reasons: string[];
+        text_conflict: number;
+        semantic_conflict: number;
+        boundary_conflict: number;
+      }
+    >
+  >;
 }
 
-function severityFrom(conflict: { text_conflict: number; semantic_conflict: number; boundary_conflict: number }): 'low' | 'medium' | 'high' {
-  const max = Math.max(conflict.text_conflict, conflict.semantic_conflict, conflict.boundary_conflict);
+function severityFrom(conflict: {
+  text_conflict: number;
+  semantic_conflict: number;
+  boundary_conflict: number;
+}): 'low' | 'medium' | 'high' {
+  const max = Math.max(
+    conflict.text_conflict,
+    conflict.semantic_conflict,
+    conflict.boundary_conflict,
+  );
   if (max >= 0.66) return 'high';
   if (max >= 0.33) return 'medium';
   return 'low';
 }
 
-export function buildMergePlan(report: CpxReportLike, nowIso?: string): MergePlan {
-  const sortedPatches = [...report.per_patch].sort((a, b) => a.score_total - b.score_total || a.pack_id.localeCompare(b.pack_id));
+export function buildMergePlan(
+  report: CpxReportLike,
+  nowIso?: string,
+): MergePlan {
+  const sortedPatches = [...report.per_patch].sort(
+    (a, b) =>
+      a.score_total - b.score_total || a.pack_id.localeCompare(b.pack_id),
+  );
   const packets: ConflictPacket[] = [];
   const sortedPackIds = Object.keys(report.conflict_matrix).sort();
 
@@ -65,7 +90,11 @@ export function buildMergePlan(report: CpxReportLike, nowIso?: string): MergePla
     }
   }
 
-  packets.sort((a, b) => b.severity.localeCompare(a.severity) || a.packet_id.localeCompare(b.packet_id));
+  packets.sort(
+    (a, b) =>
+      b.severity.localeCompare(a.severity) ||
+      a.packet_id.localeCompare(b.packet_id),
+  );
 
   const steps: MergePlanStep[] = [];
   let index = 1;
@@ -74,18 +103,21 @@ export function buildMergePlan(report: CpxReportLike, nowIso?: string): MergePla
       step: index++,
       action: 'apply_candidate_patch',
       target_pack_id: patch.pack_id,
-      guardrail: 'Apply on isolated branch and run CPX + route checks before moving to next patch.',
+      guardrail:
+        'Apply on isolated branch and run CPX + route checks before moving to next patch.',
     });
   }
   steps.push({
     step: index++,
     action: 'run_dgl_delta_preview',
-    guardrail: 'Preview governance delta for all touched trust-boundary files before commit.',
+    guardrail:
+      'Preview governance delta for all touched trust-boundary files before commit.',
   });
   steps.push({
     step: index,
     action: 'require_human_ack_for_high_conflicts',
-    guardrail: 'Any high severity packet requires explicit acknowledgement label before merge.',
+    guardrail:
+      'Any high severity packet requires explicit acknowledgement label before merge.',
   });
 
   return {

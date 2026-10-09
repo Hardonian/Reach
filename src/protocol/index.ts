@@ -1,15 +1,15 @@
 /**
  * Reach Binary Protocol (TypeScript)
- * 
+ *
  * Client implementation for the Requiem binary protocol.
- * 
+ *
  * @example
  * ```typescript
  * import { createClient, createHello, Duration } from './protocol';
- * 
+ *
  * const client = createClient({ host: '127.0.0.1', port: 9000 });
  * await client.connect();
- * 
+ *
  * const result = await client.execute({
  *   run_id: 'run-123',
  *   workflow: { name: 'test', version: '1.0', steps: [] },
@@ -22,7 +22,7 @@
  *   policy: { rules: [], default_decision: { type: 'allow' } },
  *   metadata: {},
  * });
- * 
+ *
  * console.log('Result digest:', result.result_digest);
  * ```
  */
@@ -62,10 +62,10 @@ export {
   FixedThroughput,
   throughputFromOpsPerSec,
   throughputToOpsPerSec,
-  
+
   // Capabilities
   CapabilityFlags,
-  
+
   // Payloads
   HelloPayload,
   HelloAckPayload,
@@ -89,7 +89,7 @@ export {
   LoadMetrics,
   ErrorPayload,
   ErrorCode,
-  
+
   // Helpers
   createHello,
   serializeCbor,

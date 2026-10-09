@@ -14,11 +14,15 @@
     },
     "declared_tools": ["read_file", "hash_content"],
     "declared_permissions": ["fs:read"],
-    "model_requirements": {"tier": "standard"},
+    "model_requirements": { "tier": "standard" },
     "execution_graph": {
       "steps": [
-        {"id": "step-1", "tool": "read_file", "input": "/fixtures/sample.txt"},
-        {"id": "step-2", "tool": "hash_content", "input": "${step-1.output}"}
+        {
+          "id": "step-1",
+          "tool": "read_file",
+          "input": "/fixtures/sample.txt"
+        },
+        { "id": "step-2", "tool": "hash_content", "input": "${step-1.output}" }
       ]
     },
     "deterministic": true,

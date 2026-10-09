@@ -19,10 +19,10 @@ export default async function ConsoleRootLayout({
   // RBAC check: Only 'admin' or 'owner' can access console by default
   // Some routes might be more permissive, but the core console is for privileged users.
   if (auth.role !== 'admin' && auth.role !== 'owner') {
-     // If user is a 'member' or 'viewer', they might have limited access 
-     // but for now let's enforce admin/owner for the main console shell
-     // redirect(ROUTES.HOME); 
-     // For now, let's allow members if they have a tenant context
+    // If user is a 'member' or 'viewer', they might have limited access
+    // but for now let's enforce admin/owner for the main console shell
+    // redirect(ROUTES.HOME);
+    // For now, let's allow members if they have a tenant context
   }
 
   return <>{children}</>;

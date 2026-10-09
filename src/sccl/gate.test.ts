@@ -18,12 +18,54 @@ describe('sccl gate', () => {
   it('flags duplicate branch leases', () => {
     const now = Date.now();
     fs.mkdirSync(path.dirname(leaseFile), { recursive: true });
-    fs.writeFileSync(leaseFile, JSON.stringify({ schema_version: '1.0', updated_at: new Date().toISOString(), leases: [
-      { lease_id: 'lease_a', repo_id: 'reach', branch: 'reach/sccl/demo', scope: 'branch-level', paths: [], owner: { user_id: 'alice', device_id: 'mac', agent_id: 'reach-cli' }, acquired_at: new Date(now).toISOString(), expires_at: new Date(now + 600000).toISOString(), ttl_seconds: 900 },
-      { lease_id: 'lease_b', repo_id: 'reach', branch: 'reach/sccl/demo', scope: 'branch-level', paths: [], owner: { user_id: 'bob', device_id: 'linux', agent_id: 'web-agent' }, acquired_at: new Date(now).toISOString(), expires_at: new Date(now + 600000).toISOString(), ttl_seconds: 900 },
-    ] }, null, 2));
+    fs.writeFileSync(
+      leaseFile,
+      JSON.stringify(
+        {
+          schema_version: '1.0',
+          updated_at: new Date().toISOString(),
+          leases: [
+            {
+              lease_id: 'lease_a',
+              repo_id: 'reach',
+              branch: 'reach/sccl/demo',
+              scope: 'branch-level',
+              paths: [],
+              owner: {
+                user_id: 'alice',
+                device_id: 'mac',
+                agent_id: 'reach-cli',
+              },
+              acquired_at: new Date(now).toISOString(),
+              expires_at: new Date(now + 600000).toISOString(),
+              ttl_seconds: 900,
+            },
+            {
+              lease_id: 'lease_b',
+              repo_id: 'reach',
+              branch: 'reach/sccl/demo',
+              scope: 'branch-level',
+              paths: [],
+              owner: {
+                user_id: 'bob',
+                device_id: 'linux',
+                agent_id: 'web-agent',
+              },
+              acquired_at: new Date(now).toISOString(),
+              expires_at: new Date(now + 600000).toISOString(),
+              ttl_seconds: 900,
+            },
+          ],
+        },
+        null,
+        2,
+      ),
+    );
     fs.mkdirSync(runsDir, { recursive: true });
-    fs.writeFileSync(path.join(runsDir, 'gate_test.json'), JSON.stringify({ run_id: 'gate_test' }, null, 2));
+    fs.writeFileSync(
+      path.join(runsDir, 'gate_test.json'),
+      JSON.stringify({ run_id: 'gate_test' }, null, 2),
+    );
     const result = validateScclGate(root, { fetch: false });
     expect(result.failures.join(' ')).toContain('lease conflict');
   });

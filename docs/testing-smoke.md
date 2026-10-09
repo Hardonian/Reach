@@ -18,10 +18,12 @@ BASE_URL=http://localhost:3000 node tests/smoke/routes.test.mjs
 ## What Gets Tested
 
 ### Public Routes (must return 200)
+
 - `/`, `/architecture`, `/transparency`, `/marketplace`
 - `/docs`, `/faq`, `/pricing`, `/governance`
 
 ### Console Routes (200 or auth redirect accepted)
+
 - `/console`, `/console/agents`, `/console/runners`
 - `/console/evaluation`, `/console/governance`, `/console/datasets`
 - `/console/cost`, `/console/ecosystem`, `/console/integrations`

@@ -25,7 +25,10 @@ export function LiveJsonPanel({
         const json = (await res.json()) as unknown;
         if (!cancelled) setPayload(json);
       } catch {
-        if (!cancelled) setError('Live endpoint unavailable. Use CLI command below for direct inspection.');
+        if (!cancelled)
+          setError(
+            'Live endpoint unavailable. Use CLI command below for direct inspection.',
+          );
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -39,9 +42,17 @@ export function LiveJsonPanel({
   return (
     <section className="rounded-xl border border-border bg-surface p-4">
       <h2 className="font-semibold mb-2">{title}</h2>
-      {loading ? <p className="text-sm text-gray-400">Loading live data…</p> : null}
-      {!loading && error ? <p className="text-sm text-amber-200">{error}</p> : null}
-      {!loading && !error ? <pre className="text-xs overflow-auto max-h-72">{JSON.stringify(payload, null, 2)}</pre> : null}
+      {loading ? (
+        <p className="text-sm text-gray-400">Loading live data…</p>
+      ) : null}
+      {!loading && error ? (
+        <p className="text-sm text-amber-200">{error}</p>
+      ) : null}
+      {!loading && !error ? (
+        <pre className="text-xs overflow-auto max-h-72">
+          {JSON.stringify(payload, null, 2)}
+        </pre>
+      ) : null}
     </section>
   );
 }

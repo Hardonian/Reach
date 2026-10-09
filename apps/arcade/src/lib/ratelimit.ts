@@ -5,7 +5,11 @@ import { logger } from './logger';
 const memoryStore = new Map<string, { count: number; windowStart: number }>();
 const FALLBACK_WINDOW_MS = 60 * 1000; // 1 minute
 
-export async function checkRateLimit(ip: string, limit: number = 10, windowSeconds: number = 60): Promise<{ success: boolean; remaining: number }> {
+export async function checkRateLimit(
+  ip: string,
+  limit: number = 10,
+  windowSeconds: number = 60,
+): Promise<{ success: boolean; remaining: number }> {
   const key = `rate_limit:${ip}`;
 
   // Try Redis first
@@ -20,7 +24,10 @@ export async function checkRateLimit(ip: string, limit: number = 10, windowSecon
         remaining: Math.max(0, limit - current),
       };
     } catch (error) {
-      logger.warn('Redis rate limit error, falling back to memory', { ip, error });
+      logger.warn('Redis rate limit error, falling back to memory', {
+        ip,
+        error,
+      });
     }
   }
 
@@ -34,9 +41,9 @@ export async function checkRateLimit(ip: string, limit: number = 10, windowSecon
   } else {
     record.count++;
   }
-  
+
   memoryStore.set(ip, record);
-  
+
   return {
     success: record.count <= limit,
     remaining: Math.max(0, limit - record.count),

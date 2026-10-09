@@ -1,9 +1,9 @@
 /**
  * ReadyLayer Schema Hardening Module
- * 
+ *
  * Provides versioned schemas, integrity verification, and audit trails
  * for production-grade data model enforcement.
- * 
+ *
  * @module schema-hardening
  */
 
@@ -15,7 +15,9 @@ import crypto from 'crypto';
 /**
  * Semantic version schema for versioned entities.
  */
-export const SemVerSchema = z.string().regex(/^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?$/);
+export const SemVerSchema = z
+  .string()
+  .regex(/^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?$/);
 export type SemVer = z.infer<typeof SemVerSchema>;
 
 /**
@@ -67,7 +69,10 @@ export function createAuditMetadata(userId: string): AuditMetadata {
 /**
  * Updates audit metadata for an existing entity.
  */
-export function updateAuditMetadata(existing: AuditMetadata, userId: string): AuditMetadata {
+export function updateAuditMetadata(
+  existing: AuditMetadata,
+  userId: string,
+): AuditMetadata {
   return {
     ...existing,
     updated_at: new Date().toISOString(),
@@ -96,19 +101,17 @@ export interface IntegrityHash {
  */
 export function computeIntegrityHash(
   content: string | Buffer | Record<string, unknown>,
-  algorithm: HashAlgorithm = 'sha256'
+  algorithm: HashAlgorithm = 'sha256',
 ): IntegrityHash {
-  const data = typeof content === 'string' 
-    ? content 
-    : Buffer.isBuffer(content) 
-      ? content 
-      : JSON.stringify(content);
-  
-  const hash = crypto
-    .createHash(algorithm)
-    .update(data)
-    .digest('hex');
-  
+  const data =
+    typeof content === 'string'
+      ? content
+      : Buffer.isBuffer(content)
+        ? content
+        : JSON.stringify(content);
+
+  const hash = crypto.createHash(algorithm).update(data).digest('hex');
+
   return {
     algorithm,
     hash,
@@ -121,7 +124,7 @@ export function computeIntegrityHash(
  */
 export function verifyIntegrityHash(
   content: string | Buffer | Record<string, unknown>,
-  expected: IntegrityHash
+  expected: IntegrityHash,
 ): boolean {
   const computed = computeIntegrityHash(content, expected.algorithm);
   return computed.hash === expected.hash;
@@ -152,12 +155,12 @@ export function createRunOutputSnapshot(
   runId: string,
   outputs: Record<string, unknown>,
   metrics: Record<string, unknown>,
-  toolCalls: Array<Record<string, unknown>>
+  toolCalls: Array<Record<string, unknown>>,
 ): RunOutputSnapshot {
   const outputsJson = JSON.stringify(outputs);
   const metricsJson = JSON.stringify(metrics);
   const toolCallsJson = JSON.stringify(toolCalls);
-  
+
   return {
     run_id: runId,
     snapshot_version: '1.0.0',
@@ -183,13 +186,17 @@ export const VersionedSkillSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(2000),
   version: SemVerSchema,
-  version_history: z.array(z.object({
-    version: SemVerSchema,
-    changed_at: z.string().datetime(),
-    changed_by: z.string(),
-    change_reason: z.string(),
-    snapshot_hash: z.string().optional(),
-  })).default([]),
+  version_history: z
+    .array(
+      z.object({
+        version: SemVerSchema,
+        changed_at: z.string().datetime(),
+        changed_by: z.string(),
+        change_reason: z.string(),
+        snapshot_hash: z.string().optional(),
+      }),
+    )
+    .default([]),
   config_json: z.string(),
   config_hash: z.object({
     algorithm: z.enum(['sha256', 'sha512']),
@@ -214,13 +221,17 @@ export const VersionedTemplateSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(2000),
   version: SemVerSchema,
-  version_history: z.array(z.object({
-    version: SemVerSchema,
-    changed_at: z.string().datetime(),
-    changed_by: z.string(),
-    change_reason: z.string(),
-    snapshot_hash: z.string().optional(),
-  })).default([]),
+  version_history: z
+    .array(
+      z.object({
+        version: SemVerSchema,
+        changed_at: z.string().datetime(),
+        changed_by: z.string(),
+        change_reason: z.string(),
+        snapshot_hash: z.string().optional(),
+      }),
+    )
+    .default([]),
   prompt_template: z.string(),
   prompt_hash: z.object({
     algorithm: z.enum(['sha256', 'sha512']),
@@ -249,27 +260,35 @@ export const VersionedGateSchema = z.object({
   repo_name: z.string(),
   default_branch: z.string().default('main'),
   trigger_types: z.array(z.enum(['pr', 'push', 'schedule'])),
-  required_checks: z.array(z.object({
-    type: z.enum(['template', 'rule', 'scenario']),
-    ref_id: z.string(),
-    name: z.string(),
-  })),
+  required_checks: z.array(
+    z.object({
+      type: z.enum(['template', 'rule', 'scenario']),
+      ref_id: z.string(),
+      name: z.string(),
+    }),
+  ),
   thresholds: z.object({
     pass_rate: z.number().min(0).max(1),
     max_violations: z.number().int().min(0),
   }),
   version: SemVerSchema.default('1.0.0'),
-  version_history: z.array(z.object({
-    version: SemVerSchema,
-    changed_at: z.string().datetime(),
-    changed_by: z.string(),
-    change_reason: z.string(),
-  })).default([]),
-  config_hash: z.object({
-    algorithm: z.enum(['sha256', 'sha512']),
-    hash: z.string(),
-    computed_at: z.string().datetime(),
-  }).optional(),
+  version_history: z
+    .array(
+      z.object({
+        version: SemVerSchema,
+        changed_at: z.string().datetime(),
+        changed_by: z.string(),
+        change_reason: z.string(),
+      }),
+    )
+    .default([]),
+  config_hash: z
+    .object({
+      algorithm: z.enum(['sha256', 'sha512']),
+      hash: z.string(),
+      computed_at: z.string().datetime(),
+    })
+    .optional(),
   status: z.enum(['enabled', 'disabled']),
   created_at: z.string().datetime(),
   created_by: z.string(),
@@ -296,11 +315,13 @@ export const ToolAuditRecordSchema = z.object({
     hash: z.string(),
     computed_at: z.string().datetime(),
   }),
-  output_hash: z.object({
-    algorithm: z.enum(['sha256', 'sha512']),
-    hash: z.string(),
-    computed_at: z.string().datetime(),
-  }).optional(),
+  output_hash: z
+    .object({
+      algorithm: z.enum(['sha256', 'sha512']),
+      hash: z.string(),
+      computed_at: z.string().datetime(),
+    })
+    .optional(),
   execution_time_ms: z.number().int().min(0),
   status: z.enum(['pending', 'success', 'error', 'timeout', 'rate_limited']),
   error_message: z.string().optional(),
@@ -320,8 +341,17 @@ export function createToolAuditRecord(
   toolName: string,
   invocationId: string,
   input: Record<string, unknown>,
-  permissionScope: string[] = []
-): Omit<ToolAuditRecord, 'id' | 'output_hash' | 'execution_time_ms' | 'status' | 'error_message' | 'rate_limit_key' | 'circuit_breaker_state'> {
+  permissionScope: string[] = [],
+): Omit<
+  ToolAuditRecord,
+  | 'id'
+  | 'output_hash'
+  | 'execution_time_ms'
+  | 'status'
+  | 'error_message'
+  | 'rate_limit_key'
+  | 'circuit_breaker_state'
+> {
   return {
     tenant_id: tenantId,
     run_id: runId,
@@ -348,7 +378,7 @@ export interface SoftDeletable {
  */
 export function applySoftDelete<T extends SoftDeletable>(
   entity: T,
-  deletedBy: string
+  deletedBy: string,
 ): T {
   return {
     ...entity,
@@ -382,7 +412,7 @@ export function restoreSoftDelete<T extends SoftDeletable>(entity: T): T {
  */
 export function validateSchema<T>(
   schema: z.ZodSchema<T>,
-  data: unknown
+  data: unknown,
 ): { success: true; data: T } | { success: false; errors: z.ZodError } {
   const result = schema.safeParse(data);
   if (result.success) {

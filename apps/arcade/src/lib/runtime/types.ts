@@ -57,7 +57,8 @@ export interface SkillComposition {
 
 // ── Tools ──
 
-export type ToolType = 'http' | 'github' | 'file' | 'webhook' | 'local-cli' | 'vector-db';
+export type ToolType =
+  'http' | 'github' | 'file' | 'webhook' | 'local-cli' | 'vector-db';
 
 export interface ToolDefinition {
   id: string;

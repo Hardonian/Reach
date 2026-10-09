@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Reach CLI - Production-polished OSS CLI
- * 
+ *
  * Commands:
  *   reach doctor
  *   reach demo seed / reach demo run
@@ -66,16 +66,25 @@ function printJson(data: unknown): void {
 }
 
 function printTable(headers: string[], rows: string[][]): void {
-  const widths = headers.map((h, i) => Math.max(h.length, ...rows.map(r => (r[i] || '').length)));
-  const separator = widths.map(w => '-'.repeat(w)).join('  ');
+  const widths = headers.map((h, i) =>
+    Math.max(h.length, ...rows.map((r) => (r[i] || '').length)),
+  );
+  const separator = widths.map((w) => '-'.repeat(w)).join('  ');
   console.log(headers.map((h, i) => h.padEnd(widths[i])).join('  '));
   console.log(separator);
-  rows.forEach(row => {
-    console.log(row.map((cell, i) => (cell || '').padEnd(widths[i])).join('  '));
+  rows.forEach((row) => {
+    console.log(
+      row.map((cell, i) => (cell || '').padEnd(widths[i])).join('  '),
+    );
   });
 }
 
-function printError(code: string, message: string, debug = false, details?: unknown): void {
+function printError(
+  code: string,
+  message: string,
+  debug = false,
+  details?: unknown,
+): void {
   console.error(`Error [${code}]: ${message}`);
   if (debug && details) {
     console.error('Details:', JSON.stringify(details, null, 2));
@@ -123,7 +132,9 @@ async function demoRun(opts: CliOptions): Promise<void> {
   } else {
     console.log('🚀 Running demo workflow...\n');
     for (const step of steps) {
-      console.log(`  ${step.status === 'pass' ? '✅' : '❌'} ${step.name}: ${step.message}`);
+      console.log(
+        `  ${step.status === 'pass' ? '✅' : '❌'} ${step.name}: ${step.message}`,
+      );
     }
     console.log('\n✅ Demo workflow completed successfully');
   }
@@ -136,20 +147,32 @@ async function demoRun(opts: CliOptions): Promise<void> {
 async function systemCheck(opts: CliOptions): Promise<void> {
   const checks = [
     { name: 'database', status: 'pass', message: 'SQLite database accessible' },
-    { name: 'engine', status: 'pass', message: 'Decision engine operational (TypeScript mode)' },
+    {
+      name: 'engine',
+      status: 'pass',
+      message: 'Decision engine operational (TypeScript mode)',
+    },
     { name: 'storage', status: 'pass', message: 'Local storage available' },
     { name: 'policies', status: 'pass', message: 'Policy evaluation ready' },
-    { name: 'determinism', status: 'pass', message: 'Deterministic mode enabled' },
+    {
+      name: 'determinism',
+      status: 'pass',
+      message: 'Deterministic mode enabled',
+    },
   ];
 
-  const overall = checks.every(c => c.status === 'pass') ? 'pass' : 'fail';
+  const overall = checks.every((c) => c.status === 'pass') ? 'pass' : 'fail';
 
   if (opts.json) {
-    printJson(jsonOutput({ overall, checks, timestamp: new Date().toISOString() }));
+    printJson(
+      jsonOutput({ overall, checks, timestamp: new Date().toISOString() }),
+    );
   } else {
     console.log('🔍 System Check\n');
     for (const check of checks) {
-      console.log(`  ${check.status === 'pass' ? '✅' : '❌'} ${check.name}: ${check.message}`);
+      console.log(
+        `  ${check.status === 'pass' ? '✅' : '❌'} ${check.name}: ${check.message}`,
+      );
     }
     console.log(`\nOverall: ${overall === 'pass' ? '✅ PASS' : '❌ FAIL'}`);
   }
@@ -163,9 +186,10 @@ async function doctor(opts: CliOptions): Promise<void> {
   // Import the rollback safety module for truth reporting
   let engineTruth = '';
   let rollbackInfo = null;
-  
+
   try {
-    const { generateDoctorTruthReport, getRollbackInstructions } = await import('../engine/safety/rollback.js');
+    const { generateDoctorTruthReport, getRollbackInstructions } =
+      await import('../engine/safety/rollback.js');
     engineTruth = generateDoctorTruthReport();
     rollbackInfo = getRollbackInstructions();
   } catch (err) {
@@ -173,43 +197,75 @@ async function doctor(opts: CliOptions): Promise<void> {
   }
 
   const checks = [
-    { name: 'node_version', status: 'pass', message: `Node.js ${process.version}` },
+    {
+      name: 'node_version',
+      status: 'pass',
+      message: `Node.js ${process.version}`,
+    },
     { name: 'typescript', status: 'pass', message: 'TypeScript available' },
-    { name: 'engine_mode', status: 'pass', message: 'Engine mode: TypeScript (WASM optional)' },
-    { name: 'oss_mode', status: 'pass', message: 'OSS mode: enabled (no cloud credentials required)' },
-    { name: 'enterprise_mode', status: 'pass', message: 'Enterprise mode: disabled (OSS default)' },
-    { name: 'rollback_safety', status: rollbackInfo?.rollbackAvailable ? 'pass' : 'warning', 
-      message: rollbackInfo?.rollbackAvailable ? 'Rollback path verified' : 'Limited rollback options' },
+    {
+      name: 'engine_mode',
+      status: 'pass',
+      message: 'Engine mode: TypeScript (WASM optional)',
+    },
+    {
+      name: 'oss_mode',
+      status: 'pass',
+      message: 'OSS mode: enabled (no cloud credentials required)',
+    },
+    {
+      name: 'enterprise_mode',
+      status: 'pass',
+      message: 'Enterprise mode: disabled (OSS default)',
+    },
+    {
+      name: 'rollback_safety',
+      status: rollbackInfo?.rollbackAvailable ? 'pass' : 'warning',
+      message: rollbackInfo?.rollbackAvailable
+        ? 'Rollback path verified'
+        : 'Limited rollback options',
+    },
   ];
 
-  const allPassed = checks.every(c => c.status === 'pass');
+  const allPassed = checks.every((c) => c.status === 'pass');
 
   if (opts.json) {
-    printJson(jsonOutput({ 
-      checks, 
-      timestamp: new Date().toISOString(),
-      engineTruth: engineTruth.split('\n'),
-      rollback: rollbackInfo,
-    }));
+    printJson(
+      jsonOutput({
+        checks,
+        timestamp: new Date().toISOString(),
+        engineTruth: engineTruth.split('\n'),
+        rollback: rollbackInfo,
+      }),
+    );
   } else {
     console.log('🩺 Reach Doctor\n');
     for (const check of checks) {
-      const icon = check.status === 'pass' ? '✅' : check.status === 'warning' ? '⚠️' : '❌';
+      const icon =
+        check.status === 'pass'
+          ? '✅'
+          : check.status === 'warning'
+            ? '⚠️'
+            : '❌';
       console.log(`  ${icon} ${check.name}: ${check.message}`);
     }
-    
+
     // Print engine truth report
     console.log('\n' + '='.repeat(50));
     console.log(engineTruth);
     console.log('='.repeat(50));
-    
-    console.log(`\n${allPassed ? '✅ All checks passed' : '⚠️ Some checks require attention'}`);
-    
+
+    console.log(
+      `\n${allPassed ? '✅ All checks passed' : '⚠️ Some checks require attention'}`,
+    );
+
     // Print rollback instructions
     if (rollbackInfo) {
       console.log('\n🔄 Rollback Instructions:');
       console.log(`   Current: ${rollbackInfo.currentEngine}`);
-      console.log(`   Available: ${rollbackInfo.rollbackAvailable ? 'yes' : 'no'}`);
+      console.log(
+        `   Available: ${rollbackInfo.rollbackAvailable ? 'yes' : 'no'}`,
+      );
       console.log(`   Command: ${rollbackInfo.rollbackCommand}`);
     }
   }
@@ -253,7 +309,13 @@ async function junctionsScan(opts: CliOptions): Promise<void> {
     console.log(`Found ${junctions.length} junctions:\n`);
     printTable(
       ['ID', 'Type', 'Severity', 'Status', 'Title'],
-      junctions.map(j => [j.id.substring(0, 20) + '...', j.trigger_type, j.severity, j.status, j.title])
+      junctions.map((j) => [
+        j.id.substring(0, 20) + '...',
+        j.trigger_type,
+        j.severity,
+        j.status,
+        j.title,
+      ]),
     );
   }
 }
@@ -273,7 +335,11 @@ async function junctionsShow(id: string, opts: CliOptions): Promise<void> {
     created_at: '2026-02-21T10:30:00Z',
     trace: [
       { step: 1, event: 'policy_eval', detail: 'Evaluating policy gates' },
-      { step: 2, event: 'breach_detected', detail: 'Policy violation detected' },
+      {
+        step: 2,
+        event: 'breach_detected',
+        detail: 'Policy violation detected',
+      },
     ],
   };
 
@@ -287,7 +353,7 @@ async function junctionsShow(id: string, opts: CliOptions): Promise<void> {
     console.log(`  Status: ${junction.status}`);
     console.log(`  Description: ${junction.description}`);
     console.log('\n  Trace:');
-    junction.trace.forEach(t => {
+    junction.trace.forEach((t) => {
       console.log(`    ${t.step}. ${t.event}: ${t.detail}`);
     });
   }
@@ -297,7 +363,10 @@ async function junctionsShow(id: string, opts: CliOptions): Promise<void> {
 // Decide commands
 // ============================================================================
 
-async function decideEvaluate(junctionId: string, opts: CliOptions): Promise<void> {
+async function decideEvaluate(
+  junctionId: string,
+  opts: CliOptions,
+): Promise<void> {
   const decision = {
     id: `dec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
     junction_id: junctionId,
@@ -321,13 +390,24 @@ async function decideEvaluate(junctionId: string, opts: CliOptions): Promise<voi
   }
 }
 
-async function decideExplain(decisionId: string, opts: CliOptions): Promise<void> {
+async function decideExplain(
+  decisionId: string,
+  opts: CliOptions,
+): Promise<void> {
   const explanation = {
     decision_id: decisionId,
     trace: [
-      { step: 1, thought: 'Analyzing junction severity', decision: 'Severity: high' },
+      {
+        step: 1,
+        thought: 'Analyzing junction severity',
+        decision: 'Severity: high',
+      },
       { step: 2, thought: 'Evaluating risk', decision: 'Risk level: high' },
-      { step: 3, thought: 'Selecting action', decision: 'Reject - requires immediate attention' },
+      {
+        step: 3,
+        thought: 'Selecting action',
+        decision: 'Reject - requires immediate attention',
+      },
     ],
     created_at: new Date().toISOString(),
   };
@@ -336,14 +416,18 @@ async function decideExplain(decisionId: string, opts: CliOptions): Promise<void
     printJson(jsonOutput(explanation));
   } else {
     console.log(`Explanation for decision ${decisionId}:\n`);
-    explanation.trace.forEach(t => {
+    explanation.trace.forEach((t) => {
       console.log(`  Step ${t.step}: ${t.thought}`);
       console.log(`    → ${t.decision}`);
     });
   }
 }
 
-async function decideOutcome(decisionId: string, outcome: string, opts: CliOptions): Promise<void> {
+async function decideOutcome(
+  decisionId: string,
+  outcome: string,
+  opts: CliOptions,
+): Promise<void> {
   const result = {
     decision_id: decisionId,
     outcome,
@@ -382,7 +466,13 @@ async function actionList(opts: CliOptions): Promise<void> {
     }
     printTable(
       ['ID', 'Decision', 'Status', 'Steps', 'Risk'],
-      actions.map(a => [a.id, a.decision_id, a.status, String(a.steps), a.risk])
+      actions.map((a) => [
+        a.id,
+        a.decision_id,
+        a.status,
+        String(a.steps),
+        a.risk,
+      ]),
     );
   }
 }
@@ -393,9 +483,21 @@ async function actionPlan(decisionId: string, opts: CliOptions): Promise<void> {
     decision_id: decisionId,
     status: 'planned',
     steps: [
-      { order: 1, description: 'Review junction details', tool: 'junction_read' },
-      { order: 2, description: 'Validate decision rationale', tool: 'decision_validate' },
-      { order: 3, description: 'Create incident ticket', estimated_duration: '5-10 minutes' },
+      {
+        order: 1,
+        description: 'Review junction details',
+        tool: 'junction_read',
+      },
+      {
+        order: 2,
+        description: 'Validate decision rationale',
+        tool: 'decision_validate',
+      },
+      {
+        order: 3,
+        description: 'Create incident ticket',
+        estimated_duration: '5-10 minutes',
+      },
     ],
     risk_summary: 'medium',
     created_at: new Date().toISOString(),
@@ -408,8 +510,10 @@ async function actionPlan(decisionId: string, opts: CliOptions): Promise<void> {
     console.log(`  Plan ID: ${plan.id}`);
     console.log(`  Risk: ${plan.risk_summary}`);
     console.log('\n  Steps:');
-    plan.steps.forEach(s => {
-      console.log(`    ${s.order}. ${s.description}${s.tool ? ` (${s.tool})` : ''}`);
+    plan.steps.forEach((s) => {
+      console.log(
+        `    ${s.order}. ${s.description}${s.tool ? ` (${s.tool})` : ''}`,
+      );
     });
   }
 }
@@ -440,7 +544,10 @@ async function actionExecute(planId: string, opts: CliOptions): Promise<void> {
       { event: 'step_1_completed', detail: 'Junction reviewed' },
       { event: 'step_2_completed', detail: 'Decision validated' },
       { event: 'step_3_completed', detail: 'Incident ticket created' },
-      { event: 'execution_completed', detail: 'All steps completed (demo mode)' },
+      {
+        event: 'execution_completed',
+        detail: 'All steps completed (demo mode)',
+      },
     ],
   };
 
@@ -448,10 +555,12 @@ async function actionExecute(planId: string, opts: CliOptions): Promise<void> {
     printJson(jsonOutput(execution));
   } else {
     console.log(`Executing action plan ${planId}...\n`);
-    execution.journal.forEach(j => {
+    execution.journal.forEach((j) => {
       console.log(`  ✅ ${j.event}: ${j.detail}`);
     });
-    console.log('\n✅ Execution completed (demo mode - no actual changes made)');
+    console.log(
+      '\n✅ Execution completed (demo mode - no actual changes made)',
+    );
   }
 }
 
@@ -469,7 +578,9 @@ async function actionStatus(planId: string, opts: CliOptions): Promise<void> {
   } else {
     console.log(`Action plan ${planId} status:`);
     console.log(`  Status: ${status.status}`);
-    console.log(`  Progress: ${status.steps_completed}/${status.steps_total} steps`);
+    console.log(
+      `  Progress: ${status.steps_completed}/${status.steps_total} steps`,
+    );
   }
 }
 
@@ -493,9 +604,24 @@ async function actionRollback(planId: string, opts: CliOptions): Promise<void> {
 
 async function eventsTail(opts: CliOptions): Promise<void> {
   const events = [
-    { id: 'evt_001', type: 'junction', source_id: 'jct_001', timestamp: '2026-02-21T10:30:00Z' },
-    { id: 'evt_002', type: 'decision', source_id: 'dec_001', timestamp: '2026-02-21T10:35:00Z' },
-    { id: 'evt_003', type: 'action', source_id: 'plan_001', timestamp: '2026-02-21T10:40:00Z' },
+    {
+      id: 'evt_001',
+      type: 'junction',
+      source_id: 'jct_001',
+      timestamp: '2026-02-21T10:30:00Z',
+    },
+    {
+      id: 'evt_002',
+      type: 'decision',
+      source_id: 'dec_001',
+      timestamp: '2026-02-21T10:35:00Z',
+    },
+    {
+      id: 'evt_003',
+      type: 'action',
+      source_id: 'plan_001',
+      timestamp: '2026-02-21T10:40:00Z',
+    },
   ];
 
   if (opts.json) {
@@ -504,7 +630,7 @@ async function eventsTail(opts: CliOptions): Promise<void> {
     console.log(`Events (${events.length} total):\n`);
     printTable(
       ['ID', 'Type', 'Source', 'Timestamp'],
-      events.map(e => [e.id, e.type, e.source_id, e.timestamp])
+      events.map((e) => [e.id, e.type, e.source_id, e.timestamp]),
     );
   }
 }
@@ -546,7 +672,9 @@ async function ingest(source: string, opts: CliOptions): Promise<void> {
   if (opts.json) {
     printJson(jsonOutput(result));
   } else {
-    console.log(`✅ Ingested from ${source}: ${result.events_created} events created`);
+    console.log(
+      `✅ Ingested from ${source}: ${result.events_created} events created`,
+    );
   }
 }
 
@@ -591,8 +719,18 @@ async function exportVerify(bundleId: string, opts: CliOptions): Promise<void> {
 
 async function search(query: string, opts: CliOptions): Promise<void> {
   const results = [
-    { type: 'junction', id: 'jct_001', title: 'Unauthorized Write Attempt', relevance: 0.95 },
-    { type: 'decision', id: 'dec_001', title: 'Decision: reject', relevance: 0.80 },
+    {
+      type: 'junction',
+      id: 'jct_001',
+      title: 'Unauthorized Write Attempt',
+      relevance: 0.95,
+    },
+    {
+      type: 'decision',
+      id: 'dec_001',
+      title: 'Decision: reject',
+      relevance: 0.8,
+    },
   ];
 
   if (opts.json) {
@@ -601,7 +739,12 @@ async function search(query: string, opts: CliOptions): Promise<void> {
     console.log(`Search results for "${query}":\n`);
     printTable(
       ['Type', 'ID', 'Title', 'Relevance'],
-      results.map(r => [r.type, r.id, r.title, `${Math.round(r.relevance * 100)}%`])
+      results.map((r) => [
+        r.type,
+        r.id,
+        r.title,
+        `${Math.round(r.relevance * 100)}%`,
+      ]),
     );
   }
 }
@@ -644,7 +787,9 @@ async function retentionCompact(opts: CliOptions): Promise<void> {
   if (opts.json) {
     printJson(jsonOutput(result));
   } else {
-    console.log(`✅ Compaction complete: ${result.events_removed} events removed, ${result.storage_freed} freed`);
+    console.log(
+      `✅ Compaction complete: ${result.events_removed} events removed, ${result.storage_freed} freed`,
+    );
   }
 }
 
@@ -684,9 +829,15 @@ async function vitalsSummary(opts: CliOptions): Promise<void> {
   } else {
     console.log('Vitals Summary:\n');
     console.log(`  System Health: ${vitals.system_health}`);
-    console.log(`  Junctions: ${vitals.total_junctions} total, ${vitals.open_junctions} open`);
-    console.log(`  Decisions: ${vitals.total_decisions} total, ${vitals.accepted_decisions} accepted`);
-    console.log(`  Actions: ${vitals.total_actions} total, ${vitals.successful_actions} successful`);
+    console.log(
+      `  Junctions: ${vitals.total_junctions} total, ${vitals.open_junctions} open`,
+    );
+    console.log(
+      `  Decisions: ${vitals.total_decisions} total, ${vitals.accepted_decisions} accepted`,
+    );
+    console.log(
+      `  Actions: ${vitals.total_actions} total, ${vitals.successful_actions} successful`,
+    );
   }
 }
 
@@ -704,19 +855,21 @@ async function vitalsTrend(metric: string, opts: CliOptions): Promise<void> {
     printJson(jsonOutput(trend));
   } else {
     console.log(`Trend for ${metric}:\n`);
-    trend.data_points.forEach(dp => {
+    trend.data_points.forEach((dp) => {
       console.log(`  ${dp.timestamp}: ${dp.value}`);
     });
   }
 }
 
-
-
 // ============================================================================
 // DGL commands
 // ============================================================================
 
-async function dglCommand(subcommand: string | undefined, rest: string[], opts: CliOptions): Promise<void> {
+async function dglCommand(
+  subcommand: string | undefined,
+  rest: string[],
+  opts: CliOptions,
+): Promise<void> {
   const sub = subcommand || 'scan';
   const passthrough = rest.join(' ');
   const cmd = `npx tsx scripts/dgl-gate.ts ${sub} ${passthrough}`.trim();
@@ -733,9 +886,11 @@ async function dglCommand(subcommand: string | undefined, rest: string[], opts: 
   }
 }
 
-
-
-async function scclCommand(subcommand: string | undefined, rest: string[], opts: CliOptions): Promise<void> {
+async function scclCommand(
+  subcommand: string | undefined,
+  rest: string[],
+  opts: CliOptions,
+): Promise<void> {
   const sub = subcommand || 'sync';
   const passthrough = rest.join(' ');
   const cmd = `npx tsx scripts/sccl-cli.ts ${sub} ${passthrough}`.trim();
@@ -749,10 +904,18 @@ async function scclCommand(subcommand: string | undefined, rest: string[], opts:
   }
 }
 
-async function agentCommand(subcommand: string | undefined, rest: string[], opts: CliOptions): Promise<void> {
-  if (subcommand !== 'validate') throw new Error('Unsupported agent command. Use: reach agent validate <file>');
+async function agentCommand(
+  subcommand: string | undefined,
+  rest: string[],
+  opts: CliOptions,
+): Promise<void> {
+  if (subcommand !== 'validate')
+    throw new Error(
+      'Unsupported agent command. Use: reach agent validate <file>',
+    );
   const file = rest[0];
-  if (!file) throw new Error('Missing file path. Use: reach agent validate <file>');
+  if (!file)
+    throw new Error('Missing file path. Use: reach agent validate <file>');
   const cmd = `npx tsx scripts/dgl-gate.ts agent-validate ${file}`;
   const out = execSync(cmd, { encoding: 'utf-8' });
   if (opts.json) printJson(jsonOutput({ command: cmd, output: out.trim() }));
@@ -772,7 +935,7 @@ async function main(): Promise<void> {
   };
 
   // Remove flags from args
-  const positional = args.filter(a => !a.startsWith('--'));
+  const positional = args.filter((a) => !a.startsWith('--'));
   const [command, subcommand, ...rest] = positional;
 
   try {
@@ -843,10 +1006,17 @@ async function main(): Promise<void> {
             await decideExplain(rest[0] || 'dec_001', opts);
             break;
           case 'outcome':
-            await decideOutcome(rest[0] || 'dec_001', rest[1] || 'success', opts);
+            await decideOutcome(
+              rest[0] || 'dec_001',
+              rest[1] || 'success',
+              opts,
+            );
             break;
           default:
-            printError('UNKNOWN_SUBCOMMAND', `Unknown subcommand: ${subcommand}. Use: evaluate, explain, outcome`);
+            printError(
+              'UNKNOWN_SUBCOMMAND',
+              `Unknown subcommand: ${subcommand}. Use: evaluate, explain, outcome`,
+            );
             process.exit(1);
         }
         break;
@@ -958,7 +1128,10 @@ async function main(): Promise<void> {
             await dglCommand('run-export', rest, opts);
             break;
           default:
-            printError('UNKNOWN_SUBCOMMAND', `Unknown subcommand: ${subcommand}. Use: show, list, export`);
+            printError(
+              'UNKNOWN_SUBCOMMAND',
+              `Unknown subcommand: ${subcommand}. Use: show, list, export`,
+            );
             process.exit(1);
         }
         break;
@@ -978,7 +1151,14 @@ async function main(): Promise<void> {
 
       case 'proof':
         {
-          const { proofCreate, proofVerify, proofExport, proofSign, proofValidateRemote, printProofHelp } = await import('./proof-cli.js');
+          const {
+            proofCreate,
+            proofVerify,
+            proofExport,
+            proofSign,
+            proofValidateRemote,
+            printProofHelp,
+          } = await import('./proof-cli.js');
           switch (subcommand) {
             case 'create':
               await proofCreate(rest[0] || '', opts);
@@ -1010,7 +1190,10 @@ async function main(): Promise<void> {
         break;
 
       default:
-        printError('UNKNOWN_COMMAND', `Unknown command: ${command}. Run 'reach help' for usage.`);
+        printError(
+          'UNKNOWN_COMMAND',
+          `Unknown command: ${command}. Run 'reach help' for usage.`,
+        );
         process.exit(1);
     }
   } catch (error) {
@@ -1019,14 +1202,24 @@ async function main(): Promise<void> {
         ok: false,
         error: {
           code: 'INTERNAL_ERROR',
-          message: error instanceof Error ? error.message : 'An internal error occurred',
-          ...(opts.debug ? { stack: error instanceof Error ? error.stack : undefined } : {}),
+          message:
+            error instanceof Error
+              ? error.message
+              : 'An internal error occurred',
+          ...(opts.debug
+            ? { stack: error instanceof Error ? error.stack : undefined }
+            : {}),
         },
         schemaVersion: SCHEMA_VERSION,
         engineVersion: ENGINE_VERSION,
       });
     } else {
-      printError('INTERNAL_ERROR', error instanceof Error ? error.message : 'An internal error occurred', opts.debug, error);
+      printError(
+        'INTERNAL_ERROR',
+        error instanceof Error ? error.message : 'An internal error occurred',
+        opts.debug,
+        error,
+      );
     }
     process.exit(1);
   }
@@ -1107,7 +1300,7 @@ Enterprise features are disabled in OSS mode.
 `);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Fatal error:', err.message);
   process.exit(1);
 });

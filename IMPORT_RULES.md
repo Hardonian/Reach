@@ -34,6 +34,7 @@ The Core Runner is OSS-first and must not depend on proprietary cloud services.
 ## Remediation
 
 If you encounter a boundary violation:
+
 1. Define an **Interface** in the consumer package.
 2. Implement the interface in the dependency or an adapter.
 3. Inject the implementation at runtime (in `main.go`).

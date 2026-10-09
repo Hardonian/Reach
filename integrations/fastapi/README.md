@@ -1,8 +1,10 @@
 # Reach FastAPI Integration Integration kit for using Reach with FastAPI.
 
 ## Setup ```bash
+
 pip install fastapi uvicorn reach-sdk
-```
+
+````
 
 ## Basic Example ```python
 from fastapi import FastAPI, HTTPException
@@ -93,12 +95,14 @@ async def federation_status():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-```
+````
 
 ## Running ```bash
+
 # Set environment variable export REACH_BASE_URL=http://127.0.0.1:8787
 
 # Run the server uvicorn main:app --reload
+
 ```
 
 ## API Documentation FastAPI automatically generates interactive API documentation:
@@ -107,3 +111,4 @@ if __name__ == "__main__":
 - ReDoc: http://localhost:8000/redoc
 
 ## License Apache 2.0
+```

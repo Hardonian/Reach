@@ -4,14 +4,14 @@ Reach ships as an OSS-first platform. The default local developer flow must work
 
 ## Feature matrix
 
-| Capability | OSS | Cloud/Enterprise |
-| --- | --- | --- |
-| Deterministic run, transcript, replay | ✅ Included | ✅ Included |
-| Local evidence viewer (`apps/arcade`) | ✅ Included | ✅ Included |
-| Policy gates and conformance fixtures | ✅ Included | ✅ Included |
-| Multi-tenant account management | ❌ Not in OSS | ✅ Included |
-| Hosted key custody/signing orchestration | ❌ Not in OSS | ✅ Included |
-| Managed audit stream + long-term archival | ❌ Not in OSS | ✅ Included |
+| Capability                                | OSS           | Cloud/Enterprise |
+| ----------------------------------------- | ------------- | ---------------- |
+| Deterministic run, transcript, replay     | ✅ Included   | ✅ Included      |
+| Local evidence viewer (`apps/arcade`)     | ✅ Included   | ✅ Included      |
+| Policy gates and conformance fixtures     | ✅ Included   | ✅ Included      |
+| Multi-tenant account management           | ❌ Not in OSS | ✅ Included      |
+| Hosted key custody/signing orchestration  | ❌ Not in OSS | ✅ Included      |
+| Managed audit stream + long-term archival | ❌ Not in OSS | ✅ Included      |
 
 ## Boundary rules
 

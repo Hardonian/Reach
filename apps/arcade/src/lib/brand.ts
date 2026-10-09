@@ -10,4 +10,4 @@
  * Default: "ReadyLayer"
  */
 export const BRAND_NAME: string =
-  process.env.NEXT_PUBLIC_BRAND_NAME ?? "ReadyLayer";
+  process.env.NEXT_PUBLIC_BRAND_NAME ?? 'ReadyLayer';

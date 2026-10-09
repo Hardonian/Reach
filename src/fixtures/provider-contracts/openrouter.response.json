@@ -21,7 +21,7 @@
     }
   },
   "expected": {
-    "json": {"verdict": "ok"},
-    "usage": {"inputTokens": 10, "outputTokens": 5}
+    "json": { "verdict": "ok" },
+    "usage": { "inputTokens": 10, "outputTokens": 5 }
   }
 }

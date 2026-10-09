@@ -16,10 +16,30 @@ const ENTERPRISE_ONLY_TERMS = [
   /enterprise support contract/i,
 ];
 
-const ROADMAP_REQUIRED_TERMS = [/\broadmap\b/i, /\bstub\b/i, /\bbeta\b/i, /\bplanned\b/i, /not yet available/i];
-const ENTERPRISE_CLAIM_TERMS = [/\bwill\b/i, /\bcoming soon\b/i, /\bgenerally available\b/i, /managed control-plane/i, /identity integration/i, /enterprise identity/i];
+const ROADMAP_REQUIRED_TERMS = [
+  /\broadmap\b/i,
+  /\bstub\b/i,
+  /\bbeta\b/i,
+  /\bplanned\b/i,
+  /not yet available/i,
+];
+const ENTERPRISE_CLAIM_TERMS = [
+  /\bwill\b/i,
+  /\bcoming soon\b/i,
+  /\bgenerally available\b/i,
+  /managed control-plane/i,
+  /identity integration/i,
+  /enterprise identity/i,
+];
 
-const OSS_ROUTE_PREFIXES = ['docs', 'gallery', 'download', 'security', 'whitepaper', 'roadmap'];
+const OSS_ROUTE_PREFIXES = [
+  'docs',
+  'gallery',
+  'download',
+  'security',
+  'whitepaper',
+  'roadmap',
+];
 const ENTERPRISE_ROUTES = ['enterprise', 'contact'];
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -47,14 +67,17 @@ function scan(): Violation[] {
   for (const file of files) {
     const text = fs.readFileSync(file, 'utf8');
     const firstSegment = routeKey(file);
-    const isOss = OSS_ROUTE_PREFIXES.includes(firstSegment) || firstSegment === 'page.tsx';
-    const isEnterprise = ENTERPRISE_ROUTES.includes(firstSegment) && file.endsWith('page.tsx');
+    const isOss =
+      OSS_ROUTE_PREFIXES.includes(firstSegment) || firstSegment === 'page.tsx';
+    const isEnterprise =
+      ENTERPRISE_ROUTES.includes(firstSegment) && file.endsWith('page.tsx');
 
     if (isOss) {
       for (const term of ENTERPRISE_ONLY_TERMS) {
         for (const match of text.matchAll(new RegExp(term.source, 'gi'))) {
           const start = match.index ?? 0;
-          const lineText = text.split('\n')[lineNumber(text, start) - 1]?.trim() ?? '';
+          const lineText =
+            text.split('\n')[lineNumber(text, start) - 1]?.trim() ?? '';
           if (/roadmap|beta|stub/i.test(lineText)) continue;
           violations.push({
             file: path.relative(repoRoot, file),
@@ -70,8 +93,16 @@ function scan(): Violation[] {
       const lines = text.split('\n');
       lines.forEach((line, idx) => {
         const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith('import ') || trimmed.includes('site.mode') || trimmed.startsWith('<option')) return;
-        const hasClaim = ENTERPRISE_CLAIM_TERMS.some((term) => term.test(trimmed));
+        if (
+          !trimmed ||
+          trimmed.startsWith('import ') ||
+          trimmed.includes('site.mode') ||
+          trimmed.startsWith('<option')
+        )
+          return;
+        const hasClaim = ENTERPRISE_CLAIM_TERMS.some((term) =>
+          term.test(trimmed),
+        );
         if (!hasClaim) return;
         const hasLabel = ROADMAP_REQUIRED_TERMS.some((term) => term.test(line));
         if (hasLabel) return;
@@ -90,7 +121,9 @@ function scan(): Violation[] {
 
 const violations = scan();
 if (violations.length) {
-  console.error(`validate-site-claims: found ${violations.length} violation(s).`);
+  console.error(
+    `validate-site-claims: found ${violations.length} violation(s).`,
+  );
   for (const v of violations) {
     console.error(`- ${v.file}:${v.line} [${v.rule}] ${v.text}`);
   }

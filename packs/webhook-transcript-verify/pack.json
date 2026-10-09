@@ -28,7 +28,5 @@
     "edges": []
   },
   "specVersion": "1.0",
-  "declared_tools": [
-    "tool.summarize"
-  ]
+  "declared_tools": ["tool.summarize"]
 }

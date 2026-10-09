@@ -4,7 +4,7 @@ info:
   description: |
     Deterministic execution fabric for AI systems. This API provides endpoints for
     managing runs, events, capsules, packs, and federation nodes.
-    
+
     ## Versioning Policy
     - `apiVersion`: The API implementation version (e.g., "1.0.0")
     - `specVersion`: The OpenAPI spec version this document represents
@@ -32,15 +32,15 @@ paths:
       tags:
         - System
       responses:
-        "200":
+        '200':
           description: Server is healthy
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/HealthResponse"
+                $ref: '#/components/schemas/HealthResponse'
               example:
                 status: ok
-                version: "1.0.0"
+                version: '1.0.0'
 
   /version:
     get:
@@ -50,18 +50,18 @@ paths:
       tags:
         - System
       responses:
-        "200":
+        '200':
           description: Version information
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/VersionResponse"
+                $ref: '#/components/schemas/VersionResponse'
               example:
-                apiVersion: "1.0.0"
-                specVersion: "1.0.0"
-                compatibilityPolicy: "backward_compatible"
+                apiVersion: '1.0.0'
+                specVersion: '1.0.0'
+                compatibilityPolicy: 'backward_compatible'
                 supportedVersions:
-                  - "1.0.0"
+                  - '1.0.0'
 
   /runs:
     post:
@@ -75,23 +75,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateRunRequest"
+              $ref: '#/components/schemas/CreateRunRequest'
             example:
               capabilities:
-                - "tool.read"
-                - "tool.write"
-              plan_tier: "free"
+                - 'tool.read'
+                - 'tool.write'
+              plan_tier: 'free'
       responses:
-        "201":
+        '201':
           description: Run created successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Run"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "500":
-          $ref: "#/components/responses/InternalError"
+                $ref: '#/components/schemas/Run'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /runs/{id}:
     get:
@@ -108,14 +108,14 @@ paths:
             type: string
           description: The run ID
       responses:
-        "200":
+        '200':
           description: Run details
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Run"
-        "404":
-          $ref: "#/components/responses/NotFound"
+                $ref: '#/components/schemas/Run'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /runs/{id}/events:
     get:
@@ -140,12 +140,12 @@ paths:
             format: int64
           description: Event ID to start from (for pagination)
       responses:
-        "200":
+        '200':
           description: List of events or SSE stream
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EventsResponse"
+                $ref: '#/components/schemas/EventsResponse'
             text/event-stream:
               schema:
                 type: string
@@ -166,12 +166,12 @@ paths:
             type: string
           description: The run ID to replay
       responses:
-        "200":
+        '200':
           description: Replay result
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ReplayResponse"
+                $ref: '#/components/schemas/ReplayResponse'
 
   /capsules:
     post:
@@ -185,16 +185,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateCapsuleRequest"
+              $ref: '#/components/schemas/CreateCapsuleRequest'
             example:
-              run_id: "run-abc123"
+              run_id: 'run-abc123'
       responses:
-        "201":
+        '201':
           description: Capsule created successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Capsule"
+                $ref: '#/components/schemas/Capsule'
 
   /capsules/verify:
     post:
@@ -208,14 +208,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/VerifyCapsuleRequest"
+              $ref: '#/components/schemas/VerifyCapsuleRequest'
       responses:
-        "200":
+        '200':
           description: Verification result
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/VerificationResult"
+                $ref: '#/components/schemas/VerificationResult'
 
   /federation/status:
     get:
@@ -225,12 +225,12 @@ paths:
       tags:
         - Federation
       responses:
-        "200":
+        '200':
           description: Federation status
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/FederationStatus"
+                $ref: '#/components/schemas/FederationStatus'
 
   /packs:
     get:
@@ -246,12 +246,12 @@ paths:
             type: string
           description: Search query string
       responses:
-        "200":
+        '200':
           description: List of packs
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PacksResponse"
+                $ref: '#/components/schemas/PacksResponse'
 
   /packs/install:
     post:
@@ -265,14 +265,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/InstallPackRequest"
+              $ref: '#/components/schemas/InstallPackRequest'
       responses:
-        "200":
+        '200':
           description: Pack installed successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/InstallPackResponse"
+                $ref: '#/components/schemas/InstallPackResponse'
 
   /packs/verify:
     post:
@@ -286,14 +286,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/VerifyPackRequest"
+              $ref: '#/components/schemas/VerifyPackRequest'
       responses:
-        "200":
+        '200':
           description: Verification result
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/VerificationResult"
+                $ref: '#/components/schemas/VerificationResult'
 
 components:
   schemas:
@@ -377,7 +377,7 @@ components:
         events:
           type: array
           items:
-            $ref: "#/components/schemas/Event"
+            $ref: '#/components/schemas/Event'
 
     Event:
       type: object
@@ -431,7 +431,7 @@ components:
         - event_log
       properties:
         manifest:
-          $ref: "#/components/schemas/CapsuleManifest"
+          $ref: '#/components/schemas/CapsuleManifest'
         event_log:
           type: array
           items:
@@ -493,7 +493,7 @@ components:
         nodes:
           type: array
           items:
-            $ref: "#/components/schemas/FederationNode"
+            $ref: '#/components/schemas/FederationNode'
 
     FederationNode:
       type: object
@@ -527,7 +527,7 @@ components:
         results:
           type: array
           items:
-            $ref: "#/components/schemas/Pack"
+            $ref: '#/components/schemas/Pack'
 
     Pack:
       type: object
@@ -627,30 +627,30 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ReachError"
+            $ref: '#/components/schemas/ReachError'
           example:
-            error: "Invalid request body"
-            code: "INVALID_REQUEST"
-            remediation: "Check the request body matches the expected schema"
+            error: 'Invalid request body'
+            code: 'INVALID_REQUEST'
+            remediation: 'Check the request body matches the expected schema'
 
     NotFound:
       description: Resource not found
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ReachError"
+            $ref: '#/components/schemas/ReachError'
           example:
-            error: "Run not found"
-            code: "RUN_NOT_FOUND"
-            remediation: "Verify the run ID exists"
+            error: 'Run not found'
+            code: 'RUN_NOT_FOUND'
+            remediation: 'Verify the run ID exists'
 
     InternalError:
       description: Internal server error
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ReachError"
+            $ref: '#/components/schemas/ReachError'
           example:
-            error: "Internal server error"
-            code: "INTERNAL_ERROR"
-            remediation: "Please try again later or contact support"
+            error: 'Internal server error'
+            code: 'INTERNAL_ERROR'
+            remediation: 'Please try again later or contact support'

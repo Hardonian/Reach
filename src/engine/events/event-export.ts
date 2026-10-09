@@ -1,13 +1,13 @@
 /**
  * Control-Plane Event Export
- * 
+ *
  * JSONL event stream for ReadyLayer integration:
  * - No secrets in output
  * - Stable schema (additive-only)
  * - Engine version, contract version, protocol version
  * - Fingerprint and confidence metrics
  * - Redacted metadata
- * 
+ *
  * @module engine/events/event-export
  */
 
@@ -225,22 +225,22 @@ export class ControlPlaneEventExporter {
   private fileCounter = 0;
   private readonly protocolVersion = '1.0.0';
   private readonly contractVersion = '1.0.0';
-  
+
   constructor(config: Partial<EventExportConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
     this.ensureOutputDirectory();
   }
-  
+
   // ============================================================================
   // Event Factory Methods
   // ============================================================================
-  
+
   createExecutionStartEvent(
     request: ExecRequest,
     engineVersion: string,
     engineType: string,
     dualRunEnabled: boolean,
-    samplingRate: number
+    samplingRate: number,
   ): ExecutionStartEvent {
     return {
       schema_version: EVENT_SCHEMA_VERSION,
@@ -258,14 +258,14 @@ export class ControlPlaneEventExporter {
       sampling_rate: samplingRate,
     };
   }
-  
+
   createExecutionCompleteEvent(
     request: ExecRequest,
     result: ExecResult,
     engineVersion: string,
     engineType: string,
     dualRunPerformed: boolean,
-    dualRunMatch?: boolean
+    dualRunMatch?: boolean,
   ): ExecutionCompleteEvent {
     return {
       schema_version: EVENT_SCHEMA_VERSION,
@@ -290,7 +290,7 @@ export class ControlPlaneEventExporter {
       state_count: request.params.states.length,
     };
   }
-  
+
   createExecutionErrorEvent(
     request: ExecRequest,
     errorCode: string,
@@ -298,7 +298,7 @@ export class ControlPlaneEventExporter {
     retryable: boolean,
     engineType: string,
     engineVersion: string,
-    fallbackEngine?: string
+    fallbackEngine?: string,
   ): ExecutionErrorEvent {
     return {
       schema_version: EVENT_SCHEMA_VERSION,
@@ -317,7 +317,7 @@ export class ControlPlaneEventExporter {
       ...(fallbackEngine && { fallback_engine: fallbackEngine }),
     };
   }
-  
+
   createEngineSwitchEvent(
     requestId: string,
     tenantId: string,
@@ -325,7 +325,7 @@ export class ControlPlaneEventExporter {
     toEngine: string,
     reason: string,
     forced: boolean,
-    engineVersion: string
+    engineVersion: string,
   ): EngineSwitchEvent {
     return {
       schema_version: EVENT_SCHEMA_VERSION,
@@ -343,7 +343,7 @@ export class ControlPlaneEventExporter {
       forced,
     };
   }
-  
+
   createDualRunMismatchEvent(
     requestId: string,
     tenantId: string,
@@ -352,7 +352,7 @@ export class ControlPlaneEventExporter {
     differenceCount: number,
     differenceTypes: string[],
     fingerprintMatch: boolean,
-    engineVersion: string
+    engineVersion: string,
   ): DualRunMismatchEvent {
     return {
       schema_version: EVENT_SCHEMA_VERSION,
@@ -371,14 +371,14 @@ export class ControlPlaneEventExporter {
       fingerprint_match: fingerprintMatch,
     };
   }
-  
+
   createPolicyViolationEvent(
     requestId: string,
     tenantId: string,
     policyRuleId: string,
     severity: 'low' | 'medium' | 'high' | 'critical',
     action: 'allow' | 'deny' | 'quarantine',
-    engineVersion: string
+    engineVersion: string,
   ): PolicyViolationEvent {
     return {
       schema_version: EVENT_SCHEMA_VERSION,
@@ -395,7 +395,7 @@ export class ControlPlaneEventExporter {
       action,
     };
   }
-  
+
   createRollbackEvent(
     requestId: string,
     tenantId: string,
@@ -403,7 +403,7 @@ export class ControlPlaneEventExporter {
     toEngine: string,
     reason: string,
     success: boolean,
-    engineVersion: string
+    engineVersion: string,
   ): RollbackEvent {
     return {
       schema_version: EVENT_SCHEMA_VERSION,
@@ -421,28 +421,28 @@ export class ControlPlaneEventExporter {
       success,
     };
   }
-  
+
   // ============================================================================
   // Export Methods
   // ============================================================================
-  
+
   /**
    * Export an event to the JSONL stream
    */
   exportEvent(event: AnyControlPlaneEvent): void {
     try {
       const jsonlLine = JSON.stringify(event) + '\n';
-      
+
       // Check if we need to rotate files
       if (this.currentFileSize + jsonlLine.length > this.config.maxFileSize) {
         this.rotateFile();
       }
-      
+
       // Ensure we have a current file
       if (!this.currentFile) {
         this.currentFile = this.generateFilePath();
       }
-      
+
       // Append to file
       appendFileSync(this.currentFile, jsonlLine);
       this.currentFileSize += jsonlLine.length;
@@ -451,7 +451,7 @@ export class ControlPlaneEventExporter {
       console.error('[EventExport] Failed to export event:', error);
     }
   }
-  
+
   /**
    * Export multiple events in batch
    */
@@ -460,34 +460,34 @@ export class ControlPlaneEventExporter {
       this.exportEvent(event);
     }
   }
-  
+
   // ============================================================================
   // Private Helpers
   // ============================================================================
-  
+
   private ensureOutputDirectory(): void {
     if (!existsSync(this.config.outputPath)) {
       mkdirSync(this.config.outputPath, { recursive: true });
     }
   }
-  
+
   private generateFilePath(): string {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const counter = String(this.fileCounter++).padStart(4, '0');
     return join(this.config.outputPath, `events-${timestamp}-${counter}.jsonl`);
   }
-  
+
   private rotateFile(): void {
     this.currentFile = this.generateFilePath();
     this.currentFileSize = 0;
     this.cleanupOldFiles();
   }
-  
+
   private cleanupOldFiles(): void {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { readdirSync, statSync, unlinkSync } = require('fs');
-      
+
       const files = readdirSync(this.config.outputPath)
         .filter((f: string) => f.endsWith('.jsonl'))
         .map((f: string) => ({
@@ -495,8 +495,11 @@ export class ControlPlaneEventExporter {
           path: join(this.config.outputPath, f),
           mtime: statSync(join(this.config.outputPath, f)).mtime,
         }))
-        .sort((a: { mtime: Date }, b: { mtime: Date }) => b.mtime.getTime() - a.mtime.getTime());
-      
+        .sort(
+          (a: { mtime: Date }, b: { mtime: Date }) =>
+            b.mtime.getTime() - a.mtime.getTime(),
+        );
+
       // Remove old files beyond maxFiles limit
       for (const file of files.slice(this.config.maxFiles)) {
         try {
@@ -509,13 +512,13 @@ export class ControlPlaneEventExporter {
       // Ignore cleanup errors
     }
   }
-  
+
   private generateEventId(): string {
     const timestamp = Date.now().toString(36);
     const random = Math.random().toString(36).substring(2, 8);
     return `evt_${timestamp}_${random}`;
   }
-  
+
   private deriveTenantId(request: ExecRequest): string {
     const metadata = (request as unknown as Record<string, unknown>).metadata;
     if (metadata && typeof metadata === 'object' && 'tenantId' in metadata) {
@@ -523,11 +526,14 @@ export class ControlPlaneEventExporter {
       // Hash tenant ID to avoid PII leakage
       return createHash('sha256').update(tenantId).digest('hex').slice(0, 16);
     }
-    
+
     // Derive from requestId
-    return createHash('sha256').update(request.requestId).digest('hex').slice(0, 16);
+    return createHash('sha256')
+      .update(request.requestId)
+      .digest('hex')
+      .slice(0, 16);
   }
-  
+
   private calculateConfidence(result: ExecResult): number {
     // Simple confidence heuristic based on result quality
     if (result.status !== 'success') return 0;
@@ -535,7 +541,7 @@ export class ControlPlaneEventExporter {
     if (result.ranking.length === 0) return 0.5;
     return 0.95; // Default high confidence for successful results
   }
-  
+
   private hashAction(action: string): string {
     // Hash the action to avoid leaking sensitive action names
     return createHash('sha256').update(action).digest('hex').slice(0, 16);
@@ -548,7 +554,9 @@ let exporterInstance: ControlPlaneEventExporter | undefined;
 /**
  * Get or create the singleton event exporter
  */
-export function getEventExporter(config?: Partial<EventExportConfig>): ControlPlaneEventExporter {
+export function getEventExporter(
+  config?: Partial<EventExportConfig>,
+): ControlPlaneEventExporter {
   if (!exporterInstance) {
     exporterInstance = new ControlPlaneEventExporter(config);
   }

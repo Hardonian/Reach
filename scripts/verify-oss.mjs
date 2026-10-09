@@ -9,7 +9,7 @@ const enterpriseEnvVars = [
   'AUTH0_CLIENT_ID',
   'AWS_ACCESS_KEY_ID',
   'AWS_SECRET_ACCESS_KEY',
-  'GOOGLE_APPLICATION_CREDENTIALS'
+  'GOOGLE_APPLICATION_CREDENTIALS',
 ];
 
 const env = { ...process.env, REACH_CLOUD: '0', REACH_ENTERPRISE: '0' };
@@ -20,7 +20,7 @@ for (const key of enterpriseEnvVars) {
 const result = spawnSync('npm', ['run', 'verify:oss:core'], {
   stdio: 'inherit',
   env,
-  shell: process.platform === 'win32'
+  shell: process.platform === 'win32',
 });
 
 process.exit(result.status ?? 1);

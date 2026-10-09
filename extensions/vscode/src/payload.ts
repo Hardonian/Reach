@@ -1,4 +1,9 @@
-import { ContextPayload, RepoSyncProfile, SelectionRange, WorkspaceConfig } from './types';
+import {
+  ContextPayload,
+  RepoSyncProfile,
+  SelectionRange,
+  WorkspaceConfig,
+} from './types';
 
 export interface ContextInput {
   workspaceRoot: string | null;
@@ -18,6 +23,6 @@ export function createContextPayload(input: ContextInput): ContextPayload {
     selection_range: input.selectionRange,
     workspace_config: input.workspace_config,
     repo_sync_profile: input.repo_sync_profile,
-    tier: input.tier
+    tier: input.tier,
   };
 }

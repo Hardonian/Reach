@@ -1,13 +1,21 @@
 #!/usr/bin/env npx tsx
 import fs from 'fs';
 import path from 'path';
-import { cpxToMarkdown, cpxToSarif, runCpx, type PatchPack } from '../src/dgl/cpx.js';
+import {
+  cpxToMarkdown,
+  cpxToSarif,
+  runCpx,
+  type PatchPack,
+} from '../src/dgl/cpx.js';
 
 const root = process.cwd();
 const outDir = path.join(root, 'dgl', 'cpx', 'examples');
 fs.mkdirSync(outDir, { recursive: true });
 
-const read = (f: string) => JSON.parse(fs.readFileSync(path.join(root, 'dgl', 'cpx', 'fixtures', f), 'utf-8')) as PatchPack;
+const read = (f: string) =>
+  JSON.parse(
+    fs.readFileSync(path.join(root, 'dgl', 'cpx', 'fixtures', f), 'utf-8'),
+  ) as PatchPack;
 const scenarios: Record<string, [string, string]> = {
   s1: ['s1-pack-a.json', 's1-pack-b.json'],
   s2: ['s2-pack-a.json', 's2-pack-b.json'],

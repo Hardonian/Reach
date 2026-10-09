@@ -8,12 +8,7 @@ const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const IS_FIX_MODE = process.argv.includes('--fix');
 
-const SCRIPTS = [
-  'links.ts',
-  'truth.ts',
-  'claims.ts',
-  'spelllinks.ts'
-];
+const SCRIPTS = ['links.ts', 'truth.ts', 'claims.ts', 'spelllinks.ts'];
 
 function runDoctor() {
   console.log('====================================');
@@ -36,7 +31,7 @@ function runDoctor() {
     const result = spawnSync('npx', ['tsx', ...args], {
       cwd: REPO_ROOT,
       stdio: 'inherit',
-      shell: true
+      shell: true,
     });
 
     if (result.status !== 0) {
@@ -46,7 +41,9 @@ function runDoctor() {
   }
 
   if (failed) {
-    console.error('\n❌ Documentation drift detected! See reports in .artifacts/docs-drift/');
+    console.error(
+      '\n❌ Documentation drift detected! See reports in .artifacts/docs-drift/',
+    );
     process.exit(1);
   } else {
     console.log('\n✅ No documentation drift detected.');

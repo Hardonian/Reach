@@ -41,9 +41,13 @@ function getRoutes(): Set<string> {
   walk(ARCADE_APP_ROOT, (filePath) => {
     const relative = path.relative(ARCADE_APP_ROOT, filePath);
     const parts = relative.split(path.sep);
-    
+
     // Skip special files that aren't routes
-    if (parts.some(p => p.startsWith('_') || p.startsWith('(') || p.startsWith('['))) {
+    if (
+      parts.some(
+        (p) => p.startsWith('_') || p.startsWith('(') || p.startsWith('['),
+      )
+    ) {
       // Logic for catch-all or grouped routes could be added here if needed
       // For now, we'll keep it simple
     }
@@ -52,10 +56,13 @@ function getRoutes(): Set<string> {
     if (filename === 'page.tsx' || filename === 'route.ts') {
       let routePath = '/' + parts.slice(0, -1).join('/');
       if (routePath === '//') routePath = '/';
-      if (routePath.length > 1 && routePath.endsWith('/')) routePath = routePath.slice(0, -1);
-      
+      if (routePath.length > 1 && routePath.endsWith('/'))
+        routePath = routePath.slice(0, -1);
+
       // Clean up grouped routes and catch-all for mapping
-      const cleanRoute = routePath.replace(/\/\([^)]+\)/g, '').replace(/\/\[[^\]]+\]/g, '/*');
+      const cleanRoute = routePath
+        .replace(/\/\([^)]+\)/g, '')
+        .replace(/\/\[[^\]]+\]/g, '/*');
       routes.add(cleanRoute || '/');
     }
   });
@@ -81,7 +88,7 @@ const IS_FIX_MODE = process.argv.includes('--fix');
 function audit() {
   console.log('--- Docs Route + Link Auditor ---');
   if (IS_FIX_MODE) console.log('FIX MODE ENABLED');
-  
+
   const routes = getRoutes();
   console.log(`Found ${routes.size} routes.`);
 
@@ -91,8 +98,13 @@ function audit() {
   let fixesApplied = 0;
 
   walk(ARCADE_APP_ROOT, (filePath) => {
-    if (!filePath.endsWith('.tsx') && !filePath.endsWith('.ts') && !filePath.endsWith('.mdx')) return;
-    
+    if (
+      !filePath.endsWith('.tsx') &&
+      !filePath.endsWith('.ts') &&
+      !filePath.endsWith('.mdx')
+    )
+      return;
+
     totalFilesChecked++;
     let content = fs.readFileSync(filePath, 'utf-8');
     let originalContent = content;
@@ -116,9 +128,9 @@ function audit() {
               file: path.relative(REPO_ROOT, filePath),
               link,
               type: 'casing',
-              suggestion: route
+              suggestion: route,
             });
-            
+
             if (IS_FIX_MODE) {
               // Replace only exact link match with the correct casing
               // Be careful not to replace unintentional matches, but href="..." is fairly specific
@@ -129,7 +141,7 @@ function audit() {
                 fixesApplied++;
               }
             }
-            
+
             foundCasingMatch = true;
             break;
           }
@@ -139,7 +151,7 @@ function audit() {
           issues.push({
             file: path.relative(REPO_ROOT, filePath),
             link,
-            type: '404'
+            type: '404',
           });
         }
       }
@@ -154,7 +166,7 @@ function audit() {
     timestamp: new Date().toISOString(),
     totalFilesChecked,
     totalLinksFound,
-    issues
+    issues,
   };
 
   if (!fs.existsSync(ARTIFACTS_DIR)) {
@@ -166,18 +178,22 @@ function audit() {
 
   console.log(`Audited ${totalFilesChecked} files.`);
   console.log(`Found ${totalLinksFound} internal links.`);
-  
+
   if (fixesApplied > 0) {
     console.log(`Applied ${fixesApplied} casing fixes.`);
   }
 
   if (issues.length > 0) {
     // In fix mode, if we applied fixes, some issues might still remain (404s)
-    const remainingIssues = IS_FIX_MODE ? issues.filter(i => i.type === '404') : issues;
+    const remainingIssues = IS_FIX_MODE
+      ? issues.filter((i) => i.type === '404')
+      : issues;
     if (remainingIssues.length > 0) {
       console.warn(`Found ${remainingIssues.length} remaining issues:`);
-      remainingIssues.forEach(issue => {
-        console.log(`[${issue.type.toUpperCase()}] ${issue.file}: ${issue.link}`);
+      remainingIssues.forEach((issue) => {
+        console.log(
+          `[${issue.type.toUpperCase()}] ${issue.file}: ${issue.link}`,
+        );
       });
       process.exit(1);
     } else {

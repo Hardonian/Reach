@@ -59,14 +59,26 @@ diff-run <run-id-A> <run-id-B>
   "run_id_b": "sha256:...",
   "overall": "MISMATCH",
   "fields": {
-    "run_id":          {"match": true,  "a": "...", "b": "..."},
-    "engine_version":  {"match": true,  "a": "0.2.0", "b": "0.2.0"},
-    "policy_version":  {"match": true,  "a": "...", "b": "..."},
-    "input_hash":      {"match": true,  "a": "...", "b": "..."},
-    "artifact_hashes": {"match": true,  "a": ["..."], "b": ["..."]},
-    "event_log_hash":  {"match": false, "a": "sha256:aabbcc", "b": "sha256:xxyyzz"},
-    "output_hash":     {"match": false, "a": "sha256:def456", "b": "sha256:fedcba"},
-    "fingerprint":     {"match": false, "a": "sha256:111222", "b": "sha256:999888"}
+    "run_id": { "match": true, "a": "...", "b": "..." },
+    "engine_version": { "match": true, "a": "0.2.0", "b": "0.2.0" },
+    "policy_version": { "match": true, "a": "...", "b": "..." },
+    "input_hash": { "match": true, "a": "...", "b": "..." },
+    "artifact_hashes": { "match": true, "a": ["..."], "b": ["..."] },
+    "event_log_hash": {
+      "match": false,
+      "a": "sha256:aabbcc",
+      "b": "sha256:xxyyzz"
+    },
+    "output_hash": {
+      "match": false,
+      "a": "sha256:def456",
+      "b": "sha256:fedcba"
+    },
+    "fingerprint": {
+      "match": false,
+      "a": "sha256:111222",
+      "b": "sha256:999888"
+    }
   },
   "event_diff": {
     "total_events_a": 10,
@@ -76,13 +88,13 @@ diff-run <run-id-A> <run-id-B>
       "seq": 5,
       "type": "tool.responded",
       "tool": "list",
-      "output": {"items": ["a","b","c"]}
+      "output": { "items": ["a", "b", "c"] }
     },
     "event_b": {
       "seq": 5,
       "type": "tool.responded",
       "tool": "list",
-      "output": {"items": ["c","a","b"]}
+      "output": { "items": ["c", "a", "b"] }
     }
   },
   "diagnosis": {
@@ -98,16 +110,16 @@ diff-run <run-id-A> <run-id-B>
 
 ## Diff Fields
 
-| Field | Match Semantics |
-| :--- | :--- |
-| `run_id` | Should always match for identical inputs + policy |
-| `engine_version` | Must match for replay to be valid |
-| `policy_version` | Must match for identical policy evaluation |
-| `input_hash` | Hash of all inputs. Mismatch = different inputs fed |
+| Field             | Match Semantics                                                 |
+| :---------------- | :-------------------------------------------------------------- |
+| `run_id`          | Should always match for identical inputs + policy               |
+| `engine_version`  | Must match for replay to be valid                               |
+| `policy_version`  | Must match for identical policy evaluation                      |
+| `input_hash`      | Hash of all inputs. Mismatch = different inputs fed             |
 | `artifact_hashes` | Sorted array of artifact hashes. Mismatch = different artifacts |
-| `event_log_hash` | Hash of the complete ordered event log NDJSON |
-| `output_hash` | Hash of canonical-JSON outputs |
-| `fingerprint` | Final proof. Mismatch = some invariant was violated |
+| `event_log_hash`  | Hash of the complete ordered event log NDJSON                   |
+| `output_hash`     | Hash of canonical-JSON outputs                                  |
+| `fingerprint`     | Final proof. Mismatch = some invariant was violated             |
 
 ---
 
@@ -115,24 +127,24 @@ diff-run <run-id-A> <run-id-B>
 
 When an event log mismatch is detected, the diff engine attempts automatic diagnosis:
 
-| Detected Pattern | Probable Cause | Code |
-| :--- | :--- | :--- |
-| Same event count, first event differs in key-order | Map iteration order | `map-iteration` |
-| Same event count, first event differs in array order | Array sort not stable | `array-order` |
-| Event counts differ | Missing or extra event | `event-count-mismatch` |
+| Detected Pattern                                     | Probable Cause                      | Code                      |
+| :--------------------------------------------------- | :---------------------------------- | :------------------------ |
+| Same event count, first event differs in key-order   | Map iteration order                 | `map-iteration`           |
+| Same event count, first event differs in array order | Array sort not stable               | `array-order`             |
+| Event counts differ                                  | Missing or extra event              | `event-count-mismatch`    |
 | `event_log_hash` identical but `output_hash` differs | Output generation non-deterministic | `output-nondeterministic` |
-| All hashes match except `fingerprint` | Engine version string difference | `engine-version` |
+| All hashes match except `fingerprint`                | Engine version string difference    | `engine-version`          |
 
 ---
 
 ## Exit Codes
 
-| Exit Code | Meaning |
-| :--- | :--- |
-| `0` | All fields match (no difference) |
-| `1` | One or more fields differ (`MISMATCH`) |
-| `2` | One or both run IDs not found |
-| `3` | Internal error |
+| Exit Code | Meaning                                |
+| :-------- | :------------------------------------- |
+| `0`       | All fields match (no difference)       |
+| `1`       | One or more fields differ (`MISMATCH`) |
+| `2`       | One or both run IDs not found          |
+| `3`       | Internal error                         |
 
 ---
 

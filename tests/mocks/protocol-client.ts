@@ -9,7 +9,8 @@ export const ConnectionState = {
 
 export class MockProtocolClient {
   public isReady = false;
-  public connectionState: typeof ConnectionState[keyof typeof ConnectionState] = ConnectionState.Disconnected;
+  public connectionState: (typeof ConnectionState)[keyof typeof ConnectionState] =
+    ConnectionState.Disconnected;
   public config: unknown;
 
   constructor(config: unknown) {
@@ -34,15 +35,15 @@ export class MockProtocolClient {
     result_digest: 'blake3:mock-digest',
     events: [],
     metrics: { elapsed_us: 1000 },
-    final_action: { type: 'done' }
+    final_action: { type: 'done' },
   });
 
   public health: Mock = vi.fn().mockResolvedValue({
     status: { type: 'healthy' },
-    version: '1.0.0'
+    version: '1.0.0',
   });
 
   public getStats: Mock = vi.fn().mockReturnValue({
-    pendingRequests: 0
+    pendingRequests: 0,
   });
 }

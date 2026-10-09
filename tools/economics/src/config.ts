@@ -9,8 +9,9 @@ export async function loadConfig(): Promise<EconomicsConfig> {
     path.join(process.cwd(), '..', '..', 'config', 'economics.json'),
   ];
 
-  const configPath = possiblePaths.find(p => fs.existsSync(p));
-  if (!configPath) throw new Error(`Config not found in: ${possiblePaths.join(', ')}`);
+  const configPath = possiblePaths.find((p) => fs.existsSync(p));
+  if (!configPath)
+    throw new Error(`Config not found in: ${possiblePaths.join(', ')}`);
 
   const raw = await fs.readJson(configPath);
   return ConfigSchema.parse(raw);

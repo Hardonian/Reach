@@ -98,7 +98,9 @@ export const BUILTIN_TOOLS: ToolDefinition[] = [
     name: 'MCP Client',
     type: 'http',
     description: 'Connect to MCP servers and discover available tools.',
-    permissions: [{ action: 'network', resource: 'mcp-servers', granted: true }],
+    permissions: [
+      { action: 'network', resource: 'mcp-servers', granted: true },
+    ],
     scope: { global: true },
     config: { timeout: 5000 },
     boundSkills: ['mcp-bridge'],
@@ -161,7 +163,10 @@ export function getAllTools(): ToolDefinition[] {
 export function createInvocation(
   tool: ToolDefinition,
   input: Record<string, unknown>,
-): Omit<ToolInvocation, 'output' | 'completedAt' | 'durationMs' | 'status' | 'error'> {
+): Omit<
+  ToolInvocation,
+  'output' | 'completedAt' | 'durationMs' | 'status' | 'error'
+> {
   return {
     toolId: tool.id,
     toolName: tool.name,
@@ -173,7 +178,10 @@ export function createInvocation(
 
 // ── Tool Type Metadata ──
 
-export const TOOL_TYPE_META: Record<ToolType, { label: string; icon: string; color: string }> = {
+export const TOOL_TYPE_META: Record<
+  ToolType,
+  { label: string; icon: string; color: string }
+> = {
   http: { label: 'HTTP', icon: '🌐', color: '#3B82F6' },
   github: { label: 'GitHub', icon: '🐙', color: '#8B5CF6' },
   file: { label: 'File', icon: '📄', color: '#10B981' },

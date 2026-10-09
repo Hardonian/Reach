@@ -16,10 +16,13 @@ export function PackDiscovery({ onSelect, selectedId }: PackDiscoveryProps) {
   const [search, setSearch] = useState('');
 
   const filteredPacks = useMemo(() => {
-    return CATALOG.filter(pack => {
+    return CATALOG.filter((pack) => {
       // 1. Filter by text search
-      if (search && !pack.name.toLowerCase().includes(search.toLowerCase()) &&
-          !pack.description.toLowerCase().includes(search.toLowerCase())) {
+      if (
+        search &&
+        !pack.name.toLowerCase().includes(search.toLowerCase()) &&
+        !pack.description.toLowerCase().includes(search.toLowerCase())
+      ) {
         return false;
       }
 
@@ -31,13 +34,19 @@ export function PackDiscovery({ onSelect, selectedId }: PackDiscoveryProps) {
     });
   }, [filter, search]);
 
-  const FilterButton = ({ type, label }: { type: FilterType, label: string }) => {
+  const FilterButton = ({
+    type,
+    label,
+  }: {
+    type: FilterType;
+    label: string;
+  }) => {
     const isChecked = filter === type;
     return (
       <button
         onClick={() => setFilter(type)}
         className={`filter-chip ${isChecked ? 'active' : ''}`}
-        aria-pressed={isChecked ? "true" : "false"}
+        aria-pressed={isChecked ? 'true' : 'false'}
       >
         {label}
       </button>
@@ -49,44 +58,59 @@ export function PackDiscovery({ onSelect, selectedId }: PackDiscoveryProps) {
       {/* Search & Filter Controls */}
       <div className="filter-bar">
         <div className="container p-0">
-            <label htmlFor="pack-search" className="sr-only">Search capabilities</label>
-            <input
-              id="pack-search"
-              type="text"
-              placeholder="Search capabilities..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="search-input"
-            />
+          <label htmlFor="pack-search" className="sr-only">
+            Search capabilities
+          </label>
+          <input
+            id="pack-search"
+            type="text"
+            placeholder="Search capabilities..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="search-input"
+          />
 
-            <div className="filter-chips" role="group" aria-label="Filter capabilities">
-              <FilterButton type="all" label="All" />
-              <FilterButton type="verified" label="Verified" />
-              <FilterButton type="safe" label="Safe" />
-              <FilterButton type="easy" label="Easy" />
-              <FilterButton type="medium" label="Medium" />
-              <FilterButton type="hard" label="Hard" />
-            </div>
+          <div
+            className="filter-chips"
+            role="group"
+            aria-label="Filter capabilities"
+          >
+            <FilterButton type="all" label="All" />
+            <FilterButton type="verified" label="Verified" />
+            <FilterButton type="safe" label="Safe" />
+            <FilterButton type="easy" label="Easy" />
+            <FilterButton type="medium" label="Medium" />
+            <FilterButton type="hard" label="Hard" />
+          </div>
         </div>
       </div>
 
       {/* Grid */}
       {filteredPacks.length === 0 ? (
-         <div className="discovery-grid">
-           <div className="col-span-full py-12 text-center text-tertiary" role="status">
-             <div className="text-3xl mb-4" aria-hidden="true">🕸️</div>
-             <p>No capabilities found for current filters.</p>
-           </div>
-         </div>
+        <div className="discovery-grid">
+          <div
+            className="col-span-full py-12 text-center text-tertiary"
+            role="status"
+          >
+            <div className="text-3xl mb-4" aria-hidden="true">
+              🕸️
+            </div>
+            <p>No capabilities found for current filters.</p>
+          </div>
+        </div>
       ) : (
         <div className="discovery-grid" role="list">
           {filteredPacks.map((pack) => (
-            <div key={pack.id} className="animate-in fade-in zoom-in duration-300" role="listitem">
-               <PackCard
-                 pack={pack}
-                 onClick={() => onSelect(pack)}
-                 isSelected={selectedId === pack.id}
-               />
+            <div
+              key={pack.id}
+              className="animate-in fade-in zoom-in duration-300"
+              role="listitem"
+            >
+              <PackCard
+                pack={pack}
+                onClick={() => onSelect(pack)}
+                isSelected={selectedId === pack.id}
+              />
             </div>
           ))}
         </div>

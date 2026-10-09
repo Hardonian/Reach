@@ -16,9 +16,16 @@ function resolveCliPath(): string | null {
   return 'reachctl';
 }
 
-export async function runReachCli(command: string, args: string[]): Promise<AdapterResult> {
+export async function runReachCli(
+  command: string,
+  args: string[],
+): Promise<AdapterResult> {
   if (!ALLOWED.has(command)) {
-    return { ok: false, mode: 'static', summary: 'Blocked by command allowlist.' };
+    return {
+      ok: false,
+      mode: 'static',
+      summary: 'Blocked by command allowlist.',
+    };
   }
 
   const cli = resolveCliPath();
@@ -27,15 +34,20 @@ export async function runReachCli(command: string, args: string[]): Promise<Adap
       ok: false,
       mode: 'static',
       summary: 'Reach CLI is unavailable.',
-      installHint: 'Run ./scripts/install.sh (macOS/Linux) or ./scripts/install.ps1 (Windows).'
+      installHint:
+        'Run ./scripts/install.sh (macOS/Linux) or ./scripts/install.ps1 (Windows).',
     };
   }
 
   return new Promise((resolve) => {
-    const child = spawn(/* turbopackIgnore: true */ cli, [command, ...args, '--json'], {
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, NO_COLOR: '1' }
-    });
+    const child = spawn(
+      /* turbopackIgnore: true */ cli,
+      [command, ...args, '--json'],
+      {
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: { ...process.env, NO_COLOR: '1' },
+      },
+    );
 
     let stdout = '';
     let stderr = '';
@@ -50,21 +62,37 @@ export async function runReachCli(command: string, args: string[]): Promise<Adap
         ok: false,
         mode: 'static',
         summary: 'Reach CLI is not installed in this environment.',
-        installHint: 'Run ./scripts/install.sh (macOS/Linux) or ./scripts/install.ps1 (Windows).'
+        installHint:
+          'Run ./scripts/install.sh (macOS/Linux) or ./scripts/install.ps1 (Windows).',
       });
     });
 
     child.on('close', (code) => {
       clearTimeout(timer);
       if (code !== 0) {
-        resolve({ ok: false, mode: 'static', summary: 'CLI command failed.', details: { stderr: stderr.trim() } });
+        resolve({
+          ok: false,
+          mode: 'static',
+          summary: 'CLI command failed.',
+          details: { stderr: stderr.trim() },
+        });
         return;
       }
 
       try {
-        resolve({ ok: true, mode: 'cli', summary: `CLI command '${command}' completed.`, details: JSON.parse(stdout) });
+        resolve({
+          ok: true,
+          mode: 'cli',
+          summary: `CLI command '${command}' completed.`,
+          details: JSON.parse(stdout),
+        });
       } catch {
-        resolve({ ok: false, mode: 'static', summary: 'CLI output was not valid JSON.', details: { stdout: stdout.trim() } });
+        resolve({
+          ok: false,
+          mode: 'static',
+          summary: 'CLI output was not valid JSON.',
+          details: { stdout: stdout.trim() },
+        });
       }
     });
   });

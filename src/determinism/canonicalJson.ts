@@ -15,12 +15,7 @@
  */
 
 export type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonObject
-  | JsonArray;
+  string | number | boolean | null | JsonObject | JsonArray;
 
 export type JsonObject = { [key: string]: JsonValue };
 export type JsonArray = JsonValue[];
@@ -51,13 +46,13 @@ function normalizeNumber(n: number): number | string {
 /**
  * Recursively canonicalizes a value by sorting object keys alphabetically.
  * Arrays preserve their element order (order is meaningful in arrays).
- * 
+ *
  * Uses code-point sorting for cross-platform consistency.
  */
 function canonicalize(value: JsonValue): JsonValue {
-  if (value === null || typeof value !== "object") {
+  if (value === null || typeof value !== 'object') {
     // Normalize numbers
-    if (typeof value === "number") {
+    if (typeof value === 'number') {
       return normalizeNumber(value);
     }
     return value;
@@ -74,7 +69,7 @@ function canonicalize(value: JsonValue): JsonValue {
     if (a > b) return 1;
     return 0;
   });
-  
+
   const result: JsonObject = {};
   for (const key of sortedKeys) {
     result[key] = canonicalize((value as JsonObject)[key]);

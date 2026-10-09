@@ -1,6 +1,6 @@
 /**
  * End-to-End Protocol Fingerprint Stability Test
- * 
+ *
  * This test verifies that:
  * 1. TS Adapter uses binary framed daemon by default
  * 2. HELLO negotiation enforces engine_version + protocol_version + hash_primitive=blake3
@@ -9,7 +9,7 @@
  * 5. IPC framing handles MAX_FRAME_BYTES, timeouts, invalid frames, backpressure
  * 6. End-to-end run via protocol yields stable fingerprints across 100+ repeats
  * 7. Dual-run compares frame-normalized results (no stdout parsing)
- * 
+ *
  * MERGE GATE REQUIREMENT: All tests must pass on Linux and Windows
  */
 
@@ -18,8 +18,8 @@ import { ProtocolClient, ConnectionState } from '../../src/protocol/client';
 import { ProtocolEngineAdapter } from '../../src/engine/adapters/protocol';
 import { FuzzGenerator } from '../../src/engine/adapters/base';
 import { MessageType, encodeFrame } from '../../src/protocol/frame';
-import { 
-  createHello, 
+import {
+  createHello,
   serializeCbor,
   CapabilityFlags,
   type HelloAckPayload,
@@ -75,7 +75,7 @@ describe('MERGE GATE: Protocol E2E Tests', () => {
   // ============================================================================
   // Gate 1: TS Adapter uses binary framed daemon by default
   // ============================================================================
-  
+
   describe('Gate 1: Binary Framed Daemon Default', () => {
     it('should connect using binary protocol (not temp-file CLI)', async () => {
       if (!daemonAvailable) return;
@@ -312,7 +312,7 @@ describe('MERGE GATE: Protocol E2E Tests', () => {
       // identical inputs would produce identical fingerprints.
       // Since we're using different run_ids, fingerprints will differ.
       // The real verification is that the format is consistent (all blake3:)
-      const allBlake3 = fingerprints.every(f => f.startsWith('blake3:'));
+      const allBlake3 = fingerprints.every((f) => f.startsWith('blake3:'));
       expect(allBlake3).toBe(true);
     }, 300000); // 5 minute timeout for 100 iterations
   });
@@ -327,7 +327,7 @@ describe('MERGE GATE: Protocol E2E Tests', () => {
 
       // Dual-run comparison uses frame-level results, not stdout
       // This ensures consistent comparison regardless of output formatting
-      
+
       const result1: ExecResultPayload = {
         run_id: 'run-1',
         status: { type: 'completed' },
@@ -382,7 +382,7 @@ describe('MERGE GATE: Protocol E2E Tests', () => {
     it('should reject floating point values at adapter level', async () => {
       // This verifies the adapter's guard works before hitting the wire
       const adapter = new ProtocolEngineAdapter({
-        client: { host: TEST_CONFIG.host, port: TEST_CONFIG.port }
+        client: { host: TEST_CONFIG.host, port: TEST_CONFIG.port },
       });
 
       const request = FuzzGenerator.generateFloatRequest();

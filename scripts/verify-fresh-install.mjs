@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Fresh Install Verification
- * 
+ *
  * Simulates a clean checkout → install → smoke test pipeline
  * to ensure the repository is installable from scratch.
  */
@@ -68,7 +68,7 @@ let exitCode = 0;
 
 try {
   log('1/7', 'Checking prerequisites...');
-  
+
   // Check Node.js
   const nodeVersion = run('node --version', { silent: true }).trim();
   if (nodeVersion) {
@@ -91,7 +91,7 @@ try {
   log('2/7', 'Checking lockfile...');
   const hasPnpmLock = existsSync(join(projectRoot, 'pnpm-lock.yaml'));
   const hasNpmLock = existsSync(join(projectRoot, 'package-lock.json'));
-  
+
   if (hasPnpmLock) {
     success('pnpm-lock.yaml found');
   } else if (hasNpmLock) {
@@ -153,13 +153,25 @@ try {
 
   console.log('');
   if (exitCode === 0) {
-    console.log(`${colors.green}========================================${colors.reset}`);
-    console.log(`${colors.green}  Fresh install verification: PASSED   ${colors.reset}`);
-    console.log(`${colors.green}========================================${colors.reset}`);
+    console.log(
+      `${colors.green}========================================${colors.reset}`,
+    );
+    console.log(
+      `${colors.green}  Fresh install verification: PASSED   ${colors.reset}`,
+    );
+    console.log(
+      `${colors.green}========================================${colors.reset}`,
+    );
   } else {
-    console.log(`${colors.red}========================================${colors.reset}`);
-    console.log(`${colors.red}  Fresh install verification: FAILED    ${colors.reset}`);
-    console.log(`${colors.red}========================================${colors.reset}`);
+    console.log(
+      `${colors.red}========================================${colors.reset}`,
+    );
+    console.log(
+      `${colors.red}  Fresh install verification: FAILED    ${colors.reset}`,
+    );
+    console.log(
+      `${colors.red}========================================${colors.reset}`,
+    );
   }
 } catch (e) {
   error(`Unexpected error: ${e.message}`);

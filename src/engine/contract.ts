@@ -1,16 +1,16 @@
 /**
  * Engine Contract Types
- * 
+ *
  * Defines the canonical request/response types for the Reach decision engine.
  * These types are used across all engine adapters.
- * 
+ *
  * @module engine/contract
  */
 
 /**
  * Supported algorithm types for decision evaluation
  */
-export type ExecutionAlgorithm = 
+export type ExecutionAlgorithm =
   | 'minimax_regret'
   | 'maximin'
   | 'weighted_sum'

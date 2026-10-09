@@ -1,23 +1,25 @@
 # Reach Integrations Index ## Official Integrations
 
 ### Frameworks | Integration | Language | Status | Docs |
+
 |-------------|----------|--------|------|
 | [Next.js App Router](/integrations/nextjs) | TypeScript | Stable | [README](/integrations/nextjs/README.md) |
 | [Express](/integrations/express) | TypeScript | Stable | [README](/integrations/express/README.md) |
 | [FastAPI](/integrations/fastapi) | Python | Stable | [README](/integrations/fastapi/README.md) |
 
 ### SDKs | SDK | Language | Package | Status |
+
 |-----|----------|---------|--------|
 | [TypeScript SDK](/sdk/ts) | TypeScript | `@reach/sdk` | Stable |
 | [Python SDK](/sdk/python) | Python | `reach-sdk` | Stable |
 
 ## Community Integrations Community integrations are maintained by third parties:
 
-| Integration | Maintainer | Language | Link |
-|-------------|------------|----------|------|
-| Django | Community | Python | [reach-django](https://github.com/example/reach-django) |
-| Laravel | Community | PHP | [reach-laravel](https://github.com/example/reach-laravel) |
-| Spring Boot | Community | Java | [reach-spring](https://github.com/example/reach-spring) |
+| Integration | Maintainer | Language | Link                                                      |
+| ----------- | ---------- | -------- | --------------------------------------------------------- |
+| Django      | Community  | Python   | [reach-django](https://github.com/example/reach-django)   |
+| Laravel     | Community  | PHP      | [reach-laravel](https://github.com/example/reach-laravel) |
+| Spring Boot | Community  | Java     | [reach-spring](https://github.com/example/reach-spring)   |
 
 ## Integration Patterns ### Webhook Pattern
 
@@ -28,15 +30,18 @@ Your App → Reach Server → Webhook → Your App
 ```
 
 Use this when:
+
 - You need async processing
 - You want to trigger actions on run completion
 - You're building event-driven architectures
 
 ### SDK Pattern ```
+
 Your App → SDK → Reach Server
-          ↓
-      Type Safety
-```
+↓
+Type Safety
+
+````
 
 Use this when:
 - You want type safety
@@ -45,23 +50,25 @@ Use this when:
 
 ### API Pattern ```
 Your App → HTTP API → Reach Server
-```
+````
 
 Use this when:
+
 - You don't want dependencies
 - You're using a language without an SDK
 - You need maximum flexibility
 
 ## Choosing an Integration ### For Web Applications
 
-| Framework | Recommended Integration |
-|-----------|------------------------|
-| Next.js | `@reach/sdk` + Route Handlers |
+| Framework       | Recommended Integration           |
+| --------------- | --------------------------------- |
+| Next.js         | `@reach/sdk` + Route Handlers     |
 | React + Express | `@reach/sdk` + Express middleware |
-| Vue + FastAPI | `reach-sdk` + FastAPI routes |
-| SvelteKit | `@reach/sdk` + Server routes |
+| Vue + FastAPI   | `reach-sdk` + FastAPI routes      |
+| SvelteKit       | `@reach/sdk` + Server routes      |
 
 ### For Backend Services | Language | Recommended Integration |
+
 |----------|------------------------|
 | TypeScript/Node.js | `@reach/sdk` |
 | Python | `reach-sdk` |
@@ -69,6 +76,7 @@ Use this when:
 | Rust | Use HTTP API directly |
 
 ### For CI/CD | Platform | Integration Method |
+
 |----------|-------------------|
 | GitHub Actions | Docker + `reach doctor` |
 | GitLab CI | Docker + `reach doctor` |

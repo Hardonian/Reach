@@ -11,10 +11,12 @@ export const ConfigSchema = z.object({
     cost_per_byte_month: z.number(),
     description: z.string().optional(),
   }),
-  models: z.record(z.object({
-    input_1k: z.number(),
-    output_1k: z.number(),
-  })),
+  models: z.record(
+    z.object({
+      input_1k: z.number(),
+      output_1k: z.number(),
+    }),
+  ),
 });
 
 export type EconomicsConfig = z.infer<typeof ConfigSchema>;

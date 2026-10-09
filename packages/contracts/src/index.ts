@@ -3,12 +3,12 @@
  */
 
 // Dashboard Persona Types
-export type DashboardPersona = "exec" | "eng" | "sec" | "ops";
+export type DashboardPersona = 'exec' | 'eng' | 'sec' | 'ops';
 
 // Dashboard Graph Node
 export interface DashboardGraphNode {
   id: string;
-  type: "decision" | "evidence" | "policy" | "assumption" | "outcome";
+  type: 'decision' | 'evidence' | 'policy' | 'assumption' | 'outcome';
   label: string;
   severity: number;
   meta?: Record<string, unknown>;
@@ -18,7 +18,7 @@ export interface DashboardGraphNode {
 export interface DashboardGraphEdge {
   from: string;
   to: string;
-  type: "supports" | "violates" | "constrains" | "depends_on";
+  type: 'supports' | 'violates' | 'constrains' | 'depends_on';
   weight: number;
 }
 
@@ -43,7 +43,7 @@ export interface DashboardSummary {
   evidenceCompleteness: number;
   policyCompliance: number;
   replayStability: number;
-  confidenceBand: "low" | "med" | "high";
+  confidenceBand: 'low' | 'med' | 'high';
 }
 
 // Dashboard Story
@@ -65,7 +65,7 @@ export interface DashboardTrendPoint {
 // Dashboard Drift Event
 export interface DashboardDriftEvent {
   t: string;
-  type: "policy" | "evidence";
+  type: 'policy' | 'evidence';
   severity: 1 | 2 | 3 | 4 | 5;
   refId: string;
 }
@@ -106,7 +106,7 @@ export interface DashboardFinding {
 export interface DashboardEvidence {
   id: string;
   qualityScore: number;
-  freshness: "fresh" | "aging" | "stale";
+  freshness: 'fresh' | 'aging' | 'stale';
   ageDays: number;
   expiresAt?: string;
 }
@@ -114,7 +114,7 @@ export interface DashboardEvidence {
 // Dashboard Policy
 export interface DashboardPolicy {
   id: string;
-  status: "pass" | "warn" | "fail";
+  status: 'pass' | 'warn' | 'fail';
   severity: number;
   rationaleRefs: string[];
 }
@@ -131,7 +131,7 @@ export interface DashboardCta {
   id: string;
   label: string;
   action: string;
-  priority: "high" | "medium" | "low";
+  priority: 'high' | 'medium' | 'low';
   target?: string;
 }
 
@@ -152,7 +152,6 @@ export interface DashboardViewModel {
   lists: DashboardLists;
   ctas: DashboardCta[];
 }
-
 
 // Zeolite Decision Types
 export interface DecisionAgent {

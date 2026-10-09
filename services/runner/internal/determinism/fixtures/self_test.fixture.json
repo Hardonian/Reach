@@ -10,7 +10,7 @@
       "input": {
         "name": "test-step",
         "type": "action",
-        "inputs": {"path": "/tmp/test", "content": "hello"}
+        "inputs": { "path": "/tmp/test", "content": "hello" }
       },
       "expected_stable": true
     },
@@ -19,10 +19,10 @@
       "description": "Hash nested maps with various key orders",
       "input": {
         "outer": {
-          "inner": {"z": 1, "a": 2},
+          "inner": { "z": 1, "a": 2 },
           "value": "test"
         },
-        "list": [{"q": 5, "p": 6}]
+        "list": [{ "q": 5, "p": 6 }]
       },
       "expected_stable": true
     },
@@ -31,9 +31,13 @@
       "description": "Hash event log with multiple events",
       "input": {
         "event_log": [
-          {"step": "start", "timestamp": "2024-01-01T00:00:00Z"},
-          {"step": "tool_call", "tool": "echo", "inputs": {"message": "hello"}},
-          {"step": "end", "status": "success"}
+          { "step": "start", "timestamp": "2024-01-01T00:00:00Z" },
+          {
+            "step": "tool_call",
+            "tool": "echo",
+            "inputs": { "message": "hello" }
+          },
+          { "step": "end", "status": "success" }
         ],
         "run_id": "test-run-001"
       },
@@ -44,9 +48,9 @@
       "description": "Hash proof chain with dependencies",
       "input": {
         "step_proofs": [
-          {"hash": "abc123", "step_key_hash": "key1"},
-          {"hash": "def456", "step_key_hash": "key2"},
-          {"hash": "ghi789", "step_key_hash": "key3"}
+          { "hash": "abc123", "step_key_hash": "key1" },
+          { "hash": "def456", "step_key_hash": "key2" },
+          { "hash": "ghi789", "step_key_hash": "key3" }
         ],
         "context_fingerprint": "ctx-123",
         "engine_version": "1.0.0"
