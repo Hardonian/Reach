@@ -13,6 +13,7 @@ stitch_exports/
 ARTIFACTS/
 dgl/
 services/runner/data/
+services/runner/internal/api/data/
 **/*.sarif
 pnpm-lock.yaml
 package-lock.json
