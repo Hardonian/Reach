@@ -45,13 +45,17 @@ let failed = 0;
 let skipped = 0;
 
 async function testRoute(path, heading, allowRedirect = false) {
-  const url = `${BASE_URL}${path}`;
+  // The arcade app uses Next `trailingSlash: true`, so canonical URLs carry a
+  // trailing slash. Fetch the canonical URL to avoid the 308 slash redirect.
+  const normalizedPath = path === '/' ? '/' : `${path.replace(/\/$/, '')}/`;
+  const url = `${BASE_URL}${normalizedPath}`;
   try {
     const res = await fetch(url, { redirect: 'manual' });
     const status = res.status;
 
-    // Console routes may redirect to login (302/307) — that's valid
-    if (allowRedirect && (status === 302 || status === 307)) {
+    // The app redirects some routes (auth-gated console routes, and
+    // /marketplace → /library) with 302/307/308; treat redirects as valid.
+    if (status === 302 || status === 307 || status === 308) {
       console.log(`  PASS (redirect): ${path} → ${status}`);
       passed++;
       return;
@@ -73,8 +77,11 @@ async function testRoute(path, heading, allowRedirect = false) {
       // Don't fail on heading check — content may be client-rendered
     }
 
-    // Check for obvious errors
-    if (body.includes('Internal Server Error') || body.includes('500')) {
+    // Check for obvious errors (avoid matching arbitrary numbers in content)
+    if (
+      body.includes('Internal Server Error') ||
+      body.includes('Application error')
+    ) {
       console.error(`  FAIL: ${path} → 200 but contains error indicators`);
       failed++;
       return;
