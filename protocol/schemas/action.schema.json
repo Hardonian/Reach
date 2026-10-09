@@ -4,14 +4,7 @@
   "title": "Action Plan Schema",
   "description": "Schema for Action Plans and Executions in the Reach system",
   "type": "object",
-  "required": [
-    "id",
-    "decisionId",
-    "actionId",
-    "status",
-    "steps",
-    "riskSummary"
-  ],
+  "required": ["id", "decisionId", "actionId", "status", "steps", "riskSummary"],
   "properties": {
     "id": {
       "type": "string",
@@ -27,15 +20,7 @@
     },
     "status": {
       "type": "string",
-      "enum": [
-        "DRAFT",
-        "PENDING_APPROVAL",
-        "APPROVED",
-        "EXECUTING",
-        "COMPLETED",
-        "FAILED",
-        "ROLLED_BACK"
-      ],
+      "enum": ["DRAFT", "PENDING_APPROVAL", "APPROVED", "EXECUTING", "COMPLETED", "FAILED", "ROLLED_BACK"],
       "description": "Current status of the action"
     },
     "createdAt": {
@@ -64,10 +49,7 @@
           "target": { "type": "string" },
           "payload": { "type": "object" },
           "rollbackPayload": { "type": "object" },
-          "status": {
-            "type": "string",
-            "enum": ["PENDING", "RUNNING", "SUCCESS", "FAILED", "SKIPPED"]
-          },
+          "status": { "type": "string", "enum": ["PENDING", "RUNNING", "SUCCESS", "FAILED", "SKIPPED"] },
           "startedAt": { "type": "string", "format": "date-time" },
           "completedAt": { "type": "string", "format": "date-time" }
         }

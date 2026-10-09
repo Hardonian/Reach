@@ -29,7 +29,10 @@
     "selection_range": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["start", "end"],
+      "required": [
+        "start",
+        "end"
+      ],
       "properties": {
         "start": {
           "$ref": "#/$defs/position"
@@ -44,7 +47,10 @@
     "position": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["line", "character"],
+      "required": [
+        "line",
+        "character"
+      ],
       "properties": {
         "line": {
           "type": "integer",

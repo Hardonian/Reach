@@ -4,14 +4,7 @@
   "title": "Decision Report Schema",
   "description": "Schema for Decision evaluation results in the Reach system",
   "type": "object",
-  "required": [
-    "id",
-    "junctionId",
-    "timestamp",
-    "actions",
-    "rankedActions",
-    "trace"
-  ],
+  "required": ["id", "junctionId", "timestamp", "actions", "rankedActions", "trace"],
   "properties": {
     "id": {
       "type": "string",
