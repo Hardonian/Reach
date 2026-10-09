@@ -5,8 +5,8 @@
 //! - **Canonical JSON**: Sorted keys, normalized floats, no undefined values
 //! - **Stable hashing**: BLAKE3 fingerprinting of canonical bytes (unified hash primitive)
 
-use serde::{Deserialize, Serialize};
 use blake3::Hasher;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 /// Precision for float normalization (1e-9).
@@ -100,9 +100,7 @@ impl From<&serde_json::Value> for CanonicalValue {
         match value {
             serde_json::Value::Null => CanonicalValue::Null,
             serde_json::Value::Bool(b) => CanonicalValue::Bool(*b),
-            serde_json::Value::Number(n) => {
-                CanonicalValue::Number(n.as_f64().unwrap_or(0.0))
-            }
+            serde_json::Value::Number(n) => CanonicalValue::Number(n.as_f64().unwrap_or(0.0)),
             serde_json::Value::String(s) => CanonicalValue::String(s.clone()),
             serde_json::Value::Array(arr) => {
                 CanonicalValue::Array(arr.iter().map(CanonicalValue::from).collect())

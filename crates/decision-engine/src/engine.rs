@@ -106,7 +106,10 @@ fn compute_worst_case_scores(
 fn compute_minimax_regret_scores(
     utility_table: &BTreeMap<String, BTreeMap<String, f64>>,
     scenarios: &[Scenario],
-) -> (BTreeMap<String, BTreeMap<String, f64>>, BTreeMap<String, f64>) {
+) -> (
+    BTreeMap<String, BTreeMap<String, f64>>,
+    BTreeMap<String, f64>,
+) {
     let mut regret_table: BTreeMap<String, BTreeMap<String, f64>> = BTreeMap::new();
     let mut max_regret: BTreeMap<String, f64> = BTreeMap::new();
 
@@ -148,10 +151,7 @@ fn compute_adversarial_scores(
     utility_table: &BTreeMap<String, BTreeMap<String, f64>>,
     scenarios: &[Scenario],
 ) -> BTreeMap<String, f64> {
-    let adversarial: Vec<&Scenario> = scenarios
-        .iter()
-        .filter(|s| s.adversarial)
-        .collect();
+    let adversarial: Vec<&Scenario> = scenarios.iter().filter(|s| s.adversarial).collect();
 
     let mut adversarial_scores: BTreeMap<String, f64> = BTreeMap::new();
 
@@ -197,9 +197,8 @@ fn compute_composite_scores(
 
         // Composite: higher is better, but minimax regret needs to be inverted
         // (lower max regret = better)
-        let composite_score = float_normalize(
-            w_wc * wc_score + w_mr * (100.0 - mr_score) + w_adv * adv_score,
-        );
+        let composite_score =
+            float_normalize(w_wc * wc_score + w_mr * (100.0 - mr_score) + w_adv * adv_score);
 
         composite.insert(action_id.clone(), composite_score);
     }
@@ -241,12 +240,12 @@ pub fn evaluate_decision(input: &DecisionInput) -> Result<DecisionOutput, Decisi
     validate_input(input)?;
 
     // Build utility table
-    let utility_table =
-        build_utility_table(&input.actions, &input.scenarios, &input.outcomes);
+    let utility_table = build_utility_table(&input.actions, &input.scenarios, &input.outcomes);
 
     // Compute all scores
     let worst_case = compute_worst_case_scores(&utility_table);
-    let (regret_table, max_regret) = compute_minimax_regret_scores(&utility_table, &input.scenarios);
+    let (regret_table, max_regret) =
+        compute_minimax_regret_scores(&utility_table, &input.scenarios);
     let adversarial = compute_adversarial_scores(&utility_table, &input.scenarios);
 
     // Get weights (default or from constraints)
@@ -387,7 +386,13 @@ pub fn rank_evidence_by_voi(
         let flip_distance = output
             .trace
             .utility_table
-            .get(&output.ranked_actions.first().map(|a| &a.action_id).unwrap_or(&String::new()))
+            .get(
+                &output
+                    .ranked_actions
+                    .first()
+                    .map(|a| &a.action_id)
+                    .unwrap_or(&String::new()),
+            )
             .and_then(|m| m.get(&scenario.id))
             .map(|&u| 1.0 / (u.abs() + 0.1)) // Inverse utility as proxy for sensitivity
             .unwrap_or(0.0);
@@ -408,16 +413,17 @@ pub fn rank_evidence_by_voi(
             recommendation: recommendation.to_string(),
             rationale: vec![
                 format!("Scenario {} has sensitivity {}", scenario.id, evoi),
-                format!(
-                    "Cost-adjusted information gain is {}",
-                    evoi.to_string()
-                ),
+                format!("Cost-adjusted information gain is {}", evoi.to_string()),
             ],
         });
     }
 
     // Sort by VOI (highest first)
-    rankings.sort_by(|a, b| b.evoi.partial_cmp(&a.evoi).unwrap_or(std::cmp::Ordering::Equal));
+    rankings.sort_by(|a, b| {
+        b.evoi
+            .partial_cmp(&a.evoi)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
 
     Ok(rankings)
 }
@@ -455,19 +461,14 @@ pub fn generate_regret_bounded_plan(
 
     Ok(RegretBoundedPlan {
         id: plan_id,
-        decision_id: input
-            .id
-            .clone()
-            .unwrap_or_else(|| "unknown".to_string()),
+        decision_id: input.id.clone().unwrap_or_else(|| "unknown".to_string()),
         actions: selected,
         bounded_horizon: horizon,
     })
 }
 
 /// Explain the decision boundary.
-pub fn explain_decision_boundary(
-    input: &DecisionInput,
-) -> Result<DecisionBoundary, DecisionError> {
+pub fn explain_decision_boundary(input: &DecisionInput) -> Result<DecisionBoundary, DecisionError> {
     let output = evaluate_decision(input)?;
     let flip_distances = compute_flip_distances(input)?;
 

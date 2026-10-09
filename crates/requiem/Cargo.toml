@@ -10,10 +10,6 @@ authors = ["Reach Engineering <engineering@reach.io>"]
 name = "requiem"
 path = "src/lib.rs"
 
-[[bin]]
-name = "requiem"
-path = "src/bin/requiem.rs"
-
 [dependencies]
 # Serialization - using minimal-serde for CBOR support
 serde = { version = "1.0", features = ["derive"] }

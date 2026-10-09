@@ -41,7 +41,7 @@ impl FixedQ32_32 {
     }
 
     /// Create from f64 value (for construction only, not in hot paths)
-    /// 
+    ///
     /// # Panics
     /// Panics in debug mode if value is out of range
     pub fn from_f64(value: f64) -> Option<Self> {
@@ -63,8 +63,9 @@ impl FixedQ32_32 {
     /// Create from integer
     pub const fn from_i64(value: i64) -> Option<Self> {
         // Check for overflow before shifting
-        if value > (i64::MAX >> Self::FRACTIONAL_BITS) 
-            || value < (i64::MIN >> Self::FRACTIONAL_BITS) {
+        if value > (i64::MAX >> Self::FRACTIONAL_BITS)
+            || value < (i64::MIN >> Self::FRACTIONAL_BITS)
+        {
             return None;
         }
         Some(Self(value << Self::FRACTIONAL_BITS))
@@ -124,9 +125,9 @@ impl FixedQ32_32 {
             None => {
                 let sign = (self.0 < 0) ^ (rhs.0 < 0);
                 if sign {
-                    Self(i64::MIN)  // Negative overflow
+                    Self(i64::MIN) // Negative overflow
                 } else {
-                    Self(i64::MAX)  // Positive overflow
+                    Self(i64::MAX) // Positive overflow
                 }
             }
         }
@@ -260,7 +261,7 @@ impl fmt::Display for FixedPpm {
 
 /// Duration in microseconds
 /// Used for: timeouts, histogram bucket boundaries, latency measurements
-/// 
+///
 /// This is i64 to allow for negative durations (useful for relative time)
 /// Range: +/- 292,471 years (sufficient for all practical purposes)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -334,9 +335,15 @@ impl fmt::Display for FixedDuration {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let micros = self.0.abs();
         let sign = if self.0 < 0 { "-" } else { "" };
-        
+
         if micros >= 1_000_000 {
-            write!(f, "{}{}.{:06}s", sign, micros / 1_000_000, micros % 1_000_000)
+            write!(
+                f,
+                "{}{}.{:06}s",
+                sign,
+                micros / 1_000_000,
+                micros % 1_000_000
+            )
         } else if micros >= 1000 {
             write!(f, "{}{}.{:03}ms", sign, micros / 1000, micros % 1000)
         } else {
@@ -347,7 +354,7 @@ impl fmt::Display for FixedDuration {
 
 /// Throughput in micro-operations per second
 /// Used for: ops/sec rates with 6 decimal precision
-/// 
+///
 /// Example: 1,000,000 = 1 op/sec, 2,500,000 = 2.5 ops/sec
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(transparent)]

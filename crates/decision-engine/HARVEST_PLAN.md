@@ -68,21 +68,25 @@ From the TypeScript interfaces, we need Rust equivalents for:
 ## Implementation Plan
 
 ### Phase 1: Core Types (`types.rs`)
+
 - Define all input/output types with Serde serialization
 - Ensure deterministic serialization (sorted keys)
 
 ### Phase 2: Determinism Module (`determinism.rs`)
+
 - `stable_hash()` - SHA-256 based deterministic hashing
 - `canonicalize_json()` - Sorted key serialization
 - `normalize_float()` - Consistent rounding to 1e-9 precision
 
 ### Phase 3: Decision Algorithms (`engine.rs`)
+
 - `compute_flip_distances()` - Sensitivity analysis
 - `rank_evidence_by_voi()` - VOI-based prioritization
 - `generate_regret_bounded_plan()` - Horizon-limited planning
 - `explain_decision_boundary()` - Boundary explanation
 
 ### Phase 4: Integration (`lib.rs`)
+
 - `evaluate_decision()` - Main entry point combining all algorithms
 - Composite scoring with configurable weights
 

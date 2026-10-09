@@ -11,10 +11,16 @@ function parseRange(range) {
   const normalized = String(range || '').trim();
   const lowerMatch = normalized.match(/>=\s*(\d+)\./);
   const upperMatch = normalized.match(/<\s*(\d+)\./);
-  if (!lowerMatch || !upperMatch) {
+  if (!lowerMatch) {
     throw new Error(`unsupported engine range format: ${normalized}`);
   }
-  return { minMajor: Number(lowerMatch[1]), maxExclusiveMajor: Number(upperMatch[1]), raw: normalized };
+  // A range without an explicit upper bound (e.g. ">=18.0.0") is unbounded
+  // above and therefore contains every upper-bounded range.
+  return {
+    minMajor: Number(lowerMatch[1]),
+    maxExclusiveMajor: upperMatch ? Number(upperMatch[1]) : Infinity,
+    raw: normalized,
+  };
 }
 
 function main() {
@@ -24,18 +30,26 @@ function main() {
   const rootNode = root.engines && root.engines.node;
   const arcadeNode = arcade.engines && arcade.engines.node;
   if (!rootNode || !arcadeNode) {
-    throw new Error('both root and apps/arcade package.json must declare engines.node');
+    throw new Error(
+      'both root and apps/arcade package.json must declare engines.node',
+    );
   }
 
   const rootRange = parseRange(rootNode);
   const arcadeRange = parseRange(arcadeNode);
 
-  const rootContainsArcade = rootRange.minMajor <= arcadeRange.minMajor && rootRange.maxExclusiveMajor >= arcadeRange.maxExclusiveMajor;
+  const rootContainsArcade =
+    rootRange.minMajor <= arcadeRange.minMajor &&
+    rootRange.maxExclusiveMajor >= arcadeRange.maxExclusiveMajor;
   if (!rootContainsArcade) {
-    throw new Error(`root engines.node (${rootRange.raw}) must include apps/arcade engines.node (${arcadeRange.raw})`);
+    throw new Error(
+      `root engines.node (${rootRange.raw}) must include apps/arcade engines.node (${arcadeRange.raw})`,
+    );
   }
 
-  console.log(`node engine compatibility passed: root=${rootRange.raw} app=${arcadeRange.raw}`);
+  console.log(
+    `node engine compatibility passed: root=${rootRange.raw} app=${arcadeRange.raw}`,
+  );
 }
 
 try {

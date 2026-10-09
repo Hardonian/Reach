@@ -406,13 +406,13 @@ pub enum ErrorCode {
     InvalidMessage = 100,
     UnsupportedVersion = 101,
     EncodingError = 102,
-    
+
     // Execution errors (2xx)
     ExecutionFailed = 200,
     BudgetExceeded = 201,
     Timeout = 202,
     PolicyDenied = 203,
-    
+
     // System errors (3xx)
     InternalError = 300,
     ResourceExhausted = 301,
@@ -432,7 +432,9 @@ pub mod encoding {
     }
 
     /// Decode payload from CBOR bytes
-    pub fn decode_cbor<T: for<'de> Deserialize<'de>>(bytes: &[u8]) -> Result<T, Box<dyn std::error::Error>> {
+    pub fn decode_cbor<T: for<'de> Deserialize<'de>>(
+        bytes: &[u8],
+    ) -> Result<T, Box<dyn std::error::Error>> {
         Ok(from_reader(bytes)?)
     }
 
@@ -442,15 +444,17 @@ pub mod encoding {
     }
 
     /// Decode from JSON
-    pub fn decode_json<T: for<'de> Deserialize<'de>>(bytes: &[u8]) -> Result<T, Box<dyn std::error::Error>> {
+    pub fn decode_json<T: for<'de> Deserialize<'de>>(
+        bytes: &[u8],
+    ) -> Result<T, Box<dyn std::error::Error>> {
         Ok(serde_json::from_slice(bytes)?)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::encoding::*;
+    use super::*;
 
     #[test]
     fn test_hello_roundtrip() {
@@ -526,10 +530,13 @@ mod tests {
 
         let encoded = encode_cbor(&metrics).unwrap();
         let decoded: ExecutionMetrics = decode_cbor(&encoded).unwrap();
-        
+
         assert_eq!(metrics.steps_executed, decoded.steps_executed);
         assert_eq!(metrics.elapsed_us.to_raw(), decoded.elapsed_us.to_raw());
-        assert_eq!(metrics.budget_spent_usd.to_raw(), decoded.budget_spent_usd.to_raw());
+        assert_eq!(
+            metrics.budget_spent_usd.to_raw(),
+            decoded.budget_spent_usd.to_raw()
+        );
         assert_eq!(metrics.cas_hit_rate.to_raw(), decoded.cas_hit_rate.to_raw());
     }
 

@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Docs Drift Guard**: Automated system to ensure docs, env vars, and CLI commands stay in sync (`npm run docs:doctor`).
+- **Docs Drift Guard**: Automated system to ensure docs, env vars, and CLI commands stay in sync (`npm run docs:check`).
 - **Support & Legal Centers**: Production-grade `/support`, `/legal`, and `/security` routes in the Reach Arcade.
 - **Admin Sweep**: Standardized `.github` templates, `CONTRIBUTING.md`, and `GOVERNANCE.md`.
 - **System Quality Gate**: Unified `validate` and `verify:full` scripts with security auditing.

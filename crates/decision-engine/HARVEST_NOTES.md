@@ -13,30 +13,30 @@ This crate was extracted from Zeolite (GLM-5) - a quant decision primitive libra
 ### Source Modules Used
 
 1. **zeolite-core.ts** - Primary extraction source
-    - `load_context` operation
-    - `submit_evidence` operation
-    - `compute_flip_distance` - Flip distance sensitivity analysis
-    - `rank_evidence_by_voi` - Value of Information ranking
-    - `generate_regret_bounded_plan` - Regret-bounded planning
-    - `explain_decision_boundary` - Decision boundary explanation
-    - `referee_proposal` - Proposal adjudication
+   - `load_context` operation
+   - `submit_evidence` operation
+   - `compute_flip_distance` - Flip distance sensitivity analysis
+   - `rank_evidence_by_voi` - Value of Information ranking
+   - `generate_regret_bounded_plan` - Regret-bounded planning
+   - `explain_decision_boundary` - Decision boundary explanation
+   - `referee_proposal` - Proposal adjudication
 
 2. **generateViewModel.ts** - Supporting utilities
-    - View model generation patterns
-    - Graph/node layout logic
+   - View model generation patterns
+   - Graph/node layout logic
 
 ## Rewrites and Rationale
 
 ### Conversion from TypeScript to Rust
 
-| Original (TS) | Target (Rust) | Rationale |
-| :--- | :--- | :--- |
-| `executeZeoliteOperation` | `evaluate_decision` + individual functions | Modular Rust functions |
-| OutcomeMatrix | `Vec<(String, String, f64)>` tuple | Simple, deterministic |
-| Probabilistic scenarios | Explicit probability field | Clear semantics |
-| JSON.stringify | `canonical_json` with sorted keys | Byte-stable output |
-| `crypto.createHash` | `sha2` crate | Standard Rust crypto |
-| Default scoring | Explicit `CompositeWeights` | Configurable, documented |
+| Original (TS)             | Target (Rust)                              | Rationale                |
+| :------------------------ | :----------------------------------------- | :----------------------- |
+| `executeZeoliteOperation` | `evaluate_decision` + individual functions | Modular Rust functions   |
+| OutcomeMatrix             | `Vec<(String, String, f64)>` tuple         | Simple, deterministic    |
+| Probabilistic scenarios   | Explicit probability field                 | Clear semantics          |
+| JSON.stringify            | `canonical_json` with sorted keys          | Byte-stable output       |
+| `crypto.createHash`       | `sha2` crate                               | Standard Rust crypto     |
+| Default scoring           | Explicit `CompositeWeights`                | Configurable, documented |
 
 ### Removed Dependencies
 

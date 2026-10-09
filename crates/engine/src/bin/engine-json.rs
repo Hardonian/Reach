@@ -130,8 +130,7 @@ fn main() {
             };
             match result {
                 Ok(mut run_handle) => {
-                    let events =
-                        drain_wrapped_events(&mut run_handle, &run_id, Some(initiator));
+                    let events = drain_wrapped_events(&mut run_handle, &run_id, Some(initiator));
                     EngineResponse {
                         ok: true,
                         workflow: None,

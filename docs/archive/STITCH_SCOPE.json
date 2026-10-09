@@ -108,6 +108,8 @@
       "route": "/console/governance/config-as-code",
       "score": 3,
       "routeFile": "apps/arcade/src/app/console/governance/config-as-code/page.tsx"
+    }
+  ],
   "domains": [
     {
       "name": "Replay / Determinism",
@@ -116,7 +118,11 @@
           "path": "/demo/evidence-viewer",
           "file": "apps/arcade/src/app/demo/evidence-viewer/page.tsx",
           "score": 1,
-          "needs": ["Evidence ingestion panel", "Verify/replay action rail", "Transcript + metadata split view"],
+          "needs": [
+            "Evidence ingestion panel",
+            "Verify/replay action rail",
+            "Transcript + metadata split view"
+          ],
           "states": ["loading", "empty", "error"],
           "notes": "Preserve OSS functionality; add Enterprise panel only as gated non-blocking card (no cloud imports in OSS path)."
         },
@@ -124,7 +130,11 @@
           "path": "/decisions/{id}",
           "file": "apps/arcade/src/app/decisions/[id]/page.tsx",
           "score": 2,
-          "needs": ["Decision summary header", "Evidence timeline panel", "Policy gate result panel"],
+          "needs": [
+            "Decision summary header",
+            "Evidence timeline panel",
+            "Policy gate result panel"
+          ],
           "states": ["loading", "empty", "error"],
           "notes": "Do not alter route params or API contract; strengthen state-specific rendering only."
         }
@@ -137,7 +147,11 @@
           "path": "/console/governance/config-as-code",
           "file": "apps/arcade/src/app/console/governance/config-as-code/page.tsx",
           "score": 2,
-          "needs": ["Policy packs panel", "Validation results panel", "Change review side panel"],
+          "needs": [
+            "Policy packs panel",
+            "Validation results panel",
+            "Change review side panel"
+          ],
           "states": ["loading", "empty", "error"],
           "notes": "Keep ConsoleLayout and existing navigation; no new routes."
         },
@@ -145,7 +159,11 @@
           "path": "/settings/release-gates",
           "file": "apps/arcade/src/app/settings/release-gates/page.tsx",
           "score": 2,
-          "needs": ["Gate list table", "Gate editor form", "Run-history mini panel"],
+          "needs": [
+            "Gate list table",
+            "Gate editor form",
+            "Run-history mini panel"
+          ],
           "states": ["loading", "empty", "error"],
           "notes": "Enhance current settings UX; do not duplicate governance pages."
         }
@@ -158,7 +176,11 @@
           "path": "/console/alerts",
           "file": "apps/arcade/src/app/console/alerts/page.tsx",
           "score": 2,
-          "needs": ["Alert inbox table", "Severity/status badge system", "Acknowledgement drawer"],
+          "needs": [
+            "Alert inbox table",
+            "Severity/status badge system",
+            "Acknowledgement drawer"
+          ],
           "states": ["loading", "empty", "error"],
           "notes": "Reuse stitch table styles; avoid introducing a second alerts authority route."
         },
@@ -166,7 +188,11 @@
           "path": "/console/traces",
           "file": "apps/arcade/src/app/console/traces/page.tsx",
           "score": 2,
-          "needs": ["Trace search/filter bar", "Trace list", "Trace detail side panel"],
+          "needs": [
+            "Trace search/filter bar",
+            "Trace list",
+            "Trace detail side panel"
+          ],
           "states": ["loading", "empty", "error"],
           "notes": "Keep existing `/console` information architecture and left nav labels."
         },
@@ -174,7 +200,11 @@
           "path": "/monitoring",
           "file": "apps/arcade/src/app/monitoring/page.tsx",
           "score": 2,
-          "needs": ["Signal overview cards", "Threshold rule list", "Recent incidents panel"],
+          "needs": [
+            "Signal overview cards",
+            "Threshold rule list",
+            "Recent incidents panel"
+          ],
           "states": ["loading", "empty", "error"],
           "notes": "Do not change URL; add safe fallbacks to prevent hard-500 behavior."
         }
@@ -187,7 +217,11 @@
           "path": "/support/contact",
           "file": "apps/arcade/src/app/support/contact/page.tsx",
           "score": 2,
-          "needs": ["Support request form", "Submission status panel", "Fallback channel panel"],
+          "needs": [
+            "Support request form",
+            "Submission status panel",
+            "Fallback channel panel"
+          ],
           "states": ["loading", "empty", "error"],
           "notes": "Keep existing API submission path; expand graceful fallback states."
         }
@@ -200,7 +234,11 @@
           "path": "/roadmap",
           "file": "apps/arcade/src/app/roadmap/page.tsx",
           "score": 2,
-          "needs": ["Timeline panel", "Now/Next/Later cards", "Evidence links rail"],
+          "needs": [
+            "Timeline panel",
+            "Now/Next/Later cards",
+            "Evidence links rail"
+          ],
           "states": ["loading", "empty", "error"],
           "notes": "Do not redesign homepage or pricing; this route only."
         },
@@ -208,7 +246,11 @@
           "path": "/whitepaper",
           "file": "apps/arcade/src/app/whitepaper/page.tsx",
           "score": 2,
-          "needs": ["Whitepaper index table", "Topic cards", "Canonical links panel"],
+          "needs": [
+            "Whitepaper index table",
+            "Topic cards",
+            "Canonical links panel"
+          ],
           "states": ["loading", "empty", "error"],
           "notes": "Retain external docs links and OSS-first messaging."
         }

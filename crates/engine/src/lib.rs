@@ -235,11 +235,7 @@ impl RunHandle {
     }
 
     /// Record a cost against the run's budget and check the budget limit.
-    pub fn record_cost(
-        &mut self,
-        step_id: String,
-        cost_usd: f64,
-    ) -> Result<(), EngineError> {
+    pub fn record_cost(&mut self, step_id: String, cost_usd: f64) -> Result<(), EngineError> {
         self.budget.commit(step_id, cost_usd);
 
         if let Some(limit) = self.controls.budget_limit_usd {

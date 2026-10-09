@@ -126,25 +126,25 @@ impl MessageType {
 pub enum FrameError {
     #[error("invalid magic number: expected {expected:08X}, got {got:08X}")]
     InvalidMagic { expected: u32, got: u32 },
-    
+
     #[error("unsupported protocol version: major={major}, minor={minor}")]
     UnsupportedVersion { major: u16, minor: u16 },
-    
+
     #[error("unknown message type: {0:#08X}")]
     UnknownMessageType(u32),
-    
+
     #[error("payload too large: {size} bytes (max {max})")]
     PayloadTooLarge { size: u32, max: u32 },
-    
+
     #[error("payload length mismatch: header says {expected}, got {actual}")]
     PayloadLengthMismatch { expected: usize, actual: usize },
-    
+
     #[error("CRC32C mismatch: expected {expected:08X}, calculated {calculated:08X}")]
     CrcMismatch { expected: u32, calculated: u32 },
-    
+
     #[error("incomplete frame: need {needed} more bytes")]
     Incomplete { needed: usize },
-    
+
     #[error("IO error: {0}")]
     Io(#[from] io::Error),
 }
@@ -196,7 +196,7 @@ impl Frame {
     /// Calculate CRC32C over the frame content (excluding the CRC field itself)
     fn calculate_crc(&self) -> u32 {
         let mut hasher = crc32c::Hasher::new();
-        
+
         // Hash magic
         hasher.update(&MAGIC.to_le_bytes());
         // Hash version
@@ -212,7 +212,7 @@ impl Frame {
         hasher.update(&(self.payload.len() as u32).to_le_bytes());
         // Hash payload
         hasher.update(&self.payload);
-        
+
         hasher.finalize()
     }
 
@@ -220,9 +220,9 @@ impl Frame {
     pub fn encode(&self, dst: &mut BytesMut) -> Result<(), FrameError> {
         let payload_len = self.payload.len();
         let total_len = FRAME_OVERHEAD + payload_len;
-        
+
         dst.reserve(total_len);
-        
+
         // Magic
         dst.put_u32_le(MAGIC);
         // Version
@@ -241,7 +241,7 @@ impl Frame {
         // CRC32C
         let crc = self.calculate_crc();
         dst.put_u32_le(crc);
-        
+
         Ok(())
     }
 
@@ -254,7 +254,7 @@ impl Frame {
 
         // Peek at header without consuming
         let mut peek = src.as_ref();
-        
+
         // Check magic
         let magic = peek.get_u32_le();
         if magic != MAGIC {
@@ -301,14 +301,15 @@ impl Frame {
 
         // Extract payload with guarded allocation
         // ADVERSARIAL: Cap pre-allocation to prevent memory-based DoS
-        let mut payload = Vec::with_capacity(std::cmp::min(payload_len, MAX_UNTRUSTED_ALLOCATION) as usize);
-        
+        let mut payload =
+            Vec::with_capacity(std::cmp::min(payload_len, MAX_UNTRUSTED_ALLOCATION) as usize);
+
         payload.extend_from_slice(&src[..payload_len as usize]);
         src.advance(payload_len as usize);
 
         // Verify CRC
         let expected_crc = src.get_u32_le();
-        
+
         // Calculate CRC over what we just decoded
         let frame = Self {
             version_major,
@@ -318,7 +319,7 @@ impl Frame {
             correlation_id,
             payload,
         };
-        
+
         let calculated_crc = frame.calculate_crc();
         if expected_crc != calculated_crc {
             return Err(FrameError::CrcMismatch {
@@ -357,7 +358,7 @@ impl Encoder<Frame> for FrameCodec {
 }
 
 /// Frame parser with recovery capabilities
-/// 
+///
 /// When a parse error occurs, attempts to resynchronize by scanning for magic bytes
 pub struct ResilientFrameParser {
     max_resync_attempts: usize,
@@ -380,7 +381,7 @@ impl ResilientFrameParser {
     }
 
     /// Parse with automatic resynchronization on error
-    /// 
+    ///
     /// Returns Ok(None) if more data needed
     /// Returns Ok(Some(frame)) on success
     /// Returns Err(_) only on unrecoverable errors
@@ -420,15 +421,17 @@ impl ResilientFrameParser {
 /// Find magic bytes in buffer, returning offset or None
 fn find_magic(src: &BytesMut) -> Option<usize> {
     let magic_bytes = MAGIC.to_le_bytes();
-    src.windows(4)
-        .position(|window| window == magic_bytes)
+    src.windows(4).position(|window| window == magic_bytes)
 }
 
 // Compile-time assertions for protocol alignment
 const _ASSERT_HEADER_SIZE: () = assert!(HEADER_SIZE == 24, "Header size must be 24 bytes");
 const _ASSERT_FRAME_OVERHEAD: () = assert!(FRAME_OVERHEAD == 28, "Frame overhead must be 28 bytes");
 const _ASSERT_MAGIC_VALUE: () = assert!(MAGIC == 0x52454348, "Magic must be 'RECH' (0x52454348)");
-const _ASSERT_MAX_PAYLOAD: () = assert!(MAX_PAYLOAD_BYTES == 64 * 1024 * 1024, "Max payload must be 64 MiB");
+const _ASSERT_MAX_PAYLOAD: () = assert!(
+    MAX_PAYLOAD_BYTES == 64 * 1024 * 1024,
+    "Max payload must be 64 MiB"
+);
 
 #[cfg(test)]
 mod tests {
@@ -483,7 +486,10 @@ mod tests {
         buf.put_u32_le(crc32c(&[]));
 
         let result = Frame::decode(&mut buf);
-        assert!(matches!(result, Err(FrameError::UnknownMessageType(0x9999))));
+        assert!(matches!(
+            result,
+            Err(FrameError::UnknownMessageType(0x9999))
+        ));
     }
 
     #[test]

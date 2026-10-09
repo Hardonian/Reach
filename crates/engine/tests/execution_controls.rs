@@ -81,7 +81,8 @@ fn pause_and_resume_run() {
     run.apply_tool_result(tool_result("step-1")).expect("apply");
 
     // Pause the run
-    run.pause("user requested pause").expect("pause should succeed");
+    run.pause("user requested pause")
+        .expect("pause should succeed");
     assert!(matches!(run.status(), RunStatus::Paused { .. }));
 
     // next_action should return Paused while paused
@@ -99,7 +100,9 @@ fn pause_and_resume_run() {
 
     // Verify events include pause and resume
     let events = run.drain_events();
-    let has_paused = events.iter().any(|e| matches!(e, RunEvent::RunPaused { .. }));
+    let has_paused = events
+        .iter()
+        .any(|e| matches!(e, RunEvent::RunPaused { .. }));
     let has_resumed = events.iter().any(|e| matches!(e, RunEvent::RunResumed));
     assert!(has_paused, "events should include RunPaused");
     assert!(has_resumed, "events should include RunResumed");
@@ -118,7 +121,8 @@ fn cancel_running_run() {
     run.apply_tool_result(tool_result("step-1")).expect("apply");
 
     // Cancel the run
-    run.cancel("no longer needed").expect("cancel should succeed");
+    run.cancel("no longer needed")
+        .expect("cancel should succeed");
     assert!(matches!(run.status(), RunStatus::Cancelled { .. }));
 
     // next_action should return Cancelled
@@ -254,7 +258,8 @@ fn budget_exceeded_pauses_run() {
     // Step 1
     let _ = run.next_action();
     run.apply_tool_result(tool_result("step-1")).expect("apply");
-    run.record_cost("step-1".to_owned(), 0.03).expect("record cost within budget");
+    run.record_cost("step-1".to_owned(), 0.03)
+        .expect("record cost within budget");
 
     // Record more cost that exceeds budget
     let err = run.record_cost("step-1-extra".to_owned(), 0.03);

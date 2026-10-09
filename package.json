@@ -23,7 +23,7 @@
     "test:integration": "vitest run test/integration",
     "test:all": "vitest run src test/integration",
     "lint": "eslint src",
-    "lint:structure": "powershell ./tools/guard-structure.ps1",
+    "lint:structure": "node scripts/verify-root-cleanliness.mjs",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

@@ -14,7 +14,7 @@ const TRUTH_FILES = [
   'SKILLS.md',
   'MODEL_SPEC.md',
   'SECURITY.md',
-  'CHANGELOG.md'
+  'CHANGELOG.md',
 ];
 
 interface TruthIssue {
@@ -31,13 +31,17 @@ interface TruthReport {
 
 function getPackageScripts(): Set<string> {
   const scripts = new Set<string>();
-  const rootPkg = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'package.json'), 'utf-8'));
-  Object.keys(rootPkg.scripts || {}).forEach(s => scripts.add(s));
-  
+  const rootPkg = JSON.parse(
+    fs.readFileSync(path.join(REPO_ROOT, 'package.json'), 'utf-8'),
+  );
+  Object.keys(rootPkg.scripts || {}).forEach((s) => scripts.add(s));
+
   // Also check apps/arcade
-  const arcadePkg = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'apps/arcade/package.json'), 'utf-8'));
-  Object.keys(arcadePkg.scripts || {}).forEach(s => scripts.add(s));
-  
+  const arcadePkg = JSON.parse(
+    fs.readFileSync(path.join(REPO_ROOT, 'apps/arcade/package.json'), 'utf-8'),
+  );
+  Object.keys(arcadePkg.scripts || {}).forEach((s) => scripts.add(s));
+
   return scripts;
 }
 
@@ -78,32 +82,39 @@ function validateTruth() {
     let match;
     while ((match = pathRegex.exec(content)) !== null) {
       const refPath = match[1];
-      if (refPath.includes('://') || refPath.startsWith('npm ') || refPath.startsWith('pnpm ') || refPath.startsWith('node ') || refPath.includes('*')) continue;
-      
+      if (
+        refPath.includes('://') ||
+        refPath.startsWith('npm ') ||
+        refPath.startsWith('pnpm ') ||
+        refPath.startsWith('node ') ||
+        refPath.includes('*')
+      )
+        continue;
+
       const fullPath = path.join(REPO_ROOT, refPath);
       if (!fs.existsSync(fullPath)) {
         issues.push({
           file: truthFile,
           reference: refPath,
           type: 'file',
-          message: `File reference does not exist: ${refPath}`
+          message: `File reference does not exist: ${refPath}`,
         });
       }
     }
 
-    // 2. Validate commands: `npm run ...` or `pnpm ...`
-    const commandRegex = /`(npm run|pnpm|yarn) ([^`]+)`/g;
+    // 2. Validate commands: `npm run ...` or `pnpm run ...`
+    const commandRegex = /`(npm run|pnpm run|yarn run) ([^`]+)`/g;
     while ((match = commandRegex.exec(content)) !== null) {
       const tool = match[1];
       const fullCmd = match[2].trim();
       const cmd = fullCmd.split(' ')[0];
-      
+
       if (!scripts.has(cmd)) {
         issues.push({
           file: truthFile,
           reference: match[0],
           type: 'command',
-          message: `Command referenced but not found in package.json: ${cmd}`
+          message: `Command referenced but not found in package.json: ${cmd}`,
         });
 
         if (IS_FIX_MODE) {
@@ -118,14 +129,17 @@ function validateTruth() {
     const envRegex = /`([A-Z][A-Z0-9_]{3,})`/g;
     while ((match = envRegex.exec(content)) !== null) {
       const envVar = match[1];
-      if (['LICENSE', 'VERSION', 'NOTICE', 'README', 'CI'].includes(envVar)) continue;
-      
+      if (['LICENSE', 'VERSION', 'NOTICE', 'README', 'CI'].includes(envVar))
+        continue;
+      // ERR_* identifiers are documented error codes, not environment variables.
+      if (envVar.startsWith('ERR_')) continue;
+
       if (!envs.has(envVar)) {
         issues.push({
           file: truthFile,
           reference: envVar,
           type: 'env',
-          message: `Environment variable referenced but missing from .env.example: ${envVar}`
+          message: `Environment variable referenced but missing from .env.example: ${envVar}`,
         });
       }
     }
@@ -137,7 +151,7 @@ function validateTruth() {
 
   const report: TruthReport = {
     timestamp: new Date().toISOString(),
-    issues
+    issues,
   };
 
   if (!fs.existsSync(ARTIFACTS_DIR)) {
@@ -153,8 +167,10 @@ function validateTruth() {
 
   if (issues.length > 0) {
     console.warn(`Found ${issues.length} drift issues in repo truth files:`);
-    issues.forEach(issue => {
-      console.log(`[${issue.type.toUpperCase()}] ${issue.file}: ${issue.message}`);
+    issues.forEach((issue) => {
+      console.log(
+        `[${issue.type.toUpperCase()}] ${issue.file}: ${issue.message}`,
+      );
     });
     process.exit(1);
   } else {

@@ -6,11 +6,11 @@
 //! - TCP sockets (optional, for debugging)
 
 use crate::protocol::{
-    CapabilityFlags, ErrorCode, ErrorPayload, ExecRequestPayload, ExecResultPayload,
-    Frame, FrameCodec, FrameError, FrameFlags, HealthRequestPayload, HealthResultPayload,
-    HealthStatus, HelloAckPayload, HelloPayload, MessageType, ProtocolCapabilities,
-    ProtocolError, ProtocolState, ProtocolStats, ProtocolVersion, deserialize_message,
-    encode_cbor, frame_message, parse_frame, serialize_message,
+    deserialize_message, encode_cbor, frame_message, parse_frame, serialize_message,
+    CapabilityFlags, ErrorCode, ErrorPayload, ExecRequestPayload, ExecResultPayload, Frame,
+    FrameCodec, FrameError, FrameFlags, HealthRequestPayload, HealthResultPayload, HealthStatus,
+    HelloAckPayload, HelloPayload, MessageType, ProtocolCapabilities, ProtocolError, ProtocolState,
+    ProtocolStats, ProtocolVersion,
 };
 use bytes::BytesMut;
 use std::collections::HashMap;
@@ -22,7 +22,7 @@ use tokio_util::codec::{Decoder, Encoder};
 use tracing::{debug, error, info, warn};
 
 #[cfg(windows)]
-use tokio::net::windows::named_pipe::{ServerOptions};
+use tokio::net::windows::named_pipe::ServerOptions;
 
 /// Server configuration
 #[derive(Debug, Clone)]
@@ -103,7 +103,8 @@ impl Server {
     /// Run the server (blocking)
     pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
         info!("Starting Requiem server");
-        info!("Protocol version: {}.{}", 
+        info!(
+            "Protocol version: {}.{}",
             crate::protocol::PROTOCOL_VERSION_MAJOR,
             crate::protocol::PROTOCOL_VERSION_MINOR
         );
@@ -113,12 +114,12 @@ impl Server {
         // Start Parent Watchdog (5s heartbeat / death signal)
         let shutdown_watchdog = self.shutdown.subscribe();
         let parent_pid = self.config.parent_pid;
-        
+
         let watchdog_handle = tokio::spawn(async move {
             let mut interval = tokio::time::interval(std::time::Duration::from_secs(5));
             loop {
                 interval.tick().await;
-                
+
                 if let Some(pid) = parent_pid {
                     if !is_parent_alive(pid) {
                         warn!("Parent process {} is gone, shutting down", pid);
@@ -132,7 +133,7 @@ impl Server {
                     warn!("Parent process died (reparented to 1), shutting down");
                     break;
                 }
-                
+
                 // If shutdown signaled
                 if !shutdown_watchdog.is_empty() {
                     break;
@@ -145,7 +146,7 @@ impl Server {
             let state = self.state.clone();
             let stats = self.stats.clone();
             let shutdown = self.shutdown.subscribe();
-            
+
             info!("Starting TCP listener on {}", addr);
             let handle = tokio::spawn(async move {
                 if let Err(e) = run_tcp_server(&addr, state, stats, shutdown).await {
@@ -162,7 +163,7 @@ impl Server {
             let state = self.state.clone();
             let stats = self.stats.clone();
             let shutdown = self.shutdown.subscribe();
-            
+
             info!("Starting Unix socket server at {}", path);
             let handle = tokio::spawn(async move {
                 if let Err(e) = run_unix_server(&path, state, stats, shutdown).await {
@@ -179,7 +180,7 @@ impl Server {
             let state = self.state.clone();
             let stats = self.stats.clone();
             let shutdown = self.shutdown.subscribe();
-            
+
             info!("Starting named pipe server at {}", name);
             let handle = tokio::spawn(async move {
                 if let Err(e) = run_named_pipe_server(&name, state, stats, shutdown).await {
@@ -194,7 +195,7 @@ impl Server {
         let _ = shutdown_rx.recv().await;
 
         info!("Shutting down server");
-        
+
         // Cancel all tasks
         for handle in handles {
             handle.abort();
@@ -236,7 +237,7 @@ async fn run_tcp_server(
                     Ok((stream, peer_addr)) => {
                         let state = state.clone();
                         let stats = stats.clone();
-                        
+
                         tokio::spawn(async move {
                             info!("New connection from {}", peer_addr);
                             if let Err(e) = handle_connection(stream, state, stats).await {
@@ -269,10 +270,10 @@ async fn run_unix_server(
     mut shutdown: tokio::sync::broadcast::Receiver<()>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     use tokio::net::UnixListener;
-    
+
     // Remove existing socket file if it exists
     let _ = std::fs::remove_file(path);
-    
+
     let listener = UnixListener::bind(path)?;
     info!("Unix server listening on {}", path);
 
@@ -283,7 +284,7 @@ async fn run_unix_server(
                     Ok((stream, _)) => {
                         let state = state.clone();
                         let stats = stats.clone();
-                        
+
                         tokio::spawn(async move {
                             if let Err(e) = handle_connection(stream, state, stats).await {
                                 warn!("Unix connection error: {}", e);
@@ -354,7 +355,7 @@ async fn handle_connection<S>(
     stream: S,
     state: Arc<RwLock<ServerState>>,
     stats: Arc<RwLock<ProtocolStats>>,
-) -> Result<(), ProtocolError> 
+) -> Result<(), ProtocolError>
 where
     S: AsyncRead + AsyncWrite + Unpin,
 {
@@ -369,10 +370,7 @@ where
 
     loop {
         // Read data with timeout to prevent idle connection hanging
-        let read_result = tokio::time::timeout(
-            read_timeout,
-            read_half.read_buf(&mut buf)
-        ).await;
+        let read_result = tokio::time::timeout(read_timeout, read_half.read_buf(&mut buf)).await;
 
         match read_result {
             Ok(Ok(0)) => {
@@ -387,7 +385,10 @@ where
                 return Err(ProtocolError::Io(e));
             }
             Err(_) => {
-                warn!("Connection timed out after being idle for {}s", read_timeout.as_secs());
+                warn!(
+                    "Connection timed out after being idle for {}s",
+                    read_timeout.as_secs()
+                );
                 break;
             }
         }
@@ -405,14 +406,16 @@ where
                         &mut connection_state,
                         &mut session_id,
                         &state,
-                    ).await {
+                    )
+                    .await
+                    {
                         Ok(Some(mut response)) => {
                             // Propagate correlation ID
                             response.correlation_id = frame.correlation_id;
-                            
+
                             let mut response_buf = BytesMut::new();
                             codec.encode(response, &mut response_buf)?;
-                            
+
                             write_half.write_all(&response_buf).await?;
                             write_half.flush().await?;
 
@@ -425,10 +428,11 @@ where
                         }
                         Err(e) => {
                             // Send error response
-                            let error_frame = create_error_frame(&e, &session_id, frame.correlation_id)?;
+                            let error_frame =
+                                create_error_frame(&e, &session_id, frame.correlation_id)?;
                             let mut error_buf = BytesMut::new();
                             codec.encode(error_frame, &mut error_buf)?;
-                            
+
                             write_half.write_all(&error_buf).await?;
                             write_half.flush().await?;
 
@@ -492,7 +496,10 @@ async fn handle_frame(
     match frame.msg_type {
         MessageType::Hello => {
             let hello: HelloPayload = parse_frame(&frame)?;
-            debug!("Received hello from {} {}", hello.client_name, hello.client_version);
+            debug!(
+                "Received hello from {} {}",
+                hello.client_name, hello.client_version
+            );
 
             // Generate session ID
             let new_session_id = format!("sess-{}", {
@@ -505,13 +512,16 @@ async fn handle_frame(
             // Store connection info
             {
                 let mut s = server_state.write().await;
-                s.connections.insert(new_session_id.clone(), ConnectionInfo {
-                    session_id: new_session_id.clone(),
-                    client_name: hello.client_name.clone(),
-                    client_version: hello.client_version.clone(),
-                    protocol_version: crate::protocol::ProtocolVersion::V1_0,
-                    connected_at: std::time::Instant::now(),
-                });
+                s.connections.insert(
+                    new_session_id.clone(),
+                    ConnectionInfo {
+                        session_id: new_session_id.clone(),
+                        client_name: hello.client_name.clone(),
+                        client_version: hello.client_version.clone(),
+                        protocol_version: crate::protocol::ProtocolVersion::V1_0,
+                        connected_at: std::time::Instant::now(),
+                    },
+                );
             }
 
             *session_id = new_session_id.clone();
@@ -520,10 +530,12 @@ async fn handle_frame(
             // Build response
             let ack = HelloAckPayload::new(&new_session_id);
             let response = frame_message(MessageType::HelloAck, &ack, frame.correlation_id)?;
-            
-            info!("Session {} established for client {} {}", 
-                new_session_id, hello.client_name, hello.client_version);
-            
+
+            info!(
+                "Session {} established for client {} {}",
+                new_session_id, hello.client_name, hello.client_version
+            );
+
             Ok(Some(response))
         }
         MessageType::ExecRequest => {
@@ -542,14 +554,14 @@ async fn handle_frame(
         }
         MessageType::HealthRequest => {
             let _request: HealthRequestPayload = parse_frame(&frame)?;
-            
+
             let result = HealthResultPayload {
                 status: HealthStatus::Healthy,
                 version: env!("CARGO_PKG_VERSION").to_string(),
                 uptime_us: crate::fixed::FixedDuration::from_micros(0), // TODO: track actual uptime
                 load: None,
             };
-            
+
             let response = frame_message(MessageType::HealthResult, &result, frame.correlation_id)?;
             Ok(Some(response))
         }
@@ -577,16 +589,16 @@ async fn process_execution(
     // 2. Execute through the engine
     // 3. Collect events and results
     // 4. Calculate deterministic result digest
-    
+
     // ACTIONID SORT ENFORCEMENT
     // In a real implementation, any rankings or action lists MUST be pre-sorted
     // here before the digest    // 4. Calculate deterministic result digest
-    
+
     // Calculate deterministic result digest using BLAKE3
     let mut hasher = blake3::Hasher::new();
     // Hash relevant fields for deterministic fingerprint
     hasher.update(request.run_id.as_bytes());
-    
+
     // Canonical metadata hashing
     for (key, value) in &request.metadata {
         hasher.update(key.as_bytes());
@@ -609,24 +621,29 @@ async fn process_execution(
 }
 
 /// Create an error response frame
-fn create_error_frame(error: &ProtocolError, session_id: &str, correlation_id: u32) -> Result<Frame, ProtocolError> {
+fn create_error_frame(
+    error: &ProtocolError,
+    session_id: &str,
+    correlation_id: u32,
+) -> Result<Frame, ProtocolError> {
     let (code, message) = match error {
-        ProtocolError::VersionNegotiationFailed { .. } => {
-            (ErrorCode::UnsupportedVersion, "Version negotiation failed".to_string())
-        }
-        ProtocolError::CapabilityMismatch { .. } => {
-            (ErrorCode::UnsupportedVersion, "Capability mismatch".to_string())
-        }
-        ProtocolError::NoSession => {
-            (ErrorCode::InvalidMessage, "No session established".to_string())
-        }
-        ProtocolError::UnexpectedMessageType { expected, got } => {
-            (ErrorCode::InvalidMessage, 
-             format!("Expected {:?}, got {:?}", expected, got))
-        }
-        _ => {
-            (ErrorCode::InternalError, "Internal error".to_string())
-        }
+        ProtocolError::VersionNegotiationFailed { .. } => (
+            ErrorCode::UnsupportedVersion,
+            "Version negotiation failed".to_string(),
+        ),
+        ProtocolError::CapabilityMismatch { .. } => (
+            ErrorCode::UnsupportedVersion,
+            "Capability mismatch".to_string(),
+        ),
+        ProtocolError::NoSession => (
+            ErrorCode::InvalidMessage,
+            "No session established".to_string(),
+        ),
+        ProtocolError::UnexpectedMessageType { expected, got } => (
+            ErrorCode::InvalidMessage,
+            format!("Expected {:?}, got {:?}", expected, got),
+        ),
+        _ => (ErrorCode::InternalError, "Internal error".to_string()),
     };
 
     let error_payload = ErrorPayload {
@@ -645,9 +662,11 @@ fn create_error_frame(error: &ProtocolError, session_id: &str, correlation_id: u
 
 #[cfg(windows)]
 fn is_parent_alive(parent_pid: u32) -> bool {
-    use windows::Win32::System::Threading::{OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, GetExitCodeProcess};
     use windows::Win32::Foundation::{CloseHandle, STILL_ACTIVE};
-    
+    use windows::Win32::System::Threading::{
+        GetExitCodeProcess, OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION,
+    };
+
     unsafe {
         let handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, parent_pid);
         match handle {
@@ -670,8 +689,8 @@ fn is_parent_alive(parent_pid: u32) -> bool {
 fn is_parent_alive(parent_pid: u32) -> bool {
     unsafe {
         // kill with signal 0 checks for process existence without sending signal
-        libc::kill(parent_pid as libc::pid_t, 0) == 0 || 
-        std::io::Error::last_os_error().raw_os_error() == Some(libc::EPERM)
+        libc::kill(parent_pid as libc::pid_t, 0) == 0
+            || std::io::Error::last_os_error().raw_os_error() == Some(libc::EPERM)
     }
 }
 
@@ -679,14 +698,14 @@ fn is_parent_alive(parent_pid: u32) -> bool {
 fn find_magic(buf: &BytesMut) -> Option<usize> {
     let magic_bytes = crate::protocol::MAGIC.to_le_bytes();
     for i in 0..buf.len().saturating_sub(4) {
-        if buf[i..i+4] == magic_bytes {
+        if buf[i..i + 4] == magic_bytes {
             return Some(i);
         }
     }
     None
 }
 /// Use FrameCodec from frame module
-use crate::protocol::frame::{FrameCodec, find_magic as _find_magic};
+use crate::protocol::frame::{find_magic as _find_magic, FrameCodec};
 
 #[cfg(test)]
 mod tests {
@@ -702,13 +721,13 @@ mod tests {
     #[tokio::test]
     async fn test_protocol_stats() {
         let stats = Arc::new(RwLock::new(ProtocolStats::default()));
-        
+
         {
             let mut s = stats.write().await;
             s.frames_sent = 10;
             s.frames_received = 20;
         }
-        
+
         {
             let s = stats.read().await;
             assert_eq!(s.frames_sent, 10);

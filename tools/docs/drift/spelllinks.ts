@@ -1,6 +1,35 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { glob } from 'glob';
+
+const IGNORE_DIRS = new Set([
+  'node_modules',
+  'dist',
+  'target',
+  'crates',
+  'services',
+  'build',
+  'ARTIFACTS',
+  '.next',
+  '.git',
+]);
+
+function walkDir(dir: string, out: string[]): void {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name.startsWith('.') || IGNORE_DIRS.has(entry.name)) continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      walkDir(full, out);
+    } else if (entry.isFile() && /\.(md|tsx)$/.test(entry.name)) {
+      out.push(full);
+    }
+  }
+}
+
+function collectFiles(): string[] {
+  const out: string[] = [];
+  walkDir(process.cwd(), out);
+  return out;
+}
 
 const RULES = [
   {
@@ -22,24 +51,13 @@ const RULES = [
     name: 'Empty link text',
     pattern: /\[\]\(.*?\)/g,
     message: 'Empty link text detected.',
-  }
+  },
 ];
 
 export async function auditSpelling(fix: boolean = false) {
   console.log('--- Smart Spelling & Markdown Hygiene ---');
-  
-  const files = await glob('**/*.{md,tsx}', { 
-    ignore: [
-      '**/node_modules/**', 
-      '**/.next/**', 
-      '**/dist/**', 
-      '**/target/**', 
-      '**/crates/**', 
-      '**/services/**',
-      '**/build/**',
-      '**/ARTIFACTS/**'
-    ] 
-  });
+
+  const files = collectFiles();
 
   let issueCount = 0;
 
@@ -50,7 +68,11 @@ export async function auditSpelling(fix: boolean = false) {
     for (const rule of RULES) {
       const match = content.match(rule.pattern);
       if (match) {
-        if (fix && (rule.name === 'Trailing whitespace' || rule.name === 'No double spaces in titles')) {
+        if (
+          fix &&
+          (rule.name === 'Trailing whitespace' ||
+            rule.name === 'No double spaces in titles')
+        ) {
           const original = content;
           if (rule.name === 'Trailing whitespace') {
             content = content.replace(/[ \t]+$/gm, '');
@@ -58,10 +80,12 @@ export async function auditSpelling(fix: boolean = false) {
             // Fix double spaces within headings only if they are on the same line
             // and don't look like they were merging two structural elements.
             const lines = content.split(/\r?\n/);
-            const fixedLines = lines.map(line => {
+            const fixedLines = lines.map((line) => {
               if (line.startsWith('#')) {
                 // Only replace multiple spaces that aren't leading or trailing
-                return line.trimEnd().replace(/([^\s])[ \t]{2,}([^\s])/g, '$1 $2');
+                return line
+                  .trimEnd()
+                  .replace(/([^\s])[ \t]{2,}([^\s])/g, '$1 $2');
               }
               return line;
             });
@@ -72,7 +96,9 @@ export async function auditSpelling(fix: boolean = false) {
             console.log(`[FIXED] ${rule.name} in ${file}`);
           }
         } else {
-          console.warn(`[HYGIENE] ${rule.name} in ${file}: ${rule.message} (Matched: "${match[0].replace(/\n/g, '\\n')}")`);
+          console.warn(
+            `[HYGIENE] ${rule.name} in ${file}: ${rule.message} (Matched: "${match[0].replace(/\n/g, '\\n')}")`,
+          );
           issueCount++;
         }
       }
@@ -93,7 +119,7 @@ export async function auditSpelling(fix: boolean = false) {
 }
 
 if (process.argv[1].endsWith('spelllinks.ts')) {
-  auditSpelling(process.argv.includes('--fix')).then(ok => {
+  auditSpelling(process.argv.includes('--fix')).then((ok) => {
     if (!ok) process.exit(1);
   });
 }

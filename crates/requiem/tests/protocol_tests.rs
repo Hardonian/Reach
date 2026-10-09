@@ -3,15 +3,13 @@
 //! Tests for round-trip serialization, determinism, and error handling.
 
 use bytes::BytesMut;
+use requiem::fixed::{FixedBps, FixedDuration, FixedPpm, FixedQ32_32, FixedThroughput};
 use requiem::protocol::{
-    CapabilityFlags, Encoding, ErrorCode, ErrorPayload, ExecRequestPayload, ExecResultPayload,
-    ExecutionControls, ExecutionMetrics, Frame, FrameCodec, FrameFlags, FrameError,
-    HealthRequestPayload, HealthResultPayload, HealthStatus, HelloAckPayload, HelloPayload,
-    Histogram, LoadMetrics, MessageType, ProtocolVersion, RunStatus, Workflow, decode_cbor,
-    encode_cbor, frame_message, parse_frame,
-};
-use requiem::fixed::{
-    FixedBps, FixedDuration, FixedPpm, FixedQ32_32, FixedThroughput,
+    decode_cbor, encode_cbor, frame_message, parse_frame, CapabilityFlags, Encoding, ErrorCode,
+    ErrorPayload, ExecRequestPayload, ExecResultPayload, ExecutionControls, ExecutionMetrics,
+    Frame, FrameCodec, FrameError, FrameFlags, HealthRequestPayload, HealthResultPayload,
+    HealthStatus, HelloAckPayload, HelloPayload, Histogram, LoadMetrics, MessageType,
+    ProtocolVersion, RunStatus, Workflow,
 };
 use std::collections::BTreeMap;
 use tokio_util::codec::{Decoder, Encoder};
@@ -24,13 +22,13 @@ use tokio_util::codec::{Decoder, Encoder};
 fn test_hello_frame_golden() {
     let hello = HelloPayload::new("reach-cli", "1.0.0");
     let frame = frame_message(MessageType::Hello, &hello).unwrap();
-    
+
     // Verify frame structure
     assert_eq!(frame.version_major, 1);
     assert_eq!(frame.version_minor, 0);
     assert_eq!(frame.msg_type, MessageType::Hello);
     assert_eq!(frame.flags, FrameFlags::NONE);
-    
+
     // Verify payload decodes correctly
     let decoded: HelloPayload = parse_frame(&frame).unwrap();
     assert_eq!(decoded.client_name, "reach-cli");
@@ -41,7 +39,7 @@ fn test_hello_frame_golden() {
 fn test_hello_ack_roundtrip() {
     let ack = HelloAckPayload::new("test-session-123");
     let frame = frame_message(MessageType::HelloAck, &ack).unwrap();
-    
+
     let decoded: HelloAckPayload = parse_frame(&frame).unwrap();
     assert_eq!(ack.session_id, decoded.session_id);
     assert_eq!(ack.selected_version, decoded.selected_version);
@@ -70,10 +68,10 @@ fn test_exec_request_roundtrip() {
             m
         },
     };
-    
+
     let frame = frame_message(MessageType::ExecRequest, &request).unwrap();
     let decoded: ExecRequestPayload = parse_frame(&frame).unwrap();
-    
+
     assert_eq!(request.run_id, decoded.run_id);
     assert_eq!(request.workflow.name, decoded.workflow.name);
     assert_eq!(request.controls.max_steps, decoded.controls.max_steps);
@@ -83,10 +81,10 @@ fn test_exec_request_roundtrip() {
 fn test_health_roundtrip() {
     let req = HealthRequestPayload { detailed: true };
     let frame = frame_message(MessageType::HealthRequest, &req).unwrap();
-    
+
     let decoded: HealthRequestPayload = parse_frame(&frame).unwrap();
     assert_eq!(req.detailed, decoded.detailed);
-    
+
     let result = HealthResultPayload {
         status: HealthStatus::Healthy,
         version: "1.0.0".to_string(),
@@ -98,10 +96,10 @@ fn test_health_roundtrip() {
             memory_bps: FixedBps::from_percent(60.0).unwrap(),
         }),
     };
-    
+
     let frame = frame_message(MessageType::HealthResult, &result).unwrap();
     let decoded: HealthResultPayload = parse_frame(&frame).unwrap();
-    
+
     assert!(matches!(decoded.status, HealthStatus::Healthy));
     assert_eq!(decoded.load.as_ref().unwrap().active_runs, 5);
 }
@@ -114,12 +112,12 @@ fn test_health_roundtrip() {
 fn test_fixed_q32_32_determinism() {
     // Same input must produce same bytes
     let val = FixedQ32_32::from_f64(1.23456789012345).unwrap();
-    
+
     let encoded1 = encode_cbor(&val).unwrap();
     let encoded2 = encode_cbor(&val).unwrap();
-    
+
     assert_eq!(encoded1, encoded2);
-    
+
     // Verify round-trip
     let decoded: FixedQ32_32 = decode_cbor(&encoded1).unwrap();
     assert_eq!(val.to_raw(), decoded.to_raw());
@@ -128,20 +126,20 @@ fn test_fixed_q32_32_determinism() {
 #[test]
 fn test_fixed_bps_determinism() {
     let val = FixedBps::from_percent(99.99).unwrap();
-    
+
     let encoded1 = encode_cbor(&val).unwrap();
     let encoded2 = encode_cbor(&val).unwrap();
-    
+
     assert_eq!(encoded1, encoded2);
 }
 
 #[test]
 fn test_fixed_duration_determinism() {
     let val = FixedDuration::from_micros(12345678901234);
-    
+
     let encoded1 = encode_cbor(&val).unwrap();
     let encoded2 = encode_cbor(&val).unwrap();
-    
+
     assert_eq!(encoded1, encoded2);
 }
 
@@ -165,23 +163,29 @@ fn test_metrics_determinism() {
             counts: vec![100, 500, 300, 100],
         },
     };
-    
+
     // Multiple encodings must produce identical bytes
     let encoded1 = encode_cbor(&metrics).unwrap();
     let encoded2 = encode_cbor(&metrics).unwrap();
     let encoded3 = encode_cbor(&metrics).unwrap();
-    
+
     assert_eq!(encoded1, encoded2);
     assert_eq!(encoded2, encoded3);
-    
+
     // Verify all fields survive round-trip
     let decoded: ExecutionMetrics = decode_cbor(&encoded1).unwrap();
     assert_eq!(metrics.steps_executed, decoded.steps_executed);
     assert_eq!(metrics.elapsed_us.to_raw(), decoded.elapsed_us.to_raw());
-    assert_eq!(metrics.budget_spent_usd.to_raw(), decoded.budget_spent_usd.to_raw());
+    assert_eq!(
+        metrics.budget_spent_usd.to_raw(),
+        decoded.budget_spent_usd.to_raw()
+    );
     assert_eq!(metrics.throughput.to_raw(), decoded.throughput.to_raw());
     assert_eq!(metrics.cas_hit_rate.to_raw(), decoded.cas_hit_rate.to_raw());
-    assert_eq!(metrics.latency_histogram.boundaries.len(), decoded.latency_histogram.boundaries.len());
+    assert_eq!(
+        metrics.latency_histogram.boundaries.len(),
+        decoded.latency_histogram.boundaries.len()
+    );
 }
 
 // ============================================================================
@@ -193,14 +197,14 @@ fn test_frame_codec_roundtrip() {
     let mut codec = FrameCodec;
     let hello = HelloPayload::new("test", "1.0");
     let frame = frame_message(MessageType::Hello, &hello).unwrap();
-    
+
     // Encode
     let mut buf = BytesMut::new();
     codec.encode(frame.clone(), &mut buf).unwrap();
-    
+
     // Decode
     let decoded = codec.decode(&mut buf).unwrap().unwrap();
-    
+
     assert_eq!(frame.version_major, decoded.version_major);
     assert_eq!(frame.version_minor, decoded.version_minor);
     assert_eq!(frame.msg_type, decoded.msg_type);
@@ -211,21 +215,21 @@ fn test_frame_codec_roundtrip() {
 fn test_multiple_frames_in_buffer() {
     let mut codec = FrameCodec;
     let mut buf = BytesMut::new();
-    
+
     // Encode multiple frames
     for i in 0..3 {
         let hello = HelloPayload::new(&format!("client-{}", i), "1.0");
         let frame = frame_message(MessageType::Hello, &hello).unwrap();
         codec.encode(frame, &mut buf).unwrap();
     }
-    
+
     // Decode all frames
     for i in 0..3 {
         let frame = codec.decode(&mut buf).unwrap().unwrap();
         let decoded: HelloPayload = parse_frame(&frame).unwrap();
         assert_eq!(decoded.client_name, format!("client-{}", i));
     }
-    
+
     // Buffer should be empty
     assert!(codec.decode(&mut buf).unwrap().is_none());
 }
@@ -239,7 +243,7 @@ fn test_invalid_magic_rejection() {
     let mut buf = BytesMut::new();
     buf.extend_from_slice(&[0xDE, 0xAD, 0xBE, 0xEF]); // Wrong magic
     buf.extend_from_slice(&[0x00; 20]); // Pad to header size
-    
+
     let result = Frame::decode(&mut buf);
     assert!(matches!(result, Err(FrameError::InvalidMagic { .. })));
 }
@@ -255,7 +259,7 @@ fn test_crc_mismatch_rejection() {
     buf.extend_from_slice(&5u32.to_le_bytes()); // Payload len
     buf.extend_from_slice(b"hello"); // Payload
     buf.extend_from_slice(&0xDEADBEEFu32.to_le_bytes()); // Wrong CRC
-    
+
     let result = Frame::decode(&mut buf);
     assert!(matches!(result, Err(FrameError::CrcMismatch { .. })));
 }
@@ -276,7 +280,7 @@ fn test_unknown_message_type() {
     buf.extend_from_slice(&0x9999u32.to_le_bytes()); // Unknown msg type
     buf.extend_from_slice(&0u32.to_le_bytes()); // Flags
     buf.extend_from_slice(&0u32.to_le_bytes()); // Payload len
-    
+
     // Calculate correct CRC for this frame
     use crc32c::crc32c;
     let mut hasher = crc32c::Hasher::new();
@@ -288,9 +292,12 @@ fn test_unknown_message_type() {
     hasher.update(&0u32.to_le_bytes());
     let crc = hasher.finalize();
     buf.extend_from_slice(&crc.to_le_bytes());
-    
+
     let result = Frame::decode(&mut buf);
-    assert!(matches!(result, Err(FrameError::UnknownMessageType(0x9999))));
+    assert!(matches!(
+        result,
+        Err(FrameError::UnknownMessageType(0x9999))
+    ));
 }
 
 // ============================================================================
@@ -307,12 +314,12 @@ fn test_version_support_check() {
         capabilities: CapabilityFlags::BINARY_PROTOCOL,
         preferred_encoding: Encoding::Cbor,
     };
-    
+
     // Within range
     assert!(hello.supports_version(1, 0));
     assert!(hello.supports_version(1, 5));
     assert!(hello.supports_version(2, 5));
-    
+
     // Outside range
     assert!(!hello.supports_version(0, 9));
     assert!(!hello.supports_version(2, 6));
@@ -324,11 +331,11 @@ fn test_protocol_version_compatibility() {
     let v1 = ProtocolVersion::new(1, 0);
     let v1_5 = ProtocolVersion::new(1, 5);
     let v2 = ProtocolVersion::new(2, 0);
-    
+
     // Same major version = compatible
     assert!(v1.compatible_with(v1_5));
     assert!(v1_5.compatible_with(v1));
-    
+
     // Different major version = incompatible
     assert!(!v1.compatible_with(v2));
     assert!(!v2.compatible_with(v1));
@@ -342,18 +349,18 @@ fn test_protocol_version_compatibility() {
 fn test_resync_after_garbage() {
     let mut codec = FrameCodec;
     let mut buf = BytesMut::new();
-    
+
     // Add some garbage
     buf.extend_from_slice(b"garbage garbage");
-    
+
     // Add a valid frame
     let hello = HelloPayload::new("test", "1.0");
     let frame = frame_message(MessageType::Hello, &hello).unwrap();
     codec.encode(frame, &mut buf).unwrap();
-    
+
     // First decode should fail
     assert!(codec.decode(&mut buf).is_err());
-    
+
     // After resync, we should find the valid frame
     // Note: In real implementation, we'd use ResilientFrameParser
     // This test verifies that frames can be found after garbage
@@ -376,10 +383,10 @@ fn test_error_payload_roundtrip() {
         },
         correlation_id: "corr-123".to_string(),
     };
-    
+
     let frame = frame_message(MessageType::Error, &error).unwrap();
     let decoded: ErrorPayload = parse_frame(&frame).unwrap();
-    
+
     assert_eq!(error.code as i32, decoded.code as i32);
     assert_eq!(error.message, decoded.message);
     assert_eq!(error.correlation_id, decoded.correlation_id);
@@ -394,7 +401,7 @@ fn test_endianness_consistency() {
     // Verify that values are always serialized little-endian
     let val = FixedQ32_32::from_i64(0x12345678).unwrap();
     let encoded = encode_cbor(&val).unwrap();
-    
+
     // CBOR uses network byte order (big-endian) by default
     // But we rely on ciborium for proper encoding
     let decoded: FixedQ32_32 = decode_cbor(&encoded).unwrap();
@@ -413,7 +420,7 @@ fn test_result_digest_stability() {
         metrics: ExecutionMetrics::default(),
         session_id: "sess-1".to_string(),
     };
-    
+
     let result2 = ExecResultPayload {
         run_id: "test-run".to_string(),
         status: RunStatus::Completed,
@@ -423,10 +430,10 @@ fn test_result_digest_stability() {
         metrics: ExecutionMetrics::default(),
         session_id: "sess-1".to_string(),
     };
-    
+
     // Both should serialize to identical bytes
     let encoded1 = encode_cbor(&result1).unwrap();
     let encoded2 = encode_cbor(&result2).unwrap();
-    
+
     assert_eq!(encoded1, encoded2);
 }

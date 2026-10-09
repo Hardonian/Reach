@@ -68,22 +68,21 @@ pub use engine::{
 
 pub use types::{
     ActionOption, CompositeWeights, DecisionBoundary, DecisionConstraint, DecisionError,
-    DecisionEvidence, DecisionInput, DecisionMeta, DecisionOutput, DecisionTrace,
-    FlipDistance, PlannedAction, RankedAction, RefereeAdjudication, RegretBoundedPlan,
-    Scenario, VoiRanking,
+    DecisionEvidence, DecisionInput, DecisionMeta, DecisionOutput, DecisionTrace, FlipDistance,
+    PlannedAction, RankedAction, RefereeAdjudication, RegretBoundedPlan, Scenario, VoiRanking,
 };
 
 // Re-export WASM functions for non-WASM builds
 #[cfg(not(target_arch = "wasm32"))]
 pub use wasm::{
-    compute_fingerprint_json, evaluate_decision_json, get_engine_version, ErrorDetail,
-    WasmError, WasmSuccess,
+    compute_fingerprint_json, evaluate_decision_json, get_engine_version, ErrorDetail, WasmError,
+    WasmSuccess,
 };
 
 #[cfg(target_arch = "wasm32")]
 pub use wasm::{
-    compute_fingerprint_json, evaluate_decision_json, get_engine_version, ErrorDetail,
-    WasmError, WasmSuccess,
+    compute_fingerprint_json, evaluate_decision_json, get_engine_version, ErrorDetail, WasmError,
+    WasmSuccess,
 };
 
 #[cfg(test)]

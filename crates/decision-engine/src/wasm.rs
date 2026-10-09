@@ -170,10 +170,7 @@ fn evaluate_decision_json_impl(input_json: &str) -> String {
             success.to_json()
         }
         Err(e) => {
-            let error = WasmError::new(
-                "E_INVALID_INPUT",
-                &e.to_string(),
-            );
+            let error = WasmError::new("E_INVALID_INPUT", &e.to_string());
             error.to_json()
         }
     }
@@ -220,7 +217,7 @@ fn compute_fingerprint_json_impl(input_json: &str) -> String {
 
     // Compute fingerprint
     let fingerprint = crate::determinism::compute_fingerprint(&input);
-    
+
     let success = WasmSuccess::new(serde_json::json!({
         "fingerprint": fingerprint
     }));

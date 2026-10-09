@@ -5,6 +5,10 @@ on:
   push:
     branches: [ main, master ]
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -19,6 +23,8 @@ jobs:
           cache: 'pnpm'
       - name: Install
         run: npm install
+      - name: Install arcade deps
+        run: npm --prefix apps/arcade install
       - name: Verify Fast
         run: npm run verify:fast
       - name: Validate DGL

@@ -15,16 +15,15 @@ pub mod frame;
 pub mod message;
 
 pub use frame::{
-    Frame, FrameCodec, FrameError, FrameFlags, MessageType, ResilientFrameParser,
-    FRAME_OVERHEAD, HEADER_SIZE, MAGIC, MAX_PAYLOAD_BYTES, PROTOCOL_VERSION_MAJOR,
-    PROTOCOL_VERSION_MINOR,
+    Frame, FrameCodec, FrameError, FrameFlags, MessageType, ResilientFrameParser, FRAME_OVERHEAD,
+    HEADER_SIZE, MAGIC, MAX_PAYLOAD_BYTES, PROTOCOL_VERSION_MAJOR, PROTOCOL_VERSION_MINOR,
 };
 pub use message::{
+    encoding::{decode_cbor, decode_json, encode_cbor, encode_json},
     Action, CapabilityFlags, Decision, Encoding, ErrorCode, ErrorPayload, ExecRequestPayload,
     ExecResultPayload, ExecutionControls, ExecutionMetrics, HealthRequestPayload,
     HealthResultPayload, HealthStatus, HelloAckPayload, HelloPayload, Histogram, LoadMetrics,
     Policy, PolicyCondition, PolicyRule, RunEvent, RunStatus, StepType, Workflow, WorkflowStep,
-    encoding::{decode_cbor, decode_json, encode_cbor, encode_json},
 };
 
 use crate::fixed::{FixedBps, FixedDuration, FixedPpm, FixedQ32_32, FixedThroughput};
@@ -36,31 +35,31 @@ use thiserror::Error;
 pub enum ProtocolError {
     #[error("frame error: {0}")]
     Frame(#[from] FrameError),
-    
+
     #[error("encoding error: {0}")]
     Encoding(String),
-    
+
     #[error("version negotiation failed: client supports {client:?}, server supports {server:?}")]
     VersionNegotiationFailed {
         client: (u16, u16),
         server: (u16, u16),
     },
-    
+
     #[error("capability mismatch: required {required:?}, have {have:?}")]
     CapabilityMismatch {
         required: CapabilityFlags,
         have: CapabilityFlags,
     },
-    
+
     #[error("unexpected message type: expected {expected:?}, got {got:?}")]
     UnexpectedMessageType {
         expected: MessageType,
         got: MessageType,
     },
-    
+
     #[error("session not established")]
     NoSession,
-    
+
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 }
@@ -111,7 +110,9 @@ pub fn serialize_message<T: serde::Serialize>(msg: &T) -> Result<Vec<u8>, Protoc
 }
 
 /// Deserialize a message from CBOR payload
-pub fn deserialize_message<T: for<'de> serde::Deserialize<'de>>(bytes: &[u8]) -> Result<T, ProtocolError> {
+pub fn deserialize_message<T: for<'de> serde::Deserialize<'de>>(
+    bytes: &[u8],
+) -> Result<T, ProtocolError> {
     decode_cbor(bytes).map_err(|e| ProtocolError::Encoding(e.to_string()))
 }
 
@@ -188,9 +189,9 @@ mod tests {
     fn test_frame_message_roundtrip() {
         let hello = HelloPayload::new("test-cli", "1.0.0");
         let frame = frame_message(MessageType::Hello, &hello).unwrap();
-        
+
         assert_eq!(frame.msg_type, MessageType::Hello);
-        
+
         let decoded: HelloPayload = parse_frame(&frame).unwrap();
         assert_eq!(hello.client_name, decoded.client_name);
     }
