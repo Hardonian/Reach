@@ -31,9 +31,9 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("loading environment: %w", err)
 	}
 
-	// REACH_DEBUG disables production mode (safety override)
-	// This must be processed after loadFromEnv so it can override REACH_PRODUCTION
-	if os.Getenv("REACH_DEBUG") != "" {
+	// REACH_DEBUG disables production mode (safety override), but an explicit
+	// REACH_PRODUCTION=true takes precedence over it.
+	if os.Getenv("REACH_DEBUG") != "" && !strings.EqualFold(os.Getenv("REACH_PRODUCTION"), "true") {
 		cfg.Safety.ProductionMode = false
 	}
 
@@ -293,9 +293,11 @@ func ValidateRequiemBin(path string) (warnings []string, err error) {
 		return nil, nil // No override, nothing to validate
 	}
 
-	// Check if path is absolute
+	// Check if path is absolute. A relative path cannot be reliably stat'd
+	// (it resolves against the process CWD), so warn and stop here.
 	if !filepath.IsAbs(path) {
 		warnings = append(warnings, "REQUIEM_BIN path is not absolute - this may cause issues in production")
+		return warnings, nil
 	}
 
 	// Check if file exists

@@ -29,8 +29,8 @@ var sensitivePatterns = []*regexp.Regexp{
 	regexp.MustCompile(`(?i)(mysql://)[^\s"']+@[^\s"']+`),
 	regexp.MustCompile(`(?i)(redis://)[^\s"']+@[^\s"']+`),
 	
-	// AWS credentials
-	regexp.MustCompile(`(?i)(AKIA[0-9A-Z]{16})`),
+	// AWS credentials (AKIA access key IDs, including placeholder forms)
+	regexp.MustCompile(`(?i)(AKIA[0-9A-Z_]{8,})`),
 	regexp.MustCompile(`(?i)(aws[_-]?secret[_-]?access[_-]?key\s*[:=]\s*)["']?[a-zA-Z0-9/+=]{40}["']?`),
 	
 	// URLs with embedded credentials

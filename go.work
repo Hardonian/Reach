@@ -1,8 +1,21 @@
 go 1.24.0
 
 use (
+	./internal/packkit
+	./pack-devkit/harness
+	./services/billing
+	./services/capsule-sync
+	./services/connector-registry
+	./services/ide-bridge
+	./services/integration-hub
+	./services/policy-engine
 	./services/runner
+	./services/session-hub
 	./src/core/config
 	./src/core/evaluation
 	./tools/doctor
+	./tools/packkit
+	./tools/packkit-build
+	./tools/packkit-sign
+	./tools/perf
 )

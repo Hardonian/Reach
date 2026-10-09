@@ -213,7 +213,13 @@ func (m *metrics) computeLatencyPercentiles() LatencyPercentiles {
 func (m *metrics) avgExecTimeMicros() FixedPointMicros {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	return m.avgExecTimeMicrosLocked()
+}
 
+// avgExecTimeMicrosLocked computes the average execution time in microseconds.
+// The caller must already hold m.mu (used by prometheus, which holds the lock
+// across the whole snapshot).
+func (m *metrics) avgExecTimeMicrosLocked() FixedPointMicros {
 	if len(m.executionTimes) == 0 {
 		return 0
 	}
@@ -331,7 +337,7 @@ func (m *metrics) prometheus() string {
 
 	b.WriteString("# HELP reach_avg_exec_time_micros average execution time in microseconds\n")
 	b.WriteString("# TYPE reach_avg_exec_time_micros gauge\n")
-	fmt.Fprintf(&b, "reach_avg_exec_time_micros %d\n", m.avgExecTimeMicros())
+	fmt.Fprintf(&b, "reach_avg_exec_time_micros %d\n", m.avgExecTimeMicrosLocked())
 
 	return b.String()
 }

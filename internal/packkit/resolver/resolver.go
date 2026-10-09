@@ -18,13 +18,7 @@ type version struct {
 	major, minor, patch int
 }
 
-type cachedKey struct {
-	id         string
-	constraint string
-}
-
 var (
-	cache   sync.Map
 	verPool = sync.Pool{
 		New: func() interface{} {
 			return &version{}
@@ -33,11 +27,6 @@ var (
 )
 
 func ResolvePackage(id, versionConstraint string, idx registry.Index) (ResolvedPackage, error) {
-	key := cachedKey{id: id, constraint: versionConstraint}
-	if cached, ok := cache.Load(key); ok {
-		return cached.(ResolvedPackage), nil
-	}
-
 	var match *ResolvedPackage
 	for _, p := range idx.Packages {
 		if p.ID != id {
@@ -57,7 +46,6 @@ func ResolvePackage(id, versionConstraint string, idx registry.Index) (ResolvedP
 	if match == nil {
 		return ResolvedPackage{}, fmt.Errorf("package not found: %s %s", id, versionConstraint)
 	}
-	cache.Store(key, *match)
 	return *match, nil
 }
 
