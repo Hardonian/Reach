@@ -115,6 +115,9 @@ jobs:
       - name: go test
         run: go test ./...
 
+
+
+
   go-module-sanity-fast:
     name: go module sanity (fast, skip runner)
     runs-on: ubuntu-latest
@@ -198,6 +201,7 @@ jobs:
       - name: test
         run: npm run test
 
+
   oss-gate:
     name: verify:oss (OSS purity + boundaries)
     runs-on: ubuntu-latest
@@ -263,21 +267,10 @@ jobs:
       - name: build enterprise site mode
         run: npm run build:enterprise
 
+
   verify-full:
     name: verify full
-    needs:
-      [
-        hygiene,
-        language-enforcement,
-        protocol,
-        spec-conformance,
-        rust,
-        go,
-        go-module-sanity,
-        oss-gate,
-        boundary-dominance,
-        dual-site-gates,
-      ]
+    needs: [hygiene, language-enforcement, protocol, spec-conformance, rust, go, go-module-sanity, oss-gate, boundary-dominance, dual-site-gates]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -296,6 +289,7 @@ jobs:
         run: cd extensions/vscode && npm install
       - name: verify full
         run: npm run verify:full
+
 
   site-mode-matrix:
     name: site mode matrix (oss + enterprise)
@@ -349,3 +343,4 @@ jobs:
           BASE_URL=http://localhost:3000 node ../../tests/smoke/routes.test.mjs
         env:
           NODE_ENV: test
+
