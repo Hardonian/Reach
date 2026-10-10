@@ -1,0 +1,59 @@
+{
+  "run_id": "dgl_1791572479775",
+  "timestamp": "2026-10-09T19:01:19.775Z",
+  "repo": "Reach",
+  "base_sha": "16bed24acf7b7f797e2f8325ed9816d848923beb",
+  "head_sha": "b160a91f6c04270e3121b586f8c022bef4bb1988",
+  "dgl_report_paths": [
+    "/home/scott/repos/Reach/dgl/reports/dgl_report.json",
+    "/home/scott/repos/Reach/dgl/reports/dgl_report.md",
+    "/home/scott/repos/Reach/dgl/reports/dgl_report.sarif"
+  ],
+  "openapi_compat_summary": {
+    "scanned_specs": [
+      "/home/scott/repos/Reach/openapi/reach.openapi.yaml",
+      "/home/scott/repos/Reach/openapi/reach.openapi.yaml"
+    ],
+    "breaking": 0,
+    "warnings": 0
+  },
+  "provider": {},
+  "context_hash": "fc00e87b6888f5304be9ad9a31cfe28c6c80d6b60ff3dd3e988a00a7d203d90f",
+  "blast_radius": {
+    "score": 30,
+    "subsystems_touched": 2,
+    "dependency_depth_impacted": 1,
+    "public_api_surface_affected": 0,
+    "openapi_endpoints_touched": 0,
+    "bundle_sensitive_files_touched": 0
+  },
+  "economics": {
+    "tokens_consumed": 0,
+    "diff_size": 4,
+    "passes_to_converge": 1,
+    "repair_cycles": 0,
+    "cost_per_accepted_change": 0
+  },
+  "drift_forecast_score": 0.5763636363636364,
+  "summary_scores": {
+    "intent_alignment_score": 100,
+    "terminology_drift_score": 100,
+    "semantic_drift_score": 100,
+    "trust_boundary_change_score": 100,
+    "calibration_score": 50,
+    "blast_radius_score": 30
+  },
+  "violations": [],
+  "turbulence_hotspots": [
+    {
+      "path": ".gitignore",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": ".prettierignore",
+      "reason": "recently changed",
+      "count": 1
+    }
+  ]
+}
