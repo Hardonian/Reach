@@ -17,10 +17,7 @@
     "behavioralGuarantees": {
       "type": "object",
       "properties": {
-        "determinism": {
-          "type": "string",
-          "enum": ["none", "loose", "strict"]
-        },
+        "determinism": { "type": "string", "enum": ["none", "loose", "strict"] },
         "maxDriftScore": { "type": "number", "minimum": 0, "maximum": 1 },
         "retryPolicy": {
           "type": "object",
@@ -36,10 +33,7 @@
       "properties": {
         "allowedTools": { "type": "array", "items": { "type": "string" } },
         "deniedTools": { "type": "array", "items": { "type": "string" } },
-        "requiredPermissions": {
-          "type": "array",
-          "items": { "type": "string" }
-        }
+        "requiredPermissions": { "type": "array", "items": { "type": "string" } }
       }
     },
     "economicMoats": {

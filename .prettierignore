@@ -1,4 +1,6 @@
 node_modules/
+.github/
+protocol/
 .next/
 dist/
 build/
@@ -12,6 +14,8 @@ stitch_exports/
 ARTIFACTS/
 dgl/
 services/runner/data/
+services/runner/internal/api/data/
+apps/arcade/next-env.d.ts
 **/*.sarif
 pnpm-lock.yaml
 package-lock.json

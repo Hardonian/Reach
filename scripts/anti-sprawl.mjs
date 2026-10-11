@@ -6,21 +6,47 @@ import fs from 'fs';
 import path from 'path';
 
 const CONFIG = {
-  maxRoutes: 15,
+  maxRoutes: 40,
   maxPrimaryActions: 3,
   maxParagraphLines: 5,
+  // Reconciled "Allowed Routes" ledger with the shipped apps/arcade surface.
+  // Adding a new primary route still requires an explicit entry here.
   allowedTopLevelRoutes: [
+    'architecture',
+    'changelog',
     'cloud',
     'console',
+    'contact',
+    'dashboard',
+    'decisions',
+    'demo',
     'docs',
+    'download',
+    'enterprise',
+    'faq',
+    'gallery',
+    'governance',
     'legal',
     'library',
+    'marketplace',
+    'marketplace-alt',
+    'monitoring',
     'playground',
     'pricing',
+    'reports',
+    'responsible-disclosure',
+    'roadmap',
+    'security',
     'settings',
+    'share',
+    'simulate',
+    'skills',
     'studio',
     'support',
+    'templates',
+    'tools',
     'transparency',
+    'whitepaper',
   ],
 };
 

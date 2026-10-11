@@ -13,7 +13,7 @@ jobs:
   security-check:
     name: Dependency Security Check
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -41,14 +41,14 @@ jobs:
 
       - name: Audit VS Code extension
         run: cd extensions/vscode && npm audit --audit-level=high
-        continue-on-error: true # Known eslint/typescript-eslint issues
+        continue-on-error: true  # Known eslint/typescript-eslint issues
 
       - name: Install SDK dependencies
         run: cd sdk/ts && npm ci
 
       - name: Audit SDK
         run: cd sdk/ts && npm audit --audit-level=high
-        continue-on-error: true # Known vitest/vite issues
+        continue-on-error: true  # Known vitest/vite issues
 
       - name: Install Arcade dependencies
         run: cd apps/arcade && npm ci
@@ -61,7 +61,7 @@ jobs:
   prod-install-check:
     name: Production Install Verification
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -81,7 +81,7 @@ jobs:
   dependency-firewall:
     name: Dependency Firewall
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -91,7 +91,7 @@ jobs:
           # Check for toxic packages that should never be added
           BLOCKED_PKGS=("clawdbot" "codex" "connect" "request" "marked" "hono" "node-llama-cpp")
           VIOLATIONS=0
-
+          
           for pkg in "${BLOCKED_PKGS[@]}"; do
             # Find real usages, excluding overrides redirected to @reach/empty (the firewall mitigation)
             MATCHES=$(grep -r "\"$pkg\"" --include="package.json" --include="package-lock.json" . 2>/dev/null | grep -v node_modules | grep -v .git | grep -v "@reach/empty" || true)
@@ -101,7 +101,7 @@ jobs:
               VIOLATIONS=$((VIOLATIONS + 1))
             fi
           done
-
+          
           if [ $VIOLATIONS -gt 0 ]; then
             echo ""
             echo "❌ Dependency firewall violations detected!"
@@ -109,8 +109,9 @@ jobs:
             echo "   See SECURITY.md for the list of blocked packages."
             exit 1
           fi
-
+          
           echo "✅ No blocked packages detected"
+
 
   go-vulnerability-scan:
     name: Go Vulnerability Scan
@@ -137,7 +138,7 @@ jobs:
         run: govulncheck ./...
         working-directory: services/integration-hub
         env:
-          GOWORK: off # integration-hub is not listed in go.work; scan as a standalone module
+          GOWORK: off  # integration-hub is not listed in go.work; scan as a standalone module
 
   m3-security-boundary-hardening:
     name: M3 Security Boundary Hardening

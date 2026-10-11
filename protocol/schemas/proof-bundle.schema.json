@@ -4,18 +4,7 @@
   "title": "Proof Bundle Schema",
   "description": "Schema for standalone proof bundles in the Reach system (.reach-proof.json)",
   "type": "object",
-  "required": [
-    "version",
-    "fingerprint",
-    "merkleRoot",
-    "inputArtifactDigests",
-    "outputDigest",
-    "policyDigest",
-    "transcriptDigest",
-    "engineVersion",
-    "protocolVersion",
-    "createdAt"
-  ],
+  "required": ["version", "fingerprint", "merkleRoot", "inputArtifactDigests", "outputDigest", "policyDigest", "transcriptDigest", "engineVersion", "protocolVersion", "createdAt"],
   "properties": {
     "version": {
       "type": "string",

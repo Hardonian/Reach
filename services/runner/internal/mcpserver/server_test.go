@@ -13,6 +13,14 @@ type captureAudit struct {
 	events  []DeterministicAuditEvent
 }
 
+// These tests exercise the capability/scope firewall with static policies and
+// intentionally-unsigned packs. Force warn mode so a CI environment (CI=true)
+// does not switch the policy gate to enforce and reject them.
+func TestMain(m *testing.M) {
+	os.Setenv("REACH_POLICY_MODE", "warn")
+	os.Exit(m.Run())
+}
+
 type staticResolver struct{ ctx ConnectorContext }
 
 func (s staticResolver) Resolve(_ string, _ string) (ConnectorContext, error) { return s.ctx, nil }

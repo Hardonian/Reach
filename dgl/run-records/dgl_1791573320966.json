@@ -1,0 +1,230 @@
+{
+  "run_id": "dgl_1791573320966",
+  "timestamp": "2026-10-09T19:15:20.966Z",
+  "repo": "Reach",
+  "base_sha": "b160a91f6c04270e3121b586f8c022bef4bb1988",
+  "head_sha": "1b1de99d6966f177027289dc29581731b2d827b6",
+  "dgl_report_paths": [
+    "/home/scott/repos/Reach/dgl/reports/dgl_report.json",
+    "/home/scott/repos/Reach/dgl/reports/dgl_report.md",
+    "/home/scott/repos/Reach/dgl/reports/dgl_report.sarif"
+  ],
+  "openapi_compat_summary": {
+    "scanned_specs": [
+      "/home/scott/repos/Reach/openapi/reach.openapi.yaml",
+      "/home/scott/repos/Reach/openapi/reach.openapi.yaml"
+    ],
+    "breaking": 0,
+    "warnings": 0
+  },
+  "provider": {},
+  "context_hash": "fc00e87b6888f5304be9ad9a31cfe28c6c80d6b60ff3dd3e988a00a7d203d90f",
+  "blast_radius": {
+    "score": 78,
+    "subsystems_touched": 4,
+    "dependency_depth_impacted": 5,
+    "public_api_surface_affected": 0,
+    "openapi_endpoints_touched": 0,
+    "bundle_sensitive_files_touched": 0
+  },
+  "economics": {
+    "tokens_consumed": 0,
+    "diff_size": 854,
+    "passes_to_converge": 1,
+    "repair_cycles": 0,
+    "cost_per_accepted_change": 0
+  },
+  "drift_forecast_score": 1,
+  "summary_scores": {
+    "intent_alignment_score": 60,
+    "terminology_drift_score": 100,
+    "semantic_drift_score": 90,
+    "trust_boundary_change_score": 40,
+    "calibration_score": 50,
+    "blast_radius_score": 78
+  },
+  "violations": [
+    {
+      "type": "trust_boundary",
+      "severity": "error",
+      "paths": [
+        "protocol/integrations/oauth-client.schema.json"
+      ],
+      "evidence": "Changed file intersects trust-boundary keyword set.",
+      "suggested_fix": "Add targeted tests and acknowledgement under dgl/intent-acknowledgements/.",
+      "line": 1
+    },
+    {
+      "type": "trust_boundary",
+      "severity": "error",
+      "paths": [
+        "protocol/integrations/webhook-event.schema.json"
+      ],
+      "evidence": "Changed file intersects trust-boundary keyword set.",
+      "suggested_fix": "Add targeted tests and acknowledgement under dgl/intent-acknowledgements/.",
+      "line": 1
+    },
+    {
+      "type": "api_contract",
+      "severity": "warn",
+      "paths": [
+        "protocol/schemas/index.ts"
+      ],
+      "evidence": "Could not parse JSON contract for structural diff.",
+      "suggested_fix": "Ensure the contract file is valid JSON.",
+      "line": 1
+    }
+  ],
+  "turbulence_hotspots": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": ".prettierignore",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/README.md",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/capsule/README.md",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/examples/capsule_sync.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/examples/marketplace_catalog.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/examples/session_started.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/ide/apply_patch.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/ide/approval_request.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/ide/context.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/ide/notification.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/integrations/integration-manifest.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/integrations/notification.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/integrations/oauth-client.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/integrations/webhook-event.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/plugins/manifest.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/schemas/action.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/schemas/agent-contract.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/schemas/artifact.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/schemas/capsule-manifest.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/schemas/connector-manifest.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/schemas/decision.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/schemas/events.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/schemas/evidence.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/schemas/index.ts",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/schemas/junction.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/schemas/orchestration-plan.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/schemas/plugin-manifest.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/schemas/policy-bundle.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    },
+    {
+      "path": "protocol/schemas/proof-bundle.schema.json",
+      "reason": "recently changed",
+      "count": 1
+    }
+  ]
+}
