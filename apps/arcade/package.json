@@ -21,10 +21,10 @@
     "check:mode-links": "node ./scripts/check-mode-links.mjs"
   },
   "dependencies": {
-    "@xyflow/react": "^12.11.6",
+    "@xyflow/react": "^12.12.0",
     "better-sqlite3": "^13.0.2",
     "ioredis": "^6.0.0",
-    "next": "16.4.0",
+    "next": "16.3.8",
     "react": "19.3.0",
     "react-dom": "19.2.3",
     "stripe": "^22.4.0",
@@ -34,7 +34,7 @@
     "@tailwindcss/postcss": "^4.2.0",
     "@tailwindcss/typography": "^0.5.19",
     "@types/better-sqlite3": "^9.6.0",
-    "@types/node": "^26.6.2",
+    "@types/node": "^26.6.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.24",

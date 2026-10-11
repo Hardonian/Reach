@@ -28,14 +28,7 @@
           "order": { "type": "integer" },
           "stage": {
             "type": "string",
-            "enum": [
-              "INPUT",
-              "POLICY",
-              "ARTIFACTS",
-              "EXECUTION",
-              "OUTPUT",
-              "FINGERPRINT"
-            ]
+            "enum": ["INPUT", "POLICY", "ARTIFACTS", "EXECUTION", "OUTPUT", "FINGERPRINT"]
           },
           "timestamp": { "type": "string", "format": "date-time" },
           "data": {
@@ -49,10 +42,7 @@
               "outputHash": { "type": "string" }
             }
           },
-          "hash": {
-            "type": "string",
-            "description": "SHA-256 hash of this chain entry"
-          }
+          "hash": { "type": "string", "description": "SHA-256 hash of this chain entry" }
         }
       }
     },

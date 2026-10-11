@@ -11,8 +11,9 @@
  * @module cli/proof-cli
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { join, resolve } from 'path';
+import { createHash } from 'crypto';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { dirname, join, resolve } from 'path';
 import {
   ProofBundle,
   createProofBundle,
@@ -415,16 +416,13 @@ export async function proofValidateRemote(
 // ============================================================================
 
 function computeCidStub(data: unknown): string {
-  const { createHash } = require('crypto');
   return createHash('sha256').update(JSON.stringify(data)).digest('hex');
 }
 
 function ensureDirExists(filepath: string): void {
-  const fs = require('fs');
-  const path = require('path');
-  const dir = path.dirname(filepath);
+  const dir = dirname(filepath);
   if (!existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+    mkdirSync(dir, { recursive: true });
   }
 }
 

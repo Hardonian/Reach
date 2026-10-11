@@ -48,26 +48,30 @@ trap cleanup EXIT
 # Start server
 start_server() {
     log_info "Starting Reach server on port $REACH_PORT..."
-    
-    cd services/runner
-    go run ./cmd/reach-serve \
-        --port "$REACH_PORT" \
-        --bind "$REACH_HOST" \
-        --data "$DATA_DIR" &
+
+    # Run the pre-built binary (not `go run`, whose child process outlives the
+    # wrapper and hangs CI by keeping stdout open). `exec` makes $! the server.
+    (
+        cd services/runner
+        exec ./reach-serve \
+            --port "$REACH_PORT" \
+            --bind "$REACH_HOST" \
+            --data "$DATA_DIR"
+    ) >"$DATA_DIR/server.log" 2>&1 &
     SERVER_PID=$!
-    cd ../..
-    
+
     # Wait for server to be ready
     log_info "Waiting for server to be ready..."
     for i in {1..30}; do
-        if curl -sf "$REACH_BASE_URL/health" >/dev/null 2>&1; then
+        if curl -sf --max-time 3 "$REACH_BASE_URL/health" >/dev/null 2>&1; then
             log_info "Server is ready!"
             return 0
         fi
         sleep 1
     done
-    
+
     log_error "Server failed to start within 30 seconds"
+    cat "$DATA_DIR/server.log" >&2 2>/dev/null || true
     return 1
 }
 

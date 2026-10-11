@@ -20,7 +20,7 @@ echo "[2/4] unit tests"
   cd services/runner
   go test ./internal/jobs ./internal/mcpserver ./internal/workspace
 )
-cargo test -p engine-core
+cargo test -p engine-core --manifest-path crates/Cargo.toml
 
 echo "[3/4] e2e smoke"
 ./tools/e2e-smoke.sh
