@@ -44,7 +44,7 @@
     "marked": "npm:@reach/empty@1.0.0",
     "hono": "npm:@reach/empty@1.0.0",
     "node-llama-cpp": "npm:@reach/empty@1.0.0",
-    "brace-expansion": "^5.0.8",
+    "brace-expansion": "^5.0.12",
     "minimatch": "^10.2.5"
   }
 }
