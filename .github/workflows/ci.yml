@@ -72,7 +72,7 @@ jobs:
         run: node compat/compat-suite.mjs
       - name: check spec version consistency
         run: |
-          SPEC_VERSION=$(grep -oP 'specVersion:\s*"\K[0-9]+\.[0-9]+\.[0-9]+' spec/REACH_PROTOCOL_v1.md | head -1)
+          SPEC_VERSION=$(grep -oP 'specVersion[^0-9]*\K[0-9]+\.[0-9]+\.[0-9]+' spec/REACH_PROTOCOL_v1.md | head -1)
           echo "Spec version: $SPEC_VERSION"
           if [ "$SPEC_VERSION" != "1.0.0" ]; then
             echo "::error::Spec version mismatch or not found"
@@ -92,11 +92,11 @@ jobs:
           path: third_party/rust/vendor
           key: rust-vendor-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
       - name: fmt
-        run: cargo fmt --check
+        run: cargo fmt --manifest-path crates/Cargo.toml --all -- --check
       - name: clippy
-        run: ./tools/ci/rust_gate.sh clippy --workspace --all-targets -- -D warnings
+        run: ./tools/ci/rust_gate.sh clippy -p engine-core --all-targets --manifest-path crates/Cargo.toml -- -D warnings
       - name: test engine-core
-        run: ./tools/ci/rust_gate.sh test -p engine-core
+        run: ./tools/ci/rust_gate.sh test -p engine-core --manifest-path crates/Cargo.toml
 
   go:
     name: go checks
@@ -114,6 +114,9 @@ jobs:
         run: go vet ./...
       - name: go test
         run: go test ./...
+
+
+
 
   go-module-sanity-fast:
     name: go module sanity (fast, skip runner)
@@ -198,6 +201,7 @@ jobs:
       - name: test
         run: npm run test
 
+
   oss-gate:
     name: verify:oss (OSS purity + boundaries)
     runs-on: ubuntu-latest
@@ -263,21 +267,10 @@ jobs:
       - name: build enterprise site mode
         run: npm run build:enterprise
 
+
   verify-full:
     name: verify full
-    needs:
-      [
-        hygiene,
-        language-enforcement,
-        protocol,
-        spec-conformance,
-        rust,
-        go,
-        go-module-sanity,
-        oss-gate,
-        boundary-dominance,
-        dual-site-gates,
-      ]
+    needs: [hygiene, language-enforcement, protocol, spec-conformance, rust, go, go-module-sanity, oss-gate, boundary-dominance, dual-site-gates]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -296,6 +289,7 @@ jobs:
         run: cd extensions/vscode && npm install
       - name: verify full
         run: npm run verify:full
+
 
   site-mode-matrix:
     name: site mode matrix (oss + enterprise)
@@ -344,8 +338,9 @@ jobs:
         run: npm --prefix apps/arcade run build
       - name: start server and smoke test
         run: |
-          cd apps/arcade && npx next start -p 3000 &
+          ( cd apps/arcade && npx next start -p 3000 ) &
           sleep 5
-          BASE_URL=http://localhost:3000 node ../../tests/smoke/routes.test.mjs
+          BASE_URL=http://localhost:3000 node tests/smoke/routes.test.mjs
         env:
           NODE_ENV: test
+

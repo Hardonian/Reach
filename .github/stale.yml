@@ -2,10 +2,10 @@
 open_after: 60
 days_to_close: 90
 patterns:
-  - '*.md'
-  - '*.yaml'
-  - '*.yml'
+  - "*.md"
+  - "*.yaml"
+  - "*.yml"
 ignore:
-  - 'dependabot*'
-  - 'releases*'
-  - 'merge*'
+  - "dependabot*"
+  - "releases*"
+  - "merge*"

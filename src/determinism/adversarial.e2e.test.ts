@@ -47,13 +47,19 @@ describe('Adversarial M1 Tests', () => {
     afterEach(() => {
       try {
         unlinkSync(lockfilePath);
-      } catch {}
+      } catch {
+        /* best-effort cleanup */
+      }
       try {
         unlinkSync(pidfilePath);
-      } catch {}
+      } catch {
+        /* best-effort cleanup */
+      }
       try {
         rmdirSync(testDir);
-      } catch {}
+      } catch {
+        /* best-effort cleanup */
+      }
     });
 
     it('detects stale lock from dead process', () => {
@@ -222,7 +228,8 @@ describe('Adversarial M2 Tests', () => {
   describe('Numeric Precision Edge Cases', () => {
     it('handles -0 correctly', () => {
       expect(Object.is(-0, 0)).toBe(false);
-      expect(-0 === 0).toBe(true);
+      const negativeZero = -0;
+      expect(negativeZero === 0).toBe(true);
       expect(JSON.stringify(-0)).toBe('0');
     });
 

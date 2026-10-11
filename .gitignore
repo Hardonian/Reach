@@ -102,3 +102,6 @@ __pycache__/
 # Regenerable build artifacts (do not track)
 .cache/
 .turbo/
+
+# Go binary built by scripts/smoke-test.sh
+/services/runner/reach-serve
