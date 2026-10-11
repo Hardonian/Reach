@@ -68,8 +68,8 @@ importers:
         specifier: ^9.39.3
         version: 9.39.5(jiti@2.7.0)(supports-color@7.2.0)
       prettier:
-        specifier: ^3.9.8
-        version: 3.9.8
+        specifier: ^3.9.9
+        version: 3.9.9
       tsx:
         specifier: ^4.23.15
         version: 4.23.15
@@ -5239,7 +5239,7 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier@3.9.8: {}
+  prettier@3.9.9: {}
 
   prop-types@15.8.1:
     dependencies:
