@@ -20,10 +20,16 @@ jobs:
           cache: npm
 
       - name: Generate Go SBOM (reachctl)
+        # The repo is a Go workspace (go.work) with local replace directives;
+        # cyclonedx-gomod's module-scan modes cannot resolve them ("not a go
+        # module" / mangled replace paths). Generate from the real compiled
+        # binary instead — same dependency set, verified grounding.
         run: |
           mkdir -p sbom
-          go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.8.0
-          cyclonedx-gomod app -json -output sbom/go-reachctl.cdx.json ./services/runner/cmd/reachctl
+          export PATH="$PATH:$(go env GOPATH)/bin"
+          go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.12.0
+          (cd services/runner && go build -o "$RUNNER_TEMP/reachctl" ./cmd/reachctl)
+          cyclonedx-gomod bin -json -output sbom/go-reachctl.cdx.json "$RUNNER_TEMP/reachctl"
 
       - name: Generate Node SBOM (root)
         run: |
