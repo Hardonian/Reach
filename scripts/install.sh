@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Reach Installation Script
 # Supports: Linux, macOS
-# Prerequisites: Node.js 18+, pnpm, Git
+# Prerequisites: Node.js 18+ (npm), Git
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -73,11 +73,18 @@ install_node_deps() {
   log_step "Installing Node.js dependencies..."
   cd "$PROJECT_ROOT"
 
-  if [[ ! -f "pnpm-lock.yaml" ]]; then
-    log_warn "No pnpm-lock.yaml found, using npm package-lock.json"
+  # The repo's package manager of record is npm (package-lock.json; CI
+  # standardised on npm in 9b062a7). pnpm is accepted as a local preference
+  # only when npm is unavailable.
+  if command -v npm >/dev/null 2>&1; then
+    npm ci || npm install
+  elif command -v pnpm >/dev/null 2>&1; then
+    log_warn "npm not found; using pnpm"
+    pnpm install --frozen-lockfile || pnpm install
+  else
+    log_error "neither npm nor pnpm found; install Node.js 18+ (includes npm)"
+    exit 1
   fi
-
-  pnpm install --frozen-lockfile || pnpm install
 
   log_info "Node.js dependencies installed"
 }
@@ -153,13 +160,16 @@ run_verification() {
   log_step "Running verification..."
   cd "$PROJECT_ROOT"
 
-  if pnpm run typecheck >/dev/null 2>&1; then
+  local pm=npm
+  command -v npm >/dev/null 2>&1 || pm=pnpm
+
+  if $pm run typecheck >/dev/null 2>&1; then
     log_info "TypeScript type check passed"
   else
-    log_warn "TypeScript type check has warnings (see pnpm run typecheck)"
+    log_warn "TypeScript type check has warnings (see: $pm run typecheck)"
   fi
 
-  if pnpm run lint >/dev/null 2>&1; then
+  if $pm run lint >/dev/null 2>&1; then
     log_info "Lint check passed"
   else
     log_warn "Lint check has warnings"
@@ -178,10 +188,14 @@ echo ""
 log_step "Checking prerequisites..."
 need_cmd git
 need_cmd node
-need_cmd pnpm
+if ! command -v npm >/dev/null 2>&1 && ! command -v pnpm >/dev/null 2>&1; then
+  need_cmd npm
+fi
 
 check_version node 18.0 || true
-check_version pnpm 8.0 || true
+if command -v pnpm >/dev/null 2>&1; then
+  check_version pnpm 8.0 || true
+fi
 
 if command -v cargo >/dev/null 2>&1; then
   check_version cargo 1.75 || true
@@ -199,9 +213,9 @@ echo ""
 log_info "Installation complete!"
 echo ""
 echo "Next steps:"
-echo "  1. pnpm verify:fast    # Quick validation"
-echo "  2. pnpm verify:smoke   # Smoke test"
-echo "  3. pnpm verify         # Full verification"
+echo "  1. npm run verify:fast   # Quick validation"
+echo "  2. npm run verify:smoke  # Smoke test"
+echo "  3. npm run verify        # Full verification"
 echo ""
 echo "Documentation:"
 echo "  - docs/GO_LIVE.md      # Go-live guide"

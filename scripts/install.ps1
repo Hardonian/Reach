@@ -1,5 +1,5 @@
 # Reach Installation Script (Windows)
-# Prerequisites: Node.js 18+, pnpm, Git
+# Prerequisites: Node.js 18+ (npm), Git
 
 $ErrorActionPreference = 'Stop'
 
@@ -51,14 +51,21 @@ function Install-NodeDeps {
     Write-Step "Installing Node.js dependencies..."
     Set-Location $ProjectRoot
 
-    try {
+    # npm is the repo's package manager of record (CI standardised on npm in
+    # 9b062a7); pnpm is accepted only when npm is unavailable.
+    $pm = if (Test-Command npm) { "npm" } elseif (Test-Command pnpm) { "pnpm" } else {
+        Write-Error "Neither npm nor pnpm found; install Node.js 18+ (includes npm)"
+        exit 1
+    }
+    if ($pm -eq "npm") {
+        & npm ci 2>$null
+        if ($LASTEXITCODE -ne 0) { & npm install }
+    } else {
         & pnpm install --frozen-lockfile 2>$null
-        if ($LASTEXITCODE -ne 0) { throw }
-    } catch {
-        & pnpm install
+        if ($LASTEXITCODE -ne 0) { & pnpm install }
     }
 
-    Write-Info "Node.js dependencies installed"
+    Write-Info "Node.js dependencies installed ($pm)"
 }
 
 function Build-RustEngine {
@@ -136,11 +143,12 @@ function Run-Verification {
     Write-Step "Running verification..."
     Set-Location $ProjectRoot
 
+    $pm = if (Test-Command npm) { "npm" } else { "pnpm" }
     try {
-        & pnpm run typecheck 2>$null | Out-Null
+        & $pm run typecheck 2>$null | Out-Null
         Write-Info "TypeScript type check passed"
     } catch {
-        Write-Warn "TypeScript type check has warnings (see: pnpm run typecheck)"
+        Write-Warn "TypeScript type check has warnings (see: $pm run typecheck)"
     }
 }
 
@@ -155,7 +163,7 @@ Write-Host ""
 # Check prerequisites
 Write-Step "Checking prerequisites..."
 
-$prerequisites = @('git', 'node', 'pnpm')
+$prerequisites = @('git', 'node')
 foreach ($cmd in $prerequisites) {
     if (-not (Test-Command $cmd)) {
         Write-Error "Required command not found: $cmd"
@@ -165,10 +173,6 @@ foreach ($cmd in $prerequisites) {
                 Write-Host "  - Via nvm-windows: https://github.com/coreybutler/nvm-windows"
                 Write-Host "  - Via installer: https://nodejs.org/"
             }
-            'pnpm' {
-                Write-Host "  - npm install -g pnpm"
-                Write-Host "  - Via standalone: https://pnpm.io/installation"
-            }
             'git' {
                 Write-Host "  - Via installer: https://git-scm.com/"
             }
@@ -176,9 +180,14 @@ foreach ($cmd in $prerequisites) {
         exit 1
     }
 }
+if (-not ((Test-Command npm) -or (Test-Command pnpm))) {
+    Write-Error "Required command not found: npm (or pnpm)"
+    Write-Host "Install Node.js 18+ (bundles npm) or pnpm."
+    exit 1
+}
 
 Test-Version node 18.0.0 | Out-Null
-Test-Version pnpm 8.0.0 | Out-Null
+if (Test-Command pnpm) { Test-Version pnpm 8.0.0 | Out-Null }
 
 if (Test-Command cargo) {
     Test-Version cargo 1.75.0 | Out-Null
@@ -196,9 +205,9 @@ Write-Host ""
 Write-Info "Installation complete!"
 Write-Host ""
 Write-Host "Next steps:"
-Write-Host "  1. pnpm verify:fast    # Quick validation"
-Write-Host "  2. pnpm verify:smoke   # Smoke test"
-Write-Host "  3. pnpm verify         # Full verification"
+Write-Host "  1. npm run verify:fast   # Quick validation"
+Write-Host "  2. npm run verify:smoke  # Smoke test"
+Write-Host "  3. npm run verify        # Full verification"
 Write-Host ""
 Write-Host "Documentation:"
 Write-Host "  - docs\GO_LIVE.md      # Go-live guide"
